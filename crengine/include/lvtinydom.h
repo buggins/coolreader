@@ -2134,6 +2134,9 @@ public:
     lString16 getName() const { return _name; }
     /// returns position pointer
     ldomXPointer getXPointer();
+    /// set position pointer (for cases where we need to create a LVTocItem as a container, but
+    /// we'll know the xpointer only later, mostly always the same xpointer as its first child)
+    void setXPointer(ldomXPointer xp) { _position = xp; }
     /// returns position path
     lString16 getPath();
     /// returns Y position

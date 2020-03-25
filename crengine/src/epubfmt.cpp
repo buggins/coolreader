@@ -131,6 +131,73 @@ void ReadEpubToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, l
     }
 }
 
+void ReadEpubNavToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, ldomDocumentFragmentWriter & appender ) {
+    // http://idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-nav-def
+    if ( !mapRoot || !baseToc)
+        return;
+    lUInt16 ol_id = mapRoot->getDocument()->getElementNameIndex(L"ol");
+    lUInt16 li_id = mapRoot->getDocument()->getElementNameIndex(L"li");
+    lUInt16 a_id = mapRoot->getDocument()->getElementNameIndex(L"a");
+    lUInt16 span_id = mapRoot->getDocument()->getElementNameIndex(L"span");
+    for ( int i=0; i<5000; i++ ) {
+        ldomNode * li = mapRoot->findChildElement(LXML_NS_ANY, li_id, i);
+        if ( !li )
+            break;
+        LVTocItem * tocItem = NULL;
+        ldomNode * a = li->findChildElement(LXML_NS_ANY, a_id, -1);
+        if ( a ) {
+            lString16 href = a->getAttributeValue("href");
+            lString16 title = a->getText(' ');
+            if ( title.empty() ) {
+                // "If the a element contains [...] that do not provide intrinsic text alternatives,
+                // it must also include a title attribute with an alternate text rendition of the
+                // link label."
+                title = a->getAttributeValue("title");
+            }
+            title.trimDoubleSpaces(false, false, false);
+            if ( !href.empty() ) {
+                href = DecodeHTMLUrlString(href);
+                href = appender.convertHref(href);
+                if ( !href.empty() && href[0]=='#' ) {
+                    ldomNode * target = doc->getNodeById(doc->getAttrValueIndex(href.substr(1).c_str()));
+                    if ( target ) {
+                        ldomXPointer ptr(target, 0);
+                        tocItem = baseToc->addChild(title, ptr, lString16::empty_str);
+                        // Report xpointer to upper parent(s) that didn't have
+                        // one (no <a>) - but stop before the root node
+                        LVTocItem * tmp = baseToc;
+                        while ( tmp && tmp->getLevel() > 0 && tmp->getXPointer().isNull() ) {
+                            tmp->setXPointer(ptr);
+                            tmp = tmp->getParent();
+                        }
+                    }
+                }
+            }
+        }
+        // "The a element may optionally be followed by an ol ordered list representing
+        // a subsidiary content level below that heading (e.g., all the subsection
+        // headings of a section). The span element must be followed by an ol ordered
+        // list: it cannot be used in "leaf" li elements."
+        ldomNode * ol = li->findChildElement( LXML_NS_ANY, ol_id, -1 );
+        if ( ol ) { // there are sub items
+            if ( !tocItem ) {
+                // Make a LVTocItem to contain sub items
+                // There can be a <span>, with no href: children will set it to its own xpointer
+                lString16 title;
+                ldomNode * span = li->findChildElement(LXML_NS_ANY, span_id, -1);
+                if ( span ) {
+                    title = span->getText(' ');
+                    title.trimDoubleSpaces(false, false, false);
+                }
+                // If none, let title empty
+                tocItem = baseToc->addChild(title, ldomXPointer(), lString16::empty_str);
+            }
+            ReadEpubNavToc( doc, ol, tocItem, appender );
+        }
+    }
+}
+
+
 lString16 EpubGetRootFilePath(LVContainerRef m_arc)
 {
     // check root media type
@@ -760,7 +827,10 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         return false;
 
 
-    lString16 ncxHref;
+    bool isEpub3 = false;
+    lString16 epubVersion;
+    lString16 ncxHref; // epub2 TOC
+    lString16 navHref; // epub3 TOC
     lString16 coverId;
 
     LVEmbeddedFontList fontList;
@@ -778,6 +848,13 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 //            LVStreamRef out = LVOpenFileStream("/tmp/content.xml", LVOM_WRITE);
 //            doc->saveToStream(out, NULL, true);
 //        }
+
+        ldomNode * package = doc->nodeFromXPath(lString16("package"));
+        if ( package ) {
+            epubVersion = package->getAttributeValue("version");
+            if ( !epubVersion.empty() && epubVersion[0] >= '3' )
+                isEpub3 = true;
+        }
 
         CRPropRef m_doc_props = m_doc->getProps();
         // lString16 authors = doc->textFromXPath( cs16("package/metadata/creator"));
@@ -923,6 +1000,15 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 epubItem->mediaType = mediaType;
                 epubItems.add( epubItem );
 
+                if ( isEpub3 && navHref.empty() ) {
+                    lString16 properties = item->getAttributeValue("properties");
+                    // We met properties="nav scripted"...
+                    if ( properties == L"nav" || properties.startsWith(L"nav ")
+                            || properties.endsWith(L" nav") || properties.pos(L" nav ") >= 0 ) {
+                        navHref = href;
+                    }
+                }
+
 //                // register embedded document fonts
 //                if (mediaType == L"application/vnd.ms-opentype"
 //                        || mediaType == L"application/x-font-otf"
@@ -1056,7 +1142,94 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         }
     }
 
-    if ( !ncxHref.empty() ) {
+    // EPUB3 documents may contain both a toc.ncx and a nav xhtml toc.
+    // We would have preferred to read first a toc.ncx if present, as it
+    // is more structured than nav toc (all items have a href), but it
+    // seems Sigil includes a toc.ncx for EPUB3, but does not keep it
+    // up-to-date, while it does for the nav toc.
+    if ( isEpub3 && !navHref.empty() ) {
+        // Parse toc nav if epub3
+        // http://idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-nav-def
+        navHref = LVCombinePaths(codeBase, navHref);
+        LVStreamRef stream = m_arc->OpenStream(navHref.c_str(), LVOM_READ);
+        lString16 codeBase = LVExtractPath( navHref );
+        if ( codeBase.length()>0 && codeBase.lastChar()!='/' )
+            codeBase.append(1, L'/');
+        appender.setCodeBase(codeBase);
+        if ( !stream.isNull() ) {
+            ldomDocument * navDoc = LVParseXMLStream( stream );
+            if ( navDoc!=NULL ) {
+                // Find <nav epub:type="toc">
+                lUInt16 nav_id = navDoc->getElementNameIndex(L"nav");
+                ldomNode * navDocRoot = navDoc->getRootNode();
+                ldomNode * n = navDocRoot;
+                // Kobo falls back to other <nav type=> when no <nav type=toc> is found,
+                // let's do the same.
+                ldomNode * n_toc = NULL;
+                ldomNode * n_landmarks = NULL;
+                ldomNode * n_page_list = NULL;
+                if (n->isElement() && n->getChildCount() > 0) {
+                    int nextChildIndex = 0;
+                    n = n->getChildNode(nextChildIndex);
+                    while (true) {
+                        // Check only the first time we met a node (nextChildIndex == 0)
+                        // and not when we get back to it from a child to process next sibling
+                        if (nextChildIndex == 0) {
+                            if ( n->isElement() && n->getNodeId() == nav_id ) {
+                                lString16 type = n->getAttributeValue("type");
+                                if ( type == L"toc") {
+                                    n_toc = n;
+                                    break;
+                                }
+                                else if ( type == L"landmarks") {
+                                    n_landmarks = n;
+                                }
+                                else if ( type == L"page-list") {
+                                    n_page_list = n;
+                                }
+                            }
+                        }
+                        // Process next child
+                        if (n->isElement() && nextChildIndex < n->getChildCount()) {
+                            n = n->getChildNode(nextChildIndex);
+                            nextChildIndex = 0;
+                            continue;
+                        }
+                        // No more child, get back to parent and have it process our sibling
+                        nextChildIndex = n->getNodeIndex() + 1;
+                        n = n->getParentNode();
+                        if (!n) // back to root node
+                            break;
+                        if (n == navDocRoot && nextChildIndex >= n->getChildCount())
+                            // back to this node, and done with its children
+                            break;
+                    }
+                }
+                if ( !n_toc ) {
+                    if ( n_landmarks ) {
+                        n_toc = n_landmarks;
+                    }
+                    else if ( n_page_list ) {
+                        n_toc = n_page_list;
+                    }
+                }
+                if ( n_toc ) {
+                    // "Each nav element may contain an optional heading indicating the title
+                    // of the navigation list. The heading must be one of H1...H6."
+                    // We can't do much with this heading (that would not resolve to anything),
+                    // we could just add it as a top container item for the others, which will
+                    // be useless (and bothering), so let's just ignore it.
+                    // Get its first and single <OL> child
+                    ldomNode * ol_root = n_toc->findChildElement( LXML_NS_ANY, navDoc->getElementNameIndex(L"ol"), -1 );
+                    if ( ol_root )
+                        ReadEpubNavToc( m_doc, ol_root, m_doc->getToc(), appender );
+                }
+                delete navDoc;
+            }
+        }
+    }
+    // For EPUB2 (or EPUB3 where no nav toc was found): read ncx toc
+    if ( m_doc->getToc()->getChildCount() == 0 && !ncxHref.empty() ) {
         LVStreamRef stream = m_arc->OpenStream(ncxHref.c_str(), LVOM_READ);
         lString16 codeBase = LVExtractPath( ncxHref );
         if ( codeBase.length()>0 && codeBase.lastChar()!='/' )
@@ -1069,6 +1242,23 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 if ( navMap!=NULL )
                     ReadEpubToc( m_doc, navMap, m_doc->getToc(), appender );
                 delete ncxdoc;
+            }
+        }
+    }
+    // If still no TOC, fallback to using the spine, as Kobo does.
+    if ( m_doc->getToc()->getChildCount() == 0 ) {
+        LVTocItem * baseToc = m_doc->getToc();
+        for ( int i=0; i<spineItemsNb; i++ ) {
+            if (spineItems[i]->mediaType == "application/xhtml+xml") {
+                lString16 title = spineItems[i]->id; // nothing much else to use
+                lString16 href = appender.convertHref(spineItems[i]->id);
+                if ( href.empty() || href[0]!='#' )
+                    continue;
+                ldomNode * target = m_doc->getNodeById(m_doc->getAttrValueIndex(href.substr(1).c_str()));
+                if ( !target )
+                    continue;
+                ldomXPointer ptr(target, 0);
+                LVTocItem * tocItem = baseToc->addChild(title, ptr, lString16::empty_str);
             }
         }
     }
