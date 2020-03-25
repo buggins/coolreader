@@ -655,6 +655,11 @@ public:
     bool getFlatToc( LVPtrVector<LVTocItem, false> & items );
     /// update page numbers for items
     void updatePageNumbers( LVTocItem * item );
+    /// returns pointer to LVPageMapItems container
+    LVPageMap * getPageMap();
+    /// update PageMap items page infos
+    void updatePageMapInfo( LVPageMap * pagemap );
+
     /// set view mode (pages/scroll) - DVM_SCROLL/DVM_PAGES
     void setViewMode( LVDocViewMode view_mode, int visiblePageCount=-1 );
     /// get view mode (pages/scroll)

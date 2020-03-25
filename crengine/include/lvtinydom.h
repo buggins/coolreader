@@ -2169,6 +2169,86 @@ public:
     void invalidatePageNumbers() { if (_level==0) _percent = 0; }
 };
 
+/// PageMapItem
+class LVPageMapItem
+{
+    friend class LVDocView;
+    friend class LVPageMap;
+private:
+    ldomDocument *  _doc;
+    lInt32          _index;
+    lInt32          _page;
+    lInt32          _doc_y;
+    lString16       _label;
+    lString16       _path;
+    ldomXPointer    _position;
+    LVPageMapItem( ldomXPointer pos, lString16 path, const lString16 & label )
+        : _index(0), _page(0), _doc_y(-1), _label(label), _path(path), _position(pos)
+        { }
+    void setPage( int n ) { _page = n; }
+    void setDocY( int y ) { _doc_y = y; }
+public:
+    /// serialize to byte array (pointer will be incremented by number of bytes written)
+    bool serialize( SerialBuf & buf );
+    /// deserialize from byte array (pointer will be incremented by number of bytes read)
+    bool deserialize( ldomDocument * doc, SerialBuf & buf );
+    /// get rendered page number
+    int getPage() { return _page; }
+    /// returns node index
+    int getIndex() const { return _index; }
+    /// returns page label
+    lString16 getLabel() const { return _label; }
+    /// returns position pointer
+    ldomXPointer getXPointer();
+    /// returns position path
+    lString16 getPath();
+    /// returns Y position
+    int getDocY(bool refresh=false);
+    LVPageMapItem( ldomDocument * doc ) : _doc(doc), _index(0), _page(0), _doc_y(-1) { }
+};
+
+/// PageMapItems container
+class LVPageMap
+{
+    friend class LVDocView;
+private:
+    ldomDocument *  _doc;
+    bool            _page_info_valid;
+    lString16       _source;
+    LVPtrVector<LVPageMapItem> _children;
+    void addPage( LVPageMapItem * item ) {
+        item->_doc = _doc;
+        item->_index = _children.length();
+        _children.add(item);
+    }
+public:
+    /// serialize to byte array (pointer will be incremented by number of bytes written)
+    bool serialize( SerialBuf & buf );
+    /// deserialize from byte array (pointer will be incremented by number of bytes read)
+    bool deserialize( ldomDocument * doc, SerialBuf & buf );
+    /// returns child node count
+    int getChildCount() const { return _children.length(); }
+    /// returns child node by index
+    LVPageMapItem * getChild( int index ) const { return _children[index]; }
+    /// add page item
+    LVPageMapItem * addPage( const lString16 & label, ldomXPointer ptr, lString16 path )
+    {
+        LVPageMapItem * item = new LVPageMapItem( ptr, path, label );
+        addPage( item );
+        return item;
+    }
+    void clear() { _children.clear(); }
+    bool hasValidPageInfo() { return _page_info_valid; }
+    void invalidatePageInfo() { _page_info_valid = false; }
+    // Page source (info about the book paper version the page labels reference)
+    void setSource( lString16 source ) { _source = source; }
+    lString16 getSource() const { return _source; }
+    // root node constructor
+    LVPageMap( ldomDocument * doc )
+        : _doc(doc), _page_info_valid(false) { }
+    ~LVPageMap() { clear(); }
+};
+
 
 class ldomNavigationHistory
 {
@@ -2241,6 +2321,7 @@ class ldomDocument : public lxmlDocBase
     friend class ldomDocumentWriterFilter;
 private:
     LVTocItem m_toc;
+    LVPageMap m_pagemap;
 #if BUILD_LITE!=1
     font_ref_t _def_font; // default font
     css_style_ref_t _def_style;
@@ -2322,6 +2403,9 @@ public:
     bool isTocAlternativeToc() { return m_toc.hasAlternativeTocFlag(); }
     /// build TOC from headings
     void buildTocFromHeadings();
+
+    /// returns pointer to PageMapItems container
+    LVPageMap * getPageMap() { return &m_pagemap; }
 
 #if BUILD_LITE!=1
     bool isTocFromCacheValid() { return _toc_from_cache_valid; }

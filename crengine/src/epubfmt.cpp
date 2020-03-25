@@ -91,7 +91,7 @@ bool DetectEpubFormat( LVStreamRef stream )
     return true;
 }
 
-void ReadEpubToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, ldomDocumentFragmentWriter & appender ) {
+void ReadEpubNcxToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, ldomDocumentFragmentWriter & appender ) {
     if ( !mapRoot || !baseToc)
         return;
     lUInt16 navPoint_id = mapRoot->getDocument()->getElementNameIndex(L"navPoint");
@@ -127,7 +127,53 @@ void ReadEpubToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, l
             continue;
         ldomXPointer ptr(target, 0);
         LVTocItem * tocItem = baseToc->addChild(title, ptr, lString16::empty_str);
-        ReadEpubToc( doc, navPoint, tocItem, appender );
+        ReadEpubNcxToc( doc, navPoint, tocItem, appender );
+    }
+}
+
+void ReadEpubNcxPageList( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * pageMap, ldomDocumentFragmentWriter & appender ) {
+    // http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2
+    // http://idpf.org/epub/a11y/techniques/techniques-20160711.html#refPackagesLatest
+    //    <pageTarget id="p4" playOrder="6" type="normal" value="2">
+    //      <navLabel><text>Page 8</text></navLabel>
+    //      <content src="OEBPS/PL12.xhtml#page_8"/>
+    //    </pageTarget>
+    // http://blog.epubbooks.com/346/marking-up-page-numbers-in-the-epub-ncx/
+    // type:value must be unique, and value can not be used as a short version of text...
+    // Also see http://kb.daisy.org/publishing/docs/navigation/pagelist.html
+    if ( !mapRoot || !pageMap)
+        return;
+    lUInt16 pageTarget_id = mapRoot->getDocument()->getElementNameIndex(L"pageTarget");
+    lUInt16 navLabel_id = mapRoot->getDocument()->getElementNameIndex(L"navLabel");
+    lUInt16 content_id = mapRoot->getDocument()->getElementNameIndex(L"content");
+    lUInt16 text_id = mapRoot->getDocument()->getElementNameIndex(L"text");
+    for ( int i=0; i<50000; i++ ) {
+        ldomNode * pageTarget = mapRoot->findChildElement(LXML_NS_ANY, pageTarget_id, i);
+        if ( !pageTarget )
+            break;
+        ldomNode * navLabel = pageTarget->findChildElement(LXML_NS_ANY, navLabel_id, -1);
+        if ( !navLabel )
+            continue;
+        ldomNode * text = navLabel->findChildElement(LXML_NS_ANY, text_id, -1);
+        if ( !text )
+            continue;
+        ldomNode * content = pageTarget->findChildElement(LXML_NS_ANY, content_id, -1);
+        if ( !content )
+            continue;
+        lString16 href = content->getAttributeValue("src");
+        lString16 title = text->getText(' ');
+        title.trimDoubleSpaces(false, false, false);
+        if ( href.empty() || title.empty() )
+            continue;
+        href = DecodeHTMLUrlString(href);
+        href = appender.convertHref(href);
+        if ( href.empty() || href[0]!='#' )
+            continue;
+        ldomNode * target = doc->getNodeById(doc->getAttrValueIndex(href.substr(1).c_str()));
+        if ( !target )
+            continue;
+        ldomXPointer ptr(target, 0);
+        pageMap->addPage(title, ptr, lString16::empty_str);
     }
 }
 
@@ -197,6 +243,65 @@ void ReadEpubNavToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc
     }
 }
 
+void ReadEpubNavPageMap( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * pageMap, ldomDocumentFragmentWriter & appender ) {
+    // http://idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-nav-def
+    if ( !mapRoot || !pageMap)
+        return;
+    lUInt16 ol_id = mapRoot->getDocument()->getElementNameIndex(L"ol");
+    lUInt16 li_id = mapRoot->getDocument()->getElementNameIndex(L"li");
+    lUInt16 a_id = mapRoot->getDocument()->getElementNameIndex(L"a");
+    for ( int i=0; i<50000; i++ ) {
+        ldomNode * li = mapRoot->findChildElement(LXML_NS_ANY, li_id, i);
+        if ( !li )
+            break;
+        ldomNode * a = li->findChildElement(LXML_NS_ANY, a_id, -1);
+        if ( a ) {
+            lString16 href = a->getAttributeValue("href");
+            lString16 title = a->getText(' ');
+            if ( title.empty() ) {
+                title = a->getAttributeValue("title");
+            }
+            title.trimDoubleSpaces(false, false, false);
+            if ( !href.empty() ) {
+                href = DecodeHTMLUrlString(href);
+                href = appender.convertHref(href);
+                if ( !href.empty() && href[0]=='#' ) {
+                    ldomNode * target = doc->getNodeById(doc->getAttrValueIndex(href.substr(1).c_str()));
+                    if ( target ) {
+                        ldomXPointer ptr(target, 0);
+                        pageMap->addPage(title, ptr, lString16::empty_str);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ReadEpubAdobePageMap( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * pageMap, ldomDocumentFragmentWriter & appender ) {
+    // https://wiki.mobileread.com/wiki/Adobe_Digital_Editions#Page-map
+    if ( !mapRoot || !pageMap)
+        return;
+    lUInt16 page_id = mapRoot->getDocument()->getElementNameIndex(L"page");
+    for ( int i=0; i<50000; i++ ) {
+        ldomNode * page = mapRoot->findChildElement(LXML_NS_ANY, page_id, i);
+        if ( !page )
+            break;
+        lString16 href = page->getAttributeValue("href");
+        lString16 title = page->getAttributeValue("name");
+        title.trimDoubleSpaces(false, false, false);
+        if ( href.empty() || title.empty() )
+            continue;
+        href = DecodeHTMLUrlString(href);
+        href = appender.convertHref(href);
+        if ( href.empty() || href[0]!='#' )
+            continue;
+        ldomNode * target = doc->getNodeById(doc->getAttrValueIndex(href.substr(1).c_str()));
+        if ( !target )
+            continue;
+        ldomXPointer ptr(target, 0);
+        pageMap->addPage(title, ptr, lString16::empty_str);
+    }
+}
 
 lString16 EpubGetRootFilePath(LVContainerRef m_arc)
 {
@@ -829,8 +934,10 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
     bool isEpub3 = false;
     lString16 epubVersion;
-    lString16 ncxHref; // epub2 TOC
     lString16 navHref; // epub3 TOC
+    lString16 ncxHref; // epub2 TOC
+    lString16 pageMapHref; // epub2 Adobe page-map
+    lString16 pageMapSource;
     lString16 coverId;
 
     LVEmbeddedFontList fontList;
@@ -861,6 +968,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         lString16 title = doc->textFromXPath( cs16("package/metadata/title"));
         lString16 language = doc->textFromXPath( cs16("package/metadata/language"));
         lString16 description = doc->textFromXPath( cs16("package/metadata/description"));
+        pageMapSource = doc->textFromXPath( cs16("package/metadata/source"));
         // m_doc_props->setString(DOC_PROP_AUTHORS, authors);
         m_doc_props->setString(DOC_PROP_TITLE, title);
         m_doc_props->setString(DOC_PROP_LANGUAGE, language);
@@ -1044,10 +1152,13 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             ldomNode * spine = doc->nodeFromXPath( cs16("package/spine") );
             if ( spine ) {
 
+                // <spine toc="ncx" page-map="page-map">
                 EpubItem * ncx = epubItems.findById( spine->getAttributeValue("toc") ); //TODO
-                //EpubItem * ncx = epubItems.findById(cs16("ncx"));
                 if ( ncx!=NULL )
                     ncxHref = LVCombinePaths(codeBase, ncx->href);
+                EpubItem * page_map = epubItems.findById( spine->getAttributeValue("page-map") );
+                if ( page_map!=NULL )
+                    pageMapHref = LVCombinePaths(codeBase, page_map->href);
 
                 for ( int i=1; i<50000; i++ ) {
                     ldomNode * item = doc->nodeFromXPath(lString16("package/spine/itemref[") << fmt::decimal(i) << "]");
@@ -1142,6 +1253,9 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         }
     }
 
+    bool has_toc = false;
+    bool has_pagemap = false;
+
     // EPUB3 documents may contain both a toc.ncx and a nav xhtml toc.
     // We would have preferred to read first a toc.ncx if present, as it
     // is more structured than nav toc (all items have a href), but it
@@ -1179,7 +1293,6 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                                 lString16 type = n->getAttributeValue("type");
                                 if ( type == L"toc") {
                                     n_toc = n;
-                                    break;
                                 }
                                 else if ( type == L"landmarks") {
                                     n_landmarks = n;
@@ -1224,12 +1337,22 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     if ( ol_root )
                         ReadEpubNavToc( m_doc, ol_root, m_doc->getToc(), appender );
                 }
+                if ( n_page_list ) {
+                    ldomNode * ol_root = n_page_list->findChildElement( LXML_NS_ANY, navDoc->getElementNameIndex(L"ol"), -1 );
+                    if ( ol_root )
+                        ReadEpubNavPageMap( m_doc, ol_root, m_doc->getPageMap(), appender );
+                }
                 delete navDoc;
             }
         }
     }
+
+    has_toc = m_doc->getToc()->getChildCount() > 0;
+    has_pagemap = m_doc->getPageMap()->getChildCount() > 0;
+
     // For EPUB2 (or EPUB3 where no nav toc was found): read ncx toc
-    if ( m_doc->getToc()->getChildCount() == 0 && !ncxHref.empty() ) {
+    // We may also find in the ncx a <pageList> list
+    if ( ( !has_toc || !has_pagemap ) && !ncxHref.empty() ) {
         LVStreamRef stream = m_arc->OpenStream(ncxHref.c_str(), LVOM_READ);
         lString16 codeBase = LVExtractPath( ncxHref );
         if ( codeBase.length()>0 && codeBase.lastChar()!='/' )
@@ -1238,15 +1361,27 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         if ( !stream.isNull() ) {
             ldomDocument * ncxdoc = LVParseXMLStream( stream );
             if ( ncxdoc!=NULL ) {
-                ldomNode * navMap = ncxdoc->nodeFromXPath( cs16("ncx/navMap"));
-                if ( navMap!=NULL )
-                    ReadEpubToc( m_doc, navMap, m_doc->getToc(), appender );
+                if ( !has_toc ) {
+                    ldomNode * navMap = ncxdoc->nodeFromXPath( cs16("ncx/navMap"));
+                    if ( navMap!=NULL )
+                        ReadEpubNcxToc( m_doc, navMap, m_doc->getToc(), appender );
+                }
+                // http://blog.epubbooks.com/346/marking-up-page-numbers-in-the-epub-ncx/
+                if ( !has_pagemap ) {
+                    ldomNode * pageList = ncxdoc->nodeFromXPath( cs16("ncx/pageList"));
+                    if ( pageList!=NULL )
+                        ReadEpubNcxPageList( m_doc, pageList, m_doc->getPageMap(), appender );
+                }
                 delete ncxdoc;
             }
         }
     }
+
+    has_toc = m_doc->getToc()->getChildCount() > 0;
+    has_pagemap = m_doc->getPageMap()->getChildCount() > 0;
+
     // If still no TOC, fallback to using the spine, as Kobo does.
-    if ( m_doc->getToc()->getChildCount() == 0 ) {
+    if ( !has_toc ) {
         LVTocItem * baseToc = m_doc->getToc();
         for ( int i=0; i<spineItemsNb; i++ ) {
             if (spineItems[i]->mediaType == "application/xhtml+xml") {
@@ -1262,6 +1397,30 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             }
         }
     }
+
+    // If no pagemap, parse Adobe page-map if there is one
+    // https://wiki.mobileread.com/wiki/Adobe_Digital_Editions#Page-map
+    if ( !has_pagemap && !pageMapHref.empty() ) {
+        LVStreamRef stream = m_arc->OpenStream(pageMapHref.c_str(), LVOM_READ);
+        lString16 codeBase = LVExtractPath( pageMapHref );
+        if ( codeBase.length()>0 && codeBase.lastChar()!='/' )
+            codeBase.append(1, L'/');
+        appender.setCodeBase(codeBase);
+        if ( !stream.isNull() ) {
+            ldomDocument * pagemapdoc = LVParseXMLStream( stream );
+            if ( pagemapdoc!=NULL ) {
+                if ( !has_pagemap ) {
+                    ldomNode * pageMap = pagemapdoc->nodeFromXPath( cs16("page-map"));
+                    if ( pageMap!=NULL )
+                        ReadEpubAdobePageMap( m_doc, pageMap, m_doc->getPageMap(), appender );
+                }
+                delete pagemapdoc;
+            }
+        }
+    }
+
+    if ( m_doc->getPageMap()->getChildCount() > 0 && !pageMapSource.empty() )
+        m_doc->getPageMap()->setSource(pageMapSource);
 
     writer.OnTagClose(L"", L"body");
     writer.OnStop();

@@ -931,6 +931,49 @@ void LVDocView::updatePageNumbers(LVTocItem * item) {
 	}
 }
 
+LVPageMap * LVDocView::getPageMap() {
+    if (!m_doc)
+        return NULL;
+    if ( !m_doc->getPageMap()->hasValidPageInfo() ) {
+        updatePageMapInfo(m_doc->getPageMap());
+    }
+    return m_doc->getPageMap();
+}
+
+/// update page info for LVPageMapItems
+void LVDocView::updatePageMapInfo(LVPageMap * pagemap) {
+    // Ensure page and doc_y never go backward
+    int prev_page = 0;
+    int prev_doc_y = 0;
+    for (int i = 0; i < pagemap->getChildCount(); i++) {
+        LVPageMapItem * item = pagemap->getChild(i);
+        if (!item->getXPointer().isNull()) {
+            int doc_y = item->getDocY(true); // refresh
+            int page = -1;
+            if (doc_y >= 0) {
+                page = m_pages.FindNearestPage(doc_y, 0);
+                if (page < 0 && page >= getPageCount())
+                    page = -1;
+            }
+            item->_page = page;
+            if ( item->_page < prev_page )
+                item->_page = prev_page;
+            else
+                prev_page = item->_page;
+            if ( item->_doc_y < prev_doc_y )
+                item->_doc_y = prev_doc_y;
+            else
+                prev_doc_y = item->_doc_y;
+        }
+        else {
+            item->_page = prev_page;
+            item->_doc_y = prev_doc_y;
+        }
+    }
+    pagemap->_page_info_valid = true;
+}
+
+
 /// get a stream for reading to document internal file (path inside the ZIP for EPUBs,
 /// path relative to document directory for non-container documents like HTML)
 LVStreamRef LVDocView::getDocumentFileStream( lString16 filePath ) {

@@ -84,7 +84,7 @@ int gDOMVersionRequested     = DOM_VERSION_CURRENT;
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
 // increment to force complete reload/reparsing of old file
-#define CACHE_FILE_FORMAT_VERSION "3.12.59"
+#define CACHE_FILE_FORMAT_VERSION "3.12.60"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0021
@@ -136,6 +136,7 @@ int gDOMVersionRequested     = DOM_VERSION_CURRENT;
 #define COMPRESS_MISC_DATA          true
 #define COMPRESS_PAGES_DATA         true
 #define COMPRESS_TOC_DATA           true
+#define COMPRESS_PAGEMAP_DATA       true
 #define COMPRESS_STYLE_DATA         true
 
 //#define CACHE_FILE_SECTOR_SIZE 4096
@@ -203,10 +204,11 @@ enum CacheFileBlockType {
     CBT_TEXT_NODE,
     CBT_REND_PARAMS, //12
     CBT_TOC_DATA,
+    CBT_PAGEMAP_DATA,
     CBT_STYLE_DATA,
-    CBT_BLOB_INDEX, //15
+    CBT_BLOB_INDEX, //16
     CBT_BLOB_DATA,
-    CBT_FONT_DATA  //17
+    CBT_FONT_DATA  //18
 };
 
 
@@ -3448,7 +3450,8 @@ ldomNode * lxmlDocBase::getRootNode()
 
 ldomDocument::ldomDocument()
 : lxmlDocBase(DEF_DOC_DATA_BUFFER_SIZE),
-m_toc(this)
+  m_toc(this)
+, m_pagemap(this)
 #if BUILD_LITE!=1
 , _last_docflags(0)
 , _page_height(0)
@@ -3498,6 +3501,7 @@ lxmlDocBase::lxmlDocBase( lxmlDocBase & doc )
 ldomDocument::ldomDocument( ldomDocument & doc )
 : lxmlDocBase(doc)
 , m_toc(this)
+, m_pagemap(this)
 #if BUILD_LITE!=1
 , _def_font(doc._def_font) // default font
 , _def_style(doc._def_style)
@@ -4503,6 +4507,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         // force recalculation of page numbers (even if not computed in this
         // session, they will be when loaded from cache next session)
         m_toc.invalidatePageNumbers();
+        m_pagemap.invalidatePageInfo();
         pages->clear();
         if ( showCover )
             pages->add( new LVRendPageInfo( _page_height ) );
@@ -12614,6 +12619,19 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback, L
             return false;
         }
     }
+    if (progressCallback) progressCallback->OnLoadFileProgress(85);
+    CRLog::trace("ldomDocument::loadCacheFileContent() - PageMap");
+    {
+        SerialBuf pagemapbuf(0,true);
+        if ( !_cacheFile->read( CBT_PAGEMAP_DATA, pagemapbuf ) ) {
+            CRLog::error("Error while reading PageMap data");
+            return false;
+        } else if ( !m_pagemap.deserialize(this, pagemapbuf) ) {
+            CRLog::error("PageMap data deserialization is failed");
+            return false;
+        }
+    }
+
 
     if (progressCallback) progressCallback->OnLoadFileProgress(90);
     if ( loadStylesData() ) {
@@ -12807,8 +12825,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime, LVDo
         }
         CRLog::info("Saving render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x, nodeDisplayStyleHash=%x",
                     _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy, _hdr.node_displaystyle_hash);
-
-        if (progressCallback) progressCallback->OnSaveCacheFileProgress(75);
+        if (progressCallback) progressCallback->OnSaveCacheFileProgress(73);
 
         CRLog::trace("ldomDocument::saveChanges() - TOC");
         {
@@ -12818,6 +12835,19 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime, LVDo
                 return CR_ERROR;
             } else if ( !_cacheFile->write( CBT_TOC_DATA, tocbuf, COMPRESS_TOC_DATA ) ) {
                 CRLog::error("Error while writing TOC data");
+                return CR_ERROR;
+            }
+        }
+        if (progressCallback) progressCallback->OnSaveCacheFileProgress(76);
+
+        CRLog::trace("ldomDocument::saveChanges() - PageMap");
+        {
+            SerialBuf pagemapbuf(0,true);
+            if ( !m_pagemap.serialize(pagemapbuf) ) {
+                CRLog::error("PageMap data serialization is failed");
+                return CR_ERROR;
+            } else if ( !_cacheFile->write( CBT_PAGEMAP_DATA, pagemapbuf, COMPRESS_PAGEMAP_DATA ) ) {
+                CRLog::error("Error while writing PageMap data");
                 return CR_ERROR;
             }
         }
@@ -16666,6 +16696,112 @@ void ldomDocument::buildAlternativeToc()
     // cache file will have to be updated with the alt TOC
     setCacheFileStale(true);
     _toc_from_cache_valid = false; // to force update of page numbers
+}
+
+/// returns position pointer
+ldomXPointer LVPageMapItem::getXPointer()
+{
+    if ( _position.isNull() && !_path.empty() ) {
+        _position = _doc->createXPointer( _path );
+        if ( _position.isNull() ) {
+            CRLog::trace("LVPageMapItem node is not found for path %s", LCSTR(_path) );
+        } else {
+            CRLog::trace("LVPageMapItem node is found for path %s", LCSTR(_path) );
+        }
+    }
+    return _position;
+}
+
+/// returns position path
+lString16 LVPageMapItem::getPath()
+{
+    if ( _path.empty() && !_position.isNull())
+        _path = _position.toString();
+    return _path;
+}
+
+/// returns Y position
+int LVPageMapItem::getDocY(bool refresh)
+{
+#if BUILD_LITE!=1
+    if ( _doc_y < 0 || refresh )
+        _doc_y = getXPointer().toPoint().y;
+    if ( _doc_y < 0 && !_position.isNull() ) {
+        // We got a xpointer, that did not resolve to a point.
+        // It may be because the node it points to is invisible,
+        // which may happen with pagebreak spans (that may not
+        // be empty, and were set to "display: none").
+        ldomXPointerEx xp = _position;
+        if ( !xp.isVisible() ) {
+            if ( xp.nextVisibleText() ) {
+                _doc_y = xp.toPoint().y;
+            }
+            else {
+                xp = _position;
+                if ( xp.prevVisibleText() ) {
+                    _doc_y = xp.toPoint().y;
+                }
+            }
+        }
+    }
+    return _doc_y;
+#else
+    return 0;
+#endif
+}
+
+/// serialize to byte array (pointer will be incremented by number of bytes written)
+bool LVPageMapItem::serialize( SerialBuf & buf )
+{
+    buf << (lUInt32)_index << (lUInt32)_page << (lUInt32)_doc_y << _label << getPath();
+    return !buf.error();
+}
+
+/// deserialize from byte array (pointer will be incremented by number of bytes read)
+bool LVPageMapItem::deserialize( ldomDocument * doc, SerialBuf & buf )
+{
+    if ( buf.error() )
+        return false;
+    buf >> _index >> _page >> _doc_y >> _label >> _path;
+    return !buf.error();
+
+}
+/// serialize to byte array (pointer will be incremented by number of bytes written)
+bool LVPageMap::serialize( SerialBuf & buf )
+{
+    buf << (lUInt32)_page_info_valid << (lUInt32)_children.length() << _source;
+    if ( buf.error() )
+        return false;
+    for ( int i=0; i<_children.length(); i++ ) {
+        _children[i]->serialize( buf );
+        if ( buf.error() )
+            return false;
+    }
+    return !buf.error();
+}
+
+/// deserialize from byte array (pointer will be incremented by number of bytes read)
+bool LVPageMap::deserialize( ldomDocument * doc, SerialBuf & buf )
+{
+    if ( buf.error() )
+        return false;
+    lUInt32 childCount = 0;
+    lUInt32 pageInfoValid = 0;
+    buf >> pageInfoValid >> childCount >> _source;
+    if ( buf.error() )
+        return false;
+    _page_info_valid = (bool)pageInfoValid;
+    for ( int i=0; i<childCount; i++ ) {
+        LVPageMapItem * item = new LVPageMapItem(doc);
+        if ( !item->deserialize( doc, buf ) ) {
+            delete item;
+            return false;
+        }
+        _children.add( item );
+        if ( buf.error() )
+            return false;
+    }
+    return true;
 }
 
 
