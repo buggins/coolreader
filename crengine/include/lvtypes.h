@@ -137,8 +137,9 @@ public:
     /// returns true if specified rectangle is fully covered by this rectangle
     bool isRectInside( lvRect rc ) const
     {
-        if ( rc.isEmpty() || isEmpty() )
-            return false;
+        // This was wrong: a 0-height or 0-width rect can be inside another rect
+        // if ( rc.isEmpty() || isEmpty() )
+        //    return false;
         if ( rc.left < left || rc.right > right || rc.top < top || rc.bottom > bottom )
             return false;
         return true;
