@@ -9966,9 +9966,10 @@ void ldomXRange::getSegmentRects( LVArray<lvRect> & rects )
         curPos.setOffset(startOffset);
         prevCharRect = nodeStartRect;
         for (int i=startOffset+1; i<=textLen-1; i++) {
-            // skip spaces and soft-hyphens
+            // skip spaces (but let soft-hyphens in, so they are part of the
+            // highlight when they are shown at end of line)
             lChar16 c = nodeText[i];
-            if (c == ' ' || c == 0x00AD)
+            if (c == ' ') // || c == 0x00AD)
                 continue;
             curPos.setOffset(i);
             curCharRect = lvRect(); // reset
