@@ -4040,235 +4040,192 @@ static const signed char base64_decode_table[] = {
    41,42,43,44,45,46,47,48,49,50,51,-1,-1,-1,-1,-1  //112..127 70
 };
 
-#define BASE64_BUF_SIZE 128
-class LVBase64Stream : public LVNamedStream
+int LVBase64Stream::readNextBytes()
 {
-private:
-    lString8    m_curr_text;
-    int         m_text_pos;
-    lvsize_t    m_size;
-    lvpos_t     m_pos;
-
-    int         m_iteration;
-    lUInt32     m_value;
-
-    lUInt8      m_bytes[BASE64_BUF_SIZE];
-    int         m_bytes_count;
-    int         m_bytes_pos;
-
-    int readNextBytes()
+    int bytesRead = 0;
+    bool flgEof = false;
+    while ( bytesRead == 0 && !flgEof )
     {
-        int bytesRead = 0;
-        bool flgEof = false;
-        while ( bytesRead == 0 && !flgEof )
+        while ( m_text_pos >= (int)m_curr_text.length() )
         {
-            while ( m_text_pos >= (int)m_curr_text.length() )
+            return bytesRead;
+        }
+        int len = m_curr_text.length();
+        const lChar8 * txt = m_curr_text.c_str();
+        for ( ; m_text_pos<len && m_bytes_count < BASE64_BUF_SIZE - 3; m_text_pos++ )
+        {
+            lChar16 ch = txt[ m_text_pos ];
+            if ( ch < 128 )
             {
-                return bytesRead;
-            }
-            int len = m_curr_text.length();
-            const lChar8 * txt = m_curr_text.c_str();
-            for ( ; m_text_pos<len && m_bytes_count < BASE64_BUF_SIZE - 3; m_text_pos++ )
-            {
-                lChar16 ch = txt[ m_text_pos ];
-                if ( ch < 128 )
+                if ( ch == '=' )
                 {
-                    if ( ch == '=' )
+                    // end of stream
+                    if ( m_iteration == 2 )
                     {
-                        // end of stream
-                        if ( m_iteration == 2 )
-                        {
-                            m_bytes[m_bytes_count++] = (lUInt8)((m_value>>4) & 0xFF);
-                            bytesRead++;
-                        }
-                        else if ( m_iteration == 3 )
-                        {
-                            m_bytes[m_bytes_count++] = (lUInt8)((m_value>>10) & 0xFF);
-                            m_bytes[m_bytes_count++] = (lUInt8)((m_value>>2) & 0xFF);
-                            bytesRead += 2;
-                        }
-                        // stop!!!
-                        //m_text_pos--;
-                        m_iteration = 0;
-                        flgEof = true;
-                        break;
+                        m_bytes[m_bytes_count++] = (lUInt8)((m_value>>4) & 0xFF);
+                        bytesRead++;
                     }
-                    else
+                    else if ( m_iteration == 3 )
                     {
-                        int k = base64_decode_table[ch];
-                        if ( !(k & 0x80) ) {
-                            // next base-64 digit
-                            m_value = (m_value << 6) | (k);
-                            m_iteration++;
-                            if (m_iteration==4)
-                            {
-                                //
-                                m_bytes[m_bytes_count++] = (lUInt8)((m_value>>16) & 0xFF);
-                                m_bytes[m_bytes_count++] = (lUInt8)((m_value>>8) & 0xFF);
-                                m_bytes[m_bytes_count++] = (lUInt8)((m_value>>0) & 0xFF);
-                                m_iteration = 0;
-                                m_value = 0;
-                                bytesRead+=3;
-                            }
-                        } else {
-                            //m_text_pos++;
-                        }
+                        m_bytes[m_bytes_count++] = (lUInt8)((m_value>>10) & 0xFF);
+                        m_bytes[m_bytes_count++] = (lUInt8)((m_value>>2) & 0xFF);
+                        bytesRead += 2;
                     }
-                }
-            }
-        }
-        return bytesRead;
-    }
-
-    int bytesAvailable() { return m_bytes_count - m_bytes_pos; }
-
-    bool rewind()
-    {
-        m_pos = 0;
-        m_bytes_count = 0;
-        m_bytes_pos = 0;
-        m_iteration = 0;
-        m_value = 0;
-        m_text_pos = 0;
-        return m_text_pos < m_curr_text.length();
-    }
-
-    bool skip( lvsize_t count )
-    {
-        while ( count )
-        {
-            if ( m_bytes_pos >= m_bytes_count )
-            {
-                m_bytes_pos = 0;
-                m_bytes_count = 0;
-                int bytesRead = readNextBytes();
-                if ( bytesRead == 0 )
-                    return false;
-            }
-            int diff = (int) (m_bytes_count - m_bytes_pos);
-            if (diff > (int)count)
-                diff = (int)count;
-            m_pos += diff;
-            count -= diff;
-        }
-        return true;
-    }
-
-public:
-    virtual ~LVBase64Stream() { }
-    LVBase64Stream(lString8 data)
-        : m_curr_text(data), m_size(0), m_pos(0)
-    {
-        // calculate size
-        rewind();
-        m_size = bytesAvailable();
-        for (;;) {
-            int bytesRead = readNextBytes();
-            if ( !bytesRead )
-                break;
-            m_bytes_count = 0;
-            m_bytes_pos = 0;
-            m_size += bytesRead;
-        }
-        // rewind
-        rewind();
-    }
-    virtual bool Eof()
-    {
-        return m_pos >= m_size;
-    }
-    virtual lvsize_t  GetSize()
-    {
-        return m_size;
-    }
-
-    virtual lvpos_t GetPos()
-    {
-        return m_pos;
-    }
-
-    virtual lverror_t GetPos( lvpos_t * pos )
-    {
-        if (pos)
-            *pos = m_pos;
-        return LVERR_OK;
-    }
-
-    virtual lverror_t Seek(lvoffset_t offset, lvseek_origin_t origin, lvpos_t* newPos)
-    {
-        lvpos_t npos = 0;
-        lvpos_t currpos = GetPos();
-        switch (origin) {
-        case LVSEEK_SET:
-            npos = offset;
-            break;
-        case LVSEEK_CUR:
-            npos = currpos + offset;
-            break;
-        case LVSEEK_END:
-            npos = m_size + offset;
-            break;
-        }
-        if (npos > m_size)
-            return LVERR_FAIL;
-        if ( npos != currpos )
-        {
-            if (npos < currpos)
-            {
-                if ( !rewind() || !skip(npos) )
-                    return LVERR_FAIL;
-            }
-            else
-            {
-                skip( npos - currpos );
-            }
-        }
-        if (newPos)
-            *newPos = npos;
-        return LVERR_OK;
-    }
-    virtual lverror_t Write(const void*, lvsize_t, lvsize_t*)
-    {
-        return LVERR_NOTIMPL;
-    }
-    virtual lverror_t Read(void* buf, lvsize_t size, lvsize_t* pBytesRead)
-    {
-        lvsize_t bytesRead = 0;
-        //fprintf( stderr, "Read()\n" );
-
-        lUInt8 * out = (lUInt8 *)buf;
-
-        while (size>0)
-        {
-            int sz = bytesAvailable();
-            if (!sz) {
-                m_bytes_pos = m_bytes_count = 0;
-                sz = readNextBytes();
-                if (!sz) {
-                    if ( !bytesRead || m_pos!=m_size) //
-                        return LVERR_FAIL;
+                    // stop!!!
+                    //m_text_pos--;
+                    m_iteration = 0;
+                    flgEof = true;
                     break;
                 }
+                else
+                {
+                    int k = base64_decode_table[ch];
+                    if ( !(k & 0x80) ) {
+                        // next base-64 digit
+                        m_value = (m_value << 6) | (k);
+                        m_iteration++;
+                        if (m_iteration==4)
+                        {
+                            //
+                            m_bytes[m_bytes_count++] = (lUInt8)((m_value>>16) & 0xFF);
+                            m_bytes[m_bytes_count++] = (lUInt8)((m_value>>8) & 0xFF);
+                            m_bytes[m_bytes_count++] = (lUInt8)((m_value>>0) & 0xFF);
+                            m_iteration = 0;
+                            m_value = 0;
+                            bytesRead+=3;
+                        }
+                    } else {
+                        //m_text_pos++;
+                    }
+                }
             }
-            if (sz>(int)size)
-                sz = (int)size;
-            for (int i=0; i<sz; i++)
-                *out++ = m_bytes[m_bytes_pos++];
-            size -= sz;
-            bytesRead += sz;
-            m_pos += sz;
         }
+    }
+    return bytesRead;
+}
 
-        if (pBytesRead)
-            *pBytesRead = bytesRead;
-        //fprintf( stderr, "    %d bytes read...\n", (int)bytesRead );
-        return LVERR_OK;
-    }
-    virtual lverror_t SetSize(lvsize_t)
+int LVBase64Stream::bytesAvailable()
+{
+    return m_bytes_count - m_bytes_pos;
+}
+
+bool LVBase64Stream::rewind()
+{
+    m_pos = 0;
+    m_bytes_count = 0;
+    m_bytes_pos = 0;
+    m_iteration = 0;
+    m_value = 0;
+    m_text_pos = 0;
+    return m_text_pos < m_curr_text.length();
+}
+
+bool LVBase64Stream::skip( lvsize_t count )
+{
+    while ( count )
     {
-        return LVERR_NOTIMPL;
+        if ( m_bytes_pos >= m_bytes_count )
+        {
+            m_bytes_pos = 0;
+            m_bytes_count = 0;
+            int bytesRead = readNextBytes();
+            if ( bytesRead == 0 )
+                return false;
+        }
+        int diff = (int) (m_bytes_count - m_bytes_pos);
+        if (diff > (int)count)
+            diff = (int)count;
+        m_pos += diff;
+        count -= diff;
     }
-};
+    return true;
+}
+
+LVBase64Stream::LVBase64Stream(lString8 data)
+    : m_curr_text(data), m_size(0), m_pos(0)
+{
+    // calculate size
+    rewind();
+    m_size = bytesAvailable();
+    for (;;) {
+        int bytesRead = readNextBytes();
+        if ( !bytesRead )
+            break;
+        m_bytes_count = 0;
+        m_bytes_pos = 0;
+        m_size += bytesRead;
+    }
+    // rewind
+    rewind();
+}
+
+lverror_t LVBase64Stream::Seek(lvoffset_t offset, lvseek_origin_t origin, lvpos_t* newPos)
+{
+    lvpos_t npos = 0;
+    lvpos_t currpos = GetPos();
+    switch (origin) {
+    case LVSEEK_SET:
+        npos = offset;
+        break;
+    case LVSEEK_CUR:
+        npos = currpos + offset;
+        break;
+    case LVSEEK_END:
+        npos = m_size + offset;
+        break;
+    }
+    if (npos > m_size)
+        return LVERR_FAIL;
+    if ( npos != currpos )
+    {
+        if (npos < currpos)
+        {
+            if ( !rewind() || !skip(npos) )
+                return LVERR_FAIL;
+        }
+        else
+        {
+            skip( npos - currpos );
+        }
+    }
+    if (newPos)
+        *newPos = npos;
+    return LVERR_OK;
+}
+
+lverror_t LVBase64Stream::Read(void* buf, lvsize_t size, lvsize_t* pBytesRead)
+{
+    lvsize_t bytesRead = 0;
+    //fprintf( stderr, "Read()\n" );
+
+    lUInt8 * out = (lUInt8 *)buf;
+
+    while (size>0)
+    {
+        int sz = bytesAvailable();
+        if (!sz) {
+            m_bytes_pos = m_bytes_count = 0;
+            sz = readNextBytes();
+            if (!sz) {
+                if ( !bytesRead || m_pos!=m_size) //
+                    return LVERR_FAIL;
+                break;
+            }
+        }
+        if (sz>(int)size)
+            sz = (int)size;
+        for (int i=0; i<sz; i++)
+            *out++ = m_bytes[m_bytes_pos++];
+        size -= sz;
+        bytesRead += sz;
+        m_pos += sz;
+    }
+
+    if (pBytesRead)
+        *pBytesRead = bytesRead;
+    //fprintf( stderr, "    %d bytes read...\n", (int)bytesRead );
+    return LVERR_OK;
+}
 
 /// XML parser callback interface
 class FB2CoverpageParserCallback : public LVXMLParserCallback

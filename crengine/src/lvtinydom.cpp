@@ -16208,7 +16208,18 @@ LVStreamRef ldomDocument::getObjectImageStream( lString16 refName )
     LVStreamRef ref;
     if ( refName.startsWith(lString16(BLOB_NAME_PREFIX)) ) {
         return _blobCache.getBlob(refName);
-    } if ( refName[0]!='#' ) {
+    }
+    if ( refName.length() > 10 && refName[4] == ':' && refName.startsWith(lString16("data:image/")) ) {
+        // <img src="data:image/png;base64,iVBORw0KG...>
+        lString16 data = refName.substr(0, 50);
+        int pos = data.pos(L";base64,");
+        if ( pos > 0 ) {
+            lString8 b64data = UnicodeToLocal(refName.substr(pos+8));
+            ref = LVStreamRef(new LVBase64Stream(b64data));
+            return ref;
+        }
+    }
+    if ( refName[0]!='#' ) {
         if ( !getContainer().isNull() ) {
             lString16 name = refName;
             if ( !getCodeBase().empty() )
