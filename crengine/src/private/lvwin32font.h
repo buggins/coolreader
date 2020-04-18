@@ -139,6 +139,7 @@ public:
                         lUInt8 * flags,
                         int max_width,
                         lChar16 def_char,
+                        TextLangCfg * lang_cfg = NULL,
                         int letter_spacing=0,
                         bool allow_hyphenation=true,
                         lUInt32 hints=0
@@ -149,7 +150,7 @@ public:
         \return width of specified string
     */
     virtual lUInt32 getTextWidth(
-                        const lChar16 * text, int len
+                        const lChar16 * text, int len, TextLangCfg * lang_cfg = NULL
         );
 
     /// returns char width
@@ -158,8 +159,10 @@ public:
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y,
                        const lChar16 * text, int len,
-                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0, int letter_spacing=0
-                       int width=-1, int text_decoration_back_gap=0 );
+                       lChar16 def_char, lUInt32 * palette,
+                       bool addHyphen, TextLangCfg * lang_cfg = NULL,
+                       lUInt32 flags=0, int letter_spacing=0, int width=-1,
+                       int text_decoration_back_gap=0 );
 
     /** \brief get glyph image in 1 byte per pixel format
         \param code is unicode character
@@ -316,6 +319,7 @@ public:
                         lUInt8 * flags,
                         int max_width,
                         lChar16 def_char,
+                        TextLangCfg * lang_cfg = NULL,
                         int letter_spacing=0,
                         bool allow_hyphenation=true,
                         lUInt32 hints=0
@@ -326,7 +330,7 @@ public:
         \return width of specified string
     */
     virtual lUInt32 getTextWidth(
-                        const lChar16 * text, int len
+                        const lChar16 * text, int len, TextLangCfg * lang_cfg = NULL
         );
 
     /** \brief get glyph image in 1 byte per pixel format

@@ -18,6 +18,7 @@
 #include "lvfont.h"
 #include "lvstring16collection.h"
 #include "lvbmpbuf.h"
+#include "textlang.h"
 
 // comment out following line to use old formatter
 #define USE_NEW_FORMATTER 1
@@ -83,6 +84,7 @@ extern "C" {
 typedef struct
 {
     void *          object;   /**< \brief pointer to object which represents source */
+    TextLangCfg *   lang_cfg;
     lInt16          indent;   /**< \brief first line indent (or all but first, when negative) */
     lInt16          valign_dy; /* drift y from baseline */
     lInt16          interval; /**< \brief line height in screen pixels */
@@ -288,6 +290,7 @@ void lvtextFreeFormatter( formatted_text_fragment_t * pbuffer );
 void lvtextAddSourceLine( 
    formatted_text_fragment_t * pbuffer,
    lvfont_handle   font,     /* handle of font to draw string */
+   TextLangCfg *   lang_cfg,
    const lChar16 * text,     /* pointer to unicode text string */
    lUInt32         len,      /* number of chars in text, 0 for auto(strlen) */
    lUInt32         color,    /* text color */
@@ -307,6 +310,7 @@ void lvtextAddSourceLine(
 */
 void lvtextAddSourceObject( 
    formatted_text_fragment_t * pbuffer,
+   TextLangCfg *   lang_cfg,
    lInt16         width,
    lInt16         height,
    lUInt32         flags,     /* flags */
@@ -368,6 +372,7 @@ public:
                 lInt16          valign_dy, /* drift y from baseline */
                 lInt16          indent,    /* first line indent (or all but first, when negative) */
                 void *          object,    /* pointer to custom object */
+                TextLangCfg *   lang_cfg,
                 lInt16          letter_spacing=0
          );
 
@@ -376,7 +381,8 @@ public:
            lUInt32         len,         /* number of chars in text, 0 for auto(strlen) */
            lUInt32         color,       /* text color */
            lUInt32         bgcolor,     /* background color */
-           LVFont          * font,      /* font to draw string */
+           LVFont *        font,        /* font to draw string */
+           TextLangCfg *   lang_cfg,
            lUInt32         flags,       /* (had default =LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT) */
            lInt16          interval,    /* line height in screen pixels */
            lInt16          valign_dy=0, /* drift y from baseline */
@@ -388,6 +394,7 @@ public:
     {
         lvtextAddSourceLine(m_pbuffer, 
             font,  //font->GetHandle()
+            lang_cfg,
             text, len, color, bgcolor, 
             flags, interval, valign_dy, indent, object, (lUInt16)offset, letter_spacing );
     }

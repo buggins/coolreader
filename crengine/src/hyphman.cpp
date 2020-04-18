@@ -40,6 +40,7 @@
 #include "../include/lvstring.h"
 #include "../include/lvstring16collection.h"
 #include "../include/crlog.h"
+#include "../include/textlang.h"
 
 
 #ifdef ANDROID
@@ -55,8 +56,10 @@
 int HyphMan::_LeftHyphenMin = HYPH_DEFAULT_HYPHEN_MIN;
 int HyphMan::_RightHyphenMin = HYPH_DEFAULT_HYPHEN_MIN;
 int HyphMan::_TrustSoftHyphens = HYPH_DEFAULT_TRUST_SOFT_HYPHENS;
+LVHashTable<lString16, HyphMethod*> HyphMan::_loaded_hyph_methods(16);
 
-HyphDictionary * HyphMan::_selectedDictionary = NULL;
+// Obsolete: now fetched from TextLangMan main lang TextLangCfg
+// HyphDictionary * HyphMan::_selectedDictionary = NULL;
 
 HyphDictionaryList * HyphMan::_dictList = NULL;
 
@@ -70,21 +73,25 @@ class TexHyph : public HyphMethod
 {
     TexPattern * table[PATTERN_HASH_SIZE];
     lUInt32 _hash;
+    lUInt32 _pattern_count;
 public:
     int largest_overflowed_word;
     bool match( const lChar16 * str, char * mask );
     virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
     void addPattern( TexPattern * pattern );
-    TexHyph();
+    TexHyph( lString16 id=HYPH_DICT_ID_DICTIONARY, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN, int rightHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN );
     virtual ~TexHyph();
     bool load( LVStreamRef stream );
     bool load( lString16 fileName );
     virtual lUInt32 getHash() { return _hash; }
+    virtual lUInt32 getCount() { return _pattern_count; }
+    virtual lUInt32 getSize();
 };
 
 class AlgoHyph : public HyphMethod
 {
 public:
+    AlgoHyph(): HyphMethod(HYPH_DICT_ID_ALGORITHM) {};
     virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
     virtual ~AlgoHyph();
 };
@@ -92,6 +99,7 @@ public:
 class SoftHyphensHyph : public HyphMethod
 {
 public:
+    SoftHyphensHyph(): HyphMethod(HYPH_DICT_ID_SOFTHYPHENS) {};
     virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
     virtual ~SoftHyphensHyph();
 };
@@ -99,6 +107,7 @@ public:
 class NoHyph : public HyphMethod
 {
 public:
+    NoHyph(): HyphMethod(HYPH_DICT_ID_NONE) {};
     virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
     {
         CR_UNUSED6(str, len, widths, flags, hyphCharWidth, maxWidth);
@@ -111,7 +120,8 @@ static NoHyph NO_HYPH;
 static AlgoHyph ALGO_HYPH;
 static SoftHyphensHyph SOFTHYPHENS_HYPH;
 
-HyphMethod * HyphMan::_method = &NO_HYPH;
+// Obsolete: provided by TextLangMan main lang
+// HyphMethod * HyphMan::_method = &NO_HYPH;
 
 #pragma pack(push, 1)
 typedef struct {
@@ -134,26 +144,39 @@ typedef struct {
 
 void HyphMan::uninit()
 {
-	if ( _dictList )
-		delete _dictList;
+    // Avoid existing frontend code to have to call it:
+    TextLangMan::uninit();
+    // Clean up _loaded_hyph_methods
+    LVHashTable<lString16, HyphMethod*>::iterator it = _loaded_hyph_methods.forwardIterator();
+    LVHashTable<lString16, HyphMethod*>::pair* pair;
+    while ((pair = it.next())) {
+        delete pair->value;
+    }
+    _loaded_hyph_methods.clear();
+    if ( _dictList )
+            delete _dictList;
     _dictList = NULL;
+    /* Obsolete:
 	_selectedDictionary = NULL;
     if ( HyphMan::_method != &ALGO_HYPH && HyphMan::_method != &NO_HYPH && HyphMan::_method != &SOFTHYPHENS_HYPH )
             delete HyphMan::_method;
     _method = &NO_HYPH;
+    */
 }
 
 bool HyphMan::activateDictionaryFromStream( LVStreamRef stream )
 {
     if ( stream.isNull() )
         return false;
+    /* Obsolete:
     CRLog::trace("remove old hyphenation method");
     if ( HyphMan::_method != &NO_HYPH && HyphMan::_method != &ALGO_HYPH && HyphMan::_method != &SOFTHYPHENS_HYPH && HyphMan::_method ) {
         delete HyphMan::_method;
         HyphMan::_method = &NO_HYPH;
     }
+    */
     CRLog::trace("creating new TexHyph method");
-    TexHyph * method = new TexHyph();
+    TexHyph * method = new TexHyph(HYPH_DICT_ID_DICTIONARY);
     CRLog::trace("loading from file");
     if ( !method->load( stream ) ) {
 		CRLog::error("HyphMan::activateDictionaryFromStream: Cannot open hyphenation dictionary from stream" );
@@ -163,14 +186,28 @@ bool HyphMan::activateDictionaryFromStream( LVStreamRef stream )
     if (method->largest_overflowed_word)
         printf("CRE WARNING: hyph dict from stream: some hyphenation patterns were too long and have been ignored: increase MAX_PATTERN_SIZE from %d to %d\n", MAX_PATTERN_SIZE, method->largest_overflowed_word);
     CRLog::debug("Dictionary is loaded successfully. Activating.");
+
+    // Replace any previously dict loaded from stream
+    HyphMethod * prev_method;
+    if ( _loaded_hyph_methods.get(HYPH_DICT_ID_DICTIONARY, prev_method) ) {
+        delete prev_method;
+        _loaded_hyph_methods.remove(HYPH_DICT_ID_DICTIONARY);
+    }
+    _loaded_hyph_methods.set(HYPH_DICT_ID_DICTIONARY, method);
+
     if (!_dictList)
         _dictList = new HyphDictionaryList();
+    /* Obsolete:
     HyphMan::_method = method;
+    */
     if ( HyphMan::_dictList->find(lString16(HYPH_DICT_ID_DICTIONARY))==NULL ) {
         HyphDictionary * dict = new HyphDictionary( HDT_DICT_ALAN, cs16("Dictionary"), lString16(HYPH_DICT_ID_DICTIONARY), lString16::empty_str );
         HyphMan::_dictList->add(dict);
+        /* Obsolete:
     	HyphMan::_selectedDictionary = dict;
+        */
     }
+    TextLangMan::setMainLangFromHyphDict( HYPH_DICT_ID_DICTIONARY );
     CRLog::trace("Activation is done");
     return true;
 }
@@ -213,11 +250,67 @@ bool HyphMan::setTrustSoftHyphens( int trust_soft_hyphens ) {
 }
 
 bool HyphMan::isEnabled() {
+    return TextLangMan::getHyphenationEnabled();
+    /* Obsolete:
     return _selectedDictionary != NULL && _selectedDictionary->getId() != HYPH_DICT_ID_NONE;
+    */
+}
+
+bool HyphMan::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+{
+    return TextLangMan::getMainLangHyphMethod()->hyphenate( str, len, widths, flags, hyphCharWidth, maxWidth, flagSize );
+    /* Obsolete:
+    return _method->hyphenate( str, len, widths, flags, hyphCharWidth, maxWidth, flagSize );
+    */
+}
+
+HyphDictionary * HyphMan::getSelectedDictionary() {
+    lString16 id = TextLangMan::getTextLangCfg()->getHyphMethod()->getId();
+    HyphDictionary * dict = _dictList->find( id );
+    return dict;
+}
+
+HyphMethod * HyphMan::getHyphMethodForDictionary( lString16 id, int leftHyphenMin, int rightHyphenMin ) {
+    if ( id.empty() )
+        return &NO_HYPH;
+    HyphDictionary * p = _dictList->find(id);
+    if ( !p || p->getType() == HDT_NONE )
+        return &NO_HYPH;
+    if ( p->getType() == HDT_ALGORITHM )
+        return &ALGO_HYPH;
+    if ( p->getType() == HDT_SOFTHYPHENS )
+        return &SOFTHYPHENS_HYPH;
+    if ( p->getType() != HDT_DICT_ALAN && p->getType() != HDT_DICT_TEX )
+        return &NO_HYPH;
+    HyphMethod * method;
+    if ( _loaded_hyph_methods.get(id, method) ) {
+        // printf("getHyphMethodForDictionary reusing cached %s\n", UnicodeToUtf8(p->getFilename()).c_str());
+        return method;
+    }
+    lString16 filename = p->getFilename();
+    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
+    if ( stream.isNull() ) {
+        CRLog::error("Cannot open hyphenation dictionary %s", UnicodeToUtf8(filename).c_str() );
+        return &NO_HYPH;
+    }
+    TexHyph * newmethod = new TexHyph(id, leftHyphenMin, rightHyphenMin);
+    if ( !newmethod->load( stream ) ) {
+        CRLog::error("Cannot open hyphenation dictionary %s", UnicodeToUtf8(filename).c_str() );
+        delete newmethod;
+        return &NO_HYPH;
+    }
+    // printf("CRE: loaded hyphenation dict %s\n", UnicodeToUtf8(id).c_str());
+    if ( newmethod->largest_overflowed_word )
+        printf("CRE WARNING: %s: some hyphenation patterns were too long and have been ignored: increase MAX_PATTERN_SIZE from %d to %d\n", UnicodeToUtf8(filename).c_str(), MAX_PATTERN_SIZE, newmethod->largest_overflowed_word);
+    _loaded_hyph_methods.set(id, newmethod);
+    return newmethod;
 }
 
 bool HyphDictionary::activate()
 {
+    TextLangMan::setMainLangFromHyphDict( getId() );
+    return true;
+    /* Obsolete:
     if (HyphMan::_selectedDictionary == this)
         return true; // already active
 	if ( getType() == HDT_ALGORITHM ) {
@@ -264,6 +357,7 @@ bool HyphDictionary::activate()
 	}
 	HyphMan::_selectedDictionary = this;
 	return true;
+    */
 }
 
 bool HyphDictionaryList::activate( lString16 id )
@@ -606,10 +700,11 @@ public:
 
 };
 
-TexHyph::TexHyph()
+TexHyph::TexHyph(lString16 id, int leftHyphenMin, int rightHyphenMin) : HyphMethod(id, leftHyphenMin, rightHyphenMin)
 {
     memset( table, 0, sizeof(table) );
     _hash = 123456;
+    _pattern_count = 0;
     largest_overflowed_word = 0;
 }
 
@@ -633,6 +728,11 @@ void TexHyph::addPattern( TexPattern * pattern )
         p = &((*p)->next);
     pattern->next = *p;
     *p = pattern;
+    _pattern_count++;
+}
+
+lUInt32 TexHyph::getSize() {
+    return _pattern_count * sizeof(TexPattern);
 }
 
 bool TexHyph::load( LVStreamRef stream )
@@ -686,6 +786,7 @@ bool TexHyph::load( LVStreamRef stream )
                     CRLog::warn("Pattern overflowed (%d > %d) and ignored: '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(lString16(pattern->word)));
                     if (pattern->overflowed > largest_overflowed_word)
                         largest_overflowed_word = pattern->overflowed;
+                    delete pattern;
                 }
                 else {
                     addPattern( pattern );
@@ -723,6 +824,7 @@ bool TexHyph::load( LVStreamRef stream )
                     CRLog::warn("Pattern overflowed (%d > %d) and ignored: '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(lString16(pattern->word)));
                     if (pattern->overflowed > largest_overflowed_word)
                         largest_overflowed_word = pattern->overflowed;
+                    delete pattern;
                 }
                 else {
                     addPattern( pattern );
@@ -755,6 +857,7 @@ bool TexHyph::load( LVStreamRef stream )
                 CRLog::warn("Pattern overflowed (%d > %d) and ignored: (%s) '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(data[i]), LCSTR(lString16(pattern->word)));
                 if (pattern->overflowed > largest_overflowed_word)
                     largest_overflowed_word = pattern->overflowed;
+                delete pattern;
             }
             else {
                 addPattern( pattern );
@@ -887,6 +990,11 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
     CRLog::trace("Hyphenate: %s  %s", LCSTR(buf), LCSTR(buf2) );
 #endif
 
+    // Use HyphMan global left/right hyphen min, unless set to 0 (the default)
+    // which means we should use the HyphMethod specific values.
+    int left_hyphen_min = HyphMan::_LeftHyphenMin ? HyphMan::_LeftHyphenMin : _left_hyphen_min;
+    int right_hyphen_min = HyphMan::_RightHyphenMin ? HyphMan::_RightHyphenMin : _right_hyphen_min;
+
     // Moves allowed hyphenation positions from 'mask' to the provided 'flags',
     // taking soft-hyphen shifts into account
     int soft_hyphens_skipped = 0;
@@ -897,9 +1005,9 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
             soft_hyphens_skipped++;
             continue;
         }
-        if (p-soft_hyphens_skipped < HyphMan::_LeftHyphenMin - 1)
+        if (p-soft_hyphens_skipped < left_hyphen_min - 1)
             continue;
-        if (p > len - HyphMan::_RightHyphenMin - 1)
+        if (p > len - right_hyphen_min - 1)
             continue;
         // hyphenate
         //00010030100
@@ -928,6 +1036,12 @@ bool AlgoHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8
         if ( softhyphens_hyphenate(str, len, widths, flags, hyphCharWidth, maxWidth, flagSize) )
             return true;
     }
+
+    // Use HyphMan global left/right hyphen min, unless set to 0 (the default)
+    // which means we should use the HyphMethod specific values.
+    int left_hyphen_min = HyphMan::_LeftHyphenMin ? HyphMan::_LeftHyphenMin : _left_hyphen_min;
+    int right_hyphen_min = HyphMan::_RightHyphenMin ? HyphMan::_RightHyphenMin : _right_hyphen_min;
+
     lUInt16 chprops[WORD_LENGTH];
     if ( len > WORD_LENGTH-2 )
         len = WORD_LENGTH - 2;
@@ -944,9 +1058,9 @@ bool AlgoHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8
         // now look over word, placing hyphens
         if ( end-start > MIN_WORD_LEN_TO_HYPHEN ) { // word must be long enough
             for (i=start;i<end-MIN_WORD_LEN_TO_HYPHEN;++i) {
-                if (i-start < HyphMan::_LeftHyphenMin - 1)
+                if (i-start < left_hyphen_min - 1)
                     continue;
-                if (end-i < HyphMan::_RightHyphenMin + 1)
+                if (end-i < right_hyphen_min + 1)
                     continue;
                 if ( widths[i] > maxWidth )
                     break;

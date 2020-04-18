@@ -51,6 +51,7 @@ lUInt16 LBitmapFont::measureText(
                     lUInt8 * flags,
                     int max_width,
                     lChar16 def_char,
+                    TextLangCfg * lang_cfg,
                     int letter_spacing,
                     bool allow_hyphenation
                  )
@@ -58,7 +59,7 @@ lUInt16 LBitmapFont::measureText(
     return lvfontMeasureText( m_font, text, len, widths, flags, max_width, def_char );
 }
 
-lUInt32 LBitmapFont::getTextWidth( const lChar16 * text, int len )
+lUInt32 LBitmapFont::getTextWidth( const lChar16 * text, int len, TextLangCfg * lang_cfg )
 {
     //
     static lUInt16 widths[MAX_LINE_CHARS+1];
@@ -72,7 +73,8 @@ lUInt32 LBitmapFont::getTextWidth( const lChar16 * text, int len )
                     widths,
                     flags,
                     2048, // max_width,
-                    L' '  // def_char
+                    L' ',  // def_char
+                    lang_cfg
                  );
     if ( res>0 && res<MAX_LINE_CHARS )
         return widths[res-1];

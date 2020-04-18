@@ -1116,7 +1116,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
                                     lUInt16 *widths,
                                     lUInt8 *flags,
                                     int max_width,
-                                    lChar16 def_char,
+                                    lChar16 def_char, TextLangCfg *lang_cfg,
                                     int letter_spacing,
                                     bool allow_hyphenation,
                                     lUInt32 hints) {
@@ -1213,6 +1213,9 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
             if ( hints & LFNT_HINT_ENDS_PARAGRAPH )
                 hb_flags |= HB_BUFFER_FLAG_EOT;
             hb_buffer_set_flags(_hb_buffer, (hb_buffer_flags_t)hb_flags);
+        }
+        if ( lang_cfg ) {
+            hb_buffer_set_language(_hb_buffer, lang_cfg->getHBLanguage());
         }
         // Let HB guess what's not been set (script, direction, language)
         hb_buffer_guess_segment_properties(_hb_buffer);
@@ -1336,7 +1339,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
                                     fb_hints &= ~LFNT_HINT_ENDS_PARAGRAPH;
                                 fallback->measureText( text + t_notdef_start, t_notdef_end - t_notdef_start,
                                                 widths + t_notdef_start, flags + t_notdef_start,
-                                                max_width, def_char, letter_spacing, allow_hyphenation,
+                                                max_width, def_char, lang_cfg, letter_spacing, allow_hyphenation,
                                                 fb_hints );
                                 // Fix previous bad measurements
                                 int last_good_width = t_notdef_start > 0 ? widths[t_notdef_start-1] : 0;
@@ -1430,7 +1433,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
                 int chars_measured = fallback->measureText( text + t_notdef_start, // start
                                 t_notdef_end - t_notdef_start, // len
                                 widths + t_notdef_start, flags + t_notdef_start,
-                                max_width, def_char, letter_spacing, allow_hyphenation,
+                                max_width, def_char, lang_cfg, letter_spacing, allow_hyphenation,
                                 fb_hints );
                 lastFitChar = t_notdef_start + chars_measured;
                 int last_good_width = t_notdef_start > 0 ? widths[t_notdef_start-1] : 0;
@@ -1591,15 +1594,17 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
             lStr_findWordBounds(text, len, lastFitChar - 1, hwStart, hwEnd);
             if (hwStart < (int) (lastFitChar - 1) && hwEnd > hwStart + 3) {
                 //int maxw = max_width - (hwStart>0 ? widths[hwStart-1] : 0);
-                HyphMan::hyphenate(text + hwStart, hwEnd - hwStart, widths + hwStart,
-                                   flags + hwStart, _hyphen_width, max_width);
+                if ( lang_cfg )
+                    lang_cfg->getHyphMethod()->hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+                else // Use global lang hyph method
+                    HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
             }
         }
     }
     return lastFitChar; //i;
 }
 
-lUInt32 LVFreeTypeFace::getTextWidth(const lChar16 *text, int len) {
+lUInt32 LVFreeTypeFace::getTextWidth(const lChar16 *text, int len, TextLangCfg *lang_cfg) {
     static lUInt16 widths[MAX_LINE_CHARS + 1];
     static lUInt8 flags[MAX_LINE_CHARS + 1];
     if (len > MAX_LINE_CHARS)
@@ -1612,6 +1617,7 @@ lUInt32 LVFreeTypeFace::getTextWidth(const lChar16 *text, int len) {
             flags,
             MAX_LINE_WIDTH,
             L' ',  // def_char
+            lang_cfg,
             0
     );
     if (res > 0 && res < MAX_LINE_CHARS)
@@ -1797,7 +1803,7 @@ int LVFreeTypeFace::getRightSideBearing( lChar16 ch, bool negative_only, bool it
 }
 
 int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *text, int len,
-                                    lChar16 def_char, lUInt32 *palette, bool addHyphen,
+                                    lChar16 def_char, lUInt32 *palette, bool addHyphen, TextLangCfg *lang_cfg,
                                     lUInt32 flags, int letter_spacing, int width, int text_decoration_back_gap) {
     FONT_GUARD
     if (len <= 0 || _face == NULL)
@@ -1859,6 +1865,8 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *
                 hb_flags |= HB_BUFFER_FLAG_EOT;
             hb_buffer_set_flags(_hb_buffer, (hb_buffer_flags_t)hb_flags);
         }
+        if ( lang_cfg )
+            hb_buffer_set_language(_hb_buffer, lang_cfg->getHBLanguage());
         // Let HB guess what's not been set (script, direction, language)
         hb_buffer_guess_segment_properties(_hb_buffer);
 
@@ -2029,7 +2037,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *
                 // text decoration, that we dropped: no update needed)
                 int fb_advance = fallback->DrawTextString( buf, x, fb_y,
                    fb_text, fb_len,
-                   def_char, palette, fb_addHyphen, fb_flags, letter_spacing,
+                   def_char, palette, fb_addHyphen, lang_cfg, fb_flags, letter_spacing,
                    width, text_decoration_back_gap );
                 x += fb_advance;
                 #ifdef DEBUG_DRAW_TEXT

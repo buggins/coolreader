@@ -15,6 +15,7 @@
 #define __LV_REND_H_INCLUDED__
 
 #include "lvtinydom.h"
+#include "textlang.h"
 
 // Current direction, from dir="ltr" or dir="rtl" element attribute
 // Should map directly to the RENDER_RECT_FLAG_DIRECTION_* below
@@ -120,7 +121,7 @@ int initRendMethod( ldomNode * node, bool recurseChildren, bool allowAutoboxing 
 int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags, int direction=REND_DIRECTION_UNSET );
 /// renders block as single text formatter object
 void renderFinalBlock( ldomNode * node, LFormattedText * txform, RenderRectAccessor * fmt, int & flags,
-                       int indent, int line_h, int valign_dy=0, bool * is_link_start=NULL );
+                       int indent, int line_h, TextLangCfg * lang_cfg=NULL, int valign_dy=0, bool * is_link_start=NULL );
 /// renders block which contains subblocks (with gRenderBlockRenderingFlags as flags)
 int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction=REND_DIRECTION_UNSET, int * baseline=NULL );
 /// renders block which contains subblocks
@@ -144,7 +145,8 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
 //   minWidth: width with a wrap on all spaces (no hyphenation), so width taken by the longest word
 // full function for recursive use:
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction, bool ignorePadding, int rendFlags,
-            int &curMaxWidth, int &curWordWidth, bool &collapseNextSpace, int &lastSpaceWidth, int indent, bool isStartNode=false);
+            int &curMaxWidth, int &curWordWidth, bool &collapseNextSpace, int &lastSpaceWidth,
+            int indent, TextLangCfg * lang_cfg, bool isStartNode=false);
 // simpler function for first call:
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction=REND_DIRECTION_UNSET, bool ignorePadding=false, int rendFlags=0);
 

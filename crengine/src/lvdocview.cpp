@@ -19,6 +19,7 @@
 #include "../include/lvstyles.h"
 #include "../include/lvrend.h"
 #include "../include/lvstsheet.h"
+#include "../include/textlang.h"
 
 #include "../include/wolutil.h"
 #include "../include/crtxtenc.h"
@@ -1096,14 +1097,14 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
 	LFormattedText txform;
 	if (!authors.empty())
 		txform.AddSourceLine(authors.c_str(), authors.length(), 0xFFFFFFFF,
-				0xFFFFFFFF, author_fnt.get(), LTEXT_ALIGN_CENTER,
+				0xFFFFFFFF, author_fnt.get(), NULL, LTEXT_ALIGN_CENTER,
 				author_fnt->getHeight() * 18 / 16);
 	txform.AddSourceLine(title.c_str(), title.length(), 0xFFFFFFFF, 0xFFFFFFFF,
-			title_fnt.get(), LTEXT_ALIGN_CENTER,
+			title_fnt.get(), NULL, LTEXT_ALIGN_CENTER,
 			title_fnt->getHeight() * 18 / 16);
 	if (!series.empty())
 		txform.AddSourceLine(series.c_str(), series.length(), 0xFFFFFFFF,
-				0xFFFFFFFF, series_fnt.get(), LTEXT_ALIGN_CENTER,
+				0xFFFFFFFF, series_fnt.get(), NULL, LTEXT_ALIGN_CENTER,
 				series_fnt->getHeight() * 18 / 16);
 	int title_w = rc.width() - rc.width() / 4;
 	int h = txform.Format((lUInt16)title_w, (lUInt16)rc.height());
@@ -6579,6 +6580,36 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 REQUEST_RENDER("propsApply hyphenation trust_soft_hyphens")
             }
 #endif
+        } else if (name == PROP_TEXTLANG_MAIN_LANG) {
+            lString16 lang = props->getStringDef(PROP_TEXTLANG_MAIN_LANG, TEXTLANG_DEFAULT_MAIN_LANG);
+            if ( lang != TextLangMan::getMainLang() ) {
+                TextLangMan::setMainLang( lang );
+                REQUEST_RENDER("propsApply textlang main_lang")
+            }
+        } else if (name == PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED) {
+            bool enabled = props->getIntDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, TEXTLANG_DEFAULT_EMBEDDED_LANGS_ENABLED);
+            if ( enabled != TextLangMan::getEmbeddedLangsEnabled() ) {
+                TextLangMan::setEmbeddedLangsEnabled( enabled );
+                REQUEST_RENDER("propsApply textlang embedded_langs_enabled")
+            }
+        } else if (name == PROP_TEXTLANG_HYPHENATION_ENABLED) {
+            bool enabled = props->getIntDef(PROP_TEXTLANG_HYPHENATION_ENABLED, TEXTLANG_DEFAULT_HYPHENATION_ENABLED);
+            if ( enabled != TextLangMan::getHyphenationEnabled() ) {
+                TextLangMan::setHyphenationEnabled( enabled );
+                REQUEST_RENDER("propsApply textlang hyphenation_enabled")
+            }
+        } else if (name == PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY) {
+            bool enabled = props->getIntDef(PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY, TEXTLANG_DEFAULT_HYPH_SOFT_HYPHENS_ONLY);
+            if ( enabled != TextLangMan::getHyphenationSoftHyphensOnly() ) {
+                TextLangMan::setHyphenationSoftHyphensOnly( enabled );
+                REQUEST_RENDER("propsApply textlang hyphenation_soft_hyphens_only")
+            }
+        } else if (name == PROP_TEXTLANG_HYPH_FORCE_ALGORITHMIC) {
+            bool enabled = props->getIntDef(PROP_TEXTLANG_HYPH_FORCE_ALGORITHMIC, TEXTLANG_DEFAULT_HYPH_FORCE_ALGORITHMIC);
+            if ( enabled != TextLangMan::getHyphenationForceAlgorithmic() ) {
+                TextLangMan::setHyphenationForceAlgorithmic( enabled );
+                REQUEST_RENDER("propsApply textlang hyphenation_force_algorithmic")
+            }
         } else if (name == PROP_INTERLINE_SPACE) {
             int interlineSpace = props->getIntDef(PROP_INTERLINE_SPACE,
                                                   cr_interline_spaces[0]);

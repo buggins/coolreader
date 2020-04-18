@@ -1370,6 +1370,7 @@ public:
                 fmt.setInnerWidth( w - padding_left - padding_right );
                 RENDER_RECT_SET_FLAG(fmt, INNER_FIELDS_SET);
                 RENDER_RECT_SET_DIRECTION(fmt, caption_direction);
+                fmt.setLangNodeIndex( TextLangMan::getLangNodeIndex(caption) );
             }
             fmt.push();
             caption_h = caption->renderFinalBlock( txform, &fmt, w - padding_left - padding_right );
@@ -1480,6 +1481,7 @@ public:
                             fmt.setInnerWidth( cell->width - padding_left - padding_right );
                             RENDER_RECT_SET_FLAG(fmt, INNER_FIELDS_SET);
                             RENDER_RECT_SET_DIRECTION(fmt, cell->direction);
+                            fmt.setLangNodeIndex( TextLangMan::getLangNodeIndex(cell->elem) );
                         }
                         fmt.push();
                         int h = cell->elem->renderFinalBlock( txform, &fmt, cell->width - padding_left - padding_right);
@@ -2369,7 +2371,8 @@ lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
         // (the "xviii" marker will be in its own LTR segment, and the followup text
         // in another LTR segment)
         if ( txform ) {
-            txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, 0);
+            TextLangCfg * lang_cfg = TextLangMan::getTextLangCfg( enode );
+            txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, 0);
         }
     }
     return marker;
@@ -2420,12 +2423,18 @@ bool renderAsListStylePositionInside( const css_style_rec_t * style, bool is_rtl
 // as is to the inline children elements: it is only used to get the width of
 // the container, which is only needed to compute indent (text-indent) values in %,
 // and to get paragraph direction (LTR/RTL/UNSET).
-void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAccessor * fmt, int & baseflags, int indent, int line_h, int valign_dy, bool * is_link_start )
+void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAccessor * fmt, int & baseflags, int indent, int line_h, TextLangCfg * lang_cfg, int valign_dy, bool * is_link_start )
 {
     if ( enode->isElement() ) {
         lvdom_element_render_method rm = enode->getRendMethod();
         if ( rm == erm_invisible )
             return; // don't draw invisible
+
+        if ( enode->hasAttribute( attr_lang ) ) {
+            lString16 lang_tag = enode->getAttributeValue( attr_lang );
+            if ( !lang_tag.empty() )
+                lang_cfg = TextLangMan::getTextLangCfg( lang_tag );
+        }
 
         if ( enode->isFloatingBox() && rm != erm_final ) {
             // (A floating floatBox can't be erm_final: it is always erm_block,
@@ -2437,7 +2446,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // be guessed and renderBlockElement() called to render it
             // and get is height, so LFormattedText knows how to render
             // this erm_final text around it.
-            txform->AddSourceObject(baseflags|LTEXT_SRC_IS_FLOAT, line_h, valign_dy, indent, enode );
+            txform->AddSourceObject(baseflags|LTEXT_SRC_IS_FLOAT, line_h, valign_dy, indent, enode, lang_cfg );
             baseflags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
             return;
         }
@@ -2826,7 +2835,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 if ( sp==css_lsp_outside )
                     margin = -marker_width; // will ensure negative/hanging indent-like rendering
                 marker += "\t";
-                txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy,
+                txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy,
                                         margin, NULL );
                 flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH;
             }
@@ -2885,27 +2894,27 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     lString16Collection lines;
                     lines.parse(title, cs16("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
-                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
+                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
                 }
-                txform->AddSourceObject(flags, line_h, valign_dy, indent, enode );
+                txform->AddSourceObject(flags, line_h, valign_dy, indent, enode, lang_cfg );
                 title = enode->getAttributeValue(attr_subtitle);
                 if ( !title.empty() ) {
                     lString16Collection lines;
                     lines.parse(title, cs16("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
-                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
+                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
                 }
                 title = enode->getAttributeValue(attr_title);
                 if ( !title.empty() ) {
                     lString16Collection lines;
                     lines.parse(title, cs16("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
-                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
+                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
                 }
             } else { // inline image
                 // We use the flags computed previously (and not baseflags) as they
                 // carry vertical alignment
-                txform->AddSourceObject(flags, line_h, valign_dy, indent, enode );
+                txform->AddSourceObject(flags, line_h, valign_dy, indent, enode, lang_cfg );
                 flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
             }
         }
@@ -2958,7 +2967,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
             // We use the flags computed previously (and not baseflags) as they
             // carry vertical alignment
-            txform->AddSourceObject(flags|LTEXT_SRC_IS_INLINE_BOX, line_h, valign_dy, indent, enode );
+            txform->AddSourceObject(flags|LTEXT_SRC_IS_INLINE_BOX, line_h, valign_dy, indent, enode, lang_cfg );
             if ( is_embedded_block ) {
                 // Let flags unchanged, with their newline/alignment flag as if it
                 // hadn't been consumed, so it is reported back into baseflags below
@@ -2984,7 +2993,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // Don't handle dir= for the erm_final (<p dir="auto"), as it would "isolate"
             // the whole content from the bidi algorithm and we woulds get a default paragraph
             // direction of LTR. It is handled directly in lvtextfm.cpp.
-            bool hasDirAttribute = enode->hasAttribute( attr_dir ) && rm != erm_final;
+            bool hasDirAttribute = enode->hasAttribute( attr_dir ) && rm != erm_final
+                                                && rm != erm_table_caption && rm != erm_list_item;
             bool addGeneratedContent = hasDirAttribute ||
                                        nodeElementId == el_bdi ||
                                        nodeElementId == el_bdo ||
@@ -3010,7 +3020,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     // But if we use another char (0x00AB / 0x00BB), it gets mirrored correctly.
                     // Might be that HarfBuzz first substitute it with arabic quotes (which happen
                     // to look inverted), and then mirror that?
-                    txform->AddSourceLine( L"\x201C", 1, cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                    txform->AddSourceLine( L"\x201C", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
                 // The following is needed for fribidi to do the right thing when the content creator
@@ -3033,16 +3043,16 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     //  leaving  => PDF PDI
                     // but it then doesn't have the intended effect (fribidi bug or limitation?)
                     if ( dir.compare("rtl") == 0 ) {
-                        // txform->AddSourceLine( L"\x2068\x202E", 1, cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        // txform->AddSourceLine( L"\x2068\x202E", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                         // closeWithPDFPDI = true;
-                        txform->AddSourceLine( L"\x202E", 1, cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        txform->AddSourceLine( L"\x202E", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                         closeWithPDF = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( dir.compare("ltr") == 0 ) {
-                        // txform->AddSourceLine( L"\x2068\x202D", 1, cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        // txform->AddSourceLine( L"\x2068\x202D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                         // closeWithPDFPDI = true;
-                        txform->AddSourceLine( L"\x202D", 1, cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        txform->AddSourceLine( L"\x202D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                         closeWithPDF = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
@@ -3055,17 +3065,17 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     //  dir=auto => FSI     U+2068  FIRST STRONG ISOLATE
                     //  leaving  => PDI     U+2069  POP DIRECTIONAL ISOLATE
                     if ( dir.compare("rtl") == 0 ) {
-                        txform->AddSourceLine( L"\x2067", 1, cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        txform->AddSourceLine( L"\x2067", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( dir.compare("ltr") == 0 ) {
-                        txform->AddSourceLine( L"\x2066", 1, cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        txform->AddSourceLine( L"\x2066", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( nodeElementId == el_bdi || dir.compare("auto") == 0 ) {
-                        txform->AddSourceLine( L"\x2068", 1, cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        txform->AddSourceLine( L"\x2068", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
@@ -3098,7 +3108,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             for (int i=0; i<cnt; i++)
             {
                 ldomNode * child = enode->getChildNode( i );
-                renderFinalBlock( child, txform, fmt, flags, indent, line_h, valign_dy, is_link_start_p );
+                renderFinalBlock( child, txform, fmt, flags, indent, line_h, lang_cfg, valign_dy, is_link_start_p );
             }
 
             if ( addGeneratedContent ) {
@@ -3107,20 +3117,20 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
                 if ( nodeElementId == el_q ) {
                     // Add default quoting closing char
-                    txform->AddSourceLine( L"\x201D", 1, cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                    txform->AddSourceLine( L"\x201D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
                 // See comment above: these are the closing counterpart
                 if ( closeWithPDI ) {
-                    txform->AddSourceLine( L"\x2069", 1, cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                    txform->AddSourceLine( L"\x2069", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
                 else if ( closeWithPDFPDI ) {
-                    txform->AddSourceLine( L"\x202C\x2069", 1, cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                    txform->AddSourceLine( L"\x202C\x2069", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
                 else if ( closeWithPDF ) {
-                    txform->AddSourceLine( L"\x202C", 1, cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                    txform->AddSourceLine( L"\x202C", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
             }
@@ -3135,7 +3145,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
                 lChar16 delimiter[] = {UNICODE_NO_BREAK_SPACE, UNICODE_NO_BREAK_SPACE}; //160
-                txform->AddSourceLine( delimiter, sizeof(delimiter)/sizeof(lChar16), cl, bgcl, font, LTEXT_FLAG_OWNTEXT | LTEXT_RUNIN_FLAG, line_h, valign_dy, 0, NULL );
+                txform->AddSourceLine( delimiter, sizeof(delimiter)/sizeof(lChar16), cl, bgcl, font, lang_cfg, LTEXT_FLAG_OWNTEXT | LTEXT_RUNIN_FLAG, line_h, valign_dy, 0, NULL );
                 flags &= ~LTEXT_RUNIN_FLAG;
             }
         }
@@ -3172,7 +3182,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 LVFont * font = enode->getFont().get();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-                txform->AddSourceLine( L" ", 1, cl, bgcl, font, baseflags | LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                txform->AddSourceLine( L" ", 1, cl, bgcl, font, lang_cfg, baseflags | LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                 // baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
                 // No need to clear the flag, as we set it just below
                 // (any LTEXT_ALIGN_* set implies LTEXT_FLAG_NEWLINE)
@@ -3231,7 +3241,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             LVFont * font = enode->getFont().get();
             lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
             lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-            txform->AddSourceLine( L" ", 1, cl, bgcl, font, baseflags|LTEXT_SRC_IS_CLEAR_LAST|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+            txform->AddSourceLine( L" ", 1, cl, bgcl, font, lang_cfg, baseflags|LTEXT_SRC_IS_CLEAR_LAST|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
         }
     }
     else if ( enode->isText() ) {
@@ -3326,9 +3336,13 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
             */
             if ( txt.length()>0 ) {
-                txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | tflags,
+                txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, lang_cfg, baseflags | tflags,
                     line_h, valign_dy, indent, enode, 0, letter_spacing );
                 baseflags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
+                // To show the lang tag for the lang used for this text node AFTER it:
+                // lString16 lang_tag_txt = L"[" + (lang_cfg ? lang_cfg->getLangTag() : lString16("??")) + L"]";
+                // txform->AddSourceLine( lang_tag_txt.c_str(), lang_tag_txt.length(), cl, bgcl, font,
+                //          lang_cfg, baseflags|tflags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
             }
         }
     }
@@ -4102,6 +4116,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                     fmt.setWidth( width );
                     fmt.setX( fmt.getX() );
                     fmt.setY( fmt.getY() );
+                    fmt.setLangNodeIndex( 0 ); // No support for lang in legacy rendering
                     fmt.push();
                     //if ( CRLog::isTraceEnabled() )
                     //    CRLog::trace("rendering final node: %s %d %s", LCSTR(enode->getNodeName()), enode->getDataIndex(), LCSTR(ldomXPointer(enode,0).toString()) );
@@ -4330,16 +4345,16 @@ private:
     // an inner block (so, making a sub-level).
     class BlockShift { public:
         int direction;
-        ldomNode * lang_node;
+        lInt32 lang_node_idx;
         int x_min;
         int x_max;
         int l_y;
         int in_y_min;
         int in_y_max;
         bool avoid_pb_inside;
-        void reset(int dir, ldomNode * langnode, int xmin, int xmax, int ly, int iymin, int iymax, bool avoidpbinside) {
+        void reset(int dir, lInt32 langNodeIdx, int xmin, int xmax, int ly, int iymin, int iymax, bool avoidpbinside) {
             direction = dir;
-            lang_node = langnode;
+            lang_node_idx = langNodeIdx;
             x_min = xmin;
             x_max = xmax;
             l_y = ly;
@@ -4347,9 +4362,9 @@ private:
             in_y_max = iymax;
             avoid_pb_inside = avoidpbinside;
         }
-        BlockShift(int dir, ldomNode * langnode, int xmin, int xmax, int ly, int iymin, int iymax, bool avoidpbinside) :
+        BlockShift(int dir, lInt32 langNodeIdx, int xmin, int xmax, int ly, int iymin, int iymax, bool avoidpbinside) :
                 direction(dir),
-                lang_node(langnode),
+                lang_node_idx(langNodeIdx),
                 x_min(xmin),
                 x_max(xmax),
                 l_y(ly),
@@ -4374,12 +4389,10 @@ private:
                 { }
     };
     int direction; // flow inline direction (LTR/RTL)
-    ldomNode * lang_node; // nearest upper node with a lang="" attribute (NULL if none)
+    lInt32 lang_node_idx; // dataIndex of nearest upper node with a lang="" attribute (0 if none)
                     // We don't need to know its value in here, the idx of this node
                     // will be saved in the final block RenderRectAccessor so it can
                     // be fetched from the node when needed, when laying out text).
-                    // todo: currently not used, should be saved in RenderRectAccessor
-                    // and used by lvtextfm.cpp for typography
     LVRendPageContext & context;
     LVPtrVector<BlockShift>  _shifts;
     LVPtrVector<BlockFloat>  _floats;
@@ -4416,9 +4429,9 @@ private:
     int  vm_back_usable_as_margin; // previously moved vertical space where next margin could be accounted in
 
 public:
-    FlowState( LVRendPageContext & ctx, int width, int rendflags, int dir=REND_DIRECTION_UNSET, ldomNode * langnode=NULL ):
+    FlowState( LVRendPageContext & ctx, int width, int rendflags, int dir=REND_DIRECTION_UNSET, lInt32 langNodeIdx=0 ):
         direction(dir),
-        lang_node(langnode),
+        lang_node_idx(langNodeIdx),
         context(ctx),
         rend_flags(rendflags),
         level(0),
@@ -4473,11 +4486,14 @@ public:
         }
     }
 
+    bool isMainFlow() {
+        return is_main_flow;
+    }
     int getDirection() {
         return direction;
     }
-    bool isMainFlow() {
-        return is_main_flow;
+    lInt32 getLangNodeIndex() {
+        return lang_node_idx;
     }
     int getOriginalContainerWidth() {
         return o_width;
@@ -5231,18 +5247,18 @@ public:
 
     // Enter/leave a block level: backup/restore some of this FlowState
     // fields, and do some housekeeping.
-    void newBlockLevel( int width, int d_left, bool avoid_pb, int dir, ldomNode * langnode ) {
+    void newBlockLevel( int width, int d_left, bool avoid_pb, int dir, lInt32 langNodeIdx ) {
         // Don't new/delete to avoid too many malloc/free, keep and re-use/reset
         // the ones already created
         if ( _shifts.length() <= level ) {
-            _shifts.push( new BlockShift( direction, lang_node, x_min, x_max, l_y, in_y_min, in_y_max, avoid_pb_inside ) );
+            _shifts.push( new BlockShift( direction, lang_node_idx, x_min, x_max, l_y, in_y_min, in_y_max, avoid_pb_inside ) );
         }
         else {
-            _shifts[level]->reset( direction, lang_node, x_min, x_max, l_y, in_y_min, in_y_max, avoid_pb_inside );
+            _shifts[level]->reset( direction, lang_node_idx, x_min, x_max, l_y, in_y_min, in_y_max, avoid_pb_inside );
         }
         direction = dir;
-        if (langnode != NULL)
-            lang_node = langnode;
+        if (langNodeIdx != -1)
+            lang_node_idx = langNodeIdx;
         x_min += d_left;
         x_max = x_min + width;
         l_y = c_y;
@@ -5263,7 +5279,7 @@ public:
         bottom_overflow = in_y_max > last_c_y ? in_y_max - last_c_y : 0; // positive value
         BlockShift * prev = _shifts[level-1];
         direction = prev->direction;
-        lang_node = prev->lang_node;
+        lang_node_idx = prev->lang_node_idx;
         x_min = prev->x_min;
         x_max = prev->x_max;
         l_y = prev->l_y;
@@ -5955,7 +5971,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
     // See if lang= attribute
     bool has_lang_attribute = false;
-    if ( enode->hasAttribute( attr_lang ) ) {
+    if ( enode->hasAttribute( attr_lang ) && !enode->getAttributeValue( attr_lang ).empty() ) {
         // We'll probably have to check it is a valid lang specification
         // before overriding the upper one.
         //   lString16 lang = enode->getAttributeValue( attr_lang );
@@ -6497,7 +6513,14 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     // Set direction for all blocks (needed for text in erm_final, but also for list item
     // markers in erm_block, so that DrawDocument can draw it on the right if rtl).
     RENDER_RECT_SET_DIRECTION(fmt, direction);
-    // todo: also set/store lang_node when we'll start implementing it
+    // Store lang node index if it's an erm_final like node (it's only needed for these,
+    // as the starting lang for renderFinalBlock())
+    if ( m == erm_final || m == erm_table_caption || m == erm_list_item ) {
+        if ( has_lang_attribute )
+            fmt.setLangNodeIndex( enode->getDataIndex() );
+        else
+            fmt.setLangNodeIndex( flow->getLangNodeIndex() );
+    }
     fmt.setX( x );
     fmt.setY( flow->getCurrentRelativeY() );
     fmt.setWidth( width );
@@ -6692,7 +6715,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                        margin_left + (is_rtl ? 0 : list_marker_padding) + padding_left, // d_left
                        break_inside==RN_SPLIT_AVOID,
                        direction,
-                       has_lang_attribute ? enode : NULL);
+                       has_lang_attribute ? enode->getDataIndex() : -1);
 
                 if (padding_top>0) {
                     // This may push accumulated vertical margin
@@ -7266,7 +7289,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         // (We are called when rendering the root node, and when rendering each float
         // met along walking the root node hierarchy - and when meeting a new float
         // in a float, etc...)
-        FlowState flow( context, width, rend_flags, direction );
+        FlowState flow( context, width, rend_flags, direction, TextLangMan::getLangNodeIndex(enode) );
         if (baseline != NULL) {
             flow.setRequestedBaselineType(*baseline);
         }
@@ -8959,11 +8982,12 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
     bool isStartNode = true; // we are starting measurement on that node
     // Start measurements and recursions:
     getRenderedWidths(node, maxWidth, minWidth, direction, ignoreMargin, rendFlags,
-        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, isStartNode);
+        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, NULL, isStartNode);
 }
 
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction, bool ignoreMargin, int rendFlags,
-    int &curMaxWidth, int &curWordWidth, bool &collapseNextSpace, int &lastSpaceWidth, int indent, bool isStartNode)
+    int &curMaxWidth, int &curWordWidth, bool &collapseNextSpace, int &lastSpaceWidth,
+    int indent, TextLangCfg * lang_cfg, bool isStartNode)
 {
     // This does mostly what renderBlockElement, renderFinalBlock and lvtextfm.cpp
     // do, but only with widths and horizontal margin/border/padding and indent
@@ -8979,6 +9003,15 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         int m = node->getRendMethod();
         if (m == erm_invisible)
             return;
+
+        if ( isStartNode ) {
+            lang_cfg = TextLangMan::getTextLangCfg( node ); // Fetch it from node or its parents
+        }
+        else if ( node->hasAttribute( attr_lang ) ) {
+            lString16 lang_tag = node->getAttributeValue( attr_lang );
+            if ( !lang_tag.empty() )
+                lang_cfg = TextLangMan::getTextLangCfg( lang_tag );
+        }
 
         if ( isStartNode && node->isBoxingInlineBox() ) {
             // The inlineBox is erm_inline, and we'll be measuring it below
@@ -9110,7 +9143,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 // Nothing more to do with inline elements: they just carry some
                 // styles that will be grabbed by children text nodes
                 getRenderedWidths(child, maxWidth, minWidth, direction, false, rendFlags,
-                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent);
+                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg);
             }
             return;
         }
@@ -9226,7 +9259,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 for (int i = 0; i < node->getChildCount(); i++) {
                     ldomNode * child = node->getChildNode(i);
                     getRenderedWidths(child, _maxWidth, _minWidth, direction, false, rendFlags,
-                        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent);
+                        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg);
                     // A <BR/> can happen deep among our children, so we deal with that when erm_inline above
                 }
                 if (lastSpaceWidth)
@@ -9255,7 +9288,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 int _minw = 0;
                 ldomNode * child = node->getChildNode(i);
                 getRenderedWidths(child, _maxw, _minw, direction, false, rendFlags,
-                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent);
+                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg);
                 if (m == erm_table_row) {
                     // For table rows, adding the min/max widths of each children
                     // (the table cells), instead of taking the largest, gives
@@ -9410,6 +9443,18 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         // getAdditionalCharWidthOnLeft().
         // todo: use fribidi and split measurement at fribidi level change,
         // and beware left/right side bearing adjustments...
+        #if (USE_LIBUNIBREAK==1)
+        // If using libunibreak, we do similarly as in lvtextfm.cpp copyText(),
+        // except that we don't update previous char, but look ahead at next
+        // char to know about current break.
+        // Also, as we do all that only text node by text node, we may lose
+        // line breaking rules between contiguous text nodes (but it's a bit
+        // complicated to pass this lbCtx across calls...)
+        struct LineBreakContext lbCtx;
+        lb_init_break_context(&lbCtx, 0x0020, NULL);
+        lbCtx.lbpLang = lang_cfg->getLBProps();
+        lb_process_next_char(&lbCtx, (utf32_t)(*txt));
+        #endif
         while (true) {
             LVFont * font = node->getParentNode()->getFont().get();
             int chars_measured = font->measureText(
@@ -9418,9 +9463,82 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     widths, flags,
                     0x7FFF, // very wide width
                     '?',    // replacement char
+                    lang_cfg,
                     letter_spacing,
                     false); // no hyphenation
                     // todo: provide direction and hints
+            #if (USE_LIBUNIBREAK==1)
+            for (int i=0; i<chars_measured; i++) {
+                int w = widths[i] - (i>0 ? widths[i-1] : 0);
+                lChar16 c = *(txt + start + i);
+                lChar16 next_c = *(txt + start + i + 1); // might be 0 at end of string
+                if ( lang_cfg->hasLBCharSubFunc() ) {
+                    next_c = lang_cfg->getLBCharSubFunc()(txt+start, i+1, len-1 - (i+1));
+                }
+                int brk = lb_process_next_char(&lbCtx, (utf32_t)next_c);
+                    // We don't need to bother with collapsing consecutive spaces, as
+                    // we're dealing with a single text node, and the HTML parser has
+                    // removed multiple consecutive spaces (except with PRE, that we
+                    // already did not handle correctly when !USE_LIBUNIBREAK).
+                // printf("between <%c%c>: brk %d\n", c, next_c, brk);
+                if (brk == LINEBREAK_ALLOWBREAK) {
+                    if (flags[i] & LCHAR_IS_SPACE) { // A space
+                        if (collapseNextSpace) // ignore this space
+                            continue;
+                        collapseNextSpace = true; // ignore next spaces, even if in another node
+                        lastSpaceWidth = w;
+                        curMaxWidth += w; // add this space to non-wrap width
+                        if (curWordWidth > 0) { // there was a word before this space
+                            if (start+i > 0) {
+                                // adjust for last word's last char overflow (italic, letter f...)
+                                lChar16 prevc = *(txt + start + i - 1);
+                                int right_overflow = - font->getRightSideBearing(prevc, true, true);
+                                curWordWidth += right_overflow;
+                            }
+                        }
+                        if (curWordWidth > minWidth) // done with previous word
+                            minWidth = curWordWidth; // longest word found
+                        curWordWidth = 0;
+                    }
+                    else { // break after a non space: might be a CJK char (or other stuff)
+                        collapseNextSpace = false; // next space should not be ignored
+                        lastSpaceWidth = 0; // no width to take off if we stop with this char
+                        curMaxWidth += w;
+                        if (curWordWidth > 0) { // there was a word or CJK char before this CJK char
+                            if (start+i > 0) {
+                                // adjust for last word's last char or previous CJK char right overflow
+                                lChar16 prevc = *(txt + start + i - 1);
+                                int right_overflow = - font->getRightSideBearing(prevc, true, true);
+                                curWordWidth += right_overflow;
+                            }
+                        }
+                        if (curWordWidth > minWidth) // done with previous word
+                            minWidth = curWordWidth; // longest word found
+                        curWordWidth = w;
+                        // adjust for leading overflow
+                        int left_overflow = - font->getLeftSideBearing(c, false, true);
+                        curWordWidth += left_overflow;
+                        if (start + i == 0) // at start of text only? (not sure)
+                            curMaxWidth += left_overflow; // also add it to max width
+                    }
+                }
+                else { // break not allowed: this char is part of a word
+                    collapseNextSpace = false; // next space should not be ignored
+                    lastSpaceWidth = 0; // no width to take off if we stop with this char
+                    if (curWordWidth == 0) { // first char of a word
+                        // adjust for leading overflow on first char of a word
+                        int left_overflow = - font->getLeftSideBearing(c, false, true);
+                        curWordWidth += left_overflow;
+                        if (start + i == 0) // at start of text only? (not sure)
+                            curMaxWidth += left_overflow; // also add it to max width
+                    }
+                    curMaxWidth += w;
+                    curWordWidth += w;
+                    // libunibreak should handle properly '/' in urls (except may be
+                    // if the url parts are made of numbers...)
+                }
+            }
+            #else // not USE_LIBUNIBREAK==1
             for (int i=0; i<chars_measured; i++) {
                 int w = widths[i] - (i>0 ? widths[i-1] : 0);
                 lChar16 c = *(txt + start + i);
@@ -9496,6 +9614,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     }
                 }
             }
+            #endif // not USE_LIBUNIBREAK==1
             if ( chars_measured == len ) { // done with this text node
                 if (curWordWidth > 0) { // we end with a word
                     if (start+len > 0) {

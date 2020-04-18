@@ -34,7 +34,7 @@ public:
 
     virtual lUInt16
     measureText(const lChar16 *text, int len, lUInt16 *widths, lUInt8 *flags, int max_width,
-                lChar16 def_char, int letter_spacing = 0, bool allow_hyphenation = true, lUInt32 hints=0);
+                lChar16 def_char, TextLangCfg * lang_cfg = NULL, int letter_spacing = 0, bool allow_hyphenation = true, lUInt32 hints=0);
 
     /** \brief measure text
         \param text is text string pointer
@@ -42,7 +42,7 @@ public:
         \return width of specified string 
     */
     virtual lUInt32 getTextWidth(
-            const lChar16 *text, int len
+            const lChar16 *text, int len, TextLangCfg * lang_cfg = NULL
     );
 
     /// returns font baseline offset
