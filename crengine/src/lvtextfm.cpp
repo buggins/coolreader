@@ -1034,9 +1034,12 @@ public:
                     lChar16 c = m_text[pos];
 
                     bool is_space = (c == ' ');
-                    if ( is_space && prev_was_space && !preformatted ) {
+                    if ( is_space && prev_was_space && !preformatted && src->object ) {
                         // On non-pre paragraphs, flag spaces following a space
                         // so we can discard them later.
+                        // (But only if the space is from a document text node (it then
+                        // has a non-NULL ->object), to keep those we added for empty
+                        // lines or identation with 'txform->AddSourceLine(L" "...)'.)
                         m_flags[pos] = LCHAR_IS_COLLAPSED_SPACE | LCHAR_ALLOW_WRAP_AFTER;
                         // m_text[pos] = '_'; // uncomment when debugging
                         // (We can replace the char to see it in printf() (m_text is not the
