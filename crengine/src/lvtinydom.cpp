@@ -87,7 +87,7 @@ int gDOMVersionRequested     = DOM_VERSION_CURRENT;
 #define CACHE_FILE_FORMAT_VERSION "3.12.61"
 
 /// increment following value to force re-formatting of old book after load
-#define FORMATTING_VERSION_ID 0x0021
+#define FORMATTING_VERSION_ID 0x0022
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
