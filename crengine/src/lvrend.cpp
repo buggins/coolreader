@@ -5923,6 +5923,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         return;
 
     css_style_rec_t * style = enode->getStyle().get();
+    lUInt16 nodeElementId = enode->getNodeId();
 
     // See if dir= attribute or CSS specified direction
     int direction = flow->getDirection();
@@ -6060,9 +6061,11 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     // Adjust box size and position
 
     // <HR> gets its style width, height and margin:auto no matter flags
-    bool is_hr = enode->getNodeId() == el_hr;
+    bool is_hr = nodeElementId == el_hr;
+    // <BR> seen as block elements (when they are "display:block" and ended up
+    // not part of a final node) will get some height if none specified
     // <EMPTY-LINE> block element with height added for empty lines in txt document
-    bool is_empty_line_elem = enode->getNodeId() == el_empty_line;
+    bool is_br_or_empty_line_elem = (nodeElementId == el_br) || (nodeElementId == el_empty_line);
 
     // Get any style height to be ensured below (just before we add bottom
     // padding when erm_block or erm_final)
@@ -6075,12 +6078,34 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         // Nothing special to do: the child style height will be
         // enforced by subcall to renderBlockElement(child)
     }
-    else if ( is_hr || is_empty_line_elem || BLOCK_RENDERING(flags, ENSURE_STYLE_HEIGHT) ) {
+    else if ( is_hr || is_br_or_empty_line_elem || BLOCK_RENDERING(flags, ENSURE_STYLE_HEIGHT) ) {
         // We always use the style height for <HR>, to actually have
         // a height to fill with its color
         style_height = style->height;
         style_height_base_em = em;
         apply_style_height = true;
+        if ( is_br_or_empty_line_elem && style_height.type == css_val_unspecified ) {
+            // No height specified: default to line-height, just like
+            // if it were rendered final.
+            int line_h;
+            if ( style->line_height.type == css_val_unspecified &&
+                        style->line_height.value == css_generic_normal ) {
+                line_h = enode->getFont()->getHeight(); // line-height: normal
+            }
+            else {
+                // In all other cases (%, em, unitless/unspecified), we can just
+                // scale 'em', and use the computed value for absolute sized
+                // values and 'rem' (related to root element font size).
+                line_h = lengthToPx(style->line_height, em, em, true);
+            }
+            // Scale line_h according to gInterlineScaleFactor, but not if
+            // it was already in screen_px, which means it has already been
+            // scaled (in setNodeStyle() when inherited).
+            if (style->line_height.type != css_val_screen_px && gInterlineScaleFactor != INTERLINE_SCALE_FACTOR_NO_SCALE)
+                line_h = (line_h * gInterlineScaleFactor) >> INTERLINE_SCALE_FACTOR_SHIFT;
+            style_height.value = line_h;
+            style_height.type = css_val_screen_px;
+        }
     }
     if ( apply_style_height && style_height.type != css_val_unspecified ) {
         if ( !BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) &&
@@ -6088,7 +6113,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 style_height.type != css_val_ex && style_height.type != css_val_rem ) {
             apply_style_height = false;
         }
-        if ( is_hr || is_empty_line_elem || apply_style_height ) {
+        if ( is_hr || is_br_or_empty_line_elem || apply_style_height ) {
             style_h = lengthToPx( style_height, container_width, style_height_base_em );
             if ( BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) ) {
                 // If W3C box model requested, CSS height specifies the height
@@ -6599,7 +6624,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         case erm_block:
         case erm_inline: // For inlineBox elements only
             {
-                if (m == erm_inline && enode->getNodeId() != el_inlineBox) {
+                if (m == erm_inline && nodeElementId != el_inlineBox) {
                     printf("CRE WARNING: node discarded (unexpected erm_inline for elem %s)\n",
                                 UnicodeToLocal(ldomXPointer(enode, 0).toString()).c_str());
                                 // (add %s and enode->getText8().c_str() to see text content)
@@ -6794,7 +6819,10 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                             pad_h = flow->getPageHeight();
                         // Add this space to the page splitting context
                         // Allow page splitting inside this useless excessive style height
-                        flow->addContentSpace(pad_h, 1, false, false, false);
+                        // (Unless it's a <BR> or <EMPTY-LINE> that we're rather keep it
+                        // all on a page (to avoid text line shifts and ghosting in interline)
+                        bool split_avoid_inside = is_br_or_empty_line_elem;
+                        flow->addContentSpace(pad_h, 1, false, split_avoid_inside, false);
                     }
                 }
 
@@ -8361,6 +8389,8 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     css_style_ref_t style( new css_style_rec_t );
     css_style_rec_t * pstyle = style.get();
 
+    lUInt16 nodeElementId = enode->getNodeId();
+
     if (gDOMVersionRequested < 20180524) {
         // The display property initial value has been changed from css_d_inherit
         // to css_d_inline (as per spec, and so that an unknown element does not
@@ -8382,26 +8412,26 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
 
         // Account for backward incompatible changes in fb2def.h
         if (gDOMVersionRequested < 20180528) { // revert what was changed 20180528
-            if (enode->getNodeId() == el_form) {
+            if (nodeElementId == el_form) {
                 pstyle->display = css_d_none; // otherwise shown as block, as it may have textual content
             }
-            if (enode->getNodeId() == el_code) {
+            if (nodeElementId == el_code) {
                 pstyle->white_space = css_ws_pre; // otherwise white-space: normal, as browsers do
             }
-            if (enode->getNodeId() >= el_address && enode->getNodeId() <= el_xmp) { // newly added block elements
+            if (nodeElementId >= el_address && nodeElementId <= el_xmp) { // newly added block elements
                 pstyle->display = css_d_inline; // previously unknown and shown as inline
                 if (gDOMVersionRequested < 20180524) {
                     pstyle->display = css_d_inherit; // previously unknown and display: inherit
                 }
             }
             if (gDOMVersionRequested < 20180524) { // revert what was fixed 20180524
-                if (enode->getNodeId() == el_cite) {
+                if (nodeElementId == el_cite) {
                     pstyle->display = css_d_block; // otherwise correctly set to css_d_inline
                 }
-                if (enode->getNodeId() == el_li) {
+                if (nodeElementId == el_li) {
                     pstyle->display = css_d_list_item; // otherwise correctly set to css_d_list_item_block
                 }
-                if (enode->getNodeId() == el_style) {
+                if (nodeElementId == el_style) {
                     pstyle->display = css_d_inline; // otherwise correctly set to css_d_none (hidden)
                 }
             }
@@ -8415,7 +8445,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     // css_ta_left (as Firefox), but it's best in our context to use the
     // value set to the (or current DocFragment's) BODY node, which starts
     // with css_ta_left but may be set to css_ta_justify by our epub.css.
-    if (enode->getNodeId() == el_table) {
+    if (nodeElementId == el_table) {
         // To do as Firefox:
         // pstyle->text_align = css_ta_left;
         // But we'd rather use the BODY value:
@@ -8428,7 +8458,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     }
 
     if (enode->getNodeNsId() == ns_epub) {
-        if (enode->getNodeId() == el_case) { // <epub:case required-namespace="...">
+        if (nodeElementId == el_case) { // <epub:case required-namespace="...">
             // As we don't support any specific namespace (like MathML, SVG...), just
             // hide <epub:case> content - it must be followed by a <epub:default>
             // section with usually regular content like some image.
@@ -8522,7 +8552,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     // Ensure any <stylesheet> element (that crengine "added BODY>stylesheet child
     // element with HEAD>STYLE&LINKS content") stays invisible (it could end up being
     // made visible when some book stylesheet contains "body > * {display: block;}")
-    if (enode->getNodeId() == el_stylesheet) {
+    if (nodeElementId == el_stylesheet) {
         pstyle->display = css_d_none;
     }
 
@@ -8548,7 +8578,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         }
     }
     if ( BLOCK_RENDERING_G(WRAP_FLOATS) ) {
-        if ( enode->getNodeId() == el_floatBox ) {
+        if ( nodeElementId == el_floatBox ) {
             // floatBox added, by initNodeRendMethod(), as a wrapper around
             // element with float:.
             // We want to set the floatBox->style->float_ to the same value
@@ -8595,7 +8625,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
 
     if ( BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) ) {
         // See above, same reasoning
-        if ( enode->getNodeId() == el_inlineBox ) {
+        if ( nodeElementId == el_inlineBox ) {
             // el_inlineBox are "display: inline" by default (defined in fb2def.h)
             if (enode->getChildCount() == 1) {
                 ldomNode * child = enode->getChildNode(0);
