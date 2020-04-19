@@ -6078,10 +6078,15 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
     // <HR> gets its style width, height and margin:auto no matter flags
     bool is_hr = nodeElementId == el_hr;
-    // <BR> seen as block elements (when they are "display:block" and ended up
-    // not part of a final node) will get some height if none specified
     // <EMPTY-LINE> block element with height added for empty lines in txt document
-    bool is_br_or_empty_line_elem = (nodeElementId == el_br) || (nodeElementId == el_empty_line);
+    bool is_empty_line_elem = nodeElementId == el_empty_line;
+        // Note: for a short time, we handled <BR> set with "display:block" here
+        // just like EMPTY-LINE. Before that, block BRs did not end up being part
+        // of a final node, and were just a block with no height, so not ensuring
+        // the vertical blank space they aimed at.
+        // This caused other issues, and comparing with Firefox/Calibre, it looks
+        // like it's just best to always force BR to be css_d_inline, which we do
+        // in setNodeStyle(). So, we'll never meet any <BR> here.
 
     // Get any style height to be ensured below (just before we add bottom
     // padding when erm_block or erm_final)
@@ -6094,13 +6099,13 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         // Nothing special to do: the child style height will be
         // enforced by subcall to renderBlockElement(child)
     }
-    else if ( is_hr || is_br_or_empty_line_elem || BLOCK_RENDERING(flags, ENSURE_STYLE_HEIGHT) ) {
+    else if ( is_hr || is_empty_line_elem || BLOCK_RENDERING(flags, ENSURE_STYLE_HEIGHT) ) {
         // We always use the style height for <HR>, to actually have
         // a height to fill with its color
         style_height = style->height;
         style_height_base_em = em;
         apply_style_height = true;
-        if ( is_br_or_empty_line_elem && style_height.type == css_val_unspecified ) {
+        if ( is_empty_line_elem && style_height.type == css_val_unspecified ) {
             // No height specified: default to line-height, just like
             // if it were rendered final.
             int line_h;
@@ -6129,7 +6134,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 style_height.type != css_val_ex && style_height.type != css_val_rem ) {
             apply_style_height = false;
         }
-        if ( is_hr || is_br_or_empty_line_elem || apply_style_height ) {
+        if ( is_hr || is_empty_line_elem || apply_style_height ) {
             style_h = lengthToPx( style_height, container_width, style_height_base_em );
             if ( BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) ) {
                 // If W3C box model requested, CSS height specifies the height
@@ -6842,9 +6847,9 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                             pad_h = flow->getPageHeight();
                         // Add this space to the page splitting context
                         // Allow page splitting inside this useless excessive style height
-                        // (Unless it's a <BR> or <EMPTY-LINE> that we're rather keep it
-                        // all on a page (to avoid text line shifts and ghosting in interline)
-                        bool split_avoid_inside = is_br_or_empty_line_elem;
+                        // (Unless it's a <EMPTY-LINE> that we're rather keep it all on a
+                        // page, to avoid text line shifts and ghosting in interline.)
+                        bool split_avoid_inside = is_empty_line_elem;
                         flow->addContentSpace(pad_h, 1, false, split_avoid_inside, false);
                     }
                 }
@@ -8570,6 +8575,19 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
             default:
                 break;
         }
+    }
+
+    // <br/> can be set to "display: block" by publishers, but
+    // Firefox and Calibre do not handle them like other block
+    // elements: they won't ensure a "height:" set on them.
+    // It's not clear how such BR should be handled, but comparing
+    // with how Firefox/Calibre/Chrome render them, it looks
+    // like we'll render quite as they do when forcing BR to
+    // always be css_d_inline:
+    // When met alongside block elements, they'll be autoboxed and
+    // will ensure just their (possibly inherited) line-height.
+    if (nodeElementId == el_br) {
+        pstyle->display = css_d_inline;
     }
 
     // Ensure any <stylesheet> element (that crengine "added BODY>stylesheet child
