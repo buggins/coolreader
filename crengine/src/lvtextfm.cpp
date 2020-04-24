@@ -930,13 +930,13 @@ public:
     {
         #if (USE_LIBUNIBREAK==1)
         struct LineBreakContext lbCtx;
-        // Let's init it before the first char, by adding a leading space which
-        // will be treated as WJ (Word Joiner, non-breakable) and should not
-        // change the behaviour with the real first char coming up. We then
-        // can just use lb_process_next_char() with the real text.
+        // Let's init it before the first char, by adding a leading Zero-Width Joiner
+        // (Word Joiner, non-breakable) which should not change the behaviour with
+        // the real first char coming up. We then can just use lb_process_next_char()
+        // with the real text.
         // The lang lb_props will be plugged in from the TextLangCfg of the
-        // coming up text node.
-        lb_init_break_context(&lbCtx, 0x0020, NULL);
+        // coming up text node. We provide NULL in the meantime.
+        lb_init_break_context(&lbCtx, 0x200D, NULL); // ZERO WIDTH JOINER
         #endif
 
         m_has_bidi = false; // will be set if fribidi detects it is bidirectionnal text
@@ -1177,45 +1177,48 @@ public:
                         ch = src->lang_cfg->getLBCharSubFunc()(m_text, pos, len-1 - k);
                     }
                     int brk = lb_process_next_char(&lbCtx, (utf32_t)ch);
-                    // printf("between <%c%c>: brk %d\n", m_text[pos-1], m_text[pos], brk);
-                    if (brk != LINEBREAK_ALLOWBREAK) {
-                        m_flags[pos-1] &= ~LCHAR_ALLOW_WRAP_AFTER;
-                    }
-                    else {
-                        m_flags[pos-1] |= LCHAR_ALLOW_WRAP_AFTER;
-                        // brk is set on the last space in a sequence of multiple spaces.
-                        //   between <ne>: brk 2
-                        //   between <ed>: brk 2
-                        //   between <d.>: brk 2
-                        //   between <. >: brk 2
-                        //   between <  >: brk 2
-                        //   between <  >: brk 2
-                        //   between < T>: brk 1
-                        //   between <Th>: brk 2
-                        //   between <he>: brk 2
-                        //   between <ey>: brk 2
-                        //   between <y >: brk 2
-                        //   between <  >: brk 2
-                        //   between < h>: brk 1
-                        //   between <ha>: brk 2
-                        //   between <av>: brk 2
-                        //   between <ve>: brk 2
-                        //   between <e >: brk 2
-                        //   between < a>: brk 1
-                        //   between <as>: brk 2
-                        // Given the algorithm described in addLine(), we want the break
-                        // after the first space, so the following collapsed spaces can
-                        // be at start of next line where they will be ignored.
-                        // (Not certain this is really needed, but let's do it, as the
-                        // code expecting that has been quite well tested and fixed over
-                        // the months, so let's avoid adding uncertainty.)
-                        if ( m_flags[pos-1] & LCHAR_IS_COLLAPSED_SPACE ) {
-                            // We have spaces before, and if we are allowed to break,
-                            // the break is allowed on all preceeding spaces.
-                            int j = pos-2;
-                            while ( j >= 0 && ( (m_flags[j] & LCHAR_IS_COLLAPSED_SPACE) || m_text[j] == ' ' ) ) {
-                                m_flags[j] |= LCHAR_ALLOW_WRAP_AFTER;
-                                j--;
+                    if ( pos > 0 ) {
+                        // printf("between <%c%c>: brk %d\n", m_text[pos-1], m_text[pos], brk);
+                        // printf("between <%x.%x>: brk %d\n", m_text[pos-1], m_text[pos], brk);
+                        if (brk != LINEBREAK_ALLOWBREAK) {
+                            m_flags[pos-1] &= ~LCHAR_ALLOW_WRAP_AFTER;
+                        }
+                        else {
+                            m_flags[pos-1] |= LCHAR_ALLOW_WRAP_AFTER;
+                            // brk is set on the last space in a sequence of multiple spaces.
+                            //   between <ne>: brk 2
+                            //   between <ed>: brk 2
+                            //   between <d.>: brk 2
+                            //   between <. >: brk 2
+                            //   between <  >: brk 2
+                            //   between <  >: brk 2
+                            //   between < T>: brk 1
+                            //   between <Th>: brk 2
+                            //   between <he>: brk 2
+                            //   between <ey>: brk 2
+                            //   between <y >: brk 2
+                            //   between <  >: brk 2
+                            //   between < h>: brk 1
+                            //   between <ha>: brk 2
+                            //   between <av>: brk 2
+                            //   between <ve>: brk 2
+                            //   between <e >: brk 2
+                            //   between < a>: brk 1
+                            //   between <as>: brk 2
+                            // Given the algorithm described in addLine(), we want the break
+                            // after the first space, so the following collapsed spaces can
+                            // be at start of next line where they will be ignored.
+                            // (Not certain this is really needed, but let's do it, as the
+                            // code expecting that has been quite well tested and fixed over
+                            // the months, so let's avoid adding uncertainty.)
+                            if ( m_flags[pos-1] & LCHAR_IS_COLLAPSED_SPACE ) {
+                                // We have spaces before, and if we are allowed to break,
+                                // the break is allowed on all preceeding spaces.
+                                int j = pos-2;
+                                while ( j >= 0 && ( (m_flags[j] & LCHAR_IS_COLLAPSED_SPACE) || m_text[j] == ' ' ) ) {
+                                    m_flags[j] |= LCHAR_ALLOW_WRAP_AFTER;
+                                    j--;
+                                }
                             }
                         }
                     }
