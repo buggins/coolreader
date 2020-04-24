@@ -11,13 +11,10 @@
 #endif
 
 #if USE_LIBUNIBREAK==1
-#include <linebreak.h>
-    // linebreakdef.h is not wrapped by this, unlike linebreak.h
-    // (not wrapping results in "undefined symbol" with the original
-    // function name kinda obfuscated)
     #ifdef __cplusplus
     extern "C" {
     #endif
+#include <linebreak.h>
 #include <linebreakdef.h>
     #ifdef __cplusplus
     }
