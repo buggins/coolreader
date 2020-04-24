@@ -1506,6 +1506,8 @@ public:
             lUInt32 prevScript = HB_SCRIPT_COMMON;
             hb_unicode_funcs_t* _hb_unicode_funcs = hb_unicode_funcs_get_default();
         #endif
+        int first_word_len = 0; // set to -1 when done with it (only used to check
+                                // for single char first word, see below)
         for ( i=0; i<=m_length; i++ ) {
             LVFont * newFont = NULL;
             lInt16 newLetterSpacing = 0;
@@ -1678,10 +1680,32 @@ public:
                             // We can just account for the space reduction (or increase) in cumulative_width_removed
                             cumulative_width_removed += char_width - scaled_width;
                             widths[k] -= cumulative_width_removed;
+                            if ( first_word_len >= 0 ) { // This is the space (or nbsp) after first word
+                                if ( first_word_len == 1 ) { // Previous word is a single char
+                                    if ( isLeftPunctuation(m_text[k-1]) ) {
+                                        // This space follows one of the common opening quotation marks or
+                                        // dashes used to introduce a quotation or a part of a dialog:
+                                        // https://en.wikipedia.org/wiki/Quotation_mark
+                                        // Don't allow this space to change width, so text justification
+                                        // doesn't move away next word, so that other similar paragraphs
+                                        // get their real first words vertically aligned.
+                                        flags[k] &= ~LCHAR_IS_SPACE;
+                                        // Note: we do this check here, with the text still in logical
+                                        // order, so we get that working with RTL text too (where, in
+                                        // visual order, we'll have lost track of which word is the
+                                        // first word).
+                                    }
+                                }
+                                first_word_len = -1; // We don't need to deal with this anymore
+                            }
                         }
                         else {
                             // remove, from the measured cumulative width, what we previously removed
                             widths[k] -= cumulative_width_removed;
+                            if ( first_word_len >= 0 ) {
+                                // Not a collapsed space and not a space: this will be part of first word
+                                first_word_len++;
+                            }
                         }
                         m_widths[start + k] = lastWidth + widths[k];
                         #if (USE_LIBUNIBREAK==1)
@@ -2708,16 +2732,11 @@ public:
                         // increased if needed (for text justification), so actually
                         // making that space larger or smaller.
                         bool can_adjust_width = true;
-                        if ( wstart == 0 && word->t.len == 2 && isLeftPunctuation(m_text[0]) ) {
-                            // Single char (with space) at start of line is one of the
-                            // common opening quotation marks or dashes used to introduce
-                            // a quotation or a part of a dialog:
-                            //   https://en.wikipedia.org/wiki/Quotation_mark
-                            // Don't allow the following space to change width, so other
-                            // similar lines get their real first word similarly aligned.
-                            can_adjust_width = false;
-                        }
-                        else if ( word->t.len>=2 && i>=2 && m_text[i-1]==UNICODE_NO_BREAK_SPACE
+                        // Note: checking if the first word of first line is one of the
+                        // common opening quotation marks or dashes is done in measureText(),
+                        // to have it work also with BiDi/RTL text (checking that here
+                        // would be too late, as reordering has been done).
+                        if ( word->t.len>=2 && i>=2 && m_text[i-1]==UNICODE_NO_BREAK_SPACE
                                                          && m_text[i-2]==UNICODE_NO_BREAK_SPACE ) {
                             // condition for double nbsp after run-in footnote title
                             can_adjust_width = false;
