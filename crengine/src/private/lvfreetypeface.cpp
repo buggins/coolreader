@@ -2058,7 +2058,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *
                                     item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset), w);
                         #endif
                         buf->Draw(x + item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset),
-                                  y + _baseline - item->origin_y + FONT_METRIC_TO_PX(glyph_pos[i].y_offset),
+                                  y + _baseline - item->origin_y - FONT_METRIC_TO_PX(glyph_pos[i].y_offset),
                                   item->bmp,
                                   item->bmp_width,
                                   item->bmp_height,
