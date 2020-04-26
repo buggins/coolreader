@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/ShaderWorld.unity
     guid: 55d5290ab5c35e0c4800c2cbe45e3b83
+  - enabled: 1
+    path: Assets/Scenes/SharedWorld.unity
+    guid: 6628b9dd4f875208fb6e1429ed346249
   m_configObjects: {}

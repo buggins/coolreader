@@ -160,8 +160,8 @@ Shader "Unlit/ElevatedShader"
       {
         // small epsilon offset.
         float2 eps = float2 (0.002 * t, 0.0);
-        return normalize (float3 (terrain (pos.xz - eps.xy, 16) - terrain (pos.xz+eps.xy, 16),
-                                  2.0*eps.x,
+        return normalize (float3 (terrain (pos.xz - eps.xy, 16) - terrain (pos.xz + eps.xy, 16),
+                                  2.0 * eps.x,
                                   terrain (pos.xz - eps.yx, 16) - terrain (pos.xz + eps.yx, 16)));
       }
       
@@ -237,8 +237,8 @@ Shader "Unlit/ElevatedShader"
           col *= 0.1+1.8*sqrt(fbm(pos.xz*0.04)*fbm(pos.xz*0.005));
           
           // snow
-          float h = smoothstep (55.0, 80.0, pos.y / SC + 25.0 * fbm (0.01 * pos.xz / SC));
-          float e = smoothstep (1.0 - 0.5 * h, 1.0 - 0.1 * h, nor.y);
+          float h = smoothstep (55.0, 80.0, pos.y / SC + 25.0 * fbm (0.1 * pos.xz / SC));
+          float e = smoothstep (1.0 - 0.9 * h, 1.0 - 0.1 * h, nor.y);
           float o = 0.3 + 0.7 * smoothstep (0.0, 0.1, nor.x + h * h);
           float s = h * e * o;
           col = lerp (col, 0.29 * float3 (0.62, 0.65, 0.7), smoothstep (0.1, 0.9, s));
@@ -303,7 +303,7 @@ Shader "Unlit/ElevatedShader"
         // camera position
         float3 ro; // current camera position
         ro = camPath (time);
-        ro.y = terrain (ro.xz, 9) + 1.0 * SC;
+        ro.y = terrain (ro.xz, 9) + 5.0 * SC;
         
         float3 rd = normalize (float3 (sin (longitude) * cos(latitude), sin (latitude), cos (longitude) * cos (latitude))); // ray direction.
         

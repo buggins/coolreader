@@ -31,6 +31,32 @@ public class RoomChangeMenuInteraction : MenuInteraction {
     addItemAsMenuOption (doorPart, doorActivate, doorRespond);
   }
 
+  private static IEnumerator roomChange (string destinationRoom)
+  {
+    SceneManager.sceneLoaded += OnSceneLoaded;
+    // Change scenes.
+    AsyncOperation asyncLoad = SceneManager.LoadSceneAsync (destinationRoom, LoadSceneMode.Single);
+    
+    while (!asyncLoad.isDone)
+    {
+      yield return null;
+    }
+
+  }
+  
+  private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+  {
+    RoomProperties.restoreRoom (SceneManager.GetActiveScene().name);
+    SceneManager.sceneLoaded -= OnSceneLoaded;
+  }
+  
+  /// Public facility for any room changing operation. Ensure that 
+  /// room persistence behaviour is maintained.
+  public static void changeToRoom (string roomName, MonoBehaviour instance)
+  {
+    instance.StartCoroutine (roomChange (roomName));
+  }
+  
   // Respond to the door being selected.
   public void doorActivate (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
@@ -83,21 +109,16 @@ public class RoomChangeMenuInteraction : MenuInteraction {
 //     {
 //       DontDestroyOnLoad (book);
 //     }
-    
-    SceneManager.sceneLoaded += OnSceneLoaded;
-    // Change scenes.
-    AsyncOperation asyncLoad = SceneManager.LoadSceneAsync (destinationRoom, LoadSceneMode.Single);
-    
-    while (!asyncLoad.isDone)
-    {
-      yield return null;
-    }
-  }
-  
-  void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-  {
-    RoomProperties.restoreRoom (SceneManager.GetActiveScene().name);
-    SceneManager.sceneLoaded -= OnSceneLoaded;
+   
+    changeToRoom (destinationRoom, this);
+//     SceneManager.sceneLoaded += OnSceneLoaded;
+//     // Change scenes.
+//     AsyncOperation asyncLoad = SceneManager.LoadSceneAsync (destinationRoom, LoadSceneMode.Single);
+//     
+//     while (!asyncLoad.isDone)
+//     {
+//       yield return null;
+//     }
   }
   
   // Re-enable sound cues once the pointer leaves the door completely.

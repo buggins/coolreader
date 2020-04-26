@@ -87,6 +87,8 @@ MonoBehaviour:
   menuTarget: {fileID: 2100000, guid: 2b96ef1af17e947a1ae0b7d1a4fe2595, type: 2}
   viewcamera: {fileID: 5621204472081314004}
   applicationMenu: {fileID: 3325938733552649831}
+  controllerMenuTemplate: {fileID: 2288986316714389705, guid: 5ea4834630e05baac83370e59e366a53,
+    type: 3}
   avatar: {fileID: 45206115487452534}
   standardBeamMaterial: {fileID: 2100000, guid: 150d9ae9aa0924d02bcbfe3fea0361a8,
     type: 2}

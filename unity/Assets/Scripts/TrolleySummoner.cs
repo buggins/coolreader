@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Deprecated. Remove.
 public class TrolleySummoner : MenuInteraction
 {
   public GameObject button;

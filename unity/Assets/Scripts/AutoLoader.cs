@@ -9,7 +9,7 @@ public class AutoLoader : MonoBehaviour
     void Start ()
     {
       Debug.Log ("Loading book");
-      StartCoroutine (bm.loadBook ("/tmp/algorithms-05-00588.pdf", new BookPropertySet ()));
+//      StartCoroutine (bm.loadBook ("/tmp/algorithms-05-00588.pdf", new BookPropertySet ()));
 //       StartCoroutine (bm.loadBook ("/tmp/pg14838-images.epub", new BookPropertySet ()));
       Debug.Log ("Loaded book");
     }

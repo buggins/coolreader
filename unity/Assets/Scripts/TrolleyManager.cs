@@ -44,21 +44,30 @@ public class TrolleyManager : MenuInteraction
     }
     base.Start ();
     
+    LuggageSummonEventManager.listenSummonLuggage (track);
+    
     restore ();
     
   }
   
   public void Update ()
   {
-    float nearDistance = 1.5f;
+    float nearDistance = 0.5f;
     float farDistance = 3.0f;
+    
+    if (trackedAvatar == null)
+    {
+      tracking = false;
+    }
     
     if (tracking)
     {
       float trolleyDistance = (trolley.transform.position - trackedAvatar.transform.position).magnitude;
+      Debug.Log ("Tral " + trolleyDistance);
       if (trolleyDistance > nearDistance)
       {
-        GetComponent <Rigidbody> ().AddForce (-forceStrength * Vector3.Normalize (trolley.transform.position - trackedAvatar.transform.position));
+        GetComponent <Rigidbody> ().AddForce (-forceStrength * (Vector3.Normalize (trolley.transform.position - trackedAvatar.transform.position) + UnityEngine.Random.insideUnitSphere));
+        transform.position += -1.0f * Time.deltaTime * Vector3.Normalize (trolley.transform.position - trackedAvatar.transform.position);
       }
       else
       {
@@ -70,6 +79,7 @@ public class TrolleyManager : MenuInteraction
   
   public void track (GameObject av)
   {
+    Debug.Log ("Tracking " + av);
     tracking = !tracking;
     trackedAvatar = av;
   }

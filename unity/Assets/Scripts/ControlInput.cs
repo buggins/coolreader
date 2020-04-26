@@ -39,6 +39,9 @@ public class ControlInput : MonoBehaviour {
   public GameObject applicationMenu;
 //   public TextMesh debugText;
   
+  [Tooltip ("The default controller menu template. Can be null")]
+  public GameObject controllerMenuTemplate;
+  
   [Tooltip ("The user avatar, for any manipulation of the user that is required")]
   public GameObject avatar;
   
@@ -76,7 +79,11 @@ public class ControlInput : MonoBehaviour {
 
     public bool lastTrigger = false;
     public bool lastBackButton = false;
+    public bool lastTouchpad = false;
     public GameObject lastHit = null;
+
+    // A controller specific menu.
+    public GameObject controllerMenu;
     
     public ControllerDescription (GameObject controller, bool isLeft, GameObject beam, GameObject target)
     {
@@ -84,10 +91,22 @@ public class ControlInput : MonoBehaviour {
       this.beam = beam;
       this.target = target;
       this.isLeft = isLeft;
+      this.controllerMenu = null;
     }
   }
   
   private List <ControllerDescription> controllerObjects;
+
+  private void setupController (GameObject controllerObject, bool isLeft, GameObject beam, GameObject target)
+  {
+    ControllerDescription controller = new ControllerDescription (controllerObject, isLeft, beam, target);
+    if (controllerMenuTemplate != null)
+    {
+      controller.controllerMenu = Instantiate (controllerMenuTemplate);
+    }
+    controllerObjects.Add (controller);
+    controllerObject.SetActive (true);
+  }
   
   // Use this for initialization
   void Awake () {
@@ -110,14 +129,22 @@ public class ControlInput : MonoBehaviour {
     // Only use one controller - whichever is associated with the specified dominant hand.
     if (!SelectController.singleController () || SelectController.isLeftHanded ())
     {
-      controllerObjects.Add (new ControllerDescription (leftControllerObject, true, leftBeam, leftTarget));
-      leftControllerObject.SetActive (true);
+      setupController (leftControllerObject, true, leftBeam, leftTarget);
+//       ControllerDescription leftControl = new ControllerDescription (leftControllerObject, true, leftBeam, leftTarget);
+//       if (controllerMenuTemplate != null)
+//       {
+//         leftControl.controllerMenu = Instantiate (controllerMenuTemplate);
+//         leftControl.controllerMenu.transform.SetParent (leftControllerObject.transform);
+//       }
+//       controllerObjects.Add (leftControl);
+//       leftControllerObject.SetActive (true);
       Debug.Log ("Enabled left controller");
     }
     if (!SelectController.singleController () || !SelectController.isLeftHanded ())
     {
-      controllerObjects.Add (new ControllerDescription (rightControllerObject, false, rightBeam, rightTarget));
-      rightControllerObject.SetActive (true);
+      setupController (rightControllerObject, false, rightBeam, rightTarget);
+//       controllerObjects.Add (new ControllerDescription (rightControllerObject, false, rightBeam, rightTarget));
+//       rightControllerObject.SetActive (true);
       Debug.Log ("Enabled right controller");
     }    
     
@@ -217,10 +244,11 @@ public class ControlInput : MonoBehaviour {
   }
   
   // Retrieve controller parameters from a controller simulated with a mouse.
-  private void GetMouseStatus (GameObject controllerObject, bool isLeft, out bool trigger, out Vector3 direction, out bool backButton)
+  private void GetMouseStatus (GameObject controllerObject, bool isLeft, out bool trigger, out Vector3 direction, out bool touchpad, out bool backButton)
   {
     trigger = Input.GetAxis ("Fire1") > 0.0;
     backButton = Input.GetAxis ("Fire2") > 0.0;
+    touchpad = Input.GetAxis ("Fire3") > 0.0;
     
     // Find the point under the mouse cursor.
     RaycastHit hit;
@@ -274,7 +302,7 @@ public class ControlInput : MonoBehaviour {
           GetDaydreamControllerStatus (co.controllerObject, co.isLeft, out co.trigger, out co.direction, out co.touchpad, out co.touchposition, out co.backButton);
           break;
         default:
-          GetMouseStatus (co.controllerObject, co.isLeft, out co.trigger, out co.direction, out co.backButton);
+          GetMouseStatus (co.controllerObject, co.isLeft, out co.trigger, out co.direction, out co.touchpad, out co.backButton);
           co.controllerObject.transform.forward = co.direction;
           break;
       }
@@ -295,6 +323,20 @@ public class ControlInput : MonoBehaviour {
       if (Input.GetKeyDown(KeyCode.Escape))
       {
         Application.Quit();
+      }
+      
+      // Use the touchpad to access a controller application menu.
+      bool debounceTouchpad = co.touchpad;
+      if (debounceTouchpad && (co.touchpad == co.lastTouchpad))
+      {
+        debounceTouchpad = false;
+      }
+      co.lastTouchpad = co.touchpad;
+      if (debounceTouchpad && (co.controllerMenu != null))
+      {
+        co.controllerMenu.SetActive (!co.controllerMenu.activeSelf);
+        co.controllerMenu.transform.position = co.controllerObject.transform.position + 0.5f * co.controllerObject.transform.forward;
+        co.controllerMenu.transform.rotation = co.controllerObject.transform.rotation;
       }
       
       // Extract edge transitions of the trigger.
