@@ -143,7 +143,7 @@ public class BookShelfManager : MenuInteraction {
     t.transform.localRotation = rotation;
     t.transform.localScale = new Vector3 (0.5f * shelfLength, 0.5f, 0.5f * shelfLength);
     // set the teleport offset to represent a standing height above the pad.
-    t.GetComponent <TeleportMenuInteraction> ().teleportOffset = new Vector3 (0.0f, 1.5f, 0.0f);
+    t.GetComponent <TeleportMenuInteraction> ().teleportOffset = new Vector3 (0.0f, 0.0f, 0.0f);
   }
   
   // Add a new region to the library.

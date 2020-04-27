@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using Photon.Pun;
+using Photon.Realtime;
+
 // Control handler. This class represents the abstraction between the (evolving) VR input
 // process and the rest of the application. It also provides simulated control input for
 // desktop applications, allowing testing during development but also potentially some
 // use of the application outside an immersive VR setting.
-public class ControlInput : MonoBehaviour {
+public class ControlInput : MonoBehaviourPun {
   
   [Tooltip ("The object representing the left controller")]
   public GameObject leftControllerObject;
@@ -50,6 +53,9 @@ public class ControlInput : MonoBehaviour {
   
   [Tooltip ("A beam material that highlights the target and can be used to indicate teleporting")]
   public Material teleportBeamMaterial;
+  
+  public OVRCameraRig ovrCameraRig;
+  public OVRManager   ovrManager;
   
   public delegate void HandleControllerInputType (ControlInput controller, ControlInput.ControllerDescription controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatarout, bool touchpad, Vector2 touchposition); 
   
@@ -103,13 +109,28 @@ public class ControlInput : MonoBehaviour {
     if (controllerMenuTemplate != null)
     {
       controller.controllerMenu = Instantiate (controllerMenuTemplate);
+      controller.controllerMenu.transform.SetParent (controllerObject.transform.parent);
     }
     controllerObjects.Add (controller);
     controllerObject.SetActive (true);
   }
   
   // Use this for initialization
-  void Awake () {
+  void Start () {
+    if (!(GetComponentInParent <PhotonView> ().IsMine == true || PhotonNetwork.IsConnected == false))
+    {
+      // Disable all external control of this avatar's elements.
+      enabled = false;
+      if (ovrManager != null)
+      {
+        ovrManager.enabled = false;
+      }
+      ovrCameraRig.enabled = false;
+      viewcamera.gameObject.SetActive (false);
+      return;
+    }
+    
+    
     exclusiveRegisteredHandlers = new Dictionary <ControlInput.ControllerDescription, HandlerList> ();
     registeredHandlers = new Dictionary <ControlInput.ControllerDescription, HandlerList> ();
     
@@ -153,6 +174,11 @@ public class ControlInput : MonoBehaviour {
       exclusiveRegisteredHandlers[co] = new HandlerList ();
       registeredHandlers[co] = new HandlerList ();
     }
+    
+    gameObject.SetActive (false);
+    gameObject.SetActive (true);
+
+    Debug.Log ("Awake complete");
   }
   
   // Register a callback for control events. If the handler is exclusive, then
@@ -284,12 +310,10 @@ public class ControlInput : MonoBehaviour {
   }
   
   void Update () {
-    
     // Handle input from each controller.
     foreach (ControllerDescription co in controllerObjects)
     {
       // Get controller properties, depending on the device connected.
-      co.position = co.controllerObject.transform.position;
       switch (SelectController.getActivePlatform ())
       {
         case SelectController.DeviceOptions.OculusGo:
@@ -302,10 +326,12 @@ public class ControlInput : MonoBehaviour {
           GetDaydreamControllerStatus (co.controllerObject, co.isLeft, out co.trigger, out co.direction, out co.touchpad, out co.touchposition, out co.backButton);
           break;
         default:
+          co.controllerObject.transform.localPosition = new Vector3 (-0.1f, -0.1f, 0.3f);
           GetMouseStatus (co.controllerObject, co.isLeft, out co.trigger, out co.direction, out co.touchpad, out co.backButton);
           co.controllerObject.transform.forward = co.direction;
           break;
       }
+      co.position = co.controllerObject.transform.position;
       
       // Manage the back button. In future this may need to be coordinated with active menus,
       // once they start nesting.
@@ -360,7 +386,6 @@ public class ControlInput : MonoBehaviour {
         {
           GameObject hitObject = hit.transform.gameObject;
   //         debugText.text += "\n" + hitObject.name;	
-  //           print ("hhhh" + hitObject.name);
           
           Vector3 beamScale = co.beam.transform.localScale;
           beamScale.z = hit.distance;
@@ -371,6 +396,7 @@ public class ControlInput : MonoBehaviour {
   //         }
           
           co.target.transform.position = hit.point;
+//              print ("hhhh" + hitObject.name + " " + co.position + " " + hitObject.transform.position + " " + hit.point + " " + co.target.transform.position);
           co.target.SetActive (true);
           
           if (hitObject != co.lastHit)

@@ -13,7 +13,7 @@ public class TeleportMenuInteraction : MenuInteraction {
   public AudioSource teleportAudio = null;
 
   [Tooltip ("The position relative to the teleport button that the user will be placed.")]
-  public Vector3 teleportOffset = new Vector3 (0.0f, 0.8f, 0.0f);
+  public Vector3 teleportOffset = new Vector3 (0.0f, 0.0f, 0.0f);
   
   private Dictionary <ControlInput.ControllerDescription, bool> touchingTeleport;
    
