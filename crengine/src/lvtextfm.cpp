@@ -2288,6 +2288,7 @@ public:
         // Bidi
         bool lastIsRTL = false;
         bool isRTL = false;
+        bool bidiLogicalIndicesShift = false;
         // Unicode script change
         bool scriptChanged = false;
         #if (USE_HARFBUZZ==1)
@@ -2324,10 +2325,33 @@ public:
                     }
                 #endif
                 isToIgnore = m_flags[i] & LCHAR_IS_TO_IGNORE;
-            } else {
+                isRTL = m_flags[i] & LCHAR_IS_RTL;
+                bidiLogicalIndicesShift = false;
+                if ( lineIsBidi && isRTL == lastIsRTL && i > 0) {
+                    // The bidi algo may have reordered logical chars, and
+                    // put side by side same-direction chars that where
+                    // not consecutive in the original logical text.
+                    // We need to make a new word when we see these
+                    // reordered indices shifting by more than +/- 1,
+                    // as when drawing the words, we'll use the source
+                    // text nodes' logical text.
+                    if ( isRTL ) { // indices should be decreasing by 1
+                        if ( m_charindex[i] != m_charindex[i-1] - 1 )
+                            bidiLogicalIndicesShift = true;
+                    }
+                    else { // LTR: indices should be increasing by 1
+                        if ( m_charindex[i] != m_charindex[i-1] + 1 )
+                            bidiLogicalIndicesShift = true;
+                    }
+                    // (m_charindex[i-1] might be bad when i-1 is from
+                    // another text node, or an object - but no need
+                    // for checking that as it will have triggered
+                    // another condition for making a word.)
+                }
+            }
+            else {
                 lastWord = true;
             }
-            isRTL = m_flags[i] & LCHAR_IS_RTL;
 
             // This loop goes thru each char, and create a new word when it meets:
             // - a non-space char that follows a space (this non-space char will be
@@ -2379,6 +2403,7 @@ public:
                               || lastWord
                               || isCJKIdeograph(m_text[i])
                               || isRTL != lastIsRTL
+                              || bidiLogicalIndicesShift
                               || scriptChanged
                               || isToIgnore
                              ) ) {
