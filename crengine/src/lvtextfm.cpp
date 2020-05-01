@@ -43,6 +43,8 @@
 
 #define SPACE_WIDTH_SCALE_PERCENT 100
 #define MIN_SPACE_CONDENSING_PERCENT 50
+#define UNUSED_SPACE_THRESHOLD_PERCENT 5
+#define MAX_ADDED_LETTER_SPACING_PERCENT 0
 
 
 // to debug formatter
@@ -165,6 +167,8 @@ formatted_text_fragment_t * lvtextAllocFormatter( lUInt16 width )
     pbuffer->img_zoom_out_scale_inline = defMult; /**< max scale for inline images zoom out: 1, 2, 3 */
     pbuffer->space_width_scale_percent = SPACE_WIDTH_SCALE_PERCENT; // 100% (keep original width)
     pbuffer->min_space_condensing_percent = MIN_SPACE_CONDENSING_PERCENT; // 50%
+    pbuffer->unused_space_threshold_percent = UNUSED_SPACE_THRESHOLD_PERCENT; // 5%
+    pbuffer->max_added_letter_spacing_percent = MAX_ADDED_LETTER_SPACING_PERCENT; // 0%
 
     return pbuffer;
 }
@@ -1505,6 +1509,7 @@ public:
             // Unicode script change (note: hb_script_t is uint32_t)
             lUInt32 prevScript = HB_SCRIPT_COMMON;
             hb_unicode_funcs_t* _hb_unicode_funcs = hb_unicode_funcs_get_default();
+            bool prevSpecificScriptIsCursive = false;
         #endif
         int first_word_len = 0; // set to -1 when done with it (only used to check
                                 // for single char first word, see below)
@@ -1572,18 +1577,27 @@ public:
             bool scriptChanged = false;
             #if (USE_HARFBUZZ==1)
                 if ( usingHarfbuzz && !isObject ) {
+                    // While we have the hb_script here, we'll update m_flags[i]
+                    // with LCHAR_LOCKED_SPACING if the script is cursive
                     hb_script_t script = hb_unicode_script(_hb_unicode_funcs, m_text[i]);
                     if ( script != HB_SCRIPT_COMMON && script != HB_SCRIPT_INHERITED && script != HB_SCRIPT_UNKNOWN ) {
-                        if ( prevScript != HB_SCRIPT_COMMON && script != prevScript ) {
-                            // We previously met a real script, and we're meeting a new one
-                            scriptChanged = true;
-                            m_has_multiple_scripts = true;
-                            // When only a single script found in a paragraph, we don't need
-                            // to do that same kind of work in AddLine() to split on script
-                            // change, as there's only one.
+                        if ( script != prevScript ) {
+                            if ( prevScript != HB_SCRIPT_COMMON ) {
+                                // We previously met a real script, and we're meeting a new one
+                                scriptChanged = true;
+                                m_has_multiple_scripts = true;
+                                // When only a single script found in a paragraph, we don't need
+                                // to do that same kind of work in AddLine() to split on script
+                                // change, as there's only one.
+                            }
+                            prevSpecificScriptIsCursive = isHBScriptCursive(script);
                         }
                         prevScript = script; // Real script met
+                        if ( prevSpecificScriptIsCursive )
+                            m_flags[i] |= LCHAR_LOCKED_SPACING;
                     }
+                    // else: assume HB_SCRIPT_COMMON/INHERITED/UNKNOWN, even among cursive glyphs,
+                    // can be letter_space'd for justification.
                 }
             #endif
             // Note: some additional tweaks (like disabling letter-spacing when
@@ -1690,6 +1704,10 @@ public:
                                         // doesn't move away next word, so that other similar paragraphs
                                         // get their real first words vertically aligned.
                                         flags[k] &= ~LCHAR_IS_SPACE;
+                                        // Also forbid them to be extended when justification
+                                        // would use additional letter spacing
+                                        flags[k-1] |= LCHAR_LOCKED_SPACING;
+                                        flags[k] |= LCHAR_LOCKED_SPACING;
                                         // Note: we do this check here, with the text still in logical
                                         // order, so we get that working with RTL text too (where, in
                                         // visual order, we'll have lost track of which word is the
@@ -1883,11 +1901,126 @@ public:
         // printf("alignLine %d+%d < %d\n", frmline->x, frmline->width, width);
 
         // (frmline->x may be different from x_offset when non-zero text-indent)
-        int available_width = x_offset + width - (frmline->x + frmline->width) - rightIndent;
-        if ( available_width < 0 ) {
+        int usable_width = width - (frmline->x - x_offset) - rightIndent; // remove both sides indents
+        int extra_width = usable_width - frmline->width;
+
+        // We might want to prevent this when LangCfg == "de" (in german,
+        // letter spacing is used for emphasis)
+        if ( m_pbuffer->max_added_letter_spacing_percent > 0 // only if allowed
+                        && alignment == LTEXT_ALIGN_WIDTH    // only when justifying
+                        && frmline->word_count > 1           // not if single word (expanded, but not taking the full width is ugly)
+                        && 100 * extra_width > m_pbuffer->unused_space_threshold_percent * usable_width ) {
+            // extra_width is more than 5% of usable_width: we would be added too much spacing.
+            // But we're allowed to add some letter spacing intoto words to reduce spacing
+            // between words.
+            // (We do that only when this line is justified - we could do it too when the
+            // line is left- or right-aligned, but we do not know here if this is not the
+            // last line of a paragraph, left aligned, that would not need to be expanded.)
+            // We loop and increase letter spacing, and we stop as soon as we are
+            // under the unused_space_threshold_percent (5%). If some iteration
+            // brings us below min_extra_width (spaces shrunk too much), we go
+            // back to the previous letter_spacing (which may put us back with
+            // the unused extra space > 5%, but that is preferable).
+            //
+            // First, gather some info
+            int min_extra_width = 0; // negative value (from the allowed spaces condensing)
+            int max_font_size = 0;
+            for ( int i=0; i<(int)frmline->word_count; i++ ) {
+                formatted_word_t * word = &frmline->words[i];
+                if ( word->distinct_glyphs <= 0 ) // image, inline box, cursive word
+                    continue;
+                min_extra_width += word->min_width - word->width;
+                src_text_fragment_t * srcline = &m_pbuffer->srctext[word->src_text_index];
+                LVFont * font = (LVFont *)srcline->t.font;
+                int font_size = font->getSize();
+                if ( font_size > max_font_size )
+                    max_font_size = font_size;
+                // Store this word font size in this temporary slot (that is not used anymore)
+                word->_top_to_baseline = font_size;
+            }
+            int added_spacing = 0;
+            int letter_spacing_ratio = 0;
+            while ( true ) {
+                letter_spacing_ratio++;
+                added_spacing = 0;
+                bool can_try_larger = false;
+                for ( int i=0; i<(int)frmline->word_count; i++ ) {
+                    formatted_word_t * word = &frmline->words[i];
+                    if ( word->distinct_glyphs <= 0 ) // image, inline box, cursive word
+                        continue;
+                    // Store previous value in _baseline_to_bottom (also not used anymore) in case of
+                    // excess and the need to use previous value (so we don't have to recompute it)
+                    word->_baseline_to_bottom = word->added_letter_spacing;
+                    // We apply letter_spacing proportionally to the font size (words
+                    // in a smaller font size won't get any in the loop first steps)
+                    int word_font_size = word->_top_to_baseline;
+                    word->added_letter_spacing = letter_spacing_ratio * word_font_size / max_font_size;
+                    int word_max_letter_spacing = word_font_size * m_pbuffer->max_added_letter_spacing_percent / 100;
+                    if ( word->added_letter_spacing > word_max_letter_spacing  )
+                        word->added_letter_spacing = word_max_letter_spacing;
+                    else
+                        can_try_larger = true;
+                    added_spacing += word->distinct_glyphs * word->added_letter_spacing;
+                }
+                int new_extra_width = extra_width - added_spacing;
+                if ( new_extra_width < min_extra_width ) { // too much added, not enough for spaces
+                    // Get back values from previous step (which was fine)
+                    added_spacing = 0;
+                    for ( int i=0; i<(int)frmline->word_count; i++ ) {
+                        formatted_word_t * word = &frmline->words[i];
+                        if ( word->distinct_glyphs <= 0 ) // image, inline box, cursive word
+                            continue;
+                        word->added_letter_spacing = word->_baseline_to_bottom;
+                        added_spacing += word->distinct_glyphs * word->added_letter_spacing;
+                    }
+                    break;
+                }
+                if ( !can_try_larger ) // all allowed max letter_spacing reached
+                    break;
+                if ( 100 * new_extra_width <= m_pbuffer->unused_space_threshold_percent * usable_width ) {
+                    // < 5%, we're good
+                    break;
+                }
+            }
+            if ( added_spacing ) {
+                // Fix up words positions and widths
+                int shift_x = 0;
+                for ( int i=0; i<(int)frmline->word_count; i++ ) {
+                    formatted_word_t * word = &frmline->words[i];
+                    if ( word->distinct_glyphs > 0 ) {
+                        int added_width = word->distinct_glyphs * word->added_letter_spacing;
+                        if ( i == frmline->word_count-1 ) {
+                            // For the last word on a justified line, we want to not see
+                            // any letter_spacing added after last glyph.
+                            // The font will draw it, but we just want to position this
+                            // word so it's drawn outside: just remove one letter_spacing.
+                            // But not if this last word gets a hyphen, or the hyphen
+                            // (not part of the word but added when drawing) would be
+                            // shifted to the left.
+                            if ( !(word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER) ) {
+                                added_width -= word->added_letter_spacing;
+                            }
+                        }
+                        word->width += added_width;
+                        word->min_width += added_width;
+                        word->x += shift_x;
+                        shift_x += added_width;
+                        frmline->width += added_width;
+                        extra_width -= added_width;
+                    }
+                    else {
+                        // Images, inline box, cursive words still need to be shifted
+                        word->x += shift_x;
+                    }
+                }
+            }
+        }
+        extra_width = usable_width - frmline->width;
+
+        if ( extra_width < 0 ) {
             // line is too wide
             // reduce spaces to fit line
-            int extraSpace = -available_width;
+            int extraSpace = -extra_width;
             int totalSpace = 0;
             int i;
             for ( i=0; i<(int)frmline->word_count-1; i++ ) {
@@ -1919,16 +2052,16 @@ public:
             // no additional alignment necessary
         }
         else if ( alignment==LTEXT_ALIGN_CENTER ) {
-            frmline->x += available_width / 2;
+            frmline->x += extra_width / 2;
         }
         else if ( alignment==LTEXT_ALIGN_RIGHT ) {
-            frmline->x += available_width;
+            frmline->x += extra_width;
         }
         else {
             // LTEXT_ALIGN_WIDTH
-            if ( available_width > 0 ) {
+            if ( extra_width > 0 ) {
                 // distribute additional space
-                int extraSpace = available_width;
+                int extraSpace = extra_width;
                 int addSpacePoints = 0;
                 int i;
                 for ( i=0; i<(int)frmline->word_count-1; i++ ) {
@@ -2493,6 +2626,7 @@ public:
 
                 if ( lastSrc->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object: image or inline-block box (floats have been skipped above)
+                    word->distinct_glyphs = 0;
                     word->x = frmline->width;
                     word->width = lastSrc->o.width;
                     word->min_width = word->width;
@@ -2712,6 +2846,37 @@ public:
                         // it is linearly increasing between wstart and i-1
                         word->t.start = m_charindex[wstart];
                         word->t.len = m_charindex[i-1] + 1 - m_charindex[wstart];
+                    }
+
+                    // We need to compute how many glyphs can have letter_spacing added, that
+                    // might be done in alignLine() (or not). We have to do it now even if
+                    // not used, as we won't have that information anymore in alignLine().
+                    word->added_letter_spacing = 0;
+                    word->distinct_glyphs = word->t.len; // start with all chars are distinct glyphs
+                    bool seen_non_space = false;
+                    int tailing_spaces = 0;
+                    for ( int j=i-1; j >= wstart; j-- ) {
+                        if ( !seen_non_space && (m_flags[j] & LCHAR_IS_SPACE) ) {
+                            // We'd rather not include the space that ends most words.
+                            word->distinct_glyphs--;
+                            // But some words can be made of a single space, that we'd rather
+                            // not ignore when adjusting spacing.
+                            tailing_spaces++;
+                            continue;
+                        }
+                        seen_non_space = true;
+                        if ( m_flags[j] & (LCHAR_IS_CLUSTER_TAIL|LCHAR_IS_COLLAPSED_SPACE|LCHAR_IS_TO_IGNORE) ) {
+                            word->distinct_glyphs--;
+                        }
+                        if ( m_flags[j] & LCHAR_LOCKED_SPACING ) {
+                            // A single char flagged with this makes
+                            // the whole word non tweakable
+                            word->distinct_glyphs = 0;
+                            break;
+                        }
+                    }
+                    if ( !seen_non_space && tailing_spaces ) {
+                        word->distinct_glyphs += tailing_spaces;
                     }
 
                     word->x = frmline->width;
@@ -3402,7 +3567,7 @@ public:
             // try to find a word (from where we stopped back to lastNormalWrap) to
             // hyphenate, if hyphenation is not forbidden by CSS.
             // todo: decide if we should hyphenate if bidi is happening up to now
-            if ( lastMandatoryWrap<0 && lastNormalWrap<m_length-1 && unusedPercent > 5 ) {
+            if ( lastMandatoryWrap<0 && lastNormalWrap<m_length-1 && unusedPercent > m_pbuffer->unused_space_threshold_percent ) {
                 // There may be more than one word between wordpos and lastNormalWrap (or
                 // pos, the start of this line): if hyphenation is not possible with
                 // the right most one, we have to try the previous words.
@@ -3715,7 +3880,6 @@ public:
         else {
             RenderRectAccessor fmt( node );
             int height = fmt.getHeight();
-            int baseline = fmt.getBaseline();
             formatted_line_t * frmline = lvtextAddFormattedLine( m_pbuffer );
             frmline->x = block_x;
             frmline->y = cur_y;
@@ -3972,10 +4136,22 @@ void LFormattedText::setSpaceWidthScalePercent(int spaceWidthScalePercent)
         m_pbuffer->space_width_scale_percent = spaceWidthScalePercent;
 }
 
-void LFormattedText::setMinSpaceCondensingPercent(int minSpaceWidthPercent)
+void LFormattedText::setMinSpaceCondensingPercent(int minSpaceCondensingPercent)
 {
-    if (minSpaceWidthPercent>=25 && minSpaceWidthPercent<=100)
-        m_pbuffer->min_space_condensing_percent = minSpaceWidthPercent;
+    if (minSpaceCondensingPercent>=25 && minSpaceCondensingPercent<=100)
+        m_pbuffer->min_space_condensing_percent = minSpaceCondensingPercent;
+}
+
+void LFormattedText::setUnusedSpaceThresholdPercent(int unusedSpaceThresholdPercent)
+{
+    if (unusedSpaceThresholdPercent>=0 && unusedSpaceThresholdPercent<=20)
+        m_pbuffer->unused_space_threshold_percent = unusedSpaceThresholdPercent;
+}
+
+void LFormattedText::setMaxAddedLetterSpacingPercent(int maxAddedLetterSpacingPercent)
+{
+    if (maxAddedLetterSpacingPercent>=0 && maxAddedLetterSpacingPercent<=20)
+        m_pbuffer->max_added_letter_spacing_percent = maxAddedLetterSpacingPercent;
 }
 
 /// set colors for selection and bookmarks
@@ -4325,9 +4501,18 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                         flgHyphen,
                         srcline->lang_cfg,
                         drawFlags,
-                        srcline->letter_spacing,
+                        srcline->letter_spacing + word->added_letter_spacing,
                         word->width,
                         text_decoration_back_gap);
+                    /* To display the added letter spacing % at end of line
+                    if (j == frmline->word_count-1 && word->added_letter_spacing ) {
+                        // lString16 val = lString16::itoa(word->added_letter_spacing);
+                        lString16 val = lString16::itoa(100*word->added_letter_spacing / font->getSize());
+                        font->DrawTextString( buf, x + frmline->x + word->x + word->width + 10,
+                            line_y + (frmline->baseline - font->getBaseline()) + word->y,
+                            val.c_str(), val.length(), '?', NULL, false);
+                    }
+                    */
                     if ( cl!=0xFFFFFFFF )
                         buf->SetTextColor( oldColor );
                     if ( bgcl!=0xFFFFFFFF )

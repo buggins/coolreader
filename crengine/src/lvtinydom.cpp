@@ -1935,6 +1935,8 @@ tinyNodeCollection::tinyNodeCollection()
 , _mapSavingStage(0)
 , _spaceWidthScalePercent(DEF_SPACE_WIDTH_SCALE_PERCENT)
 , _minSpaceCondensingPercent(DEF_MIN_SPACE_CONDENSING_PERCENT)
+, _unusedSpaceThresholdPercent(DEF_UNUSED_SPACE_THRESHOLD_PERCENT)
+, _maxAddedLetterSpacingPercent(DEF_MAX_ADDED_LETTER_SPACING_PERCENT)
 , _nodeStyleHash(0)
 , _nodeDisplayStyleHash(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
 , _nodeDisplayStyleHashInitial(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
@@ -1972,6 +1974,8 @@ tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
 , _mapSavingStage(0)
 , _spaceWidthScalePercent(DEF_SPACE_WIDTH_SCALE_PERCENT)
 , _minSpaceCondensingPercent(DEF_MIN_SPACE_CONDENSING_PERCENT)
+, _unusedSpaceThresholdPercent(DEF_UNUSED_SPACE_THRESHOLD_PERCENT)
+, _maxAddedLetterSpacingPercent(DEF_MAX_ADDED_LETTER_SPACING_PERCENT)
 , _nodeStyleHash(0)
 , _nodeDisplayStyleHash(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
 , _nodeDisplayStyleHashInitial(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
@@ -3463,6 +3467,8 @@ LFormattedText * lxmlDocBase::createFormattedText()
     p->setImageScalingOptions(&_imgScalingOptions);
     p->setSpaceWidthScalePercent(_spaceWidthScalePercent);
     p->setMinSpaceCondensingPercent(_minSpaceCondensingPercent);
+    p->setUnusedSpaceThresholdPercent(_unusedSpaceThresholdPercent);
+    p->setMaxAddedLetterSpacingPercent(_maxAddedLetterSpacingPercent);
     p->setHighlightOptions(&_highlightOptions);
     return p;
 }
@@ -7730,8 +7736,8 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
                 }
 
                 lUInt32 hints = WORD_FLAGS_TO_FNT_FLAGS(word->flags);
-                font->measureText( str.c_str()+word->t.start, word->t.len, width, flg,
-                                    word->width+50, '?', src->lang_cfg, src->letter_spacing, false, hints);
+                font->measureText( str.c_str()+word->t.start, word->t.len, width, flg, word->width+50, '?',
+                            src->lang_cfg, src->letter_spacing + word->added_letter_spacing, false, hints);
 
                 bool word_is_rtl = word->flags & LTEXT_WORD_DIRECTION_IS_RTL;
                 if ( word_is_rtl ) {
@@ -8084,7 +8090,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                                     word->width+50,
                                     '?',
                                     txtform->GetSrcInfo(srcIndex)->lang_cfg,
-                                    txtform->GetSrcInfo(srcIndex)->letter_spacing,
+                                    txtform->GetSrcInfo(srcIndex)->letter_spacing + word->added_letter_spacing,
                                     false,
                                     hints);
                                 rect.top = rc.top + frmline->y;
@@ -8126,10 +8132,22 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                                             // bearing below
                                             hyphen_added = true;
                                         }
-                                        if ( word_is_rtl )
+                                        if ( word_is_rtl ) {
                                             rect.left = rect.right - chw;
-                                        else
+                                            if ( !hyphen_added ) {
+                                                // Also remove our added letter spacing for justification
+                                                // from the left, to have cleaner highlights.
+                                                rect.left += word->added_letter_spacing;
+                                            }
+                                        }
+                                        else {
                                             rect.right = rect.left + chw;
+                                            if ( !hyphen_added ) {
+                                                // Also remove our added letter spacing for justification
+                                                // from the right, to have cleaner highlights.
+                                                rect.right -= word->added_letter_spacing;
+                                            }
+                                        }
                                         if (adjusted) {
                                             // Extend left or right if this glyph overflows its
                                             // origin/advance box (can happen with an italic font,
@@ -8253,7 +8271,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                             word->width+50,
                             '?',
                             txtform->GetSrcInfo(srcIndex)->lang_cfg,
-                            txtform->GetSrcInfo(srcIndex)->letter_spacing,
+                            txtform->GetSrcInfo(srcIndex)->letter_spacing + word->added_letter_spacing,
                             false,
                             hints );
                         // chx is the width of previous chars in the word
@@ -8286,6 +8304,11 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                                     hyphen_added = true;
                                 }
                                 rect.right = rect.left + chw;
+                                if ( !hyphen_added ) {
+                                    // Also remove our added letter spacing for justification
+                                    // from the right, to have cleaner highlights.
+                                    rect.right -= word->added_letter_spacing;
+                                }
                                 if (adjusted) {
                                     // Extend left or right if this glyph overflows its
                                     // origin/advance box (can happen with an italic font,
@@ -13080,6 +13103,11 @@ lUInt32 tinyNodeCollection::calcStyleHash()
     res = res * 31 + _imgScalingOptions.getHash();
     res = res * 31 + _spaceWidthScalePercent;
     res = res * 31 + _minSpaceCondensingPercent;
+    res = res * 31 + _unusedSpaceThresholdPercent;
+    // _maxAddedLetterSpacingPercent does not need to be accounted, as, working
+    // only on a laid out line, it does not need a re-rendering, but just
+    // a _renderedBlockCache.clear() to reformat paragraphs and have the
+    // word re-positionned (the paragraphs width & height do not change)
     res = (res * 31 + globalHash) * 31 + docFlags;
 //    CRLog::info("Calculated style hash = %08x", res);
     CRLog::debug("calcStyleHash done");

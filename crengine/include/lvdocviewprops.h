@@ -68,8 +68,12 @@
 
 #define PROP_FLOATING_PUNCTUATION    "crengine.style.floating.punctuation.enabled"
 
-#define PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT "crengine.style.space.width.scale.percent"
-#define PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT "crengine.style.space.condensing.percent"
+#define PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT        "crengine.style.space.width.scale.percent"
+#define PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT     "crengine.style.space.condensing.percent"
+// % of unused space on a line to trigger hyphenation, or addition of letter spacing for justification
+#define PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT   "crengine.style.unused.space.threshold.percent"
+// Max allowed added letter spacing (% of font size)
+#define PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT "crengine.style.max.added.letter.spacing.percent"
 
 #define PROP_FILE_PROPS_FONT_SIZE    "cr3.file.props.font.size"
 

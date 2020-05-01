@@ -4597,6 +4597,8 @@ void LVDocView::createEmptyDocument() {
             PROP_EMBEDDED_FONTS, true));
     m_doc->setSpaceWidthScalePercent(m_props->getIntDef(PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT, 100));
     m_doc->setMinSpaceCondensingPercent(m_props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, 50));
+    m_doc->setUnusedSpaceThresholdPercent(m_props->getIntDef(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, 5));
+    m_doc->setMaxAddedLetterSpacingPercent(m_props->getIntDef(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, 0));
 
     m_doc->setContainer(m_container);
     // This sets the element names default style (display, whitespace)
@@ -6326,11 +6328,25 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->setInt(PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT, p);
 
     p = props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, DEF_MIN_SPACE_CONDENSING_PERCENT);
+    if (p<0)
+        p = 0;
+    if (p>20)
+        p = 20;
+    props->setInt(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, p);
+
+    p = props->getIntDef(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, DEF_UNUSED_SPACE_THRESHOLD_PERCENT);
+    if (p<0)
+        p = 0;
+    if (p>20)
+        p = 20;
+    props->setInt(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, p);
+
+    p = props->getIntDef(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, DEF_MAX_ADDED_LETTER_SPACING_PERCENT);
     if (p<25)
         p = 25;
     if (p>100)
         p = 100;
-    props->setInt(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, p);
+    props->setInt(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, p);
 
 #ifndef ANDROID
     props->setIntDef(PROP_RENDER_DPI, DEF_RENDER_DPI); // 96 dpi
@@ -6682,6 +6698,16 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             if (m_doc) // not when noDefaultDocument=true
                 if (getDocument()->setMinSpaceCondensingPercent(value))
                     REQUEST_RENDER("propsApply condensing percent")
+        } else if (name == PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT) {
+            int value = props->getIntDef(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, DEF_UNUSED_SPACE_THRESHOLD_PERCENT);
+            if (m_doc) // not when noDefaultDocument=true
+                if (getDocument()->setUnusedSpaceThresholdPercent(value))
+                    REQUEST_RENDER("propsApply unused space threshold percent")
+        } else if (name == PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT) {
+            int value = props->getIntDef(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, DEF_MAX_ADDED_LETTER_SPACING_PERCENT);
+            if (m_doc) // not when noDefaultDocument=true
+                if (getDocument()->setMaxAddedLetterSpacingPercent(value))
+                    REQUEST_RENDER("propsApply max added letter spacing percent")
         } else if (name == PROP_HIGHLIGHT_COMMENT_BOOKMARKS) {
             int value = props->getIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
             if (m_highlightBookmarks != value) {

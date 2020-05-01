@@ -235,6 +235,10 @@ lUInt16 lvfontMeasureText( const lvfont_handle pfont,
                                             //         whose glyph is carried by first char)
                                             //         It is set by harfbuzz when used.
 
+// (This one is actually not set by lvfntman)
+#define LCHAR_LOCKED_SPACING         0x0040 ///< flag: forbid any letter spacing tweak on this char
+                                            //         (for cursive scripts like arabic, and special cases)
+
 /// The next ones, not fitting in a lUInt8, should only be set and used by lvtextfm
 #define LCHAR_IS_OBJECT              0x0100 ///< flag: this char is object (image, float)
 #define LCHAR_IS_COLLAPSED_SPACE     0x0200 ///< flag: this char is a space that should not be rendered

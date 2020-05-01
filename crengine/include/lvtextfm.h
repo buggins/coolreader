@@ -133,6 +133,8 @@ typedef struct
            lUInt16  baseline;        /**< \brief baseline of inline-block box */
        } o;
    };
+   lInt16   added_letter_spacing;    /* letter-spacing (to reduce spacing when justified) to add when drawing this word */
+   lInt16   distinct_glyphs;         /* nb of glyphs in this word that can have letter-spacing added to */
    lInt16   _top_to_baseline;        /* temporary storage slots when delaying y computation, */
    lInt16   _baseline_to_bottom;     /* when valign top or bottom */
    // lUInt16  padding;         /**< \brief not used */
@@ -257,6 +259,10 @@ typedef struct
    // Space width
    lInt32                space_width_scale_percent; /**< scale the normal width of all spaces in all fonts by this percent */
    lInt32                min_space_condensing_percent; /**< min size of space (relative to scaled size) to allow fitting line by reducing of spaces */
+   // For word spacing and justitication
+   lInt32                unused_space_threshold_percent; /**< % (of line width) of unused space on a line to trigger hyphenation,
+                                                              or addition of letter spacing for justification  */
+   lInt32                max_added_letter_spacing_percent; /**< Max allowed added letter spacing (% of font size) */
 
    // Highlighting
    text_highlight_options_t highlight_options; /**< options for selection/bookmark highlighting */
@@ -354,7 +360,13 @@ public:
 
     /// set space condensing line fitting option (25..100%)
     // (applies after spaceWidthScalePercent has been applied)
-    void setMinSpaceCondensingPercent(int minSpaceWidthPercent);
+    void setMinSpaceCondensingPercent(int minSpaceCondensingPercent);
+
+    /// set unused space threshold percent option (0..20%)
+    void setUnusedSpaceThresholdPercent(int unusedSpaceThresholdPercent);
+
+    /// set max allowed added letter spacing (0..20% of font size)
+    void setMaxAddedLetterSpacingPercent(int maxAddedLetterSpacingPercent);
 
     /// set colors for selection and bookmarks
     void setHighlightOptions(text_highlight_options_t * options);

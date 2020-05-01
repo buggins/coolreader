@@ -107,6 +107,8 @@ extern int gDOMVersionRequested;
 
 #define DEF_SPACE_WIDTH_SCALE_PERCENT 100
 #define DEF_MIN_SPACE_CONDENSING_PERCENT 50
+#define DEF_UNUSED_SPACE_THRESHOLD_PERCENT 5
+#define DEF_MAX_ADDED_LETTER_SPACING_PERCENT 0
 
 #define NODE_DISPLAY_STYLE_HASH_UNITIALIZED 0xFFFFFFFF
 
@@ -482,6 +484,8 @@ protected:
     img_scaling_options_t _imgScalingOptions;
     int  _spaceWidthScalePercent;
     int  _minSpaceCondensingPercent;
+    int  _unusedSpaceThresholdPercent;
+    int  _maxAddedLetterSpacingPercent;
 
     lUInt32 _nodeStyleHash;
     lUInt32 _nodeDisplayStyleHash;
@@ -555,6 +559,23 @@ public:
         if (minSpaceCondensingPercent == _minSpaceCondensingPercent)
             return false;
         _minSpaceCondensingPercent = minSpaceCondensingPercent;
+        return true;
+    }
+
+    bool setUnusedSpaceThresholdPercent(int unusedSpaceThresholdPercent) {
+        if (unusedSpaceThresholdPercent == _unusedSpaceThresholdPercent)
+            return false;
+        _unusedSpaceThresholdPercent = unusedSpaceThresholdPercent;
+        return true;
+    }
+
+    bool setMaxAddedLetterSpacingPercent(int maxAddedLetterSpacingPercent) {
+        if (maxAddedLetterSpacingPercent == _maxAddedLetterSpacingPercent)
+            return false;
+        _maxAddedLetterSpacingPercent = maxAddedLetterSpacingPercent;
+        // This does not need to trigger a re-rendering, just
+        // a re-formatting of the final blocks
+        _renderedBlockCache.clear();
         return true;
     }
 #endif
