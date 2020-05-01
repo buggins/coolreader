@@ -1321,7 +1321,15 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
                         #ifdef DEBUG_MEASURE_TEXT
                             printf("(found cp=%x) ", glyph_info[hg].codepoint);
                         #endif
-                        if ( t_notdef_start >= 0 ) { // But we have a segment of previous ".notdef"
+                        // Only process past notdef when the first glyph of a cluster is found.
+                        // (It could happen that a cluster of 2 glyphs has its 1st one notdef
+                        // while the 2nd one has a valid codepoint: we'll have to reprocess the
+                        // whole cluster with the fallback font. If the 1st glyph is found but
+                        // the 2nd is notdef, we'll process past notdef with the fallback font
+                        // now, but we'll be processing this whole cluster with the fallback
+                        // font when a later valid codepoint is found).
+                        if ( t_notdef_start >= 0 && hcl > cur_cluster ) {
+                            // We have a segment of previous ".notdef", and this glyph starts a new cluster
                             t_notdef_end = t;
                             LVFont *fallback = getFallbackFont();
                             // The code ensures the main fallback font has no fallback font
