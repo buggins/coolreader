@@ -225,6 +225,7 @@ MonoBehaviour:
   controllerMenuTemplate: {fileID: 2288986316714389705, guid: 5ea4834630e05baac83370e59e366a53,
     type: 3}
   avatar: {fileID: 45206115487452534}
+  avatarShape: {fileID: 7853799640375679857}
   standardBeamMaterial: {fileID: 2100000, guid: 150d9ae9aa0924d02bcbfe3fea0361a8,
     type: 2}
   teleportBeamMaterial: {fileID: 2100000, guid: 1aeafabfe4eac48e99b3ac2a27b07a46,

@@ -48,6 +48,9 @@ public class ControlInput : MonoBehaviourPun {
   [Tooltip ("The user avatar, for any manipulation of the user that is required")]
   public GameObject avatar;
   
+  [Tooltip ("The geometry of the avatar")]
+  public GameObject avatarShape;
+
   [Tooltip ("The standard beam material")]
   public Material standardBeamMaterial;
   
@@ -129,7 +132,9 @@ public class ControlInput : MonoBehaviourPun {
       viewcamera.gameObject.SetActive (false);
       return;
     }
-    
+
+    // don't draw own avatar. Gets in the way.
+    avatarShape.SetActive (false);
     
     exclusiveRegisteredHandlers = new Dictionary <ControlInput.ControllerDescription, HandlerList> ();
     registeredHandlers = new Dictionary <ControlInput.ControllerDescription, HandlerList> ();
