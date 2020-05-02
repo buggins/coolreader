@@ -127,7 +127,7 @@ public class BookMenuInteraction : MenuInteraction {
   override public void populateMenu () {
     
     // Make clicking on the book the same as the next page button.
-    addItemAsMenuOption (this.gameObject.transform.Find ("ShapeBook").gameObject, getBook, moveResponse);
+    addItemAsMenuOption (this.gameObject.transform.Find ("FBXShapeBook").gameObject, getBook, moveResponse);
     
     addMenuOption ("Next\nPage", new Vector3 (0.9f, -0.4f, 0.0f), nextPage, moveResponse);
     addMenuOption ("Prev\nPage", new Vector3 (-0.9f, 0.4f, 0.0f), prevPage, moveResponse);

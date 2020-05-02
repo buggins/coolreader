@@ -1,243 +1,707 @@
 fileFormatVersion: 2
 guid: 589daee1aef8c43f5bc10b48f51631b1
 ModelImporter:
-  serializedVersion: 23
-  fileIDToRecycleName:
-    100000: APage1
-    100002: APage10
-    100004: APage2
-    100006: APage3
-    100008: APage4
-    100010: APage5
-    100012: APage6
-    100014: APage7
-    100016: APage8
-    100018: APage9
-    100020: Armature
-    100022: BackCover
-    100024: Book
-    100026: //RootNode
-    100028: BPage1
-    100030: BPage10
-    100032: BPage2
-    100034: BPage3
-    100036: BPage4
-    100038: BPage5
-    100040: BPage6
-    100042: BPage7
-    100044: BPage8
-    100046: BPage9
-    100048: CPage1
-    100050: CPage10
-    100052: CPage2
-    100054: CPage3
-    100056: CPage4
-    100058: CPage5
-    100060: CPage6
-    100062: CPage7
-    100064: CPage8
-    100066: CPage9
-    100068: DPage1
-    100070: DPage10
-    100072: DPage2
-    100074: DPage3
-    100076: DPage4
-    100078: DPage5
-    100080: DPage6
-    100082: DPage7
-    100084: DPage8
-    100086: DPage9
-    100088: EPage1
-    100090: EPage10
-    100092: EPage2
-    100094: EPage3
-    100096: EPage4
-    100098: EPage5
-    100100: EPage6
-    100102: EPage7
-    100104: EPage8
-    100106: EPage9
-    100108: FPage1
-    100110: FPage10
-    100112: FPage2
-    100114: FPage3
-    100116: FPage4
-    100118: FPage5
-    100120: FPage6
-    100122: FPage7
-    100124: FPage8
-    100126: FPage9
-    100128: FrontCover
-    100130: GPage1
-    100132: GPage10
-    100134: GPage2
-    100136: GPage3
-    100138: GPage4
-    100140: GPage5
-    100142: GPage6
-    100144: GPage7
-    100146: GPage8
-    100148: GPage9
-    100150: HPage1
-    100152: HPage10
-    100154: HPage2
-    100156: HPage3
-    100158: HPage4
-    100160: HPage5
-    100162: HPage6
-    100164: HPage7
-    100166: HPage8
-    100168: HPage9
-    100170: IPage1
-    100172: IPage10
-    100174: IPage2
-    100176: IPage3
-    100178: IPage4
-    100180: IPage5
-    100182: IPage6
-    100184: IPage7
-    100186: IPage8
-    100188: IPage9
-    100190: JPage1
-    100192: JPage10
-    100194: JPage2
-    100196: JPage3
-    100198: JPage4
-    100200: JPage5
-    100202: JPage6
-    100204: JPage7
-    100206: JPage8
-    100208: JPage9
-    100210: Spine
-    100212: Root
-    400000: APage1
-    400002: APage10
-    400004: APage2
-    400006: APage3
-    400008: APage4
-    400010: APage5
-    400012: APage6
-    400014: APage7
-    400016: APage8
-    400018: APage9
-    400020: Armature
-    400022: BackCover
-    400024: Book
-    400026: //RootNode
-    400028: BPage1
-    400030: BPage10
-    400032: BPage2
-    400034: BPage3
-    400036: BPage4
-    400038: BPage5
-    400040: BPage6
-    400042: BPage7
-    400044: BPage8
-    400046: BPage9
-    400048: CPage1
-    400050: CPage10
-    400052: CPage2
-    400054: CPage3
-    400056: CPage4
-    400058: CPage5
-    400060: CPage6
-    400062: CPage7
-    400064: CPage8
-    400066: CPage9
-    400068: DPage1
-    400070: DPage10
-    400072: DPage2
-    400074: DPage3
-    400076: DPage4
-    400078: DPage5
-    400080: DPage6
-    400082: DPage7
-    400084: DPage8
-    400086: DPage9
-    400088: EPage1
-    400090: EPage10
-    400092: EPage2
-    400094: EPage3
-    400096: EPage4
-    400098: EPage5
-    400100: EPage6
-    400102: EPage7
-    400104: EPage8
-    400106: EPage9
-    400108: FPage1
-    400110: FPage10
-    400112: FPage2
-    400114: FPage3
-    400116: FPage4
-    400118: FPage5
-    400120: FPage6
-    400122: FPage7
-    400124: FPage8
-    400126: FPage9
-    400128: FrontCover
-    400130: GPage1
-    400132: GPage10
-    400134: GPage2
-    400136: GPage3
-    400138: GPage4
-    400140: GPage5
-    400142: GPage6
-    400144: GPage7
-    400146: GPage8
-    400148: GPage9
-    400150: HPage1
-    400152: HPage10
-    400154: HPage2
-    400156: HPage3
-    400158: HPage4
-    400160: HPage5
-    400162: HPage6
-    400164: HPage7
-    400166: HPage8
-    400168: HPage9
-    400170: IPage1
-    400172: IPage10
-    400174: IPage2
-    400176: IPage3
-    400178: IPage4
-    400180: IPage5
-    400182: IPage6
-    400184: IPage7
-    400186: IPage8
-    400188: IPage9
-    400190: JPage1
-    400192: JPage10
-    400194: JPage2
-    400196: JPage3
-    400198: JPage4
-    400200: JPage5
-    400202: JPage6
-    400204: JPage7
-    400206: JPage8
-    400208: JPage9
-    400210: Spine
-    400212: Root
-    2100000: RightPage
-    2100002: BookMaterial
-    2100004: FrontCover
-    2100006: Spine
-    2100008: BackCover
-    2100010: RightPageTurn
-    2100012: LeftPageTurn
-    2100014: LeftPage
-    4300000: Book
-    7400000: Default Take
-    7400002: CloseBook
-    7400004: OpenBook
-    7400006: ReversePageTurn
-    7400008: StayClosed
-    7400010: StayOpen
-    7400012: TurnPage
-    9500000: //RootNode
-    13700000: Book
+  serializedVersion: 19300
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: APage1
+  - first:
+      1: 100002
+    second: APage10
+  - first:
+      1: 100004
+    second: APage2
+  - first:
+      1: 100006
+    second: APage3
+  - first:
+      1: 100008
+    second: APage4
+  - first:
+      1: 100010
+    second: APage5
+  - first:
+      1: 100012
+    second: APage6
+  - first:
+      1: 100014
+    second: APage7
+  - first:
+      1: 100016
+    second: APage8
+  - first:
+      1: 100018
+    second: APage9
+  - first:
+      1: 100020
+    second: Armature
+  - first:
+      1: 100022
+    second: BackCover
+  - first:
+      1: 100024
+    second: Book
+  - first:
+      1: 100026
+    second: //RootNode
+  - first:
+      1: 100028
+    second: BPage1
+  - first:
+      1: 100030
+    second: BPage10
+  - first:
+      1: 100032
+    second: BPage2
+  - first:
+      1: 100034
+    second: BPage3
+  - first:
+      1: 100036
+    second: BPage4
+  - first:
+      1: 100038
+    second: BPage5
+  - first:
+      1: 100040
+    second: BPage6
+  - first:
+      1: 100042
+    second: BPage7
+  - first:
+      1: 100044
+    second: BPage8
+  - first:
+      1: 100046
+    second: BPage9
+  - first:
+      1: 100048
+    second: CPage1
+  - first:
+      1: 100050
+    second: CPage10
+  - first:
+      1: 100052
+    second: CPage2
+  - first:
+      1: 100054
+    second: CPage3
+  - first:
+      1: 100056
+    second: CPage4
+  - first:
+      1: 100058
+    second: CPage5
+  - first:
+      1: 100060
+    second: CPage6
+  - first:
+      1: 100062
+    second: CPage7
+  - first:
+      1: 100064
+    second: CPage8
+  - first:
+      1: 100066
+    second: CPage9
+  - first:
+      1: 100068
+    second: DPage1
+  - first:
+      1: 100070
+    second: DPage10
+  - first:
+      1: 100072
+    second: DPage2
+  - first:
+      1: 100074
+    second: DPage3
+  - first:
+      1: 100076
+    second: DPage4
+  - first:
+      1: 100078
+    second: DPage5
+  - first:
+      1: 100080
+    second: DPage6
+  - first:
+      1: 100082
+    second: DPage7
+  - first:
+      1: 100084
+    second: DPage8
+  - first:
+      1: 100086
+    second: DPage9
+  - first:
+      1: 100088
+    second: EPage1
+  - first:
+      1: 100090
+    second: EPage10
+  - first:
+      1: 100092
+    second: EPage2
+  - first:
+      1: 100094
+    second: EPage3
+  - first:
+      1: 100096
+    second: EPage4
+  - first:
+      1: 100098
+    second: EPage5
+  - first:
+      1: 100100
+    second: EPage6
+  - first:
+      1: 100102
+    second: EPage7
+  - first:
+      1: 100104
+    second: EPage8
+  - first:
+      1: 100106
+    second: EPage9
+  - first:
+      1: 100108
+    second: FPage1
+  - first:
+      1: 100110
+    second: FPage10
+  - first:
+      1: 100112
+    second: FPage2
+  - first:
+      1: 100114
+    second: FPage3
+  - first:
+      1: 100116
+    second: FPage4
+  - first:
+      1: 100118
+    second: FPage5
+  - first:
+      1: 100120
+    second: FPage6
+  - first:
+      1: 100122
+    second: FPage7
+  - first:
+      1: 100124
+    second: FPage8
+  - first:
+      1: 100126
+    second: FPage9
+  - first:
+      1: 100128
+    second: FrontCover
+  - first:
+      1: 100130
+    second: GPage1
+  - first:
+      1: 100132
+    second: GPage10
+  - first:
+      1: 100134
+    second: GPage2
+  - first:
+      1: 100136
+    second: GPage3
+  - first:
+      1: 100138
+    second: GPage4
+  - first:
+      1: 100140
+    second: GPage5
+  - first:
+      1: 100142
+    second: GPage6
+  - first:
+      1: 100144
+    second: GPage7
+  - first:
+      1: 100146
+    second: GPage8
+  - first:
+      1: 100148
+    second: GPage9
+  - first:
+      1: 100150
+    second: HPage1
+  - first:
+      1: 100152
+    second: HPage10
+  - first:
+      1: 100154
+    second: HPage2
+  - first:
+      1: 100156
+    second: HPage3
+  - first:
+      1: 100158
+    second: HPage4
+  - first:
+      1: 100160
+    second: HPage5
+  - first:
+      1: 100162
+    second: HPage6
+  - first:
+      1: 100164
+    second: HPage7
+  - first:
+      1: 100166
+    second: HPage8
+  - first:
+      1: 100168
+    second: HPage9
+  - first:
+      1: 100170
+    second: IPage1
+  - first:
+      1: 100172
+    second: IPage10
+  - first:
+      1: 100174
+    second: IPage2
+  - first:
+      1: 100176
+    second: IPage3
+  - first:
+      1: 100178
+    second: IPage4
+  - first:
+      1: 100180
+    second: IPage5
+  - first:
+      1: 100182
+    second: IPage6
+  - first:
+      1: 100184
+    second: IPage7
+  - first:
+      1: 100186
+    second: IPage8
+  - first:
+      1: 100188
+    second: IPage9
+  - first:
+      1: 100190
+    second: JPage1
+  - first:
+      1: 100192
+    second: JPage10
+  - first:
+      1: 100194
+    second: JPage2
+  - first:
+      1: 100196
+    second: JPage3
+  - first:
+      1: 100198
+    second: JPage4
+  - first:
+      1: 100200
+    second: JPage5
+  - first:
+      1: 100202
+    second: JPage6
+  - first:
+      1: 100204
+    second: JPage7
+  - first:
+      1: 100206
+    second: JPage8
+  - first:
+      1: 100208
+    second: JPage9
+  - first:
+      1: 100210
+    second: Spine
+  - first:
+      1: 100212
+    second: Root
+  - first:
+      4: 400000
+    second: APage1
+  - first:
+      4: 400002
+    second: APage10
+  - first:
+      4: 400004
+    second: APage2
+  - first:
+      4: 400006
+    second: APage3
+  - first:
+      4: 400008
+    second: APage4
+  - first:
+      4: 400010
+    second: APage5
+  - first:
+      4: 400012
+    second: APage6
+  - first:
+      4: 400014
+    second: APage7
+  - first:
+      4: 400016
+    second: APage8
+  - first:
+      4: 400018
+    second: APage9
+  - first:
+      4: 400020
+    second: Armature
+  - first:
+      4: 400022
+    second: BackCover
+  - first:
+      4: 400024
+    second: Book
+  - first:
+      4: 400026
+    second: //RootNode
+  - first:
+      4: 400028
+    second: BPage1
+  - first:
+      4: 400030
+    second: BPage10
+  - first:
+      4: 400032
+    second: BPage2
+  - first:
+      4: 400034
+    second: BPage3
+  - first:
+      4: 400036
+    second: BPage4
+  - first:
+      4: 400038
+    second: BPage5
+  - first:
+      4: 400040
+    second: BPage6
+  - first:
+      4: 400042
+    second: BPage7
+  - first:
+      4: 400044
+    second: BPage8
+  - first:
+      4: 400046
+    second: BPage9
+  - first:
+      4: 400048
+    second: CPage1
+  - first:
+      4: 400050
+    second: CPage10
+  - first:
+      4: 400052
+    second: CPage2
+  - first:
+      4: 400054
+    second: CPage3
+  - first:
+      4: 400056
+    second: CPage4
+  - first:
+      4: 400058
+    second: CPage5
+  - first:
+      4: 400060
+    second: CPage6
+  - first:
+      4: 400062
+    second: CPage7
+  - first:
+      4: 400064
+    second: CPage8
+  - first:
+      4: 400066
+    second: CPage9
+  - first:
+      4: 400068
+    second: DPage1
+  - first:
+      4: 400070
+    second: DPage10
+  - first:
+      4: 400072
+    second: DPage2
+  - first:
+      4: 400074
+    second: DPage3
+  - first:
+      4: 400076
+    second: DPage4
+  - first:
+      4: 400078
+    second: DPage5
+  - first:
+      4: 400080
+    second: DPage6
+  - first:
+      4: 400082
+    second: DPage7
+  - first:
+      4: 400084
+    second: DPage8
+  - first:
+      4: 400086
+    second: DPage9
+  - first:
+      4: 400088
+    second: EPage1
+  - first:
+      4: 400090
+    second: EPage10
+  - first:
+      4: 400092
+    second: EPage2
+  - first:
+      4: 400094
+    second: EPage3
+  - first:
+      4: 400096
+    second: EPage4
+  - first:
+      4: 400098
+    second: EPage5
+  - first:
+      4: 400100
+    second: EPage6
+  - first:
+      4: 400102
+    second: EPage7
+  - first:
+      4: 400104
+    second: EPage8
+  - first:
+      4: 400106
+    second: EPage9
+  - first:
+      4: 400108
+    second: FPage1
+  - first:
+      4: 400110
+    second: FPage10
+  - first:
+      4: 400112
+    second: FPage2
+  - first:
+      4: 400114
+    second: FPage3
+  - first:
+      4: 400116
+    second: FPage4
+  - first:
+      4: 400118
+    second: FPage5
+  - first:
+      4: 400120
+    second: FPage6
+  - first:
+      4: 400122
+    second: FPage7
+  - first:
+      4: 400124
+    second: FPage8
+  - first:
+      4: 400126
+    second: FPage9
+  - first:
+      4: 400128
+    second: FrontCover
+  - first:
+      4: 400130
+    second: GPage1
+  - first:
+      4: 400132
+    second: GPage10
+  - first:
+      4: 400134
+    second: GPage2
+  - first:
+      4: 400136
+    second: GPage3
+  - first:
+      4: 400138
+    second: GPage4
+  - first:
+      4: 400140
+    second: GPage5
+  - first:
+      4: 400142
+    second: GPage6
+  - first:
+      4: 400144
+    second: GPage7
+  - first:
+      4: 400146
+    second: GPage8
+  - first:
+      4: 400148
+    second: GPage9
+  - first:
+      4: 400150
+    second: HPage1
+  - first:
+      4: 400152
+    second: HPage10
+  - first:
+      4: 400154
+    second: HPage2
+  - first:
+      4: 400156
+    second: HPage3
+  - first:
+      4: 400158
+    second: HPage4
+  - first:
+      4: 400160
+    second: HPage5
+  - first:
+      4: 400162
+    second: HPage6
+  - first:
+      4: 400164
+    second: HPage7
+  - first:
+      4: 400166
+    second: HPage8
+  - first:
+      4: 400168
+    second: HPage9
+  - first:
+      4: 400170
+    second: IPage1
+  - first:
+      4: 400172
+    second: IPage10
+  - first:
+      4: 400174
+    second: IPage2
+  - first:
+      4: 400176
+    second: IPage3
+  - first:
+      4: 400178
+    second: IPage4
+  - first:
+      4: 400180
+    second: IPage5
+  - first:
+      4: 400182
+    second: IPage6
+  - first:
+      4: 400184
+    second: IPage7
+  - first:
+      4: 400186
+    second: IPage8
+  - first:
+      4: 400188
+    second: IPage9
+  - first:
+      4: 400190
+    second: JPage1
+  - first:
+      4: 400192
+    second: JPage10
+  - first:
+      4: 400194
+    second: JPage2
+  - first:
+      4: 400196
+    second: JPage3
+  - first:
+      4: 400198
+    second: JPage4
+  - first:
+      4: 400200
+    second: JPage5
+  - first:
+      4: 400202
+    second: JPage6
+  - first:
+      4: 400204
+    second: JPage7
+  - first:
+      4: 400206
+    second: JPage8
+  - first:
+      4: 400208
+    second: JPage9
+  - first:
+      4: 400210
+    second: Spine
+  - first:
+      4: 400212
+    second: Root
+  - first:
+      21: 2100000
+    second: RightPage
+  - first:
+      21: 2100002
+    second: BookMaterial
+  - first:
+      21: 2100004
+    second: FrontCover
+  - first:
+      21: 2100006
+    second: Spine
+  - first:
+      21: 2100008
+    second: BackCover
+  - first:
+      21: 2100010
+    second: RightPageTurn
+  - first:
+      21: 2100012
+    second: LeftPageTurn
+  - first:
+      21: 2100014
+    second: LeftPage
+  - first:
+      43: 4300000
+    second: Book
+  - first:
+      74: 7400000
+    second: Default Take
+  - first:
+      74: 7400002
+    second: CloseBook
+  - first:
+      74: 7400004
+    second: OpenBook
+  - first:
+      74: 7400006
+    second: ReversePageTurn
+  - first:
+      74: 7400008
+    second: StayClosed
+  - first:
+      74: 7400010
+    second: StayOpen
+  - first:
+      74: 7400012
+    second: TurnPage
+  - first:
+      95: 9500000
+    second: //RootNode
+  - first:
+      137: 13700000
+    second: Book
   externalObjects: {}
   materials:
-    importMaterials: 1
+    materialImportMode: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -266,6 +730,7 @@ ModelImporter:
     - serializedVersion: 16
       name: Default Take
       takeName: Default Take
+      internalID: 0
       firstFrame: 0
       lastFrame: 29
       wrapMode: 0
@@ -294,6 +759,7 @@ ModelImporter:
     - serializedVersion: 16
       name: CloseBook
       takeName: CloseBook
+      internalID: 0
       firstFrame: 1
       lastFrame: 13
       wrapMode: 0
@@ -315,13 +781,254 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events: []
-      transformMask: []
-      maskType: 3
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Armature
+        weight: 1
+      - path: Armature/Root
+        weight: 1
+      - path: Armature/Root/APage1
+        weight: 1
+      - path: Armature/Root/APage1/BPage1
+        weight: 1
+      - path: Armature/Root/APage1/BPage1/CPage1
+        weight: 1
+      - path: Armature/Root/APage1/BPage1/CPage1/DPage1
+        weight: 1
+      - path: Armature/Root/APage1/BPage1/CPage1/DPage1/EPage1
+        weight: 1
+      - path: Armature/Root/APage1/BPage1/CPage1/DPage1/EPage1/FPage1
+        weight: 1
+      - path: Armature/Root/APage1/BPage1/CPage1/DPage1/EPage1/FPage1/GPage1
+        weight: 1
+      - path: Armature/Root/APage1/BPage1/CPage1/DPage1/EPage1/FPage1/GPage1/HPage1
+        weight: 1
+      - path: Armature/Root/APage1/BPage1/CPage1/DPage1/EPage1/FPage1/GPage1/HPage1/IPage1
+        weight: 1
+      - path: Armature/Root/APage1/BPage1/CPage1/DPage1/EPage1/FPage1/GPage1/HPage1/IPage1/JPage1
+        weight: 1
+      - path: Armature/Root/APage1/BPage1/CPage1/DPage1/EPage1/FPage1/GPage1/HPage1/IPage1/JPage1/JPage1_end
+        weight: 1
+      - path: Armature/Root/APage2
+        weight: 1
+      - path: Armature/Root/APage2/BPage2
+        weight: 1
+      - path: Armature/Root/APage2/BPage2/CPage2
+        weight: 1
+      - path: Armature/Root/APage2/BPage2/CPage2/DPage2
+        weight: 1
+      - path: Armature/Root/APage2/BPage2/CPage2/DPage2/EPage2
+        weight: 1
+      - path: Armature/Root/APage2/BPage2/CPage2/DPage2/EPage2/FPage2
+        weight: 1
+      - path: Armature/Root/APage2/BPage2/CPage2/DPage2/EPage2/FPage2/GPage2
+        weight: 1
+      - path: Armature/Root/APage2/BPage2/CPage2/DPage2/EPage2/FPage2/GPage2/HPage2
+        weight: 1
+      - path: Armature/Root/APage2/BPage2/CPage2/DPage2/EPage2/FPage2/GPage2/HPage2/IPage2
+        weight: 1
+      - path: Armature/Root/APage2/BPage2/CPage2/DPage2/EPage2/FPage2/GPage2/HPage2/IPage2/JPage2
+        weight: 1
+      - path: Armature/Root/APage2/BPage2/CPage2/DPage2/EPage2/FPage2/GPage2/HPage2/IPage2/JPage2/JPage2_end
+        weight: 1
+      - path: Armature/Root/APage3
+        weight: 1
+      - path: Armature/Root/APage3/BPage3
+        weight: 1
+      - path: Armature/Root/APage3/BPage3/CPage3
+        weight: 1
+      - path: Armature/Root/APage3/BPage3/CPage3/DPage3
+        weight: 1
+      - path: Armature/Root/APage3/BPage3/CPage3/DPage3/EPage3
+        weight: 1
+      - path: Armature/Root/APage3/BPage3/CPage3/DPage3/EPage3/FPage3
+        weight: 1
+      - path: Armature/Root/APage3/BPage3/CPage3/DPage3/EPage3/FPage3/GPage3
+        weight: 1
+      - path: Armature/Root/APage3/BPage3/CPage3/DPage3/EPage3/FPage3/GPage3/HPage3
+        weight: 1
+      - path: Armature/Root/APage3/BPage3/CPage3/DPage3/EPage3/FPage3/GPage3/HPage3/IPage3
+        weight: 1
+      - path: Armature/Root/APage3/BPage3/CPage3/DPage3/EPage3/FPage3/GPage3/HPage3/IPage3/JPage3
+        weight: 1
+      - path: Armature/Root/APage3/BPage3/CPage3/DPage3/EPage3/FPage3/GPage3/HPage3/IPage3/JPage3/JPage3_end
+        weight: 1
+      - path: Armature/Root/APage4
+        weight: 1
+      - path: Armature/Root/APage4/BPage4
+        weight: 1
+      - path: Armature/Root/APage4/BPage4/CPage4
+        weight: 1
+      - path: Armature/Root/APage4/BPage4/CPage4/DPage4
+        weight: 1
+      - path: Armature/Root/APage4/BPage4/CPage4/DPage4/EPage4
+        weight: 1
+      - path: Armature/Root/APage4/BPage4/CPage4/DPage4/EPage4/FPage4
+        weight: 1
+      - path: Armature/Root/APage4/BPage4/CPage4/DPage4/EPage4/FPage4/GPage4
+        weight: 1
+      - path: Armature/Root/APage4/BPage4/CPage4/DPage4/EPage4/FPage4/GPage4/HPage4
+        weight: 1
+      - path: Armature/Root/APage4/BPage4/CPage4/DPage4/EPage4/FPage4/GPage4/HPage4/IPage4
+        weight: 1
+      - path: Armature/Root/APage4/BPage4/CPage4/DPage4/EPage4/FPage4/GPage4/HPage4/IPage4/JPage4
+        weight: 1
+      - path: Armature/Root/APage4/BPage4/CPage4/DPage4/EPage4/FPage4/GPage4/HPage4/IPage4/JPage4/JPage4_end
+        weight: 1
+      - path: Armature/Root/APage5
+        weight: 1
+      - path: Armature/Root/APage5/BPage5
+        weight: 1
+      - path: Armature/Root/APage5/BPage5/CPage5
+        weight: 1
+      - path: Armature/Root/APage5/BPage5/CPage5/DPage5
+        weight: 1
+      - path: Armature/Root/APage5/BPage5/CPage5/DPage5/EPage5
+        weight: 1
+      - path: Armature/Root/APage5/BPage5/CPage5/DPage5/EPage5/FPage5
+        weight: 1
+      - path: Armature/Root/APage5/BPage5/CPage5/DPage5/EPage5/FPage5/GPage5
+        weight: 1
+      - path: Armature/Root/APage5/BPage5/CPage5/DPage5/EPage5/FPage5/GPage5/HPage5
+        weight: 1
+      - path: Armature/Root/APage5/BPage5/CPage5/DPage5/EPage5/FPage5/GPage5/HPage5/IPage5
+        weight: 1
+      - path: Armature/Root/APage5/BPage5/CPage5/DPage5/EPage5/FPage5/GPage5/HPage5/IPage5/JPage5
+        weight: 1
+      - path: Armature/Root/APage5/BPage5/CPage5/DPage5/EPage5/FPage5/GPage5/HPage5/IPage5/JPage5/JPage5_end
+        weight: 1
+      - path: Armature/Root/APage6
+        weight: 1
+      - path: Armature/Root/APage6/BPage6
+        weight: 1
+      - path: Armature/Root/APage6/BPage6/CPage6
+        weight: 1
+      - path: Armature/Root/APage6/BPage6/CPage6/DPage6
+        weight: 1
+      - path: Armature/Root/APage6/BPage6/CPage6/DPage6/EPage6
+        weight: 1
+      - path: Armature/Root/APage6/BPage6/CPage6/DPage6/EPage6/FPage6
+        weight: 1
+      - path: Armature/Root/APage6/BPage6/CPage6/DPage6/EPage6/FPage6/GPage6
+        weight: 1
+      - path: Armature/Root/APage6/BPage6/CPage6/DPage6/EPage6/FPage6/GPage6/HPage6
+        weight: 1
+      - path: Armature/Root/APage6/BPage6/CPage6/DPage6/EPage6/FPage6/GPage6/HPage6/IPage6
+        weight: 1
+      - path: Armature/Root/APage6/BPage6/CPage6/DPage6/EPage6/FPage6/GPage6/HPage6/IPage6/JPage6
+        weight: 1
+      - path: Armature/Root/APage6/BPage6/CPage6/DPage6/EPage6/FPage6/GPage6/HPage6/IPage6/JPage6/JPage6_end
+        weight: 1
+      - path: Armature/Root/APage7
+        weight: 1
+      - path: Armature/Root/APage7/BPage7
+        weight: 1
+      - path: Armature/Root/APage7/BPage7/CPage7
+        weight: 1
+      - path: Armature/Root/APage7/BPage7/CPage7/DPage7
+        weight: 1
+      - path: Armature/Root/APage7/BPage7/CPage7/DPage7/EPage7
+        weight: 1
+      - path: Armature/Root/APage7/BPage7/CPage7/DPage7/EPage7/FPage7
+        weight: 1
+      - path: Armature/Root/APage7/BPage7/CPage7/DPage7/EPage7/FPage7/GPage7
+        weight: 1
+      - path: Armature/Root/APage7/BPage7/CPage7/DPage7/EPage7/FPage7/GPage7/HPage7
+        weight: 1
+      - path: Armature/Root/APage7/BPage7/CPage7/DPage7/EPage7/FPage7/GPage7/HPage7/IPage7
+        weight: 1
+      - path: Armature/Root/APage7/BPage7/CPage7/DPage7/EPage7/FPage7/GPage7/HPage7/IPage7/JPage7
+        weight: 1
+      - path: Armature/Root/APage7/BPage7/CPage7/DPage7/EPage7/FPage7/GPage7/HPage7/IPage7/JPage7/JPage7_end
+        weight: 1
+      - path: Armature/Root/APage8
+        weight: 1
+      - path: Armature/Root/APage8/BPage8
+        weight: 1
+      - path: Armature/Root/APage8/BPage8/CPage8
+        weight: 1
+      - path: Armature/Root/APage8/BPage8/CPage8/DPage8
+        weight: 1
+      - path: Armature/Root/APage8/BPage8/CPage8/DPage8/EPage8
+        weight: 1
+      - path: Armature/Root/APage8/BPage8/CPage8/DPage8/EPage8/FPage8
+        weight: 1
+      - path: Armature/Root/APage8/BPage8/CPage8/DPage8/EPage8/FPage8/GPage8
+        weight: 1
+      - path: Armature/Root/APage8/BPage8/CPage8/DPage8/EPage8/FPage8/GPage8/HPage8
+        weight: 1
+      - path: Armature/Root/APage8/BPage8/CPage8/DPage8/EPage8/FPage8/GPage8/HPage8/IPage8
+        weight: 1
+      - path: Armature/Root/APage8/BPage8/CPage8/DPage8/EPage8/FPage8/GPage8/HPage8/IPage8/JPage8
+        weight: 1
+      - path: Armature/Root/APage8/BPage8/CPage8/DPage8/EPage8/FPage8/GPage8/HPage8/IPage8/JPage8/JPage8_end
+        weight: 1
+      - path: Armature/Root/APage9
+        weight: 1
+      - path: Armature/Root/APage9/BPage9
+        weight: 1
+      - path: Armature/Root/APage9/BPage9/CPage9
+        weight: 1
+      - path: Armature/Root/APage9/BPage9/CPage9/DPage9
+        weight: 1
+      - path: Armature/Root/APage9/BPage9/CPage9/DPage9/EPage9
+        weight: 1
+      - path: Armature/Root/APage9/BPage9/CPage9/DPage9/EPage9/FPage9
+        weight: 1
+      - path: Armature/Root/APage9/BPage9/CPage9/DPage9/EPage9/FPage9/GPage9
+        weight: 1
+      - path: Armature/Root/APage9/BPage9/CPage9/DPage9/EPage9/FPage9/GPage9/HPage9
+        weight: 1
+      - path: Armature/Root/APage9/BPage9/CPage9/DPage9/EPage9/FPage9/GPage9/HPage9/IPage9
+        weight: 1
+      - path: Armature/Root/APage9/BPage9/CPage9/DPage9/EPage9/FPage9/GPage9/HPage9/IPage9/JPage9
+        weight: 1
+      - path: Armature/Root/APage9/BPage9/CPage9/DPage9/EPage9/FPage9/GPage9/HPage9/IPage9/JPage9/JPage9_end
+        weight: 1
+      - path: Armature/Root/APage10
+        weight: 1
+      - path: Armature/Root/APage10/BPage10
+        weight: 1
+      - path: Armature/Root/APage10/BPage10/CPage10
+        weight: 1
+      - path: Armature/Root/APage10/BPage10/CPage10/DPage10
+        weight: 1
+      - path: Armature/Root/APage10/BPage10/CPage10/DPage10/EPage10
+        weight: 1
+      - path: Armature/Root/APage10/BPage10/CPage10/DPage10/EPage10/FPage10
+        weight: 1
+      - path: Armature/Root/APage10/BPage10/CPage10/DPage10/EPage10/FPage10/GPage10
+        weight: 1
+      - path: Armature/Root/APage10/BPage10/CPage10/DPage10/EPage10/FPage10/GPage10/HPage10
+        weight: 1
+      - path: Armature/Root/APage10/BPage10/CPage10/DPage10/EPage10/FPage10/GPage10/HPage10/IPage10
+        weight: 1
+      - path: Armature/Root/APage10/BPage10/CPage10/DPage10/EPage10/FPage10/GPage10/HPage10/IPage10/JPage10
+        weight: 1
+      - path: Armature/Root/APage10/BPage10/CPage10/DPage10/EPage10/FPage10/GPage10/HPage10/IPage10/JPage10/JPage10_end
+        weight: 1
+      - path: Armature/Root/BackCover
+        weight: 1
+      - path: Armature/Root/BackCover/BackCover_end
+        weight: 1
+      - path: Armature/Root/FrontCover
+        weight: 1
+      - path: Armature/Root/FrontCover/FrontCover_end
+        weight: 1
+      - path: Armature/Root/Spine
+        weight: 1
+      - path: Armature/Root/Spine/Spine_end
+        weight: 1
+      - path: Book
+        weight: 1
+      maskType: 0
       maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
+      additiveReferencePoseFrame: 1
     - serializedVersion: 16
       name: OpenBook
       takeName: OpenBook
+      internalID: 0
       firstFrame: 1
       lastFrame: 28
       wrapMode: 0
@@ -350,6 +1057,7 @@ ModelImporter:
     - serializedVersion: 16
       name: ReversePageTurn
       takeName: ReversePageTurn
+      internalID: 0
       firstFrame: 1
       lastFrame: 28
       wrapMode: 0
@@ -378,6 +1086,7 @@ ModelImporter:
     - serializedVersion: 16
       name: StayClosed
       takeName: StayClosed
+      internalID: 0
       firstFrame: 0
       lastFrame: 1
       wrapMode: 0
@@ -406,6 +1115,7 @@ ModelImporter:
     - serializedVersion: 16
       name: StayOpen
       takeName: StayOpen
+      internalID: 0
       firstFrame: 0
       lastFrame: 1
       wrapMode: 0
@@ -434,6 +1144,7 @@ ModelImporter:
     - serializedVersion: 16
       name: TurnPage
       takeName: TurnPage
+      internalID: 0
       firstFrame: 1
       lastFrame: 28
       wrapMode: 0
@@ -465,6 +1176,8 @@ ModelImporter:
     globalScale: 1
     meshCompression: 0
     addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -472,27 +1185,31 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
-    previousCalculatedGlobalScale: 1
-    hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
     tangentImportMode: 3
     normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
   importAnimation: 1
-  copyAvatar: 0
   humanDescription:
-    serializedVersion: 2
+    serializedVersion: 3
     human: []
     skeleton: []
     armTwist: 0.5
@@ -502,14 +1219,16 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
+    globalScale: 1
     rootMotionBoneName: 
-    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 2
   humanoidOversampling: 1
+  avatarSetup: 1
   additionalBone: 0
   userData: 
   assetBundleName: 

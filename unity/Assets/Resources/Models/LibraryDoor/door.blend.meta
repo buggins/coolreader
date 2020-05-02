@@ -1,56 +1,149 @@
 fileFormatVersion: 2
 guid: ee50c07dbb352456ea5bb5736379c59c
 ModelImporter:
-  serializedVersion: 23
-  fileIDToRecycleName:
-    100000: Circle
-    100002: Cube
-    100004: Cube_001
-    100006: Cylinder
-    100008: //RootNode
-    100010: Door
-    100012: DoorFrame
-    100014: DoorHandle
-    100016: Hinges
-    400000: Circle
-    400002: Cube
-    400004: Cube_001
-    400006: Cylinder
-    400008: //RootNode
-    400010: Door
-    400012: DoorFrame
-    400014: DoorHandle
-    400016: Hinges
-    2100000: unnamed
-    2300000: Circle
-    2300002: Cube
-    2300004: Cube_001
-    2300006: Cylinder
-    2300008: Door
-    2300010: DoorFrame
-    2300012: DoorHandle
-    2300014: Hinges
-    3300000: Circle
-    3300002: Cube
-    3300004: Cube_001
-    3300006: Cylinder
-    3300008: Door
-    3300010: DoorFrame
-    3300012: DoorHandle
-    3300014: Hinges
-    4300000: Cube_001
-    4300002: Cylinder
-    4300004: Cube
-    4300006: Circle
-    4300008: DoorFrame
-    4300010: Hinges
-    4300012: Door
-    4300014: DoorHandle
-    7400000: Default Take
-    9500000: //RootNode
+  serializedVersion: 19300
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: Circle
+  - first:
+      1: 100002
+    second: Cube
+  - first:
+      1: 100004
+    second: Cube_001
+  - first:
+      1: 100006
+    second: Cylinder
+  - first:
+      1: 100008
+    second: //RootNode
+  - first:
+      1: 100010
+    second: Door
+  - first:
+      1: 100012
+    second: DoorFrame
+  - first:
+      1: 100014
+    second: DoorHandle
+  - first:
+      1: 100016
+    second: Hinges
+  - first:
+      4: 400000
+    second: Circle
+  - first:
+      4: 400002
+    second: Cube
+  - first:
+      4: 400004
+    second: Cube_001
+  - first:
+      4: 400006
+    second: Cylinder
+  - first:
+      4: 400008
+    second: //RootNode
+  - first:
+      4: 400010
+    second: Door
+  - first:
+      4: 400012
+    second: DoorFrame
+  - first:
+      4: 400014
+    second: DoorHandle
+  - first:
+      4: 400016
+    second: Hinges
+  - first:
+      21: 2100000
+    second: unnamed
+  - first:
+      23: 2300000
+    second: Circle
+  - first:
+      23: 2300002
+    second: Cube
+  - first:
+      23: 2300004
+    second: Cube_001
+  - first:
+      23: 2300006
+    second: Cylinder
+  - first:
+      23: 2300008
+    second: Door
+  - first:
+      23: 2300010
+    second: DoorFrame
+  - first:
+      23: 2300012
+    second: DoorHandle
+  - first:
+      23: 2300014
+    second: Hinges
+  - first:
+      33: 3300000
+    second: Circle
+  - first:
+      33: 3300002
+    second: Cube
+  - first:
+      33: 3300004
+    second: Cube_001
+  - first:
+      33: 3300006
+    second: Cylinder
+  - first:
+      33: 3300008
+    second: Door
+  - first:
+      33: 3300010
+    second: DoorFrame
+  - first:
+      33: 3300012
+    second: DoorHandle
+  - first:
+      33: 3300014
+    second: Hinges
+  - first:
+      43: 4300000
+    second: Cube_001
+  - first:
+      43: 4300002
+    second: Cylinder
+  - first:
+      43: 4300004
+    second: Cube
+  - first:
+      43: 4300006
+    second: Circle
+  - first:
+      43: 4300008
+    second: DoorFrame
+  - first:
+      43: 4300010
+    second: Hinges
+  - first:
+      43: 4300012
+    second: Door
+  - first:
+      43: 4300014
+    second: DoorHandle
+  - first:
+      74: 7400000
+    second: Default Take
+  - first:
+      95: 9500000
+    second: //RootNode
+  - first:
+      74: -623603649343465320
+    second: Scene
   externalObjects: {}
   materials:
-    importMaterials: 1
+    materialImportMode: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -75,13 +168,69 @@ ModelImporter:
     animationWrapMode: 0
     extraExposedTransformPaths: []
     extraUserProperties: []
-    clipAnimations: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: Scene
+      takeName: Scene
+      internalID: 0
+      firstFrame: 1
+      lastFrame: 60
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves:
+      - name: Curve
+        curve:
+          serializedVersion: 2
+          curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          preInfinity: 3
+          postInfinity: 3
+          rotationOrder: 4
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
     isReadable: 1
   meshes:
     lODScreenPercentages: []
     globalScale: 1
     meshCompression: 0
     addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -89,27 +238,31 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
-    previousCalculatedGlobalScale: 1
-    hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
     tangentImportMode: 3
     normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
   importAnimation: 1
-  copyAvatar: 0
   humanDescription:
-    serializedVersion: 2
+    serializedVersion: 3
     human: []
     skeleton: []
     armTwist: 0.5
@@ -119,14 +272,16 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
+    globalScale: 1
     rootMotionBoneName: 
-    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 2
   humanoidOversampling: 1
+  avatarSetup: 1
   additionalBone: 0
   userData: 
   assetBundleName: door
