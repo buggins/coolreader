@@ -1688,12 +1688,14 @@ public:
                             widths[k] = k>0 ? widths[k-1] : 0;
                             flags[k] = 0; // remove SPACE/WRAP/... flags
                         }
-                        else if ( scale_space_width && (flags[k] & LCHAR_IS_SPACE) ) {
+                        else if ( flags[k] & LCHAR_IS_SPACE ) {
                             // LCHAR_IS_SPACE has just been guessed, and is available in flags[], not yet in m_flags[]
-                            int scaled_width = char_width * m_pbuffer->space_width_scale_percent / 100;
-                            // We can just account for the space reduction (or increase) in cumulative_width_removed
-                            cumulative_width_removed += char_width - scaled_width;
-                            widths[k] -= cumulative_width_removed;
+                            if ( scale_space_width ) {
+                                int scaled_width = char_width * m_pbuffer->space_width_scale_percent / 100;
+                                // We can just account for the space reduction (or increase) in cumulative_width_removed
+                                cumulative_width_removed += char_width - scaled_width;
+                                widths[k] -= cumulative_width_removed;
+                            }
                             if ( first_word_len >= 0 ) { // This is the space (or nbsp) after first word
                                 if ( first_word_len == 1 ) { // Previous word is a single char
                                     if ( isLeftPunctuation(m_text[k-1]) ) {
@@ -1703,15 +1705,15 @@ public:
                                         // Don't allow this space to change width, so text justification
                                         // doesn't move away next word, so that other similar paragraphs
                                         // get their real first words vertically aligned.
-                                        flags[k] &= ~LCHAR_IS_SPACE;
-                                        // Also forbid them to be extended when justification
-                                        // would use additional letter spacing
-                                        flags[k-1] |= LCHAR_LOCKED_SPACING;
                                         flags[k] |= LCHAR_LOCKED_SPACING;
+                                        // Also prevent that quotation mark or dash from getting
+                                        // additional letter spacing for justification
+                                        flags[k-1] |= LCHAR_LOCKED_SPACING;
+                                        //
                                         // Note: we do this check here, with the text still in logical
                                         // order, so we get that working with RTL text too (where, in
                                         // visual order, we'll have lost track of which word is the
-                                        // first word).
+                                        // first word - untested though).
                                     }
                                 }
                                 first_word_len = -1; // We don't need to deal with this anymore
@@ -2856,6 +2858,12 @@ public:
                     bool seen_non_space = false;
                     int tailing_spaces = 0;
                     for ( int j=i-1; j >= wstart; j-- ) {
+                        if ( m_flags[j] & LCHAR_LOCKED_SPACING ) {
+                            // A single char flagged with this makes the whole word non tweakable
+                            word->distinct_glyphs = 0;
+                            tailing_spaces = 0; // prevent tailing spaces correction
+                            break;
+                        }
                         if ( !seen_non_space && (m_flags[j] & LCHAR_IS_SPACE) ) {
                             // We'd rather not include the space that ends most words.
                             word->distinct_glyphs--;
@@ -2867,12 +2875,6 @@ public:
                         seen_non_space = true;
                         if ( m_flags[j] & (LCHAR_IS_CLUSTER_TAIL|LCHAR_IS_COLLAPSED_SPACE|LCHAR_IS_TO_IGNORE) ) {
                             word->distinct_glyphs--;
-                        }
-                        if ( m_flags[j] & LCHAR_LOCKED_SPACING ) {
-                            // A single char flagged with this makes
-                            // the whole word non tweakable
-                            word->distinct_glyphs = 0;
-                            break;
                         }
                     }
                     if ( !seen_non_space && tailing_spaces ) {
@@ -2926,7 +2928,10 @@ public:
                         // common opening quotation marks or dashes is done in measureText(),
                         // to have it work also with BiDi/RTL text (checking that here
                         // would be too late, as reordering has been done).
-                        if ( word->t.len>=2 && i>=2 && m_text[i-1]==UNICODE_NO_BREAK_SPACE
+                        if ( m_flags[i-1] & LCHAR_LOCKED_SPACING ) {
+                            can_adjust_width = false;
+                        }
+                        else if ( word->t.len>=2 && i>=2 && m_text[i-1]==UNICODE_NO_BREAK_SPACE
                                                          && m_text[i-2]==UNICODE_NO_BREAK_SPACE ) {
                             // condition for double nbsp after run-in footnote title
                             can_adjust_width = false;
@@ -3061,6 +3066,10 @@ public:
                         }
                         word->min_width = word->width;
                     } // done if floating punctuation enabled
+
+                    // printf("addLine - word(%d, %d) x=%d (%d..%d)[%d>%d %x] |%s|\n", wstart, i,
+                    //      frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width,
+                    //      word->min_width, word->flags, LCSTR(lString16(m_text+wstart, i-wstart)));
                 }
 
                 if ( adjust_line_box ) {
