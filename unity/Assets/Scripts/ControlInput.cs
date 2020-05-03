@@ -112,7 +112,7 @@ public class ControlInput : MonoBehaviourPun {
     if (controllerMenuTemplate != null)
     {
       controller.controllerMenu = Instantiate (controllerMenuTemplate);
-      controller.controllerMenu.transform.SetParent (controllerObject.transform.parent);
+      controller.controllerMenu.transform.SetParent (controllerObject.transform.parent.parent);
     }
     controllerObjects.Add (controller);
     controllerObject.SetActive (true);
