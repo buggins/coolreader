@@ -1694,8 +1694,9 @@ public:
                                 int scaled_width = char_width * m_pbuffer->space_width_scale_percent / 100;
                                 // We can just account for the space reduction (or increase) in cumulative_width_removed
                                 cumulative_width_removed += char_width - scaled_width;
-                                widths[k] -= cumulative_width_removed;
                             }
+                            // remove, from the measured cumulative width, what we just, and previously, removed
+                            widths[k] -= cumulative_width_removed;
                             if ( first_word_len >= 0 ) { // This is the space (or nbsp) after first word
                                 if ( first_word_len == 1 ) { // Previous word is a single char
                                     if ( isLeftPunctuation(m_text[k-1]) ) {
