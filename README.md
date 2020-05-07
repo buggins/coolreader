@@ -220,8 +220,7 @@ Environment setup:
 Run Qt SDK / Qt Command Prompt. Execute:
 
         > sh
-        > git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
-        > mv crengine cr3
+        > git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine cr3
         > cd cr3
         > mkdir qtbuild
         > cd qtbuild
