@@ -98,6 +98,7 @@ public:
     void generateEmbeddedFloatsFromFootprints( int final_width );
     void generateEmbeddedFloatsFromFloatIds( ldomNode * node, int final_width );
     void forwardOverflowingFloat( int x, int y, int w, int h, bool r, ldomNode * node );
+    int getTopShiftX(int final_width, bool get_right_shift=false);
 
     BlockFloatFootprint( FlowState * fl=NULL, int dleft=0, int dtop=0, bool noclearownfloats=false ) :
         flow(fl), d_left(dleft), d_top(dtop), no_clear_own_floats(noclearownfloats),

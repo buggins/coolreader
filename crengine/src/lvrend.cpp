@@ -5925,6 +5925,29 @@ void BlockFloatFootprint::restore(ldomNode * node, int final_width)
     no_clear_own_floats = RENDER_RECT_HAS_FLAG(fmt, NO_CLEAR_OWN_FLOATS);
 }
 
+int BlockFloatFootprint::getTopShiftX(int final_width, bool get_right_shift)
+{
+    int shift_x = 0;
+    for (int i=0; i<floats_cnt; i++) {
+        int * flt = floats[i];
+        if ( flt[1] <= 0 && flt[3] > 0 ) { // Float running at y=0 with some height
+            if ( !get_right_shift && !flt[4] ) { // Left float and left shift requested
+                int flt_right = flt[0] + flt[2]; // x + width
+                if ( flt_right > shift_x ) {
+                    shift_x = flt_right;
+                }
+            }
+            else if ( get_right_shift && flt[4] ) { // Right float and right shift requested
+                int flt_left = flt[0] - final_width; // x - final_width (negative value relative to right border)
+                if ( flt_left < shift_x ) {
+                    shift_x = flt_left;
+                }
+            }
+        }
+    }
+    return shift_x;
+}
+
 // Enhanced block rendering
 void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int container_width, int flags )
 {
@@ -8101,6 +8124,29 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     int padding_top = lengthToPx( style->padding[2], base_width, em ) + measureBorder(enode,0) + DEBUG_TREE_DRAW;
                     // We already adjusted all children blocks' left-padding and width in renderBlockElement(),
                     // we just need to draw the marker in the space we made
+                    // But adjust the x to draw our marker if the first line of our
+                    // first final children would start being drawn further because
+                    // some outer floats are involved (as Calibre and Firefox do).
+                    int shift_x = 0;
+                    if ( BLOCK_RENDERING_G(ENHANCED) ) {
+                        ldomNode * tmpnode = enode;
+                        // Just look at each first descendant for a final child (we may find
+                        // none and would have to look at next children, but well...)
+                        while ( tmpnode && tmpnode->hasChildren() ) {
+                            tmpnode = tmpnode->getChildNode( 0 );
+                            if (tmpnode && tmpnode->getRendMethod() == erm_final) {
+                                RenderRectAccessor tmpfmt( tmpnode );
+                                if ( RENDER_RECT_HAS_FLAG(tmpfmt, INNER_FIELDS_SET) ) {
+                                    int inner_width = tmpfmt.getInnerWidth();
+                                    BlockFloatFootprint float_footprint;
+                                    float_footprint.restore( tmpnode, inner_width );
+                                    shift_x = float_footprint.getTopShiftX(inner_width, is_rtl);
+                                }
+                                break;
+                            }
+                        }
+                    }
+
                     LFormattedTextRef txform( enode->getDocument()->createFormattedText() );
                     // If RTL, have the marker aligned to the right inside list_marker_width
                     int txt_flags = is_rtl ? LTEXT_ALIGN_RIGHT : 0;
@@ -8113,11 +8159,11 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                         // In both LTR and RTL, for erm_block, we draw the marker inside 'width',
                         // (only the child elements got their width shrinked by list_marker_width).
                         if ( is_rtl ) {
-                            txform->Draw( &drawbuf, doc_x+x0 + width - list_marker_width, doc_y+y0 + padding_top );
+                            txform->Draw( &drawbuf, doc_x+x0 + width + shift_x - list_marker_width, doc_y+y0 + padding_top );
                         }
                         else {
                             // (Don't shift by padding left, the list marker is outside padding left)
-                            txform->Draw( &drawbuf, doc_x+x0, doc_y+y0 + padding_top );
+                            txform->Draw( &drawbuf, doc_x+x0 + shift_x, doc_y+y0 + padding_top );
                         }
                     }
                 }
@@ -8267,7 +8313,15 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     // We already adjusted our block X and width in renderBlockElement(),
                     // we just need to draw the marker in the space we made on the left of
                     // this node.
+                    // But adjust the x to draw our marker if the first line of this
+                    // final block would start being drawn further because some outer
+                    // floats are involved (as Calibre and Firefox do).
+                    BlockFloatFootprint float_footprint;
+                    float_footprint.restore( enode, inner_width );
+                    int shift_x = float_footprint.getTopShiftX(inner_width, is_rtl);
+
                     LFormattedTextRef txform( enode->getDocument()->createFormattedText() );
+
                     // If RTL, have the marker aligned to the right inside list_marker_width
                     int txt_flags = is_rtl ? LTEXT_ALIGN_RIGHT : 0;
                     int list_marker_width;
@@ -8279,10 +8333,10 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                         // In both LTR and RTL, for erm_final, we draw the marker outside 'width',
                         // as 'width' has already been shrinked by list_marker_width.
                         if ( is_rtl ) {
-                            txform->Draw( &drawbuf, doc_x+x0 + width, doc_y+y0 + padding_top, NULL, NULL );
+                            txform->Draw( &drawbuf, doc_x+x0 + width + shift_x, doc_y+y0 + padding_top, NULL, NULL );
                         }
                         else {
-                            txform->Draw( &drawbuf, doc_x+x0 - list_marker_width, doc_y+y0 + padding_top, NULL, NULL );
+                            txform->Draw( &drawbuf, doc_x+x0 + shift_x - list_marker_width, doc_y+y0 + padding_top, NULL, NULL );
                         }
                     }
                     // Note: if there's a float on the left of the list item, we let
