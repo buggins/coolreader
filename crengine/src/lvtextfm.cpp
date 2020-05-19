@@ -364,16 +364,18 @@ void LFormattedText::AddSourceObject(
     css_style_ref_t style = node->getStyle();
     lInt16 w = 0, h = 0;
     int em = node->getFont()->getSize();
-    lString16 nodename = node->getNodeName();
-    if ((nodename.lowercase().compare("sub")==0
-                || nodename.lowercase().compare("sup")==0)
-            && (style->font_size.type==css_val_percent)) {
-        em = em * 100 * 256 / style->font_size.value ; // value is %*256
-    }
     w = lengthToPx(style->width, 100, em);
     h = lengthToPx(style->height, 100, em);
-    if (style->width.type==css_val_percent) w = -w;
-    if (style->height.type==css_val_percent) h = w*height/width;
+    // width in % will be computed in measureText() as a % of m_pbuffer->width
+    // For height in %, it's more complicated... see:
+    //   https://www.w3.org/TR/CSS2/visudet.html#the-width-property
+    //   https://www.w3.org/TR/CSS2/visudet.html#the-height-property
+    //   https://www.w3.org/TR/CSS2/visudet.html#inline-replaced-height
+    //   https://drafts.csswg.org/css-sizing-3/#extrinsic
+    if (style->width.type == css_val_percent)
+        w = -w;
+    if (style->height.type == css_val_percent)
+        h = w*height/width;
 
     if ( w*h==0 ) {
         if ( w==0 ) {
@@ -1841,8 +1843,9 @@ public:
                         // assume i==start+1
                         int width = m_srcs[start]->o.width;
                         int height = m_srcs[start]->o.height;
-                        width=width<0?-width*(m_pbuffer->width)/100:width;
-                        height=height<0?-height*(m_pbuffer->width)/100:height;
+                        // Negative width and height mean the value is a % (of our final block width)
+                        width = width<0 ? (-width * (m_pbuffer->width) / 100) : width;
+                        height = height<0 ? (-height * (m_pbuffer->width) / 100) : height;
                         /*
                         printf("measureText img: o.w=%d o.h=%d > w=%d h=%d (max %d %d is_inline=%d) %s\n",
                             m_srcs[start]->o.width, m_srcs[start]->o.height, width, height,
@@ -1850,6 +1853,21 @@ public:
                             UnicodeToLocal(ldomXPointer((ldomNode*)m_srcs[start]->object, 0).toString()).c_str());
                         */
                         resizeImage(width, height, m_pbuffer->width, m_max_img_height, m_length>1);
+                        if ( (m_srcs[start]->flags & LTEXT_STRUT_CONFINED) && m_allow_strut_confinning ) {
+                            // Text with "-cr-hint: strut-confined" might just be vertically shifted,
+                            // but won't change widths. But images who will change height must also
+                            // have their width reduced to keep their aspect ratio.
+                            if ( height > m_pbuffer->strut_height ) {
+                                // Don't make image taller than initial strut height, so adjust width
+                                // to keep aspect ratio.
+                                width = width * m_pbuffer->strut_height / height;
+                                height = m_pbuffer->strut_height;
+                            }
+                        }
+                        // Store the possibly resized dimensions back, so we don't have
+                        // to recompute them later
+                        m_srcs[start]->o.width = width;
+                        m_srcs[start]->o.height = height;
                         lastWidth += width;
                         m_widths[start] = lastWidth;
                     }
@@ -2651,32 +2669,14 @@ public:
                     }
                     else { // image
                         word->flags = LTEXT_WORD_IS_OBJECT;
+                        // The image dimensions have already been resized to fit
+                        // into m_pbuffer->width (and strut confinning if requested.
+                        // Note: it can happen when there is some text-indent than
+                        // the image width exceeds the available width: it might be
+                        // shown overflowing or overrideing other content.
+                        word->width = lastSrc->o.width;
                         word->o.height = lastSrc->o.height;
-                        // Resize image so it fits in our available width
-                        int width = lastSrc->o.width;
-                        int height = lastSrc->o.height;
-                        // Negative width and height mean the value is a % (of our final block width)
-                        width = width<0 ? (-width * (m_pbuffer->width - x) / 100) : width;
-                        height = height<0 ? (-height * (m_pbuffer->width-x) / 100) : height;
-                        if ( strut_confined && height > m_pbuffer->strut_height ) {
-                            // Don't make image taller than initial strut height.
-                            // (We could have checked height against frmline->height (which may
-                            // be larger than m_pbuffer->strut_height if not all elements have
-                            // "-cr-hint: strut-confined"), but in processParagraph() we checked
-                            // against m_pbuffer->strut_height, so keep doing that to not
-                            // have this line width different.
-                            width = width * m_pbuffer->strut_height / height; // keep aspect ratio
-                            height = frmline->height;
-                        }
                         // todo: adjust m_max_img_height with this image valign_dy/vertical_align_flag
-                        resizeImage(width, height, m_pbuffer->width - x, m_max_img_height, m_length>1);
-                            // Note: it can happen with a standalone image in a small container
-                            // where text-indent is greater than width, that 'm_pbuffer->width - x'
-                            // can be negative. We could cap it to zero and resize the image to 0,
-                            // but let it be shown un-resized, possibly overflowing or overriding
-                            // other content.
-                        word->width = width;
-                        word->o.height = height;
                         // Per specs, the baseline is the bottom of the image
                         top_to_baseline = word->o.height;
                         baseline_to_bottom = 0;
@@ -3449,29 +3449,6 @@ public:
                 if ( m_text[i]=='\n' ) {
                     lastMandatoryWrap = i;
                     break;
-                }
-                // Text with "-cr-hint: strut-confined" might just be vertically shifted,
-                // but won't change widths. But images who will change height must also
-                // have their width reduced to keep their aspect ratio.
-                if ( (m_srcs[i]->flags & LTEXT_STRUT_CONFINED) && m_allow_strut_confinning &&
-                        (m_flags[i] & LCHAR_IS_OBJECT) && (m_charindex[i] == OBJECT_CHAR_INDEX) ) {
-                    int width = m_srcs[i]->o.width;
-                    int height = m_srcs[i]->o.height;
-                    // Negative width and height mean the value is a % (of our final block width)
-                    width = width<0 ? (-width * (m_pbuffer->width - x) / 100) : width;
-                    height = height<0 ? (-height * (m_pbuffer->width - x) / 100) : height;
-                    resizeImage(width, height, m_pbuffer->width - x, m_max_img_height, m_length>1);
-                    if ( height > m_pbuffer->strut_height ) {
-                        // Don't make image taller than initial strut height, so adjust width
-                        // to keep aspect ratio.
-                        width = width * m_pbuffer->strut_height / height;
-                        int orig_width = i > 0 ? m_widths[i] - m_widths[i-1] : m_widths[i];
-                        // Coding shortcut: instead of messing with m_widths, or having a
-                        // strutConfinedReclaimedWidth variable to be used everywhere, add the
-                        // reclaimed width to w0 (which holds the cumulative width at start of
-                        // line) as it is already used everywhere to get the width of the line.
-                        w0 += orig_width - width;
-                    }
                 }
                 if ( !seen_first_rendered_char ) {
                     seen_first_rendered_char = true;
