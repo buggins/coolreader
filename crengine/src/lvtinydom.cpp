@@ -13012,15 +13012,26 @@ bool tinyNodeCollection::loadStylesData()
     }
     lUInt32 stHash = 0;
     lInt32 len = 0;
-    lUInt32 myHash = _stylesheet.getHash();
+
+    // lUInt32 myHash = _stylesheet.getHash();
+    // When loading from cache, this stylesheet was built with the
+    // initial element name ids, which may have been replaced by
+    // the one restored from the cache. So, its hash may be different
+    // from the one we're going to load from cache.
+    // This is not a failure, but a sign the stylesheet will have
+    // to be regenerated (later, no need for it currently as we're
+    // loading previously applied style data): this will be checked
+    // in checkRenderContext() when comparing a combo hash
+    // against _hdr.stylesheet_hash fetched from the cache.
 
     //LVArray<css_style_ref_t> * list = _styles.getIndex();
     stylebuf.checkMagic(styles_magic);
     stylebuf >> stHash;
-    if ( stHash != myHash ) {
-        CRLog::info("tinyNodeCollection::loadStylesData() - stylesheet hash is changed: skip loading styles %08x != %08x", stHash, myHash);
-        return false;
-    }
+    // Don't check for this:
+    // if ( stHash != myHash ) {
+    //     CRLog::info("tinyNodeCollection::loadStylesData() - stylesheet hash is changed: skip loading styles");
+    //     return false;
+    // }
     stylebuf >> len; // index
     if ( stylebuf.error() )
         return false;
