@@ -4535,6 +4535,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         if ( callback ) {
             callback->OnFormatStart();
         }
+        _renderedBlockCache.reduceSize(1); // Reduce size to save some checking and trashing time
         setCacheFileStale(true); // new rendering: cache file will be updated
         _toc_from_cache_valid = false;
         // force recalculation of page numbers (even if not computed in this
@@ -4563,6 +4564,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         updateRenderContext();
         _pagesData.reset();
         pages->serialize( _pagesData );
+        _renderedBlockCache.restoreSize(); // Restore original cache size
 
         if ( _nodeDisplayStyleHashInitial == NODE_DISPLAY_STYLE_HASH_UNITIALIZED ) {
             // If _nodeDisplayStyleHashInitial has not been initialized from its
@@ -16429,6 +16431,8 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
     int lang_node_idx = fmt->getLangNodeIndex();
     TextLangCfg * lang_cfg = TextLangMan::getTextLangCfg(lang_node_idx>0 ? getDocument()->getTinyNode(lang_node_idx) : NULL);
     ::renderFinalBlock( this, f.get(), fmt, flags, 0, -1, lang_cfg );
+    // We need to store this LFormattedTextRef in the cache for it to
+    // survive when leaving this function (some callers do use it).
     cache.set( this, f );
     bool flg=gFlgFloatingPunctuationEnabled;
     if (this->getNodeName()=="th"||this->getNodeName()=="td"||
@@ -16449,6 +16453,13 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
     else { // Restore it from this node's RenderRectAccessor
         float_footprint = &restored_float_footprint;
         float_footprint->restore( this, (lUInt16)width );
+    }
+    if ( !getDocument()->isRendered() ) {
+        // Full rendering in progress: avoid some uneeded work that
+        // is only needed when we'll be drawing the formatted text
+        // (like alignLign()): this will mark it as not reusable, and
+        // one that is on a page to be drawn will be reformatted .
+        f->requestLightFormatting();
     }
     int h = f->Format((lUInt16)width, (lUInt16)page_h, direction, float_footprint);
     gFlgFloatingPunctuationEnabled=flg;

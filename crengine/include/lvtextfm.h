@@ -273,6 +273,10 @@ typedef struct
    // these embedded blocks individual lines, for page splitting - a second
    // rendering, with proper inlineBox lines will be needed for drawing.)
    bool                  is_reusable;
+   // Avoid some work when formatting to only get the block height
+   // (e.g. when full rerendering). This will make is_reusable=true too.
+   bool                  light_formatting;
+
 } formatted_text_fragment_t;
 
 /**  Alloc & init formatted text buffer
@@ -453,6 +457,7 @@ public:
     void Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks = NULL,  ldomMarkedRangeList *bookmarks = NULL );
 
     bool isReusable() { return m_pbuffer->is_reusable; }
+    void requestLightFormatting() { m_pbuffer->light_formatting = true; }
 
     LFormattedText() { m_pbuffer = lvtextAllocFormatter( 0 ); }
 

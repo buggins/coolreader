@@ -441,6 +441,7 @@ private:
     };
     Pair * buf;
     int size;
+    int orig_size;
     int numitems;
     int lastAccess;
     void checkOverflow( int oldestAccessTime )
@@ -467,9 +468,21 @@ public:
         return numitems;
     }
     LVCacheMap( int maxSize )
-    : size(maxSize), numitems(0), lastAccess(1)
+    : size(maxSize), orig_size(maxSize), numitems(0), lastAccess(1)
     {
         buf = new Pair[ size ];
+        clear();
+    }
+    void reduceSize(int newSize)
+    {
+        if (newSize < orig_size) {
+            clear();
+            size = newSize;
+        }
+    }
+    void restoreSize()
+    {
+        size = orig_size;
         clear();
     }
     void clear()

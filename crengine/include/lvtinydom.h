@@ -2494,6 +2494,7 @@ public:
     /// destructor
     virtual ~ldomDocument();
 #if BUILD_LITE!=1
+    bool isRendered() { return _rendered; }
     /// renders (formats) document in memory
     virtual int render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space, CRPropRef props );
     /// renders (formats) document in memory

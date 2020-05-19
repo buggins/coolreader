@@ -155,6 +155,7 @@ formatted_text_fragment_t * lvtextAllocFormatter( lUInt16 width )
     pbuffer->strut_height = 0;
     pbuffer->strut_baseline = 0;
     pbuffer->is_reusable = true;
+    pbuffer->light_formatting = false;
     int defMode = MAX_IMAGE_SCALE_MUL > 1 ? (ARBITRARY_IMAGE_SCALE_ENABLED==1 ? 2 : 1) : 0;
     int defMult = MAX_IMAGE_SCALE_MUL;
     // Notes from thornyreader:
@@ -3188,7 +3189,16 @@ public:
                 }
             }
         }
-        alignLine( frmline, align, rightIndent, has_inline_boxes );
+
+        // Fix up words position and width to ensure requested alignment and indent
+        // (no need to do that if light formatting, as this won't affect the
+        // block height and floats positionning - is_reusable will be unset,
+        // and any attempt at reusing this formatting for drawing will cause
+        // a non-light re-formatting)
+        if ( !m_pbuffer->light_formatting ) {
+            alignLine( frmline, align, rightIndent, has_inline_boxes );
+        }
+
         m_y += frmline->height;
         m_pbuffer->height = m_y;
         checkOngoingFloat();
@@ -4068,7 +4078,7 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height, int para_dire
     m_pbuffer->width = width;
     m_pbuffer->height = 0;
     m_pbuffer->page_height = page_height;
-    m_pbuffer->is_reusable = true;
+    m_pbuffer->is_reusable = !m_pbuffer->light_formatting;
     // format text
     LVFormatter formatter( m_pbuffer );
 
