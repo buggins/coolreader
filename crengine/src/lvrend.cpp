@@ -8586,7 +8586,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     // always be css_d_inline:
     // When met alongside block elements, they'll be autoboxed and
     // will ensure just their (possibly inherited) line-height.
-    if (nodeElementId == el_br) {
+    if (nodeElementId == el_br && pstyle->display != css_d_none) {
         pstyle->display = css_d_inline;
     }
 
