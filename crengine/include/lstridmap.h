@@ -118,6 +118,7 @@ public:
 
     // debug dump of all unknown entities
     void dumpUnknownItems( FILE * f, int start_id );
+    lString16 getUnknownItems( int start_id );
 };
 
 #endif

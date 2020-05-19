@@ -4664,6 +4664,16 @@ void lxmlDocBase::dumpUnknownEntities( const char * fname )
     fclose(f);
 }
 
+lString16Collection lxmlDocBase::getUnknownEntities()
+{
+    lString16Collection unknown_entities;
+    unknown_entities.add( _elementNameTable.getUnknownItems(UNKNOWN_ELEMENT_TYPE_ID) );
+    unknown_entities.add( _attrNameTable.getUnknownItems(UNKNOWN_ATTRIBUTE_TYPE_ID) );
+    unknown_entities.add( _nsNameTable.getUnknownItems(UNKNOWN_NAMESPACE_TYPE_ID) );
+    return unknown_entities;
+}
+
+
 #if BUILD_LITE!=1
 static const char * id_map_list_magic = "MAPS";
 static const char * elem_id_map_magic = "ELEM";

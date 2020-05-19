@@ -319,3 +319,15 @@ void LDOMNameIdMap::dumpUnknownItems( FILE * f, int start_id )
     }
 }
 
+lString16 LDOMNameIdMap::getUnknownItems( int start_id )
+{
+    lString16 items;
+    for (int i=start_id; i<m_size; i++) {
+        if (m_by_id[i] != NULL) {
+            if ( !items.empty() )
+                items << " ";
+            items << m_by_id[i]->value;
+        }
+    }
+    return items;
+}

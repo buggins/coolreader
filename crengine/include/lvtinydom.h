@@ -1244,6 +1244,7 @@ public:
 
     // debug dump
     void dumpUnknownEntities( const char * fname );
+    lString16Collection getUnknownEntities();
 
     /// garbage collector
     virtual void gc()
