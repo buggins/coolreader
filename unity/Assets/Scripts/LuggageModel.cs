@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading;
 
 // Derived from:
 //
@@ -16,27 +17,50 @@ public class LuggageModel : MonoBehaviour
   public GameObject luggageObject;
   
   public GameObject elementTemplate;
+
+  private Model luggageModel;
+  
+  private void buildLuggage ()
+  {
+    luggageModel = Luggage (3.0f, 3.0f, 5.0f, numLegs: 20, legRows : 4, divBy : 30.0f);
+  }
+  
+  IEnumerator createLuggage ()
+  {  
+    luggageModel = null;
+    Thread t = new Thread (new ThreadStart (buildLuggage));
+    t.Start ();
+    
+    yield return new WaitUntil (() => (luggageModel != null));
+    
+    luggageModel.updateMesh (luggageObject, elementTemplate);
+    Debug.Log ("Created luggage " + luggageModel.mesh.vertices.Count);
+    
+    yield return null;
+  }
   
   void Start()
   {
-     Model model = Luggage (3.0f, 3.0f, 5.0f, numLegs: 20, legRows : 4, divBy : 30.0f);
-    //   Model cubec = cube (1.0f, "cube");
-    //   FaceSet luggageSet = new FaceSet ("luggage", cubec.mesh.faces);  
-    //     
-    //   cubec.mesh.addFaceSet (luggageSet);
-    //   FaceSet foot2 = cubec.mesh.select (0.0f, 1.0f, 0.0f, 0.01f, 0.0f, 1.0f, luggageSet, "rightfoot"); 
-    //   Model model = foot (2.0f, cubec, "leftfoot1", foot2);
-//     Model cubec = cube (1.0f, "cube");
-//     FaceSet luggageSet = new FaceSet ("luggage", cubec.mesh.faces);          
-//     cubec.mesh.addFaceSet (luggageSet);
-//     FaceSet t = cubec.mesh.select (0.0f, 1.0f, 0.0f, 0.01f, 0.0f, 1.0f, luggageSet, "rightfoot"); 
-//     cubec.mesh.addFaceSet (t);
-//    Model model = Leg (cubec, numToes : 3, threshold : 2, height : 1.0f, length : 0.5f, width : 1.0f, heads : 1.0f, name : "rightfoot");
-//    Model model = Foot (cubec, numToes : 5, threshold : 5, needed : 1, bigToe : 0.4f, extrudeUnit : 1.0f*(3.0f/3.0f), name = "rightfoot");
-//     Model model = ConstrFoot (cubec, numToes : 5, threshold : 5, bigToe : 0.4f, extrudeUnit : 1.0f*(3.0f/3.0f), name = "rightfoot");
+    StartCoroutine (createLuggage ());
     
-    model.updateMesh (luggageObject, elementTemplate);
-    Debug.Log ("Created luggage " + model.mesh.vertices.Count);
+//      Model model = Luggage (3.0f, 3.0f, 5.0f, numLegs: 20, legRows : 4, divBy : 30.0f);
+//     //   Model cubec = cube (1.0f, "cube");
+//     //   FaceSet luggageSet = new FaceSet ("luggage", cubec.mesh.faces);  
+//     //     
+//     //   cubec.mesh.addFaceSet (luggageSet);
+//     //   FaceSet foot2 = cubec.mesh.select (0.0f, 1.0f, 0.0f, 0.01f, 0.0f, 1.0f, luggageSet, "rightfoot"); 
+//     //   Model model = foot (2.0f, cubec, "leftfoot1", foot2);
+// //     Model cubec = cube (1.0f, "cube");
+// //     FaceSet luggageSet = new FaceSet ("luggage", cubec.mesh.faces);          
+// //     cubec.mesh.addFaceSet (luggageSet);
+// //     FaceSet t = cubec.mesh.select (0.0f, 1.0f, 0.0f, 0.01f, 0.0f, 1.0f, luggageSet, "rightfoot"); 
+// //     cubec.mesh.addFaceSet (t);
+// //    Model model = Leg (cubec, numToes : 3, threshold : 2, height : 1.0f, length : 0.5f, width : 1.0f, heads : 1.0f, name : "rightfoot");
+// //    Model model = Foot (cubec, numToes : 5, threshold : 5, needed : 1, bigToe : 0.4f, extrudeUnit : 1.0f*(3.0f/3.0f), name = "rightfoot");
+// //     Model model = ConstrFoot (cubec, numToes : 5, threshold : 5, bigToe : 0.4f, extrudeUnit : 1.0f*(3.0f/3.0f), name = "rightfoot");
+//     
+//     model.updateMesh (luggageObject, elementTemplate);
+//     Debug.Log ("Created luggage " + model.mesh.vertices.Count);
   }
   
   
@@ -219,7 +243,7 @@ public class LuggageModel : MonoBehaviour
   
         float footsize = 0.9f;
         //Transform moveFoot = new Transform (new Vector3 (i * 4, 0, j * 2));
-        Transform moveFoot = getEmptyTransform ();
+        ModelTransform moveFoot = getEmptyTransform ();
         moveFoot.Translate (new Vector3 (x, y, z));
         
         footMod = ConstrFoot (numToes : numToes, threshold : threshold, bigToe : 0.4f, extrudeUnit : footsize, name : "rightFoot");
@@ -1282,11 +1306,12 @@ public class LuggageModel : MonoBehaviour
   
   
   
-  Transform getEmptyTransform ()
+  ModelTransform getEmptyTransform ()
   {
-    GameObject emptyGO = new GameObject();
-    Transform t = emptyGO.transform;
-    Destroy (emptyGO);
+//     GameObject emptyGO = new GameObject();
+//     Transform t = emptyGO.transform;
+//     Destroy (emptyGO);
+    ModelTransform t = new ModelTransform ();
     return t;
   }
 }
@@ -2036,7 +2061,7 @@ public class PolygonMesh
   }
   
   // apply the given transformation to the vertices of the mesh.                
-  static public void transformMesh (PolygonMesh m, Transform t)
+  static public void transformMesh (PolygonMesh m, ModelTransform t)
   {
     for (int i = 0; i < m.numVertices (); i++)
     {
@@ -5118,3 +5143,22 @@ public class BezierSpline : Curve
   }
 };
 
+public class ModelTransform
+{
+  private Matrix4x4 transform;
+  
+  public ModelTransform ()
+  {
+    transform = Matrix4x4.identity;
+  }
+  
+  public void Translate (Vector3 v)
+  {
+    transform *= Matrix4x4.Translate (v);
+  }
+  
+  public Vector3 TransformPoint (Vector3 p)
+  {
+    return transform.MultiplyPoint (p);
+  }
+}

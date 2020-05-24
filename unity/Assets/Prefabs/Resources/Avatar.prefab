@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2120980759079498932}
   - component: {fileID: 7752735218772933274}
   - component: {fileID: 3793944599193146634}
+  - component: {fileID: 174458143273166079}
   m_Layer: 0
   m_Name: Avatar
   m_TagString: Untagged
@@ -74,6 +75,19 @@ MonoBehaviour:
   headCameraObject: {fileID: 5621204472079810318}
   leftController: {fileID: 5622054179510377204}
   rightController: {fileID: 5620836597763284514}
+--- !u!114 &174458143273166079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 45206115487452534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d259dd1684efa43b59840e9fe975a2eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  offsetHeight: 0
 --- !u!1 &395334779374468221
 GameObject:
   m_ObjectHideFlags: 0

@@ -2613,6 +2613,7 @@ GameObject:
   - component: {fileID: 54242118489839784}
   - component: {fileID: 114710229948219380}
   - component: {fileID: 114703441304025908}
+  - component: {fileID: 2001715376463572183}
   m_Layer: 0
   m_Name: OpenBook
   m_TagString: Untagged
@@ -2690,6 +2691,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86280111d0bec41f5bf0cb7d11e3dfbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2001715376463572183
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1611536359195484}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc05e0b34c25042a993dc3e0c35ca7b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  props:
+    filename: 
+    author: 
+    title: 
+    colour:
+    - 0
+    - 0
+    - 0
+    fontSize: 100
+    currentPage: 0
 --- !u!1 &1617378685612364
 GameObject:
   m_ObjectHideFlags: 0
@@ -4203,6 +4226,19 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!65 &4388412934210359925
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7907419281143341110}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 3, y: 1, z: 2}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!95 &7184397183532793703
 Animator:
   serializedVersion: 3
@@ -4222,19 +4258,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!65 &4388412934210359925
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7907419281143341110}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 3, y: 1, z: 2}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &2205962164728035647
 PrefabInstance:
   m_ObjectHideFlags: 0

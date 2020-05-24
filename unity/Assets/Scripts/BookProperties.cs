@@ -39,6 +39,44 @@ public class BookPropertySet {
     return Application.persistentDataPath + "/" + fp + ".book";
   }
   
+  public static BookPropertySet Deserialize (byte[] data)
+  {
+    MemoryStream ms = new MemoryStream (data);
+    BookPropertySet bp = new BookPropertySet ();
+    try
+    {
+      BinaryFormatter bf = new BinaryFormatter ();
+      bp.filename = (string) bf.Deserialize (ms);
+      bp.author = (string) bf.Deserialize (ms);
+      bp.title = (string) bf.Deserialize (ms);
+      bp.colour = (float []) bf.Deserialize (ms);
+      
+      bp.currentPage = (int) bf.Deserialize (ms);
+      bp.fontSize = (int) bf.Deserialize (ms);
+    }
+    catch (Exception)
+    {
+      throw;
+    }
+    
+    return bp;
+  }
+
+  public static byte[] Serialize (object bpo)
+  {
+    BinaryFormatter bf = new BinaryFormatter ();
+    BookPropertySet bp = (BookPropertySet) bpo;
+    MemoryStream ms = new MemoryStream ();
+    bf.Serialize (ms, bp.filename);
+    bf.Serialize (ms, bp.author);
+    bf.Serialize (ms, bp.title);
+    bf.Serialize (ms, bp.colour);
+    
+    bf.Serialize (ms, bp.currentPage);
+    bf.Serialize (ms, bp.fontSize);
+    return ms.GetBuffer ();
+  }
+  
   // Overwrite existing book properties.
   public void Save ()
   {

@@ -37,9 +37,26 @@ public class RoomPropertySet {
     books = new List <string> ();
   }
 
-  public void addBook (string bookIdentifier)
+  public void addBook (string bookIdentifier, GameObject bookMarkerPrefab)
   {
     books.Add (bookIdentifier);
+    
+    if (bookMarkerPrefab != null)
+    {
+    BookPropertySet bp = new BookPropertySet ();
+    bp.Load (bookIdentifier);
+    
+    GameObject bookObject = UnityEngine.Object.Instantiate (bookMarkerPrefab, new Vector3 (2, 2, 2), Quaternion.identity);
+    bookObject.GetComponent <BookProperties> ().props = bp;
+    bookObject.transform.localRotation = Quaternion.AngleAxis (90.0f, Vector3.right);
+ //   bookObject.transform.localScale = new Vector3 (0.98f * bookThickness, 0.6f * trolleyDepth, trolleyDepth);
+    bookObject.transform.Find ("CheapBook").GetComponent <MeshRenderer> ().material.color = new Color (bp.colour[0], bp.colour[1], bp.colour[2]);
+    
+    // seems to fix a unity bug that prevents some colliders from being spotted.
+    bookObject.GetComponent <BoxCollider> ().enabled = false;
+    bookObject.GetComponent <BoxCollider> ().enabled = true;    
+    }
+    
     Debug.Log ("Added " + bookIdentifier);
   }
   
@@ -80,7 +97,7 @@ public class RoomPropertySet {
   }
   
   // Retrieve book properties from the given book property file.
-  public void RawLoad (string directfilepath)
+  public void RawLoad (string directfilepath, GameObject bookMarkerPrefab)
   {
     FileStream file = null;
     books = new List <string> ();
@@ -92,7 +109,7 @@ public class RoomPropertySet {
       int numBooks = (int) bf.Deserialize (file);
       for (int i = 0; i < numBooks; i++)
       {
-        addBook ((string) bf.Deserialize (file));
+        addBook ((string) bf.Deserialize (file), bookMarkerPrefab);
       }
       file.Close();
     }
@@ -107,11 +124,11 @@ public class RoomPropertySet {
   }
 
   // Given an ebook file path, retrieve the book properties for it, if they exist.
-  public void Load (string roomIdentifier)
+  public void Load (string roomIdentifier, GameObject bookMarkerPrefab)
   {
     try
     {
-      RawLoad (getFilePath (roomIdentifier));
+      RawLoad (getFilePath (roomIdentifier), bookMarkerPrefab);
     }
     catch (Exception)
     {
@@ -137,7 +154,7 @@ public class RoomProperties : MonoBehaviour {
         if (bm != null)
         {
           Debug.Log ("Found book " + bm.getBookID ());
-          props.addBook (bm.getBookID ());
+          props.addBook (bm.getBookID (), null);
         }
       }
     }
@@ -146,10 +163,10 @@ public class RoomProperties : MonoBehaviour {
     props.Save (roomName);
   }
 
-  public static void restoreRoom (string roomName)
+  public static void restoreRoom (string roomName, GameObject bookMarkerPrefab)
   {
     RoomPropertySet props = new RoomPropertySet ();
     Debug.Log ("Restoring room: " + roomName);
-    props.Load (roomName);
+    props.Load (roomName, bookMarkerPrefab);
   }
 }

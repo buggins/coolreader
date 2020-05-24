@@ -61,7 +61,7 @@ public class BookManager : MonoBehaviour {
   private TextMesh informationMessage;
   
   // The properties of the book.
-  private BookPropertySet bookProperties;
+//  private BookPropertySet bookProperties;
   
   private BookEngineInterface bookEngine;
   
@@ -236,7 +236,8 @@ public class BookManager : MonoBehaviour {
     setInformation ("Loading...");
     yield return null;
     
-    bookProperties = props;
+    GetComponent <BookProperties> ().props = props;
+    //bookProperties = props;
     // Change page to force initial page drawing.
     currentPage = props.currentPage;
 //    changePage (currentPage);
@@ -349,8 +350,10 @@ public class BookManager : MonoBehaviour {
     retrievePageToTexture (currentPage, leftPageTurn);
     retrievePageToTexture (currentPage + 1, rightPageTurn);
     
-    bookProperties.currentPage = currentPage;
-    bookProperties.Save ();
+    GetComponent <BookProperties> ().props.currentPage = currentPage;
+    GetComponent <BookProperties> ().props.Save ();
+//     bookProperties.currentPage = currentPage;
+//     bookProperties.Save ();
     
     return result;
   }
@@ -369,8 +372,10 @@ public class BookManager : MonoBehaviour {
       fontSize = 1;
     }
 
-    bookProperties.fontSize = fontSize;
-    bookProperties.Save ();
+    GetComponent <BookProperties> ().props.fontSize = fontSize;
+    GetComponent <BookProperties> ().props.Save ();
+//     bookProperties.fontSize = fontSize;
+//     bookProperties.Save ();
     
     StartCoroutine (updateFont ());
   }
@@ -413,6 +418,6 @@ public class BookManager : MonoBehaviour {
   
   public string getBookID ()
   {
-    return bookProperties.filename;
+    return GetComponent <BookProperties> ().props.filename;
   }
 }

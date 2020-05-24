@@ -46,7 +46,7 @@ public class RoomChangeMenuInteraction : MenuInteraction {
   
   private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
   {
-    RoomProperties.restoreRoom (SceneManager.GetActiveScene().name);
+//    RoomProperties.restoreRoom (SceneManager.GetActiveScene().name);
     SceneManager.sceneLoaded -= OnSceneLoaded;
   }
   
