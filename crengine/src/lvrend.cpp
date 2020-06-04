@@ -2133,9 +2133,9 @@ LVFontRef getFont(css_style_rec_t * style, int documentId)
     return fnt;
 }
 
-int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags, int direction )
+lUInt32 styleToTextFmtFlags( const css_style_ref_t & style, lUInt32 oldflags, int direction )
 {
-    int flg = oldflags;
+    lUInt32 flg = oldflags;
     if ( style->display == css_d_run_in ) {
         flg |= LTEXT_RUNIN_FLAG;
     } //else
@@ -2305,7 +2305,7 @@ void SplitLines( const lString16 & str, lString16Collection & lines )
 // marker_width is updated and can be used to add indent or padding necessary to make
 // room for the marker (what and how to do it depending of list-style_position (inside/outside)
 // is left to the caller)
-lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormattedText * txform, int line_h, int flags ) {
+lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormattedText * txform, int line_h, lUInt32 flags ) {
     lString16 marker;
     marker_width = 0;
     // The UL > LI parent-child chain may have had some of our boxing elements inserted
@@ -2425,7 +2425,7 @@ bool renderAsListStylePositionInside( const css_style_rec_t * style, bool is_rtl
 // as is to the inline children elements: it is only used to get the width of
 // the container, which is only needed to compute indent (text-indent) values in %,
 // and to get paragraph direction (LTR/RTL/UNSET).
-void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAccessor * fmt, int & baseflags, int indent, int line_h, TextLangCfg * lang_cfg, int valign_dy, bool * is_link_start )
+void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAccessor * fmt, lUInt32 & baseflags, int indent, int line_h, TextLangCfg * lang_cfg, int valign_dy, bool * is_link_start )
 {
     if ( enode->isElement() ) {
         lvdom_element_render_method rm = enode->getRendMethod();
@@ -2467,7 +2467,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         // - with inline nodes, it only updates LTEXT_FLAG_PREFORMATTED flag when css_ws_pre
         // - with block nodes (so, only with the first "final" node, and not when
         // recursing its children which are inline), it will set horitontal alignment flags
-        int flags = styleToTextFmtFlags( enode->getStyle(), baseflags, direction );
+        lUInt32 flags = styleToTextFmtFlags( enode->getStyle(), baseflags, direction );
         // Note:
         // - baseflags (passed by reference) is shared and re-used by this node's siblings
         //   (all inline); it should carry newline/horizontal aligment flag, which should
@@ -2743,6 +2743,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         }
         switch ( style->text_decoration ) {
             case css_td_underline:
+            case css_td_blink: // (render it underlined)
                 flags |= LTEXT_TD_UNDERLINE;
                 break;
             case css_td_overline:
@@ -2750,9 +2751,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 break;
             case css_td_line_through:
                 flags |= LTEXT_TD_LINE_THROUGH;
-                break;
-            case css_td_blink:
-                flags |= LTEXT_TD_BLINK;
                 break;
             default:
                 break;
@@ -2883,7 +2881,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             bool isBlock = style->display == css_d_block;
             if ( isBlock ) {
                 // If block image, forget any current flags and start from baseflags (?)
-                int flags = styleToTextFmtFlags( enode->getStyle(), baseflags, direction );
+                lUInt32 flags = styleToTextFmtFlags( enode->getStyle(), baseflags, direction );
                 //txform->AddSourceLine(L"title", 5, 0x000000, 0xffffff, font, baseflags, interval, margin, NULL, 0, 0);
                 LVFont * font = enode->getFont().get();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
@@ -3260,7 +3258,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             #endif
 
             ldomNode * parent = enode->getParentNode();
-            int tflags = LTEXT_FLAG_OWNTEXT;
+            lUInt32 tflags = LTEXT_FLAG_OWNTEXT;
             // if ( parent->getNodeId() == el_a ) // "123" in <a href=><sup>123</sup></a> would not be flagged
             if (is_link_start && *is_link_start) { // was propagated from some outer <A>
                 tflags |= LTEXT_IS_LINK; // used to gather in-page footnotes
@@ -8153,7 +8151,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
 
                     LFormattedTextRef txform( enode->getDocument()->createFormattedText() );
                     // If RTL, have the marker aligned to the right inside list_marker_width
-                    int txt_flags = is_rtl ? LTEXT_ALIGN_RIGHT : 0;
+                    lUInt32 txt_flags = is_rtl ? LTEXT_ALIGN_RIGHT : 0;
                     int list_marker_width;
                     lString16 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, txt_flags);
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
@@ -8327,7 +8325,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     LFormattedTextRef txform( enode->getDocument()->createFormattedText() );
 
                     // If RTL, have the marker aligned to the right inside list_marker_width
-                    int txt_flags = is_rtl ? LTEXT_ALIGN_RIGHT : 0;
+                    lUInt32 txt_flags = is_rtl ? LTEXT_ALIGN_RIGHT : 0;
                     int list_marker_width;
                     lString16 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, txt_flags);
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );

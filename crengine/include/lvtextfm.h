@@ -28,56 +28,65 @@ extern "C" {
 #endif
 
 // src_text_fragment_t flags
-#define LTEXT_ALIGN_LEFT       0x0001  /**< \brief new left-aligned paragraph */
-#define LTEXT_ALIGN_RIGHT      0x0002  /**< \brief new right-aligned paragraph */
-#define LTEXT_ALIGN_CENTER     0x0003  /**< \brief new centered paragraph */
-#define LTEXT_ALIGN_WIDTH      0x0004  /**< \brief new justified paragraph */
 
-#define LTEXT_LAST_LINE_ALIGN_SHIFT 16
+// Text horizontal alignment
+#define LTEXT_FLAG_NEWLINE           0x0007  // Mask: next flags are set only on the first fragment following a newline
+#define LTEXT_ALIGN_LEFT             0x0001  // left-aligned paragraph
+#define LTEXT_ALIGN_RIGHT            0x0002  // right-aligned paragraph
+#define LTEXT_ALIGN_CENTER           0x0003  // centered paragraph
+#define LTEXT_ALIGN_WIDTH            0x0004  // justified paragraph
+#define LTEXT_LAST_LINE_ALIGN_SHIFT       4  // Shift to map the following flags to the previous ones
+#define LTEXT_LAST_LINE_ALIGN_LEFT   0x0010  // last line of justified paragraph should be left-aligned
+#define LTEXT_LAST_LINE_ALIGN_RIGHT  0x0020  // last line of justified paragraph should be right-aligned
+#define LTEXT_LAST_LINE_ALIGN_CENTER 0x0030  // last line of justified paragraph should be centered
+#define LTEXT_LAST_LINE_ALIGN_WIDTH  0x0040  // last line of justified paragraph should be justified
 
-#define LTEXT_LAST_LINE_ALIGN_LEFT       0x00010000  /**< \brief last line of justified paragraph should be left-aligned */
-#define LTEXT_LAST_LINE_ALIGN_RIGHT      0x00020000  /**< \brief last line of justified paragraph should be right-aligned */
-#define LTEXT_LAST_LINE_ALIGN_CENTER     0x00030000  /**< \brief last line of justified paragraph should be centered */
-#define LTEXT_LAST_LINE_ALIGN_WIDTH      0x00040000  /**< \brief last line of justified paragraph should be justified */
+// Text vertical alignment
+#define LTEXT_VALIGN_MASK            0x0700  // vertical align flags mask
+#define LTEXT_VALIGN_BASELINE        0x0000  // baseline vertical align
+#define LTEXT_VALIGN_SUB             0x0100  // subscript
+#define LTEXT_VALIGN_SUPER           0x0200  // superscript
+#define LTEXT_VALIGN_MIDDLE          0x0300  // middle
+#define LTEXT_VALIGN_BOTTOM          0x0400  // bottom
+#define LTEXT_VALIGN_TEXT_BOTTOM     0x0500  // text-bottom
+#define LTEXT_VALIGN_TOP             0x0600  // top
+#define LTEXT_VALIGN_TEXT_TOP        0x0700  // text-top
+#define LTEXT_STRUT_CONFINED         0x0800  // text should not overflow/modify its paragraph strut baseline and height
 
+// Text decoration
+#define LTEXT_TD_MASK                0x7000  // text decoration mask
+#define LTEXT_TD_UNDERLINE           0x1000  // underlined text
+#define LTEXT_TD_OVERLINE            0x2000  // overlined text
+#define LTEXT_TD_LINE_THROUGH        0x4000  // striked through text
+    // These 3 above translate to LFNT_DRAW_* equivalents (see lvfntman.h). Keep them in sync.
 
-#define LTEXT_FLAG_NEWLINE     0x0007  /**< \brief new line flags mask */
-#define LTEXT_FLAG_OWNTEXT     0x0008  /**< \brief store local copy of text instead of pointer */
+// (Don't waste the 4th bit not used in the 4-bits sets above)
+#define LTEXT_FLAG_OWNTEXT           0x0008  // store local copy of text instead of pointer
+#define LTEXT_IS_LINK                0x0080  // source text is a link (to gather in-page footnotes)
+#define LTEXT_RUNIN_FLAG             0x8000  // element display mode is runin (used with FB2 footnotes)
 
-#define LTEXT_VALIGN_MASK           0x0070  /**< \brief vertical align flags mask */
-#define LTEXT_VALIGN_BASELINE       0x0000  /**< \brief baseline vertical align */
-#define LTEXT_VALIGN_SUB            0x0010  /**< \brief subscript */
-#define LTEXT_VALIGN_SUPER          0x0020  /**< \brief superscript */
-#define LTEXT_VALIGN_MIDDLE         0x0030  /**< \brief middle */
-#define LTEXT_VALIGN_BOTTOM         0x0040  /**< \brief bottom */
-#define LTEXT_VALIGN_TEXT_BOTTOM    0x0050  /**< \brief text-bottom */
-#define LTEXT_VALIGN_TOP            0x0060  /**< \brief top */
-#define LTEXT_VALIGN_TEXT_TOP       0x0070  /**< \brief text-top */
+// Text white-space and hyphenation handling
+#define LTEXT_FLAG_PREFORMATTED      0x00010000  // text is preformatted (white-space: pre, pre-wrap, break-spaces)
+#define LTEXT_FLAG_NOWRAP            0x00020000  // text does not allow wrap (white-space: nowrap)
+#define LTEXT_HYPHENATE              0x00040000  // allow hyphenation
+#define LTEXT__AVAILABLE_BIT_20__    0x00080000
 
-#define LTEXT_TD_UNDERLINE     0x0100  /**< \brief underlined text */
-#define LTEXT_TD_OVERLINE      0x0200  /**< \brief overlined text */
-#define LTEXT_TD_LINE_THROUGH  0x0400  /**< \brief striked through text */
-#define LTEXT_TD_BLINK         0x0800  /**< \brief blinking text */
-#define LTEXT_TD_MASK          0x0F00  /**< \brief text decoration mask */
-    // These 4 above translate to LFNT_DRAW_* equivalents (see lvfntman.h). Keep them in sync.
+// Source object type (when source is not a text node)
+#define LTEXT_SRC_IS_OBJECT          0x00100000  // object (image)
+#define LTEXT_SRC_IS_INLINE_BOX      0x00200000  // inlineBox wrapping node
+#define LTEXT_SRC_IS_FLOAT           0x00400000  // float:'ing node
+#define LTEXT_SRC_IS_FLOAT_DONE      0x00800000  // float:'ing node (already dealt with)
+// "clear" handling
+#define LTEXT_SRC_IS_CLEAR_RIGHT     0x01000000  // text follows <BR style="clear: right">
+#define LTEXT_SRC_IS_CLEAR_LEFT      0x02000000  // text follows <BR style="clear: left">
+#define LTEXT_SRC_IS_CLEAR_BOTH      0x03000000  // text follows <BR style="clear: both">
+#define LTEXT_SRC_IS_CLEAR_LAST      0x04000000  // ignorable text, added when nothing follows <BR style="clear: both">
 
-#define LTEXT_SRC_IS_OBJECT    0x8000  /**< \brief object (image) */
-#define LTEXT_IS_LINK          0x4000  /**< \brief link */
-#define LTEXT_HYPHENATE        0x1000  /**< \brief allow hyphenation */
-#define LTEXT_RUNIN_FLAG       0x2000  /**< \brief element display mode is runin */
-
-#define LTEXT_FLAG_PREFORMATTED 0x0080 /**< \brief element space mode is preformatted */
-
-#define LTEXT_SRC_IS_CLEAR_RIGHT     0x00100000  /**< \brief text follows <BR style="clear: right"> */
-#define LTEXT_SRC_IS_CLEAR_LEFT      0x00200000  /**< \brief text follows <BR style="clear: left"> */
-#define LTEXT_SRC_IS_CLEAR_BOTH      0x00300000  /**< \brief text follows <BR style="clear: both"> */
-#define LTEXT_SRC_IS_CLEAR_LAST      0x00400000  /**< \brief ignorable text, added when nothing follows <BR style="clear: both"> */
-
-#define LTEXT_SRC_IS_FLOAT           0x01000000  /**< \brief float:'ing node */
-#define LTEXT_SRC_IS_FLOAT_DONE      0x02000000  /**< \brief float:'ing node (already dealt with) */
-#define LTEXT_SRC_IS_INLINE_BOX      0x04000000  /**< \brief inlineBox wrapping node */
-
-#define LTEXT_STRUT_CONFINED         0x08000000  /**< \brief text should not overflow/modify its paragraph strut baseline and height */
+#define LTEXT__AVAILABLE_BIT_28__    0x08000000
+#define LTEXT__AVAILABLE_BIT_29__    0x10000000
+#define LTEXT__AVAILABLE_BIT_30__    0x20000000
+#define LTEXT__AVAILABLE_BIT_31__    0x40000000
+#define LTEXT__AVAILABLE_BIT_32__    0x80000000
 
 /** \brief Source text line
 */
@@ -149,6 +158,7 @@ typedef struct
 #define LTEXT_WORD_IS_LINK_START             0x0010 /// first word of link flag
 #define LTEXT_WORD_IS_OBJECT                 0x0020 /// word is an image
 #define LTEXT_WORD_IS_INLINE_BOX             0x0040 /// word is a inline-block or inline-table wrapping box
+#define LTEXT_WORD__AVAILABLE_BIT_08__       0x0080
 
 #define LTEXT_WORD_DIRECTION_KNOWN           0x0100 /// word has been thru bidi: if next flag is unset, it is LTR.
 #define LTEXT_WORD_DIRECTION_IS_RTL          0x0200 /// word is RTL
@@ -165,6 +175,7 @@ typedef struct
 #define LTEXT_WORD_VALIGN_BOTTOM             0x2000 /// word is to be vertical-align: bottom
 #define LTEXT_WORD_STRUT_CONFINED            0x4000 /// word is to be fully contained into strut bounds
                                                     /// (used only when one of the 2 previous is set)
+#define LTEXT_WORD__AVAILABLE_BIT_16__       0x8000
 
 //#define LTEXT_BACKGROUND_MARK_FLAGS 0xFFFF0000l
 
@@ -173,6 +184,11 @@ typedef struct
 #define LTEXT_LINE_SPLIT_AVOID_AFTER         0x02
 #define LTEXT_LINE_IS_BIDI                   0x04
 #define LTEXT_LINE_PARA_IS_RTL               0x08
+
+#define LTEXT_LINE__AVAILABLE_BIT_05__       0x10
+#define LTEXT_LINE__AVAILABLE_BIT_06__       0x20
+#define LTEXT_LINE__AVAILABLE_BIT_07__       0x40
+#define LTEXT_LINE__AVAILABLE_BIT_08__       0x80
 
 /** \brief Text formatter formatted line
 */

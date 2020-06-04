@@ -2250,7 +2250,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *
         x0 -= text_decoration_back_gap;
         int h = _size > 30 ? 2 : 1;
         lUInt32 cl = buf->GetTextColor();
-        if ( (flags & LFNT_DRAW_UNDERLINE) || (flags & LFNT_DRAW_BLINK) ) {
+        if ( flags & LFNT_DRAW_UNDERLINE ) {
             int liney = y + _baseline + h;
             buf->FillRect( x0, liney, x, liney+h, cl );
         }

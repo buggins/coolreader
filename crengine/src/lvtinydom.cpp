@@ -16431,7 +16431,7 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
     //RenderRectAccessor fmt( this );
     /// render whole node content as single formatted object
     int direction = RENDER_RECT_PTR_GET_DIRECTION(fmt);
-    int flags = styleToTextFmtFlags( getStyle(), 0, direction );
+    lUInt32 flags = styleToTextFmtFlags( getStyle(), 0, direction );
     int lang_node_idx = fmt->getLangNodeIndex();
     TextLangCfg * lang_cfg = TextLangMan::getTextLangCfg(lang_node_idx>0 ? getDocument()->getTinyNode(lang_node_idx) : NULL);
     ::renderFinalBlock( this, f.get(), fmt, flags, 0, -1, lang_cfg );

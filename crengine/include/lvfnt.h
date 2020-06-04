@@ -238,6 +238,7 @@ lUInt16 lvfontMeasureText( const lvfont_handle pfont,
 // (This one is actually not set by lvfntman)
 #define LCHAR_LOCKED_SPACING         0x0040 ///< flag: forbid any letter spacing tweak on this char
                                             //         (for cursive scripts like arabic, and special cases)
+#define LCHAR__AVAILABLE_BIT_08__    0x0080
 
 /// The next ones, not fitting in a lUInt8, should only be set and used by lvtextfm
 #define LCHAR_IS_OBJECT              0x0100 ///< flag: this char is object (image, float)
@@ -245,16 +246,21 @@ lUInt16 lvfontMeasureText( const lvfont_handle pfont,
 #define LCHAR_IS_TO_IGNORE           0x0400 ///< flag: this char is to be ignored/skipped in text measurement and drawing
 #define LCHAR_IS_RTL                 0x0800 ///< flag: this char is part of a RTL segment
 
-// (Next ones are not yet used and can be removed/changed)
-#define LCHAR_IS_CJK_NOT_PUNCT       0x1000 ///< flag: this char is part a CJK char but not a punctuation
-#define LCHAR_IS_CJK_LEFT_PUNCT      0x2000 ///< flag: this char is part a CJK left punctuation
-#define LCHAR_IS_CJK_RIGHT_PUNCT     0x4000 ///< flag: this char is part a CJK right punctuation
+#define LCHAR__AVAILABLE_BIT_13__    0x1000
+#define LCHAR__AVAILABLE_BIT_14__    0x2000
+#define LCHAR__AVAILABLE_BIT_15__    0x4000
+#define LCHAR__AVAILABLE_BIT_16__    0x8000
 
-#define LCHAR_IS_CJK_PUNCT           0x6000 ///< flag: (for checking) this char is a CJK punctuation (neutral if set)
-#define LCHAR_IS_CJK                 0x7000 ///< flag: (for checking) this char is a CJK char
+// Some idea, if needed:
+// #define LCHAR_IS_CJK_NOT_PUNCT       0x1000 ///< flag: this char is part a CJK char but not a punctuation
+// #define LCHAR_IS_CJK_LEFT_PUNCT      0x2000 ///< flag: this char is part a CJK left punctuation
+// #define LCHAR_IS_CJK_RIGHT_PUNCT     0x4000 ///< flag: this char is part a CJK right punctuation
+// #define LCHAR_IS_CJK_PUNCT           0x6000 ///< flag: (for checking) this char is a CJK punctuation (neutral if set)
+// #define LCHAR_IS_CJK                 0x7000 ///< flag: (for checking) this char is a CJK char
 
 // LCHAR_IS_EOL was not used by any code, and has been replaced by LCHAR_IS_CLUSTER_TAIL
 // #define LCHAR_IS_EOL              0x0010 ///< flag: this char is CR or LF
+
 
 /** \brief returns true if character is unicode space 
     \param code is character
