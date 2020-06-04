@@ -2145,35 +2145,43 @@ public:
 
         // Find out text alignment to ensure for this line
         int align = para->flags & LTEXT_FLAG_NEWLINE;
+
+        // Note that with Firefox, text-align-last applies to the first line when
+        // it is also the last (so, it is used for a single line paragraph).
+        // Also, when "text-align-last: justify", Firefox does justify the last
+        // (or single) line.
+        if ( last ) { // Last line of paragraph, or single line paragraph
+            // https://drafts.csswg.org/css-text-3/#text-align-last-property
+            //  "If 'auto' is specified, content on the affected line is aligned
+            //  per text-align-all unless text-align-all is set to justify,
+            //  in which case it is start-aligned. All other values are
+            //  interpreted as described for text-align. "
+            int last_align = (para->flags >> LTEXT_LAST_LINE_ALIGN_SHIFT) & LTEXT_FLAG_NEWLINE;
+            if ( last_align ) {
+                // specified (or inherited) to something other than 'auto': use it
+                align = last_align;
+            }
+            else { // text-align-last: auto (inherited default)
+                // Keep using value from text-align, except when it is set to 'justify'
+                if ( align == LTEXT_ALIGN_WIDTH ) {
+                    // Justification is in use, and this line is the last
+                    // (or a single line): align it to the left (or to the
+                    // right if FriBiDi detected this paragraph is RTL)
+                    align = m_para_dir_is_rtl ? LTEXT_ALIGN_RIGHT : LTEXT_ALIGN_LEFT;
+                }
+            }
+        }
+
+        // Override it for PRE lines (or in case align has not been set)
+        if ( preFormattedOnly || !align )
+            align = m_para_dir_is_rtl ? LTEXT_ALIGN_RIGHT : LTEXT_ALIGN_LEFT;
+
         TR("addLine(%d, %d) y=%d  align=%d", start, end, m_y, align);
         // printf("addLine(%d, %d) y=%d  align=%d maxWidth=%d\n", start, end, m_y, align, maxWidth);
-        // For some reason, text_align_last inheritance is not ensured in lvrend.cpp,
-        // may be to be able to kill justification for the last (or a single) line as
-        // easily as what follows below.
-        // Here, text_align_last = 0 when it has not explicitely been set by the style
-        // of the erm_final node.
-        int text_align_last = (para->flags >> LTEXT_LAST_LINE_ALIGN_SHIFT) & LTEXT_FLAG_NEWLINE;
-        if ( last && !first && align==LTEXT_ALIGN_WIDTH && text_align_last!=0 )
-            align = text_align_last;
-        else if ( align==LTEXT_ALIGN_WIDTH && last ) {
-            // text-align-last: not specified, justification is in use, and this line
-            // is the last (or a single line): align it to the left.
-            align = LTEXT_ALIGN_LEFT;
-            // Unless fribidi detected this paragraph is RTL: align it to the right
-            if ( m_para_dir_is_rtl )
-                align = LTEXT_ALIGN_RIGHT;
-        }
-        if ( preFormattedOnly || !align )
-            align = LTEXT_ALIGN_LEFT;
-        if ( last && !first ) { // Last line of paragraph (when not a single line paragraph)
-            int last_align = (para->flags>>16) & LTEXT_FLAG_NEWLINE;
-            if ( last_align )
-                align = last_align;
-        }
 
         // Note: in the code and comments, all these mean the same thing:
         // visual alignment enabled, floating punctuation, hanging punctuation
-        bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0 && (align == LTEXT_ALIGN_WIDTH || align == LTEXT_ALIGN_RIGHT ||align==LTEXT_ALIGN_LEFT);
+        bool visualAlignmentEnabled = (gFlgFloatingPunctuationEnabled != 0) && (align != LTEXT_ALIGN_CENTER);
 
         // Note: parameter needReduceSpace and variable splitBySpaces (which
         // was always true) have been removed, as we always split by space:

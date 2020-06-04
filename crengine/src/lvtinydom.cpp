@@ -4282,7 +4282,7 @@ bool ldomDocument::setRenderProps( int width, int dy, bool /*showCover*/, int /*
     s->display = css_d_block;
     s->white_space = css_ws_normal;
     s->text_align = css_ta_start;
-    s->text_align_last = css_ta_start;
+    s->text_align_last = css_ta_auto;
     s->text_decoration = css_td_none;
     s->text_transform = css_tt_none;
     s->hyphenate = css_hyph_auto;

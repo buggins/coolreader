@@ -2163,6 +2163,7 @@ int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags, int direct
             case css_ta_end:
                 flg |= (direction == REND_DIRECTION_RTL ? LTEXT_ALIGN_LEFT : LTEXT_ALIGN_RIGHT);
                 break;
+            case css_ta_auto: // shouldn't happen (only accepted with text-align-last)
             case css_ta_inherit:
                 break;
             }
@@ -2178,14 +2179,15 @@ int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags, int direct
                 flg |= LTEXT_LAST_LINE_ALIGN_CENTER;
                 break;
             case css_ta_justify:
-                flg |= LTEXT_LAST_LINE_ALIGN_LEFT;
+                flg |= LTEXT_LAST_LINE_ALIGN_WIDTH;
                 break;
             case css_ta_start:
-                flg |= (direction == REND_DIRECTION_RTL ? LTEXT_ALIGN_RIGHT : LTEXT_ALIGN_LEFT);
+                flg |= (direction == REND_DIRECTION_RTL ? LTEXT_LAST_LINE_ALIGN_RIGHT : LTEXT_LAST_LINE_ALIGN_LEFT);
                 break;
             case css_ta_end:
-                flg |= (direction == REND_DIRECTION_RTL ? LTEXT_ALIGN_LEFT : LTEXT_ALIGN_RIGHT);
+                flg |= (direction == REND_DIRECTION_RTL ? LTEXT_LAST_LINE_ALIGN_LEFT : LTEXT_LAST_LINE_ALIGN_RIGHT);
                 break;
+            case css_ta_auto: // let flg have none of the above set, which will mean "auto"
             case css_ta_inherit:
                 break;
             }
@@ -2950,6 +2952,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         flags |= (is_rtl ? LTEXT_ALIGN_LEFT : LTEXT_ALIGN_RIGHT);
                         break;
                     case css_ta_inherit:
+                    case css_ta_auto:
                         break;
                     }
                 }
@@ -3210,6 +3213,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 baseflags |= (is_rtl ? LTEXT_ALIGN_LEFT : LTEXT_ALIGN_RIGHT);
                 break;
             case css_ta_inherit:
+            case css_ta_auto:
                 break;
             }
             // Among inline nodes, only <BR> can carry a "clear: left/right/both".
@@ -8818,6 +8822,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     }
     UPDATE_STYLE_FIELD( white_space, css_ws_inherit );
     UPDATE_STYLE_FIELD( text_align, css_ta_inherit );
+    UPDATE_STYLE_FIELD( text_align_last, css_ta_inherit );
     UPDATE_STYLE_FIELD( text_decoration, css_td_inherit );
     UPDATE_STYLE_FIELD( text_transform, css_tt_inherit );
     UPDATE_STYLE_FIELD( hyphenate, css_hyph_inherit );

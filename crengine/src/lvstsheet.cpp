@@ -919,6 +919,7 @@ static const char * css_ta_names[] =
     "justify",
     "start",
     "end",
+    "auto",
     NULL
 };
 
@@ -1382,6 +1383,8 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                 break;
             case cssd_text_align:
                 n = parse_name( decl, css_ta_names, -1 );
+                if ( n == css_ta_auto ) // only accepted with text-align-last
+                    n = -1;
                 break;
             case cssd_text_align_last:
                 n = parse_name( decl, css_ta_names, -1 );
