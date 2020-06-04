@@ -279,8 +279,208 @@ lString16 TextLangMan::getLangTag(const lString16& title)
     return lString16();
 }
 
+void TextLangMan::resetCounters() {
+    for ( int i=0; i<_lang_cfg_list.length(); i++ ) {
+        _lang_cfg_list[i]->resetCounters();
+    }
+}
 
 // TextLangCfg object: per language holder of language specificities
+
+// For CSS "content: open-quote / close-quote"
+typedef struct quotes_spec {
+    const char * lang_tag;
+    const lChar16 *  open_quote_level_1;
+    const lChar16 * close_quote_level_1;
+    const lChar16 *  open_quote_level_2;
+    const lChar16 * close_quote_level_2;
+} quotes_spec;
+
+// List built 20200601 from https://html.spec.whatwg.org/multipage/rendering.html#quotes
+// 2nd part of lang_tag lowercased for easier comparison, and if multiple
+// lang_tag with the same starting chars, put the longest first.
+// Small issue: 3-letters lang tag not specified here might match
+// a 2-letter lang tag specified here ("ito" will get those from "it").
+static quotes_spec _quotes_spec_table[] = {
+    { "af",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "agq",      L"\x201e", L"\x201d", L"\x201a", L"\x2019" }, /* „ ” ‚ ’ */
+    { "ak",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "am",       L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
+    { "ar",       L"\x201d", L"\x201c", L"\x2019", L"\x2018" }, /* ” “ ’ ‘ */
+    { "asa",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ast",      L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "az-cyrl",  L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
+    { "az",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "bas",      L"\x00ab", L"\x00bb", L"\x201e", L"\x201c" }, /* « » „ “ */
+    { "bem",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "bez",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "be",       L"\x00ab", L"\x00bb", L"\x201e", L"\x201c" }, /* « » „ “ */
+    { "bg",       L"\x201e", L"\x201c", L"\x201e", L"\x201c" }, /* „ “ „ “ */
+    { "bm",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "bn",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "brx",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "br",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "bs-cyrl",  L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "bs",       L"\x201e", L"\x201d", L"\x2018", L"\x2019" }, /* „ ” ‘ ’ */
+    { "ca",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "cgg",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "chr",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "cs",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "cy",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "dav",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "da",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "de",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "dje",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "dsb",      L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "dua",      L"\x00ab", L"\x00bb", L"\x2018", L"\x2019" }, /* « » ‘ ’ */
+    { "dyo",      L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "dz",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ebu",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ee",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "el",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "en",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "es",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "et",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "eu",       L"\x201c", L"\x201d", L"\x201c", L"\x201d" }, /* “ ” “ ” */
+    { "ewo",      L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "fa",       L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
+    { "ff",       L"\x201e", L"\x201d", L"\x201a", L"\x2019" }, /* „ ” ‚ ’ */
+    { "fil",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "fi",       L"\x201d", L"\x201d", L"\x2019", L"\x2019" }, /* ” ” ’ ’ */
+    { "fo",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "fr-ch",    L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
+    // { "fr",    L"\x00ab", L"\x00bb", L"\x00ab", L"\x00bb" }, /* « » « » */  /* Same pair for both level, bit sad... */
+    { "fr",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */  /* Better to have "fr" just as "it" */
+    { "ga",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "gd",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "gl",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "gsw",      L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
+    { "guz",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "gu",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ha",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "he",       L"\x201d", L"\x201d", L"\x2019", L"\x2019" }, /* ” ” ’ ’ */
+    { "hi",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "hr",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "hsb",      L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "hu",       L"\x201e", L"\x201d", L"\x00bb", L"\x00ab" }, /* „ ” » « */
+    { "hy",       L"\x00ab", L"\x00bb", L"\x00ab", L"\x00bb" }, /* « » « » */
+    { "id",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ig",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "is",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "it",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "ja",       L"\x300c", L"\x300d", L"\x300e", L"\x300f" }, /* 「 」 『 』 */
+    { "jgo",      L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
+    { "jmc",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "kab",      L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "kam",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ka",       L"\x201e", L"\x201c", L"\x00ab", L"\x00bb" }, /* „ “ « » */
+    { "kde",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "kea",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "khq",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ki",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "kkj",      L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
+    { "kk",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "kln",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "km",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "kn",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ko",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ksb",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ksf",      L"\x00ab", L"\x00bb", L"\x2018", L"\x2019" }, /* « » ‘ ’ */
+    { "ky",       L"\x00ab", L"\x00bb", L"\x201e", L"\x201c" }, /* « » „ “ */
+    { "lag",      L"\x201d", L"\x201d", L"\x2019", L"\x2019" }, /* ” ” ’ ’ */
+    { "lb",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "lg",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ln",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "lo",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "lrc",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "lt",       L"\x201e", L"\x201c", L"\x201e", L"\x201c" }, /* „ “ „ “ */
+    { "luo",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "luy",      L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "lu",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "lv",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "mas",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "mer",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "mfe",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "mgo",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "mg",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "mk",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "ml",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "mn",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "mr",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ms",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "mt",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "mua",      L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "my",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "mzn",      L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
+    { "naq",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "nb",       L"\x00ab", L"\x00bb", L"\x2018", L"\x2019" }, /* « » ‘ ’ */
+    { "nd",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ne",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "nl",       L"\x2018", L"\x2019", L"\x201c", L"\x201d" }, /* ‘ ’ “ ” */
+    { "nmg",      L"\x201e", L"\x201d", L"\x00ab", L"\x00bb" }, /* „ ” « » */
+    { "nnh",      L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "nn",       L"\x00ab", L"\x00bb", L"\x2018", L"\x2019" }, /* « » ‘ ’ */
+    { "nus",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "nyn",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "pa",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "pl",       L"\x201e", L"\x201d", L"\x00ab", L"\x00bb" }, /* „ ” « » */
+    { "pt-pt",    L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "pt",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "rn",       L"\x201d", L"\x201d", L"\x2019", L"\x2019" }, /* ” ” ’ ’ */
+    { "rof",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ro",       L"\x201e", L"\x201d", L"\x00ab", L"\x00bb" }, /* „ ” « » */
+    { "ru",       L"\x00ab", L"\x00bb", L"\x201e", L"\x201c" }, /* « » „ “ */
+    { "rwk",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "rw",       L"\x00ab", L"\x00bb", L"\x2018", L"\x2019" }, /* « » ‘ ’ */
+    { "sah",      L"\x00ab", L"\x00bb", L"\x201e", L"\x201c" }, /* « » „ “ */
+    { "saq",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "sbp",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "seh",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ses",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "sg",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "shi-latn", L"\x00ab", L"\x00bb", L"\x201e", L"\x201d" }, /* « » „ ” */
+    { "shi",      L"\x00ab", L"\x00bb", L"\x201e", L"\x201d" }, /* « » „ ” */
+    { "si",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "sk",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "sl",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "sn",       L"\x201d", L"\x201d", L"\x2019", L"\x2019" }, /* ” ” ’ ’ */
+    { "so",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "sq",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
+    { "sr-latn",  L"\x201e", L"\x201c", L"\x2018", L"\x2018" }, /* „ “ ‘ ‘ */
+    { "sr",       L"\x201e", L"\x201c", L"\x2018", L"\x2018" }, /* „ “ ‘ ‘ */
+    { "sv",       L"\x201d", L"\x201d", L"\x2019", L"\x2019" }, /* ” ” ’ ’ */
+    { "sw",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ta",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "teo",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "te",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "th",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "ti-er",    L"\x2018", L"\x2019", L"\x201c", L"\x201d" }, /* ‘ ’ “ ” */
+    { "tk",       L"\x201c", L"\x201d", L"\x201c", L"\x201d" }, /* “ ” “ ” */
+    { "to",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "tr",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "twq",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "tzm",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "uk",       L"\x00ab", L"\x00bb", L"\x201e", L"\x201c" }, /* « » „ “ */
+    { "ur",       L"\x201d", L"\x201c", L"\x2019", L"\x2018" }, /* ” “ ’ ‘ */
+    { "uz-cyrl",  L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "uz",       L"\x201c", L"\x201d", L"\x2019", L"\x2018" }, /* “ ” ’ ‘ */
+    { "vai-latn", L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "vai",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "vi",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "vun",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "xog",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "yav",      L"\x00ab", L"\x00bb", L"\x00ab", L"\x00bb" }, /* « » « » */
+    { "yo",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "yue-hans", L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "yue",      L"\x300c", L"\x300d", L"\x300e", L"\x300f" }, /* 「 」 『 』 */
+    { "zgh",      L"\x00ab", L"\x00bb", L"\x201e", L"\x201d" }, /* « » „ ” */
+    { "zh-hant",  L"\x300c", L"\x300d", L"\x300e", L"\x300f" }, /* 「 」 『 』 */
+    { "zh",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "zu",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { NULL, NULL, NULL, NULL, NULL }
+};
+// Default to quotes for English
+static quotes_spec _quotes_spec_default = { "", L"\x201c", L"\x201d", L"\x2018", L"\x2019" };
 
 #if USE_LIBUNIBREAK==1
 lChar16 lb_char_sub_func_polish(const lChar16 * text, int pos, int next_usable) {
@@ -343,9 +543,6 @@ lChar16 lb_char_sub_func_czech_slovak(const lChar16 * text, int pos, int next_us
     return text[pos];
 }
 #endif
-
-TextLangCfg::~TextLangCfg() {
-}
 
 // Instantiate a new TextLangCfg with properties adequate to the provided lang_tag
 TextLangCfg::TextLangCfg( lString16 lang_tag ) {
@@ -511,4 +708,47 @@ TextLangCfg::TextLangCfg( lString16 lang_tag ) {
         _duplicate_real_hyphen_on_next_line = true;
     }
 #endif
+
+    // Language default opening and closing quotes, for CSS
+    //   "q::before { content: open-quote }" and
+    //   "q::after  { content: close-quote }"
+    quotes_spec * quotes = &_quotes_spec_default;
+    for (int i=0; _quotes_spec_table[i].lang_tag!=NULL; i++) {
+        if ( lang_tag.startsWith( _quotes_spec_table[i].lang_tag ) ) {
+            quotes = &_quotes_spec_table[i];
+            break;
+        }
+    }
+    // Avoid a wrap after/before an opening/close quote.
+    const lChar16 * quote_joiner = L"\x2060";
+        // (Zero width, equivalent to deprecated ZERO WIDTH NO-BREAK SPACE)
+        // We might want with some languages to use a non-breaking thin space instead.
+
+    _open_quote1  << quotes->open_quote_level_1    << quote_joiner;
+    _close_quote1 << quote_joiner   << quotes->close_quote_level_1;
+    _open_quote2  << quotes->open_quote_level_2    << quote_joiner;
+    _close_quote2 << quote_joiner   << quotes->close_quote_level_2;
+
+    resetCounters();
+}
+
+TextLangCfg::~TextLangCfg() {
+}
+
+void TextLangCfg::resetCounters() {
+    _quote_nesting_level = 0;
+}
+
+lString16 & TextLangCfg::getOpeningQuote( bool update_level ) {
+    if ( !update_level )
+        return _open_quote1;
+    _quote_nesting_level++;
+    return (_quote_nesting_level % 2) ? _open_quote1 : _open_quote2;
+}
+
+lString16 & TextLangCfg::getClosingQuote( bool update_level ) {
+    if ( !update_level )
+        return _close_quote1;
+    _quote_nesting_level--;
+    return ((_quote_nesting_level+1) % 2) ? _close_quote1 : _close_quote2;
 }

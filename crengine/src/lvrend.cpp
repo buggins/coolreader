@@ -9064,6 +9064,15 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         delete pstyle->pseudo_elem_after_style;
         pstyle->pseudo_elem_after_style = NULL;
     }
+
+    if ( nodeElementId == el_pseudoElem ) {
+        // Pseudo element ->content may need some update if it contains
+        // any of the open-quote-like tokens, to account for the
+        // quoting nested levels. setNodeStyle() is actually the good
+        // place to do that, as we're visiting all the nodes recursively.
+        update_style_content_property(pstyle, enode);
+    }
+
     pstyle->flags = 0; // cleanup, before setStyle() adds it to cache
 
     // set calculated style

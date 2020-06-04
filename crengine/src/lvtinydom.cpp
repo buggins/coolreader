@@ -4534,6 +4534,9 @@ bool ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback,
         //CRLog::trace("validate 2...");
         //validateDocument();
 
+        // Reset counters (quotes nesting levels...)
+        TextLangMan::resetCounters();
+
         CRLog::trace("Save stylesheet...");
         _stylesheet.push();
         CRLog::trace("Init node styles...");
@@ -5042,16 +5045,24 @@ void ldomElementWriter::onBodyEnter()
             for ( int i=0; i<nb_children; i++ ) {
                 ldomNode * child = _element->getChildNode(i);
                 if ( child->getNodeId() == el_pseudoElem ) {
-                    // ->initNodeStyle() has been done when the element was created;
-                    // as pseudo elements have no children, let's ->initNodeRendMethod()
-                    // now (as done in onBodyExit()).
-                    child->initNodeRendMethod();
-                    // ldomNode::ensurePseudoElement() will always have inserted
-                    // "Before" first, and "After" second. But real children might
-                    // soon be added, and we'll have to move "After" last when done.
-                    // Which will be done in onBodyExit().
-                    if ( child->hasAttribute(attr_After) )
+                    if ( child->hasAttribute(attr_Before) ) {
+                        // The "Before" pseudo element (not part of the XML)
+                        // needs to have its style applied. As it has no
+                        // children, we can also init its rend method.
+                        child->initNodeStyle();
+                        child->initNodeRendMethod();
+                    }
+                    else if ( child->hasAttribute(attr_After) ) {
+                        // For the "After" pseudo element, we need to wait
+                        // for all real children to be added, to move it
+                        // as its right position (last), to init its style
+                        // (because of "content:close-quote", whose nested
+                        // level need to have seen all previous nodes to
+                        // be accurate) and its rendering method.
+                        // We'll do that in onBodyExit() when called for
+                        // this node.
                         _pseudoElementAfterChildIndex = i;
+                    }
                 }
             }
         }
@@ -5118,9 +5129,18 @@ void ldomNode::ensurePseudoElement( bool is_before ) {
         lUInt16 attribute_id = is_before ? attr_Before : attr_After;
         pseudo->setAttributeValue(LXML_NS_NONE, attribute_id, L"");
         // We are called by lvrend.cpp setNodeStyle(), after the parent
-        // style and font have been fully set up.
-        // We can set this pseudo element style as it can now properly inherit.
-        pseudo->initNodeStyle();
+        // style and font have been fully set up. We could set this pseudo
+        // element style with pseudo->initNodeStyle(), as it can inherit
+        // properly, but we should not:
+        // - when re-rendering, initNodeStyleRecursive()/updateStyleDataRecursive()
+        //   will iterate thru this node we just added as a child, and do it.
+        // - when XML loading, we could do it for the "Before" pseudo element,
+        //   but for the "After" one, we need to wait for all real children to be
+        //   added and have their style applied - just because they can change
+        //   open-quote/close-quote nesting levels - to be sure we get the
+        //   proper nesting level quote char for the After node.
+        // So, for the XML loading phase, we do that in onBodyEnter() and
+        // onBodyExit() when called on the parent node.
     }
 
 #endif
@@ -6691,10 +6711,16 @@ void ldomElementWriter::onBodyExit()
     if ( _pseudoElementAfterChildIndex >= 0 ) {
         if ( _pseudoElementAfterChildIndex != _element->getChildCount()-1 ) {
             // Not the last child: move it there
-            // printf("moving After from %d to %d\n", _pseudoElementAfterChildIndex, _element->getChildCount()-1);
-            // moveItemsTo() just works to remove it, and re-add it (so, adding it at the end)
+            // (moveItemsTo() works just fine when the source node is also the
+            // target node: remove it, and re-add it, so, adding it at the end)
             _element->moveItemsTo( _element, _pseudoElementAfterChildIndex, _pseudoElementAfterChildIndex);
         }
+        // Now that all the real children of this node have had their
+        // style set, we can init the style of the "After" pseudo
+        // element, and its rend method as it has no children.
+        ldomNode * child = _element->getChildNode(_element->getChildCount()-1);
+        child->initNodeStyle();
+        child->initNodeRendMethod();
     }
 //    if ( _element->getStyle().isNull() ) {
 //        lString16 path;

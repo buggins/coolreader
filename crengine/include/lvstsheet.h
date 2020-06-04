@@ -46,6 +46,7 @@
 
 #include "cssdef.h"
 #include "lvstyles.h"
+#include "textlang.h"
 
 class lxmlDocBase;
 struct ldomNode;
@@ -330,7 +331,10 @@ public:
 /// parse color value like #334455, #345 or red
 bool parse_color_value( const char * & str, css_length_t & value );
 
-/// get computed value for a node from its parsed CSS "content:" value
+/// update (if needed) a style->content (parsed from the CSS declaration) before
+//  applying to a node's style
+void update_style_content_property( css_style_rec_t * style, ldomNode * node );
+/// get the computed final text value for a node from its style->content
 lString16 get_applied_content_property( ldomNode * node );
 
 /// extract @import filename from beginning of CSS

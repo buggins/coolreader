@@ -899,6 +899,9 @@ bool parse_content_property( const char * & str, lString16 & parsed_content)
     //   'n' for 'no-close-quote'
     //   'u' for 'url()', that we don't support
     //   'z' for unsupported tokens, like gradient()...
+    //   '$' (at start) this content needs post processing before
+    //       being applied to a node's style (needed with quotes,
+    //       to get the correct char for the current nested level).
     // Note: this parsing might not be super robust with
     // convoluted declarations...
     parsed_content.clear();
@@ -906,6 +909,7 @@ bool parse_content_property( const char * & str, lString16 & parsed_content)
     // The presence of a single 'none' or 'normal' among multiple
     // values make the whole thing 'none'.
     bool has_none = false;
+    bool needs_processing_when_applying = false;
     while ( skip_spaces( str ) && *str!=';' && *str!='}' && *str!='!' ) {
         if ( substr_icompare("none", str) ) {
             has_none = true;
@@ -918,18 +922,22 @@ bool parse_content_property( const char * & str, lString16 & parsed_content)
         }
         else if ( substr_icompare("open-quote", str) ) {
             parsed_content << L'Q';
+            needs_processing_when_applying = true;
             continue;
         }
         else if ( substr_icompare("close-quote", str) ) {
             parsed_content << L'q';
+            needs_processing_when_applying = true;
             continue;
         }
         else if ( substr_icompare("no-open-quote", str) ) {
             parsed_content << L'N';
+            needs_processing_when_applying = true;
             continue;
         }
         else if ( substr_icompare("no-close-quote", str) ) {
             parsed_content << L'n';
+            needs_processing_when_applying = true;
             continue;
         }
         else if ( substr_icompare("attr", str) ) {
@@ -1052,6 +1060,9 @@ bool parse_content_property( const char * & str, lString16 & parsed_content)
         parsed_content.clear();
         parsed_content << L'X';
     }
+    else if ( needs_processing_when_applying ) {
+        parsed_content.insert(0, 1, L'$');
+    }
     if (*str) // something (;, } or !important) follows
         return true;
     // Restore original position if we reach end of CSS string,
@@ -1060,6 +1071,104 @@ bool parse_content_property( const char * & str, lString16 & parsed_content)
     // the rest of the string.
     str = orig_pos;
     return false;
+}
+
+/// Update a style->content, post processed for its node
+void update_style_content_property( css_style_rec_t * style, ldomNode * node ) {
+    // We don't want to update too much: styles are hashed and shared by
+    // multiple nodes. We don't resolve "attr()" here as attributes are
+    // stable (and "attr(id)" would make all style->content different
+    // and prevent styles from being shared, increasing the number
+    // of styles to cache).
+    // But we need to resolve quotes, according to their nesting level,
+    // and transform them into a litteral string 's'.
+
+    if ( style->content.empty() || style->content[0] != L'$' ) {
+        // No update needed
+        return;
+    }
+
+    // We need to know if this node is visible: if not, quotes nested
+    // level should not be updated. We might want to still include
+    // the computed quote (with quote char for level 1) for it to be
+    // displayed by writeNodeEx() when displaying the HTML, even if
+    // the node is invisible.
+    bool visible = style->display != css_d_none;
+    if ( visible ) {
+        ldomNode * n = node->getParentNode();
+        for ( ; !n->isRoot(); n = n->getParentNode() ) {
+            if ( n->getStyle()->display == css_d_none ) {
+                visible = false;
+                break;
+            }
+        }
+    }
+
+    // We do not support specifying quote chars to be used via CSS "quotes":
+    //     :root { quotes: '\201c' '\201d' '\2018' '\2019'; }
+    // We use the ones hardcoded for the node lang tag language (or default
+    // typography language) provided by TextLangCfg.
+    // HTML5 default CSS specifies them with:
+    //   :root:lang(af), :not(:lang(af)) > :lang(af) { quotes: '\201c' '\201d' '\2018' '\2019' }
+    // This might (or not) implies that nested levels are reset when entering
+    // text with another language, so this new language first level quote is used.
+    // We can actually get that same behaviour by having each TextLangCfg manage
+    // its own nesting level (which won't be reset when en>fr>en, though).
+    // But all this is quite rare, so don't bother about it much.
+    TextLangCfg * lang_cfg = TextLangMan::getTextLangCfg( node );
+
+    // Note: some quote char like (U+201C / U+201D) seem to not be mirrored
+    // (when using HarfBuzz) when added to some RTL arabic text. But it
+    // appears that way with Firefox too!
+    // But if we use another char (U+00AB / U+00BB), it gets mirrored correctly.
+    // Might be that HarfBuzz first substitute it with arabic quotes (which
+    // happen to look inverted), and then mirror that?
+
+    lString16 res;
+    lString16 parsed_content = style->content;
+    lString16 quote;
+    int i = 1; // skip initial '$'
+    int parsed_content_len = parsed_content.length();
+    while ( i < parsed_content_len ) {
+        lChar16 ctype = parsed_content[i];
+        if ( ctype == 's' ) { // literal string: copy as-is
+            lChar16 len = parsed_content[i];
+            res.append(parsed_content, i, len+2);
+            i += len+2;
+        }
+        else if ( ctype == 'a' ) { // attribute value: copy as-is
+            lChar16 len = parsed_content[i];
+            res.append(parsed_content, i, len+2);
+            i += len+2;
+        }
+        else if ( ctype == 'Q' ) { // open-quote
+            quote = lang_cfg->getOpeningQuote(visible);
+            res << L's' << quote.length() << quote;
+            i += 1;
+        }
+        else if ( ctype == 'q' ) { // close-quote
+            quote = lang_cfg->getClosingQuote(visible);
+            res << L's' << quote.length() << quote;
+            i += 1;
+        }
+        else if ( ctype == 'N' ) { // no-open-quote
+            // This should just increment nested quote level and output nothing.
+            lang_cfg->getOpeningQuote(visible);
+            i += 1;
+        }
+        else if ( ctype == 'n' ) { // no-close-quote
+            // This should just increment nested quote level and output nothing.
+            lang_cfg->getClosingQuote(visible);
+            i += 1;
+        }
+        else {
+            // All other stuff are single char (u, z, X) or unsupported/bogus char.
+            res.append(parsed_content, i, 1);
+            i += 1;
+        }
+    }
+    // Replace style->content with what we built
+    style->content = res;
 }
 
 /// Returns the computed value for a node from its parsed CSS "content:" value
@@ -1100,38 +1209,24 @@ lString16 get_applied_content_property( ldomNode * node ) {
             // res << 0x25FD; // WHITE MEDIUM SMALL SQUARE
             res << 0x2B26; // WHITE MEDIUM DIAMOND
         }
-        else if ( ctype == 'Q' ) { // open-quote
-            // Add default quoting opening char
-            // We do not support showing a different char for multiple nested <q>,
-            // and neither the way to specify this with CSS, ie:
-            //     q::before { content: open-quote; }
-            //     :root { quotes: '\201c' '\201d' '\2018' '\2019'; }
-            // todo: have the right quote char for a language provided by lang_cfg
-            res << 0x201C;
-            // Note: this specific char seem to not be mirrored (when using HarfBuzz) when
-            // added to some RTL arabic text. But it appears that way with Firefox too!
-            // But if we use another char (0x00AB / 0x00BB), it gets mirrored correctly.
-            // Might be that HarfBuzz first substitute it with arabic quotes (which happen
-            // to look inverted), and then mirror that?
-        }
-        else if ( ctype == 'q' ) { // close-quote
-            // Add default quoting closing char
-            res << 0x201D;
-        }
-        else if ( ctype == 'N' ) { // no-open-quote
-            // (This should just increment nested quote level if we supported that)
-            // Nothing to output
-        }
-        else if ( ctype == 'n' ) { // no-close-quote
-            // (This should just decrement nested quote level if we supported that)
-            // Nothing to output
-        }
         else if ( ctype == 'X' ) { // 'none'
             res.clear(); // should be standalone, but let's be sure
             break;
         }
         else if ( ctype == 'z' ) { // unsupported token
             // Just ignore it, don't show anything
+        }
+        else if ( ctype == 'Q' ) { // open-quote
+            // Shouldn't happen: replaced earlier by update_style_content_property()
+        }
+        else if ( ctype == 'q' ) { // close-quote
+            // Shouldn't happen: replaced earlier by update_style_content_property()
+        }
+        else if ( ctype == 'N' ) { // no-open-quote
+            // Shouldn't happen: replaced earlier by update_style_content_property()
+        }
+        else if ( ctype == 'n' ) { // no-close-quote
+            // Shouldn't happen: replaced earlier by update_style_content_property()
         }
         else { // unexpected
             break;
