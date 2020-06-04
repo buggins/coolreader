@@ -4450,7 +4450,7 @@ bool ldomDocument::parseStyleSheet(lString16 cssFile)
     return parser.Parse(cssFile);
 }
 
-int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space, CRPropRef props )
+bool ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space, CRPropRef props )
 {
     CRLog::info("Render is called for width %d, pageHeight=%d, fontFace=%s, docFlags=%d", width, dy, def_font->getTypeFace().c_str(), getDocFlags() );
     CRLog::trace("initializing default style...");
@@ -4589,7 +4589,10 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
 
         //persist();
         dumpStatistics();
-        return height;
+
+        return true; // full (re-)rendering done
+        // return height;
+
     } else {
         CRLog::info("rendering context is not changed - no render!");
         if ( _pagesData.pos() ) {
@@ -4601,7 +4604,8 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         if ( was_just_rendered_from_cache && callback )
             callback->OnDocumentReady();
 
-        return getFullHeight();
+        return false; // no (re-)rendering needed
+        // return getFullHeight();
     }
 
 }

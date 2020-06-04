@@ -580,7 +580,6 @@ void LVDocView::clearImageCache() {
 #if CR_ENABLE_PAGE_IMAGE_CACHE==1
 	m_imageCache.clear();
 #endif
-    m_section_bounds_valid = false;
 	if (m_callback != NULL)
 		m_callback->OnImageCacheClear();
 }
@@ -2811,9 +2810,9 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
         CRLog::debug("Render(width=%d, height=%d, fontSize=%d, currentFontSize=%d, 0 char width=%d)", dx, dy,
                      m_font_size, m_font->getSize(), m_font->getCharWidth('0'));
 		//CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
-		m_doc->render(pages, isDocumentOpened() ? m_callback : NULL, dx, dy,
-                m_showCover, m_showCover ? dy + m_pageMargins.bottom * 4 : 0,
-                m_font, m_def_interline_space, m_props);
+		bool did_rerender = m_doc->render(pages, isDocumentOpened() ? m_callback : NULL, dx, dy,
+					m_showCover, m_showCover ? dy + m_pageMargins.bottom * 4 : 0,
+					m_font, m_def_interline_space, m_props);
 
 #if 0
                 // For debugging lvpagesplitter.cpp (small books)
@@ -2833,7 +2832,10 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
 			fclose(f);
 		}
 #endif
-		fontMan->gc();
+		if ( did_rerender ) {
+			m_section_bounds_valid = false;
+			fontMan->gc();
+		}
 		m_is_rendered = true;
 		//CRLog::debug("Making TOC...");
 		//makeToc();
