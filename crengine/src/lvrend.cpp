@@ -9186,10 +9186,10 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     maxWidth = curMaxWidth;
                 if (curWordWidth > minWidth)
                     minWidth = curWordWidth;
-                // First word after a <BR> should not have positive text-indent in its width,
+                // First word after a <BR> should not have text-indent in its width,
                 // but we did reset 'indent' to 0 after the first word of the final block.
-                // If we get some non-zero indent here, it is actually negated negative indent
-                // that should be applied to all words, including the one after a <BR/>, and
+                // If we get some non-zero indent here, it is "hanging" indent, that
+                // should be applied to all words, including the one after a <BR/>, and
                 // so it should contribute to the new line full width (curMaxWidth).
                 curMaxWidth = indent;
                 curWordWidth = indent;
@@ -9287,7 +9287,8 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             _maxWidth = lengthToPx( style_width, 0, em );
             _minWidth = _maxWidth;
         }
-        else if (m == erm_final) { // Block node that contains only inline or text nodes:
+        else if (m == erm_final || m == erm_table_caption) {
+            // Block node that contains only inline or text nodes
             if ( is_img ) { // img with display: block always become erm_final (never erm_block)
                 if (img_width > 0) { // block img with a fixed width
                     _maxWidth = img_width;
@@ -9295,28 +9296,20 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 }
             }
             else {
+                // curMaxWidth and curWordWidth are not used in our parents (which
+                // are block-like elements), we can just reset them.
+                curMaxWidth = 0;
+                curWordWidth = 0;
                 // We don't have any width yet to use for text-indent in % units,
                 // but this is very rare - use em as we must use something
                 int em = node->getFont()->getSize();
                 indent = lengthToPx(style->text_indent, em, em);
-                // curMaxWidth and curWordWidth are not used in our parents (which
-                // are block-like elements), we can just reset them.
-                // First word will have text-indent has its width
+                // First word will have text-indent as part of its width
                 if ( style->text_indent.value & 0x00000001 ) {
-                    // lvstsheet sets the lowest bit to 1 when text-indent has the "hanging" keyword,
-                    // which will be handled like negative margins
-                    indent = -indent;
-                }
-                if ( indent >= 0 ) {
-                    // Positive indent applies only on the first line, so account
-                    // for it only on the first word.
-                    curMaxWidth = indent;
-                    curWordWidth = indent;
-                    indent = 0; // but no more on following words in this final node, even after <BR>
-                }
-                else {
-                    // Negative indent does not apply on the first word, but may apply on each
-                    // followup word if a wrap happens before thema so don't reset it.
+                    // lvstsheet sets the lowest bit to 1 when text-indent has the "hanging" keyword.
+                    // "hanging" means it should apply on all line except the first.
+                    // Hanging indent does not apply on the first word, but may apply on each
+                    // followup word if a wrap happens before them so don't reset it.
                     // To keep things simple and readable here, we only apply it to the first
                     // word after a <BR> - but it should really apply on each word, everytime
                     // we reset curWordWidth, which would make the below code quite ugly and
@@ -9324,6 +9317,13 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     // rare in floats, inline boxes and table cells.
                     // (We don't handle the shift/overlap with padding that a real negative
                     // indent can cause - so, we may return excessive widths.)
+                }
+                else {
+                    // Not-"hanging" positive or negative indent applies only on the first line,
+                    // so account for it only on the first word.
+                    curMaxWidth += indent;
+                    curWordWidth += indent;
+                    indent = 0; // but no more on following words in this final node, even after <BR>
                 }
                 if (list_marker_width > 0 && !list_marker_width_as_padding) {
                     // with additional list marker if list-style-position: inside
