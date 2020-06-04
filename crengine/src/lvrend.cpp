@@ -2193,8 +2193,15 @@ lUInt32 styleToTextFmtFlags( const css_style_ref_t & style, lUInt32 oldflags, in
             }
         }
     }
-    if ( style->white_space == css_ws_pre )
+    // We should clean these flags that we got from the parent node via baseFlags:
+    // CSS white-space inheritance is correctly handled via styles (so, no need
+    // for this alternative way to ensure inheritance with flags), but might have
+    // been cancelled and set to some other value (e.g.: normal inside pre)
+    flg &= ~(LTEXT_FLAG_PREFORMATTED|LTEXT_FLAG_NOWRAP);
+    if ( style->white_space >= css_ws_pre )    // white-space: pre, pre-wrap, break-spaces
         flg |= LTEXT_FLAG_PREFORMATTED;
+    if ( style->white_space == css_ws_nowrap ) // white-space: nowrap
+        flg |= LTEXT_FLAG_NOWRAP;
     //flg |= oldflags & ~LTEXT_FLAG_NEWLINE;
     return flg;
 }
@@ -2464,9 +2471,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         bool is_rtl = direction == REND_DIRECTION_RTL;
 
         // About styleToTextFmtFlags:
-        // - with inline nodes, it only updates LTEXT_FLAG_PREFORMATTED flag when css_ws_pre
-        // - with block nodes (so, only with the first "final" node, and not when
-        // recursing its children which are inline), it will set horitontal alignment flags
+        // - with inline nodes, it only updates LTEXT_FLAG_PREFORMATTED flag
+        //   when css_ws_pre and LTEXT_FLAG_NOWRAP when css_ws_nowrap.
+        // - with block nodes (so, only with the first "final" node, and not
+        //   when recursing its children which are inline), it will also set
+        //   horitontal alignment flags.
         lUInt32 flags = styleToTextFmtFlags( enode->getStyle(), baseflags, direction );
         // Note:
         // - baseflags (passed by reference) is shared and re-used by this node's siblings
@@ -9503,6 +9512,12 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             case css_tt_inherit:
                 break;
         }
+        // white-space
+        // When getting min width, ensure non free wrap for "white-space: pre" (even if we
+        // don't when rendering). Others like "pre-wrap" and "pre-line" are allowed to wrap.
+        bool nowrap = (parent_style->white_space == css_ws_nowrap) || (parent_style->white_space == css_ws_pre);
+        bool pre = parent_style->white_space >= css_ws_pre;
+        int space_width_scale_percent = pre ? 100 : parent->getDocument()->getSpaceWidthScalePercent();
         // measure text
         const lChar16 * txt = nodeText.c_str();
         #ifdef DEBUG_GETRENDEREDWIDTHS
@@ -9544,24 +9559,33 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     // todo: provide direction and hints
             #if (USE_LIBUNIBREAK==1)
             for (int i=0; i<chars_measured; i++) {
+                if (pre) {
+                    collapseNextSpace = false; // Reset it if set previously
+                }
                 int w = widths[i] - (i>0 ? widths[i-1] : 0);
+                if ( (flags[i] & LCHAR_IS_SPACE) && (space_width_scale_percent != 100) ) {
+                    w = w * space_width_scale_percent / 100;
+                }
                 lChar16 c = *(txt + start + i);
                 lChar16 next_c = *(txt + start + i + 1); // might be 0 at end of string
                 if ( lang_cfg->hasLBCharSubFunc() ) {
                     next_c = lang_cfg->getLBCharSubFunc()(txt+start, i+1, len-1 - (i+1));
                 }
                 int brk = lb_process_next_char(&lbCtx, (utf32_t)next_c);
-                    // We don't need to bother with collapsing consecutive spaces, as
-                    // we're dealing with a single text node, and the HTML parser has
-                    // removed multiple consecutive spaces (except with PRE, that we
-                    // already did not handle correctly when !USE_LIBUNIBREAK).
+                    // We don't really need to bother with consecutive spaces (that
+                    // should collapse when not 'pre', but libunibreak only allows
+                    // break on the last one, so we would get the leading spaces
+                    // width as part of current word), as we're dealing with a single
+                    // text node, and the HTML parser has removed multiple consecutive
+                    // spaces (except with 'pre', where it looks fine as they don't
+                    // collapse; this might still not be right with pre-wrap though).
                 // printf("between <%c%c>: brk %d\n", c, next_c, brk);
-                if (brk == LINEBREAK_ALLOWBREAK) {
-                    if (flags[i] & LCHAR_IS_SPACE) { // A space
+                if (brk == LINEBREAK_ALLOWBREAK && !nowrap) {
+                    if (flags[i] & LCHAR_ALLOW_WRAP_AFTER) { // a breakable/collapsible space (flag set by measureText()
                         if (collapseNextSpace) // ignore this space
                             continue;
                         collapseNextSpace = true; // ignore next spaces, even if in another node
-                        lastSpaceWidth = w;
+                        lastSpaceWidth = pre ? 0 : w; // Don't remove last space width if 'pre'
                         curMaxWidth += w; // add this space to non-wrap width
                         if (curWordWidth > 0) { // there was a word before this space
                             if (start+i > 0) {
@@ -9597,9 +9621,44 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                             curMaxWidth += left_overflow; // also add it to max width
                     }
                 }
+                else if (brk == LINEBREAK_MUSTBREAK) { // \n if pre
+                    // Get done with current word
+                    if (curWordWidth > 0) { // we end with a word
+                        if (start+i > 0) {
+                            // adjust for last word's last char or previous CJK char right overflow
+                            lChar16 prevc = *(txt + start + i - 1);
+                            int right_overflow = - font->getRightSideBearing(prevc, true, true);
+                            curWordWidth += right_overflow;
+                            curMaxWidth += right_overflow;
+                        }
+                    }
+                    // Similar to what's done above on <BR> or at end of final node
+                    if (lastSpaceWidth)
+                        curMaxWidth -= lastSpaceWidth;
+                    if (curMaxWidth > maxWidth)
+                        maxWidth = curMaxWidth;
+                    if (curWordWidth > minWidth)
+                        minWidth = curWordWidth;
+                    // Get ready for next text
+                    curMaxWidth = indent;
+                    curWordWidth = indent;
+                    collapseNextSpace = true; // skip leading spaces
+                    lastSpaceWidth = 0;
+                }
                 else { // break not allowed: this char is part of a word
-                    collapseNextSpace = false; // next space should not be ignored
-                    lastSpaceWidth = 0; // no width to take off if we stop with this char
+                    // But it can be a space followed by another space (with libunibreak,
+                    // only the last space will get LINEBREAK_ALLOWBREAK).
+                    if (flags[i] & LCHAR_ALLOW_WRAP_AFTER) { // a breakable/collapsible space (flag set by measureText()
+                        if (collapseNextSpace) { // space before (and space after)
+                            continue; // ignore it
+                        }
+                        collapseNextSpace = true; // ignore next ones
+                        lastSpaceWidth = pre ? 0 : w; // Don't remove last space width if 'pre'
+                    }
+                    else { // Not a space
+                        collapseNextSpace = false; // next space should not be ignored
+                        lastSpaceWidth = 0; // no width to take off if we stop with this char
+                    }
                     if (curWordWidth == 0) { // first char of a word
                         // adjust for leading overflow on first char of a word
                         int left_overflow = - font->getLeftSideBearing(c, false, true);
@@ -9614,9 +9673,13 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 }
             }
             #else // not USE_LIBUNIBREAK==1
+            // (This has not been updated to handle nowrap & pre)
             for (int i=0; i<chars_measured; i++) {
                 int w = widths[i] - (i>0 ? widths[i-1] : 0);
                 lChar16 c = *(txt + start + i);
+                if ( (flags[i] & LCHAR_IS_SPACE) && (space_width_scale_percent != 100) ) {
+                    w = w * space_width_scale_percent / 100;
+                }
                 bool is_cjk = (c >= UNICODE_CJK_IDEOGRAPHS_BEGIN && c <= UNICODE_CJK_IDEOGRAPHS_END
                             && ( c<=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN
                                 || c>=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END) );

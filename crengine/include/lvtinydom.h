@@ -548,6 +548,10 @@ protected:
 public:
 
 #if BUILD_LITE!=1
+    int getSpaceWidthScalePercent() {
+        return _spaceWidthScalePercent;
+    }
+
     bool setSpaceWidthScalePercent(int spaceWidthScalePercent) {
         if (spaceWidthScalePercent == _spaceWidthScalePercent)
             return false;

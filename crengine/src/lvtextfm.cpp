@@ -972,13 +972,92 @@ public:
         int i;
         bool prev_was_space = true; // start with true, to get rid of all leading spaces
         int last_non_space_pos = -1; // to get rid of all trailing spaces
+        src_text_fragment_t * prev_src = NULL;
+
         for ( i=start; i<end; i++ ) {
             src_text_fragment_t * src = &m_pbuffer->srctext[i];
+
+            // We will compute wrap rules as if there were no "white-space: nowrap", as
+            // we might end up not ensuring nowrap. We just flag all chars (but the last
+            // one) inside a text node with "nowrap" with LCHAR_DEPRECATED_WRAP_AFTER,
+            // and processParagraph() will deal with chars that have both ALLOW_WRAP_AFTER
+            // and DEPRECATED_WRAP_AFTER.
+            bool nowrap = src->flags & LTEXT_FLAG_NOWRAP;
+            if ( nowrap && pos > 0 ) {
+                // We still need to do the right thing at boundaries between 2 nodes
+                // with nowrap - and update flags on the last char of previous node.
+                // If NOWRAP|NOWRAP: wrap after last char of 1st node is permitted
+                // If NOWRAP|WRAP  : wrap after last char of 1st node is permitted
+                // If   WRAP|NOWRAP: wrap after last char of 1st node is permitted
+                // If   WRAP|WRAP  : it depends
+                bool handled = false;
+                if ( prev_src && (prev_src->flags & LTEXT_FLAG_NOWRAP) ) {
+                    // We don't have much context about these text nodes.
+                    // 2 consecutive text nodes might both have "white-space: nowrap",
+                    // but it might be allowed to wrap between them if the node that
+                    // contains them isn't "nowrap".
+                    // So, try to do it that way:
+                    // - if both have it, and not their common parent container (so
+                    //   it's not inherited): a wrap should be allowed between them.
+                    // - if both have it, and their parent container too, a wrap
+                    //   shouldn't be allowed between them
+                    ldomNode * prev_node = (ldomNode *)prev_src->object;
+                    ldomNode * this_node = (ldomNode *)src->object;
+                    if ( prev_node && this_node ) {
+                        ldomXRange r = ldomXRange( ldomXPointer(prev_node,0), ldomXPointer(this_node,0) );
+                        ldomNode * parent = r.getNearestCommonParent();
+                        if ( parent && parent->getStyle()->white_space == css_ws_nowrap ) {
+                            m_flags[pos-1] |= LCHAR_DEPRECATED_WRAP_AFTER;
+                            handled = true;
+                        }
+                    }
+                    else {
+                        // One of the 2 nodes is some generated content (list marker,
+                        // quote char, BDI wrapping chars) that does not map to a
+                        // document node (and we can't reach its parent from here).
+                        // Not sure if this would be always good, but let's assume
+                        // we want nowrap continuity.
+                        m_flags[pos-1] |= LCHAR_DEPRECATED_WRAP_AFTER;
+                        handled = true;
+                    }
+                }
+                if ( !handled && src->flags & (LTEXT_SRC_IS_INLINE_BOX|LTEXT_SRC_IS_OBJECT) ) {
+                    // Not per-spec, but might be handy:
+                    // If an image or our internal inlineBox element has been set
+                    // to "white-space: nowrap", it's most probably that it has
+                    // inherited it from its parent node - as it's quite unprobable
+                    // in real-life that an image was set to "white-space: nowrap"
+                    // itself, as it would have no purpose. As for inlineBox,
+                    // the original element that has "display: inline-block;
+                    // white-space: nowrap" is actually the child of the inlineBox,
+                    // and will have it - but they are not propagated up to the
+                    // inlineBox wrapper.
+                    // So, assume that if such image or inlineBox has it, while
+                    // its parent does not, it's because it has been set via
+                    // a Style tweak, and that we have used that trick in the
+                    // aim to prevent a wrap around it. libunibreak defaults to
+                    // allowing a wrap on both sides of such replaced elements;
+                    // this allows to easily change this when needed.
+                    // (Use-case seen: book with footnotes links that are
+                    // set "display:inline-block", which libunibreak could
+                    // put at start of line - while we'd rather want them
+                    // stuck to the word they follow).
+                    ldomNode * this_node = (ldomNode *)src->object;
+                    if ( this_node ) {
+                        ldomNode * parent = this_node->getParentNode();
+                        if ( parent && parent->getStyle()->white_space != css_ws_nowrap ) {
+                            m_flags[pos-1] |= LCHAR_DEPRECATED_WRAP_AFTER; // avoid wrap before it
+                            m_flags[pos]   |= LCHAR_DEPRECATED_WRAP_AFTER; // avoid wrap after it
+                        }
+                    }
+                }
+            }
+
             if ( src->flags & LTEXT_SRC_IS_FLOAT ) {
                 m_text[pos] = 0;
                 m_srcs[pos] = src;
-                m_flags[pos] = LCHAR_IS_OBJECT;
                 m_charindex[pos] = FLOAT_CHAR_INDEX; //0xFFFE;
+                m_flags[pos] = LCHAR_IS_OBJECT;
                     // Note: m_flags was a lUInt8, and there were already 8 LCHAR_IS_* bits/flags
                     //   so we couldn't add our own. But using LCHAR_IS_OBJECT should not hurt,
                     //   as we do the FLOAT tests before it is used.
@@ -995,6 +1074,7 @@ public:
                 // with specifically in splitParagraphs() by processEmbeddedBlock().
                 m_text[pos] = 0;
                 m_srcs[pos] = src;
+                m_charindex[pos] = INLINEBOX_CHAR_INDEX; //0xFFFD;
                 m_flags[pos] = LCHAR_IS_OBJECT;
                 #if (USE_LIBUNIBREAK==1)
                     // Let libunibreak know there was an object, for the followup text
@@ -1009,7 +1089,6 @@ public:
                 #else
                     m_flags[pos] |= LCHAR_ALLOW_WRAP_AFTER;
                 #endif
-                m_charindex[pos] = INLINEBOX_CHAR_INDEX; //0xFFFD;
                 last_non_space_pos = pos;
                 prev_was_space = false;
                 pos++;
@@ -1017,6 +1096,7 @@ public:
             else if ( src->flags & LTEXT_SRC_IS_OBJECT ) {
                 m_text[pos] = 0;
                 m_srcs[pos] = src;
+                m_charindex[pos] = OBJECT_CHAR_INDEX; //0xFFFF;
                 m_flags[pos] = LCHAR_IS_OBJECT;
                 #if (USE_LIBUNIBREAK==1)
                     // Let libunibreak know there was an object
@@ -1028,7 +1108,6 @@ public:
                 #else
                     m_flags[pos] |= LCHAR_ALLOW_WRAP_AFTER;
                 #endif
-                m_charindex[pos] = OBJECT_CHAR_INDEX; //0xFFFF;
                 last_non_space_pos = pos;
                 prev_was_space = false;
                 pos++;
@@ -1122,7 +1201,10 @@ public:
                         last_non_space_pos = pos;
                     if ( !is_space )
                         m_allow_strut_confinning = true;
-                    prev_was_space = is_space;
+                    prev_was_space = is_space || (c == '\n');
+                        // We might meet '\n' in PRE text, which shouldn't make any space
+                        // collapsed - except when "white-space: pre-line". So, have
+                        // a space following a \n be allowed to collapse.
 
                     /* non-optimized implementation of "(a) A sequence of segment breaks
                      * and other white space between two Chinese, Japanese, or Yi characters
@@ -1180,6 +1262,13 @@ public:
                     */
 
                     #if (USE_LIBUNIBREAK==1)
+                    if ( nowrap ) {
+                        // If "white-space: nowrap", we flag everything but the last char
+                        // (So, for a 1 char long text node, no flag.)
+                        if ( k < len-1 ) {
+                            m_flags[pos] |= LCHAR_DEPRECATED_WRAP_AFTER;
+                        }
+                    }
                     lChar16 ch = m_text[pos];
                     if ( src->lang_cfg->hasLBCharSubFunc() ) {
                         // Lang specific function may want to substitute char (for
@@ -1277,6 +1366,7 @@ public:
                     pos++;
                 }
             }
+            prev_src = src;
         }
         // Also flag as collapsed all spaces at the end of text
         pos = pos-1; // get back last pos++
@@ -3365,7 +3455,7 @@ public:
             }
             int w0 = pos>0 ? m_widths[pos-1] : 0; // measured cumulative width at start of this line
             int lastNormalWrap = -1;
-            int lastDeprecatedWrap = -1; // Not updated (so, not used) when USE_LIBUNIBREAK
+            int lastDeprecatedWrap = -1; // Different usage whether USE_LIBUNIBREAK or not (see below)
             int lastHyphWrap = -1;
             int lastMandatoryWrap = -1;
             int spaceReduceWidth = 0; // max total line width which can be reduced by narrowing of spaces
@@ -3431,8 +3521,7 @@ public:
                 if (!seen_non_collapsed_space) {
                     if (flags & LCHAR_IS_COLLAPSED_SPACE)
                         continue;
-                    else
-                        seen_non_collapsed_space = true;
+                    seen_non_collapsed_space = true;
                 }
                 if ( !seen_first_rendered_char ) {
                     seen_first_rendered_char = true;
@@ -3495,7 +3584,15 @@ public:
                 #if (USE_LIBUNIBREAK==1)
                 // Note: with libunibreak, we can't assume anymore that LCHAR_ALLOW_WRAP_AFTER is synonym to IS_SPACE.
                 if (flags & LCHAR_ALLOW_WRAP_AFTER) {
-                    lastNormalWrap = i;
+                    if (flags & LCHAR_DEPRECATED_WRAP_AFTER) {
+                        // Allowed by libunibreak, but prevented by "white-space: nowrap" on
+                        // this text node parent. Store this opportunity as lastDeprecatedWrap,
+                        // that we will use only if no lastNormalWrap found.
+                        lastDeprecatedWrap = i;
+                    }
+                    else {
+                        lastNormalWrap = i;
+                    }
                 }
                 #else
                 // A space or a CJK ideograph make a normal allowed wrap
@@ -3544,11 +3641,16 @@ public:
                     // Note that a wrap can happen AFTER a '-' (that has CH_PROP_AVOID_WRAP_AFTER)
                     // when lastDeprecatedWrap is prefered below.
                 }
-                #endif // not USE_LIBUNIBREAK==1
-                else if ( i==m_length-1 ) // Last char
-                    lastNormalWrap = i;
-                else if ( flags & LCHAR_DEPRECATED_WRAP_AFTER ) // does not happen when USE_LIBUNIBREAK
+                else if ( flags & LCHAR_DEPRECATED_WRAP_AFTER ) {
+                    // Different meaning than when USE_LIBUNIBREAK: it is set
+                    // by lastFont->measureText() on some hyphens.
+                    // (To keep this legacy behaviour and not complexify things, we don't
+                    // ensure "white-space: nowrap" when not using libunibreak.)
                     lastDeprecatedWrap = i; // Hyphens make a less priority wrap
+                }
+                #endif // not USE_LIBUNIBREAK==1
+                if ( i==m_length-1 ) // Last char always provides a normal wrap
+                    lastNormalWrap = i;
                 if ( !grabbedExceedingSpace &&
                         m_pbuffer->min_space_condensing_percent != 100 &&
                         i < m_length-1 &&
@@ -3572,16 +3674,30 @@ public:
                 i = pos + 1; // allow at least one character to be shown on line
             int wordpos = i-1; // Last char which fits: hyphenation does not need to check further
 
+            #if (USE_LIBUNIBREAK==1)
+                // If no normal wrap found, and if we have a deprecated wrap (a normal wrap
+                // as determined by libunibreak, but prevented by "white-space: nowrap",
+                // it's because the line has no wrap opportunity outside nodes with
+                // "white-space: nowrap".
+                // We need to wrap, and it's best to do so at a regular opportunity rather
+                // than at some arbitrary point: do as it there were no "nowrap".
+                if ( lastNormalWrap < 0 && lastDeprecatedWrap > 0 ) {
+                    lastNormalWrap = lastDeprecatedWrap;
+                }
+            #endif
             int normalWrapWidth = lastNormalWrap > 0 ? x + m_widths[lastNormalWrap]-w0 : 0;
-            int deprecatedWrapWidth = lastDeprecatedWrap > 0 ? x + m_widths[lastDeprecatedWrap]-w0 : 0;
             int unusedSpace = maxWidth - normalWrapWidth;
             if ( visualAlignmentEnabled ) {
                 unusedSpace -= 2*visualAlignmentWidth;
             }
             int unusedPercent = maxWidth > 0 ? unusedSpace * 100 / maxWidth : 0;
-            if ( deprecatedWrapWidth > normalWrapWidth && unusedPercent > 3 ) { // only 3%
-                lastNormalWrap = lastDeprecatedWrap;
-            }
+            #if (USE_LIBUNIBREAK!=1)
+                // (Different usage of deprecatedWrap than above)
+                int deprecatedWrapWidth = lastDeprecatedWrap > 0 ? x + m_widths[lastDeprecatedWrap]-w0 : 0;
+                if ( deprecatedWrapWidth > normalWrapWidth && unusedPercent > 3 ) { // only 3%
+                    lastNormalWrap = lastDeprecatedWrap;
+                }
+            #endif
 
             // If, with normal wrapping, more than 5% of the line would not be used,
             // try to find a word (from where we stopped back to lastNormalWrap) to
@@ -3607,7 +3723,7 @@ public:
                             printf("hyph loop #%d checking: %s\n", debug_loop_num,
                                 LCSTR(lString16(m_text+wordpos_min, i-wordpos_min+1)));
                     #endif
-                    if ( !(m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
+                    if ( !(m_srcs[wordpos]->flags & LTEXT_HYPHENATE) || (m_srcs[wordpos]->flags & LTEXT_FLAG_NOWRAP) ) {
                         // The word at worpos can't be hyphenated, but it might be
                         // allowed on some earlier word in another text node.
                         // As this is a rare situation (they are mostly all hyphenat'able,

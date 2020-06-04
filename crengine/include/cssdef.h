@@ -45,12 +45,52 @@ enum css_display_t {
     css_d_none
 };
 
-/// white-space property values
+// https://www.w3.org/TR/CSS2/text.html#white-space-prop
+// https://florian.rivoal.net/talks/line-breaking/
+// https://developer.mozilla.org/en-US/docs/Web/CSS/white-space
+//      Behaviors: New lines   Spaces/tabs End-of-line spaces Text wrap
+// normal          Collapse    Collapse    Remove             Wrap
+// nowrap          Collapse    Collapse    Remove             No wrap
+// pre-line        Preserve    Collapse    Remove             Wrap
+// pre             Preserve    Preserve    Preserve           No wrap
+// pre-wrap        Preserve    Preserve    Hang               Wrap
+// break-spaces    Preserve    Preserve    Wrap               Wrap
+//
+// crengine ensures the 3 first behaviors at XML parsing time, initially only for:
+//   'normal' : replace new lines and tabs by spaces, replace consecutive spaces
+//              by only one, remove spaces at start and end if "display: block"
+//   'pre' : preserve spaces and newlines, expands tabs to 8-spaces tabstops
+// A change of the white-space value for a single node will make the DOM stalled,
+// and a full reload should be done to get the correct result.
+//
+// The last behavior (text wrap) happens at text rendering time, and
+// we always wrap to fit text into the container or screen width.
+//
+// We can approximate support for the other values:
+// 'nowrap' is mostly like 'normal', but need some additional care:
+//   - in lvtextfm, to prevent wrap where it would be allowed, but
+//     still accounting for normal wrap points to be used if no other
+//     non-nowrap text node on the line provides a wrap opportunity.
+//   - in getRenderedWidths(), where it can impact the widths of
+//     table cells and floats
+// 'pre-line' might be parsed just like 'pre', but rendered just
+//     like normal (lvtextfm will collapse spaces and wrap on \n)
+// 'pre-wrap' is just like 'pre', as we would always wrap to fit
+//     in the container/screen width
+// 'break-spaces' is very similar to 'pre-wrap', except that spaces
+//     should not be dropped on wrap. We don't ensure that.
+//
+/// white-space property values: keep them ordered this way for easier checks
 enum css_white_space_t {
     css_ws_inherit,
     css_ws_normal,
+    css_ws_nowrap,
+        /* parse XML as 'normal' before this, as 'pre' after this */
+    css_ws_pre_line,
+        /* render text as 'normal' before this, as 'pre' after this */
     css_ws_pre,
-    css_ws_nowrap
+    css_ws_pre_wrap,
+    css_ws_break_spaces
 };
 
 /// text-align property values

@@ -905,8 +905,11 @@ static const char * css_ws_names[] =
 {
     "inherit",
     "normal",
-    "pre",
     "nowrap",
+    "pre-line",
+    "pre",
+    "pre-wrap",
+    "break-spaces",
     NULL
 };
 

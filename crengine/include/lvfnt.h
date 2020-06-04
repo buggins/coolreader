@@ -227,7 +227,8 @@ lUInt16 lvfontMeasureText( const lvfont_handle pfont,
                                             //         It is set on soft-hyphen.
                                             //         It is not set on CJK chars.
 #define LCHAR_DEPRECATED_WRAP_AFTER  0x0004 ///< flag: line break after this char is possible but deprecated
-                                            //         It is set on '-' and other unicode hyphens.
+                                            //         When not using libunibreak: it is set on '-' and other unicode hyphens.
+                                            //         When using libunibreak: set on all text inside "white-space: nowrap"
 #define LCHAR_ALLOW_HYPH_WRAP_AFTER  0x0008 ///< flag: line break after this char is allowed with addition of hyphen
                                             //         It is set by Hyphman when finding hyphenation points in a word.
 #define LCHAR_MANDATORY_NEWLINE      0x0010 ///< flag: this char must start with new line

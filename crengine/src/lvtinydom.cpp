@@ -4856,8 +4856,11 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
     //logfile << "{c";
     _typeDef = _document->getElementTypePtr( id );
     _flags = 0;
-    if ( (_typeDef && _typeDef->white_space==css_ws_pre) || (_parent && _parent->getFlags()&TXTFLG_PRE) )
-        _flags |= TXTFLG_PRE;
+    if ( (_typeDef && _typeDef->white_space >= css_ws_pre_line) || (_parent && _parent->getFlags()&TXTFLG_PRE) )
+        _flags |= TXTFLG_PRE; // Parse as PRE: pre-line, pre, pre-wrap and break-spaces
+        // This will be updated in ldomElementWriter::onBodyEnter() after we have
+        // set styles to this node, so we'll get the real white_space value to use.
+
     _isSection = (id==el_section);
 
     // Default (for elements not specified in fb2def.h) is to allow text
@@ -5004,9 +5007,12 @@ void ldomElementWriter::onBodyEnter()
 //            crFatalError();
 //        }
         _isBlock = isBlockNode(_element);
-        // If initNodeStyle() has set "white-space: pre", update _flags
-        if ( _element->getStyle()->white_space == css_ws_pre) {
+        // If initNodeStyle() has set "white-space: pre" or alike, update _flags
+        if ( _element->getStyle()->white_space >= css_ws_pre_line) {
             _flags |= TXTFLG_PRE;
+        }
+        else {
+            _flags &= ~TXTFLG_PRE;
         }
     } else {
     }
@@ -5050,7 +5056,8 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex, bool handleFloatin
     if ( !isElement() )
         return;
     css_style_ref_t style = getStyle();
-    bool pre = ( style->white_space==css_ws_pre );
+    bool pre = ( style->white_space >= css_ws_pre_line );
+        // (css_ws_pre_line might need special care?)
     int firstNonEmpty = startIndex;
     int lastNonEmpty = endIndex;
 
@@ -5200,8 +5207,8 @@ bool ldomNode::cleanIfOnlyEmptyTextInline( bool handleFloating )
     if ( !isElement() )
         return false;
     css_style_ref_t style = getStyle();
-    if ( style->white_space==css_ws_pre )
-        return false; // Don't mess with PRE
+    if ( style->white_space >= css_ws_pre )
+        return false; // Don't mess with PRE (css_ws_pre_line might need special care?)
     // We return false as soon as we find something non text, or text non empty
     int i = getChildCount()-1;
     for ( ; i>=0; i-- ) {
@@ -13100,14 +13107,16 @@ lUInt32 tinyNodeCollection::calcStyleHash()
                     res = res * 31 + sh;
                     if (!style.isNull()) {
                         _nodeDisplayStyleHash = _nodeDisplayStyleHash * 31 + style.get()->display;
-                        // Also account in this hash if this node is "white_space: pre"
-                        // If white_space change from/to "pre" to/from any other value,
+                        // Also account in this hash if this node is "white_space: pre" or alike.
+                        // If white_space changes from/to "pre"-like to/from "normal"-like,
                         // the document will need to be reloaded so that the HTML text parts
                         // are parsed according the the PRE/not-PRE rules
-                        if (style.get()->white_space == css_ws_pre) _nodeDisplayStyleHash += 29;
+                        if (style.get()->white_space >= css_ws_pre_line)
+                            _nodeDisplayStyleHash += 29;
                         // Also account for style->float_, as it should create/remove new floatBox
                         // elements wrapping floats when toggling BLOCK_RENDERING_G(ENHANCED)
-                        if (style.get()->float_ > css_f_none) _nodeDisplayStyleHash += 123;
+                        if (style.get()->float_ > css_f_none)
+                            _nodeDisplayStyleHash += 123;
                     }
                     //printf("element %d %d style hash: %x\n", i, j, sh);
                     LVFontRef font = buf[j].getFont();
