@@ -29,6 +29,8 @@
 //=====================================================
 XS_BEGIN_TAGS
 
+// Boxing elements (inserted in the DOM tree between original parent and children):
+//
 // Internal element for block wrapping inline elements (without a proper parent
 // block container) among proper block siblings (would be better named "blockBox")
 XS_TAG1T( autoBoxing )
@@ -38,6 +40,14 @@ XS_TAG1T( tabularBox )
 XS_TAG1T( floatBox )
 // Internal element for inline-block and inline-table rendering
 XS_TAG1I( inlineBox )
+
+// Internal element created for CSS pseudo elements ::before and ::after :
+//  - defaults to "display: none", but will be set to "inline" when style is applied
+//  - it doesn't have a text node child, the content will be fetched from
+//    its style->content when rendering and drawing text.
+// It does not box anything and has no child, so it's not considered a boxing node.
+XS_TAG1D( pseudoElem, false, css_d_none, css_ws_normal )
+
 // Internal element for EPUB, containing each individual HTML file
 XS_TAG1( DocFragment )
 
@@ -256,6 +266,8 @@ XS_ATTR( role )
 XS_ATTR( dir )
 XS_ATTR( lang )
 XS_ATTR( recindex ) // used with mobi images
+XS_ATTR( Before ) // for pseudoElem internal element
+XS_ATTR( After )  // for pseudoElem internal element
 // Other classic attributes present in html5.css
 XS_ATTR2( accept_charset, "accept-charset" )
 XS_ATTR( alt )

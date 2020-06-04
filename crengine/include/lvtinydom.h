@@ -851,6 +851,10 @@ public:
     // the wrapping element.
     ldomNode * boxWrapChildren( int startIndex, int endIndex, lUInt16 elementId );
 
+    // Ensure this node has a ::before/::after pseudo element as
+    // child, creating it if needed and possible
+    void ensurePseudoElement( bool is_before );
+
     /// if stylesheet file name is set, and file is found, set stylesheet to its value
     bool applyNodeStylesheet();
 
@@ -1010,7 +1014,7 @@ public:
     void setRendMethod( lvdom_element_render_method );
 #if BUILD_LITE!=1
     /// returns element style record
-    css_style_ref_t getStyle();
+    css_style_ref_t getStyle() const;
     /// returns element font
     font_ref_t getFont();
     /// sets element font
@@ -1071,17 +1075,17 @@ public:
     /// for display:list-item node, get marker
     bool getNodeListMarker( int & counterValue, lString16 & marker, int & markerWidth );
     /// is node a floating floatBox
-    bool isFloatingBox();
+    bool isFloatingBox() const;
     /// is node an inlineBox that has not been re-inlined by having
     /// its child no more inline-block/inline-table
-    bool isBoxingInlineBox();
+    bool isBoxingInlineBox() const;
     /// is node an inlineBox that wraps a bogus embedded block (not inline-block/inline-table)
     /// can be called with inline_box_checks_done=true when isBoxingInlineBox() has already
     /// been called to avoid rechecking what is known
-    bool isEmbeddedBlockBoxingInlineBox(bool inline_box_checks_done=false);
+    bool isEmbeddedBlockBoxingInlineBox(bool inline_box_checks_done=false) const;
 
-    /// is node any of our internal boxing element
-    bool isBoxingNode();
+    /// is node any of our internal boxing element (or, optionally, our pseudoElem)
+    bool isBoxingNode( bool orPseudoElem=false ) const;
 
     /// return real (as in the original HTML) parent/siblings by skipping any internal
     /// boxing element up or down (returns NULL when no more sibling)
@@ -2555,6 +2559,7 @@ class ldomElementWriter
     bool _isSection;
     bool _stylesheetIsSet;
     bool _bodyEnterCalled;
+    int _pseudoElementAfterChildIndex;
     lUInt32 _flags;
     lUInt32 getFlags();
     void updateTocItem();

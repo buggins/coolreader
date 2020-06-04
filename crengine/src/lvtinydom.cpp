@@ -84,7 +84,7 @@ int gDOMVersionRequested     = DOM_VERSION_CURRENT;
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
 // increment to force complete reload/reparsing of old file
-#define CACHE_FILE_FORMAT_VERSION "3.12.62"
+#define CACHE_FILE_FORMAT_VERSION "3.12.63"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0023
@@ -3654,7 +3654,7 @@ static void writeNode( LVStream * stream, ldomNode * node, bool treeLayout )
 #define WRITENODEEX_NB_SKIPPED_CHARS             0x0100 ///< show number of skipped chars in text nodes: (...43...)
 #define WRITENODEEX_NB_SKIPPED_NODES             0x0200 ///< show number of skipped sibling nodes: [...17...]
 #define WRITENODEEX_SHOW_REND_METHOD             0x0400 ///< show rendering method at end of tag (<div ~F> =Final, <b ~i>=Inline...)
-#define WRITENODEEX_UNUSED_2                     0x0800 ///<
+#define WRITENODEEX_SHOW_MISC_INFO               0x0800 ///< show additional info (depend on context)
 #define WRITENODEEX_ADD_UPPER_DIR_LANG_ATTR      0x1000 ///< add dir= and lang= grabbed from upper nodes
 #define WRITENODEEX_GET_CSS_FILES                0x2000 ///< ensure css files that apply to initial node are returned
                                                         ///  in &cssFiles (needed when not starting from root node)
@@ -3940,6 +3940,18 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
             // rendering method, which gives us a visual hint of it.
             lvdom_element_render_method rm = node->getRendMethod();
             // Text and inline nodes stay stuck together, but not all others
+            if (rm == erm_invisible) {
+                // We don't know how invisible nodes would be displayed if
+                // they were visible. Make the invisible tree like inline
+                // among finals, so they don't take too much height.
+                if (node->getParentNode()) {
+                    rm = node->getParentNode()->getRendMethod();
+                    if (rm == erm_invisible || rm == erm_inline || rm == erm_final)
+                        rm = erm_inline;
+                    else
+                        rm = erm_final;
+                }
+            }
             if ( (rm != erm_inline && rm != erm_runin) || node->isBoxingInlineBox()) {
                 doNewLineBeforeStartTag = true;
                 doNewLineAfterStartTag = true;
@@ -4000,7 +4012,6 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                     }
                 }
             }
-            // Do something specific when erm_invisible ?
         }
 
         if ( containsStart && WNEFLAG(NB_SKIPPED_NODES) ) {
@@ -4045,6 +4056,21 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                 lString8 attrName( UnicodeToUtf8(node->getDocument()->getAttrName(attr->id)) );
                 lString8 nsName( UnicodeToUtf8(node->getDocument()->getNsName(attr->nsid)) );
                 lString8 attrValue( UnicodeToUtf8(node->getDocument()->getAttrValue(attr->index)) );
+                if ( WNEFLAG(SHOW_MISC_INFO) ) {
+                    if ( node->getNodeId() == el_pseudoElem && (attr->id == attr_Before || attr->id == attr_After) ) {
+                        // Show the rendered content as the otherwise empty Before/After attribute value
+                        if ( WNEFLAG(TEXT_SHOW_UNICODE_CODEPOINT) ) {
+                            lString16 content = get_applied_content_property(node);
+                            attrValue.empty();
+                            for ( int i=0; i<content.length(); i++ ) {
+                                attrValue << UnicodeToUtf8(content.substr(i, 1)) << "⟨U+" << lString8().appendHex(content[i]) << "⟩";
+                            }
+                        }
+                        else {
+                            attrValue = UnicodeToUtf8(get_applied_content_property(node));
+                        }
+                    }
+                }
                 *stream << " ";
                 if ( nsName.length() > 0 )
                     *stream << nsName << ":";
@@ -4851,7 +4877,8 @@ bool IsEmptySpace( const lChar16 * text, int len )
 static bool IS_FIRST_BODY = false;
 
 ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent)
-    : _parent(parent), _document(document), _tocItem(NULL), _isBlock(true), _isSection(false), _stylesheetIsSet(false), _bodyEnterCalled(false)
+    : _parent(parent), _document(document), _tocItem(NULL), _isBlock(true), _isSection(false),
+      _stylesheetIsSet(false), _bodyEnterCalled(false), _pseudoElementAfterChildIndex(-1)
 {
     //logfile << "{c";
     _typeDef = _document->getElementTypePtr( id );
@@ -5006,6 +5033,28 @@ void ldomElementWriter::onBodyEnter()
 //            CRLog::error("error while style initialization of element %x %s", _element->getNodeIndex(), LCSTR(_element->getNodeName()) );
 //            crFatalError();
 //        }
+        int nb_children = _element->getChildCount();
+        if ( nb_children > 0 ) {
+            // The only possibility for this element being built to have children
+            // is if the above initNodeStyle() has applied to this node some
+            // matching selectors that had ::before or ::after, which have then
+            // created one or two pseudoElem children. But let's be sure of that.
+            for ( int i=0; i<nb_children; i++ ) {
+                ldomNode * child = _element->getChildNode(i);
+                if ( child->getNodeId() == el_pseudoElem ) {
+                    // ->initNodeStyle() has been done when the element was created;
+                    // as pseudo elements have no children, let's ->initNodeRendMethod()
+                    // now (as done in onBodyExit()).
+                    child->initNodeRendMethod();
+                    // ldomNode::ensurePseudoElement() will always have inserted
+                    // "Before" first, and "After" second. But real children might
+                    // soon be added, and we'll have to move "After" last when done.
+                    // Which will be done in onBodyExit().
+                    if ( child->hasAttribute(attr_After) )
+                        _pseudoElementAfterChildIndex = i;
+                }
+            }
+        }
         _isBlock = isBlockNode(_element);
         // If initNodeStyle() has set "white-space: pre" or alike, update _flags
         if ( _element->getStyle()->white_space >= css_ws_pre_line) {
@@ -5022,6 +5071,58 @@ void ldomElementWriter::onBodyEnter()
         }
 
     }
+#endif
+}
+
+void ldomNode::ensurePseudoElement( bool is_before ) {
+#if BUILD_LITE!=1
+    // This node should have that pseudoElement, but it might already be there,
+    // so check if there is already one, and if not, create it.
+    // This happens usually in the initial loading phase, but it might in
+    // a re-rendering if the pseudo element is introduced by a change in
+    // styles (we won't be able to create a node if there's a cache file).
+    int insertChildIndex = -1;
+    int nb_children = getChildCount();
+    if ( is_before ) { // ::before
+        insertChildIndex = 0; // always to be inserted first, if not already there
+        if ( nb_children > 0 ) {
+            ldomNode * child = getChildNode(0); // should always be found as the first node
+            // pseudoElem might have been wrapped by a inlineBox, autoBoxing, floatBox...
+            while ( child && child->isBoxingNode() && child->getChildCount()>0 )
+                child = child->getChildNode(0);
+            if ( child && child->getNodeId() == el_pseudoElem && child->hasAttribute(attr_Before) ) {
+                // Already there, no need to create it
+                insertChildIndex = -1;
+            }
+        }
+    }
+    else { // ::after
+        // In the XML loading phase, this one might be either first,
+        // or second if there's already a Before. In the re-rendering
+        // phase, it would have been moved as the last node. In all these
+        // cases, it is always the last at the moment we are checking.
+        insertChildIndex = nb_children; // always to be inserted last, if not already there
+        if ( nb_children > 0 ) {
+            ldomNode * child = getChildNode(nb_children-1); // should always be found as the last node
+            // pseudoElem might have been wrapped by a inlineBox, autoBoxing, floatBox...
+            while ( child && child->isBoxingNode() && child->getChildCount()>0 )
+                child = child->getChildNode(0);
+            if ( child && child->getNodeId() == el_pseudoElem && child->hasAttribute(attr_After) ) {
+                // Already there, no need to create it
+                insertChildIndex = -1;
+            }
+        }
+    }
+    if ( insertChildIndex >= 0 ) {
+        ldomNode * pseudo = insertChildElement( insertChildIndex, LXML_NS_NONE, el_pseudoElem );
+        lUInt16 attribute_id = is_before ? attr_Before : attr_After;
+        pseudo->setAttributeValue(LXML_NS_NONE, attribute_id, L"");
+        // We are called by lvrend.cpp setNodeStyle(), after the parent
+        // style and font have been fully set up.
+        // We can set this pseudo element style as it can now properly inherit.
+        pseudo->initNodeStyle();
+    }
+
 #endif
 }
 
@@ -5278,6 +5379,12 @@ static void detectChildTypes( ldomNode * parent, bool & hasBlockItems, bool & ha
     hasBlockItems = false;
     hasInline = false;
     hasFloating = false;
+    if ( parent->getNodeId() == el_pseudoElem ) {
+        // pseudoElem (generated from CSS ::before and ::after), will have
+        // some (possibly empty) plain text content.
+        hasInline = true;
+        return; // and it has no children
+    }
     int len = parent->getChildCount();
     for ( int i=len-1; i>=0; i-- ) {
         ldomNode * node = parent->getChildNode(i);
@@ -5604,7 +5711,7 @@ bool hasInvisibleParent( ldomNode * node )
     return false;
 }
 
-bool ldomNode::isFloatingBox()
+bool ldomNode::isFloatingBox() const
 {
     // BLOCK_RENDERING_G(FLOAT_FLOATBOXES) is what triggers rendering
     // the floats floating. They are wrapped in a floatBox, possibly
@@ -5617,7 +5724,7 @@ bool ldomNode::isFloatingBox()
 
 /// is node an inlineBox that has not been re-inlined by having
 /// its child no more inline-block/inline-table
-bool ldomNode::isBoxingInlineBox()
+bool ldomNode::isBoxingInlineBox() const
 {
     // BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) is what ensures inline-block
     // are boxed and rendered as an inline block, but we may have them
@@ -5638,7 +5745,7 @@ bool ldomNode::isBoxingInlineBox()
 /// is node an inlineBox that wraps a bogus embedded block (not inline-block/inline-table)
 /// can be called with inline_box_checks_done=true when isBoxingInlineBox() has already
 /// been called to avoid rechecking what is known
-bool ldomNode::isEmbeddedBlockBoxingInlineBox(bool inline_box_checks_done)
+bool ldomNode::isEmbeddedBlockBoxingInlineBox(bool inline_box_checks_done) const
 {
     if ( !inline_box_checks_done ) {
         if ( getNodeId() != el_inlineBox || !BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) )
@@ -6580,6 +6687,14 @@ void ldomElementWriter::onBodyExit()
         return;
     if ( !_bodyEnterCalled ) {
         onBodyEnter();
+    }
+    if ( _pseudoElementAfterChildIndex >= 0 ) {
+        if ( _pseudoElementAfterChildIndex != _element->getChildCount()-1 ) {
+            // Not the last child: move it there
+            // printf("moving After from %d to %d\n", _pseudoElementAfterChildIndex, _element->getChildCount()-1);
+            // moveItemsTo() just works to remove it, and re-add it (so, adding it at the end)
+            _element->moveItemsTo( _element, _pseudoElementAfterChildIndex, _pseudoElementAfterChildIndex);
+        }
     }
 //    if ( _element->getStyle().isNull() ) {
 //        lString16 path;
@@ -8400,7 +8515,9 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
 
 static bool isBoxingNode(ldomNode * node)
 {
-    return node->isBoxingNode();
+    // In the context this is used (xpointers), handle pseudoElems (that don't
+    // box anything) just as boxing nodes: ignoring them in XPointers.
+    return node->isBoxingNode(true);
 }
 
 static bool isTextNode(ldomNode * node)
@@ -8742,7 +8859,7 @@ lString16 ldomXPointer::toStringV2()
     ldomNode * node = getNode();
     int offset = getOffset();
     ldomNode * p = node;
-    if ( !node->isBoxingNode() ) {
+    if ( !node->isBoxingNode(true) ) { // (nor pseudoElem)
         if ( offset >= 0 ) {
             path << "." << fmt::decimal(offset);
         }
@@ -15377,7 +15494,7 @@ void ldomNode::setRendMethod( lvdom_element_render_method method )
 
 #if BUILD_LITE!=1
 /// returns element style record
-css_style_ref_t ldomNode::getStyle()
+css_style_ref_t ldomNode::getStyle() const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -15506,11 +15623,14 @@ void ldomNode::initNodeStyle()
 }
 #endif
 
-bool ldomNode::isBoxingNode()
+bool ldomNode::isBoxingNode( bool orPseudoElem ) const
 {
     if( isElement() ) {
         lUInt16 id = getNodeId();
         if( id >= el_autoBoxing && id <= el_inlineBox ) {
+            return true;
+        }
+        if ( orPseudoElem && id == el_pseudoElem ) {
             return true;
         }
     }
@@ -15525,12 +15645,16 @@ ldomNode * ldomNode::getUnboxedParent() const
     return parent;
 }
 
+// The following 4 methods are mostly used when checking CSS siblings/child
+// rules and counting list items siblings: we have them skip pseudoElems by
+// using isBoxingNode(orPseudoElem=true).
 ldomNode * ldomNode::getUnboxedFirstChild( bool skip_text_nodes ) const
 {
     for ( int i=0; i<getChildCount(); i++ ) {
         ldomNode * child = getChildNode(i);
-        if ( child && child->isBoxingNode() ) {
+        if ( child && child->isBoxingNode(true) ) {
             child = child->getUnboxedFirstChild( skip_text_nodes );
+            // (child will then be NULL if it was a pseudoElem)
         }
         if ( child && (!skip_text_nodes || !child->isText()) )
             return child;
@@ -15542,7 +15666,7 @@ ldomNode * ldomNode::getUnboxedLastChild( bool skip_text_nodes ) const
 {
     for ( int i=getChildCount()-1; i>=0; i-- ) {
         ldomNode * child = getChildNode(i);
-        if ( child && child->isBoxingNode() ) {
+        if ( child && child->isBoxingNode(true) ) {
             child = child->getUnboxedLastChild( skip_text_nodes );
         }
         if ( child && (!skip_text_nodes || !child->isText()) )
@@ -15603,16 +15727,16 @@ ldomNode * ldomNode::getUnboxedNextSibling( bool skip_text_nodes ) const
                 if ( !skip_text_nodes )
                     return n;
             }
-            else if ( !n->isBoxingNode() ) // Not a boxing node
+            else if ( !n->isBoxingNode(true) ) // Not a boxing node nor pseudoElem
                 return n;
-            // Otherwise, this node is a boxing node (or a text node with
-            // no child, and we'll get back to its parent)
+            // Otherwise, this node is a boxing node (or a text node or a pseudoElem
+            // with no child, and we'll get back to its parent)
         }
         // Enter next node, and re-loop to have it checked
         // - if !node_entered : n is the parent and index points to the next child
         //   we want to check
-        // - if n->isBoxingNode() (and node_entered=true, and index=0): enter
-        //   the first child of this boxingNode
+        // - if n->isBoxingNode() (and node_entered=true, and index=0): enter the first
+        //   child of this boxingNode (not if pseudoElem, that doesn't box anything)
         if ( (!node_entered || n->isBoxingNode()) && index < n->getChildCount() ) {
             n = n->getChildNode(index);
             index = 0;
@@ -15646,7 +15770,7 @@ ldomNode * ldomNode::getUnboxedPrevSibling( bool skip_text_nodes ) const
                 if ( !skip_text_nodes )
                     return n;
             }
-            else if ( !n->isBoxingNode() )
+            else if ( !n->isBoxingNode(true) )
                 return n;
         }
         if ( (!node_entered || n->isBoxingNode()) && index >= 0 && index < n->getChildCount() ) {

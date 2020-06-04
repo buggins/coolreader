@@ -2963,7 +2963,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         break;
                     }
                 }
-                // These might have no effect, but let's explicitely dropped them.
+                // These might have no effect, but let's explicitely drop them.
                 valign_dy = 0;
                 indent = 0;
                 // Note: a space just before or just after (because of a newline in
@@ -3001,14 +3001,14 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // Some elements add some generated content
             lUInt16 nodeElementId = enode->getNodeId();
             // Don't handle dir= for the erm_final (<p dir="auto"), as it would "isolate"
-            // the whole content from the bidi algorithm and we woulds get a default paragraph
+            // the whole content from the bidi algorithm and we would get a default paragraph
             // direction of LTR. It is handled directly in lvtextfm.cpp.
             bool hasDirAttribute = enode->hasAttribute( attr_dir ) && rm != erm_final
                                                 && rm != erm_table_caption && rm != erm_list_item;
             bool addGeneratedContent = hasDirAttribute ||
                                        nodeElementId == el_bdi ||
                                        nodeElementId == el_bdo ||
-                                       nodeElementId == el_q;
+                                       nodeElementId == el_pseudoElem;
             bool closeWithPDI = false;
             bool closeWithPDF = false;
             bool closeWithPDFPDI = false;
@@ -3019,20 +3019,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 LVFont * font = enode->getFont().get();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-                if ( nodeElementId == el_q ) {
-                    // Add default quoting opening char
-                    // We do not support showing a different char for multiple embedded <q>,
-                    // and neither the way to specify this with CSS, ie:
-                    //     q::before { content: open-quote; }
-                    //     :root { quotes: '\201c' '\201d' '\2018' '\2019'; }
-                    // Note: this specific char seem to not be mirrored (when using HarfBuzz) when
-                    // added to some RTL arabic text. But it appears that way with Firefox too!
-                    // But if we use another char (0x00AB / 0x00BB), it gets mirrored correctly.
-                    // Might be that HarfBuzz first substitute it with arabic quotes (which happen
-                    // to look inverted), and then mirror that?
-                    txform->AddSourceLine( L"\x201C", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
-                    flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
-                }
+
                 // The following is needed for fribidi to do the right thing when the content creator
                 // has provided hints to explicite ambiguous cases.
                 // <bdi> and <bdo> are HTML5 tags allowing to inform or override the bidi algorithm.
@@ -3053,16 +3040,16 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     //  leaving  => PDF PDI
                     // but it then doesn't have the intended effect (fribidi bug or limitation?)
                     if ( dir.compare("rtl") == 0 ) {
-                        // txform->AddSourceLine( L"\x2068\x202E", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        // txform->AddSourceLine( L"\x2068\x202E", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         // closeWithPDFPDI = true;
-                        txform->AddSourceLine( L"\x202E", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        txform->AddSourceLine( L"\x202E", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDF = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( dir.compare("ltr") == 0 ) {
-                        // txform->AddSourceLine( L"\x2068\x202D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        // txform->AddSourceLine( L"\x2068\x202D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         // closeWithPDFPDI = true;
-                        txform->AddSourceLine( L"\x202D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        txform->AddSourceLine( L"\x202D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDF = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
@@ -3075,17 +3062,17 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     //  dir=auto => FSI     U+2068  FIRST STRONG ISOLATE
                     //  leaving  => PDI     U+2069  POP DIRECTIONAL ISOLATE
                     if ( dir.compare("rtl") == 0 ) {
-                        txform->AddSourceLine( L"\x2067", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        txform->AddSourceLine( L"\x2067", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( dir.compare("ltr") == 0 ) {
-                        txform->AddSourceLine( L"\x2066", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        txform->AddSourceLine( L"\x2066", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( nodeElementId == el_bdi || dir.compare("auto") == 0 ) {
-                        txform->AddSourceLine( L"\x2068", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                        txform->AddSourceLine( L"\x2068", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
@@ -3105,6 +3092,19 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // be involved for drawing ruby), but lvtextfm could deal with these
                 // itself (by ignoring them in measurement, going back the previous
                 // advance, increasing the line height, drawing above...)
+
+                // BiDi stuff had to be outputed first, before any pseudo element
+                // (if <q dir="rtl">...</q>, the added quote (first child pseudo element)
+                // should be inside the RTL bidi isolation.
+                if ( nodeElementId == el_pseudoElem ) {
+                    lString16 content = get_applied_content_property(enode);
+                    if ( !content.empty() ) {
+                        int em = font->getSize();
+                        int letter_spacing = lengthToPx(style->letter_spacing, em, em);
+                        txform->AddSourceLine( content.c_str(), content.length(), cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, NULL, 0, letter_spacing);
+                        flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
+                    }
+                }
             }
 
             // is_link_start is given to inner elements (to flag the first
@@ -3125,22 +3125,17 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 LVFont * font = enode->getFont().get();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-                if ( nodeElementId == el_q ) {
-                    // Add default quoting closing char
-                    txform->AddSourceLine( L"\x201D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
-                    flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
-                }
                 // See comment above: these are the closing counterpart
                 if ( closeWithPDI ) {
-                    txform->AddSourceLine( L"\x2069", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                    txform->AddSourceLine( L"\x2069", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
                 else if ( closeWithPDFPDI ) {
-                    txform->AddSourceLine( L"\x202C\x2069", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                    txform->AddSourceLine( L"\x202C\x2069", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
                 else if ( closeWithPDF ) {
-                    txform->AddSourceLine( L"\x202C", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                    txform->AddSourceLine( L"\x202C", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
             }
@@ -3469,6 +3464,7 @@ void copystyle( css_style_ref_t source, css_style_ref_t dest )
     dest->float_ = source->float_;
     dest->clear = source->clear;
     dest->direction = source->direction;
+    dest->content = source->content ;
     dest->cr_hint = source->cr_hint;
 }
 
@@ -9043,6 +9039,33 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     if ( spread_background_color )
         spreadParent( pstyle->background_color, parent_style->background_color, true );
 
+    // See if applying styles requires pseudo element before/after
+    bool requires_pseudo_element_before = false;
+    bool requires_pseudo_element_after = false;
+    if ( pstyle->pseudo_elem_before_style ) {
+        if ( pstyle->pseudo_elem_before_style->display != css_d_none
+                && pstyle->pseudo_elem_before_style->content.length() > 0
+                && pstyle->pseudo_elem_before_style->content[0] != L'X' ) {
+            // Not "display: none" and with "content:" different than "none":
+            // this pseudo element can be generated
+            requires_pseudo_element_before = true;
+        }
+        delete pstyle->pseudo_elem_before_style;
+        pstyle->pseudo_elem_before_style = NULL;
+    }
+    if ( pstyle->pseudo_elem_after_style ) {
+        if ( pstyle->pseudo_elem_after_style->display != css_d_none
+                && pstyle->pseudo_elem_after_style->content.length() > 0
+                && pstyle->pseudo_elem_after_style->content[0] != L'X' ) {
+            // Not "display: none" and with "content:" different than "none":
+            // this pseudo element can be generated
+            requires_pseudo_element_after = true;
+        }
+        delete pstyle->pseudo_elem_after_style;
+        pstyle->pseudo_elem_after_style = NULL;
+    }
+    pstyle->flags = 0; // cleanup, before setStyle() adds it to cache
+
     // set calculated style
     //enode->getDocument()->cacheStyle( style );
     enode->setStyle( style );
@@ -9053,6 +9076,13 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
 
     // set font
     enode->initNodeFont();
+
+    // Now that this node is fully styled, ensure these pseudo elements
+    // are there as children, creating them if needed and possible
+    if ( requires_pseudo_element_before )
+        enode->ensurePseudoElement(true);
+    if ( requires_pseudo_element_after )
+        enode->ensurePseudoElement(false);
 }
 
 // Uncomment for debugging getRenderedWidths():
@@ -9072,12 +9102,12 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
     bool isStartNode = true; // we are starting measurement on that node
     // Start measurements and recursions:
     getRenderedWidths(node, maxWidth, minWidth, direction, ignoreMargin, rendFlags,
-        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, NULL, isStartNode);
+        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, NULL, false, isStartNode);
 }
 
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction, bool ignoreMargin, int rendFlags,
     int &curMaxWidth, int &curWordWidth, bool &collapseNextSpace, int &lastSpaceWidth,
-    int indent, TextLangCfg * lang_cfg, bool isStartNode)
+    int indent, TextLangCfg * lang_cfg, bool processNodeAsText, bool isStartNode)
 {
     // This does mostly what renderBlockElement, renderFinalBlock and lvtextfm.cpp
     // do, but only with widths and horizontal margin/border/padding and indent
@@ -9089,7 +9119,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
     // we only handle list-style-position/text-align combinations vs direction,
     // which have different rendering methods.)
 
-    if ( node->isElement() ) {
+    if ( node->isElement() && !processNodeAsText ) {
         int m = node->getRendMethod();
         if (m == erm_invisible)
             return;
@@ -9226,6 +9256,13 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     minWidth = _minw;
                 return;
             }
+            if ( node->getNodeId()==el_pseudoElem ) {
+                // pseudoElem has no children: reprocess this same node
+                // with processNodeAsText=true, to process its text content.
+                getRenderedWidths(node, maxWidth, minWidth, direction, false, rendFlags,
+                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg, true);
+                return;
+            }
             // Contains only other inline or text nodes:
             // add to our passed by ref *Width
             for (int i = 0; i < node->getChildCount(); i++) {
@@ -9351,6 +9388,12 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     getRenderedWidths(child, _maxWidth, _minWidth, direction, false, rendFlags,
                         curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg);
                     // A <BR/> can happen deep among our children, so we deal with that when erm_inline above
+                }
+                if ( node->getNodeId() == el_pseudoElem ) {
+                    // erm_final pseudoElem (which has no children): reprocess this same
+                    // node with processNodeAsText=true, to process its text content.
+                    getRenderedWidths(node, _maxWidth, _minWidth, direction, false, rendFlags,
+                        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg, true);
                 }
                 if (lastSpaceWidth)
                     curMaxWidth -= lastSpaceWidth;
@@ -9488,13 +9531,25 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         if (_minWidth > minWidth)
             minWidth = _minWidth;
     }
-    else if (node->isText() ) {
-        lString16 nodeText = node->getText();
+    else { // text or pseudoElem
+        lString16 text;
         int start = 0;
-        int len = nodeText.length();
+        int len = 0;
+        ldomNode * parent;
+        if ( node->isText() ) {
+            text = node->getText();
+            parent = node->getParentNode();
+        }
+        else if ( node->getNodeId() == el_pseudoElem ) {
+            text = get_applied_content_property(node);
+            parent = node; // this pseudoElem node carries the font and style of the text
+            if ( isStartNode ) {
+                lang_cfg = TextLangMan::getTextLangCfg( node ); // Fetch it from node or its parents
+            }
+        }
+        len = text.length();
         if ( len == 0 )
             return;
-        ldomNode *parent = node->getParentNode();
         // letter-spacing
         LVFont * font = parent->getFont().get();
         int em = font->getSize();
@@ -9503,16 +9558,16 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         // text-transform
         switch (parent_style->text_transform) {
             case css_tt_uppercase:
-                nodeText.uppercase();
+                text.uppercase();
                 break;
             case css_tt_lowercase:
-                nodeText.lowercase();
+                text.lowercase();
                 break;
             case css_tt_capitalize:
-                nodeText.capitalize();
+                text.capitalize();
                 break;
             case css_tt_full_width:
-                // nodeText.fullWidthChars(); // disabled for now (may change CJK rendering)
+                // text.fullWidthChars(); // disabled for now (may change CJK rendering)
                 break;
             case css_tt_none:
             case css_tt_inherit:
@@ -9525,10 +9580,10 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         bool pre = parent_style->white_space >= css_ws_pre;
         int space_width_scale_percent = pre ? 100 : parent->getDocument()->getSpaceWidthScalePercent();
         // measure text
-        const lChar16 * txt = nodeText.c_str();
+        const lChar16 * txt = text.c_str();
         #ifdef DEBUG_GETRENDEREDWIDTHS
-            printf("GRW text: |%s|\n", UnicodeToLocal(nodeText).c_str());
-            printf("GRW text:  (dumb text size=%d)\n", node->getParentNode()->getFont()->getTextWidth(txt, len));
+            printf("GRW text: |%s|\n", UnicodeToLocal(text).c_str());
+            printf("GRW text:  (dumb text size=%d)\n", font->getTextWidth(txt, len));
         #endif
         #define MAX_TEXT_CHUNK_SIZE 4096
         static lUInt16 widths[MAX_TEXT_CHUNK_SIZE+1];
@@ -9547,12 +9602,11 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         // line breaking rules between contiguous text nodes (but it's a bit
         // complicated to pass this lbCtx across calls...)
         struct LineBreakContext lbCtx;
-        lb_init_break_context(&lbCtx, 0x0020, NULL);
+        lb_init_break_context(&lbCtx, 0x200D, NULL); // ZERO WIDTH JOINER
         lbCtx.lbpLang = lang_cfg->getLBProps();
         lb_process_next_char(&lbCtx, (utf32_t)(*txt));
         #endif
         while (true) {
-            LVFont * font = node->getParentNode()->getFont().get();
             int chars_measured = font->measureText(
                     txt + start,
                     len,

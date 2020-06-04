@@ -146,6 +146,10 @@ u, ins                  { text-decoration: underline; }
 del, s, strike          { text-decoration: line-through; }
 a                       { text-decoration: underline; color: gray; }
 
+/* No support for the "quotes:" property, these will use default quote chars */
+q::before               { content: open-quote; }
+q::after                { content: close-quote; }
+
 nobr {
     display: inline;
     hyphens: none;

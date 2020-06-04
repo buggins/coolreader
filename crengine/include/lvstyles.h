@@ -85,20 +85,27 @@ enum css_style_rec_important_bit {
     imp_bit_float                 = 1ULL << 55,
     imp_bit_clear                 = 1ULL << 56,
     imp_bit_direction             = 1ULL << 57,
-    imp_bit_cr_hint               = 1ULL << 58
+    imp_bit_content               = 1ULL << 58,
+    imp_bit_cr_hint               = 1ULL << 59
 };
+
+// Style handling flags
+#define STYLE_REC_FLAG_MATCHED  0x01 // This style has had some stylesheet declaration matched and applied.
+                                     // Currently only used for a pseudo element style,
+                                     // see LVCssSelector::apply() if more generic usage needed.
 
 /**
     \brief Element style record.
 
     Contains set of style properties.
 */
-typedef struct css_style_rec_tag {
+typedef struct css_style_rec_tag css_style_rec_t;
+struct css_style_rec_tag {
     int                  refCount; // for reference counting
     lUInt32              hash; // cache calculated hash value here
     lUInt64              important;  // bitmap for !important (used only by LVCssDeclaration)
-                                     // we have currently below 59 css properties
-                                     // lvstsheet knows about 81, which are mapped to these 59
+                                     // we have currently below 60 css properties
+                                     // lvstsheet knows about 82, which are mapped to these 60
                                      // update bits above if you add new properties below
     lUInt64              importance; // bitmap for important bit's importance/origin
                                      // (allows for 2 level of !important importance)
@@ -147,7 +154,14 @@ typedef struct css_style_rec_tag {
     css_float_t            float_; // "float" is a C++ keyword...
     css_clear_t            clear;
     css_direction_t        direction;
+    lString16              content;
     css_cr_hint_t          cr_hint;
+    // The following should only be used when applying stylesheets while in lvend.cpp setNodeStyle(),
+    // and cleaned up there, before the style is cached and shared. They are not serialized.
+    lInt8                flags; // bitmap of STYLE_REC_FLAG_*
+    css_style_rec_t *    pseudo_elem_before_style;
+    css_style_rec_t *    pseudo_elem_after_style;
+
     css_style_rec_tag()
     : refCount(0)
     , hash(0)
@@ -192,6 +206,9 @@ typedef struct css_style_rec_tag {
     , clear(css_c_none)
     , direction(css_dir_inherit)
     , cr_hint(css_cr_hint_none)
+    , flags(0)
+    , pseudo_elem_before_style(NULL)
+    , pseudo_elem_after_style(NULL)
     {
         // css_length_t fields are initialized by css_length_tag()
         // to (css_val_screen_px, 0)
@@ -236,7 +253,7 @@ typedef struct css_style_rec_tag {
             if (is_important == 0x3) importance |= bit;
         }
     }
-} css_style_rec_t;
+};
 
 /// style record reference type
 typedef LVFastRef< css_style_rec_t > css_style_ref_t;
