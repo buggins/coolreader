@@ -171,6 +171,7 @@ LVDocView::LVDocView(int bitsPerPixel, bool noDefaultDocument) :
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 			, m_rotateAngle(CR_ROTATE_ANGLE_0)
 #endif
+			, m_section_bounds_externally_updated(false)
 			, m_section_bounds_valid(false), m_doc_format(doc_format_none),
 			m_callback(NULL), m_swapDone(false), m_drawBufferBits(
 					GRAY_BACKBUFFER_BITS) {
@@ -1527,7 +1528,15 @@ void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc,
 }
 
 /// returns section bounds, in 1/100 of percent
-LVArray<int> & LVDocView::getSectionBounds() {
+LVArray<int> & LVDocView::getSectionBounds( bool for_external_update ) {
+	if (for_external_update || m_section_bounds_externally_updated) {
+		// Progress bar markes will be externally updated: we don't care
+		// about m_section_bounds_valid and we never trash it here.
+		// It's the frontend responsability to notice it needs some
+		// update and to update it.
+		m_section_bounds_externally_updated = true;
+		return m_section_bounds;
+	}
 	if (m_section_bounds_valid)
 		return m_section_bounds;
 	m_section_bounds.clear();

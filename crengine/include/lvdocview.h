@@ -330,6 +330,7 @@ private:
 
     LVArray<int> m_section_bounds;
     bool m_section_bounds_valid;
+    bool m_section_bounds_externally_updated;
 
     LVMutex _mutex;
 #if CR_ENABLE_PAGE_IMAGE_CACHE==1
@@ -634,7 +635,7 @@ public:
     /// returns true if document is opened
     bool isDocumentOpened();
     /// returns section bounds, in 1/100 of percent
-    LVArray<int> & getSectionBounds( );
+    LVArray<int> & getSectionBounds( bool for_external_update=false );
     /// sets battery state
     virtual bool setBatteryState( int newState );
     /// returns battery state
