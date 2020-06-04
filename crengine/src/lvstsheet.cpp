@@ -1620,6 +1620,11 @@ static const char * css_cr_hint_names[]={
                             // baseline and height (it could have been a non-standard named
                             // value for line-height:, but we want to be able to not override
                             // existing line-height: values)
+
+        // Tweak text selection when traversing a node with these hints
+        "text-selection-inline", // don't add a '\n' before inner text, even if the node happens to be block
+        "text-selection-block",  // add a '\n' before inner text even if the node happens to be inline
+        "text-selection-skip",   // don't include inner text in text selection
         NULL
 };
 

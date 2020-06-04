@@ -11668,8 +11668,21 @@ public:
     {
 #if BUILD_LITE!=1
         ldomNode * elem = (ldomNode *)ptr->getNode();
-        if ( elem->getRendMethod()==erm_invisible )
+        if ( elem->getRendMethod() == erm_invisible )
             return false;
+        // Allow tweaking that with hints
+        css_cr_hint_t hint = elem->getStyle()->cr_hint;
+        if ( hint == css_cr_hint_text_selection_skip ) {
+            return false;
+        }
+        else if ( hint == css_cr_hint_text_selection_inline ) {
+            newBlock = false;
+            return true;
+        }
+        else if ( hint == css_cr_hint_text_selection_block ) {
+            newBlock = true;
+            return true;
+        }
         switch ( elem->getStyle()->display ) {
         /*
         case css_d_inherit:

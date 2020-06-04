@@ -350,7 +350,10 @@ enum css_cr_hint_t {
     css_cr_hint_toc_level5,
     css_cr_hint_toc_level6,
     css_cr_hint_toc_ignore,
-    css_cr_hint_strut_confined
+    css_cr_hint_strut_confined,
+    css_cr_hint_text_selection_inline,
+    css_cr_hint_text_selection_block,
+    css_cr_hint_text_selection_skip
 };
 
 /// css length value
