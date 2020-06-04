@@ -3155,7 +3155,9 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
                 lChar16 delimiter[] = {UNICODE_NO_BREAK_SPACE, UNICODE_NO_BREAK_SPACE}; //160
-                txform->AddSourceLine( delimiter, sizeof(delimiter)/sizeof(lChar16), cl, bgcl, font, lang_cfg, LTEXT_FLAG_OWNTEXT | LTEXT_RUNIN_FLAG, line_h, valign_dy, 0, NULL );
+                txform->AddSourceLine( delimiter, sizeof(delimiter)/sizeof(lChar16), cl, bgcl, font, lang_cfg,
+                                            LTEXT_RUNIN_FLAG | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
+                                            line_h, valign_dy, 0, NULL );
                 flags &= ~LTEXT_RUNIN_FLAG;
             }
         }
@@ -3192,7 +3194,9 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 LVFont * font = enode->getFont().get();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-                txform->AddSourceLine( L" ", 1, cl, bgcl, font, lang_cfg, baseflags | LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                txform->AddSourceLine( L" ", 1, cl, bgcl, font, lang_cfg,
+                                        baseflags | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
+                                        line_h, valign_dy);
                 // baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
                 // No need to clear the flag, as we set it just below
                 // (any LTEXT_ALIGN_* set implies LTEXT_FLAG_NEWLINE)
@@ -3252,7 +3256,9 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             LVFont * font = enode->getFont().get();
             lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
             lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-            txform->AddSourceLine( L" ", 1, cl, bgcl, font, lang_cfg, baseflags|LTEXT_SRC_IS_CLEAR_LAST|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+            txform->AddSourceLine( L" ", 1, cl, bgcl, font, lang_cfg,
+                            baseflags | LTEXT_SRC_IS_CLEAR_LAST | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
+                            line_h, valign_dy);
         }
     }
     else if ( enode->isText() ) {
