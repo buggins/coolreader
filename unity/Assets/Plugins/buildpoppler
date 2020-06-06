@@ -27,7 +27,7 @@ ARCH_NAME=arm64
 
   rm -f CMakeCache.txt 
 
-  cmake -DCMAKE_ANDROID_ARCH_ABI=$ARCH_ABI -DCMAKE_SYSTEM_NAME=Android -DJPEG_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/libjpeg/libjpeg.a -DFREETYPE_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/freetype/libfreetype.a -DCMAKE_CXX_FLAGS=-isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype/include\ -isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/libjpeg .. -DTESTDATADIR=test -DCMAKE_DISABLE_FIND_PACKAGE_NSS3=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_TIFF=TRUE -DENABLE_LIBOPENJPEG=none -DENABLE_CMS=none -DCMAKE_DISABLE_FIND_PACKAGE_Boost=TRUE -DCMAKE_PREFIX_PATH=/home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype -DENABLE_QT5=OFF -DCMAKE_DISABLE_FIND_PACKAGE_PNG=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE
+  cmake -DCMAKE_ANDROID_NDK=$ANDROID_NDK -DCMAKE_ANDROID_ARCH_ABI=$ARCH_ABI -DCMAKE_SYSTEM_NAME=Android -DJPEG_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/libjpeg/libjpeg.a -DFREETYPE_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/freetype/libfreetype.a -DCMAKE_CXX_FLAGS=-isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype/include\ -isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/libjpeg .. -DTESTDATADIR=test -DCMAKE_DISABLE_FIND_PACKAGE_NSS3=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_TIFF=TRUE -DENABLE_LIBOPENJPEG=none -DENABLE_CMS=none -DCMAKE_DISABLE_FIND_PACKAGE_Boost=TRUE -DCMAKE_PREFIX_PATH=/home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype -DENABLE_QT5=OFF -DCMAKE_DISABLE_FIND_PACKAGE_PNG=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE
 
   make clean
   make poppler poppler-cpp
@@ -51,7 +51,7 @@ ARCH_NAME=arm
 
   rm -f CMakeCache.txt 
 
-  cmake -DCMAKE_ANDROID_ARCH_ABI=$ARCH_ABI -DCMAKE_SYSTEM_NAME=Android -DJPEG_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/libjpeg/libjpeg.a -DFREETYPE_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/freetype/libfreetype.a -DCMAKE_CXX_FLAGS=-isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype/include\ -isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/libjpeg .. -DTESTDATADIR=test -DCMAKE_DISABLE_FIND_PACKAGE_NSS3=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_TIFF=TRUE -DENABLE_LIBOPENJPEG=none -DENABLE_CMS=none -DCMAKE_DISABLE_FIND_PACKAGE_Boost=TRUE -DCMAKE_PREFIX_PATH=/home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype -DENABLE_QT5=OFF -DCMAKE_DISABLE_FIND_PACKAGE_PNG=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE
+  cmake -DCMAKE_ANDROID_NDK=$ANDROID_NDK -DCMAKE_ANDROID_ARCH_ABI=$ARCH_ABI -DCMAKE_SYSTEM_NAME=Android -DJPEG_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/libjpeg/libjpeg.a -DFREETYPE_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/freetype/libfreetype.a -DCMAKE_CXX_FLAGS=-isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype/include\ -isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/libjpeg .. -DTESTDATADIR=test -DCMAKE_DISABLE_FIND_PACKAGE_NSS3=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_TIFF=TRUE -DENABLE_LIBOPENJPEG=none -DENABLE_CMS=none -DCMAKE_DISABLE_FIND_PACKAGE_Boost=TRUE -DCMAKE_PREFIX_PATH=/home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype -DENABLE_QT5=OFF -DCMAKE_DISABLE_FIND_PACKAGE_PNG=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE
 
   make clean
   make poppler poppler-cpp

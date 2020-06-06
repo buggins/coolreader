@@ -160,4 +160,13 @@ public class CoolReaderEngine : BookEngineInterface {
     instance.m.ReleaseMutex ();
     return result;
   }
+  
+  void BookEngineInterface.BEIDestroyBook (IntPtr handle)
+  {
+    instance.m.WaitOne ();
+    // FIXME
+    //criDocDestroy (handle);
+    instance.m.ReleaseMutex ();
+  }  
+  
 }

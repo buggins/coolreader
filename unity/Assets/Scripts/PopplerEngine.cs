@@ -51,6 +51,9 @@ public class PopplerEngine : BookEngineInterface {
   [DllImport ("PopplerInterface")]
   private static extern int popGetFontSize (IntPtr handle);
   
+  [DllImport ("PopplerInterface")]
+  private static extern void popDocDestroy (IntPtr handle);
+  
   public PopplerEngine ()
   {
     // force a singleton.
@@ -157,4 +160,11 @@ public class PopplerEngine : BookEngineInterface {
     instance.m.ReleaseMutex ();
     return result;
   }
+
+  void BookEngineInterface.BEIDestroyBook (IntPtr handle)
+  {
+    instance.m.WaitOne ();
+    popDocDestroy (handle);
+    instance.m.ReleaseMutex ();
+  }  
 }

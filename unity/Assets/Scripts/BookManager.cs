@@ -420,4 +420,18 @@ public class BookManager : MonoBehaviour {
   {
     return GetComponent <BookProperties> ().props.filename;
   }
+  
+  public void OnDestroy () 
+  {
+    Debug.Log ("Book is destroyed");
+    bookEngine.BEIDestroyBook (bookHandle);
+    bookHandle = IntPtr.Zero;
+    
+    Destroy (directRenderTexture);
+    Destroy (leftPage);
+    Destroy (rightPage);
+    Destroy (leftPageTurn);
+    Destroy (rightPageTurn);
+    Destroy (frontCover);
+  }
 }

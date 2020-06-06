@@ -15,6 +15,8 @@
 // The interface between unity and the cr3engine is provided through the functions listed.
 extern "C" {
   void * popDocViewCreate (int bitsPerPixel);
+  
+  void popDocDestroy (void * handle);
 
   bool popLoadDocument(void * handle, const char * fname, int width, int height);
   
@@ -66,6 +68,24 @@ void * popDocViewCreate (int bitsPerPixel)
   return phandle;
 }
 
+void popDocDestroy (void * handle)
+{
+  popDoc * phandle = (popDoc *) handle;
+  
+  if (phandle->coverBuf != NULL)
+  {
+    delete [] phandle->coverBuf;
+    phandle->coverBuf = NULL;
+  }
+  
+  if (phandle->doc != NULL)
+  {
+    delete phandle->doc;
+    phandle->doc = NULL;
+  }
+  
+  delete phandle;
+}
 
 // unity and 64 bit C alignment for strings seems a bit dodgy. Manually convert.
 char * remap (std::string & a)

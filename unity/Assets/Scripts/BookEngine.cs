@@ -17,6 +17,7 @@ interface BookEngineInterface
   int BEIRenderCover (IntPtr handle, IntPtr texture, int width, int height);
   int BEISetFontSize (IntPtr handle, int fontsize);
   int BEIGetFontSize (IntPtr handle);
+  void BEIDestroyBook (IntPtr handle);
 }
 
 // The class through which books are accessed. This class
@@ -290,4 +291,19 @@ public class BookEngine : BookEngineInterface {
     }
     return result;
   }
+  
+  void BookEngineInterface.BEIDestroyBook (IntPtr handle)
+  {
+    switch (format)
+    {
+      case BookFormat.coolreader:
+        cri.BEIDestroyBook (handle);
+        break;
+      case BookFormat.poppler:
+        pop.BEIDestroyBook (handle);
+        break;
+    }
+  }
+  
+  
 }
