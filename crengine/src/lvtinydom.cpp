@@ -9035,7 +9035,7 @@ lString16 extractDocTitle( ldomDocument * doc )
 
 lString16 extractDocLanguage( ldomDocument * doc )
 {
-    return doc->createXPointer(L"/FictionBook/description/title-info/lang").getText();
+    return doc->createXPointer(L"/FictionBook/description/title-info/lang").getText().trim();
 }
 
 lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber )
