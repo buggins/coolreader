@@ -71,3 +71,5 @@ Seascape, Alexander Alekseev aka TDM, 2014, https://www.shadertoy.com/view/Ms2SD
 Planks, Planks #07, StruffelProductions (Lennart Demes), https://cc0textures.com/view?tex=Planks07, 2017-2019, All assets released on CC0Textures.com fall under the Creative Commons CC0 license. You can use them for any purpose, for free, forever. There is no need to give credit.
 
 Organic, Abstract Organic 003, by Katsukagi on 23/09/2019, https://3dtextures.me/2019/09/23/abstract-organic-003/, All textures on this site are licensed as CC0.
+
+Galaxy Trip, Xavier Benech aka xbe, 2014-07-28, https://www.shadertoy.com/view/lslSDS, License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
