@@ -3301,11 +3301,14 @@ public:
         }
 
         // Fix up words position and width to ensure requested alignment and indent
-        // (no need to do that if light formatting, as this won't affect the
+        // No need to do that if light formatting, as this won't affect the
         // block height and floats positionning - is_reusable will be unset,
         // and any attempt at reusing this formatting for drawing will cause
-        // a non-light re-formatting)
-        if ( !m_pbuffer->light_formatting ) {
+        // a non-light re-formatting. Except when there are inlineBoxes in the
+        // text: we need to correctly position them to have their x/y saved
+        // in their RenderRectAccessor (so getRect() can work accurately before
+        // the page is drawn).
+        if ( !m_pbuffer->light_formatting || has_inline_boxes ) {
             alignLine( frmline, align, rightIndent, has_inline_boxes );
         }
 
