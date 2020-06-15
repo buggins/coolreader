@@ -4581,8 +4581,8 @@ public:
                     // No more child, get back to parent and have it process our sibling
                     nextChildIndex = n->getNodeIndex() + 1;
                     n = n->getParentNode();
-                    if ( n == node ) // all children done and back to top node
-                        break;
+                    if ( n == node && nextChildIndex >= n->getChildCount() )
+                        break; // back to top node and all its children visited
                 }
             }
             if ( rowNode ) {

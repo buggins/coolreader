@@ -15735,8 +15735,8 @@ ldomNode * ldomNode::getUnboxedLastChild( bool skip_text_nodes ) const
             // No more child, get back to parent and have it process our sibling
             index = n->getNodeIndex() + 1;
             n = n->getParentNode();
-            if ( n == topNode ) // all children done and back to top node
-                break;
+            if ( n == topNode && index >= n->getChildCount() )
+                break; // back to top node and all its children visited
         }
     }
 */
