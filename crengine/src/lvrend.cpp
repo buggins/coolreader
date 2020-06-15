@@ -470,10 +470,9 @@ public:
                     }
                     break;
                 case erm_list_item:     // obsolete rendering method (used only when gDOMVersionRequested < 20180524)
-                case erm_block:         // render as block element (render as containing other elements)
-                case erm_final:         // final element: render the whole it's content as single render block
-                case erm_mixed:         // block and inline elements are mixed: autobox inline portions of nodes; TODO
-                case erm_table_cell:    // table cell
+                case erm_block:         // render as block element (as containing other elements)
+                case erm_final:         // final element: render the whole of its content as single text block
+                    // Table cells became either erm_block or erm_final depending on their content
                     {
                         // <th> or <td> inside <tr>
 
@@ -3887,13 +3886,6 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                     return fmt.getHeight();
                 }
                 break;
-            case erm_mixed:
-                {
-                    // TODO: autoboxing not supported yet
-                    // (actually, erm_mixed is never used, and autoboxing
-                    // IS supported and done when needed)
-                }
-                break;
             case erm_table:
                 {
                     // ??? not sure
@@ -4106,7 +4098,6 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                 break;
             case erm_list_item: // obsolete rendering method (used only when gDOMVersionRequested < 20180524)
             case erm_final:
-            case erm_table_cell:
                 {
 
                     if ( style->display == css_d_list_item_block ) {
@@ -6982,7 +6973,6 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
             break;
         case erm_list_item: // obsolete rendering method (used only when gDOMVersionRequested < 20180524)
         case erm_final:
-        case erm_table_cell:
             {
                 // Deal with list item marker
                 int list_marker_padding = 0;;
@@ -7975,8 +7965,8 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
         doc_y += fmt.getY();
         lvdom_element_render_method rm = enode->getRendMethod();
         // A few things differ when done for TR, THEAD, TBODY and TFOOT
-        bool isTableRowLike = rm == erm_table_row || rm == erm_table_row_group ||
-                              rm == erm_table_header_group || rm == erm_table_footer_group;
+        // (erm_table_row_group, erm_table_header_group, erm_table_footer_group, erm_table_row)
+        bool isTableRowLike = rm >= erm_table_row_group && rm <= erm_table_row;
 
         // Check if this node has content to be shown on viewport
         int height = fmt.getHeight();

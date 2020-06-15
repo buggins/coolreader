@@ -4091,7 +4091,6 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                 case erm_block:              *stream << "B";     break;
                 case erm_final:              *stream << "F";     break;
                 case erm_inline:             *stream << "i";     break;
-                case erm_mixed:              *stream << "M";     break; // not implemented
                 case erm_list_item:          *stream << "L";     break; // no more used
                 case erm_table:              *stream << "T";     break;
                 case erm_table_row_group:    *stream << "TRG";   break;
@@ -4100,7 +4099,6 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                 case erm_table_row:          *stream << "TR";    break;
                 case erm_table_column_group: *stream << "TCG";   break;
                 case erm_table_column:       *stream << "TC";    break;
-                case erm_table_cell:         *stream << "tcell"; break; // never stays erm_table_cell (becomes block or final)
                 case erm_table_caption:      *stream << "tcap";  break;
                 case erm_runin:              *stream << "R";     break;
                 default:                     *stream << "?";     break;
@@ -5571,13 +5569,11 @@ int initTableRendMethods( ldomNode * enode, int state )
         }
         else if ( state==3 ) { // in row
             if ( d==css_d_table_cell ) {
-                child->setRendMethod( erm_table_cell );
+                // This will set the rend method of the cell to either erm_block
+                // or erm_final, depending on its content.
+                child->initNodeRendMethodRecursive();
                 cellCount++;
                 is_proper = true;
-                // This will reset the rend method we just set (erm_table_cell)
-                // to the most appropriate one (erm_final or erm_block) for
-                // rendering, depending on the cell content:
-                child->initNodeRendMethodRecursive();
             }
             else if ( d==css_d_none ) {
                 child->setRendMethod( erm_invisible );
@@ -5588,9 +5584,10 @@ int initTableRendMethods( ldomNode * enode, int state )
                 #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
                     printf("initTableRendMethods(3): (reused)wrapping unproper > cell\n");
                 #endif
-                child->setRendMethod( erm_table_cell );
-                cellCount++;
+                // This will set the rend method of the cell to either erm_block
+                // or erm_final, depending on its content.
                 child->initNodeRendMethodRecursive();
+                cellCount++;
                 is_proper = true;
             }
         }
@@ -5676,9 +5673,10 @@ int initTableRendMethods( ldomNode * enode, int state )
                 }
                 else if ( state==3 ) {
                     tbox->initNodeStyle();
-                    tbox->setRendMethod( erm_table_cell );
+                    // This will set the rend method of the cell to either erm_block
+                    // or erm_final, depending on its content.
+                    tbox->initNodeRendMethodRecursive();
                     cellCount++;
-                    tbox->initNodeRendMethodRecursive(); // will reset rend method
                 }
                 else if ( state==1 ) { // should not happen, see above
                     tbox->initNodeStyle();
@@ -10998,7 +10996,6 @@ ldomNode * ldomXPointerEx::getThisBlockNode()
         case erm_runin: // treat as separate block
         case erm_block:
         case erm_final:
-        case erm_mixed:
         case erm_list_item: // no more used (obsolete rendering method)
         case erm_table:
         case erm_table_row_group:
@@ -12321,7 +12318,7 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar1
     // we translate these deprecated attributes to their style equivalents:
     //
     // HTML valign= => CSS vertical-align: only for TH & TD (as lvrend.cpp
-    // only uses it with erm_table_cell)
+    // only uses it with table cells (erm_final or erm_block))
     if (id == el_th || id == el_td) {
         // Default rendering for cells is valign=top
         // There is no support for valign=baseline.
@@ -12335,7 +12332,7 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar1
         }
     }
     // HTML width= => CSS width: only for TH, TD and COL (as lvrend.cpp
-    // only uses it with erm_table_cell and erm_table_column)
+    // only uses it with erm_table_column and table cells)
     // Note: with IMG, lvtextfm LFormattedText::AddSourceObject() only uses
     // style, and not attributes: <img width=100 height=50> would not be used.
     if (id == el_th || id == el_td || id == el_col) {
@@ -15366,8 +15363,8 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
 
         // Styles margins set on <TR>, <THEAD> and the like are ignored
         // by table layout algorithm (as per CSS specs)
-        bool ignore_margins = ( rm == erm_table_row || rm == erm_table_row_group ||
-                                rm == erm_table_header_group || rm == erm_table_footer_group );
+        // (erm_table_row_group, erm_table_header_group, erm_table_footer_group, erm_table_row)
+        bool ignore_margins = rm >= erm_table_row_group && rm <= erm_table_row;
 
         int top_margin = ignore_margins ? 0 : lengthToPx(enode->getStyle()->margin[2], fmt.getWidth(), enode->getFont()->getSize());
         if ( pt.y < fmt.getY() - top_margin) {
