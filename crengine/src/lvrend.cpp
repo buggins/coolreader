@@ -2136,10 +2136,7 @@ LVFontRef getFont(css_style_rec_t * style, int documentId)
 lUInt32 styleToTextFmtFlags( const css_style_ref_t & style, lUInt32 oldflags, int direction )
 {
     lUInt32 flg = oldflags;
-    if ( style->display == css_d_run_in ) {
-        flg |= LTEXT_RUNIN_FLAG;
-    } //else
-    if (style->display != css_d_inline) {
+    if (style->display > css_d_inline) {
         // text alignment flags
         flg = oldflags & ~LTEXT_FLAG_NEWLINE;
         if ( !(oldflags & LTEXT_RUNIN_FLAG) ) {
@@ -2192,6 +2189,9 @@ lUInt32 styleToTextFmtFlags( const css_style_ref_t & style, lUInt32 oldflags, in
                 break;
             }
         }
+    }
+    else if ( style->display == css_d_run_in ) {
+        flg |= LTEXT_RUNIN_FLAG;
     }
     // We should clean these flags that we got from the parent node via baseFlags:
     // CSS white-space inheritance is correctly handled via styles (so, no need
@@ -8680,7 +8680,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         // not yet got its float_ from its child. So the ->display of the floatBox
         // element will have to be updated too elsewhere.
         if ( pstyle->float_ == css_f_left || pstyle->float_ == css_f_right ) {
-            if ( pstyle->display == css_d_inline ) {
+            if ( pstyle->display <= css_d_inline ) {
                 pstyle->display = css_d_block;
             }
         }
@@ -8708,7 +8708,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
                     // We do as in ldomNode::initNodeRendMethod() when the floatBox
                     // is already there (on re-renderings):
                     pstyle->float_ = child_style->float_;
-                    if (child_style->display == css_d_inline) { // when !PREPARE_FLOATBOXES
+                    if (child_style->display <= css_d_inline) { // when !PREPARE_FLOATBOXES
                         pstyle->display = css_d_inline; // become an inline wrapper
                     }
                     else if (child_style->display == css_d_none) {
@@ -8754,7 +8754,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
                                             // (no other possible value yet, no need to compare strings)
                         pstyle->display = css_d_inline; // wrap bogus "block among inlines" in inline
                     }
-                    else if (child_style->display == css_d_inline) {
+                    else if (child_style->display <= css_d_inline) {
                         pstyle->display = css_d_inline; // wrap inline in inline
                     }
                     else if (child_style->display == css_d_none) {

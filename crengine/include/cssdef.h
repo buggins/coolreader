@@ -22,17 +22,18 @@
 
 // The order of items in following enums should match the order in the tables in src/lvstsheet.cpp
 /// display property values
+
+// Especially don't change the order of these ones, as we use "style->display > css_d_something" like tests
 enum css_display_t {
-    css_d_inherit,
-    css_d_inline,
+    css_d_inherit, // Inheritance not implemented: should not be seen, unless specified in CSS, which then behave as inline
+    css_d_run_in,  // Rarely used display type (but used as a solution to inline FB2 footnotes)
+    css_d_inline,  // All elements starts being css_d_inline, unless otherwise specified in fb2def.h
+    // Above are those that define a mostly inline container, below those that define a mostly block container
     css_d_block,
     css_d_list_item,        // display: -cr-list-item-final (was used before 20180524 for display: list-item)
     css_d_list_item_block,  // display: list-item
     css_d_inline_block,
     css_d_inline_table, // (needs to be before css_d_table, as we use tests like if: (style->display > css_d_table))
-    css_d_run_in, 
-    css_d_compact, 
-    css_d_marker, 
     css_d_table, 
     css_d_table_row_group, 
     css_d_table_header_group, 

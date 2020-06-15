@@ -1324,15 +1324,13 @@ static void resolve_url_path( lString8 & str, lString16 codeBase ) {
 static const char * css_d_names[] = 
 {
     "inherit",
+    "run-in",
     "inline",
     "block",
     "-cr-list-item-final", // non-standard, legacy crengine rendering of list items as final: css_d_list_item
     "list-item",           // correct rendering of list items as block: css_d_list_item_block
     "inline-block",
     "inline-table",
-    "run-in", 
-    "compact", 
-    "marker", 
     "table", 
     "table-row-group", 
     "table-header-group", 

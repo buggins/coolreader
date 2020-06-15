@@ -87,7 +87,7 @@ int gDOMVersionRequested     = DOM_VERSION_CURRENT;
 #define CACHE_FILE_FORMAT_VERSION "3.12.63"
 
 /// increment following value to force re-formatting of old book after load
-#define FORMATTING_VERSION_ID 0x0023
+#define FORMATTING_VERSION_ID 0x0024
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -4931,33 +4931,10 @@ static bool isBlockNode( ldomNode * node )
     if ( !node->isElement() )
         return false;
 #if BUILD_LITE!=1
-    switch ( node->getStyle()->display )
-    {
-    case css_d_block:
-    case css_d_inline_block:
-    case css_d_inline_table:
-    case css_d_list_item:
-    case css_d_list_item_block:
-    case css_d_table:
-    case css_d_table_row:
-    case css_d_table_row_group:
-    case css_d_table_header_group:
-    case css_d_table_footer_group:
-    case css_d_table_column_group:
-    case css_d_table_column:
-    case css_d_table_cell:
-    case css_d_table_caption:
-        return true;
-
-    case css_d_inherit:
-    case css_d_inline:
-    case css_d_run_in:
-    case css_d_compact:
-    case css_d_marker:
-    case css_d_none:
-        break;
+    if ( node->getStyle()->display <= css_d_inline || node->getStyle()->display == css_d_none ) {
+        return false;
     }
-    return false;
+    return true;
 #else
     return true;
 #endif
@@ -5662,7 +5639,7 @@ int initTableRendMethods( ldomNode * enode, int state )
                     // be rendered and drawn quite correctly be. But we'll
                     // have the others drawn as erm_killed, showing a small
                     // symbol so users know some content is missing.
-                    if ( d > css_d_table || d == css_d_inline ) {
+                    if ( d > css_d_table || d <= css_d_inline ) {
                         child->setRendMethod( erm_killed );
                     }
                     // Note that there are other situations where some content
@@ -6507,7 +6484,7 @@ void ldomNode::initNodeRendMethod()
                 css_style_ref_t my_new_style( new css_style_rec_t );
                 copystyle(my_style, my_new_style);
                 my_new_style->float_ = child_style->float_;
-                if (child_style->display == css_d_inline) { // when !PREPARE_FLOATBOXES
+                if (child_style->display <= css_d_inline) { // when !PREPARE_FLOATBOXES
                     my_new_style->display = css_d_inline; // become an inline wrapper
                 }
                 else if (child_style->display == css_d_none) {
@@ -6648,7 +6625,7 @@ void ldomNode::initNodeRendMethod()
                     my_new_style->display = css_d_inline; // wrap bogus "block among inlines" in inline
                     setRendMethod( erm_inline );
                 }
-                else if (child_style->display == css_d_inline) {
+                else if (child_style->display <= css_d_inline) {
                     my_new_style->display = css_d_inline; // wrap inline in inline
                     setRendMethod( erm_inline );
                 }
@@ -11685,34 +11662,18 @@ public:
             return true;
         }
         switch ( elem->getStyle()->display ) {
-        /*
-        case css_d_inherit:
-        case css_d_block:
-        case css_d_list_item:
-        case css_d_list_item_block:
-        case css_d_compact:
-        case css_d_marker:
-        case css_d_table:
-        case css_d_table_row_group:
-        case css_d_table_header_group:
-        case css_d_table_footer_group:
-        case css_d_table_row:
-        case css_d_table_column_group:
-        case css_d_table_column:
-        case css_d_table_cell:
-        case css_d_table_caption:
-        */
-        default:
-            newBlock = true;
-            return true;
-        case css_d_none:
-            return false;
-        case css_d_inline:
-        case css_d_run_in:
-        case css_d_inline_block: // Make these behave as inline, in case they don't contain much
-        case css_d_inline_table: // (if they do, some inner block element will give newBlock=true)
-            newBlock = false;
-            return true;
+            case css_d_none:
+                return false;
+            case css_d_inherit:
+            case css_d_run_in:
+            case css_d_inline:
+            case css_d_inline_block: // Make these behave as inline, in case they don't contain much
+            case css_d_inline_table: // (if they do, some inner block element will give newBlock=true)
+                newBlock = false;
+                return true;
+            default:
+                newBlock = true;
+                return true;
         }
 #else
         newBlock = true;
