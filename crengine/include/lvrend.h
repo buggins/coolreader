@@ -36,10 +36,12 @@
 #define RENDER_RECT_FLAG_NO_CLEAR_OWN_FLOATS                0x0020
 #define RENDER_RECT_FLAG_FINAL_FOOTPRINT_AS_SAVED_FLOAT_IDS 0x0040
 #define RENDER_RECT_FLAG_FLOATBOX_IS_RIGHT                  0x0080
+#define RENDER_RECT_FLAG_NO_INTERLINE_SCALE_UP              0x0100 // for ruby elements to not scale up
 
-#define RENDER_RECT_SET_FLAG(r, f)   ( r.setFlags( r.getFlags() | RENDER_RECT_FLAG_##f ) )
-#define RENDER_RECT_UNSET_FLAG(r, f) ( r.setFlags( r.getFlags() & ~RENDER_RECT_FLAG_##f ) )
-#define RENDER_RECT_HAS_FLAG(r, f)   ( (bool)(r.getFlags() & RENDER_RECT_FLAG_##f) )
+#define RENDER_RECT_SET_FLAG(r, f)     ( r.setFlags( r.getFlags() | RENDER_RECT_FLAG_##f ) )
+#define RENDER_RECT_UNSET_FLAG(r, f)   ( r.setFlags( r.getFlags() & ~RENDER_RECT_FLAG_##f ) )
+#define RENDER_RECT_HAS_FLAG(r, f)     ( (bool)(r.getFlags() & RENDER_RECT_FLAG_##f) )
+#define RENDER_RECT_PTR_HAS_FLAG(r, f) ( (bool)(r->getFlags() & RENDER_RECT_FLAG_##f) )
 
 #define RENDER_RECT_FLAG_DIRECTION_MASK                     0x0007
 #define RENDER_RECT_SET_DIRECTION(r, d)   ( r.setFlags( r.getFlags() | d ) )
@@ -130,7 +132,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
 /// renders table element
 int renderTable( LVRendPageContext & context, ldomNode * element, int x, int y, int width,
                  bool shrink_to_fit, int & fitted_width, int direction=REND_DIRECTION_UNSET,
-                 bool pb_inside_avoid=false, bool enhanced_rendering=false );
+                 bool pb_inside_avoid=false, bool enhanced_rendering=false, bool is_ruby_table=false );
 /// sets node style
 void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef parent_font );
 /// copy style

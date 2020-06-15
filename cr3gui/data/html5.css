@@ -112,7 +112,6 @@ sub, sup {
   font-size: smaller;
 }
 
-/* crengine? : these display: ruby* would fallback to 'inline', should it be 'none' ? */
 ruby {
   display: ruby;
 }
@@ -140,6 +139,22 @@ rtc {
 
 ruby, rb, rt, rbc, rtc {
   unicode-bidi: isolate;
+}
+
+/* crengine+: additionally needed for prettier Ruby support */
+ruby {
+    /* These will have no effect when ruby is reset to display: inline */
+    text-align: center;
+    text-indent: 0;
+}
+rb, rubyBox[T=rb] {
+    line-height: 1;
+}
+rt, rubyBox[T=rt] {
+    line-height: 1.2;
+    font-size: 50%;
+    font-variant-east-asian: ruby;
+    -cr-hint: text-selection-skip;
 }
 
 /* crengine-: not supported
@@ -254,7 +269,7 @@ pre[dir=auto i] {
 */
 
 /* Quotes */
-/* crengine-: not supported
+/* crengine-: not supported, but proper quote by language ensured by textlang.cpp
 :root {
   quotes: '\201c' '\201d' '\2018' '\2019';
 }

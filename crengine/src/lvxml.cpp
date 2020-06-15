@@ -5863,7 +5863,25 @@ lString16 LVReadTextFile( LVStreamRef stream )
     return buf;
 }
 
-
+// In the following list of autoclose definitions, there are 2 forms:
+// Either: {"hr", NULL}
+//    meaning this element auto-closes itself
+// Or: {"ul", "li", "p", NULL}
+//    meaning that when "ul" is about to be inserted in the DOM as a child of
+//    the current node, we check the current node and up its parent until we
+//    find one that is listed among the followup list of tags: ["li", "p"] (we
+//    stop at the first one found).
+//    If none found: fine, nothing special to do, go on inserting it here.
+//    If one found, autoclose current node, and its parent nodes up to the found
+//    node, found node included. And then insert the new element as a child of that
+//    found node's parent (so the new element becomes a sibling of that found node).
+//    i.e:
+//    {"li", "li", "p", NULL}: a new <li> appearing inside (even deep inside)
+//        another <li> or <p> will close it to become a sibling of this <li> or <p>
+//    {"ul", "li", "p", NULL}: a new <ul> appearing inside (even deep inside)
+//        another <li> or <p> will close it to become a sibling of this <li> or <p>,
+//        so possibly a child of the <ul> that is the parent of the <li>, or
+//        a child of the <div> that is the parent of the <p>.
 static const char * AC_P[]  = {"p", "p", "hr", NULL};
 static const char * AC_COL[] = {"col", NULL};
 static const char * AC_LI[] = {"li", "li", "p", NULL};
@@ -5887,6 +5905,11 @@ static const char * AC_TFOOT[] = {"tfoot", "tr", "thead", "tfoot", "tbody", NULL
 static const char * AC_TBODY[] = {"tbody", "tr", "thead", "tfoot", "tbody", NULL};
 static const char * AC_OPTION[] = {"option", "option", NULL};
 static const char * AC_PRE[] = {"pre", "pre", NULL};
+static const char * AC_RBC[] = {"rbc", "rbc", "rb", "rtc", "rt", NULL};
+static const char * AC_RTC[] = {"rtc", "rtc", "rt", "rbc", "rb", NULL};
+static const char * AC_RB[] = {"rb", "rb", "rt", "rtc", NULL};
+static const char * AC_RT[] = {"rt", "rt", "rb", "rbc", NULL};
+static const char * AC_RP[] = {"rp", "rp", "rb", "rt", NULL};
 static const char * AC_INPUT[] = {"input", NULL};
 static const char * AC_AREA[] = {"area", NULL};
 static const char * AC_BASE[] = {"base", NULL};
@@ -5928,6 +5951,11 @@ HTML_AUTOCLOSE_TABLE[] = {
     AC_TFOOT,
     AC_TBODY,
     AC_TABLE,
+    AC_RBC,
+    AC_RTC,
+    AC_RB,
+    AC_RT,
+    AC_RP,
     NULL
 };
 // Note: AC_TD and AC_TR may kill a table nested inside an other table,

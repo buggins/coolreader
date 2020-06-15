@@ -26,6 +26,7 @@
 // Especially don't change the order of these ones, as we use "style->display > css_d_something" like tests
 enum css_display_t {
     css_d_inherit, // Inheritance not implemented: should not be seen, unless specified in CSS, which then behave as inline
+    css_d_ruby,    // Behave as inline, but inner content might be wrapped in a table like structure
     css_d_run_in,  // Rarely used display type (but used as a solution to inline FB2 footnotes)
     css_d_inline,  // All elements starts being css_d_inline, unless otherwise specified in fb2def.h
     // Above are those that define a mostly inline container, below those that define a mostly block container

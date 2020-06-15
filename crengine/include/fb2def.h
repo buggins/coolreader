@@ -36,6 +36,8 @@ XS_BEGIN_TAGS
 XS_TAG1T( autoBoxing )
 // Internal element for tabular elements added to complete incomplete tables
 XS_TAG1T( tabularBox )
+// Internal element for ruby wrapping completion (so we can render them as inline-table with tweaks)
+XS_TAG1I( rubyBox )
 // Internal element for float rendering
 XS_TAG1T( floatBox )
 // Internal element for inline-block and inline-table rendering
@@ -165,6 +167,14 @@ XS_TAG1I( tt )
 XS_TAG1I( u )
 XS_TAG1I( var )
 
+// Ruby elements (defaults to inline)
+XS_TAG1D( ruby, true, css_d_ruby, css_ws_normal )
+XS_TAG1I( rbc ) // no more in HTML5, but in 2001's https://www.w3.org/TR/ruby/
+XS_TAG1I( rtc )
+XS_TAG1I( rb )
+XS_TAG1I( rt )
+XS_TAG1I( rp )
+
 // EPUB3 elements (in ns_epub - otherwise set to inline like any unknown element)
 XS_TAG1I( switch )  // <epub:switch>
 XS_TAG1I( case )    // <epub:case required-namespace="...">
@@ -242,6 +252,7 @@ XS_ATTR( width )
 XS_ATTR( height )
 XS_ATTR( colspan )
 XS_ATTR( rowspan )
+XS_ATTR( rbspan )
 XS_ATTR( align )
 XS_ATTR( valign )
 XS_ATTR( currency )

@@ -84,7 +84,7 @@ int gDOMVersionRequested     = DOM_VERSION_CURRENT;
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
 // increment to force complete reload/reparsing of old file
-#define CACHE_FILE_FORMAT_VERSION "3.12.63"
+#define CACHE_FILE_FORMAT_VERSION "3.12.64"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0024
@@ -5729,6 +5729,12 @@ bool ldomNode::isBoxingInlineBox() const
             if (d == css_d_inline_block || d == css_d_inline_table) {
                 return true;
             }
+            // Also if this box parent is <ruby> and if what this inlineBox
+            // contains (probably a rubyBox) is being rendered as erm_table
+            if ( getChildNode(0)->getRendMethod() == erm_table && getParentNode()
+                        && getParentNode()->getStyle()->display == css_d_ruby ) {
+                return true;
+            }
             return isEmbeddedBlockBoxingInlineBox(true); // avoid rechecking what we just checked
         }
     }
@@ -5748,6 +5754,10 @@ bool ldomNode::isEmbeddedBlockBoxingInlineBox(bool inline_box_checks_done) const
         css_display_t d = getChildNode(0)->getStyle()->display;
         if (d == css_d_inline_block || d == css_d_inline_table) {
             return false; // regular boxing inlineBox
+        }
+        if ( getChildNode(0)->getRendMethod() == erm_table && getParentNode()
+                    && getParentNode()->getStyle()->display == css_d_ruby ) {
+            return false; // inlineBox wrapping a rubyBox as a child of <ruby>
         }
     }
     if ( hasAttribute( attr_T ) ) { // T="EmbeddedBlock"
@@ -5935,6 +5945,18 @@ void ldomNode::initNodeRendMethod()
                 }
             }
         }
+    } else if ( d==css_d_ruby ) {
+        // This will be dealt in a big section below. For now, reset everything
+        // to inline as ruby is only allowed to contain inline content.
+        // We don't support the newer display: values like ruby-base, ruby-text...,
+        // but only "display: ruby" which is just set on the <ruby> element
+        // (which allows us to have it reset back to "display: inline" if we
+        // don't wan't ruby support).
+        //   recurseElements( resetRendMethodToInline );
+        // Or may be not: looks like we can support <ruby> inside <ruby>,
+        // so allow that; and probably anything nested, as we'll handle
+        // that just like a table cell content.
+        setRendMethod(erm_inline);
     } else if ( d==css_d_run_in ) {
         // runin
         //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
@@ -6423,6 +6445,369 @@ void ldomNode::initNodeRendMethod()
                 // and everything will be reset to erm_inline. The parent DIV
                 // will just see that it contains a single erm_inline SPAN,
                 // and won't do any boxing.
+            }
+        }
+    }
+
+    if ( d == css_d_ruby && BLOCK_RENDERING_G(ENHANCED) ) {
+        // Ruby input can be quite loose and have various tag strategies (mono/group,
+        // interleaved/tabular, double sided). Moreover, the specs have evolved between
+        // 2001 and 2020 (<rbc> tag no more mentionned in 2020; <rtc> being just another
+        // semantic container for Mozilla, and can be preceded by a bunch of <rt> which
+        // are pronunciation containers, that don't have to be in an <rtc>...)
+        // Moreover, various samples on the following pages don't close tags, and expect
+        // the HTML parser to do that. We do that only when parsing .html files, but
+        // we don't when parsing .epub files as they are expected to be balanced XHTML.
+        //
+        // References:
+        //  https://www.w3.org/International/articles/ruby/markup
+        //  https://www.w3.org/TR/ruby-use-cases/ differences between XHTML, HTML5 & HTML Extensions
+        //  https://www.w3.org/TR/ruby/ Ruby Annotation, 2001
+        //  http://darobin.github.io/html-ruby/ HTML Ruby Markup Extensions, 2015
+        //  https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-ruby-element HTML Living standard
+        //  https://drafts.csswg.org/css-ruby/ CSS Ruby Layout, 2020
+        //  https://developer.mozilla.org/en-US/docs/Web/HTML/Element/rtc
+        //  https://chenhuijing.com/blog/html-ruby/ All about the HTML <ruby> element (in 2016)
+        //  https://github.com/w3c/html/issues/291 How to handle legacy Ruby content that may use <rbc>?
+        //  https://w3c.github.io/i18n-tests/results/ruby-html Browsers support
+        //
+        // We can handle quite a few of these variations with the following strategy.
+        //
+        // We want a <ruby> (which will stay inline) to only contain inlineBox>rubyBox elements
+        // that will be set up to be rendered just as an inline-table:
+        //   <ruby, "display: ruby", erm_inline>
+        //     <inlineBox, erm_inline>  [1 or more, 1 per ruby segment]
+        //       <rubyBox, erm_table>   [1]
+        //         <rbc or rubyBox, erm_table_row>  [1]
+        //           <rb or rubyBox, erm_final> base text </rb or /rubyBox>  [1 or more]
+        //         </rbc or /rubyBox>
+        //         <rtc or rubyBox, erm_table_row>  [1 or more, usually 1 or 2]
+        //           <rt or rubyBox, erm_final> annotation text </rt or /rubyBox>  [1 or more]
+        //         </rtc or /rubyBox>
+        //       </rubyBox>
+        //     </inlineBox>
+        //     [some possible empty space text nodes between ruby segments]
+        //   </ruby>
+        //
+        // (The re-ordering of the table rows, putting the first "rtc" above the "rbc",
+        // will be done in renderTable(), as it is just needed there in its own internal
+        // table data structures. The DOM will stay in its original order: the "rbc"
+        // staying before followup "rtc", which will give us the correct baseline to use
+        // for the whole structure: the baseline of the "rbc".
+        //
+        // We need to build all this when we meet a simple:
+        //   <ruby>text1<rt>annot1</rt>text2<rt>annot2</rt> </ruby>
+        // The only element we'll nearly always find inside a <ruby> is <rt>,
+        // (but we can find sometimes a single <rtc> with no <rt>).
+        //
+        // One thing we might not handle well is white-space, which, depending on where
+        // it happens, should be dropped or not. We drop some by putting it between table
+        // elements, we keep some by putting it between the inlineBoxes, but not really
+        // according to the complex rules in https://drafts.csswg.org/css-ruby/#box-fixup
+        //
+        // Some other notes:
+        // - We can style some ruby elements, including some of the rubyBox we add, with:
+        //     rt, rubyBox[T=rt] { font-size: 50%; font-variant-east-asian: ruby; }
+        //     rubyBox { border: 1px solid green; }
+        // - Note that on initial loading (HTML parsing, and this boxing here happening,
+        //   the real ruby sub-elements present in the HTML will already be there in the
+        //   DOM and have their style set, possibly inherited from their parent (the <ruby>
+        //   element) *before* this boxing is happening. If we add a rubyBox, and it
+        //   becomes the parent of a rb or rt, these rb or rt won't inherite from the
+        //   rubyBox (that we may style). They also won't get styled by CSS selectors
+        //   like "rubyBox > rt".
+        //   But on a next re-renderings, as the DOM is kept, all this will happen.
+        //   So: avoid such rules, and avoid setting inherit'able properties to
+        //   the rubyBox elements; otherwise we may get different look on initial
+        //   loading and on subsequent re-renderings.
+        // - With some ruby constructs, the behaviour and rendering might be different
+        //   whether we're parsing a HTML file or an EPUB file:
+        //   - the HTML parser is able to auto-close tags, which is needed with most
+        //     of the samples in the above URLs (but may fail on nested ruby with
+        //     unbalanced tags, as auto-closing in one ruby might kill the other).
+        //   - the EPUB XHTML parser expects balanced tags, and may work with nested
+        //     ruby, but will not process ruby with unbalanced tags.
+
+        // To make things easier to follow below (with the amount of nested rubyBoxes...),
+        // we name the variables used to hold each of them:
+        //   ibox1 : the inlineBox wrapping the 1st level rubyBox that will be erm_table (inline-table)
+        //   rbox1 : the 1st level rubyBox that will be erm_table
+        //   rbox2 : the 2nd level rubyBox that will be erm_table_row, like existing <rbc> and <rtc>
+        //   rbox3 : the 3rd level rubyBox that will be a table cell (erm_final or erm_block), like existing <rb> and <rt>
+
+        // Check if we have already wrapped: we should contain only <inlineBox>'ed <rubyBox>es
+        // Note that <ruby style="display: ruby"> is all that is required to trigger this. When
+        // wanting to disable ruby support, it's enough to just set <ruby> to "display: inline":
+        // a change in "display:" value will cause a nodeDisplayStyleHash mismatch, and propose
+        // a full reload with DOM rebuild, which will forget all the rubyBox we added.
+        bool needs_wrapping = true;
+        int len = getChildCount();
+        for ( int i=0; i<len; i++ ) {
+            ldomNode * child = getChildNode(i);
+            if ( child->isElement() && child->getNodeId() == el_inlineBox
+                    && child->getChildCount() > 0 && child->getChildNode(0)->getNodeId() == el_rubyBox ) {
+                // If we find one <inlineBox><rubyBox>, we created that previously and we ensured
+                // there are only rubyBoxes, empty text nodes, or some trailing inline nodes
+                // not followed by a <rt>: no need for more checks and work.
+                needs_wrapping = false;
+                break;
+            }
+        }
+        if ( needs_wrapping ) {
+            // 1) Wrap everything up to (and including consecutive ones) <rt> <rtc> <rp>
+            // into <inlineBox><rubyBox>, and continue doing it after that.
+            int first_to_wrap = -1;
+            int last_to_wrap = -1;
+            for ( int i=0; i<=len; i++ ) {
+                ldomNode * child;
+                lInt16 elemId;
+                bool eoc = i == len; // end of children
+                if ( !eoc ) {
+                    child = getChildNode(i);
+                    if ( child->isElement() ) {
+                        elemId = child->getNodeId();
+                    }
+                    else {
+                        lString16 s = child->getText();
+                        elemId = IsEmptySpace(s.c_str(), s.length()) ? -2 : -1;
+                        // When meeting an empty space (elemId==-2), we'll delay wrapping
+                        // decision to when we process the next node.
+                        // We'll also not start a wrap with it.
+                    }
+                }
+                if ( last_to_wrap >= 0 && (eoc || (elemId != el_rt && elemId != el_rtc && elemId != el_rp && elemId != -2) ) ) {
+                    if ( first_to_wrap < 0 )
+                        first_to_wrap = 0;
+                    ldomNode * rbox1 = boxWrapChildren(first_to_wrap, last_to_wrap, el_rubyBox);
+                    if ( rbox1 && !rbox1->isNull() ) {
+                        // Set an attribute for the kind of container we made (Ruby Segment)
+                        // so we can style it via CSS.
+                        rbox1->setAttributeValue(LXML_NS_NONE, attr_T, L"rseg");
+                        rbox1->initNodeStyle();
+                        // Update loop index and end
+                        int removed = last_to_wrap - first_to_wrap;
+                        i = i - removed;
+                        len = len - removed;
+                        // And wrap this rubyBox in an inlineBox
+                        ldomNode * ibox1 = insertChildElement( first_to_wrap, LXML_NS_NONE, el_inlineBox );
+                        moveItemsTo( ibox1, first_to_wrap+1, first_to_wrap+1 );
+                        ibox1->initNodeStyle();
+                    }
+                    first_to_wrap = -1;
+                    last_to_wrap = -1;
+                    if (eoc)
+                        break;
+                }
+                if ( elemId == -1 ) { // isText(), non empty
+                    if ( first_to_wrap < 0 ) {
+                        first_to_wrap = i;
+                    }
+                }
+                else if ( elemId == -2 ) { // isText(), empty
+                    // Don't start a wrap on it
+                }
+                else {
+                    if ( first_to_wrap < 0 ) {
+                        first_to_wrap = i;
+                    }
+                    if ( elemId == el_rt || elemId == el_rtc || elemId == el_rp ) {
+                        last_to_wrap = i;
+                        // Don't wrap yet: there can be followup other RT/RTC
+                    }
+                }
+            }
+            // 2) Enter each rubyBox we have created (they will be inline-table),
+            // and wrap its content as needed to make rows (of rubyBox, rbc and rtc)
+            // and cells (of rubyBox, rb and rt).
+            len = getChildCount();
+            for ( int i=0; i<len; i++ ) {
+                ldomNode * ibox1 = getChildNode(i);
+                if ( !ibox1->isElement() || ibox1->getNodeId() != el_inlineBox )
+                    continue;
+                ldomNode * rbox1 = ibox1->getChildCount() > 0 ? ibox1->getChildNode(0) : NULL;
+                if ( !rbox1 || !rbox1->isElement() || rbox1->getNodeId() != el_rubyBox )
+                    continue;
+                // (Each rbox1 will be set erm_table)
+                int len1 = rbox1->getChildCount();
+                int first_to_wrap = -1;
+                bool ruby_base_wrap_done = false;
+                bool ruby_base_present = false;
+                for ( int i1=0; i1<=len1; i1++ ) {
+                    ldomNode * child;
+                    lInt16 elemId;
+                    bool eoc = i1 == len1; // end of children
+                    if ( !eoc ) {
+                        child = rbox1->getChildNode(i1);
+                        if ( child->isElement() ) {
+                            elemId = child->getNodeId();
+                        }
+                        else {
+                            lString16 s = child->getText();
+                            elemId = IsEmptySpace(s.c_str(), s.length()) ? -2 : -1;
+                            // When meeting an empty space (elemId==-2), we'll delay wrapping
+                            // decision to when we process the next node.
+                            // We'll also not start a wrap with it.
+                        }
+                    }
+                    if ( first_to_wrap >= 0 && (
+                                    eoc
+                                 || ( !ruby_base_wrap_done && (elemId == el_rtc || elemId == el_rt || elemId == el_rp) )
+                                 || (  ruby_base_wrap_done && elemId == el_rtc )
+                                ) ) {
+                        ldomNode * rbox2 = rbox1->boxWrapChildren(first_to_wrap, i1-1, el_rubyBox);
+                        if ( rbox2 && !rbox2->isNull() ) {
+                            // Set an attribute for the kind of container we made (<rbc> or <rtc>-like),
+                            // so we can style it like real <rbc> and <rtc> via CSS.
+                            rbox2->setAttributeValue(LXML_NS_NONE, attr_T, ruby_base_wrap_done ? L"rtc" : L"rbc");
+                            rbox2->initNodeStyle();
+                            // Update loop index and end
+                            int removed = i1-1 - first_to_wrap;
+                            i1 = i1 - removed;
+                            len1 = len1 - removed;
+                        }
+                        first_to_wrap = -1;
+                        if ( !eoc && !ruby_base_wrap_done ) {
+                            ruby_base_present = true; // We did create it
+                        }
+                        if (eoc)
+                            break;
+                    }
+                    if ( elemId == -1 ) { // isText(), non empty
+                        if ( first_to_wrap < 0 ) {
+                            first_to_wrap = i1;
+                        }
+                    }
+                    else if ( elemId == -2 ) { // isText(), empty
+                        // Don't start a wrap on it
+                    }
+                    else {
+                        if ( elemId == el_rbc || elemId == el_rtc ) {
+                            // These are fine containers at this level.
+                            // (If el_rbc, we shouldn't have found anything before
+                            // it; if we did, just ignore it.)
+                            first_to_wrap = -1;
+                            ruby_base_wrap_done = true;
+                            if ( elemId == el_rbc )
+                                ruby_base_present = true;
+                        }
+                        else if ( first_to_wrap < 0 ) {
+                            first_to_wrap = i1;
+                            if ( elemId == el_rt || elemId == el_rp ) {
+                                ruby_base_wrap_done = true;
+                            }
+                        }
+                    }
+                }
+                if ( !ruby_base_present ) {
+                    // <ruby><rt>annotation</rt></ruby> : add rubyBox for empty base text
+                    ldomNode * rbox2 = rbox1->insertChildElement( 0, LXML_NS_NONE, el_rubyBox );
+                    rbox2->setAttributeValue(LXML_NS_NONE, attr_T, L"rbc");
+                    rbox2->initNodeStyle();
+                }
+                // rbox1 now contains only <rbc>, <rtc> or <rubyBox> (which will be set erm_table_row)
+                // 3) for each, ensure its content is <rb>, <rt>, and if not, wrap it in
+                // a <rubyBox> (these will be all like table cells, set erm_final)
+                len1 = rbox1->getChildCount();
+                bool ruby_base_seen = false;
+                for ( int i1=0; i1<len1; i1++ ) {
+                    ldomNode * rbox2 = rbox1->getChildNode(i1);
+                    if ( !rbox2->isElement() )
+                        continue;
+                    lInt16 elemId = rbox2->getNodeId();
+                    lInt16 expected_child_elem_id;
+                    if ( elemId == el_rbc ) {
+                        expected_child_elem_id = el_rb;
+                    }
+                    else if ( elemId == el_rtc ) {
+                        expected_child_elem_id = el_rt;
+                    }
+                    else if ( elemId == el_rubyBox ) {
+                        expected_child_elem_id = ruby_base_seen ? el_rt : el_rb;
+                    }
+                    else { // unexpected
+                        continue;
+                    }
+                    ruby_base_seen = true; // We're passing by a container, the first one being the base
+                    bool has_expected = false;
+                    int len2 = rbox2->getChildCount();
+                    for ( int i2=0; i2<len2; i2++ ) {
+                        ldomNode * child = rbox2->getChildNode(i2);
+                        lInt16 childElemId = child->isElement() ? child->getNodeId() : -1;
+                        if ( childElemId == expected_child_elem_id ) {
+                            // If a single expected is found, assume everything is fine
+                            // (other badly wrapped elements will just be ignored and invisible)
+                            has_expected = true;
+                            break;
+                        }
+                    }
+                    if ( !has_expected ) {
+                        // Wrap everything into a rubyBox
+                        if ( len2 > 0 ) { // some children to wrap
+                            ldomNode * rbox3 = rbox2->boxWrapChildren(0, len2-1, el_rubyBox);
+                            if ( rbox3 && !rbox3->isNull() ) {
+                                rbox3->setAttributeValue(LXML_NS_NONE, attr_T, expected_child_elem_id == el_rb ? L"rb" : L"rt");
+                                if ( elemId == el_rtc ) {
+                                    // Firefox makes a <rtc>text</rtc> (without any <rt>) span the whole involved base
+                                    rbox3->setAttributeValue(LXML_NS_NONE, attr_rbspan, L"99"); // (our max supported)
+                                }
+                                rbox3->initNodeStyle();
+                            }
+                        } else { // no child to wrap
+                            // We need to insert an empty element to play the role of a <td> for
+                            // the table rendering code to work correctly.
+                            ldomNode * rbox3 = rbox2->insertChildElement( 0, LXML_NS_NONE, el_rubyBox );
+                            rbox3->setAttributeValue(LXML_NS_NONE, attr_T, expected_child_elem_id == el_rb ? L"rb" : L"rt");
+                            rbox3->initNodeStyle();
+                            // We need to add some text for the cell to ensure its height.
+                            // We add a ZERO WIDTH SPACE, which will not collapse into nothing
+                            rbox3->insertChildText(L"\x200B");
+                        }
+                    }
+                }
+            }
+        }
+        // All wrapping done, or assumed to have already been done correctly.
+        // We can set the rendering methods to make all this a table.
+        // All unexpected elements will be erm_invisible
+        len = getChildCount();
+        for ( int i=0; i<len; i++ ) {
+            ldomNode * ibox1 = getChildNode(i);
+            if ( !ibox1->isElement() || ibox1->getNodeId() != el_inlineBox )
+                continue;
+            ibox1->setRendMethod( erm_inline );
+            ldomNode * rbox1 = ibox1->getChildCount() > 0 ? ibox1->getChildNode(0) : NULL;
+            if ( rbox1 && rbox1->isElement() && rbox1->getNodeId() == el_rubyBox ) {
+                // First level rubyBox: each will be an inline table
+                rbox1->setRendMethod( erm_table );
+                int len1 = rbox1->getChildCount();
+                for ( int i1=0; i1<len1; i1++ ) {
+                    ldomNode * rbox2 = rbox1->getChildNode(i1);
+                    if ( rbox2->isElement() ) {
+                        rbox2->setRendMethod( erm_invisible );
+                        lInt16 rb2elemId = rbox2->getNodeId();
+                        if ( rb2elemId == el_rubyBox || rb2elemId == el_rbc || rb2elemId == el_rtc ) {
+                            // Second level rubyBox: each will be a table row
+                            rbox2->setRendMethod( erm_table_row );
+                            int len2 = rbox2->getChildCount();
+                            for ( int i2=0; i2<len2; i2++ ) {
+                                ldomNode * rbox3 = rbox2->getChildNode(i2);
+                                if ( rbox3->isElement() ) {
+                                    rbox3->setRendMethod( erm_invisible );
+                                    lInt16 rb3elemId = rbox3->getNodeId();
+                                    if ( rb3elemId == el_rubyBox || rb3elemId == el_rb || rb3elemId == el_rt ) {
+                                        // Third level rubyBox: each will be a table cell.
+                                        // (As all it content has previously been reset to erm_inline)
+                                        //  /\ This is no more true, but we expect to find inline
+                                        //  content, with possibly some nested ruby.
+                                        // We can have the cell erm_final.
+                                        rbox3->setRendMethod( erm_final );
+                                    }
+                                    // We let <rp> be invisible like other unexpected elements
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -11658,6 +12043,7 @@ public:
             case css_d_none:
                 return false;
             case css_d_inherit:
+            case css_d_ruby:
             case css_d_run_in:
             case css_d_inline:
             case css_d_inline_block: // Make these behave as inline, in case they don't contain much

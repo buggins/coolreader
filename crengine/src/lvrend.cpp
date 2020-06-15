@@ -326,6 +326,7 @@ public:
     bool shrink_to_fit;
     bool avoid_pb_inside;
     bool enhanced_rendering;
+    bool is_ruby_table;
     ldomNode * elem;
     ldomNode * caption;
     int caption_h;
@@ -497,6 +498,14 @@ public:
                             cell->colspan=cs;
                         } else {
                             cs=1;
+                        }
+                        if ( is_ruby_table ) { // rbspan works just as colspan
+                            int cs=StrToIntPercent(item->getAttributeValue(attr_rbspan).c_str());
+                            if (cs>0 && cs<100) {
+                                cell->colspan=cs;
+                            } else {
+                                cs=1;
+                            }
                         }
                         int rs=StrToIntPercent(item->getAttributeValue(attr_rowspan).c_str());
                         if (rs>0 && rs<100) {
@@ -1469,6 +1478,8 @@ public:
                         int padding_bottom = lengthToPx( elem_style->padding[3], cell->width, em ) + measureBorder(cell->elem,2);
                         RenderRectAccessor fmt( cell->elem );
                         fmt.setWidth( cell->width ); // needed before calling elem->renderFinalBlock
+                        if ( is_ruby_table )
+                            RENDER_RECT_SET_FLAG(fmt, NO_INTERLINE_SCALE_UP);
                         if ( enhanced_rendering ) {
                             // As done in renderBlockElementEnhanced when erm_final
                             fmt.setInnerX( padding_left );
@@ -2024,7 +2035,7 @@ public:
     }
 
     CCRTable(ldomNode * tbl_elem, int tbl_width, bool tbl_shrink_to_fit, int tbl_direction, bool tbl_avoid_pb_inside,
-                                bool tbl_enhanced_rendering, int dwidth) : digitwidth(dwidth) {
+                                bool tbl_enhanced_rendering, int dwidth, bool tbl_is_ruby_table) : digitwidth(dwidth) {
         currentRowGroup = NULL;
         caption = NULL;
         caption_h = 0;
@@ -2036,20 +2047,26 @@ public:
         is_rtl = direction == REND_DIRECTION_RTL;
         avoid_pb_inside = tbl_avoid_pb_inside;
         enhanced_rendering = tbl_enhanced_rendering;
+        is_ruby_table = tbl_is_ruby_table;
         #ifdef DEBUG_TABLE_RENDERING
             printf("TABLE: ============ parsing new table %s\n",
                 UnicodeToLocal(ldomXPointer(elem, 0).toString()).c_str());
         #endif
         LookupElem( tbl_elem, direction, 0 );
+        if ( is_ruby_table && rows.length() >= 2 ) {
+            // Move 2nd row (first ruby annotation) to 1st position,
+            // so base ruby text (initially 1st row) becomes 2nd
+            rows.move(0, 1);
+        }
         PlaceCells();
     }
 };
 
 int renderTable( LVRendPageContext & context, ldomNode * node, int x, int y, int width, bool shrink_to_fit,
-                 int & fitted_width, int direction, bool avoid_pb_inside, bool enhanced_rendering )
+                 int & fitted_width, int direction, bool avoid_pb_inside, bool enhanced_rendering, bool is_ruby_table )
 {
     CR_UNUSED2(x, y);
-    CCRTable table( node, width, shrink_to_fit, direction, avoid_pb_inside, enhanced_rendering, 10 );
+    CCRTable table( node, width, shrink_to_fit, direction, avoid_pb_inside, enhanced_rendering, 10, is_ruby_table );
     int h = table.renderCells( context );
     if (shrink_to_fit)
         fitted_width = table.table_width;
@@ -2544,8 +2561,16 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         // Scale line_h according to gInterlineScaleFactor, but not if
         // it was already in screen_px, which means it has already been
         // scaled (in setNodeStyle() when inherited).
-        if (style->line_height.type != css_val_screen_px && gInterlineScaleFactor != INTERLINE_SCALE_FACTOR_NO_SCALE)
-            line_h = (line_h * gInterlineScaleFactor) >> INTERLINE_SCALE_FACTOR_SHIFT;
+        if ( style->line_height.type != css_val_screen_px && gInterlineScaleFactor != INTERLINE_SCALE_FACTOR_NO_SCALE ) {
+            if ( RENDER_RECT_PTR_HAS_FLAG(fmt, NO_INTERLINE_SCALE_UP)
+                    && gInterlineScaleFactor > INTERLINE_SCALE_FACTOR_NO_SCALE ) {
+                // Don't scale up (for <ruby> content, so we can increase interline to make
+                // the text breath without spreading ruby annotations on the space gained)
+            }
+            else {
+                line_h = (line_h * gInterlineScaleFactor) >> INTERLINE_SCALE_FACTOR_SHIFT;
+            }
+        }
 
         if ((flags & LTEXT_FLAG_NEWLINE) && rm == erm_final) {
             // Top and single 'final' node (unless in the degenarate case
@@ -4543,6 +4568,12 @@ public:
             //
             // Try to find the first table row, looking at descendants of the
             // provided node (which must be the top node of this FlowState).
+            //
+            // Note: this is still valid with ruby internal wrapping in
+            // a table: even if we switched the 2 first rows in the internal
+            // structures used when rendering the table, we look here at the
+            // DOM, where the base text is still the first erm_table_row.
+            //
             // Walk the tree up and down (avoid the need for recursion):
             ldomNode * n = node;
             ldomNode * rowNode = NULL;
@@ -6631,10 +6662,15 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 //   table {width: auto !important} to have tables shrink to their content
                 int table_width = width;
                 int fitted_width = -1;
+                bool is_ruby_table = false;
+                if ( enode->getParentNode()->isBoxingInlineBox() && enode->getParentNode()->getParentNode()
+                        && enode->getParentNode()->getParentNode()->getStyle()->display == css_d_ruby ) {
+                    is_ruby_table = true;
+                }
                 // renderTable has not been updated to use 'flow', and it looks
                 // like it does not really need to.
                 int h = renderTable( *(flow->getPageContext()), enode, 0, flow->getCurrentRelativeY(),
-                            table_width, table_shrink_to_fit, fitted_width, direction, avoid_pb_inside, true );
+                            table_width, table_shrink_to_fit, fitted_width, direction, avoid_pb_inside, true, is_ruby_table );
                 // (It feels like we don't need to ensure a table specified height.)
                 fmt.setHeight( h );
                 // Update table width if it was fitted/shrunk
@@ -8766,6 +8802,16 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
             else {
                 pstyle->display = orig_elem_display;
             }
+        }
+    }
+
+    // Avoid some new features when migration to normalized xpointers has not yet been done
+    if ( gDOMVersionRequested < DOM_VERSION_WITH_NORMALIZED_XPOINTERS ) {
+        // display: ruby may wrap the element content in many inlineBox/rubyBox.
+        // Avoid that until migrated to normalized xpointers by handling
+        // them as css_d_inline like before ruby support.
+        if ( pstyle->display == css_d_ruby ) {
+            pstyle->display = css_d_inline;
         }
     }
 

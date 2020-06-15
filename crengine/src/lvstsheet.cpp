@@ -1324,6 +1324,7 @@ static void resolve_url_path( lString8 & str, lString16 codeBase ) {
 static const char * css_d_names[] = 
 {
     "inherit",
+    "ruby",
     "run-in",
     "inline",
     "block",
@@ -3822,14 +3823,14 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
             // a few ones that are added explicitely by crengine): we need
             // to lowercase them here too to expect a match.
             lString16 element(ident);
-            if ( element.length() < 8 ) {
+            if ( element.length() < 7 ) {
                 // Avoid following string comparisons if element name string
-                // is shorter than the shortest of them (floatBox)
+                // is shorter than the shortest of them (rubyBox)
                 element = element.lowercase();
             }
             else if ( element != "DocFragment" && element != "autoBoxing" && element != "tabularBox" &&
-                      element != "floatBox"    && element != "inlineBox"  && element != "pseudoElem" &&
-                      element != "FictionBook" ) {
+                      element != "rubyBox"     && element != "floatBox"   && element != "inlineBox"  &&
+                      element != "pseudoElem"  && element != "FictionBook" ) {
                 element = element.lowercase();
             }
             _id = doc->getElementNameIndex( element.c_str() );
