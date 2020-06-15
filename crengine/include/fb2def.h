@@ -266,6 +266,11 @@ XS_ATTR( role )
 XS_ATTR( dir )
 XS_ATTR( lang )
 XS_ATTR( recindex ) // used with mobi images
+// Note that attributes parsed in the HTML are lowercased, unlike the ones
+// we explicitely set while building the DOM. So, for our internal elements
+// needs, let's use some uppercase to avoid conflicts with HTML content
+// and the risk to have them matched by publishers CSS selectors.
+XS_ATTR( T )      // to flag subtype of boxing internal elements if needed
 XS_ATTR( Before ) // for pseudoElem internal element
 XS_ATTR( After )  // for pseudoElem internal element
 // Other classic attributes present in html5.css

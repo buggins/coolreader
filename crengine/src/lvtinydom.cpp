@@ -5778,7 +5778,7 @@ bool ldomNode::isEmbeddedBlockBoxingInlineBox(bool inline_box_checks_done) const
             return false; // regular boxing inlineBox
         }
     }
-    if ( hasAttribute( attr_type ) ) { // type="EmbeddedBlock"
+    if ( hasAttribute( attr_T ) ) { // T="EmbeddedBlock"
             // (no other possible value yet, no need to compare strings)
         int cm = getChildNode(0)->getRendMethod();
         if ( cm == erm_inline || cm == erm_runin || cm == erm_invisible || cm == erm_killed )
@@ -5866,7 +5866,7 @@ void ldomNode::initNodeRendMethod()
         }
         else if ( !isNotBoxWrappingNode(this) ) {
             // If this node is already a box wrapping node (active floatBox or inlineBox,
-            // possibly a <inlineBox type="EmbeddedBlock"> created here in a previous
+            // possibly a <inlineBox T="EmbeddedBlock"> created here in a previous
             // rendering), just set it to erm_inline.
             setRendMethod(erm_inline);
         }
@@ -5919,7 +5919,7 @@ void ldomNode::initNodeRendMethod()
                 }
                 if ( do_wrap_blocks ) {
                     // We have a mix of inline nodes or non-empty text, and block elements:
-                    // wrap each block element in a <inlineBox type="EmbeddedBlock">.
+                    // wrap each block element in a <inlineBox T="EmbeddedBlock">.
                     for ( int i=getChildCount()-1; i >=0; i-- ) {
                         ldomNode * child = getChildNode( i );
                         if ( !child->isElement() ) // text node
@@ -5956,7 +5956,7 @@ void ldomNode::initNodeRendMethod()
                         ldomNode * ibox = insertChildElement( i, LXML_NS_NONE, el_inlineBox );
                         moveItemsTo( ibox, i+1, i+1 ); // move this child from 'this' into ibox
                         // Mark this inlineBox so we can handle its pecularities
-                        ibox->setAttributeValue(LXML_NS_NONE, getDocument()->getAttrNameIndex(L"type"), L"EmbeddedBlock");
+                        ibox->setAttributeValue(LXML_NS_NONE, attr_T, L"EmbeddedBlock");
                         setNodeStyle( ibox, getStyle(), getFont() );
                         ibox->setRendMethod( erm_inline );
                     }

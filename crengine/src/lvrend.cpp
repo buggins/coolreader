@@ -6070,7 +6070,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     bool is_inline_box_child = enode->getParentNode() && enode->getParentNode()->isBoxingInlineBox();
 
     // In the business of computing width and height, we should handle a bogus
-    // embedded block (<inlineBox type="EmbeddedBlock">) (and its child) just
+    // embedded block (<inlineBox T="EmbeddedBlock">) (and its child) just
     // like any normal block element (taking the full width of its container
     // if no specified width, without the need to get its rendered width).
     if ( is_inline_box && enode->isEmbeddedBlockBoxingInlineBox(true) ) {
@@ -8744,13 +8744,13 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
                     // is already there (on re-renderings):
                     // (If this is an inlineBox in the initial XML loading phase,
                     // child is necessarily css_d_inline_block or css_d_inline_table,
-                    // or this node is <inlineBox type=EmbeddedBlock>.
+                    // or this node is <inlineBox T=EmbeddedBlock>.
                     // The following 'else's should never trigger.
                     if (child_style->display == css_d_inline_block || child_style->display == css_d_inline_table) {
                         pstyle->display = css_d_inline; // become an inline wrapper
                         pstyle->vertical_align = child_style->vertical_align;
                     }
-                    else if ( enode->hasAttribute( attr_type ) ) { // type="EmbeddedBlock"
+                    else if ( enode->hasAttribute( attr_T ) ) { // T="EmbeddedBlock"
                                             // (no other possible value yet, no need to compare strings)
                         pstyle->display = css_d_inline; // wrap bogus "block among inlines" in inline
                     }
