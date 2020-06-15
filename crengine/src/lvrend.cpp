@@ -2128,10 +2128,10 @@ LVFontRef getFont(css_style_rec_t * style, int documentId)
     return fnt;
 }
 
-lUInt32 styleToTextFmtFlags( const css_style_ref_t & style, lUInt32 oldflags, int direction )
+lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt32 oldflags, int direction )
 {
     lUInt32 flg = oldflags;
-    if (style->display > css_d_inline) {
+    if ( is_block ) {
         // text alignment flags
         flg = oldflags & ~LTEXT_FLAG_NEWLINE;
         if ( !(oldflags & LTEXT_RUNIN_FLAG) ) {
@@ -2471,7 +2471,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         // - with block nodes (so, only with the first "final" node, and not
         //   when recursing its children which are inline), it will also set
         //   horitontal alignment flags.
-        lUInt32 flags = styleToTextFmtFlags( enode->getStyle(), baseflags, direction );
+        bool is_block = rm == erm_final;
+        lUInt32 flags = styleToTextFmtFlags( is_block, enode->getStyle(), baseflags, direction );
         // Note:
         // - baseflags (passed by reference) is shared and re-used by this node's siblings
         //   (all inline); it should carry newline/horizontal aligment flag, which should
@@ -2886,7 +2887,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             bool isBlock = style->display == css_d_block;
             if ( isBlock ) {
                 // If block image, forget any current flags and start from baseflags (?)
-                lUInt32 flags = styleToTextFmtFlags( enode->getStyle(), baseflags, direction );
+                lUInt32 flags = styleToTextFmtFlags( true, enode->getStyle(), baseflags, direction );
                 //txform->AddSourceLine(L"title", 5, 0x000000, 0xffffff, font, baseflags, interval, margin, NULL, 0, 0);
                 LVFont * font = enode->getFont().get();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;

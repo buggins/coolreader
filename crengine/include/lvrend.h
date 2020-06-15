@@ -119,7 +119,7 @@ void initFormatData( ldomNode * node );
 /// initializes rendering method for node
 int initRendMethod( ldomNode * node, bool recurseChildren, bool allowAutoboxing );
 /// converts style to text formatting API flags
-lUInt32 styleToTextFmtFlags( const css_style_ref_t & style, lUInt32 oldflags, int direction=REND_DIRECTION_UNSET );
+lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt32 oldflags, int direction=REND_DIRECTION_UNSET );
 /// renders block as single text formatter object
 void renderFinalBlock( ldomNode * node, LFormattedText * txform, RenderRectAccessor * fmt, lUInt32 & flags,
                        int indent, int line_h, TextLangCfg * lang_cfg=NULL, int valign_dy=0, bool * is_link_start=NULL );
