@@ -3806,6 +3806,10 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
         {
             _id = 0;
         }
+        else if ( *str == '[' ) // attribute selector follows
+        {
+            _id = 0;
+        }
         else if ( *str == '#' ) // node Id follows
         {
             _id = 0; // (elementName internal id)
