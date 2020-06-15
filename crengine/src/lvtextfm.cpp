@@ -1993,7 +1993,7 @@ public:
             #endif
         }
         if ( tabIndex >= 0 && m_srcs[0]->indent < 0) {
-            // Used by obsolete rendering method erm_list_item when css_lsp_outside,
+            // Used by obsolete rendering of css_d_list_item_legacy when css_lsp_outside,
             // where the marker width is provided as negative/hanging indent.
             int tabPosition = -m_srcs[0]->indent; // has been set to marker_width
             if ( tabPosition>0 && tabPosition > m_widths[tabIndex] ) {
@@ -4377,7 +4377,7 @@ static void getAbsMarksFromMarks(ldomMarkedRangeList * marks, ldomMarkedRangeLis
     ldomNode * final_node = node->getParentNode();
     for ( ; final_node; final_node = final_node->getParentNode() ) {
         int rm = final_node->getRendMethod();
-        if ( rm == erm_final || rm == erm_list_item )
+        if ( rm == erm_final )
             break;
     }
     lvRect final_node_rect = lvRect();

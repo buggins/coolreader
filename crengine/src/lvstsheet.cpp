@@ -1327,7 +1327,7 @@ static const char * css_d_names[] =
     "run-in",
     "inline",
     "block",
-    "-cr-list-item-final", // non-standard, legacy crengine rendering of list items as final: css_d_list_item
+    "-cr-list-item-final", // non-standard, legacy crengine rendering of list items as final: css_d_list_item_legacy
     "list-item",           // correct rendering of list items as block: css_d_list_item_block
     "inline-block",
     "inline-table",
@@ -1826,7 +1826,7 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
             case cssd_display:
                 n = parse_name( decl, css_d_names, -1 );
                 if (gDOMVersionRequested < 20180524 && n == css_d_list_item_block) {
-                    n = css_d_list_item; // legacy rendering of list-item
+                    n = css_d_list_item_legacy; // legacy rendering of list-item
                 }
                 break;
             case cssd_white_space:

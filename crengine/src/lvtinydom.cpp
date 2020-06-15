@@ -34,7 +34,7 @@
 // be applied after a <BR>.
 //
 // 20180524: changed default rendering of:
-//   <li> (and css 'display:list-item') from css_d_list_item to css_d_list_item_block
+//   <li> (and css 'display:list-item') from css_d_list_item_legacy to css_d_list_item_block
 //   <cite> from css_d_block to css_d_inline (inline in HTML, block in FB2, ensured by fb2.css)
 //   <style> from css_d_inline to css_d_none (invisible in HTML)
 // Changed also the default display: value for base elements (and so
@@ -4091,7 +4091,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                 case erm_block:              *stream << "B";     break;
                 case erm_final:              *stream << "F";     break;
                 case erm_inline:             *stream << "i";     break;
-                case erm_list_item:          *stream << "L";     break; // no more used
+                case erm_runin:              *stream << "r";     break;
                 case erm_table:              *stream << "T";     break;
                 case erm_table_row_group:    *stream << "TRG";   break;
                 case erm_table_header_group: *stream << "THG";   break;
@@ -4099,7 +4099,6 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                 case erm_table_row:          *stream << "TR";    break;
                 case erm_table_column_group: *stream << "TCG";   break;
                 case erm_table_column:       *stream << "TC";    break;
-                case erm_runin:              *stream << "R";     break;
                 default:                     *stream << "?";     break;
             }
         }
@@ -5941,9 +5940,9 @@ void ldomNode::initNodeRendMethod()
         //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
         recurseElements( resetRendMethodToInline );
         setRendMethod(erm_runin);
-    } else if ( d==css_d_list_item ) {
+    } else if ( d==css_d_list_item_legacy ) {
         // list item (no more used, obsolete rendering method)
-        setRendMethod(erm_list_item);
+        setRendMethod(erm_final);
     } else if ( d==css_d_table ) {
         // table: this will "Generate missing child wrappers" if needed
         initTableRendMethods( this, 0 );
@@ -7582,7 +7581,7 @@ ldomNode * ldomXPointer::getFinalNode() const
     for (;;) {
         if ( !node )
             return NULL;
-        if ( node->getRendMethod()==erm_final || node->getRendMethod()==erm_list_item )
+        if ( node->getRendMethod()==erm_final )
             return node;
         node = node->getParentNode();
     }
@@ -7594,7 +7593,7 @@ bool ldomXPointer::isFinalNode() const
     ldomNode * node = getNode();
     if ( !node )
         return false;
-    if ( node->getRendMethod()==erm_final || node->getRendMethod()==erm_list_item )
+    if ( node->getRendMethod()==erm_final )
         return true;
     return false;
 }
@@ -7652,7 +7651,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
     // printf("finalNode %s\n", UnicodeToLocal(ldomXPointer(finalNode, 0).toString()).c_str());
 
     lvdom_element_render_method rm = finalNode->getRendMethod();
-    if ( rm != erm_final && rm != erm_list_item ) {
+    if ( rm != erm_final ) {
         // Not final, return XPointer to first or last child
         lvRect rc;
         finalNode->getAbsRect( rc );
@@ -7938,20 +7937,22 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
     for ( ; p; p = p->getParentNode() ) {
         int rm = p->getRendMethod();
         if ( rm == erm_final ) {
-            // With floats, we may get multiple erm_final when walking up
-            // to root node: keep the first one met (but go on up to the
-            // root node in case we're in some upper erm_invisible).
-            if (!finalNode)
-                finalNode = p; // found final block
-        }
-        else if (rm == erm_list_item) {
-            // This obsolete rendering method is considered just like erm_final
-            // for many purposes, but can contain real erm_final nodes.
-            // So, if we found an erm_final, and if we find an erm_list_item
-            // when going up, we should use it (unlike in previous case).
-            // (This is needed to correctly display highlights on books opened
-            // with some older DOM_VERSION.)
-            finalNode = p;
+            if ( gDOMVersionRequested < 20180524 && p->getStyle()->display == css_d_list_item_legacy ) {
+                // This legacy rendering of list item is now erm_final, but
+                // can contain other real erm_final nodes.
+                // So, if we found an erm_final, and if we find this erm_final
+                // when going up, we should use it (unlike in next case).
+                // (This is needed to correctly display highlights on books opened
+                // with some older DOM_VERSION.)
+                finalNode = p;
+            }
+            else {
+                // With floats, we may get multiple erm_final when walking up
+                // to root node: keep the first one met (but go on up to the
+                // root node in case we're in some upper erm_invisible).
+                if (!finalNode)
+                    finalNode = p; // found final block
+            }
         }
         else if ( p->getRendMethod() == erm_invisible ) {
             return false; // invisible !!!
@@ -9935,8 +9936,7 @@ bool ldomXRange::getRectEx( lvRect & rect, bool & isSingleLine )
     ldomNode * finalNode2 = getEnd().getFinalNode();
     if ( !finalNode1 || !finalNode2 ) {
         // Shouldn't happen, but prevent a segfault in case some other bug
-        // in initNodeRendMethod made some text not having a erm_final-like
-        // ancestor.
+        // in initNodeRendMethod made some text not having an erm_final ancestor.
         if ( !finalNode1 )
             printf("CRE WARNING: no final parent for range start %s\n", UnicodeToLocal(getStart().toString()).c_str());
         if ( !finalNode2 )
@@ -10994,7 +10994,6 @@ ldomNode * ldomXPointerEx::getThisBlockNode()
         case erm_runin: // treat as separate block
         case erm_block:
         case erm_final:
-        case erm_list_item: // no more used (obsolete rendering method)
         case erm_table:
         case erm_table_row_group:
         case erm_table_row:
@@ -14981,7 +14980,7 @@ void ldomNode::getAbsRect( lvRect & rect, bool inner )
     rect.bottom = fmt.getHeight();
     if ( inner && RENDER_RECT_HAS_FLAG(fmt, INNER_FIELDS_SET) ) {
         // This flag is set only when in enhanced rendering mode, and
-        // only on erm_final-like nodes.
+        // only on erm_final nodes.
         rect.left += fmt.getInnerX();     // add padding left
         rect.top += fmt.getInnerY();      // add padding top
         rect.right = fmt.getInnerWidth(); // replace by inner width
@@ -15365,13 +15364,13 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
 
         int top_margin = ignore_margins ? 0 : lengthToPx(enode->getStyle()->margin[2], fmt.getWidth(), enode->getFont()->getSize());
         if ( pt.y < fmt.getY() - top_margin) {
-            if ( direction >= PT_DIR_SCAN_FORWARD && (rm == erm_final || rm == erm_list_item) )
+            if ( direction >= PT_DIR_SCAN_FORWARD && rm == erm_final )
                 return this;
             return NULL;
         }
         int bottom_margin = ignore_margins ? 0 : lengthToPx(enode->getStyle()->margin[3], fmt.getWidth(), enode->getFont()->getSize());
         if ( pt.y >= fmt.getY() + fmt.getHeight() + bottom_margin ) {
-            if ( direction <= PT_DIR_SCAN_BACKWARD && (rm == erm_final || rm == erm_list_item) )
+            if ( direction <= PT_DIR_SCAN_BACKWARD && rm == erm_final )
                 return this;
             return NULL;
         }
@@ -15411,7 +15410,7 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
         // We could add more conditions (like parentNode->getRendMethod()>=erm_table),
         // but let's just check this in all cases when direction=0.
     }
-    if ( rm == erm_final || rm == erm_list_item ) {
+    if ( rm == erm_final ) {
         // Final node, that's what we looked for
         return this;
     }
@@ -15841,7 +15840,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
                     sibling = sibling->getUnboxedNextSibling(true);
                     continue;
                 }
-                if ( cs->display != css_d_list_item_block && cs->display != css_d_list_item) {
+                if ( cs->display != css_d_list_item_block && cs->display != css_d_list_item_legacy) {
                     // Alien element among list item nodes, skip it to not mess numbering
                     if ( sibling == this ) // Should not happen, but let's be sure
                         break;
@@ -16544,7 +16543,7 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
     if ( cache.get( this, f ) ) {
         if ( f->isReusable() ) {
             frmtext = f;
-            if ( rm != erm_final && rm != erm_list_item )
+            if ( rm != erm_final )
                 return 0;
             //RenderRectAccessor fmt( this );
             //CRLog::trace("Found existing formatted object for node #%08X", (lUInt32)this);
@@ -16554,7 +16553,7 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
         cache.remove( this );
     }
     f = getDocument()->createFormattedText();
-    if ( rm != erm_final && rm != erm_list_item )
+    if ( rm != erm_final )
         return 0;
     //RenderRectAccessor fmt( this );
     /// render whole node content as single formatted object

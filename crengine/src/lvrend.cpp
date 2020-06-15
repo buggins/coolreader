@@ -469,7 +469,6 @@ public:
                         colindex++;
                     }
                     break;
-                case erm_list_item:     // obsolete rendering method (used only when gDOMVersionRequested < 20180524)
                 case erm_block:         // render as block element (as containing other elements)
                 case erm_final:         // final element: render the whole of its content as single text block
                     if ( style->display == css_d_table_caption ) {
@@ -2360,7 +2359,7 @@ lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
                 flags |= LTEXT_STRUT_CONFINED;
         }
         marker += "\t";
-        // That "\t" had some purpose in legacy rendering (erm_list_item) to mark the end
+        // That "\t" had some purpose in css_d_list_item_legacy rendering to mark the end
         // of the marker, and by providing the marker_width as negative indent, so that
         // the following text can have some constant indent by rendering it just like
         // negative/hanging text-indent. It has no real use if we provide a 0-indent
@@ -2520,7 +2519,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         else {
             // Let's fallback to the previous (wrong) behaviour when gRenderDPI=0
             // Only do it for the top and single final node
-            if ((flags & LTEXT_FLAG_NEWLINE) && rm != erm_inline) {
+            if ((flags & LTEXT_FLAG_NEWLINE) && rm == erm_final) {
                 int fh = enode->getFont()->getHeight(); // former code used font height for everything
                 switch( style->line_height.type ) {
                     case css_val_percent:
@@ -2547,9 +2546,10 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         if (style->line_height.type != css_val_screen_px && gInterlineScaleFactor != INTERLINE_SCALE_FACTOR_NO_SCALE)
             line_h = (line_h * gInterlineScaleFactor) >> INTERLINE_SCALE_FACTOR_SHIFT;
 
-        if ((flags & LTEXT_FLAG_NEWLINE) && rm != erm_inline && rm != erm_runin) {
-            // Non-inline node in a final block: this is the top and single 'final' node:
-            // get text-indent and line-height that will apply to the full final block
+        if ((flags & LTEXT_FLAG_NEWLINE) && rm == erm_final) {
+            // Top and single 'final' node (unless in the degenarate case
+            // of obsolete css_d_list_item_legacy):
+            // Get text-indent and line-height that will apply to the full final block
 
             // text-indent should really not have to be handled here: it would be
             // better handled in ldomNode::renderFinalBlock(), grabbing it from the
@@ -2561,7 +2561,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // like we do here. (It is never updated, and as it is not passed by reference,
             // updates/reset would not apply to sibling or parent nodes.)
             // There is just one case that sets it to a different value: in the
-            // legacy/obsolete erm_list_item rendering method with lsp_outside, where
+            // obsolete css_d_list_item_legacy rendering with lsp_outside, where
             // it is set to a negative value (the width of the marker), so to handle text
             // indentation from the outside marker just like regular negative text-indent.
             // So, sadly, let's keep it that way to not break legacy rendering.
@@ -2805,7 +2805,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // (Looks like nothing special to do with indent or line_h)
         }
 
-        if ( rm==erm_list_item ) { // obsolete rendering method (used only when gDOMVersionRequested < 20180524)
+        if ( style->display == css_d_list_item_legacy ) { // obsolete (used only when gDOMVersionRequested < 20180524)
             // put item number/marker to list
             lString16 marker;
             int marker_width = 0;
@@ -2999,7 +2999,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // Don't handle dir= for the erm_final (<p dir="auto"), as it would "isolate"
             // the whole content from the bidi algorithm and we would get a default paragraph
             // direction of LTR. It is handled directly in lvtextfm.cpp.
-            bool hasDirAttribute = enode->hasAttribute( attr_dir ) && rm != erm_final && rm != erm_list_item;
+            bool hasDirAttribute = rm != erm_final && enode->hasAttribute( attr_dir );
             bool addGeneratedContent = hasDirAttribute ||
                                        nodeElementId == el_bdi ||
                                        nodeElementId == el_bdo ||
@@ -3236,7 +3236,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
         }
         //baseflags &= ~LTEXT_RUNIN_FLAG;
-        if ( rm != erm_inline && (baseflags & LTEXT_SRC_IS_CLEAR_BOTH) ) {
+        if ( rm == erm_final && (baseflags & LTEXT_SRC_IS_CLEAR_BOTH) ) {
             // We're leaving the top final node with a clear: not consumed
             // (set by a last or single <br clear=>), with no follow-up
             // txform->AddSourceLine() that would have carried it.
@@ -4092,7 +4092,6 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                     return y + margin_top + margin_bottom + padding_bottom; // return block height
                 }
                 break;
-            case erm_list_item: // obsolete rendering method (used only when gDOMVersionRequested < 20180524)
             case erm_final:
                 {
 
@@ -6541,9 +6540,9 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     // Set direction for all blocks (needed for text in erm_final, but also for list item
     // markers in erm_block, so that DrawDocument can draw it on the right if rtl).
     RENDER_RECT_SET_DIRECTION(fmt, direction);
-    // Store lang node index if it's an erm_final like node (it's only needed for these,
+    // Store lang node index if it's an erm_final node (it's only needed for these,
     // as the starting lang for renderFinalBlock())
-    if ( m == erm_final || m == erm_list_item ) {
+    if ( m == erm_final ) {
         if ( has_lang_attribute )
             fmt.setLangNodeIndex( enode->getDataIndex() );
         else
@@ -6967,7 +6966,6 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 return;
             }
             break;
-        case erm_list_item: // obsolete rendering method (used only when gDOMVersionRequested < 20180524)
         case erm_final:
             {
                 // Deal with list item marker
@@ -8261,7 +8259,6 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 // Border was previously drawn here, but has been moved above for earlier drawing.
             	}
             break;
-        case erm_list_item: // obsolete rendering method (used only when gDOMVersionRequested < 20180524)
         case erm_final:
             {
                 // No sub-background drawing for erm_final (its background was
@@ -8286,8 +8283,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 int padding_left;
                 int padding_top;
                 if ( RENDER_RECT_HAS_FLAG(fmt, INNER_FIELDS_SET) ) { // enhanced rendering for erm_final nodes
-                    // This flag is set only when in enhanced rendering mode, and
-                    // only on erm_final-like nodes.
+                    // This flag is set only when in enhanced rendering mode, and only on erm_final nodes.
                     padding_left = fmt.getInnerX();
                     padding_top = fmt.getInnerY();
                     inner_width = fmt.getInnerWidth();
@@ -8509,7 +8505,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
                     pstyle->display = css_d_block; // otherwise correctly set to css_d_inline
                 }
                 if (nodeElementId == el_li) {
-                    pstyle->display = css_d_list_item; // otherwise correctly set to css_d_list_item_block
+                    pstyle->display = css_d_list_item_legacy; // otherwise correctly set to css_d_list_item_block
                 }
                 if (nodeElementId == el_style) {
                     pstyle->display = css_d_inline; // otherwise correctly set to css_d_none (hidden)

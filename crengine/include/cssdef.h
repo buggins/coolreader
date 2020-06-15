@@ -30,7 +30,7 @@ enum css_display_t {
     css_d_inline,  // All elements starts being css_d_inline, unless otherwise specified in fb2def.h
     // Above are those that define a mostly inline container, below those that define a mostly block container
     css_d_block,
-    css_d_list_item,        // display: -cr-list-item-final (was used before 20180524 for display: list-item)
+    css_d_list_item_legacy, // display: -cr-list-item-final (was used before 20180524 for display: list-item)
     css_d_list_item_block,  // display: list-item
     css_d_inline_block,
     css_d_inline_table, // (needs to be before css_d_table, as we use tests like if: (style->display > css_d_table))
