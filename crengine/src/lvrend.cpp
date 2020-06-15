@@ -472,9 +472,12 @@ public:
                 case erm_list_item:     // obsolete rendering method (used only when gDOMVersionRequested < 20180524)
                 case erm_block:         // render as block element (as containing other elements)
                 case erm_final:         // final element: render the whole of its content as single text block
-                    // Table cells became either erm_block or erm_final depending on their content
-                    {
-                        // <th> or <td> inside <tr>
+                    if ( style->display == css_d_table_caption ) {
+                        caption = item;
+                        caption_direction = item_direction;
+                    }
+                    else { // <th> or <td> inside <tr>
+                        // Table cells became either erm_block or erm_final depending on their content
 
                         if ( rows.length()==0 ) {
                             CCRTableRow * row = new CCRTableRow;
@@ -573,12 +576,6 @@ public:
                         cell->row->cells.add( cell );
                         cell->row->numcols += cell->colspan;
                         ExtendCols( cell->row->numcols ); // update col count
-                    }
-                    break;
-                case erm_table_caption: // table caption
-                    {
-                        caption = item;
-                        caption_direction = item_direction;
                     }
                     break;
                 case erm_inline:
@@ -3002,8 +2999,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // Don't handle dir= for the erm_final (<p dir="auto"), as it would "isolate"
             // the whole content from the bidi algorithm and we would get a default paragraph
             // direction of LTR. It is handled directly in lvtextfm.cpp.
-            bool hasDirAttribute = enode->hasAttribute( attr_dir ) && rm != erm_final
-                                                && rm != erm_table_caption && rm != erm_list_item;
+            bool hasDirAttribute = enode->hasAttribute( attr_dir ) && rm != erm_final && rm != erm_list_item;
             bool addGeneratedContent = hasDirAttribute ||
                                        nodeElementId == el_bdi ||
                                        nodeElementId == el_bdo ||
@@ -6547,7 +6543,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     RENDER_RECT_SET_DIRECTION(fmt, direction);
     // Store lang node index if it's an erm_final like node (it's only needed for these,
     // as the starting lang for renderFinalBlock())
-    if ( m == erm_final || m == erm_table_caption || m == erm_list_item ) {
+    if ( m == erm_final || m == erm_list_item ) {
         if ( has_lang_attribute )
             fmt.setLangNodeIndex( enode->getDataIndex() );
         else
@@ -8267,7 +8263,6 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
             break;
         case erm_list_item: // obsolete rendering method (used only when gDOMVersionRequested < 20180524)
         case erm_final:
-        case erm_table_caption:
             {
                 // No sub-background drawing for erm_final (its background was
                 // drawn above, before the switch())
@@ -9336,7 +9331,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             _maxWidth = lengthToPx( style_width, 0, em );
             _minWidth = _maxWidth;
         }
-        else if (m == erm_final || m == erm_table_caption) {
+        else if (m == erm_final) {
             // Block node that contains only inline or text nodes
             if ( is_img ) { // img with display: block always become erm_final (never erm_block)
                 if (img_width > 0) { // block img with a fixed width

@@ -4377,7 +4377,7 @@ static void getAbsMarksFromMarks(ldomMarkedRangeList * marks, ldomMarkedRangeLis
     ldomNode * final_node = node->getParentNode();
     for ( ; final_node; final_node = final_node->getParentNode() ) {
         int rm = final_node->getRendMethod();
-        if ( rm == erm_final || rm == erm_list_item || rm == erm_table_caption )
+        if ( rm == erm_final || rm == erm_list_item )
             break;
     }
     lvRect final_node_rect = lvRect();

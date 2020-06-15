@@ -4099,7 +4099,6 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                 case erm_table_row:          *stream << "TR";    break;
                 case erm_table_column_group: *stream << "TCG";   break;
                 case erm_table_column:       *stream << "TC";    break;
-                case erm_table_caption:      *stream << "tcap";  break;
                 case erm_runin:              *stream << "R";     break;
                 default:                     *stream << "?";     break;
             }
@@ -5403,8 +5402,7 @@ static void detectChildTypes( ldomNode * parent, bool & hasBlockItems, bool & ha
                 hasBlockItems = true;
                 // (Table internal elements are all block items in the context
                 // where hasBlockItems is used, so account for them in both)
-                if ( ( d > css_d_table && d <= css_d_table_caption ) ||
-                     ( m > erm_table   && m <= erm_table_caption ) ) {
+                if ( ( d > css_d_table && d <= css_d_table_caption ) || ( m > erm_table ) ) {
                     hasInternalTableItems = true;
                 }
             }
@@ -5530,7 +5528,7 @@ int initTableRendMethods( ldomNode * enode, int state )
                 is_proper = true;
             }
             else if ( d==css_d_table_caption ) {
-                child->setRendMethod( erm_table_caption );
+                child->setRendMethod( erm_final );
                 is_proper = true;
             }
             else if ( d==css_d_none ) {
@@ -7584,7 +7582,7 @@ ldomNode * ldomXPointer::getFinalNode() const
     for (;;) {
         if ( !node )
             return NULL;
-        if ( node->getRendMethod()==erm_final || node->getRendMethod()==erm_list_item || node->getRendMethod() == erm_table_caption )
+        if ( node->getRendMethod()==erm_final || node->getRendMethod()==erm_list_item )
             return node;
         node = node->getParentNode();
     }
@@ -7596,7 +7594,7 @@ bool ldomXPointer::isFinalNode() const
     ldomNode * node = getNode();
     if ( !node )
         return false;
-    if ( node->getRendMethod()==erm_final || node->getRendMethod()==erm_list_item || node->getRendMethod() == erm_table_caption )
+    if ( node->getRendMethod()==erm_final || node->getRendMethod()==erm_list_item )
         return true;
     return false;
 }
@@ -7654,7 +7652,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
     // printf("finalNode %s\n", UnicodeToLocal(ldomXPointer(finalNode, 0).toString()).c_str());
 
     lvdom_element_render_method rm = finalNode->getRendMethod();
-    if ( rm != erm_final && rm != erm_list_item && rm != erm_table_caption ) {
+    if ( rm != erm_final && rm != erm_list_item ) {
         // Not final, return XPointer to first or last child
         lvRect rc;
         finalNode->getAbsRect( rc );
@@ -7939,7 +7937,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
     ldomNode * mainNode = p->getDocument()->getRootNode();
     for ( ; p; p = p->getParentNode() ) {
         int rm = p->getRendMethod();
-        if ( rm == erm_final || rm == erm_table_caption ) {
+        if ( rm == erm_final ) {
             // With floats, we may get multiple erm_final when walking up
             // to root node: keep the first one met (but go on up to the
             // root node in case we're in some upper erm_invisible).
@@ -11000,7 +10998,6 @@ ldomNode * ldomXPointerEx::getThisBlockNode()
         case erm_table:
         case erm_table_row_group:
         case erm_table_row:
-        case erm_table_caption:
             return node;
         default:
             break; // ignore
@@ -15368,13 +15365,13 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
 
         int top_margin = ignore_margins ? 0 : lengthToPx(enode->getStyle()->margin[2], fmt.getWidth(), enode->getFont()->getSize());
         if ( pt.y < fmt.getY() - top_margin) {
-            if ( direction >= PT_DIR_SCAN_FORWARD && (rm == erm_final || rm == erm_list_item || rm == erm_table_caption) )
+            if ( direction >= PT_DIR_SCAN_FORWARD && (rm == erm_final || rm == erm_list_item) )
                 return this;
             return NULL;
         }
         int bottom_margin = ignore_margins ? 0 : lengthToPx(enode->getStyle()->margin[3], fmt.getWidth(), enode->getFont()->getSize());
         if ( pt.y >= fmt.getY() + fmt.getHeight() + bottom_margin ) {
-            if ( direction <= PT_DIR_SCAN_BACKWARD && (rm == erm_final || rm == erm_list_item || rm == erm_table_caption) )
+            if ( direction <= PT_DIR_SCAN_BACKWARD && (rm == erm_final || rm == erm_list_item) )
                 return this;
             return NULL;
         }
@@ -15414,7 +15411,7 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
         // We could add more conditions (like parentNode->getRendMethod()>=erm_table),
         // but let's just check this in all cases when direction=0.
     }
-    if ( rm == erm_final || rm == erm_list_item || rm == erm_table_caption ) {
+    if ( rm == erm_final || rm == erm_list_item ) {
         // Final node, that's what we looked for
         return this;
     }
@@ -16547,7 +16544,7 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
     if ( cache.get( this, f ) ) {
         if ( f->isReusable() ) {
             frmtext = f;
-            if ( rm != erm_final && rm != erm_list_item && rm != erm_table_caption )
+            if ( rm != erm_final && rm != erm_list_item )
                 return 0;
             //RenderRectAccessor fmt( this );
             //CRLog::trace("Found existing formatted object for node #%08X", (lUInt32)this);
@@ -16557,7 +16554,7 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
         cache.remove( this );
     }
     f = getDocument()->createFormattedText();
-    if ( (rm != erm_final && rm != erm_list_item && rm != erm_table_caption) )
+    if ( rm != erm_final && rm != erm_list_item )
         return 0;
     //RenderRectAccessor fmt( this );
     /// render whole node content as single formatted object

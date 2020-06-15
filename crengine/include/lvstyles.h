@@ -290,8 +290,8 @@ enum lvdom_element_render_method
     erm_table_row,          ///< table row
     erm_table_column_group, ///< table column group
     erm_table_column,       ///< table column
-    erm_table_caption,      ///< table caption // XXX = erm_final
     // Note that table cells always become either erm_block or erm_final depending on their content
+    // and that table captions are set erm_final.
 };
 
 /// node format record
