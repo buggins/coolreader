@@ -21,6 +21,8 @@ DECL_DEF_CR_FONT_SIZES;
 
 static int rend_flags[] = { BLOCK_RENDERING_FLAGS_LEGACY, BLOCK_RENDERING_FLAGS_FLAT, BLOCK_RENDERING_FLAGS_BOOK, BLOCK_RENDERING_FLAGS_WEB };
 #define MAX_REND_FLAGS_INDEX (sizeof(rend_flags)/sizeof(int))
+static int DOM_versions[] = { 0, gDOMVersionCurrent };
+#define MAX_DOM_VERSIONS_INDEX (sizeof(DOM_versions)/sizeof(int))
 
 static bool initDone = false;
 
@@ -192,6 +194,16 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
         }
     }
     m_ui->cbRendFlags->setCurrentIndex(rendFlagsIndex);
+
+    int DOMVersionIndex = 0;
+    int DOMVersion = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, 0);
+    for (int i = 0; i < MAX_DOM_VERSIONS_INDEX; i++) {
+        if (DOMVersion == DOM_versions[i]) {
+            DOMVersionIndex = i;
+            break;
+        }
+    }
+    m_ui->cbDOMLevel->setCurrentIndex(DOMVersionIndex);
 
     int n = m_props->getIntDef( PROP_PAGE_MARGIN_LEFT, 8 );
     int mi = 0;
@@ -1121,4 +1133,11 @@ void SettingsDlg::on_cbRendFlags_currentIndexChanged(int index)
     m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, rend_flags[index]);
     // don't update preview to not change global variable gRenderBlockRenderingFlags too early!
     //updateStyleSample();
+}
+
+void SettingsDlg::on_cbDOMLevel_currentIndexChanged(int index)
+{
+    if (index < 0 || index >= MAX_DOM_VERSIONS_INDEX)
+        index = 0;
+    m_props->setInt(PROP_REQUESTED_DOM_VERSION, DOM_versions[index]);
 }

@@ -3890,6 +3890,8 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 		gDOMVersionRequested = record->getDOMversion();
 		m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
 	}
+	if (record)
+		gDOMVersionRequested = record->getDOMversion();
 
 	if (loadDocumentInt(stream, metadataOnly)) {
 		m_filename = lString16(fname);
