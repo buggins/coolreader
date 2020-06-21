@@ -311,7 +311,7 @@ public:
     /// sets cache file
     void setCache( CacheFile * cache );
     /// checks buffer sizes, compacts most unused chunks
-    void compact( int reservedSpace );
+    void compact( int reservedSpace, const ldomTextStorageChunk *excludedChunk = NULL );
     lUInt32 getUncompressedSize() { return _uncompressedSize; }
 #if BUILD_LITE!=1
     /// allocates new text node, return its address inside storage

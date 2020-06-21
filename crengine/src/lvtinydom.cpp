@@ -2733,7 +2733,7 @@ lUInt32 ldomDataStorageManager::getParent( lUInt32 addr )
 }
 #endif
 
-void ldomDataStorageManager::compact( int reservedSpace )
+void ldomDataStorageManager::compact( int reservedSpace, const ldomTextStorageChunk* excludedChunk )
 {
 #if BUILD_LITE!=1
     if ( _uncompressedSize + reservedSpace > _maxUncompressedSize + _maxUncompressedSize/10 ) { // allow +10% overflow
@@ -2750,7 +2750,8 @@ void ldomDataStorageManager::compact( int reservedSpace )
         // do compacting
         int sumsize = reservedSpace;
         for ( ldomTextStorageChunk * p = _recentChunk; p; p = p->_nextRecent ) {
-			if ( (int)p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF)) {
+			if ( (int)p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF) || 
+                 p == excludedChunk) {
 				// fits
 				sumsize += p->_bufsize;
 			} else {
@@ -3173,7 +3174,7 @@ void ldomTextStorageChunk::ensureUnpacked()
                 crFatalError( 111, "restoreFromCache() failed for chunk");
                 }
             }
-            _manager->compact( 0 );
+            _manager->compact( 0, this );
         }
     } else {
         // compact
