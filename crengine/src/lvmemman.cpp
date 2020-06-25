@@ -27,6 +27,7 @@
 
 #ifdef _DEBUG
 #include <stdexcept>
+#include <string>
 #endif
 
 static char file_to_remove_on_crash[2048] = "";

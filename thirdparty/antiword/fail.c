@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include "antiword.h"
 
-#if !defined(NDEBUG)
+#if defined(_DEBUG)
 void
 __fail(const char *szExpression, const char *szFilename, int iLineNumber)
 {
@@ -23,4 +23,4 @@ __fail(const char *szExpression, const char *szFilename, int iLineNumber)
 	werr(1, "Internal error in '%s' in file %s at line %d",
 		szExpression, szFilename, iLineNumber);
 } /* end of __fail */
-#endif /* !NDEBUG */
+#endif /* _DEBUG */
