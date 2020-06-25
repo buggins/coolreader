@@ -108,7 +108,9 @@ public:
 
     virtual void clearFallbackFonts() {
         for (int i = 0; i < _registered_list.length(); i++) {
-            _registered_list[i]->getFont()->setFallbackFont(LVFontRef());
+            LVFontRef fontRef = _registered_list[i]->getFont();
+            if (!fontRef.isNull())
+                fontRef->setFallbackFont(LVFontRef());
         }
     }
 

@@ -620,21 +620,28 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
 #endif
     bool italicize = false;
 
+    if (NULL == item)
+    {
+        CRLog::error("_cache.find() return NULL: size=%d, weight=%d, italic=%d, family=%d, typeface=%s", size, weight, italic, family, typeface.c_str());
+        CRLog::error("possible font cache cleared!");
+        return LVFontRef(NULL);
+    }
+
     LVFontDef newDef(*item->getDef());
 
     if (!item->getFont().isNull()) {
         int deltaWeight = weight - item->getDef()->getWeight();
         if (deltaWeight >= 200) {
             // This instantiated cached font has a too low weight
-            #ifndef USE_FT_EMBOLDEN
-                // embolden using LVFontBoldTransform
-                CRLog::debug("font: apply Embolding to increase weight from %d to %d",
-                                    newDef.getWeight(), newDef.getWeight() + 200 );
-                newDef.setWeight( newDef.getWeight() + 200 );
-                LVFontRef ref = LVFontRef( new LVFontBoldTransform( item->getFont(), &_globalCache ) );
-                _cache.update( &newDef, ref );
-                return ref;
-            #endif
+#ifndef USE_FT_EMBOLDEN
+            // embolden using LVFontBoldTransform
+            CRLog::debug("font: apply Embolding to increase weight from %d to %d",
+                                newDef.getWeight(), newDef.getWeight() + 200 );
+            newDef.setWeight( newDef.getWeight() + 200 );
+            LVFontRef ref = LVFontRef( new LVFontBoldTransform( item->getFont(), &_globalCache ) );
+            _cache.update( &newDef, ref );
+            return ref;
+#endif
             // when USE_FT_EMBOLDEN, ignore this low-weight cached font instance
             // and go loading from the font file again to apply embolden.
         } else {

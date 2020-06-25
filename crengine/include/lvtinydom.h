@@ -1,4 +1,4 @@
-/** \file lvtinydom.h
+﻿/** \file lvtinydom.h
     \brief fast and compact XML DOM tree
 
     CoolReader Engine
@@ -311,7 +311,7 @@ public:
     /// sets cache file
     void setCache( CacheFile * cache );
     /// checks buffer sizes, compacts most unused chunks
-    void compact( int reservedSpace, const ldomTextStorageChunk *excludedChunk = NULL );
+    void compact( int reservedSpace , const ldomTextStorageChunk *excludedChunk = NULL );
     lUInt32 getUncompressedSize() { return _uncompressedSize; }
 #if BUILD_LITE!=1
     /// allocates new text node, return its address inside storage
@@ -538,6 +538,8 @@ protected:
     virtual void resetNodeNumberingProps() { }
 #endif
 
+    /// creates empty collection
+    tinyNodeCollection();
     tinyNodeCollection( tinyNodeCollection & v );
 
 public:
@@ -634,7 +636,7 @@ public:
     /// if a cache file is in use
     bool hasCacheFile() { return _cacheFile != NULL; }
     /// set cache file as dirty, so it's not re-used on next load
-    void invalidateCacheFile() { _cacheFileLeaveAsDirty = true; };
+    void invalidateCacheFile() { _cacheFileLeaveAsDirty = true; }
     /// get cache file full path
     lString16 getCacheFilePath();
 #endif
@@ -663,8 +665,6 @@ public:
 #endif
 
 
-    /// creates empty collection
-    tinyNodeCollection();
     /// destroys collection
     virtual ~tinyNodeCollection();
 };
@@ -743,11 +743,12 @@ struct ldomNodeHandle {
 class ldomTextNode;
 // no vtable, very small size (16 bytes)
 // optimized for 32 bit systems
-class ldomNode
+struct ldomNode
 {
     friend class tinyNodeCollection;
     friend class RenderRectAccessor;
     friend class NodeImageProxy;
+    friend class ldomDocument;
 
 private:
 
@@ -1086,13 +1087,14 @@ class lxmlDocBase : public tinyNodeCollection
     //friend class ldomNode;
     friend class ldomNode;
 	friend class ldomXPointer;
-public:
+protected:
 
 
     /// Default constructor
-    lxmlDocBase( int dataBufSize = DEF_DOC_DATA_BUFFER_SIZE );
+    lxmlDocBase(int dataBufSize = DEF_DOC_DATA_BUFFER_SIZE);
     /// Copy constructor - copies ID tables contents
     lxmlDocBase( lxmlDocBase & doc );
+public:
     /// Destructor
     virtual ~lxmlDocBase();
 
@@ -1755,9 +1757,9 @@ public:
     /// destructor
     virtual ~ldomNodeCallback() { }
     /// called for each found text fragment in range
-    virtual void onText( ldomXRange * ) { }
+    virtual void onText( ldomXRange * ) = 0;
     /// called for each found node in range
-    virtual bool onElement( ldomXPointerEx * ) { return true; }
+    virtual bool onElement( ldomXPointerEx * ) = 0;
 };
 
 /// range for word inside text node

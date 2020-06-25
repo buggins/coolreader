@@ -3414,7 +3414,7 @@ public:
             // We need to possibly extend the last char width to account for italic
             // right side bearing overflow (but not if we ended the line with some
             // hyphenation, as the last glyph will then be the hyphen).
-            if ( !(m_flags[endp-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER) ) {
+            if ( endp > 0 && !(m_flags[endp-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER) ) {
                 // Find the real last displayed glyph, skipping spaces and floats
                 int lastnonspace = endp-1;
                 for ( int k=endp-1; k>=start; k-- ) {

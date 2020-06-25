@@ -185,10 +185,13 @@ static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lChar16
             }
         } else {
 #endif
-        memcpy(item->bmp, bitmap->buffer, w * h);
-        // correct gamma
-        if ( gammaIndex!=GAMMA_NO_CORRECTION_INDEX )
-            cr_correct_gamma_buf(item->bmp, w * h, gammaIndex);
+        if (bitmap->buffer && w > 0 && h > 0)
+        {
+            memcpy(item->bmp, bitmap->buffer, w * h);
+            // correct gamma
+            if ( gammaIndex!=GAMMA_NO_CORRECTION_INDEX )
+                cr_correct_gamma_buf(item->bmp, w * h, gammaIndex);
+        }
     }
     item->origin_x = (lInt16) slot->bitmap_left;
     item->origin_y = (lInt16) slot->bitmap_top;
@@ -225,10 +228,13 @@ static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lUInt32
             ptr += bitmap->pitch;//rowsize;
         }
     } else {
-        memcpy(item->bmp, bitmap->buffer, w * h);
-        // correct gamma
-        if ( gammaIndex!=GAMMA_NO_CORRECTION_INDEX )
-            cr_correct_gamma_buf(item->bmp, w * h, gammaIndex);
+        if (bitmap->buffer && w > 0 && h > 0)
+        {
+            memcpy(item->bmp, bitmap->buffer, w * h);
+            // correct gamma
+            if ( gammaIndex!=GAMMA_NO_CORRECTION_INDEX )
+                cr_correct_gamma_buf(item->bmp, w * h, gammaIndex);
+        }
     }
     item->origin_x = (lInt16) slot->bitmap_left;
     item->origin_y = (lInt16) slot->bitmap_top;

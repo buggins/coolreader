@@ -427,7 +427,8 @@ void LVDocView::setPageMargins(lvRect rc) {
     if (floatingPunct) {
         m_font = fontMan->GetFont(m_font_size, 400 + LVRendGetFontEmbolden(),
                 false, DEFAULT_FONT_FAMILY, m_defaultFontFace);
-        align = m_font->getVisualAligmentWidth() / 2;
+        if (!m_font.isNull())
+            align = m_font->getVisualAligmentWidth() / 2;
     }
     if (align > rc.right)
         align = rc.right;

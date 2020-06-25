@@ -1924,7 +1924,7 @@ tinyNodeCollection::tinyNodeCollection()
 {
     memset( _textList, 0, sizeof(_textList) );
     memset( _elemList, 0, sizeof(_elemList) );
-    _docIndex = ldomNode::registerDocument((ldomDocument*)this);
+    // _docIndex assigned in ldomDocument constructor
 }
 
 tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
@@ -1961,9 +1961,10 @@ tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
 ,_stylesheet(v._stylesheet)
 ,_fontMap(113)
 {
-    _docIndex = ldomNode::registerDocument((ldomDocument*)this);
+    memset( _textList, 0, sizeof(_textList) );
+    memset( _elemList, 0, sizeof(_elemList) );
+    // _docIndex assigned in ldomDocument constructor
 }
-
 
 
 #if BUILD_LITE!=1
@@ -2108,6 +2109,8 @@ css_style_ref_t tinyNodeCollection::getNodeStyle( lUInt32 dataIndex )
     ldomNodeStyleInfo info;
     _styleStorage.getStyleData( dataIndex, &info );
     css_style_ref_t res =  _styles.get( info._styleIndex );
+    if (!res.isNull())
+    _styles.addIndexRef(info._styleIndex);
 #if DEBUG_DOM_STORAGE==1
     if ( res.isNull() && info._styleIndex!=0 ) {
         CRLog::error("Null style returned for index %d", (int)info._styleIndex);
@@ -2167,17 +2170,32 @@ bool tinyNodeCollection::loadNodeData(lUInt16 type, ldomNode ** list, int nodeco
         int buflen;
         if (!_cacheFile->read( type, i, p, buflen ))
             return false;
-        ldomNode * buf = (ldomNode *)p;
-        if (!buf || (unsigned)buflen != sizeof(ldomNode) * sz)
+        if (!p || (unsigned)buflen != sizeof(ldomNode) * sz)
             return false;
-        list[i] = buf;
+        ldomNode * buf = (ldomNode *)p;
+        if (sz == TNC_PART_LEN)
+            list[i] = buf;
+        else
+        {
+            // buf contains `sz' ldomNode items
+            // _elemList, _textList (as `list' argument) must always be TNC_PART_LEN size
+            // add into `list' zero filled (TNC_PART_LEN - sz) items
+            list[i] = (ldomNode *)realloc(buf, TNC_PART_LEN * sizeof(ldomNode));
+            if (NULL == list[i])
+            {
+                free(buf);
+                CRLog::error("Not enough memory!");
+                return false;
+            }
+            memset( list[i] + sz, 0, (TNC_PART_LEN - sz) * sizeof(ldomNode) );
+        }
         for (int j=0; j<sz; j++) {
-            buf[j].setDocumentIndex( _docIndex );
-            if ( buf[j].isElement() ) {
+            list[i][j].setDocumentIndex( _docIndex );
+            if ( list[i][j].isElement() ) {
                 // will be set by loadStyles/updateStyles
-                //buf[j]._data._pelem._styleIndex = 0;
-                setNodeFontIndex( buf[j]._handle._dataIndex, 0 );
-                //buf[j]._data._pelem._fontIndex = 0;
+                //list[i][j]._data._pelem._styleIndex = 0;
+                setNodeFontIndex( list[i][j]._handle._dataIndex, 0 );
+                //list[i][j]._data._pelem._fontIndex = 0;
             }
         }
     }
@@ -2300,12 +2318,13 @@ ldomNode * tinyNodeCollection::allocTinyNode( int type )
         } else {
             // create new item
             _elemCount++;
-            if (_elemCount >= (TNC_PART_COUNT << TNC_PART_SHIFT))
+            int idx = _elemCount >> TNC_PART_SHIFT;
+            if (idx >= TNC_PART_COUNT)
                 crFatalError(1003, "allocTinyNode: can't create any more element nodes (hard limit)");
-            ldomNode * part = _elemList[_elemCount >> TNC_PART_SHIFT];
+            ldomNode * part = _elemList[idx];
             if ( !part ) {
                 part = (ldomNode*)calloc(TNC_PART_LEN, sizeof(*part));
-                _elemList[ _elemCount >> TNC_PART_SHIFT ] = part;
+                _elemList[idx] = part;
             }
             res = &part[_elemCount & TNC_PART_MASK];
             res->setDocumentIndex( _docIndex );
@@ -2392,7 +2411,7 @@ tinyNodeCollection::~tinyNodeCollection()
             _textList[partindex] = NULL;
         }
     }
-    ldomNode::unregisterDocument((ldomDocument*)this);
+    // document unregistered in ldomDocument destructor
 }
 
 #if BUILD_LITE!=1
@@ -2740,17 +2759,18 @@ void ldomDataStorageManager::compact( int reservedSpace, const ldomTextStorageCh
         if (!_maxSizeReachedWarned) {
             // Log once to stdout that we reached maxUncompressedSize, so we can know
             // of this fact and consider it as a possible cause for crengine bugs
-            printf("CRE WARNING: storage for %s reached max allowed uncompressed size (%u > %u)\n",
-                (_type == 't' ? "TEXT NODES" : (_type == 'e' ? "ELEMENTS" : (_type == 'r' ? "RENDERED RECTS" : (_type == 's' ? "ELEMENTS' STYLE DATA" : "OTHER")))),
-                _uncompressedSize, _maxUncompressedSize);
-            printf("             consider setting or increasing 'cre_storage_size_factor'\n");
+            CRLog::warn("Storage for %s reached max allowed uncompressed size (%u > %u)",
+                        (_type == 't' ? "TEXT NODES" : (_type == 'e' ? "ELEMENTS" : (_type == 'r' ? "RENDERED RECTS" : (_type == 's' ? "ELEMENTS' STYLE DATA" : "OTHER")))), 
+                        _uncompressedSize, _maxUncompressedSize);
+            CRLog::warn(" -> check settings.");
             _maxSizeReachedWarned = true; // warn only once
         }
         _owner->setCacheFileStale(true); // we may write: consider cache file stale
         // do compacting
         int sumsize = reservedSpace;
         for ( ldomTextStorageChunk * p = _recentChunk; p; p = p->_nextRecent ) {
-			if ( (int)p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF) || 
+            if ( (int)p->_bufsize + sumsize < _maxUncompressedSize ||
+                 (p==_activeChunk && reservedSpace<0xFFFFFFF) || 
                  p == excludedChunk) {
 				// fits
 				sumsize += p->_bufsize;
@@ -3112,7 +3132,7 @@ bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32
         return false;
     z.avail_in = compsize;
     z.next_in = (unsigned char *)compbuf;
-    int uncompressed_size = 0;
+    lUInt32 uncompressed_size = 0;
     lUInt8 *uncompressed_buf = NULL;
     while (true) {
         z.avail_out = UNPACK_BUF_SIZE;
@@ -3125,7 +3145,7 @@ bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32
             // printf("inflate() error: %d (%d > %d)\n", ret, compsize, uncompressed_size);
             return false;
         }
-        int have = UNPACK_BUF_SIZE - z.avail_out;
+        lUInt32 have = UNPACK_BUF_SIZE - z.avail_out;
         uncompressed_buf = cr_realloc(uncompressed_buf, uncompressed_size + have);
         memcpy(uncompressed_buf + uncompressed_size, tmp, have );
         uncompressed_size += have;
@@ -3297,8 +3317,9 @@ simpleLogFile logfile("logfile.log");
 /// lxmlDocument
 
 
-lxmlDocBase::lxmlDocBase( int /*dataBufSize*/ )
-: _elementNameTable(MAX_ELEMENT_TYPE_ID)
+lxmlDocBase::lxmlDocBase(int /*dataBufSize*/)
+: tinyNodeCollection(),
+_elementNameTable(MAX_ELEMENT_TYPE_ID)
 , _attrNameTable(MAX_ATTRIBUTE_TYPE_ID)
 , _nsNameTable(MAX_NAMESPACE_TYPE_ID)
 , _nextUnknownElementId(UNKNOWN_ELEMENT_TYPE_ID)
@@ -3421,7 +3442,8 @@ ldomNode * lxmlDocBase::getRootNode()
 }
 
 ldomDocument::ldomDocument()
-: m_toc(this)
+: lxmlDocBase(DEF_DOC_DATA_BUFFER_SIZE),
+m_toc(this)
 #if BUILD_LITE!=1
 , _last_docflags(0)
 , _page_height(0)
@@ -3432,6 +3454,7 @@ ldomDocument::ldomDocument()
 #endif
 , lists(100)
 {
+    _docIndex = ldomNode::registerDocument(this);
     allocTinyElement(NULL, 0, 0);
     // Note: valgrind reports (sometimes, when some document is opened or closed,
     // with metadataOnly or not) a memory leak (64 bytes in 1 blocks are definitely
@@ -3480,6 +3503,7 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 , _container(doc._container)
 , lists(100)
 {
+    _docIndex = ldomNode::registerDocument(this);
 }
 
 static void writeNode( LVStream * stream, ldomNode * node, bool treeLayout )
@@ -4132,6 +4156,7 @@ bool ldomDocument::saveToStream( LVStreamRef stream, const char *, bool treeLayo
 
 ldomDocument::~ldomDocument()
 {
+    ldomNode::unregisterDocument(this);
     fontMan->UnregisterDocumentFonts(_docIndex);
 #if BUILD_LITE!=1
     updateMap();
@@ -13704,7 +13729,8 @@ void ldomNode::onCollectionDestroy()
     case NT_ELEMENT:
         // ???
 #if BUILD_LITE!=1
-        getDocument()->clearNodeStyle( _handle._dataIndex );
+        if (getDocument())
+            getDocument()->clearNodeStyle( _handle._dataIndex );
 #endif
         delete NPELEM;
         NPELEM = NULL;
@@ -14643,7 +14669,7 @@ void ldomNode::recurseElementsDeepFirst( void (*pFun)( ldomNode * node ) )
     for (int i=0; i<cnt; i++)
     {
         ldomNode * child = getChildNode( i );
-        if ( child->isElement() )
+        if ( child && child->isElement() )
         {
             child->recurseElementsDeepFirst( pFun );
         }

@@ -329,6 +329,7 @@ SettingsDlg::~SettingsDlg()
 bool SettingsDlg::showDlg(  QWidget * parent, CR3View * docView )
 {
     SettingsDlg * dlg = new SettingsDlg( parent, docView );
+    dlg->setAttribute(Qt::WA_DeleteOnClose, true);
     dlg->show();
     return true;
 }

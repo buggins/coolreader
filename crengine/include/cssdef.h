@@ -334,7 +334,8 @@ typedef struct css_length_tag {
         return type == v.type 
             && value == v.value;
     }
-    int pack() { return (int)type + (value<<4); }
+    // used only in hash calculation
+    lUInt32 pack() { return (lUInt32)type + (((lUInt32)value)<<4); }
 } css_length_t;
 
 #endif // __CSS_DEF_H_INCLUDED__

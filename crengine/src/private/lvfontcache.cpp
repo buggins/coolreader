@@ -133,7 +133,6 @@ void LVFontCache::removefont(const LVFontDef *def) {
             _registered_list.remove(i);
         }
     }
-
 }
 
 void LVFontCache::update(const LVFontDef *def, LVFontRef ref) {
@@ -167,6 +166,8 @@ void LVFontCache::update(const LVFontDef *def, LVFontRef ref) {
 }
 
 void LVFontCache::removeDocumentFonts(int documentId) {
+    if (-1 == documentId)
+        return;
     int i;
     for (i = _instance_list.length() - 1; i >= 0; i--) {
         if (_instance_list[i]->_def.getDocumentId() == documentId)
