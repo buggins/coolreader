@@ -220,7 +220,7 @@ typedef struct css_style_rec_tag {
             if (is_important & 0x1) important |= bit;   // update important flag
             if (is_important == 0x3) importance |= bit; // update importance flag (!important comes from higher_importance CSS)
         }
-    };
+    }
 } css_style_rec_t;
 
 /// style record reference type

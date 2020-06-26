@@ -294,7 +294,7 @@ private:
     LVImageSourceRef m_backgroundImage;
     LVRef<LVColorDrawBuf> m_backgroundImageScaled;
     bool m_backgroundTiled;
-    bool m_stylesheetNeedsUpdate;;
+    bool m_stylesheetNeedsUpdate;
     int m_highlightBookmarks;
     LVPtrVector<LVBookMarkPercentInfo> m_bookmarksPercents;
 

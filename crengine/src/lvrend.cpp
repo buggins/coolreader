@@ -5758,7 +5758,7 @@ void BlockFloatFootprint::forwardOverflowingFloat( int x, int y, int w, int h, b
         used_min_y = y - fmt.getTopOverflow();
     if (y + h + fmt.getBottomOverflow() > used_max_y)
         used_max_y = y + h + fmt.getBottomOverflow();
-};
+}
 
 void BlockFloatFootprint::generateEmbeddedFloatsFromFloatIds( ldomNode * node,  int final_width )
 {
