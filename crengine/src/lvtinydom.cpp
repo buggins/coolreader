@@ -1912,7 +1912,6 @@ tinyNodeCollection::tinyNodeCollection()
 , _nodeDisplayStyleHash(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
 , _nodeDisplayStyleHashInitial(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
 , _nodeStylesInvalidIfLoading(false)
-, _boxingWishedButPreventedByCache(false)
 #endif
 , _textStorage(this, 't', (lUInt32)(TEXT_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
 , _elemStorage(this, 'e', (lUInt32)(ELEM_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
@@ -1950,7 +1949,6 @@ tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
 , _nodeDisplayStyleHash(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
 , _nodeDisplayStyleHashInitial(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
 , _nodeStylesInvalidIfLoading(false)
-, _boxingWishedButPreventedByCache(false)
 #endif
 , _textStorage(this, 't', (lUInt32)(TEXT_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
 , _elemStorage(this, 'e', (lUInt32)(ELEM_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
@@ -4472,10 +4470,6 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         CRLog::trace("Restoring stylesheet...");
         _stylesheet.pop();
 
-        // initNodeRendMethod may wish to box elements, but may be
-        // prevented from doing so by an existing cache file
-        _boxingWishedButPreventedByCache = false;
-
         CRLog::trace("init render method...");
         getRootNode()->initNodeRendMethodRecursive();
 
@@ -5140,9 +5134,6 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex, bool handleFloatin
 bool ldomNode::cleanIfOnlyEmptyTextInline( bool handleFloating )
 {
 #if BUILD_LITE!=1
-    if ( getDocument()->hasCacheFile() )
-        // We can't remove anything if there is a cache file
-        return false;
     if ( !isElement() )
         return false;
     css_style_ref_t style = getStyle();
@@ -5449,16 +5440,13 @@ int initTableRendMethods( ldomNode * enode, int state )
         // Check and deal with unproper children
         if ( !is_proper ) { // Unproper child met
             // printf("initTableRendMethods(%d): child %d is unproper\n", state, i);
-            if ( BLOCK_RENDERING_G(COMPLETE_INCOMPLETE_TABLES) && !enode->getDocument()->hasCacheFile() ) {
+            if ( BLOCK_RENDERING_G(COMPLETE_INCOMPLETE_TABLES) ) {
                 // We can insert a tabularBox element to wrap unproper elements
                 last_unproper = i;
                 if (first_unproper < 0)
                     first_unproper = i;
             }
             else {
-                if ( BLOCK_RENDERING_G(COMPLETE_INCOMPLETE_TABLES) && enode->getDocument()->hasCacheFile() ) {
-                    enode->getDocument()->setBoxingWishedButPreventedByCache();
-                }
                 // Asked to not complete incomplete tables, or we can't insert
                 // tabularBox elements anymore
                 if ( !BLOCK_RENDERING_G(ENHANCED) ) {
@@ -5752,35 +5740,27 @@ void ldomNode::initNodeRendMethod()
                         // - the previous line should not be justified
                         // - in the matter of page splitting, lines (as they are 100%-width) should
                         //   be forwarded to the parent flow/context
-                        if ( getDocument()->hasCacheFile() ) {
-                            getDocument()->setBoxingWishedButPreventedByCache();
-                            // If we can't insert new elements, fallback to behaviour of resetting
-                            // it to inline
-                            child->setRendMethod( erm_inline );
-                        }
-                        else {
-                            // Remove any preceeding or following empty text nodes (there can't
-                            // be consecutive text nodes) so we don't get spurious empty lines.
-                            if ( i < getChildCount()-1 && getChildNode(i+1)->isText() ) {
-                                lString16 s = getChildNode(i+1)->getText();
-                                if ( IsEmptySpace(s.c_str(), s.length() ) ) {
-                                    removeChildren(i+1, i+1);
-                                }
+                        // Remove any preceeding or following empty text nodes (there can't
+                        // be consecutive text nodes) so we don't get spurious empty lines.
+                        if ( i < getChildCount()-1 && getChildNode(i+1)->isText() ) {
+                            lString16 s = getChildNode(i+1)->getText();
+                            if ( IsEmptySpace(s.c_str(), s.length() ) ) {
+                                removeChildren(i+1, i+1);
                             }
-                            if ( i > 0 && getChildNode(i-1)->isText() ) {
-                                lString16 s = getChildNode(i-1)->getText();
-                                if ( IsEmptySpace(s.c_str(), s.length() ) ) {
-                                    removeChildren(i-1, i-1);
-                                    i--; // update our position
-                                }
-                            }
-                            ldomNode * ibox = insertChildElement( i, LXML_NS_NONE, el_inlineBox );
-                            moveItemsTo( ibox, i+1, i+1 ); // move this child from 'this' into ibox
-                            // Mark this inlineBox so we can handle its pecularities
-                            ibox->setAttributeValue(LXML_NS_NONE, getDocument()->getAttrNameIndex(L"type"), L"EmbeddedBlock");
-                            setNodeStyle( ibox, getStyle(), getFont() );
-                            ibox->setRendMethod( erm_inline );
                         }
+                        if ( i > 0 && getChildNode(i-1)->isText() ) {
+                            lString16 s = getChildNode(i-1)->getText();
+                            if ( IsEmptySpace(s.c_str(), s.length() ) ) {
+                                removeChildren(i-1, i-1);
+                                i--; // update our position
+                            }
+                        }
+                        ldomNode * ibox = insertChildElement( i, LXML_NS_NONE, el_inlineBox );
+                        moveItemsTo( ibox, i+1, i+1 ); // move this child from 'this' into ibox
+                        // Mark this inlineBox so we can handle its pecularities
+                        ibox->setAttributeValue(LXML_NS_NONE, getDocument()->getAttrNameIndex(L"type"), L"EmbeddedBlock");
+                        setNodeStyle( ibox, getStyle(), getFont() );
+                        ibox->setRendMethod( erm_inline );
                     }
                 }
             }
@@ -5962,11 +5942,7 @@ void ldomNode::initNodeRendMethod()
                         j++;
                         // j..i are inline
                         if ( j>0 || i<(int)getChildCount()-1 )
-                            // Avoid crash: we can't add/move nodes when a cache file exists
-                            if ( getDocument()->hasCacheFile() )
-                                getDocument()->setBoxingWishedButPreventedByCache();
-                            else
-                                autoboxChildren( j, i, handleFloating );
+                            autoboxChildren( j, i, handleFloating );
                         i = j;
                     }
                     else if ( i>0 ) {
@@ -5996,37 +5972,32 @@ void ldomNode::initNodeRendMethod()
                             prev = getChildNode(i-2);
                         }
                         if ( prev->isElement() && prev->getRendMethod()==erm_runin ) {
-                            if ( getDocument()->hasCacheFile() ) {
-                                getDocument()->setBoxingWishedButPreventedByCache();
-                            }
-                            else {
-                                bool do_autoboxing = true;
-                                int run_in_idx = inBetweenTextNode ? i-2 : i-1;
-                                int block_idx = i;
-                                if ( inBetweenTextNode ) {
-                                    lString16 text = inBetweenTextNode->getText();
-                                    if ( IsEmptySpace(text.c_str(), text.length() ) ) {
-                                        removeChildren(i-1, i-1);
-                                        block_idx = i-1;
-                                    }
-                                    else {
-                                        do_autoboxing = false;
-                                    }
+                            bool do_autoboxing = true;
+                            int run_in_idx = inBetweenTextNode ? i-2 : i-1;
+                            int block_idx = i;
+                            if ( inBetweenTextNode ) {
+                                lString16 text = inBetweenTextNode->getText();
+                                if ( IsEmptySpace(text.c_str(), text.length() ) ) {
+                                    removeChildren(i-1, i-1);
+                                    block_idx = i-1;
                                 }
-                                if ( do_autoboxing ) {
-                                    CRLog::debug("Autoboxing run-in items");
-                                    // Sadly, to avoid having an erm_final inside another erm_final,
-                                    // we need to reset the block node to be inline (but that second
-                                    // erm_final would have been handled as inline anyway, except
-                                    // for possibly updating the strut height/baseline).
-                                    node->recurseMatchingElements( resetRendMethodToInline, isNotBoxingInlineBoxNode );
-                                    // No need to autobox if there are only 2 children (the run-in and this box)
-                                    if ( getChildCount()!=2 ) { // autobox run-in
-                                        autoboxChildren( run_in_idx, block_idx, handleFloating );
-                                    }
+                                else {
+                                    do_autoboxing = false;
                                 }
-                                i = run_in_idx;
                             }
+                            if ( do_autoboxing ) {
+                                CRLog::debug("Autoboxing run-in items");
+                                // Sadly, to avoid having an erm_final inside another erm_final,
+                                // we need to reset the block node to be inline (but that second
+                                // erm_final would have been handled as inline anyway, except
+                                // for possibly updating the strut height/baseline).
+                                node->recurseMatchingElements( resetRendMethodToInline, isNotBoxingInlineBoxNode );
+                                // No need to autobox if there are only 2 children (the run-in and this box)
+                                if ( getChildCount()!=2 ) { // autobox run-in
+                                    autoboxChildren( run_in_idx, block_idx, handleFloating );
+                                }
+                            }
+                            i = run_in_idx;
                         }
                     }
                 }
@@ -6143,22 +6114,16 @@ void ldomNode::initNodeRendMethod()
                         #endif
                         setRendMethod( erm_table_row );
                     }
-                    else if ( getDocument()->hasCacheFile() ) {
-                        // (We can only move/add nodes while we don't yet have a cache file)
-                        getDocument()->setBoxingWishedButPreventedByCache();
+                    #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
+                        printf("initNodeRendMethod: wrapping unproper table cells %d>%d\n",
+                               first_table_cell, last_table_cell);
+                    #endif
+                    ldomNode * tbox = boxWrapChildren(first_table_cell, last_table_cell, el_tabularBox);
+                    if ( tbox && !tbox->isNull() ) {
+                        tbox->initNodeStyle();
+                        tbox->setRendMethod( erm_table_row );
                     }
-                    else {
-                        #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
-                            printf("initNodeRendMethod: wrapping unproper table cells %d>%d\n",
-                                        first_table_cell, last_table_cell);
-                        #endif
-                        ldomNode * tbox = boxWrapChildren(first_table_cell, last_table_cell, el_tabularBox);
-                        if ( tbox && !tbox->isNull() ) {
-                            tbox->initNodeStyle();
-                            tbox->setRendMethod( erm_table_row );
-                        }
-                        did_wrap = true;
-                    }
+                    did_wrap = true;
                     last_table_cell = -1;
                     first_table_cell = -1;
                 }
@@ -6250,23 +6215,17 @@ void ldomNode::initNodeRendMethod()
                     setRendMethod( erm_table );
                     initTableRendMethods( this, 0 );
                 }
-                else if ( getDocument()->hasCacheFile() ) {
-                    // (We can only move/add nodes while we don't yet have a cache file)
-                    getDocument()->setBoxingWishedButPreventedByCache();
+                #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
+                    printf("initNodeRendMethod: wrapping unproper table children %d>%d\n",
+                                first_misparented, last_misparented);
+                #endif
+                ldomNode * tbox = boxWrapChildren(first_misparented, last_misparented, el_tabularBox);
+                if ( tbox && !tbox->isNull() ) {
+                    tbox->initNodeStyle();
+                    tbox->setRendMethod( erm_table );
+                    initTableRendMethods( tbox, 0 );
                 }
-                else {
-                    #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
-                        printf("initNodeRendMethod: wrapping unproper table children %d>%d\n",
-                                    first_misparented, last_misparented);
-                    #endif
-                    ldomNode * tbox = boxWrapChildren(first_misparented, last_misparented, el_tabularBox);
-                    if ( tbox && !tbox->isNull() ) {
-                        tbox->initNodeStyle();
-                        tbox->setRendMethod( erm_table );
-                        initTableRendMethods( tbox, 0 );
-                    }
-                    did_wrap = true;
-                }
+                did_wrap = true;
                 last_misparented = -1;
                 first_misparented = -1;
                 // Note:
@@ -6381,68 +6340,58 @@ void ldomNode::initNodeRendMethod()
             }
             else if ( parent ) { // !isFloatBox && !isFloatBoxChild
                 // Element with float:, that has not been yet wrapped in a floatBox.
-                // Like above, don't do any node moving when there is already a
-                // cache file, to avoid some unclear segfaults.
-                // (If new floats appear after loading, we won't render well, but
-                // a style hash mismatch will happen and the user will be
-                // suggested to reload the book with cache cleaned.)
-                if ( getDocument()->hasCacheFile() ) {
-                    getDocument()->setBoxingWishedButPreventedByCache();
-                }
-                else {
-                    // Replace this element with a floatBox in its parent children collection,
-                    // and move it inside, as the single child of this floatBox.
-                    int pos = getNodeIndex();
-                    ldomNode * fbox = parent->insertChildElement( pos, LXML_NS_NONE, el_floatBox );
-                    parent->moveItemsTo( fbox, pos+1, pos+1 ); // move this element from parent into fbox
-
-                    // If we have float:, this just-created floatBox should be erm_block,
-                    // unless the child has been kept inline
-                    if ( !BLOCK_RENDERING_G(PREPARE_FLOATBOXES) && getRendMethod() == erm_inline)
-                        fbox->setRendMethod( erm_inline );
-                    else
-                        fbox->setRendMethod( erm_block );
-
-                    // We want this floatBox to have no real style (and it surely
-                    // should not have the margins of the child), but it should probably
-                    // have the inherited properties of the node parent, just like the child
-                    // had them. We can't just copy the parent style into this floatBox, as
-                    // we don't want its non-inherited properties like background-color which
-                    // could be drawn over some other content if this float has some negative
-                    // margins.
-                    // So, we can't really do this:
-                    //    // Move float and display from me into my new fbox parent
-                    //    css_style_ref_t mystyle = getStyle();
-                    //    css_style_ref_t parentstyle = parent->getStyle();
-                    //    css_style_ref_t fboxstyle( new css_style_rec_t );
-                    //    copystyle(parentstyle, fboxstyle);
-                    //    fboxstyle->float_ = mystyle->float_;
-                    //    fboxstyle->display = mystyle->display;
-                    //    fbox->setStyle(fboxstyle);
-                    //    fbox->initNodeFont();
-                    //
-                    // Best to use lvrend.cpp setNodeStyle(), which will properly set
-                    // this new node style with inherited properties from its parent,
-                    // and we made it do this specific propagation of float_ and
-                    // display from its single children, only when it has styles
-                    // defined (so, only on initial loading and not on re-renderings).
-                    setNodeStyle( fbox, parent->getStyle(), parent->getFont() );
-
-                    // We would have liked to reset style->float_ to none in the
-                    // node we moved in the floatBox, for correctness sake.
-                    //    css_style_ref_t mynewstyle( new css_style_rec_t );
-                    //    copystyle(mystyle, mynewstyle);
-                    //    mynewstyle->float_ = css_f_none;
-                    //    mynewstyle->display = css_d_block;
-                    //    setStyle(mynewstyle);
-                    //    initNodeFont();
-                    // Unfortunatly, we can't yet re-set a style while the DOM
-                    // is still being built (as we may be called during the loading
-                    // phase) without many font glitches.
-                    // So, we'll have a floatBox with float: that contains a span
-                    // or div with float: - the rendering code may have to check
-                    // for that: ->isFloatingBox() was added for that.
-                }
+                // Replace this element with a floatBox in its parent children collection,
+                // and move it inside, as the single child of this floatBox.
+                int pos = getNodeIndex();
+                ldomNode * fbox = parent->insertChildElement( pos, LXML_NS_NONE, el_floatBox );
+                parent->moveItemsTo( fbox, pos+1, pos+1 ); // move this element from parent into fbox
+                
+                // If we have float:, this just-created floatBox should be erm_block,
+                // unless the child has been kept inline
+                if ( !BLOCK_RENDERING_G(PREPARE_FLOATBOXES) && getRendMethod() == erm_inline)
+                    fbox->setRendMethod( erm_inline );
+                else
+                    fbox->setRendMethod( erm_block );
+                
+                // We want this floatBox to have no real style (and it surely
+                // should not have the margins of the child), but it should probably
+                // have the inherited properties of the node parent, just like the child
+                // had them. We can't just copy the parent style into this floatBox, as
+                // we don't want its non-inherited properties like background-color which
+                // could be drawn over some other content if this float has some negative
+                // margins.
+                // So, we can't really do this:
+                //    // Move float and display from me into my new fbox parent
+                //    css_style_ref_t mystyle = getStyle();
+                //    css_style_ref_t parentstyle = parent->getStyle();
+                //    css_style_ref_t fboxstyle( new css_style_rec_t );
+                //    copystyle(parentstyle, fboxstyle);
+                //    fboxstyle->float_ = mystyle->float_;
+                //    fboxstyle->display = mystyle->display;
+                //    fbox->setStyle(fboxstyle);
+                //    fbox->initNodeFont();
+                //
+                // Best to use lvrend.cpp setNodeStyle(), which will properly set
+                // this new node style with inherited properties from its parent,
+                // and we made it do this specific propagation of float_ and
+                // display from its single children, only when it has styles
+                // defined (so, only on initial loading and not on re-renderings).
+                setNodeStyle( fbox, parent->getStyle(), parent->getFont() );
+                
+                // We would have liked to reset style->float_ to none in the
+                // node we moved in the floatBox, for correctness sake.
+                //    css_style_ref_t mynewstyle( new css_style_rec_t );
+                //    copystyle(mystyle, mynewstyle);
+                //    mynewstyle->float_ = css_f_none;
+                //    mynewstyle->display = css_d_block;
+                //    setStyle(mynewstyle);
+                //    initNodeFont();
+                // Unfortunatly, we can't yet re-set a style while the DOM
+                // is still being built (as we may be called during the loading
+                // phase) without many font glitches.
+                // So, we'll have a floatBox with float: that contains a span
+                // or div with float: - the rendering code may have to check
+                // for that: ->isFloatingBox() was added for that.
             }
         }
     }
@@ -6525,36 +6474,26 @@ void ldomNode::initNodeRendMethod()
             else if ( parent ) { // !isInlineBox && !isInlineBoxChild
                 // Element with display: inline-block/inline-table, that has not yet
                 // been wrapped in a inlineBox.
-                // Like above, don't do any node moving when there is already a
-                // cache file, to avoid some unclear segfaults.
-                // (If new inline-block appear after loading, we won't render well,
-                // but a style hash mismatch will happen and the user will be
-                // suggested to reload the book with cache cleaned.)
-                if ( getDocument()->hasCacheFile() ) {
-                    getDocument()->setBoxingWishedButPreventedByCache();
-                }
-                else {
-                    // Replace this element with a inlineBox in its parent children collection,
-                    // and move it inside, as the single child of this inlineBox.
-                    int pos = getNodeIndex();
-                    ldomNode * ibox = parent->insertChildElement( pos, LXML_NS_NONE, el_inlineBox );
-                    parent->moveItemsTo( ibox, pos+1, pos+1 ); // move this element from parent into ibox
-                    ibox->setRendMethod( erm_inline );
-
-                    // We want this inlineBox to have no real style (and it surely
-                    // should not have the margins of the child), but it should probably
-                    // have the inherited properties of the node parent, just like the child
-                    // had them. We can't just copy the parent style into this inlineBox, as
-                    // we don't want its non-inherited properties like background-color which
-                    // could be drawn over some other content if this float has some negative
-                    // margins.
-                    // Best to use lvrend.cpp setNodeStyle(), which will properly set
-                    // this new node style with inherited properties from its parent,
-                    // and we made it do this specific propagation of vertical_align
-                    // from its single child, only when it has styles defined (so,
-                    // only on initial loading and not on re-renderings).
-                    setNodeStyle( ibox, parent->getStyle(), parent->getFont() );
-                }
+                // Replace this element with a inlineBox in its parent children collection,
+                // and move it inside, as the single child of this inlineBox.
+                int pos = getNodeIndex();
+                ldomNode * ibox = parent->insertChildElement( pos, LXML_NS_NONE, el_inlineBox );
+                parent->moveItemsTo( ibox, pos+1, pos+1 ); // move this element from parent into ibox
+                ibox->setRendMethod( erm_inline );
+                
+                // We want this inlineBox to have no real style (and it surely
+                // should not have the margins of the child), but it should probably
+                // have the inherited properties of the node parent, just like the child
+                // had them. We can't just copy the parent style into this inlineBox, as
+                // we don't want its non-inherited properties like background-color which
+                // could be drawn over some other content if this float has some negative
+                // margins.
+                // Best to use lvrend.cpp setNodeStyle(), which will properly set
+                // this new node style with inherited properties from its parent,
+                // and we made it do this specific propagation of vertical_align
+                // from its single child, only when it has styles defined (so,
+                // only on initial loading and not on re-renderings).
+                setNodeStyle( ibox, parent->getStyle(), parent->getFont() );
             }
         }
     }
@@ -8742,7 +8681,7 @@ lString16 ldomXPointer::toStringV2()
                 // same element name, so we can have "div[1]" instead of "div"
                 // when parent has more than one of it (as toStringV1 does).
                 ldomNode * n = p;
-                while ( n = n->getUnboxedNextSibling(true) ) {
+                while ( ( n = n->getUnboxedNextSibling(true) ) ) {
                     if ( predicat(n) ) { // We have such a followup sibling
                         count = 2; // there's at least 2 of them
                         break;
@@ -8764,7 +8703,7 @@ lString16 ldomXPointer::toStringV2()
                 // so we can have "text()[1]" instead of "text()" when
                 // parent has more than one text node (as toStringV1 does).
                 ldomNode * n = p;
-                while ( n = n->getUnboxedNextSibling(false) ) {
+                while ( ( n = n->getUnboxedNextSibling(false) ) ) {
                     if ( isTextNode(n) ) { // We have such a followup sibling
                         count = 2; // there's at least 2 of them
                         break;
@@ -12864,10 +12803,6 @@ lUInt32 tinyNodeCollection::calcStyleHash()
                 }
             }
         }
-        // Ensure a hash change if we wanted to box some elements, but couldn't
-        // because of the presence of a cache file
-        if ( _boxingWishedButPreventedByCache )
-            _nodeDisplayStyleHash += 79;
 
         CRLog::debug("  COMPUTED _nodeStyleHash %x", res);
         _nodeStyleHash = res;
@@ -13729,8 +13664,7 @@ void ldomNode::onCollectionDestroy()
     case NT_ELEMENT:
         // ???
 #if BUILD_LITE!=1
-        if (getDocument())
-            getDocument()->clearNodeStyle( _handle._dataIndex );
+        getDocument()->clearNodeStyle( _handle._dataIndex );
 #endif
         delete NPELEM;
         NPELEM = NULL;

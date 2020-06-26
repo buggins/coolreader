@@ -487,7 +487,6 @@ protected:
     lUInt32 _nodeDisplayStyleHash;
     lUInt32 _nodeDisplayStyleHashInitial;
     bool _nodeStylesInvalidIfLoading;
-    bool _boxingWishedButPreventedByCache;
 
     int calcFinalBlocks();
     void dropStyles();
@@ -628,9 +627,6 @@ public:
     }
     void setNodeStylesInvalidIfLoading() {
         _nodeStylesInvalidIfLoading = true;
-    }
-    void setBoxingWishedButPreventedByCache() {
-        _boxingWishedButPreventedByCache = true;
     }
 
     /// if a cache file is in use
@@ -846,7 +842,7 @@ public:
     void destroy();
 
     /// returns true for invalid/deleted node ot NULL this pointer
-    inline bool isNull() const { return _handle._dataIndex==0; }
+    inline bool isNull() const { return _handle._dataIndex==0 || getDocument() == NULL; }
     /// returns true if node is stored in persistent storage
     inline bool isPersistent() const { return (_handle._dataIndex&2)!=0; }
     /// returns data index of node's registration in document data storage
@@ -1398,7 +1394,7 @@ protected:
 		{
 			return _doc!=v._doc || _dataIndex != v._dataIndex || _offset != v._offset;
 		}
-		inline bool isNull() { return _dataIndex==0; }
+		inline bool isNull() { return _dataIndex==0 || _doc==NULL; }
         inline ldomNode * getNode() { return _dataIndex>0 ? ((lxmlDocBase*)_doc)->getTinyNode( _dataIndex ) : NULL; }
 		inline int getOffset() { return _offset; }
         inline void setNode( ldomNode * node )
