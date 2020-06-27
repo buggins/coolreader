@@ -2173,14 +2173,12 @@ bool tinyNodeCollection::loadNodeData(lUInt16 type, ldomNode ** list, int nodeco
         ldomNode * buf = (ldomNode *)p;
         if (sz == TNC_PART_LEN)
             list[i] = buf;
-        else
-        {
+        else {
             // buf contains `sz' ldomNode items
             // _elemList, _textList (as `list' argument) must always be TNC_PART_LEN size
             // add into `list' zero filled (TNC_PART_LEN - sz) items
             list[i] = (ldomNode *)realloc(buf, TNC_PART_LEN * sizeof(ldomNode));
-            if (NULL == list[i])
-            {
+            if (NULL == list[i]) {
                 free(buf);
                 CRLog::error("Not enough memory!");
                 return false;
@@ -2189,6 +2187,15 @@ bool tinyNodeCollection::loadNodeData(lUInt16 type, ldomNode ** list, int nodeco
         }
         for (int j=0; j<sz; j++) {
             list[i][j].setDocumentIndex( _docIndex );
+            // validate loaded nodes: all non-null nodes should be marked as persistent, i.e. the actual node data: _data._pelem_addr, _data._ptext_addr,
+            // NOT _data._elem_ptr, _data._text_ptr.
+            // So we check this flag, but after setting document so that isNull() works correctly.
+            // If the node is not persistent now, then _data._elem_ptr will be used, which then generate SEGFAULT.
+            if (!list[i][j].isNull() && !list[i][j].isPersistent()) {
+                CRLog::error("Invalid cached node, flag PERSISTENT are NOT set: segment=%d, index=%d", i, j);
+                // list[i] will be freed in the caller method.
+                return false;
+            }
             if ( list[i][j].isElement() ) {
                 // will be set by loadStyles/updateStyles
                 //list[i][j]._data._pelem._styleIndex = 0;
@@ -13782,7 +13789,7 @@ void lxmlDocBase::setStyleSheet( const char * css, bool replace )
 // use ldomNode rich interface instead
 class tinyElement
 {
-    friend class ldomNode;
+    friend struct ldomNode;
 private:
     ldomDocument * _document;
     ldomNode * _parentNode;

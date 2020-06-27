@@ -48,7 +48,7 @@ public:
 };
 
 class LVImageSource;
-class ldomNode;
+struct ldomNode;
 class LVColorDrawBuf;
 
 /// image decoding callback interface

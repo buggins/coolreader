@@ -412,7 +412,7 @@ public:
 };
 
 // forward declaration
-class ldomNode;
+struct ldomNode;
 
 // About these #define TNC_PART_* :
 // A ldomNode unique reference is defined by:
@@ -452,7 +452,7 @@ class ldomNode;
 /// storage of ldomNode
 class tinyNodeCollection
 {
-    friend class ldomNode;
+    friend struct ldomNode;
     friend class tinyElement;
     friend class ldomDocument;
 private:
@@ -1080,8 +1080,7 @@ public:
 */
 class lxmlDocBase : public tinyNodeCollection
 {
-    //friend class ldomNode;
-    friend class ldomNode;
+    friend struct ldomNode;
 	friend class ldomXPointer;
 protected:
 

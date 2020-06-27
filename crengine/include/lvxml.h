@@ -28,7 +28,7 @@
 class LVFileFormatParser;
 
 class tinyNode;
-class ldomNode;
+struct ldomNode;
 
 /// XML parser callback interface
 class LVXMLParserCallback
