@@ -27,6 +27,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
   {
     Debug.Log ("Joined room with " + PhotonNetwork.CurrentRoom.PlayerCount + " participants.");
     
-    PhotonNetwork.Instantiate (avatarPrefab.name, new Vector3 (), Quaternion.identity, 0);
+    GameObject g = PhotonNetwork.Instantiate (avatarPrefab.name, new Vector3 (), Quaternion.identity, 0);
+    PhotonNetwork.LocalPlayer.TagObject = g;
   }
 }
