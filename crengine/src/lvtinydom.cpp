@@ -8519,6 +8519,7 @@ ldomXPointer ldomDocument::createXPointerV2( ldomNode * baseNode, const lString1
             break;
         case xpath_step_nodeindex:
             // node index                                 /N/
+            count = 0;
             foundNode = getNodeByIndex(currNode, index, notNull, count);
             if ( foundNode == NULL )
                 return ldomXPointer(); // node not found: invalid index

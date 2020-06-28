@@ -143,8 +143,7 @@ protected:
 #if USE_HARFBUZZ == 1
     hb_font_t *_hb_font;
     hb_buffer_t *_hb_buffer;
-    hb_feature_t* _hb_features;
-    int _hb_features_len;
+    LVArray<hb_feature_t> _hb_features;
     // For use with SHAPING_MODE_HARFBUZZ:
     LVFontLocalGlyphCache _glyph_cache2;
     // For use with SHAPING_MODE_HARFBUZZ_LIGHT:
@@ -381,8 +380,9 @@ public:
 protected:
     FT_UInt getCharIndex(lUInt32 code, lChar16 def_char);
 #if USE_HARFBUZZ==1
-    bool _delHBFeature(const char * tag);
-    bool _addHBFeature(const char * tag);
+    bool setHBFeatureValue(const char * tag, uint32_t value);
+    bool addHBFeature(const char * tag);
+    bool delHBFeature(const char * tag);
     void setupHBFeatures();
 #endif
 };

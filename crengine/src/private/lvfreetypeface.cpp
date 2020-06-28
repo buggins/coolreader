@@ -336,9 +336,7 @@ LVFreeTypeFace::LVFreeTypeFace(LVMutex &mutex, FT_Library library,
           _fallbackFontIsSet(false)
 #if USE_HARFBUZZ == 1
         , _glyph_cache2(globalCache),
-          _width_cache2(1024),
-          _hb_features(NULL),
-          _hb_features_len(0)
+          _width_cache2(1024)
 #endif
 {
     _matrix.xx = 0x10000;
@@ -349,6 +347,7 @@ LVFreeTypeFace::LVFreeTypeFace(LVMutex &mutex, FT_Library library,
 #if USE_HARFBUZZ == 1
     _hb_font = 0;
     _hb_buffer = hb_buffer_create();
+    _hb_features.reserve(22);
     setupHBFeatures();
 #endif
 }
@@ -357,8 +356,6 @@ LVFreeTypeFace::~LVFreeTypeFace() {
 #if USE_HARFBUZZ == 1
     if (_hb_buffer)
         hb_buffer_destroy(_hb_buffer);
-    if (_hb_features)
-        free(_hb_features);
 #endif
     Clear();
 }
@@ -386,13 +383,10 @@ void LVFreeTypeFace::setKerning(bool kerningEnabled) {
     _allowKerning = kerningEnabled;
     _hash = 0; // Force lvstyles.cpp calcHash(font_ref_t) to recompute the hash
 #if USE_HARFBUZZ == 1
-    if (_allowKerning) {
-        _delHBFeature("-kern");
-        _addHBFeature("+kern");
-    } else {
-        _delHBFeature("+kern");
-        _addHBFeature("-kern");
-    }
+    if (_allowKerning)
+        setHBFeatureValue("kern", 1);
+    else
+        setHBFeatureValue("kern", 0);
     // in cache may be found some ligatures, so clear it
     clearCache();
 #endif
@@ -762,7 +756,7 @@ bool LVFreeTypeFace::hbCalcCharWidth(LVCharPosInfo *posInfo, const LVCharTriplet
     }
     hb_buffer_set_content_type(_hb_buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
     hb_buffer_guess_segment_properties(_hb_buffer);
-    hb_shape(_hb_font, _hb_buffer, _hb_features, _hb_features_len);
+    hb_shape(_hb_font, _hb_buffer, _hb_features.ptr(), _hb_features.length());
     unsigned int glyph_count = hb_buffer_get_length(_hb_buffer);
     if (segLen == glyph_count) {
         hb_glyph_info_t *glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, &glyph_count);
@@ -830,95 +824,97 @@ FT_UInt LVFreeTypeFace::getCharIndex(lUInt32 code, lChar16 def_char) {
 }
 
 #if USE_HARFBUZZ == 1
-bool LVFreeTypeFace::_delHBFeature(const char *tag)
+bool LVFreeTypeFace::setHBFeatureValue(const char *tag, uint32_t value)
 {
     hb_feature_t hb_feature;
     if (hb_feature_from_string(tag, -1, &hb_feature)) {
-        int found_idx = -1;
+        int idx = -1;
         int i;
-        for (i = 0; i < _hb_features_len; i++) {
+        for (i = 0; i < _hb_features.length(); i++) {
             if (_hb_features[i].tag == hb_feature.tag) {
-                found_idx = i;
+                idx = i;
                 break;
             }
         }
-        if (found_idx > 0) {
-            for (i = found_idx; i < _hb_features_len - 1; i++)
-                _hb_features[i] = _hb_features[i + 1];
-            _hb_features_len--;
-            _hb_features = cr_realloc(_hb_features, _hb_features_len);
-            return true;
+        if (idx < 0) {
+            idx = _hb_features.length();
+            _hb_features.add(hb_feature);
         }
+        _hb_features[idx].value = value;
+        return true;
     }
     return false;
 }
 
-bool LVFreeTypeFace::_addHBFeature(const char *tag)
+bool LVFreeTypeFace::addHBFeature(const char *tag)
 {
     hb_feature_t hb_feature;
-    if (hb_feature_from_string(tag, -1, &hb_feature))
-    {
-        _hb_features_len++;
-        _hb_features = cr_realloc(_hb_features, _hb_features_len);
-        _hb_features[_hb_features_len - 1] = hb_feature;
+    if (hb_feature_from_string(tag, -1, &hb_feature)) {
+        for (int i = 0; i < _hb_features.length(); i++) {
+            if (_hb_features[i].tag == hb_feature.tag) {
+                _hb_features[i] = hb_feature;
+                return true;
+            }
+        }
+        _hb_features.add(hb_feature);
         return true;
+    }
+    return false;
+}
+
+bool LVFreeTypeFace::delHBFeature(const char *tag)
+{
+    hb_feature_t hb_feature;
+    if (hb_feature_from_string(tag, -1, &hb_feature)) {
+        for (int i = 0; i < _hb_features.length(); i++) {
+            if (_hb_features[i].tag == hb_feature.tag) {
+                _hb_features.remove(i);
+                return true;
+            }
+        }
     }
     return false;
 }
 
 void LVFreeTypeFace::setupHBFeatures()
 {
-    if (_hb_features)
-        free(_hb_features);
-    _hb_features = NULL;
-    _hb_features_len = 0;
+    _hb_features.clear();
     if ( _shapingMode == SHAPING_MODE_HARFBUZZ ) {
-        _hb_features_len = 2;
-        _hb_features = (hb_feature_t*)malloc( _hb_features_len * sizeof(hb_feature_t) );
-        // HarfBuzz features for full text shaping
-        if (_allowKerning)
-            hb_feature_from_string("+kern", -1, &_hb_features[0]);  // font kerning
-        else
-            hb_feature_from_string("-kern", -1, &_hb_features[0]);  // font kerning
-        hb_feature_from_string("+liga", -1, &_hb_features[1]);      // ligatures
+        setHBFeatureValue("kern", _allowKerning ? 1 : 0);
+        addHBFeature("+liga");
     }
     else if ( _shapingMode == SHAPING_MODE_HARFBUZZ_LIGHT ) {
-        _hb_features_len = 22;
-        _hb_features = (hb_feature_t*)malloc( _hb_features_len * sizeof(hb_feature_t) );
         // HarfBuzz features for lighweight characters width calculating with caching.
         // We need to disable all the features, enabled by default in Harfbuzz, that
         // may split a char into more glyphs, or merge chars into one glyph.
         // (see harfbuzz/src/hb-ot-shape.cc hb_ot_shape_collect_features() )
         //
         // We can enable these ones:
-        if (_allowKerning)
-            hb_feature_from_string("+kern", -1, &_hb_features[0]);  // font kerning
-        else
-            hb_feature_from_string("-kern", -1, &_hb_features[0]);  // font kerning
-        hb_feature_from_string("+mark", -1, &_hb_features[1]);  // Mark Positioning: Fine positioning of a mark glyph to a base character
-        hb_feature_from_string("+mkmk", -1, &_hb_features[2]);  // Mark-to-mark Positioning: Fine positioning of a mark glyph to another mark character
-        hb_feature_from_string("+curs", -1, &_hb_features[3]);  // Cursive Positioning: Precise positioning of a letter's connection to an adjacent one
-        hb_feature_from_string("+locl", -1, &_hb_features[4]);  // Substitutes character with the preferred form based on script language
+        setHBFeatureValue("kern", _allowKerning ? 1 : 0);
+        addHBFeature("+mark");          // Mark Positioning: Fine positioning of a mark glyph to a base character
+        addHBFeature("+mkmk");          // Mark-to-mark Positioning: Fine positioning of a mark glyph to another mark character
+        addHBFeature("+curs");          // Cursive Positioning: Precise positioning of a letter's connection to an adjacent one
+        addHBFeature("+locl");          // Substitutes character with the preferred form based on script language
         //
         // We should disable these ones:
-        hb_feature_from_string("-liga", -1, &_hb_features[5]);  // Standard Ligatures: replaces (by default) sequence of characters with a single ligature glyph
-        hb_feature_from_string("-rlig", -1, &_hb_features[6]);  // Ligatures required for correct text display (any script, but in cursive) - Arabic, semitic
-        hb_feature_from_string("-clig", -1, &_hb_features[7]);  // Applies a second ligature feature based on a match of a character pattern within a context of surrounding patterns
-        hb_feature_from_string("-ccmp", -1, &_hb_features[8]);  // Glyph composition/decomposition: either calls a ligature replacement on a sequence of characters or replaces a character with a sequence of glyphs
+        addHBFeature("-liga");          // Standard Ligatures: replaces (by default) sequence of characters with a single ligature glyph
+        addHBFeature("-rlig");          // Ligatures required for correct text display (any script, but in cursive) - Arabic, semitic
+        addHBFeature("-clig");          // Applies a second ligature feature based on a match of a character pattern within a context of surrounding patterns
+        addHBFeature("-ccmp");          // Glyph composition/decomposition: either calls a ligature replacement on a sequence of characters or replaces a character with a sequence of glyphs
         // Provides logic that can for example effectively alter the order of input characters
-        hb_feature_from_string("-calt", -1, &_hb_features[9]);  // Contextual Alternates: Applies a second substitution feature based on a match of a character pattern within a context of surrounding patterns
-        hb_feature_from_string("-rclt", -1, &_hb_features[10]); // Required Contextual Alternates: Contextual alternates required for correct text display which differs from the default join for other letters, required especially important by Arabic
-        hb_feature_from_string("-rvrn", -1, &_hb_features[11]); // Required Variation Alternates: Special variants of a single character, which need apply to specific font variation, required by variable fonts
-        hb_feature_from_string("-ltra", -1, &_hb_features[12]); // Left-to-right glyph alternates: Replaces characters with forms befitting left-to-right presentation
-        hb_feature_from_string("-ltrm", -1, &_hb_features[13]); // Left-to-right mirrored forms: Replaces characters with possibly mirrored forms befitting left-to-right presentation
-        hb_feature_from_string("-rtla", -1, &_hb_features[14]); // Right-to-left glyph alternates: Replaces characters with forms befitting right-to-left presentation
-        hb_feature_from_string("-rtlm", -1, &_hb_features[15]); // Right-to-left mirrored forms: Replaces characters with possibly mirrored forms befitting right-to-left presentation
-        hb_feature_from_string("-frac", -1, &_hb_features[16]); // Fractions: Converts figures separated by slash with diagonal fraction
-        hb_feature_from_string("-numr", -1, &_hb_features[17]); // Numerator: Converts to appropriate fraction numerator form, invoked by frac
-        hb_feature_from_string("-dnom", -1, &_hb_features[18]); // Denominator: Converts to appropriate fraction denominator form, invoked by frac
-        hb_feature_from_string("-rand", -1, &_hb_features[19]); // Replaces character with random forms (meant to simulate handwriting)
-        hb_feature_from_string("-trak", -1, &_hb_features[20]); // Tracking (?)
-        hb_feature_from_string("-vert", -1, &_hb_features[21]); // Vertical (?)
+        addHBFeature("-calt");          // Contextual Alternates: Applies a second substitution feature based on a match of a character pattern within a context of surrounding patterns
+        addHBFeature("-rclt");          // Required Contextual Alternates: Contextual alternates required for correct text display which differs from the default join for other letters, required especially important by Arabic
+        addHBFeature("-rvrn");          // Required Variation Alternates: Special variants of a single character, which need apply to specific font variation, required by variable fonts
+        addHBFeature("-ltra");          // Left-to-right glyph alternates: Replaces characters with forms befitting left-to-right presentation
+        addHBFeature("-ltrm");          // Left-to-right mirrored forms: Replaces characters with possibly mirrored forms befitting left-to-right presentation
+        addHBFeature("-rtla");          // Right-to-left glyph alternates: Replaces characters with forms befitting right-to-left presentation
+        addHBFeature("-rtlm");          // Right-to-left mirrored forms: Replaces characters with possibly mirrored forms befitting right-to-left presentation
+        addHBFeature("-frac");          // Fractions: Converts figures separated by slash with diagonal fraction
+        addHBFeature("-numr");          // Numerator: Converts to appropriate fraction numerator form, invoked by frac
+        addHBFeature("-dnom");          // Denominator: Converts to appropriate fraction denominator form, invoked by frac
+        addHBFeature("-rand");          // Replaces character with random forms (meant to simulate handwriting)
+        addHBFeature("-trak");          // Tracking (?)
+        addHBFeature("-vert");          // Vertical (?)
         // Especially needed with FreeSerif and french texts: -ccmp
         // Especially needed with Fedra Serif and "The", "Thuringe": -calt
         // These tweaks seem fragile (adding here +smcp to experiment with small caps would break FreeSerif again).
@@ -934,37 +930,37 @@ void LVFreeTypeFace::setupHBFeatures()
     }
     if ( _features != LFNT_OT_FEATURES_NORMAL ) {
         // Add requested features
-        if ( _features & LFNT_OT_FEATURES_M_LIGA ) { _addHBFeature("-liga"); _addHBFeature("-clig"); }
-        if ( _features & LFNT_OT_FEATURES_M_CALT ) { _addHBFeature("-calt"); }
-        if ( _features & LFNT_OT_FEATURES_P_DLIG ) { _addHBFeature("+dlig"); }
-        if ( _features & LFNT_OT_FEATURES_M_DLIG ) { _addHBFeature("-dlig"); }
-        if ( _features & LFNT_OT_FEATURES_P_HLIG ) { _addHBFeature("+hlig"); }
-        if ( _features & LFNT_OT_FEATURES_M_HLIG ) { _addHBFeature("-hlig"); }
-        if ( _features & LFNT_OT_FEATURES_P_HIST ) { _addHBFeature("+hist"); }
-        if ( _features & LFNT_OT_FEATURES_P_RUBY ) { _addHBFeature("+ruby"); }
-        if ( _features & LFNT_OT_FEATURES_P_SMCP ) { _addHBFeature("+smcp"); }
-        if ( _features & LFNT_OT_FEATURES_P_C2SC ) { _addHBFeature("+c2sc"); _addHBFeature("+smcp"); }
-        if ( _features & LFNT_OT_FEATURES_P_PCAP ) { _addHBFeature("+pcap"); }
-        if ( _features & LFNT_OT_FEATURES_P_C2PC ) { _addHBFeature("+c2pc"); _addHBFeature("+pcap"); }
-        if ( _features & LFNT_OT_FEATURES_P_UNIC ) { _addHBFeature("+unic"); }
-        if ( _features & LFNT_OT_FEATURES_P_TITL ) { _addHBFeature("+titl"); }
-        if ( _features & LFNT_OT_FEATURES_P_SUPS ) { _addHBFeature("+sups"); }
-        if ( _features & LFNT_OT_FEATURES_P_SUBS ) { _addHBFeature("+subs"); }
-        if ( _features & LFNT_OT_FEATURES_P_LNUM ) { _addHBFeature("+lnum"); }
-        if ( _features & LFNT_OT_FEATURES_P_ONUM ) { _addHBFeature("+onum"); }
-        if ( _features & LFNT_OT_FEATURES_P_PNUM ) { _addHBFeature("+pnum"); }
-        if ( _features & LFNT_OT_FEATURES_P_TNUM ) { _addHBFeature("+tnum"); }
-        if ( _features & LFNT_OT_FEATURES_P_ZERO ) { _addHBFeature("+zero"); }
-        if ( _features & LFNT_OT_FEATURES_P_ORDN ) { _addHBFeature("+ordn"); }
-        if ( _features & LFNT_OT_FEATURES_P_FRAC ) { _addHBFeature("+frac"); }
-        if ( _features & LFNT_OT_FEATURES_P_AFRC ) { _addHBFeature("+afrc"); }
-        if ( _features & LFNT_OT_FEATURES_P_SMPL ) { _addHBFeature("+smpl"); }
-        if ( _features & LFNT_OT_FEATURES_P_TRAD ) { _addHBFeature("+trad"); }
-        if ( _features & LFNT_OT_FEATURES_P_FWID ) { _addHBFeature("+fwid"); }
-        if ( _features & LFNT_OT_FEATURES_P_PWID ) { _addHBFeature("+pwid"); }
-        if ( _features & LFNT_OT_FEATURES_P_JP78 ) { _addHBFeature("+jp78"); }
-        if ( _features & LFNT_OT_FEATURES_P_JP83 ) { _addHBFeature("+jp83"); }
-        if ( _features & LFNT_OT_FEATURES_P_JP04 ) { _addHBFeature("+jp04"); }
+        if ( _features & LFNT_OT_FEATURES_M_LIGA ) { addHBFeature("-liga"); addHBFeature("-clig"); }
+        if ( _features & LFNT_OT_FEATURES_M_CALT ) { addHBFeature("-calt"); }
+        if ( _features & LFNT_OT_FEATURES_P_DLIG ) { addHBFeature("+dlig"); }
+        if ( _features & LFNT_OT_FEATURES_M_DLIG ) { addHBFeature("-dlig"); }
+        if ( _features & LFNT_OT_FEATURES_P_HLIG ) { addHBFeature("+hlig"); }
+        if ( _features & LFNT_OT_FEATURES_M_HLIG ) { addHBFeature("-hlig"); }
+        if ( _features & LFNT_OT_FEATURES_P_HIST ) { addHBFeature("+hist"); }
+        if ( _features & LFNT_OT_FEATURES_P_RUBY ) { addHBFeature("+ruby"); }
+        if ( _features & LFNT_OT_FEATURES_P_SMCP ) { addHBFeature("+smcp"); }
+        if ( _features & LFNT_OT_FEATURES_P_C2SC ) { addHBFeature("+c2sc"); addHBFeature("+smcp"); }
+        if ( _features & LFNT_OT_FEATURES_P_PCAP ) { addHBFeature("+pcap"); }
+        if ( _features & LFNT_OT_FEATURES_P_C2PC ) { addHBFeature("+c2pc"); addHBFeature("+pcap"); }
+        if ( _features & LFNT_OT_FEATURES_P_UNIC ) { addHBFeature("+unic"); }
+        if ( _features & LFNT_OT_FEATURES_P_TITL ) { addHBFeature("+titl"); }
+        if ( _features & LFNT_OT_FEATURES_P_SUPS ) { addHBFeature("+sups"); }
+        if ( _features & LFNT_OT_FEATURES_P_SUBS ) { addHBFeature("+subs"); }
+        if ( _features & LFNT_OT_FEATURES_P_LNUM ) { addHBFeature("+lnum"); }
+        if ( _features & LFNT_OT_FEATURES_P_ONUM ) { addHBFeature("+onum"); }
+        if ( _features & LFNT_OT_FEATURES_P_PNUM ) { addHBFeature("+pnum"); }
+        if ( _features & LFNT_OT_FEATURES_P_TNUM ) { addHBFeature("+tnum"); }
+        if ( _features & LFNT_OT_FEATURES_P_ZERO ) { addHBFeature("+zero"); }
+        if ( _features & LFNT_OT_FEATURES_P_ORDN ) { addHBFeature("+ordn"); }
+        if ( _features & LFNT_OT_FEATURES_P_FRAC ) { addHBFeature("+frac"); }
+        if ( _features & LFNT_OT_FEATURES_P_AFRC ) { addHBFeature("+afrc"); }
+        if ( _features & LFNT_OT_FEATURES_P_SMPL ) { addHBFeature("+smpl"); }
+        if ( _features & LFNT_OT_FEATURES_P_TRAD ) { addHBFeature("+trad"); }
+        if ( _features & LFNT_OT_FEATURES_P_FWID ) { addHBFeature("+fwid"); }
+        if ( _features & LFNT_OT_FEATURES_P_PWID ) { addHBFeature("+pwid"); }
+        if ( _features & LFNT_OT_FEATURES_P_JP78 ) { addHBFeature("+jp78"); }
+        if ( _features & LFNT_OT_FEATURES_P_JP83 ) { addHBFeature("+jp83"); }
+        if ( _features & LFNT_OT_FEATURES_P_JP04 ) { addHBFeature("+jp04"); }
     }
 }
 #endif
@@ -1235,7 +1231,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
         // cf in *some* minikin repositories: libs/minikin/Layout.cpp
 
         // Shape
-        hb_shape(_hb_font, _hb_buffer, _hb_features, _hb_features_len);
+        hb_shape(_hb_font, _hb_buffer, _hb_features.ptr(), _hb_features.length());
 
         // Harfbuzz has guessed and set a direction even if we did not provide one.
         bool is_rtl = false;
@@ -1875,7 +1871,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *
         }
 
         // Shape
-        hb_shape(_hb_font, _hb_buffer, _hb_features, _hb_features_len);
+        hb_shape(_hb_font, _hb_buffer, _hb_features.ptr(), _hb_features.length());
 
         // If direction is RTL, hb_shape() has reversed the order of the glyphs, so
         // they are in visual order and ready to be iterated and drawn. So,
