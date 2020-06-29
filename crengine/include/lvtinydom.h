@@ -985,6 +985,8 @@ public:
     void getAbsRect( lvRect & rect, bool inner=false );
     /// sets node rendering structure pointer
     void clearRenderData();
+    /// reset node rendering structure pointer for sub-tree
+    void clearRenderDataRecursive();
     /// calls specified function recursively for all elements of DOM tree
     void recurseElements( void (*pFun)( ldomNode * node ) );
     /// calls specified function recursively for all elements of DOM tree matched by matchFun

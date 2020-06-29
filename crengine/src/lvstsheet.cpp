@@ -697,6 +697,122 @@ static bool match_nth_value( const lString16 value, int n)
     return n % step == 0;
 }
 
+// For some expensive LVCssSelectorRule::check() checks, that might
+// be done on a node for multiple rules and would give the same
+// result, we can cache the result in the node's RenderRectAccessor(),
+// which is not used at this point and will be reset and cleared after
+// all styles have been applied, before rendering methods are set.
+// This is mostly useful for the :zzz-child pseudoclasses checks
+// that involve using the expensive getUnboxedSibling methods; we
+// are sure that no boxing is done when applying stylesheets, so
+// the position among the parent children collection is stable
+// and can be cached.
+// Note that we can't cache the value 0: a field with value 0 means
+// it has not yet been cached (we could tweak it before caching if
+// storing 0 is needed).
+static void cache_node_checked_property( const ldomNode * node, int property, int value )
+{
+    RenderRectAccessor fmt( (ldomNode*)node );
+    if ( !RENDER_RECT_HAS_FLAG(fmt, TEMP_USED_AS_CSS_CHECK_CACHE) ) {
+        // Clear it from past rendering stuff: we're processing stylesheets,
+        // which means we will soon re-render the whole DOM and have it cleared
+        // and updated. We can use it for caching other stuff until then.
+        fmt.clear();
+        RENDER_RECT_SET_FLAG(fmt, TEMP_USED_AS_CSS_CHECK_CACHE);
+    }
+    switch ( property ) {
+        // Positive integer >= 1: needs a int field
+        case csspc_nth_child:
+            fmt.setY(value);
+            break;
+        case csspc_nth_of_type:
+            fmt.setHeight(value);
+            break;
+        case csspc_nth_last_child:
+            fmt.setTopOverflow(value);
+            break;
+        case csspc_nth_last_of_type:
+            fmt.setBottomOverflow(value);
+            break;
+        // Boolean (1 means false, 2 means true): fine in a short int field
+        case csspc_first_child:
+            fmt.setX(value);
+            break;
+        case csspc_first_of_type:
+            fmt.setWidth(value);
+            break;
+        case csspc_last_child:
+            fmt.setInnerWidth(value);
+            break;
+        case csspc_last_of_type:
+            fmt.setInnerX(value);
+            break;
+        case csspc_only_child:
+            fmt.setInnerY(value);
+            break;
+        case csspc_only_of_type:
+            fmt.setBaseline(value);
+            break;
+        default:
+            break;
+    }
+}
+
+static bool get_cached_node_checked_property( const ldomNode * node, int property, int & value )
+{
+    RenderRectAccessor fmt( (ldomNode*)node );
+    if ( !RENDER_RECT_HAS_FLAG(fmt, TEMP_USED_AS_CSS_CHECK_CACHE) )
+        return false; // nothing cached yet
+    bool res = false;
+    switch ( property ) {
+        // Positive integer >= 1
+        case csspc_nth_child:
+            value = fmt.getY();
+            res = value != 0;
+            break;
+        case csspc_nth_of_type:
+            value = fmt.getHeight();
+            res = value != 0;
+            break;
+        case csspc_nth_last_child:
+            value = fmt.getTopOverflow();
+            res = value != 0;
+            break;
+        case csspc_nth_last_of_type:
+            value = fmt.getBottomOverflow();
+            res = value != 0;
+            break;
+        // Boolean (1 means false, 2 means true)
+        case csspc_first_child:
+            value = fmt.getX();
+            res = value != 0;
+            break;
+        case csspc_first_of_type:
+            value = fmt.getWidth();
+            res = value != 0;
+            break;
+        case csspc_last_child:
+            value = fmt.getInnerWidth();
+            res = value != 0;
+            break;
+        case csspc_last_of_type:
+            value = fmt.getInnerX();
+            res = value != 0;
+            break;
+        case csspc_only_child:
+            value = fmt.getInnerY();
+            res = value != 0;
+            break;
+        case csspc_only_of_type:
+            value = fmt.getBaseline();
+            res = value != 0;
+            break;
+        default:
+            break;
+    }
+    return res;
+}
+
 struct standard_color_t
 {
     const char * name;
@@ -3377,50 +3493,68 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                 case csspc_first_child:
                 case csspc_first_of_type:
                 {
-                    if ( _attrid == csspc_first_of_type )
-                        nodeId = node->getNodeId();
-                    const ldomNode * elem = node;
-                    for (;;) {
-                        elem = elem->getUnboxedPrevSibling(true); // skip text nodes
-                        if (!elem)
-                            break;
-                        // We have a previous sibling
-                        if (_attrid == csspc_first_child || elem->getNodeId() == nodeId)
-                            return false;
+                    int n; // 1 = false, 2 = true (should not be 0 for caching)
+                    if ( !get_cached_node_checked_property(node, _attrid, n) ) {
+                        n = 2; // true
+                        if ( _attrid == csspc_first_of_type )
+                            nodeId = node->getNodeId();
+                        const ldomNode * elem = node;
+                        for (;;) {
+                            elem = elem->getUnboxedPrevSibling(true); // skip text nodes
+                            if (!elem)
+                                break;
+                            // We have a previous sibling
+                            if (_attrid == csspc_first_child || elem->getNodeId() == nodeId) {
+                                n = 1; // false, we're not the first
+                                break;
+                            }
+                        }
+                        cache_node_checked_property(node, _attrid, n);
                     }
-                    return true;
+                    return n == 2;
                 }
                 break;
                 case csspc_last_child:
                 case csspc_last_of_type:
                 {
-                    if ( _attrid == csspc_last_of_type )
-                        nodeId = node->getNodeId();
-                    const ldomNode * elem = node;
-                    for (;;) {
-                        elem = elem->getUnboxedNextSibling(true); // skip text nodes
-                        if (!elem)
-                            break;
-                        // We have a next sibling
-                        if (_attrid == csspc_last_child || elem->getNodeId() == nodeId)
-                            return false;
+                    int n; // 1 = false, 2 = true (should not be 0 for caching)
+                    if ( !get_cached_node_checked_property(node, _attrid, n) ) {
+                        n = 2; // true
+                        if ( _attrid == csspc_last_of_type )
+                            nodeId = node->getNodeId();
+                        const ldomNode * elem = node;
+                        for (;;) {
+                            elem = elem->getUnboxedNextSibling(true); // skip text nodes
+                            if (!elem)
+                                break;
+                            // We have a next sibling
+                            if (_attrid == csspc_last_child || elem->getNodeId() == nodeId) {
+                                n = 1; // false, we're not the last
+                                break;
+                            }
+                        }
+                        cache_node_checked_property(node, _attrid, n);
                     }
-                    return true;
+                    return n == 2;
                 }
                 break;
                 case csspc_nth_child:
                 case csspc_nth_of_type:
                 {
-                    if ( _attrid == csspc_nth_of_type )
-                        nodeId = node->getNodeId();
-                    const ldomNode * elem = node;
-                    int n = 1;
-                    for (;;) {
-                        elem = elem->getUnboxedPrevSibling(true); // skip text nodes
-                        if (!elem)
-                            break;
-                        if (_attrid == csspc_nth_child || elem->getNodeId() == nodeId)
-                            n++;
+                    int n;
+                    if ( !get_cached_node_checked_property(node, _attrid, n) ) {
+                        if ( _attrid == csspc_nth_of_type )
+                            nodeId = node->getNodeId();
+                        const ldomNode * elem = node;
+                        n = 1;
+                        for (;;) {
+                            elem = elem->getUnboxedPrevSibling(true); // skip text nodes
+                            if (!elem)
+                                break;
+                            if (_attrid == csspc_nth_child || elem->getNodeId() == nodeId)
+                                n++;
+                        }
+                        cache_node_checked_property(node, _attrid, n);
                     }
                     return match_nth_value(_value, n);
                 }
@@ -3428,16 +3562,20 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                 case csspc_nth_last_child:
                 case csspc_nth_last_of_type:
                 {
-                    if ( _attrid == csspc_nth_last_of_type )
-                        nodeId = node->getNodeId();
-                    const ldomNode * elem = node;
-                    int n = 1;
-                    for (;;) {
-                        elem = elem->getUnboxedNextSibling(true); // skip text nodes
-                        if (!elem)
-                            break;
-                        if (_attrid == csspc_nth_last_child || elem->getNodeId() == nodeId)
-                            n++;
+                    int n;
+                    if ( !get_cached_node_checked_property(node, _attrid, n) ) {
+                        if ( _attrid == csspc_nth_last_of_type )
+                            nodeId = node->getNodeId();
+                        const ldomNode * elem = node;
+                        n = 1;
+                        for (;;) {
+                            elem = elem->getUnboxedNextSibling(true); // skip text nodes
+                            if (!elem)
+                                break;
+                            if (_attrid == csspc_nth_last_child || elem->getNodeId() == nodeId)
+                                n++;
+                        }
+                        cache_node_checked_property(node, _attrid, n);
                     }
                     return match_nth_value(_value, n);
                 }
@@ -3445,17 +3583,24 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                 case csspc_only_child:
                 case csspc_only_of_type:
                 {
-                    if ( _attrid == csspc_only_of_type )
-                        nodeId = node->getNodeId();
-                    const ldomNode * elem = node->getUnboxedParent()->getUnboxedFirstChild(true);
-                    while (elem) {
-                        if (elem != node) {
-                            if (_attrid == csspc_only_child || elem->getNodeId() == nodeId)
-                                return false; // we're not alone
+                    int n; // 1 = false, 2 = true (should not be 0 for caching)
+                    if ( !get_cached_node_checked_property(node, _attrid, n) ) {
+                        n = 2; // true
+                        if ( _attrid == csspc_only_of_type )
+                            nodeId = node->getNodeId();
+                        const ldomNode * elem = node->getUnboxedParent()->getUnboxedFirstChild(true);
+                        while (elem) {
+                            if (elem != node) {
+                                if (_attrid == csspc_only_child || elem->getNodeId() == nodeId) {
+                                    n = 1; // false, we're not alone
+                                    break;
+                                }
+                            }
+                            elem = elem->getUnboxedNextSibling(true);
                         }
-                        elem = elem->getUnboxedNextSibling(true);
+                        cache_node_checked_property(node, _attrid, n);
                     }
-                    return true;
+                    return n == 2;
                 }
                 break;
             }

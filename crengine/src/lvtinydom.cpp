@@ -4515,6 +4515,9 @@ bool ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback,
             // is invalid (should happen now only when EPUB has embedded fonts
             // or some pseudoclass like :last-child has been met).
             printf("CRE: styles re-init needed after load, re-rendering\n");
+            // We should clear RenderRectAccessor, that may have been used for
+            // caching CSS checks results (i.e. :nth-child(), :last-of-type...)
+            getRootNode()->clearRenderDataRecursive();
         }
         CRLog::info("rendering context is changed - full render required...");
         // Clear LFormattedTextRef cache
@@ -15466,6 +15469,22 @@ void ldomNode::clearRenderData()
         return;
     lvdomElementFormatRec rec;
     getDocument()->_rectStorage.setRendRectData(_handle._dataIndex, &rec);
+}
+/// reset node rendering structure pointer for sub-tree
+void ldomNode::clearRenderDataRecursive()
+{
+    ASSERT_NODE_NOT_NULL;
+    if ( !isElement() )
+        return;
+    lvdomElementFormatRec rec;
+    getDocument()->_rectStorage.setRendRectData(_handle._dataIndex, &rec);
+    int cnt = getChildCount();
+    for (int i=0; i<cnt; i++) {
+        ldomNode * child = getChildNode( i );
+        if ( child->isElement() ) {
+            child->clearRenderDataRecursive();
+        }
+    }
 }
 #endif
 
