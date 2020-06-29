@@ -377,7 +377,7 @@ static lUInt32 calcHash(const lUInt8 * s, int len)
 {
 return XXH32(s,len,0);
 }
-lUInt32 calcGlobalSettingsHash(int documentId)
+lUInt32 calcGlobalSettingsHash(int documentId, bool already_rendered)
 {
     lUInt32 hash = FORMATTING_VERSION_ID;
     hash = hash * 31 + (int)fontMan->GetShapingMode();
@@ -390,14 +390,27 @@ lUInt32 calcGlobalSettingsHash(int documentId)
     hash = hash * 31 + fontMan->GetFallbackFontFaces().getHash();
     if ( gFlgFloatingPunctuationEnabled )
         hash = hash * 75 + 1761;
-    hash = hash * 31 + TextLangMan::getHash();
-    hash = hash * 31 + HyphMan::getLeftHyphenMin();
-    hash = hash * 31 + HyphMan::getRightHyphenMin();
-    hash = hash * 31 + HyphMan::getTrustSoftHyphens();
     hash = hash * 31 + gRenderDPI;
     hash = hash * 31 + gRenderBlockRenderingFlags;
     hash = hash * 31 + gRootFontSize;
     hash = hash * 31 + gInterlineScaleFactor;
+    // If not yet rendered (initial loading with XML parsing), we can
+    // ignore some global flags that have not yet produced any effect,
+    // so they can possibly be updated between loading and rendering
+    // without trigerring a drop of all the styles and rend methods
+    // set up in the XML loading phase. This is mostly only needed
+    // for TextLangMan::getHash(), as the lang can be set by frontend
+    // code after the loading phase, once the book language is known
+    // from its metadata, before the rendering that will use the
+    // language set. (We could ignore some of the other settings
+    // above if we ever need to reset them in between these phases;
+    // just be certain they are really not used in the first phase.)
+    if ( already_rendered ) {
+        hash = hash * 31 + TextLangMan::getHash();
+        hash = hash * 31 + HyphMan::getLeftHyphenMin();
+        hash = hash * 31 + HyphMan::getRightHyphenMin();
+        hash = hash * 31 + HyphMan::getTrustSoftHyphens();
+    }
     return hash;
 }
 
@@ -1939,8 +1952,8 @@ tinyNodeCollection::tinyNodeCollection()
 , _unusedSpaceThresholdPercent(DEF_UNUSED_SPACE_THRESHOLD_PERCENT)
 , _maxAddedLetterSpacingPercent(DEF_MAX_ADDED_LETTER_SPACING_PERCENT)
 , _nodeStyleHash(0)
-, _nodeDisplayStyleHash(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
-, _nodeDisplayStyleHashInitial(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
+, _nodeDisplayStyleHash(NODE_DISPLAY_STYLE_HASH_UNINITIALIZED)
+, _nodeDisplayStyleHashInitial(NODE_DISPLAY_STYLE_HASH_UNINITIALIZED)
 , _nodeStylesInvalidIfLoading(false)
 #endif
 , _textStorage(this, 't', (lUInt32)(TEXT_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
@@ -1978,8 +1991,8 @@ tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
 , _unusedSpaceThresholdPercent(DEF_UNUSED_SPACE_THRESHOLD_PERCENT)
 , _maxAddedLetterSpacingPercent(DEF_MAX_ADDED_LETTER_SPACING_PERCENT)
 , _nodeStyleHash(0)
-, _nodeDisplayStyleHash(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
-, _nodeDisplayStyleHashInitial(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
+, _nodeDisplayStyleHash(NODE_DISPLAY_STYLE_HASH_UNINITIALIZED)
+, _nodeDisplayStyleHashInitial(NODE_DISPLAY_STYLE_HASH_UNINITIALIZED)
 , _nodeStylesInvalidIfLoading(false)
 #endif
 , _textStorage(this, 't', (lUInt32)(TEXT_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
@@ -4497,7 +4510,7 @@ bool ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback,
 
     bool was_just_rendered_from_cache = _just_rendered_from_cache; // cleared by checkRenderContext()
     if ( !checkRenderContext() ) {
-        if ( _nodeDisplayStyleHashInitial == NODE_DISPLAY_STYLE_HASH_UNITIALIZED ) { // happen when just loaded
+        if ( _nodeDisplayStyleHashInitial == NODE_DISPLAY_STYLE_HASH_UNINITIALIZED ) { // happen when just loaded
             // For knowing/debugging cases when node styles set up during loading
             // is invalid (should happen now only when EPUB has embedded fonts
             // or some pseudoclass like :last-child has been met).
@@ -4592,7 +4605,7 @@ bool ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback,
         pages->serialize( _pagesData );
         _renderedBlockCache.restoreSize(); // Restore original cache size
 
-        if ( _nodeDisplayStyleHashInitial == NODE_DISPLAY_STYLE_HASH_UNITIALIZED ) {
+        if ( _nodeDisplayStyleHashInitial == NODE_DISPLAY_STYLE_HASH_UNINITIALIZED ) {
             // If _nodeDisplayStyleHashInitial has not been initialized from its
             // former value from the cache file, we use the one computed (just
             // above in updateRenderContext()) after the first full rendering
@@ -13599,12 +13612,12 @@ bool tinyNodeCollection::loadStylesData()
     return !stylebuf.error();
 }
 
-lUInt32 tinyNodeCollection::calcStyleHash()
+lUInt32 tinyNodeCollection::calcStyleHash(bool already_rendered)
 {
     CRLog::debug("calcStyleHash start");
 //    int maxlog = 20;
     lUInt32 res = 0; //_elemCount;
-    lUInt32 globalHash = calcGlobalSettingsHash(getFontContextDocIndex());
+    lUInt32 globalHash = calcGlobalSettingsHash(getFontContextDocIndex(), already_rendered);
     lUInt32 docFlags = getDocFlags();
     //CRLog::info("Calculating style hash...  elemCount=%d, globalHash=%08x, docFlags=%08x", _elemCount, globalHash, docFlags);
     if (_nodeStyleHash) {
@@ -14329,7 +14342,7 @@ void ldomDocument::updateRenderContext()
     int dx = _page_width;
     int dy = _page_height;
     _nodeStyleHash = 0; // force recalculation by calcStyleHash()
-    lUInt32 styleHash = calcStyleHash();
+    lUInt32 styleHash = calcStyleHash(_rendered);
     lUInt32 stylesheetHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     //calcStyleHash( getRootNode(), styleHash );
     _hdr.render_style_hash = styleHash;
@@ -14357,7 +14370,7 @@ bool ldomDocument::checkRenderContext()
     }
     int dx = _page_width;
     int dy = _page_height;
-    lUInt32 styleHash = calcStyleHash();
+    lUInt32 styleHash = calcStyleHash(_rendered);
     lUInt32 stylesheetHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     //calcStyleHash( getRootNode(), styleHash );
     if ( styleHash != _hdr.render_style_hash ) {

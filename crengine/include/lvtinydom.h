@@ -110,7 +110,7 @@ extern int gDOMVersionRequested;
 #define DEF_UNUSED_SPACE_THRESHOLD_PERCENT 5
 #define DEF_MAX_ADDED_LETTER_SPACING_PERCENT 0
 
-#define NODE_DISPLAY_STYLE_HASH_UNITIALIZED 0xFFFFFFFF
+#define NODE_DISPLAY_STYLE_HASH_UNINITIALIZED 0xFFFFFFFF
 
 // To be used for 'direction' in ldomNode->elementFromPoint(lvPoint pt, int direction)
 // and ldomDocument->createXPointer(lvPoint pt, int direction...) as a way to
@@ -520,7 +520,7 @@ protected:
     bool saveStylesData();
     bool loadStylesData();
     bool updateLoadedStyles( bool enabled );
-    lUInt32 calcStyleHash();
+    lUInt32 calcStyleHash(bool already_rendered);
     bool saveNodeData();
     bool saveNodeData( lUInt16 type, ldomNode ** list, int nodecount );
     bool loadNodeData();
@@ -647,7 +647,7 @@ public:
 
     /// is built (and cached) DOM possibly invalid (can happen when some nodes have changed display style)
     bool isBuiltDomStale() {
-        return _nodeDisplayStyleHashInitial != NODE_DISPLAY_STYLE_HASH_UNITIALIZED &&
+        return _nodeDisplayStyleHashInitial != NODE_DISPLAY_STYLE_HASH_UNINITIALIZED &&
                 _nodeDisplayStyleHash != _nodeDisplayStyleHashInitial;
     }
     void setNodeStylesInvalidIfLoading() {
@@ -1327,7 +1327,7 @@ protected:
         bool deserialize( SerialBuf & buf );
         DocFileHeader()
             : render_dx(0), render_dy(0), render_docflags(0), render_style_hash(0), stylesheet_hash(0),
-                node_displaystyle_hash(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
+                node_displaystyle_hash(NODE_DISPLAY_STYLE_HASH_UNINITIALIZED)
         {
         }
     };
