@@ -33,7 +33,7 @@ class TextLangCfg;
 
 class TextLangMan
 {
-    friend TextLangCfg;
+    friend class TextLangCfg;
     static lString16 _main_lang;
     static bool _embedded_langs_enabled;
     static LVPtrVector<TextLangCfg> _lang_cfg_list;
@@ -98,7 +98,7 @@ typedef lChar16 (*lb_char_sub_func_t)(const lChar16 * text, int pos, int next_us
 
 class TextLangCfg
 {
-    friend TextLangMan;
+    friend class TextLangMan;
     lString16 _lang_tag;
     HyphMethod * _hyph_method;
 
