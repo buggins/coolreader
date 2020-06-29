@@ -280,11 +280,20 @@ if (NOT FRIBIDI_FOUND)
   message("System FriBidi not found, will build local one\n")
   ADD_SUBDIRECTORY(thirdparty/fribidi)
   SET(FRIBIDI_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/fribidi/lib)
-  SET(FRIBIDI_LIBRARY fribidi)
+  SET(FRIBIDI_LIBRARIES fribidi)
   set(DESKTOP_DEFS ${DESKTOP_DEFS} -DBUNDLED_FRIBIDI=1 -I${CMAKE_BINARY_DIR}/thirdparty/fribidi)
 endif (NOT FRIBIDI_FOUND)
 
-set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_FRIBIDI=1)
+if (NOT MSVC)
+	find_package(libunibreak)
+endif(NOT MSVC)
+
+if (NOT LIBUNIBREAK_FOUND)
+  message("System libunibreak not found, will build local one\n")
+  ADD_SUBDIRECTORY(thirdparty/libunibreak)
+  SET(LIBUNIBREAK_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libunibreak/src)
+  SET(LIBUNIBREAK_LIBRARIES unibreak)
+endif (NOT LIBUNIBREAK_FOUND)
 
 
 endif (NOT MAC)
@@ -318,6 +327,7 @@ INCLUDE_DIRECTORIES(
   ${ANTIWORD_INCLUDE_DIR}
   ${CHM_INCLUDE_DIR}
   ${FRIBIDI_INCLUDE_DIR}
+  ${LIBUNIBREAK_INCLUDE_DIR}
 )
 
 if ( ${GUI} STREQUAL FB2PROPS )
@@ -335,6 +345,7 @@ SET(STD_LIBS
   ${ZLIB_LIBRARIES}
   ${ANTIWORD_LIBRARIES}
   ${FRIBIDI_LIBRARIES}
+  ${LIBUNIBREAK_LIBRARIES}
   qimagescale
 )
 if (FONTCONFIG_FOUND)
