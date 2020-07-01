@@ -1,6 +1,10 @@
 #ifndef __TEXTLANG_H_INCLUDED__
 #define __TEXTLANG_H_INCLUDED__
 
+#include "crsetup.h"
+#include "lvptrvec.h"
+#include "lvstring.h"
+
 #if USE_HARFBUZZ==1
 #include <hb.h>
 #include <hb-ft.h>
@@ -30,6 +34,8 @@
 #define TEXTLANG_FALLBACK_HYPH_DICT_ID  L"English_US.pattern" // For languages without specific hyph dicts
 
 class TextLangCfg;
+class HyphMethod;
+struct ldomNode;
 
 class TextLangMan
 {
@@ -88,6 +94,8 @@ public:
         return &_lang_cfg_list;
     }
 
+    static lString16 getLangTag(const lString16& dictTitle);
+    
     TextLangMan();
     ~TextLangMan();
 };

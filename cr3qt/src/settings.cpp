@@ -273,6 +273,8 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     int isi = m_ui->cbInterlineSpace->findText(v);
     m_ui->cbInterlineSpace->setCurrentIndex(isi>=0 ? isi : 6);
 
+    optionToUi( PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, m_ui->cbMultiLang );
+    optionToUi( PROP_TEXTLANG_HYPHENATION_ENABLED, m_ui->cbEnableHyph );
     int hi = -1;
     v = m_props->getStringDef(PROP_HYPHENATION_DICT,"@algorithm"); //HYPH_DICT_ID_ALGORITHM;
     for ( int i=0; i<HyphMan::getDictList()->length(); i++ ) {
@@ -287,6 +289,11 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
         m_ui->cbHyphenation->addItem( s );
     }
     m_ui->cbHyphenation->setCurrentIndex(hi>=0 ? hi : 1);
+    bool embedded_lang = m_props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, true);
+    m_ui->label_9->setVisible(!embedded_lang);
+    m_ui->cbHyphenation->setVisible(!embedded_lang);
+    m_ui->label_48->setVisible(embedded_lang);
+    m_ui->cbEnableHyph->setVisible(embedded_lang);
 
 
     m_ui->crSample->setOptions( m_props );
@@ -829,7 +836,8 @@ void SettingsDlg::updateStyleSample()
 
     m_ui->crSample->getDocView()->getPageImage(0);
 
-    HyphMan::getDictList()->activate( qt2cr(m_oldHyph) );
+    if (!m_props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, true))
+        HyphMan::getDictList()->activate( qt2cr(m_oldHyph) );
 }
 
 QColor SettingsDlg::getColor( const char * optionName, unsigned def )
@@ -1141,4 +1149,20 @@ void SettingsDlg::on_cbDOMLevel_currentIndexChanged(int index)
     if (index < 0 || index >= MAX_DOM_VERSIONS_INDEX)
         index = 0;
     m_props->setInt(PROP_REQUESTED_DOM_VERSION, DOM_versions[index]);
+}
+
+void SettingsDlg::on_cbMultiLang_stateChanged(int state)
+{
+    setCheck( PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, state );
+    m_ui->label_9->setVisible(state != Qt::Checked);
+    m_ui->cbHyphenation->setVisible(state != Qt::Checked);
+    m_ui->label_48->setVisible(state == Qt::Checked);
+    m_ui->cbEnableHyph->setVisible(state == Qt::Checked);
+    // don't update preview to not change static field TextLangMan::_embedded_langs_enabled too early!
+}
+
+void SettingsDlg::on_cbEnableHyph_stateChanged(int state)
+{
+    setCheck( PROP_TEXTLANG_HYPHENATION_ENABLED, state );
+    // don't update preview to not change static field TextLangMan::_hyphenation_enabled too early!
 }

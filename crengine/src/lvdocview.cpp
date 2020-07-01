@@ -6275,6 +6275,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     else if (fs > MAX_STATUS_FONT_SIZE)
         fs = MAX_STATUS_FONT_SIZE;
 	props->setIntDef(PROP_STATUS_FONT_SIZE, fs);
+    props->limitValueList(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, bool_options_def_false, 2);
+    props->limitValueList(PROP_TEXTLANG_HYPHENATION_ENABLED, bool_options_def_true, 2);
 	lString16 hyph = props->getStringDef(PROP_HYPHENATION_DICT,
 			DEF_HYPHENATION_DICT);
 #if !defined(ANDROID)
@@ -6546,21 +6548,24 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             value = lString16::itoa(fontSize);
 #if !defined(ANDROID)
         } else if (name == PROP_HYPHENATION_DICT) {
-            // hyphenation dictionary
-            lString16 id = props->getStringDef(PROP_HYPHENATION_DICT,
-                                               DEF_HYPHENATION_DICT);
-            CRLog::debug("PROP_HYPHENATION_DICT = %s", LCSTR(id));
-            HyphDictionaryList * list = HyphMan::getDictList();
-            HyphDictionary * curr = HyphMan::getSelectedDictionary();
-            if (list) {
-                if (!curr || curr->getId() != id) {
-                    //if (
-                    CRLog::debug("Changing hyphenation to %s", LCSTR(id));
-                    list->activate(id);
-                    //)
-                    REQUEST_RENDER("propsApply hyphenation dict")
+            if (!TextLangMan::getEmbeddedLangsEnabled()) {
+                // hyphenation dictionary
+                lString16 id = props->getStringDef(PROP_HYPHENATION_DICT,
+                                                   DEF_HYPHENATION_DICT);
+                CRLog::debug("PROP_HYPHENATION_DICT = %s", LCSTR(id));
+                HyphDictionaryList * list = HyphMan::getDictList();
+                HyphDictionary * curr = HyphMan::getSelectedDictionary();
+                if (list) {
+                    if (!curr || curr->getId() != id) {
+                        //if (
+                        CRLog::debug("Changing hyphenation to %s", LCSTR(id));
+                        list->activate(id);
+                        //)
+                        REQUEST_RENDER("propsApply hyphenation dict")
+                    }
                 }
             }
+#endif
         } else if (name == PROP_HYPHENATION_LEFT_HYPHEN_MIN) {
             int leftHyphenMin = props->getIntDef(PROP_HYPHENATION_LEFT_HYPHEN_MIN, HYPH_DEFAULT_HYPHEN_MIN);
             if (HyphMan::getLeftHyphenMin() != leftHyphenMin) {
@@ -6579,7 +6584,6 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 HyphMan::setTrustSoftHyphens(trustSoftHyphens);
                 REQUEST_RENDER("propsApply hyphenation trust_soft_hyphens")
             }
-#endif
         } else if (name == PROP_TEXTLANG_MAIN_LANG) {
             lString16 lang = props->getStringDef(PROP_TEXTLANG_MAIN_LANG, TEXTLANG_DEFAULT_MAIN_LANG);
             if ( lang != TextLangMan::getMainLang() ) {

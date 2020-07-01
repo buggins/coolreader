@@ -184,7 +184,7 @@ bool HyphMan::activateDictionaryFromStream( LVStreamRef stream )
         return false;
     }
     if (method->largest_overflowed_word)
-        printf("CRE WARNING: hyph dict from stream: some hyphenation patterns were too long and have been ignored: increase MAX_PATTERN_SIZE from %d to %d\n", MAX_PATTERN_SIZE, method->largest_overflowed_word);
+        CRLog::warn("hyph dict from stream: some hyphenation patterns were too long and have been ignored: increase MAX_PATTERN_SIZE from %d to %d\n", MAX_PATTERN_SIZE, method->largest_overflowed_word);
     CRLog::debug("Dictionary is loaded successfully. Activating.");
 
     // Replace any previously dict loaded from stream
@@ -301,7 +301,7 @@ HyphMethod * HyphMan::getHyphMethodForDictionary( lString16 id, int leftHyphenMi
     }
     // printf("CRE: loaded hyphenation dict %s\n", UnicodeToUtf8(id).c_str());
     if ( newmethod->largest_overflowed_word )
-        printf("CRE WARNING: %s: some hyphenation patterns were too long and have been ignored: increase MAX_PATTERN_SIZE from %d to %d\n", UnicodeToUtf8(filename).c_str(), MAX_PATTERN_SIZE, newmethod->largest_overflowed_word);
+        CRLog::warn("%s: some hyphenation patterns were too long and have been ignored: increase MAX_PATTERN_SIZE from %d to %d\n", UnicodeToUtf8(filename).c_str(), MAX_PATTERN_SIZE, newmethod->largest_overflowed_word);
     _loaded_hyph_methods.set(id, newmethod);
     return newmethod;
 }
@@ -422,7 +422,7 @@ bool HyphDictionaryList::open(lString16 hyphDirectory, bool clear)
 			lString16 name = item->GetName();
             lString16 suffix;
             HyphDictType t = HDT_NONE;
-            if ( name.endsWith(".pdb") ) {
+            if ( name.endsWith("_hyphen_(Alan).pdb") ) {
                 suffix = "_hyphen_(Alan).pdb";
                 t = HDT_DICT_ALAN;
             } else if ( name.endsWith(".pattern") ) {
@@ -438,6 +438,8 @@ bool HyphDictionaryList::open(lString16 hyphDirectory, bool clear)
 			lString16 title = name;
 			if ( title.endsWith( suffix ) )
 				title.erase( title.length() - suffix.length(), suffix.length() );
+
+            CRLog::error("adding: id=%s, title=%s", UnicodeToUtf8(id).c_str(), UnicodeToUtf8(title).c_str());
 
 			_list.add( new HyphDictionary( t, title, id, filename ) );
             count++;

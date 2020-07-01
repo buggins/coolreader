@@ -1,12 +1,11 @@
 // IMPORTANT : when making changes in language detection logic and per-language
 // rules here, be sure to also bump FORMATTING_VERSION_ID in src/lvtinydom.cpp
 
-#include "../include/lvtypes.h"
-#include "../include/lvstring.h"
-#include "../include/lvtinydom.h"
-#include "../include/fb2def.h"
 #include "../include/textlang.h"
 #include "../include/hyphman.h"
+#include "../include/lvtinydom.h"
+#include "../include/fb2def.h"
+#include "../include/crlog.h"
 
 // Uncomment to see which lang_tags are seen and lang_cfg created
 // #define DEBUG_LANG_USAGE
@@ -134,6 +133,35 @@ void TextLangMan::setMainLangFromHyphDict( lString16 id ) {
 // Used only by TextLangCfg
 HyphMethod * TextLangMan::getHyphMethodForLang( lString16 lang_tag ) {
     // Look for full lang_tag
+#if 1
+    // CoolReader use dynamically loaded hyphenation dictionaries (at startup)
+    HyphDictionaryList* dictList = HyphMan::getDictList();
+    HyphDictionary* dict;
+    lang_tag.lowercase();
+    for (int i = 0; i < dictList->length(); i++) {
+        dict = dictList->get(i);
+        if (dict) {
+            if (lang_tag == TextLangMan::getLangTag(dict->getTitle()).lowercase())
+                return HyphMan::getHyphMethodForDictionary( dict->getId(),
+                            _hyph_dict_table[i].left_hyphen_min, _hyph_dict_table[i].right_hyphen_min);
+        }
+    }
+    // Look for lang_tag initial subpart
+    int m_pos = lang_tag.pos("-");
+    if ( m_pos > 0 ) {
+        lString16 lang_tag2 = lang_tag.substr(0, m_pos);
+        lang_tag2.lowercase();
+        for (int i = 0; i < dictList->length(); i++) {
+            dict = dictList->get(i);
+            if (dict) {
+                if (lang_tag2 == TextLangMan::getLangTag(dict->getTitle()).lowercase())
+                    return HyphMan::getHyphMethodForDictionary( dict->getId(),
+                                _hyph_dict_table[i].left_hyphen_min, _hyph_dict_table[i].right_hyphen_min);
+            }
+        }
+    }
+#else
+    // koreader use hardcoded hyphenation dictionary table
     for (int i=0; _hyph_dict_table[i].lang_tag!=NULL; i++) {
         if ( lang_tag == lString16(_hyph_dict_table[i].lang_tag).lowercase() ) {
             return HyphMan::getHyphMethodForDictionary( lString16(_hyph_dict_table[i].hyph_filename),
@@ -151,6 +179,7 @@ HyphMethod * TextLangMan::getHyphMethodForLang( lString16 lang_tag ) {
             }
         }
     }
+#endif
     // Fallback to English_US, as other languages are more likely to get mixed
     // with english text (it feels better than using @algorithm)
     return HyphMan::getHyphMethodForDictionary(TEXTLANG_FALLBACK_HYPH_DICT_ID);
@@ -230,6 +259,16 @@ int TextLangMan::getLangNodeIndex( ldomNode * node ) {
 // For HyphMan::hyphenate()
 HyphMethod * TextLangMan::getMainLangHyphMethod() {
     return getTextLangCfg()->getHyphMethod();
+}
+
+lString16 TextLangMan::getLangTag(const lString16& dictTitle)
+{
+    for (int i = 0; _hyph_dict_table[i].lang_tag!=NULL; i++) {
+        if (dictTitle == lString16(_hyph_dict_table[i].hyph_filename_prefix)) {
+            return lString16(_hyph_dict_table[i].lang_tag);
+        }
+    }
+    return lString16();
 }
 
 
