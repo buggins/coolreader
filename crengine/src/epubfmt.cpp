@@ -247,7 +247,6 @@ void ReadEpubNavPageMap( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * pag
     // http://idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-nav-def
     if ( !mapRoot || !pageMap)
         return;
-    lUInt16 ol_id = mapRoot->getDocument()->getElementNameIndex(L"ol");
     lUInt16 li_id = mapRoot->getDocument()->getElementNameIndex(L"li");
     lUInt16 a_id = mapRoot->getDocument()->getElementNameIndex(L"a");
     for ( int i=0; i<EPUB_ITEM_MAX_ITER; i++ ) {
@@ -1515,7 +1514,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 if ( !target )
                     continue;
                 ldomXPointer ptr(target, 0);
-                LVTocItem * tocItem = baseToc->addChild(title, ptr, lString16::empty_str);
+                baseToc->addChild(title, ptr, lString16::empty_str);
             }
         }
     }

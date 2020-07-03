@@ -1283,9 +1283,9 @@ void CRToolBarSkin::drawToolBar( LVDrawBuf & buf, const lvRect & rect, bool enab
     rc.shrinkBy( _margins );
     int width = 0;
 	for ( int i=0; i<_buttons->length(); i++ ) {
-		int flags = enabled ? CRButtonSkin::ENABLED : 0;
-		if (i == selectedButton && enabled)
-			flags |= CRButtonSkin::SELECTED;
+		// int flags = enabled ? CRButtonSkin::ENABLED : 0;
+		// if (i == selectedButton && enabled)
+		// 	flags |= CRButtonSkin::SELECTED;
 		LVRef<CRButtonSkin> button = _buttons->get(i);
 		if (!button.isNull()) {
 			width += button->getMinSize().x;

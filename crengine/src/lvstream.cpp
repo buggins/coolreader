@@ -2285,9 +2285,9 @@ private:
                 m_zstream.avail_out = ARC_OUTBUF_SIZE - outpos;
             }
         }
-        int decoded = m_zstream.avail_out;
+        // int decoded = m_zstream.avail_out;
         int res = inflate( &m_zstream, m_inbytesleft > 0 ? Z_NO_FLUSH : Z_FINISH ); //m_inbytesleft | m_zstream.avail_in
-        decoded -= m_zstream.avail_out;
+        // decoded -= m_zstream.avail_out;
         if (res == Z_STREAM_ERROR)
         {
             return -1;
@@ -2295,7 +2295,7 @@ private:
         if (res == Z_BUF_ERROR)
         {
             //return -1;
-            res = 0; // DEBUG
+            //res = 0; // DEBUG
         }
         avail = getAvailBytes();
         return avail;
@@ -2343,6 +2343,7 @@ private:
             else if (avail==0)
             {
                 avail = decodeNext();
+                (void)avail; // never read
                 return bytesRead;
             }
 
@@ -3010,7 +3011,7 @@ public:
 	{
 		if (!m_pBuffer)
 			return LVERR_FAIL;
-		lvpos_t newpos = m_pos;
+		lvpos_t newpos;
 		switch (origin) {
 		case LVSEEK_SET:
 			newpos = offset;
@@ -3554,7 +3555,7 @@ public:
                 *dst++ = *src++;
             }
             count -= n;
-            bytesLeft -= n;
+            // bytesLeft -= n;
             bytesRead += n;
             _pos += n;
         }
@@ -3772,7 +3773,7 @@ lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
                     //   ^ ^
                     s.erase( lastElementStart, i+4-lastElementStart );
                     changed = true;
-                    lastElementStart = -1;
+                    // lastElementStart = -1;
                     break;
                 }
             }

@@ -496,22 +496,16 @@ public:
                         int cs=StrToIntPercent(item->getAttributeValue(attr_colspan).c_str());
                         if (cs>0 && cs<100) { // colspan=0 (span all remaining columns) not supported
                             cell->colspan=cs;
-                        } else {
-                            cs=1;
                         }
                         if ( is_ruby_table ) { // rbspan works just as colspan
                             int cs=StrToIntPercent(item->getAttributeValue(attr_rbspan).c_str());
                             if (cs>0 && cs<100) {
                                 cell->colspan=cs;
-                            } else {
-                                cs=1;
                             }
                         }
                         int rs=StrToIntPercent(item->getAttributeValue(attr_rowspan).c_str());
                         if (rs>0 && rs<100) {
                             cell->rowspan=rs;
-                        } else {
-                            rs=1;
                         }
                         /*
                         // "width"
@@ -1050,23 +1044,21 @@ public:
                         npercent++;
                     }
                 }
-                nwidth = 0;
-                sumwidth = 0;
             }
         }
         // scale percents
         int maxpercent = 100-3*nrest; // 3% (?) for each unsized column
         if (sumpercent>maxpercent && sumpercent>0) {
             // scale percents
-            int newsumpercent = 0;
+            // int newsumpercent = 0;
             for (int i=0; i<cols.length(); i++) {
                 if (cols[i]->percent>0) {
                     cols[i]->percent = cols[i]->percent*maxpercent/sumpercent;
-                    newsumpercent += cols[i]->percent;
+                    // newsumpercent += cols[i]->percent;
                     cols[i]->width = 0;
                 }
             }
-            sumpercent = newsumpercent;
+            // sumpercent = newsumpercent;
         }
         // calc width by percents
         sumwidth = 0;
@@ -1095,7 +1087,7 @@ public:
         // At this point, all columns with specified width or percent has been
         // set accordingly, or reduced to fit table width
         // We need to compute a width for columns with unspecified width.
-        nrest = cols.length() - nwidth;
+        // nrest = cols.length() - nwidth;
         int restwidth = assignable_width - sumwidth;
         int sumMinWidths = 0;
         // new pass: convert text len percent into width
@@ -1190,8 +1182,8 @@ public:
             correction -= lengthToPx(table_style->padding[0], table_width, table_em);
             correction -= lengthToPx(table_style->padding[0], table_width, table_em);
             table_width -= correction;
-            assignable_width -= restw + correction; // (for debug printf() below)
             #ifdef DEBUG_TABLE_RENDERING
+                assignable_width -= restw + correction; // (for debug printf() below)
                 printf("TABLE WIDTHS step5 (fit): reducing table_width %d -%d -%d > %d\n",
                     table_width+restw+correction, restw, correction, table_width);
             #endif
@@ -1305,7 +1297,6 @@ public:
         int table_padding_right = lengthToPx(table_style->padding[1], table_width, em);
         int table_padding_top = lengthToPx(table_style->padding[2], table_width, em);
         int table_padding_bottom = lengthToPx(table_style->padding[3], table_width, em);
-        int borderspacing_h = lengthToPx(table_style->border_spacing[0], 0, em); // does not accept %
         int borderspacing_v = lengthToPx(table_style->border_spacing[1], 0, em);
         bool border_collapse = (table_style->border_collapse==css_border_collapse);
         if (border_collapse) {
@@ -1314,7 +1305,6 @@ public:
             table_padding_left = 0;
             table_padding_right = 0;
             borderspacing_v = 0;
-            borderspacing_h = 0;
         }
         // We want to distribute border spacing on top and bottom of each row,
         // mainly for page splitting to carry half of it on each page.
@@ -1463,9 +1453,9 @@ public:
             bool row_has_baseline_aligned_cells = false;
             for (j=0; j<rows[i]->cells.length(); j++) {
                 CCRTableCell * cell = rows[i]->cells[j];
-                //int x = cell->col->index;
+                // int x = cell->col->index;
                 int y = cell->row->index;
-                int n = rows[i]->cells.length();
+                // int n = rows[i]->cells.length();
                 if ( i==y ) { // upper left corner of cell
                     // We need to render the cell to get its height
                     if ( cell->elem->getRendMethod() == erm_final ) {
@@ -1915,7 +1905,8 @@ public:
             if (is_rtl)
                 line_flags |= RN_LINE_IS_RTL;
             context.AddLine(last_y, table_y0 + table_h, line_flags);
-            last_y = table_y0 + table_h;
+            last_y = table_y0 + table_h; // not read after here
+            (void)last_y; // silences clang warning
         }
 
         // Update each cell height to be its row height, so it can draw its
@@ -2809,7 +2800,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 txform->setStrut(0, 0);
                 line_h = 0;
                 indent = 0;
-                valign_dy = 0;
                 // Also, when such a floating image has a width in %, this width
                 // has been used to set the width of the floating box. We need to
                 // update this % width to be 100%, otherwise the image would be
@@ -7425,7 +7415,7 @@ void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int 
             lUInt32 topBordercolor = style->border_color[0].value;
             topBorderwidth=tbw;
             rightBorderwidth=rbw;
-            bottomBorderwidth=bbw;
+            // bottomBorderwidth=bbw; // (not used)
             leftBorderwidth=lbw;
             if (style->border_color[0].type==css_val_color)
             {
@@ -7531,7 +7521,7 @@ void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int 
             topBorderwidth=tbw;
             rightBorderwidth=rbw;
             bottomBorderwidth=bbw;
-            leftBorderwidth=lbw;
+            // leftBorderwidth=lbw; // (not used)
             if (style->border_color[1].type==css_val_color)
             {
                 lUInt32 r,g,b;
@@ -7635,7 +7625,7 @@ void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int 
         if (hasbottomBorder) {
             int dot=1,interval=0;//default style
             lUInt32 bottomBordercolor = style->border_color[2].value;
-            topBorderwidth=tbw;
+            // topBorderwidth=tbw; // (not used)
             rightBorderwidth=rbw;
             bottomBorderwidth=bbw;
             leftBorderwidth=lbw;
@@ -7732,7 +7722,7 @@ void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int 
             int dot=1,interval=0;//default style
             lUInt32 leftBordercolor = style->border_color[3].value;
             topBorderwidth=tbw;
-            rightBorderwidth=rbw;
+            // rightBorderwidth=rbw; // (not used)
             bottomBorderwidth=bbw;
             leftBorderwidth=lbw;
             if (style->border_color[3].type==css_val_color)
@@ -9206,17 +9196,11 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             h = lengthToPx(style->height, 100, em);
             if (style->width.type==css_val_percent) w = -w;
             if (style->height.type==css_val_percent) h = w*height/width;
-            if ( w*h==0 ) {
-                if ( w==0 ) {
-                    if ( h==0 ) { // use image native size
-                        h = height;
-                        w = width;
-                    } else { // use style height, keep aspect ratio
-                        w = width*h/height;
-                    }
-                } else if ( h==0 ) { // use style width, keep aspect ratio
-                    h = w*height/width;
-                    if (h == 0) h = height;
+            if ( w==0 ) {
+                if ( h==0 ) { // use image native size
+                    w = width;
+                } else { // use style height, keep aspect ratio
+                    w = width*h/height;
                 }
             }
             if (w > 0)
@@ -9917,6 +9901,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             }
             #else // not USE_LIBUNIBREAK==1
             // (This has not been updated to handle nowrap & pre)
+            (void)nowrap; // avoid clang warning: value stored is never read
             for (int i=0; i<chars_measured; i++) {
                 int w = widths[i] - (i>0 ? widths[i-1] : 0);
                 lChar16 c = *(txt + start + i);

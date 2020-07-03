@@ -918,7 +918,6 @@ public:
             #endif
         }
         memset( m_flags, 0, sizeof(lUInt16)*m_length ); // start with all flags set to zero
-        pos = 0;
 
         // We set to zero the additional slot that the code may peek at (with
         // the checks against m_length we did, we know this slot is allocated).
@@ -951,6 +950,7 @@ public:
 
         m_has_bidi = false; // will be set if fribidi detects it is bidirectionnal text
         m_para_dir_is_rtl = false;
+        #if (USE_FRIBIDI==1)
         bool has_rtl = false; // if no RTL char, no need for expensive bidi processing
         // todo: according to https://www.w3.org/TR/css-text-3/#bidi-linebox
         // the bidi direction, if determined from the text itself (no dir= from
@@ -963,6 +963,8 @@ public:
         if ( m_specified_para_dir == REND_DIRECTION_RTL ) {
             has_rtl = true;
         }
+        #endif
+
         // Whether any "-cr-hint: strut-confined" should be applied: only when
         // we have non-space-only text in the paragraph - standalone images
         // possibly separated by spaces don't need to be reduced in size.
@@ -1573,7 +1575,7 @@ public:
         if (word->t.len > MAX_MEASURED_WORD_SIZE)
             return false;
         lUInt32 hints = WORD_FLAGS_TO_FNT_FLAGS(word->flags);
-        int chars_measured = srcfont->measureText(
+        srcfont->measureText(
                 str,
                 word->t.len,
                 widths, flags,

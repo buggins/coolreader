@@ -2964,13 +2964,13 @@ bool LVXMLParser::Parse()
                 qFlag = false;
                 if (ch=='/')
                 {
-                    ch = ReadCharFromBuffer();
+                    ReadCharFromBuffer();
                     closeFlag = true;
                 }
                 else if (ch=='?')
                 {
                     // <?xml?>
-                    ch = ReadCharFromBuffer();
+                    ReadCharFromBuffer();
                     qFlag = true;
                 }
                 else if (ch=='!')
@@ -2985,13 +2985,13 @@ bool LVXMLParser::Parse()
                         }
                         if ( ch=='-' && PeekCharFromBuffer(1)=='-'
                                 && PeekCharFromBuffer(2)=='>' )
-                            ch = PeekNextCharFromBuffer(2);
+                            PeekNextCharFromBuffer(2);
                         m_state = ps_text;
                         break;
                     }
                     //bypass <![CDATA] in <style type="text/css">
                     if (PeekCharFromBuffer(1)=='['&&tagname.compare("style")==0&&attrvalue.compare("text/css")==0){
-                        ch=PeekNextCharFromBuffer(7);
+                        PeekNextCharFromBuffer(7);
                         m_state =ps_text;
                         break;
                     }
@@ -3002,7 +3002,7 @@ bool LVXMLParser::Parse()
                     if (SkipTillChar('>'))
                     {
                         m_state = ps_text;
-                        ch = ReadCharFromBuffer();
+                        ReadCharFromBuffer();
                     }
                     break;
                 }
@@ -3023,7 +3023,7 @@ bool LVXMLParser::Parse()
                     if (SkipTillChar('>'))
                     {
                         m_state = ps_text;
-                        ch = ReadCharFromBuffer();
+                        ReadCharFromBuffer();
                     }
                     break;
                 }
@@ -3056,9 +3056,9 @@ bool LVXMLParser::Parse()
                     if ( ch!='>' )
                         m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
                     if ( ch=='>' )
-                        ch = PeekNextCharFromBuffer();
+                        PeekNextCharFromBuffer();
                     else
-                        ch = PeekNextCharFromBuffer(1);
+                        PeekNextCharFromBuffer(1);
                     m_state = ps_text;
                     break;
                 }
@@ -3066,7 +3066,7 @@ bool LVXMLParser::Parse()
                 {
                     // error: skip rest of tag
                     SkipTillChar('<');
-                    ch = PeekNextCharFromBuffer(1);
+                    PeekNextCharFromBuffer(1);
                     m_callback->OnTagBody();
                     m_state = ps_lt;
                     break;
@@ -3095,7 +3095,7 @@ bool LVXMLParser::Parse()
                             break;
                         if (qChar && ch==qChar)
                         {
-                            ch = PeekNextCharFromBuffer();
+                            PeekNextCharFromBuffer();
                             break;
                         }
                         ch = ReadCharFromBuffer();

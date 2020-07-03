@@ -6055,7 +6055,7 @@ int LVDocView::onSelectionCommand( int cmd, int param )
                 currSel.getStart().prevVisibleWordStart();
             }
         }
-        moved = true;
+        // moved = true; // (never read)
     } else {
         // selection start doesn't match sentence bounds
         if ( !currSel.getStart().isSentenceStart() ) {
