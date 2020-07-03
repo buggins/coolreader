@@ -2327,6 +2327,10 @@ bool tinyNodeCollection::loadNodeData()
         for ( int i=0; i<TNC_PART_COUNT; i++ )
             if ( textList[i] )
                 free( textList[i] );
+        // Also clean elemList previously successfully loaded, to avoid mem leak
+        for ( int i=0; i<TNC_PART_COUNT; i++ )
+            if ( elemList[i] )
+                free( elemList[i] );
         return false;
     }
     for ( int i=0; i<TNC_PART_COUNT; i++ ) {

@@ -464,6 +464,7 @@ public:
                 // SPLIT_AUTO - but we can't change the past...)
                 lUInt16 flags = line->flags & ~RN_SPLIT_BEFORE_ALWAYS & RN_SPLIT_BEFORE_AVOID;
                 line = new LVRendLineInfo(last->getEnd(), line->getEnd(), flags);
+                own_lines.add( line ); // so we can have it 'delete'd in Finalize()
             }
             unsigned flgSplit = CalcSplitFlag( last->getSplitAfter(), line->getSplitBefore() );
             //bool flgFit = currentHeight( next ? next : line ) <= page_h;

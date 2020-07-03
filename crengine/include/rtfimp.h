@@ -249,6 +249,7 @@ public:
     {
         if ( sp>=MAX_PROP_STACK_SIZE ) {
             error = true;
+            delete newdest;
         } else {
 #ifdef LOG_RTF_PARSING
             CRLog::trace("Changing destination. Level=%d old=%08X new=%08X", sp, (unsigned)dest, (unsigned)newdest);
