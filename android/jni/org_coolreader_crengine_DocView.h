@@ -71,20 +71,19 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getSettingsIntern
 
 /*
  * Class:     org_coolreader_crengine_DocView
- * Method:    getDocPropsInternal
- * Signature: ()Ljava/util/Properties;
- */
-JNIEXPORT jobject JNICALL
-Java_org_coolreader_crengine_DocView_getDocPropsInternal
-  (JNIEnv *, jobject);
-
-/*
- * Class:     org_coolreader_crengine_DocView
  * Method:    applySettingsInternal
  * Signature: (Ljava/util/Properties;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_applySettingsInternal
   (JNIEnv *, jobject, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_DocView
+ * Method:    getDocPropsInternal
+ * Signature: ()Ljava/util/Properties;
+ */
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getDocPropsInternal
+  (JNIEnv *, jobject);
 
 /*
  * Class:     org_coolreader_crengine_DocView

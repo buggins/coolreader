@@ -637,4 +637,6 @@
     <string name="options_requested_dom_level">DOM version compatibility level</string>
     <string name="options_requested_dom_level_legacy">Legacy</string>
     <string name="options_requested_dom_level_newest">Newest</string>
+    <string name="options_style_multilang">Support for multilingual documents</string>
+    <string name="options_style_enable_hyphenation">Enable hyphenation</string>
 </resources>

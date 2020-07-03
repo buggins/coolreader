@@ -74,12 +74,12 @@ class HyphDictionary
 public:
 	HyphDictionary( HyphDictType type, lString16 title, lString16 id, lString16 filename )
 		: _type(type), _title(title), _id( id ), _filename( filename ) { }
-	HyphDictType getType() { return _type; }
-	lString16 getTitle() { return _title; }
-	lString16 getId() { return _id; }
-	lString16 getFilename() { return _filename; }
+	HyphDictType getType() const { return _type; }
+	lString16 getTitle() const { return _title; }
+	lString16 getId() const { return _id; }
+	lString16 getFilename() const { return _filename; }
 	bool activate();
-	virtual lUInt32 getHash() { return getTitle().getHash(); }
+	virtual lUInt32 getHash() const { return getTitle().getHash(); }
     virtual ~HyphDictionary() { }
 };
 
@@ -98,7 +98,7 @@ public:
 	HyphDictionary * get( int index ) { return (index>=0 && index<+_list.length()) ? _list[index] : NULL; }
 	HyphDictionaryList() { addDefault(); }
     bool open(lString16 hyphDirectory, bool clear = true);
-	HyphDictionary * find( lString16 id );
+	HyphDictionary * find( const lString16& id );
 	bool activate( lString16 id );
 };
 
@@ -109,11 +109,17 @@ public:
 // the document if the book does not contain any language tag, and
 // we end up going with it anyway.
 
-class HyphDictionary;
-class HyphDictionaryList;
 class TexHyph;
 class AlgoHyph;
 class SoftHyphensHyph;
+
+class HyphDataLoader
+{
+public:
+    HyphDataLoader() {}
+    virtual ~HyphDataLoader() {}
+	virtual LVStreamRef loadData(lString16 id) = 0;
+};
 
 /// hyphenation manager
 class HyphMan
@@ -127,6 +133,7 @@ class HyphMan
     // static HyphDictionary * _selectedDictionary;
     static HyphDictionaryList * _dictList; // available hyph dict files (+ none/algo/softhyphens)
     static LVHashTable<lString16, HyphMethod*> _loaded_hyph_methods; // methods with loaded dictionaries
+    static HyphDataLoader* _dataLoader;
     static int _LeftHyphenMin;
     static int _RightHyphenMin;
     static int _TrustSoftHyphens;
@@ -134,8 +141,9 @@ public:
     static void uninit();
     static bool initDictionaries(lString16 dir, bool clear = true);
     static HyphDictionaryList * getDictList() { return _dictList; }
+    static bool addDictionaryItem(HyphDictionary* dict);
+    static void setDataLoader(HyphDataLoader* loader);
     static bool activateDictionary( lString16 id ) { return _dictList->activate(id); }
-    static bool activateDictionaryFromStream( LVStreamRef stream ); // used by CoolReader on Android
     static HyphDictionary * getSelectedDictionary(); // was: { return _selectedDictionary; }
     static int getLeftHyphenMin() { return _LeftHyphenMin; }
     static int getRightHyphenMin() { return _RightHyphenMin; }

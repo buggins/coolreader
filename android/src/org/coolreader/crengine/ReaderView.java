@@ -2632,8 +2632,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			final String bookLanguage = fileInfo.getLanguage();
 			final String fontFace = props.getProperty(PROP_FONT_FACE);
 			String fcLangCode = null;
-			if (null != bookLanguage && bookLanguage.length() > 0)
+			if (null != bookLanguage && bookLanguage.length() > 0) {
 				fcLangCode = Engine.findCompatibleFcLangCode(bookLanguage);
+				props.setProperty(PROP_TEXTLANG_MAIN_LANG, bookLanguage);
+			}
 			if (null != fcLangCode && fcLangCode.length() > 0) {
 				boolean res = Engine.checkFontLanguageCompatibility(fontFace, fcLangCode);
 				log.d("Checking font \"" + fontFace + "\" for compatibility with language \"" + bookLanguage + "\" fcLangCode=" + fcLangCode + ": res=" + res);
@@ -2863,17 +2865,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					|| PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION.equals(key)
 				// TODO: redesign all this mess!
 			) {
-				newSettings.setProperty(key, value);
-			} else if (PROP_HYPHENATION_DICT.equals(key)) {
-				Engine.HyphDict dict = HyphDict.byCode(value);
-				if (mEngine.setHyphenationDictionary(dict)) {
-					if (isBookLoaded()) {
-						String language = getBookInfo().getFileInfo().getLanguage();
-						mEngine.setHyphenationLanguage(language);
-						doEngineCommand(ReaderCommand.DCMD_REQUEST_RENDER, 0);
-						//drawPage();
-					}
-				}
 				newSettings.setProperty(key, value);
 			}
 		}
@@ -4870,7 +4861,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			}
 			String language = fileInfo.getLanguage();
 			log.v("update hyphenation language: " + language + " for " + fileInfo.getTitle());
-			mEngine.setHyphenationLanguage(language);
 			this.filename = fileInfo.getPathName();
 			this.path = fileInfo.arcname != null ? fileInfo.arcname : fileInfo.pathname;
 			this.inputStream = inputStream;

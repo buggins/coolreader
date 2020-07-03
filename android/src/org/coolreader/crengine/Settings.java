@@ -71,8 +71,15 @@ public interface Settings {
     public static final String PROP_FONT_KERNING_ENABLED    ="font.kerning.enabled";
     public static final String PROP_FLOATING_PUNCTUATION    ="crengine.style.floating.punctuation.enabled";
     public static final String PROP_LANDSCAPE_PAGES         ="window.landscape.pages";
-    public static final String PROP_HYPHENATION_DICT        ="crengine.hyphenation.dictionary.code"; // non-crengine
-    public static final String PROP_AUTOSAVE_BOOKMARKS      ="crengine.autosave.bookmarks";
+    //public static final String PROP_HYPHENATION_DICT        ="crengine.hyphenation.dictionary.code"; // non-crengine (old)
+	public static final String PROP_HYPHENATION_DICT        = "crengine.hyphenation.directory";
+	public static final String PROP_AUTOSAVE_BOOKMARKS      ="crengine.autosave.bookmarks";
+	// New textlang typography settings:
+	public static final String PROP_TEXTLANG_MAIN_LANG      = "crengine.textlang.main.lang";
+	public static final String PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED = "crengine.textlang.embedded.langs.enabled";
+	public static final String PROP_TEXTLANG_HYPHENATION_ENABLED    = "crengine.textlang.hyphenation.enabled";
+	public static final String PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY = "crengine.textlang.hyphenation.soft.hyphens.only";
+	public static final String PROP_TEXTLANG_HYPH_FORCE_ALGORITHMIC = "crengine.textlang.hyphenation.force.algorithmic";
 
     public static final String PROP_PROFILE_NUMBER          ="crengine.profile.number"; // current settings profile number
     public static final String PROP_APP_SETTINGS_SHOW_ICONS ="app.settings.show.icons";

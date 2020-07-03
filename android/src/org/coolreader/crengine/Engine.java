@@ -555,6 +555,24 @@ public class Engine {
 		}
 	}
 
+	@SuppressWarnings("unused")		// used in jni
+	public static final byte[] loadHyphDictData(String id) {
+		if (null == instance) {
+			log.e("Engine not initialized yet!");
+			return null;
+		}
+		byte[] data = null;
+		HyphDict dict = HyphDict.byName(id);
+		if (null != dict && HYPH_DICT == dict.type) {
+			if (dict.resource != 0) {
+				data = instance.loadResourceBytes(dict.resource);
+			} else if (dict.file != null) {
+				data = loadResourceBytes(dict.file);
+			}
+		}
+		return data;
+	}
+
 	private static Engine instance;
 
 	public static Engine getInstance(BaseActivity activity) {
@@ -573,7 +591,7 @@ public class Engine {
 	/**
 	 * Initialize CoolReader Engine
 	 *
-	 * @param fontList is array of .ttf font pathnames to load
+	 * @param activity base application activity
 	 */
 	private Engine(BaseActivity activity) {
 		setParams(activity);
@@ -600,6 +618,8 @@ public class Engine {
 
 	// Native functions
 	private native static boolean initInternal(String[] fontList, int sdk_int);
+
+	private native static boolean initDictionaries(HyphDict[] dicts);
 
 	private native static void uninitInternal();
 
@@ -810,8 +830,6 @@ public class Engine {
 	private static final int HYPH_DICT = 2;
 	private static final int HYPH_BOOK = 0;
 
-	private native boolean setHyphenationMethod(int type, byte[] dictData);
-
 	public ArrayList<ZipEntry> getArchiveItems(String zipFileName) {
 		final int itemsPerEntry = 2;
 		String[] in;
@@ -911,6 +929,13 @@ public class Engine {
 			return NONE;
 		}
 
+		public static HyphDict byName(String name) {
+			for (HyphDict dict : values)
+				if (dict.name.equals(name))
+					return dict;
+			return NONE;
+		}
+
 		public static HyphDict byFileName(String fileName) {
 			for (HyphDict dict : values)
 				if (dict.file != null && dict.file.getName().equals(fileName))
@@ -948,28 +973,6 @@ public class Engine {
 		}
 	}
 
-	;
-
-	private HyphDict currentHyphDict = null;
-	private String currentHyphLanguage = null;
-
-	public boolean setHyphenationLanguage(final String wanted_language) {
-		String language = getLanguage(wanted_language);
-		log.i("setHyphenationLanguage( " + language + " ) is called");
-		if (language == currentHyphLanguage || currentHyphDict != HyphDict.BOOK_LANGUAGE)
-			return false;
-		currentHyphLanguage = language;
-		HyphDict dict = HyphDict.byLanguage(language);
-		setHyphenationDictionaryInternal(dict);
-		if (dict != null) {
-			HyphDict.BOOK_LANGUAGE.language = language;
-		} else {
-			HyphDict.BOOK_LANGUAGE.language = "";
-		}
-		log.i("setHyphenationLanguage( " + language + " ) set to " + dict);
-		return true;
-	}
-
 	private String getLanguage(final String language) {
 		if (language == null || "".equals(language.trim())) {
 			return "";
@@ -978,33 +981,6 @@ public class Engine {
 		} else {
 			return language.toLowerCase();
 		}
-	}
-
-	public boolean setHyphenationDictionary(final HyphDict dict) {
-		log.i("setHyphenationDictionary( " + dict + " ) is called");
-		if (currentHyphDict == dict)
-			return false;
-		currentHyphDict = dict;
-		setHyphenationDictionaryInternal(dict);
-		return true;
-	}
-
-	private void setHyphenationDictionaryInternal(final HyphDict dict) {
-		// byte[] image = loadResourceBytes(R.drawable.tx_old_book);
-		BackgroundThread.instance().postBackground(new Runnable() {
-			public void run() {
-				byte[] data = null;
-				if (dict.type == HYPH_DICT) {
-					if (dict.resource != 0) {
-						data = loadResourceBytes(dict.resource);
-					} else if (dict.file != null) {
-						data = loadResourceBytes(dict.file);
-					}
-				}
-				log.i("Setting engine's hyphenation dictionary to " + dict);
-				setHyphenationMethod(dict.type, data);
-			}
-		});
 	}
 
 	public boolean scanBookProperties(FileInfo info) {
@@ -2042,6 +2018,7 @@ public class Engine {
 			log.i("Engine.initInternal failed!");
 			throw new RuntimeException("Cannot initialize CREngine JNI");
 		}
+		initDictionaries(HyphDict.values());
 		initCacheDirectory();
 		DOM_VERSION_CURRENT = getDomVersionCurrent();
 		log.i("Engine() : initialization done");

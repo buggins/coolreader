@@ -6279,7 +6279,6 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->limitValueList(PROP_TEXTLANG_HYPHENATION_ENABLED, bool_options_def_true, 2);
 	lString16 hyph = props->getStringDef(PROP_HYPHENATION_DICT,
 			DEF_HYPHENATION_DICT);
-#if !defined(ANDROID)
 	HyphDictionaryList * dictlist = HyphMan::getDictList();
 	if (dictlist) {
 		if (dictlist->find(hyph))
@@ -6288,7 +6287,6 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 			props->setStringDef(PROP_HYPHENATION_DICT, lString16(
 					HYPH_DICT_ID_ALGORITHM));
 	}
-#endif
 	props->setIntDef(PROP_STATUS_LINE, 0);
 	props->setIntDef(PROP_SHOW_TITLE, 1);
 	props->setIntDef(PROP_SHOW_TIME, 1);
@@ -6546,7 +6544,6 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 fontSize = MAX_STATUS_FONT_SIZE;
             setStatusFontSize(fontSize);//cr_font_sizes
             value = lString16::itoa(fontSize);
-#if !defined(ANDROID)
         } else if (name == PROP_HYPHENATION_DICT) {
             if (!TextLangMan::getEmbeddedLangsEnabled()) {
                 // hyphenation dictionary
@@ -6565,7 +6562,6 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                     }
                 }
             }
-#endif
         } else if (name == PROP_HYPHENATION_LEFT_HYPHEN_MIN) {
             int leftHyphenMin = props->getIntDef(PROP_HYPHENATION_LEFT_HYPHEN_MIN, HYPH_DEFAULT_HYPHEN_MIN);
             if (HyphMan::getLeftHyphenMin() != leftHyphenMin) {
@@ -6597,10 +6593,13 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 REQUEST_RENDER("propsApply textlang embedded_langs_enabled")
             }
         } else if (name == PROP_TEXTLANG_HYPHENATION_ENABLED) {
-            bool enabled = props->getIntDef(PROP_TEXTLANG_HYPHENATION_ENABLED, TEXTLANG_DEFAULT_HYPHENATION_ENABLED);
-            if ( enabled != TextLangMan::getHyphenationEnabled() ) {
-                TextLangMan::setHyphenationEnabled( enabled );
-                REQUEST_RENDER("propsApply textlang hyphenation_enabled")
+            if (TextLangMan::getEmbeddedLangsEnabled()) {
+                bool enabled = props->getIntDef(PROP_TEXTLANG_HYPHENATION_ENABLED,
+												TEXTLANG_DEFAULT_HYPHENATION_ENABLED);
+                if (enabled != TextLangMan::getHyphenationEnabled()) {
+                    TextLangMan::setHyphenationEnabled(enabled);
+                    REQUEST_RENDER("propsApply textlang hyphenation_enabled")
+                }
             }
         } else if (name == PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY) {
             bool enabled = props->getIntDef(PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY, TEXTLANG_DEFAULT_HYPH_SOFT_HYPHENS_ONLY);

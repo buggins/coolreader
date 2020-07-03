@@ -476,36 +476,6 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getArchiveIte
 }
 
 
-/*
- * Class:     org_coolreader_crengine_Engine
- * Method:    setHyphenationMethod
- * Signature: (I[B)Z
- */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMethod
-  (JNIEnv * _env, jobject _engine, jint method, jbyteArray data)
-{
-	CRJNIEnv env(_env);
-	if ( method==0 ) {
-		CRLog::info("Selecting hyphenation method: Disabled");
-		return HyphMan::activateDictionary(lString16(HYPH_DICT_ID_NONE));
-	} else if ( method==1 ) {
-		CRLog::info("Selecting hyphenation method: Algoryphmic");
-		return HyphMan::activateDictionary(lString16(HYPH_DICT_ID_ALGORITHM));
-	} else {
-		CRLog::info("Selecting hyphenation method: Dictionary");
-		LVStreamRef stream = env.jbyteArrayToStream( data );
-		CRLog::debug("Stream is created from byte array, length=%d", (int)(stream.isNull()?0:stream->GetSize()));
-		bool res = HyphMan::activateDictionaryFromStream(stream);
-		if ( !res ) {
-			CRLog::error("Dictionary activation is failed: disabling hyphenation");
-			HyphMan::activateDictionary(lString16(HYPH_DICT_ID_NONE));
-			return false;
-		}
-		return true;
-	}
-}
-
-
 class JNICDRLogger : public CRLog
 {
 public:
@@ -602,6 +572,93 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
 	jboolean res = JNI_FALSE;
 	COFFEE_TRY_JNI(penv, res = initInternal(penv, obj, fontArray, sdk_int));
 	return res;
+}
+
+class HyphDataLoaderProxy : public HyphDataLoader {
+	JavaVM *mJavaVM;
+public:
+	HyphDataLoaderProxy(JavaVM *jvm) :
+			HyphDataLoader(), mJavaVM(jvm) {
+	}
+
+	virtual ~HyphDataLoaderProxy() {}
+
+	virtual LVStreamRef loadData(lString16 id) {
+		JNIEnv *penv = NULL;
+		bool attached = false;
+		mJavaVM->GetEnv((void **) &penv, JNI_VERSION_1_6);
+		if (NULL == penv) {
+			// caller thread is not attached yet
+			mJavaVM->AttachCurrentThread(&penv, NULL);
+			attached = true;
+		}
+		LVStreamRef stream = LVStreamRef();
+		jclass pjcEngine = penv->FindClass("org/coolreader/crengine/Engine");
+		if (NULL == pjcEngine)
+			return stream;
+		jmethodID pjmEngine_loadHyphDictData = penv->GetStaticMethodID(pjcEngine, "loadHyphDictData", "(Ljava/lang/String;)[B");
+		if (NULL == pjmEngine_loadHyphDictData)
+			return stream;
+		CRJNIEnv env(penv);
+		jstring jid = env.toJavaString(id);
+		jbyteArray data = static_cast<jbyteArray>(penv->CallStaticObjectMethod(pjcEngine, pjmEngine_loadHyphDictData, jid));
+		stream = env.jbyteArrayToStream(data);
+		if (attached)
+			mJavaVM->DetachCurrentThread();
+		return stream;
+	}
+};
+
+jboolean initDictionaries(JNIEnv *penv, jclass clazz, jobjectArray dictArray) {
+	jclass pjcHyphDict = penv->FindClass("org/coolreader/crengine/Engine$HyphDict");
+	if (NULL == pjcHyphDict)
+		return JNI_FALSE;
+	jfieldID pjfHyphDict_type = penv->GetFieldID(pjcHyphDict, "type", "I");
+	if (NULL == pjfHyphDict_type)
+		return JNI_FALSE;
+	jfieldID pjfHyphDict_name = penv->GetFieldID(pjcHyphDict, "name", "Ljava/lang/String;");
+	if (NULL == pjfHyphDict_name)
+		return JNI_FALSE;
+
+	int len = penv->GetArrayLength(dictArray);
+	HyphDictionary *dict;
+	CRJNIEnv env(penv);
+	HyphDictType dict_type;
+	for (int i = 0; i < len; i++) {
+		jobject obj = penv->GetObjectArrayElement(dictArray, i);
+		int type = penv->GetIntField(obj, pjfHyphDict_type);
+		jstring name = static_cast<jstring>(penv->GetObjectField(obj, pjfHyphDict_name));
+		switch (type) {     // convert org/coolreader/crengine/Engine$HyphDict$type into HyphDictType
+			case 0:         // org/coolreader/crengine/Engine$HYPH_NONE
+				dict_type = HDT_NONE;
+				break;
+			case 1:         // org/coolreader/crengine/Engine$HYPH_ALGO
+				dict_type = HDT_ALGORITHM;
+				break;
+			case 2:         // org/coolreader/crengine/Engine$HYPH_DICT
+				dict_type = HDT_DICT_ALAN;
+				break;
+			default:
+				dict_type = HDT_NONE;
+				break;
+		}
+		lString16 dict_name = env.fromJavaString(name);
+		dict = new HyphDictionary(dict_type, dict_name, dict_name, dict_name);
+		HyphMan::addDictionaryItem(dict);
+	}
+	JavaVM *jvm;
+	env->GetJavaVM(&jvm);
+	HyphMan::setDataLoader(new HyphDataLoaderProxy( jvm ));
+	return JNI_TRUE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_coolreader_crengine_Engine_initDictionaries
+ (JNIEnv * penv, jclass clazz, jobjectArray dictArray)
+{
+    jboolean res = JNI_FALSE;
+    COFFEE_TRY_JNI(penv, res = initDictionaries(penv, clazz, dictArray));
+    return res;
 }
 
 /*
@@ -846,10 +903,10 @@ static JNINativeMethod sEngineMethods[] = {
   /* name, signature, funcPtr */
   {"initInternal", "([Ljava/lang/String;I)Z", (void*)Java_org_coolreader_crengine_Engine_initInternal},
   {"uninitInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_uninitInternal},
+  {"initDictionaries", "([Lorg/coolreader/crengine/Engine$HyphDict;)Z", (void*)Java_org_coolreader_crengine_Engine_initDictionaries},
   {"getFontFaceListInternal", "()[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getFontFaceListInternal},
   {"setCacheDirectoryInternal", "(Ljava/lang/String;I)Z", (void*)Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal},
   {"scanBookPropertiesInternal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal},
-  {"setHyphenationMethod", "(I[B)Z", (void*)Java_org_coolreader_crengine_Engine_setHyphenationMethod},
   {"getArchiveItemsInternal", "(Ljava/lang/String;)[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getArchiveItemsInternal},
   {"isLink", "(Ljava/lang/String;)Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_isLink},
   {"suspendLongOperationInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_suspendLongOperationInternal},

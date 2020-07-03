@@ -55,7 +55,7 @@
 #define PROP_HYPHENATION_DICT_VALUE_NONE "@none"
 #define PROP_HYPHENATION_DICT_VALUE_ALGORITHM "@algorithm"
 // Still used hyph settings:
-#define PROP_HYPHENATION_DICT                "crengine.hyphenation.directory"           // directory with hyphenation dictionaries
+#define PROP_HYPHENATION_DICT                "crengine.hyphenation.directory"
 #define PROP_HYPHENATION_LEFT_HYPHEN_MIN     "crengine.hyphenation.left.hyphen.min"
 #define PROP_HYPHENATION_RIGHT_HYPHEN_MIN    "crengine.hyphenation.right.hyphen.min"
 #define PROP_HYPHENATION_TRUST_SOFT_HYPHENS  "crengine.hyphenation.trust.soft.hyphens"
