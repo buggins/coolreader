@@ -353,7 +353,7 @@ public:
             ldomNode * item = el->getChildElementNode(i);
             if ( item ) {
                 // for each child element
-                css_style_rec_t * style = item->getStyle().get();
+                css_style_ref_t style = item->getStyle();
 
                 int item_direction = elem_direction;
                 if ( item->hasAttribute( attr_dir ) ) {
@@ -2347,8 +2347,8 @@ lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
     if ( enode->getNodeListMarker( counterValue, marker, marker_width ) ) {
         if ( !listProps.isNull() )
             marker_width = listProps->maxWidth;
-        css_style_rec_t * style = enode->getStyle().get();
-        LVFont * font = enode->getFont().get();
+        css_style_ref_t style = enode->getStyle();
+        LVFontRef font = enode->getFont();
         lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
         lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
         if (line_h < 0) { // -1, not specified by caller: find it out from the node
@@ -2384,14 +2384,14 @@ lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
         // in another LTR segment)
         if ( txform ) {
             TextLangCfg * lang_cfg = TextLangMan::getTextLangCfg( enode );
-            txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, 0);
+            txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, 0);
         }
     }
     return marker;
 }
 
 // (Common condition used at multiple occasions, made as as function for clarity)
-bool renderAsListStylePositionInside( const css_style_rec_t * style, bool is_rtl=false ) {
+bool renderAsListStylePositionInside( const css_style_ref_t style, bool is_rtl=false ) {
     bool render_as_lsp_inside = false;
     if ( style->list_style_position == css_lsp_inside ) {
         return true;
@@ -2491,7 +2491,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
 
         int width = fmt->getWidth();
         int em = enode->getFont()->getSize();
-        css_style_rec_t * style = enode->getStyle().get();
+        css_style_ref_t style = enode->getStyle();
         ldomNode * parent = enode->getParentNode(); // Needed for various checks below
         if (parent && parent->isNull())
             parent = NULL;
@@ -2849,14 +2849,14 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 if ( !listProps.isNull() )
                     marker_width = listProps->maxWidth;
                 css_list_style_position_t sp = style->list_style_position;
-                LVFont * font = enode->getFont().get();
+                LVFontRef font = enode->getFont();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
                 int margin = 0;
                 if ( sp==css_lsp_outside )
                     margin = -marker_width; // will ensure negative/hanging indent-like rendering
                 marker += "\t";
-                txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy,
+                txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy,
                                         margin, NULL );
                 flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH;
             }
@@ -2904,7 +2904,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // If block image, forget any current flags and start from baseflags (?)
                 lUInt32 flags = styleToTextFmtFlags( true, enode->getStyle(), baseflags, direction );
                 //txform->AddSourceLine(L"title", 5, 0x000000, 0xffffff, font, baseflags, interval, margin, NULL, 0, 0);
-                LVFont * font = enode->getFont().get();
+                LVFontRef font = enode->getFont();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
                 lString16 title;
@@ -2915,7 +2915,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     lString16Collection lines;
                     lines.parse(title, cs16("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
-                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
+                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
                 }
                 txform->AddSourceObject(flags, line_h, valign_dy, indent, enode, lang_cfg );
                 title = enode->getAttributeValue(attr_subtitle);
@@ -2923,14 +2923,14 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     lString16Collection lines;
                     lines.parse(title, cs16("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
-                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
+                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
                 }
                 title = enode->getAttributeValue(attr_title);
                 if ( !title.empty() ) {
                     lString16Collection lines;
                     lines.parse(title, cs16("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
-                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
+                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
                 }
             } else { // inline image
                 // We use the flags computed previously (and not baseflags) as they
@@ -3027,7 +3027,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // Note: we need to explicitely clear newline flag after
                 // any txform->AddSourceLine(). If we delay that and add another
                 // char before, this other char would generate a new line.
-                LVFont * font = enode->getFont().get();
+                LVFontRef font = enode->getFont();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
 
@@ -3053,14 +3053,14 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     if ( dir.compare("rtl") == 0 ) {
                         // txform->AddSourceLine( L"\x2068\x202E", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         // closeWithPDFPDI = true;
-                        txform->AddSourceLine( L"\x202E", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( L"\x202E", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDF = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( dir.compare("ltr") == 0 ) {
                         // txform->AddSourceLine( L"\x2068\x202D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         // closeWithPDFPDI = true;
-                        txform->AddSourceLine( L"\x202D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( L"\x202D", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDF = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
@@ -3073,17 +3073,17 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     //  dir=auto => FSI     U+2068  FIRST STRONG ISOLATE
                     //  leaving  => PDI     U+2069  POP DIRECTIONAL ISOLATE
                     if ( dir.compare("rtl") == 0 ) {
-                        txform->AddSourceLine( L"\x2067", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( L"\x2067", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( dir.compare("ltr") == 0 ) {
-                        txform->AddSourceLine( L"\x2066", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( L"\x2066", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( nodeElementId == el_bdi || dir.compare("auto") == 0 ) {
-                        txform->AddSourceLine( L"\x2068", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( L"\x2068", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
@@ -3112,7 +3112,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     if ( !content.empty() ) {
                         int em = font->getSize();
                         int letter_spacing = lengthToPx(style->letter_spacing, em, em);
-                        txform->AddSourceLine( content.c_str(), content.length(), cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, NULL, 0, letter_spacing);
+                        txform->AddSourceLine( content.c_str(), content.length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, NULL, 0, letter_spacing);
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                 }
@@ -3133,20 +3133,20 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
 
             if ( addGeneratedContent ) {
-                LVFont * font = enode->getFont().get();
+                LVFontRef font = enode->getFont();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
                 // See comment above: these are the closing counterpart
                 if ( closeWithPDI ) {
-                    txform->AddSourceLine( L"\x2069", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                    txform->AddSourceLine( L"\x2069", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
                 else if ( closeWithPDFPDI ) {
-                    txform->AddSourceLine( L"\x202C\x2069", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                    txform->AddSourceLine( L"\x202C\x2069", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
                 else if ( closeWithPDF ) {
-                    txform->AddSourceLine( L"\x202C", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                    txform->AddSourceLine( L"\x202C", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
             }
@@ -3156,12 +3156,12 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // for crengine internal footnotes displaying, or some FB2 features)
             if ( thisIsRunIn ) {
                 // append space to run-in object
-                LVFont * font = enode->getFont().get();
+                LVFontRef font = enode->getFont();
                 css_style_ref_t style = enode->getStyle();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
                 lChar16 delimiter[] = {UNICODE_NO_BREAK_SPACE, UNICODE_NO_BREAK_SPACE}; //160
-                txform->AddSourceLine( delimiter, sizeof(delimiter)/sizeof(lChar16), cl, bgcl, font, lang_cfg,
+                txform->AddSourceLine( delimiter, sizeof(delimiter)/sizeof(lChar16), cl, bgcl, font.get(), lang_cfg,
                                             LTEXT_RUNIN_FLAG | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
                                             line_h, valign_dy, 0, NULL );
                 flags &= ~LTEXT_RUNIN_FLAG;
@@ -3197,10 +3197,10 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // Output a single space so that a blank line can be made,
                 // as wanted by a <BR/>.
                 // (This makes consecutive and stuck <br><br><br> work)
-                LVFont * font = enode->getFont().get();
+                LVFontRef font = enode->getFont();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-                txform->AddSourceLine( L" ", 1, cl, bgcl, font, lang_cfg,
+                txform->AddSourceLine( L" ", 1, cl, bgcl, font.get(), lang_cfg,
                                         baseflags | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
                                         line_h, valign_dy);
                 // baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
@@ -3259,10 +3259,10 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // Add an empty source: this should be managed specifically
             // by lvtextfm.cpp splitParagraphs() to not add this empty
             // string to text, and just call floatClearText().
-            LVFont * font = enode->getFont().get();
+            LVFontRef font = enode->getFont();
             lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
             lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-            txform->AddSourceLine( L" ", 1, cl, bgcl, font, lang_cfg,
+            txform->AddSourceLine( L" ", 1, cl, bgcl, font.get(), lang_cfg,
                             baseflags | LTEXT_SRC_IS_CLEAR_LAST | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
                             line_h, valign_dy);
         }
@@ -3289,7 +3289,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     // reset to false, so next text nodes in that link are not
                     // flagged, and don't make out duplicate in-page footnotes
             }
-            LVFont * font = parent->getFont().get();
+            LVFontRef font = parent->getFont();
             css_style_ref_t style = parent->getStyle();
             lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
             lUInt32 bgcl = 0xFFFFFFFF;
@@ -3359,7 +3359,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
             */
             if ( txt.length()>0 ) {
-                txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, lang_cfg, baseflags | tflags,
+                txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font.get(), lang_cfg, baseflags | tflags,
                     line_h, valign_dy, indent, enode, 0, letter_spacing );
                 baseflags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 // To show the lang tag for the lang used for this text node AFTER it:
@@ -3604,7 +3604,7 @@ int measureBorder(ldomNode *enode,int border) {
         // return 0. Later, at drawing time, fmt.getWidth() will return the real
         // width, which could cause rendering of borders over child elements,
         // as these were positionned with a border=0.)
-        css_style_rec_t * style = enode->getStyle().get();
+        css_style_ref_t style = enode->getStyle();
         if (border==0){
                 bool hastopBorder = (style->border_style_top >= css_border_solid &&
                                      style->border_style_top <= css_border_outset);
@@ -3711,7 +3711,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
         return 0;
     if ( enode->isElement() )
     {
-        css_style_rec_t * style = enode->getStyle().get();
+        css_style_ref_t style = enode->getStyle();
         bool isFootNoteBody = false;
         lString16 footnoteId;
         // Allow displaying footnote content at the bottom of all pages that contain a link
@@ -5982,7 +5982,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     if (m == erm_invisible) // don't render invisible blocks
         return;
 
-    css_style_rec_t * style = enode->getStyle().get();
+    css_style_ref_t style = enode->getStyle();
     lUInt16 nodeElementId = enode->getNodeId();
 
     // See if dir= attribute or CSS specified direction
@@ -7368,7 +7368,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
 //draw border lines,support color,width,all styles, not support border-collapse
 void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int doc_y,RenderRectAccessor fmt)
 {
-    css_style_rec_t * style = enode->getStyle().get();
+    css_style_ref_t style = enode->getStyle();
     bool hastopBorder = (style->border_style_top >=css_border_solid&&style->border_style_top<=css_border_outset);
     bool hasrightBorder = (style->border_style_right >=css_border_solid&&style->border_style_right<=css_border_outset);
     bool hasbottomBorder = (style->border_style_bottom >=css_border_solid&&style->border_style_bottom<=css_border_outset);
@@ -8012,7 +8012,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
         int direction = RENDER_RECT_GET_DIRECTION(fmt);
         bool is_rtl = direction == REND_DIRECTION_RTL; // shortcut for followup tests
 
-        css_style_rec_t * style = enode->getStyle().get();
+        css_style_ref_t style = enode->getStyle();
 
         // Check and draw background
         css_length_t bg = style->background_color;
@@ -9172,7 +9172,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             m = erm_block;
         }
 
-        css_style_rec_t * style = node->getStyle().get();
+        css_style_ref_t style = node->getStyle();
 
         // Get image size early
         bool is_img = false;
@@ -9721,9 +9721,9 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         if ( len == 0 )
             return;
         // letter-spacing
-        LVFont * font = parent->getFont().get();
+        LVFontRef font = parent->getFont();
         int em = font->getSize();
-        css_style_rec_t * parent_style = parent->getStyle().get();
+        css_style_ref_t parent_style = parent->getStyle();
         int letter_spacing = lengthToPx(parent_style->letter_spacing, em, em);
         // text-transform
         switch (parent_style->text_transform) {

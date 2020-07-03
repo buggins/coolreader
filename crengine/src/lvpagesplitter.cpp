@@ -98,8 +98,8 @@ void LVRendPageContext::addLink( lString16 id, int pos )
     }
     if ( lines.empty() )
         return;
-    LVFootNote * note = getOrCreateFootNote( id );
-    lines.last()->addLink(note, pos);
+    LVFootNoteRef note = getOrCreateFootNote( id );
+    lines.last()->addLink(note.get(), pos);
 }
 
 /// mark start of foot note
@@ -112,7 +112,7 @@ void LVRendPageContext::enterFootNote( lString16 id )
         CRLog::error("Nested entering note" );
         return;
     }
-    curr_note = getOrCreateFootNote( id );
+    curr_note = getOrCreateFootNote( id ).get();
 }
 
 /// mark end of foot note

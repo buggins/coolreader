@@ -370,14 +370,14 @@ class LVRendPageContext
 
     LVFootNote * curr_note;
 
-    LVFootNote * getOrCreateFootNote( lString16 id )
+    LVFootNoteRef getOrCreateFootNote( lString16 id )
     {
         LVFootNoteRef ref = footNotes.get(id);
         if ( ref.isNull() ) {
             ref = LVFootNoteRef( new LVFootNote( id ) );
             footNotes.set( id, ref );
         }
-        return ref.get();
+        return ref;
     }
 
     void split();

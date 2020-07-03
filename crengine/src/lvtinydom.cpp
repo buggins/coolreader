@@ -16382,8 +16382,8 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
     }
     bool res = false;
     if ( !marker.empty() ) {
-        LVFont * font = getFont().get();
-        if ( font ) {
+        LVFontRef font = getFont();
+        if ( !font.isNull() ) {
             TextLangCfg * lang_cfg = TextLangMan::getTextLangCfg( this );
             markerWidth = font->getTextWidth((marker + "  ").c_str(), marker.length()+2, lang_cfg) + font->getSize()/8;
             res = true;
