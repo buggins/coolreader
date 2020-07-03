@@ -715,7 +715,7 @@ void CRPropContainer::clear()
 void CRPropContainer::setString( const char * propName, const lString16 &value )
 {
     int pos = 0;
-    if ( !findItem( propName, pos ) ) {
+    if ( _list.empty() || !findItem( propName, pos ) ) {
         _list.insert( pos, new CRPropItem( propName, value ) );
         _revision++;
     } else {

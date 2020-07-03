@@ -8327,10 +8327,12 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
     ldomNode * finalNode = NULL;
     if ( !p ) {
         //CRLog::trace("ldomXPointer::getRect() - p==NULL");
+        return false;
     }
     //printf("getRect( p=%08X type=%d )\n", (unsigned)p, (int)p->getNodeType() );
     else if ( !p->getDocument() ) {
         //CRLog::trace("ldomXPointer::getRect() - p->getDocument()==NULL");
+        return false;
     }
     ldomNode * mainNode = p->getDocument()->getRootNode();
     for ( ; p; p = p->getParentNode() ) {
@@ -12845,12 +12847,13 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * /*nsname*/, const lCh
         }
     }
     //======== START FILTER CODE ============
-    AutoClose( _currNode->_element->getNodeId(), false );
+    if ( _currNode->_element ) // (should always be true, but avoid clang warning)
+        AutoClose( _currNode->_element->getNodeId(), false );
     //======== END FILTER CODE ==============
     //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
     // save closed element
     ldomNode * closedElement = _currNode->getElement();
-    _errFlag |= (id != closedElement->getNodeId());
+    _errFlag |= (!closedElement || id != closedElement->getNodeId());
     _currNode = pop( _currNode, id );
 
 
@@ -13640,6 +13643,7 @@ lUInt32 tinyNodeCollection::calcStyleHash(bool already_rendered)
                 sz = _elemCount+1 - offs;
             }
             ldomNode * buf = _elemList[i];
+            if ( !buf ) continue; // avoid clang-tidy warning
             for ( int j=0; j<sz; j++ ) {
                 if ( buf[j].isElement() ) {
                     css_style_ref_t style = buf[j].getStyle();
@@ -16150,6 +16154,8 @@ ldomNode * ldomNode::getUnboxedNextSibling( bool skip_text_nodes ) const
     // tree, and checks to not walk down non-boxing nodes - but still
     // walking up any node (which ought to be a boxing node).
     ldomNode * unboxed_parent = getUnboxedParent(); // don't walk outside of it
+    if ( !unboxed_parent )
+        return NULL;
     ldomNode * n = (ldomNode *) this;
     int index = 0;
     bool node_entered = true; // bootstrap loop
@@ -16202,6 +16208,8 @@ ldomNode * ldomNode::getUnboxedPrevSibling( bool skip_text_nodes ) const
 {
     // Similar to getUnboxedNextSibling(), but walking backward
     ldomNode * unboxed_parent = getUnboxedParent();
+    if ( !unboxed_parent )
+        return NULL;
     ldomNode * n = (ldomNode *) this;
     int index = 0;
     bool node_entered = true; // bootstrap loop

@@ -1718,7 +1718,10 @@ public:
                              || (m_flags[i] & LCHAR_IS_TO_IGNORE)
                              || (m_flags[i] & LCHAR_MANDATORY_NEWLINE) ) ) {
                 // measure start..i-1 chars
-                if ( !(m_flags[i-1] & LCHAR_IS_OBJECT) ) { // neither image, float, nor inline box
+                bool measuring_object = m_flags[i-1] & LCHAR_IS_OBJECT;
+                if ( !measuring_object && lastFont ) { // text node
+                        // In our context, we'll always have a non-NULL lastFont, but
+                        // have it checked explicitely to avoid clang-tidy warning.
                     // measure text
                     // Note: we provide text in the logical order, and measureText()
                     // will apply kerning in that order, which might be wrong if some
@@ -1856,7 +1859,7 @@ public:
                     //m_flags[len] = 0;
                     // TODO: letter spacing letter_spacing
                 }
-                else { // measure object
+                else if ( measuring_object ) {
                     // We have start=i-1 and m_flags[i-1] & LCHAR_IS_OBJECT
                     if (start != i-1) {
                         crFatalError(126, "LCHAR_IS_OBJECT with start!=i-1");
@@ -1977,6 +1980,10 @@ public:
                         lastWidth += width;
                         m_widths[start] = lastWidth;
                     }
+                }
+                else {
+                    // Should not happen
+                    crFatalError(127, "Attempting to measure Text node without a font");
                 }
                 start = i;
                 #if (USE_HARFBUZZ==1)

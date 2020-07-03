@@ -396,7 +396,7 @@ bool LVRtfParser::CheckFormat()
 
 void LVRtfParser::CommitText()
 {
-    if ( txtpos==0 )
+    if ( txtpos==0 || !txtbuf )
         return;
     txtbuf[txtpos] = 0;
 #ifdef LOG_RTF_PARSING
