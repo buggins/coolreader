@@ -6825,7 +6825,10 @@ SimpleTitleFormatter::SimpleTitleFormatter(lString16 text, lString8 fontFace, bo
     if (findBestSize())
         return;
     _text = _text.substr(0, 16) + "...";
-    findBestSize();
+    if (findBestSize())
+        return;
+    // Fallback to tiny font
+    format(2);
 }
 
 bool SimpleTitleFormatter::measure() {
@@ -6869,6 +6872,7 @@ bool SimpleTitleFormatter::format(int fontSize) {
     _font = fontMan->GetFont(fontSize, _bold ? 800 : 400, _italic, css_ff_sans_serif, _fontFace, 0, -1);
     _lineHeight = _font->getHeight() * 120 / 100;
     _lines.clear();
+    _height = 0;
     int singleLineWidth = _font->getTextWidth(_text.c_str(), _text.length());
     if (singleLineWidth < _maxWidth) {
         _lines.add(_text);

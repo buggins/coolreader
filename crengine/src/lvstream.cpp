@@ -1105,7 +1105,8 @@ public:
         if (m_hFile == INVALID_HANDLE_VALUE || m_mode==LVOM_READ )
             return LVERR_FAIL;
         lvpos_t oldpos;
-        Tell(&oldpos);
+        if (!Tell(&oldpos))
+            return LVERR_FAIL;
         if (!Seek(size, LVSEEK_SET, NULL))
             return LVERR_FAIL;
         SetEndOfFile( m_hFile);
@@ -1115,7 +1116,8 @@ public:
         if (m_fd == -1)
             return LVERR_FAIL;
         lvpos_t oldpos;
-        Tell(&oldpos);
+        if (!Tell(&oldpos))
+            return LVERR_FAIL;
         if (!Seek(size, LVSEEK_SET, NULL))
             return LVERR_FAIL;
         Seek(oldpos, LVSEEK_SET, NULL);
