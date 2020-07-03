@@ -267,7 +267,7 @@ public:
     /// flush on destroy
     virtual ~LVDefStreamBuffer()
     {
-        close();
+        close(); // NOLINT: Call to virtual function during destruction
     }
 };
 
@@ -3032,7 +3032,7 @@ public:
 			*pNewPos = m_pos;
 		return LVERR_OK;
 	}
-	virtual lverror_t Close()
+	lverror_t Close()
 	{
 		if (!m_pBuffer)
 			return LVERR_FAIL;
@@ -4318,7 +4318,7 @@ class LVBlockWriteStream : public LVNamedStream
 public:
     virtual lverror_t Flush( bool sync ) {
         CRTimerUtil infinite;
-        return Flush(sync, infinite);
+        return Flush(sync, infinite); // NOLINT: Call to virtual function during destruction
     }
     /// flushes unsaved data from buffers to file, with optional flush of OS buffers
     virtual lverror_t Flush( bool sync, CRTimerUtil & timeout )
@@ -4348,7 +4348,7 @@ public:
 
     virtual ~LVBlockWriteStream()
     {
-        Flush( true );
+        Flush( true ); // NOLINT: Call to virtual function during destruction
     }
 
     virtual const lChar16 * GetName()

@@ -1139,8 +1139,8 @@ LVGrayDrawBuf::LVGrayDrawBuf(int dx, int dy, int bpp, void * auxdata )
     _bpp = bpp;
     _rowsize = (bpp<=2) ? (_dx * _bpp + 7) / 8 : _dx;
 
-    _backgroundColor = GetWhiteColor();
-    _textColor = GetBlackColor();
+    _backgroundColor = GetWhiteColor(); // NOLINT: Call to virtual function during construction
+    _textColor = GetBlackColor();       // NOLINT
 
     if ( auxdata ) {
         _data = (lUInt8 *) auxdata;
@@ -2987,7 +2987,7 @@ LVColorDrawBuf::LVColorDrawBuf(int dx, int dy, int bpp)
     ,_ownData(true)
 {
     _rowsize = dx*(_bpp>>3);
-    Resize( dx, dy );
+    Resize( dx, dy ); // NOLINT: Call to virtual function during construction
 }
 
 /// creates wrapper around external RGBA buffer

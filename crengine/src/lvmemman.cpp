@@ -33,7 +33,7 @@
 static char file_to_remove_on_crash[2048] = "";
 
 void crSetFileToRemoveOnFatalError(const char * filename) {
-	strcpy(file_to_remove_on_crash, filename == NULL ? "" : filename);
+	strcpy(file_to_remove_on_crash, filename == NULL ? "" : filename); // NOLINT
 }
 
 #ifdef _LINUX

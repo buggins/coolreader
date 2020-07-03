@@ -86,7 +86,9 @@ public:
 
     virtual bool operator!() const { return IsNull(); }
 
-    virtual ~LBitmapFont() { Clear(); }
+    virtual ~LBitmapFont() {
+        Clear(); // NOLINT: Call to virtual function during destruction
+    }
 };
 
 #endif  // (USE_FREETYPE!=1) && (USE_BITMAP_FONTS==1)

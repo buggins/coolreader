@@ -259,8 +259,8 @@ public:
     }
     virtual ~LVRtfDefDestination()
     {
-        OnAction( RA_PARA );
-        OnAction( RA_SECTION );
+        OnAction( RA_PARA );    // NOLINT: Call to virtual function during destruction
+        OnAction( RA_SECTION ); // NOLINT
     }
 };
 

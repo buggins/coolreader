@@ -197,6 +197,7 @@ LVDocView::LVDocView(int bitsPerPixel, bool noDefaultDocument) :
 	//m_drawbuf.Clear(m_backgroundColor);
 
     if (!noDefaultDocument)
+        // NOLINTNEXTLINE: Call to virtual function during construction
         createDefaultDocument(cs16("No document"), lString16(
                     L"Welcome to CoolReader! Please select file to open"));
 

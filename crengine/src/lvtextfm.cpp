@@ -250,7 +250,11 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
     if (flags & LTEXT_FLAG_OWNTEXT)
     {
         /* make own copy of text */
-        pline->t.text = (lChar16*)malloc( len * sizeof(lChar16) );
+        // We do a bit ugly to avoid clang-tidy warning "call to 'malloc' has an
+        // allocation size of 0 bytes" without having to add checks for NULL pointer
+        // (in lvrend.cpp, we're normalling not adding empty text with LTEXT_FLAG_OWNTEXT)
+        lUInt32 alloc_len = len > 0 ? len : 1;
+        pline->t.text = (lChar16*)malloc( alloc_len * sizeof(lChar16) );
         memcpy((void*)pline->t.text, text, len * sizeof(lChar16));
     }
     else

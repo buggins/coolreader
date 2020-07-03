@@ -2460,7 +2460,7 @@ public:
     /// saves recent changes to mapped file
     virtual bool updateMap(LVDocViewCallback * progressCallback=NULL) {
         CRTimerUtil infinite;
-        return updateMap(infinite, progressCallback)!=CR_ERROR;
+        return updateMap(infinite, progressCallback)!=CR_ERROR; // NOLINT: Call to virtual function during destruction
     }
 #endif
 

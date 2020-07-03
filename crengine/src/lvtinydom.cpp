@@ -4242,7 +4242,7 @@ ldomDocument::~ldomDocument()
     ldomNode::unregisterDocument(this);
     fontMan->UnregisterDocumentFonts(_docIndex);
 #if BUILD_LITE!=1
-    updateMap();
+    updateMap(); // NOLINT: Call to virtual function during destruction
 #endif
 }
 
@@ -13876,7 +13876,7 @@ ContinuousOperationResult ldomDocument::updateMap(CRTimerUtil & maxTime, LVDocVi
     }
     CRLog::info("Updating cache file");
 
-    ContinuousOperationResult res = saveChanges(maxTime, progressCallback);
+    ContinuousOperationResult res = saveChanges(maxTime, progressCallback); // NOLINT: Call to virtual function during destruction
     if ( res==CR_ERROR )
     {
         CRLog::error("Error while saving changes to cache file");
