@@ -666,17 +666,19 @@ public:
                             continue;
                         }
                     } else if ( alpha != 0 ) {
-                        lUInt32 origColor = row[x];
+                        lUInt8 origLuma = row[x];
+                        // Expand lower bitdepths to Y8
                         if ( bpp == 3 ) {
-                            origColor = origColor & 0xE0;
-                            origColor = origColor | (origColor>>3) | (origColor>>6);
-                        } else {
-                            origColor = origColor & 0xF0;
-                            origColor = origColor | (origColor>>4);
+                            origLuma = origLuma & 0xE0;
+                            origLuma = origLuma | (origLuma>>3) | (origLuma>>6);
+                        } else if ( bpp == 4 ) {
+                            origLuma = origLuma & 0xF0;
+                            origLuma = origLuma | (origLuma>>4);
                         }
-                        origColor = origColor | (origColor<<8) | (origColor<<16);
-                        ApplyAlphaRGB( origColor, cl, alpha );
-                        cl = origColor;
+                        // Expand Y8 to RGB32 (i.e., duplicate, R = G = B = Y)
+                        lUInt32 bufColor = origLuma | (origLuma<<8) | (origLuma<<16);
+                        ApplyAlphaRGB( bufColor, cl, alpha );
+                        cl = bufColor;
                     }
 
                     lUInt8 dcl;
@@ -725,12 +727,12 @@ public:
                             continue;
                         }
                     } else if ( alpha != 0 ) {
-                        lUInt32 origColor = (row[ byteindex ] & mask)>>bitindex;
-                        origColor = origColor | (origColor<<2);
-                        origColor = origColor | (origColor<<4);
-                        origColor = origColor | (origColor<<8) | (origColor<<16);
-                        ApplyAlphaRGB( origColor, cl, alpha );
-                        cl = origColor;
+                        lUInt8 origLuma = (row[ byteindex ] & mask)>>bitindex;
+                        origLuma = origLuma | (origLuma<<2);
+                        origLuma = origLuma | (origLuma<<4);
+                        lUInt32 bufColor = origLuma | (origLuma<<8) | (origLuma<<16);
+                        ApplyAlphaRGB( bufColor, cl, alpha );
+                        cl = bufColor;
                     }
 
                     lUInt32 dcl = 0;
