@@ -6581,10 +6581,13 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 REQUEST_RENDER("propsApply hyphenation trust_soft_hyphens")
             }
         } else if (name == PROP_TEXTLANG_MAIN_LANG) {
-            lString16 lang = props->getStringDef(PROP_TEXTLANG_MAIN_LANG, TEXTLANG_DEFAULT_MAIN_LANG);
-            if ( lang != TextLangMan::getMainLang() ) {
-                TextLangMan::setMainLang( lang );
-                REQUEST_RENDER("propsApply textlang main_lang")
+            if (TextLangMan::getEmbeddedLangsEnabled()) {
+                lString16 lang = props->getStringDef(PROP_TEXTLANG_MAIN_LANG,
+                                                     TEXTLANG_DEFAULT_MAIN_LANG);
+                if (lang != TextLangMan::getMainLang()) {
+                    TextLangMan::setMainLang(lang);
+                    REQUEST_RENDER("propsApply textlang main_lang")
+                }
             }
         } else if (name == PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED) {
             bool enabled = props->getIntDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, TEXTLANG_DEFAULT_EMBEDDED_LANGS_ENABLED);
@@ -6593,13 +6596,11 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 REQUEST_RENDER("propsApply textlang embedded_langs_enabled")
             }
         } else if (name == PROP_TEXTLANG_HYPHENATION_ENABLED) {
-            if (TextLangMan::getEmbeddedLangsEnabled()) {
-                bool enabled = props->getIntDef(PROP_TEXTLANG_HYPHENATION_ENABLED,
+            bool enabled = props->getIntDef(PROP_TEXTLANG_HYPHENATION_ENABLED,
 												TEXTLANG_DEFAULT_HYPHENATION_ENABLED);
-                if (enabled != TextLangMan::getHyphenationEnabled()) {
-                    TextLangMan::setHyphenationEnabled(enabled);
-                    REQUEST_RENDER("propsApply textlang hyphenation_enabled")
-                }
+            if (enabled != TextLangMan::getHyphenationEnabled()) {
+                TextLangMan::setHyphenationEnabled(enabled);
+                REQUEST_RENDER("propsApply textlang hyphenation_enabled")
             }
         } else if (name == PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY) {
             bool enabled = props->getIntDef(PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY, TEXTLANG_DEFAULT_HYPH_SOFT_HYPHENS_ONLY);

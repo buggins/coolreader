@@ -91,8 +91,8 @@ public:
         return &_lang_cfg_list;
     }
 
-    static lString16 getLangTag(const lString16& dictTitle);
-    
+    static lString16 getLangTag(const lString16& title);
+
     TextLangMan();
     ~TextLangMan();
 };

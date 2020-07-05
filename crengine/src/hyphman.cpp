@@ -433,9 +433,6 @@ bool HyphDictionaryList::open(lString16 hyphDirectory, bool clear)
 			lString16 title = name;
 			if ( title.endsWith( suffix ) )
 				title.erase( title.length() - suffix.length(), suffix.length() );
-
-            CRLog::error("adding: id=%s, title=%s", UnicodeToUtf8(id).c_str(), UnicodeToUtf8(title).c_str());
-
 			_list.add( new HyphDictionary( t, title, id, filename ) );
             count++;
 		}

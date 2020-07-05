@@ -616,9 +616,9 @@ jboolean initDictionaries(JNIEnv *penv, jclass clazz, jobjectArray dictArray) {
 	jfieldID pjfHyphDict_type = penv->GetFieldID(pjcHyphDict, "type", "I");
 	if (NULL == pjfHyphDict_type)
 		return JNI_FALSE;
-	jfieldID pjfHyphDict_name = penv->GetFieldID(pjcHyphDict, "name", "Ljava/lang/String;");
-	if (NULL == pjfHyphDict_name)
-		return JNI_FALSE;
+    jfieldID pjfHyphDict_code = penv->GetFieldID(pjcHyphDict, "code", "Ljava/lang/String;");
+    if (NULL == pjfHyphDict_code)
+        return JNI_FALSE;
 
 	int len = penv->GetArrayLength(dictArray);
 	HyphDictionary *dict;
@@ -627,7 +627,7 @@ jboolean initDictionaries(JNIEnv *penv, jclass clazz, jobjectArray dictArray) {
 	for (int i = 0; i < len; i++) {
 		jobject obj = penv->GetObjectArrayElement(dictArray, i);
 		int type = penv->GetIntField(obj, pjfHyphDict_type);
-		jstring name = static_cast<jstring>(penv->GetObjectField(obj, pjfHyphDict_name));
+		jstring code = static_cast<jstring>(penv->GetObjectField(obj, pjfHyphDict_code));
 		switch (type) {     // convert org/coolreader/crengine/Engine$HyphDict$type into HyphDictType
 			case 0:         // org/coolreader/crengine/Engine$HYPH_NONE
 				dict_type = HDT_NONE;
@@ -642,9 +642,10 @@ jboolean initDictionaries(JNIEnv *penv, jclass clazz, jobjectArray dictArray) {
 				dict_type = HDT_NONE;
 				break;
 		}
-		lString16 dict_name = env.fromJavaString(name);
-		dict = new HyphDictionary(dict_type, dict_name, dict_name, dict_name);
-		HyphMan::addDictionaryItem(dict);
+		lString16 dict_code = env.fromJavaString(code);
+		dict = new HyphDictionary(dict_type, dict_code, dict_code, dict_code);
+		if (!HyphMan::addDictionaryItem(dict))
+		    delete dict;
 	}
 	JavaVM *jvm;
 	env->GetJavaVM(&jvm);

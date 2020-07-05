@@ -1245,10 +1245,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public HyphenationOptions( OptionOwner owner, String label )
 		{
 			super( owner, label, PROP_HYPHENATION_DICT );
-			setDefaultValue("RUSSIAN");
+			setDefaultValue(Engine.HyphDict.RUSSIAN.name);
 			Engine.HyphDict[] dicts = Engine.HyphDict.values();
 			for ( Engine.HyphDict dict : dicts )
-				add( dict.toString(), dict.getName() );
+				if (!dict.hide)
+					add( dict.toString(), dict.getName() );
 		}
 	}
 	

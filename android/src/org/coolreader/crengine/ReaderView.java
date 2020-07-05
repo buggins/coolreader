@@ -2634,7 +2634,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			String fcLangCode = null;
 			if (null != bookLanguage && bookLanguage.length() > 0) {
 				fcLangCode = Engine.findCompatibleFcLangCode(bookLanguage);
-				props.setProperty(PROP_TEXTLANG_MAIN_LANG, bookLanguage);
+				if (props.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false))
+					props.setProperty(PROP_TEXTLANG_MAIN_LANG, bookLanguage);
 			}
 			if (null != fcLangCode && fcLangCode.length() > 0) {
 				boolean res = Engine.checkFontLanguageCompatibility(fontFace, fcLangCode);
