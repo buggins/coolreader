@@ -63,7 +63,7 @@ extern "C" {
 // (Don't waste the 4th bit not used in the 4-bits sets above)
 #define LTEXT_FLAG_OWNTEXT           0x0008  // store local copy of text instead of pointer
 #define LTEXT_IS_LINK                0x0080  // source text is a link (to gather in-page footnotes)
-#define LTEXT_RUNIN_FLAG             0x8000  // element display mode is runin (used with FB2 footnotes)
+#define LTEXT__AVAILABLE_BIT_16__    0x8000
 
 // Text white-space and hyphenation handling
 #define LTEXT_FLAG_PREFORMATTED      0x00010000  // text is preformatted (white-space: pre, pre-wrap, break-spaces)

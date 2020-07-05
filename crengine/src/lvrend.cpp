@@ -2141,9 +2141,8 @@ lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt
     if ( is_block ) {
         // text alignment flags
         flg = oldflags & ~LTEXT_FLAG_NEWLINE;
-        if ( !(oldflags & LTEXT_RUNIN_FLAG) ) {
-            switch (style->text_align)
-            {
+        switch (style->text_align)
+        {
             case css_ta_left:
                 flg |= LTEXT_ALIGN_LEFT;
                 break;
@@ -2165,9 +2164,9 @@ lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt
             case css_ta_auto: // shouldn't happen (only accepted with text-align-last)
             case css_ta_inherit:
                 break;
-            }
-            switch (style->text_align_last)
-            {
+        }
+        switch (style->text_align_last)
+        {
             case css_ta_left:
                 flg |= LTEXT_LAST_LINE_ALIGN_LEFT;
                 break;
@@ -2189,11 +2188,7 @@ lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt
             case css_ta_auto: // let flg have none of the above set, which will mean "auto"
             case css_ta_inherit:
                 break;
-            }
         }
-    }
-    else if ( style->display == css_d_run_in ) {
-        flg |= LTEXT_RUNIN_FLAG;
     }
     // We should clean these flags that we got from the parent node via baseFlags:
     // CSS white-space inheritance is correctly handled via styles (so, no need
@@ -2462,6 +2457,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             return;
         }
 
+        css_style_ref_t style = enode->getStyle();
         bool is_object = false;
         const css_elem_def_props_t * ntype = enode->getElementTypePtr();
         if ( ntype && ntype->is_object )
@@ -2479,7 +2475,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         //   when recursing its children which are inline), it will also set
         //   horitontal alignment flags.
         bool is_block = rm == erm_final;
-        lUInt32 flags = styleToTextFmtFlags( is_block, enode->getStyle(), baseflags, direction );
+        lUInt32 flags = styleToTextFmtFlags( is_block, style, baseflags, direction );
         // Note:
         // - baseflags (passed by reference) is shared and re-used by this node's siblings
         //   (all inline); it should carry newline/horizontal aligment flag, which should
@@ -2490,10 +2486,40 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
 
         int width = fmt->getWidth();
         int em = enode->getFont()->getSize();
-        css_style_ref_t style = enode->getStyle();
         ldomNode * parent = enode->getParentNode(); // Needed for various checks below
         if (parent && parent->isNull())
             parent = NULL;
+
+        // Nodes with "display: run-in" are inline nodes brought at start of the final node
+        bool isRunIn = style->display == css_d_run_in;
+        if ( isRunIn ) {
+            // The text alignment of the paragraph should come from the following
+            // sibling node. The one set from the parent final node has probably
+            // not yet been consumed, so update it.
+            if ( baseflags & LTEXT_FLAG_NEWLINE ) {
+                if ( enode->getNodeIndex() == 0 && parent && parent->getChildCount() > 1 ) {
+                    ldomNode * next_sibling = parent->getChildNode(1);
+                    if ( next_sibling && !next_sibling->isNull() ) {
+                        // next_sibling is an original block node that should have
+                        // been erm_final, but has been made erm_inline so it can
+                        // be prepended with the run-in node content.
+                        lUInt32 next_sibling_flags = styleToTextFmtFlags( true, next_sibling->getStyle(), baseflags, direction );
+                        // Grab only the alignment flags
+                        lUInt32 align_flags_mask = LTEXT_FLAG_NEWLINE | (LTEXT_FLAG_NEWLINE<<LTEXT_LAST_LINE_ALIGN_SHIFT);
+                        next_sibling_flags &= align_flags_mask;
+                        // Update both flags and baseflags with the grabbed alignments
+                        flags &= ~align_flags_mask;
+                        flags |= next_sibling_flags;
+                        baseflags &= ~align_flags_mask;
+                        baseflags |= next_sibling_flags;
+                    }
+                }
+            }
+            // Note: for consistency, we should also build the strut below from
+            // this next_sibling node. But let's not bother, display: run-in
+            // is only really used for FB2 footnotes, and this above is just
+            // what's needed for their correct rendering.
+        }
 
         // As seen with Firefox, an inline node line-height: do apply, so we need
         // to compute it for all inline nodes, and not only in the "the top and
@@ -3005,9 +3031,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 logfile << "+BLOCK [" << cnt << "]";
             #endif
             // Usual elements
-            bool thisIsRunIn = style->display==css_d_run_in;
-            if ( thisIsRunIn )
-                flags |= LTEXT_RUNIN_FLAG;
 
             // Some elements add some generated content
             lUInt16 nodeElementId = enode->getNodeId();
@@ -3150,10 +3173,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 }
             }
 
-            // Note: CSS "display: run-in" is no longer used with our epub.css (it is
-            // used with older css files for "body[name="notes"] section title", either
-            // for crengine internal footnotes displaying, or some FB2 features)
-            if ( thisIsRunIn ) {
+            if ( isRunIn ) {
                 // append space to run-in object
                 LVFontRef font = enode->getFont();
                 css_style_ref_t style = enode->getStyle();
@@ -3161,9 +3181,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
                 lChar16 delimiter[] = {UNICODE_NO_BREAK_SPACE, UNICODE_NO_BREAK_SPACE}; //160
                 txform->AddSourceLine( delimiter, sizeof(delimiter)/sizeof(lChar16), cl, bgcl, font.get(), lang_cfg,
-                                            LTEXT_RUNIN_FLAG | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
-                                            line_h, valign_dy, 0, NULL );
-                flags &= ~LTEXT_RUNIN_FLAG;
+                                            LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
             }
         }
 
@@ -3250,7 +3268,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 break;
             }
         }
-        //baseflags &= ~LTEXT_RUNIN_FLAG;
         if ( rm == erm_final && (baseflags & LTEXT_SRC_IS_CLEAR_BOTH) ) {
             // We're leaving the top final node with a clear: not consumed
             // (set by a last or single <br clear=>), with no follow-up

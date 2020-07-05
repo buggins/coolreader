@@ -3413,19 +3413,13 @@ public:
         // measure paragraph text
         measureText();
 
-        // run-in detection (mostly only used for FB2 footnotes)
+        // We keep as 'para' the first source text, as it carries
+        // the text alignment to use with all added lines.
         src_text_fragment_t * para = &m_pbuffer->srctext[start];
-        int i;
-        for ( i=start; i<end; i++ ) {
-            if ( !(m_pbuffer->srctext[i].flags & LTEXT_RUNIN_FLAG) ) {
-                para = &m_pbuffer->srctext[i];
-                break;
-            }
-        }
 
         // detect case with inline preformatted text inside block with line feeds -- override align=left for this case
         bool preFormattedOnly = true;
-        for ( i=start; i<end; i++ ) {
+        for ( int i=start; i<end; i++ ) {
             if ( !(m_pbuffer->srctext[i].flags & LTEXT_FLAG_PREFORMATTED) ) {
                 preFormattedOnly = false;
                 break;
@@ -3433,7 +3427,7 @@ public:
         }
         if ( preFormattedOnly ) {
             bool lfFound = false;
-            for ( i=0; i<m_length; i++ ) {
+            for ( int i=0; i<m_length; i++ ) {
                 if ( m_text[i]=='\n' ) {
                     lfFound = true;
                     break;
@@ -4073,14 +4067,6 @@ public:
     {
         int start = 0;
         int i;
-//        TR("==== splitParagraphs() ====");
-//        for ( i=0; i<m_pbuffer->srctextlen; i++ ) {
-//            int flg = m_pbuffer->srctext[i].flags;
-//            if ( (flg & LTEXT_RUNIN_FLAG) )
-//                TR("run-in found");
-//            TR("  %d: flg=%04x al=%d ri=%d '%s'", i, flg, (flg & LTEXT_FLAG_NEWLINE), (flg & LTEXT_RUNIN_FLAG)?1:0, (flg&LTEXT_SRC_IS_OBJECT ? "<image>" : LCSTR(lString16(m_pbuffer->srctext[i].t.text, m_pbuffer->srctext[i].t.len)) ) );
-//        }
-//        TR("============================");
 
         int srctextlen = m_pbuffer->srctextlen;
         int clear_after_last_flag = 0;
@@ -4090,14 +4076,13 @@ public:
             srctextlen -= 1; // Don't process this last srctext
         }
 
-        bool prevRunIn = srctextlen>0 && (m_pbuffer->srctext[0].flags & LTEXT_RUNIN_FLAG);
         for ( i=1; i<=srctextlen; i++ ) {
             // Split on LTEXT_FLAG_NEWLINE, mostly set when <BR/> met
             // (we check m_pbuffer->srctext[i], the next srctext that we are not
             // adding to the current paragraph, as <BR> and its clear= are carried
             // by the following text.)
             bool isLastPara = (i == srctextlen);
-            if ( isLastPara || ((m_pbuffer->srctext[i].flags & LTEXT_FLAG_NEWLINE) && !prevRunIn) ) {
+            if ( isLastPara || (m_pbuffer->srctext[i].flags & LTEXT_FLAG_NEWLINE) ) {
                 if ( m_pbuffer->srctext[start].flags & LTEXT_SRC_IS_CLEAR_BOTH ) {
                     // (LTEXT_SRC_IS_CLEAR_BOTH is a mask, will match _LEFT and _RIGHT too)
                     floatClearText( m_pbuffer->srctext[start].flags & LTEXT_SRC_IS_CLEAR_BOTH );
@@ -4126,7 +4111,6 @@ public:
                     processParagraph( start, i, isLastPara );
                 start = i;
             }
-            prevRunIn = (i<srctextlen) && (m_pbuffer->srctext[i].flags & LTEXT_RUNIN_FLAG);
         }
         if ( !m_no_clear_own_floats ) {
             // Clear our own floats so they are fully contained in this final block.
