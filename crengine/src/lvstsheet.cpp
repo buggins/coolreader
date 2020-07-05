@@ -1440,10 +1440,15 @@ static void resolve_url_path( lString8 & str, lString16 codeBase ) {
     if (path.startsWith(L"\"") || path.startsWith(L"'")) path = path.substr(1);
     if (path.endsWith(L"\"") || path.endsWith(L"'")) path = path.substr(0, path.length() - 1);
     path.trim();
-    // We assume it's a path to a local file in the container, so we don't try
-    // to check if it's a remote url (as we can't fetch its content anyway).
-    if ( !codeBase.empty() ) {
-        path = LVCombinePaths( codeBase, path );
+    if (path.startsWith(lString16("data:image"))) {
+        // base64 encoded image: leave as-is
+    }
+    else {
+        // We assume it's a path to a local file in the container, so we don't try
+        // to check if it's a remote url (as we can't fetch its content anyway).
+        if ( !codeBase.empty() ) {
+            path = LVCombinePaths( codeBase, path );
+        }
     }
     // printf("url: [%s]+%s => %s\n", UnicodeToLocal(codeBase).c_str(), str.c_str(), UnicodeToUtf8(path).c_str());
     str = UnicodeToUtf8(path);
@@ -2638,7 +2643,17 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                     const char *tmp = decl;
                     int len=0;
                     while (*tmp && *tmp!=';' && *tmp!='}' && *tmp!='!') {
-                        tmp++; len++;
+                        if ( *tmp == '(' && *(tmp-3) == 'u' && *(tmp-2) == 'r' && *(tmp-1) == 'l') {
+                            // Accepts everything until ')' after 'url(', including ';'
+                            // needed when parsing: url("data:image/png;base64,abcd...")
+                            tmp++; len++;
+                            while ( *tmp && *tmp!=')' ) {
+                                tmp++; len++;
+                            }
+                        }
+                        else {
+                            tmp++; len++;
+                        }
                     }
                     str.append(decl,len);
                     decl += len;
@@ -2682,14 +2697,24 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                     const char *tmp = decl;
                     int len = 0;
                     while (*tmp && *tmp!=';' && *tmp!='}' && *tmp!='!') {
-                        tmp++; len++;
+                        if ( *tmp == '(' && *(tmp-3) == 'u' && *(tmp-2) == 'r' && *(tmp-1) == 'l') {
+                            // Accepts everything until ')' after 'url(', including ';'
+                            // needed when parsing: url("data:image/png;base64,abcd...")
+                            tmp++; len++;
+                            while ( *tmp && *tmp!=')' ) {
+                                tmp++; len++;
+                            }
+                        }
+                        else {
+                            tmp++; len++;
+                        }
                     }
                     lString8 str;
                     str.append(decl,len);
-                    if ( Utf8ToUnicode(str).lowercase().startsWith("url") ) {
+                    if ( Utf8ToUnicode(str).lowercase().startsWith("url(") ) {
                         tmp = str.c_str();
                         len = 0;
-                        while (*tmp && *tmp!=';' && *tmp!='}' && *tmp!=')') {
+                        while (*tmp && *tmp!=')') {
                             tmp++; len++;
                         }
                         len = len + 1;
