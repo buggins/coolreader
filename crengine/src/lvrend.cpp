@@ -7947,13 +7947,21 @@ void DrawBackgroundImage(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int d
                 draw_y = 0;
             }
             // Ready to have crengine do all the work.
-            // (Inspired from LVDocView::drawPageBackground(), we have to do it that complex
-            // way to avoid memory leaks; and we have to use a 16bpp LVColorDrawBuf,
-            // 32bpp would mess colors up).
-            LVRef<LVColorDrawBuf> buf = LVRef<LVColorDrawBuf>( new LVColorDrawBuf(img_w, img_h, 16) );
-            buf->Draw(img, 0, 0, img_w, img_h, false); // (dither=false doesn't matter with a color buffer)
-            LVImageSourceRef src = LVCreateDrawBufImageSource(buf.get(), false);
-            LVImageSourceRef transformed = LVCreateStretchFilledTransform(src, transform_w, transform_h,
+            /* Looks like we don't need that:
+
+                // (Inspired from LVDocView::drawPageBackground(), we have to do it that complex
+                // way to avoid memory leaks; and we have to use a 16bpp LVColorDrawBuf,
+                // 32bpp would mess colors up).
+                LVRef<LVColorDrawBuf> buf = LVRef<LVColorDrawBuf>( new LVColorDrawBuf(img_w, img_h, 16) );
+                buf->Draw(img, 0, 0, img_w, img_h, false); // (dither=false doesn't matter with a color buffer)
+                LVImageSourceRef src = LVCreateDrawBufImageSource(buf.get(), false);
+                LVImageSourceRef transformed = LVCreateStretchFilledTransform(src, transform_w, transform_h,
+
+              We can just transform the original image, which will work in its original
+              colorspace/depth, ensure alpha/transparency, and will be converted only
+              at the end to the final drawbuf bit depth.
+            */
+            LVImageSourceRef transformed = LVCreateStretchFilledTransform(img, transform_w, transform_h,
                                                hori_transform, vert_transform, transform_x, transform_y);
             // We use the DrawBuf clip facility to ensure we don't draw outside this node fmt
             lvRect orig_clip;
