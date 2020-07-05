@@ -104,8 +104,8 @@ enum css_decl_code {
     cssd_background,
     cssd_background_image,
     cssd_background_repeat,
-    cssd_background_attachment,
     cssd_background_position,
+    cssd_background_size,
     cssd_border_collapse,
     cssd_border_spacing,
     cssd_orphans,
@@ -197,8 +197,8 @@ static const char * css_decl_name[] = {
     "background",
     "background-image",
     "background-repeat",
-    "background-attachment",
     "background-position",
+    "background-size",
     "border-collapse",
     "border-spacing",
     "orphans",
@@ -449,6 +449,7 @@ static bool parse_number_value( const char * & str, css_length_t & value,
                                     bool accept_negative=false,
                                     bool accept_auto=false,
                                     bool accept_normal=false,
+                                    bool accept_contain_cover=false,
                                     bool is_font_size=false )
 {
     const char * orig_pos = str;
@@ -469,6 +470,18 @@ static bool parse_number_value( const char * & str, css_length_t & value,
         value.type = css_val_unspecified;
         value.value = css_generic_normal;
         return true;
+    }
+    if ( accept_contain_cover ) {
+        if ( substr_icompare( "contain", str ) ) {
+            value.type = css_val_unspecified;
+            value.value = css_generic_contain;
+            return true;
+        }
+        if ( substr_icompare( "cover", str ) ) {
+            value.type = css_val_unspecified;
+            value.value = css_generic_cover;
+            return true;
+        }
     }
     if ( is_font_size ) {
         // Absolute-size keywords, based on the default font size (which is medium)
@@ -2309,7 +2322,7 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                     if ( prop_code==cssd_font_size )
                         is_font_size = true;
                     css_length_t len;
-                    if ( parse_number_value( decl, len, accept_percent, accept_negative, accept_auto, accept_normal, is_font_size) ) {
+                    if ( parse_number_value( decl, len, accept_percent, accept_negative, accept_auto, accept_normal, false, is_font_size) ) {
                         buf<<(lUInt32) (prop_code | importance | parse_important(decl));
                         buf<<(lUInt32) len.type;
                         buf<<(lUInt32) len.value;
@@ -2654,9 +2667,6 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                     else if ( n==24 ) n=0;   // "inherit" = "left top"
                 }
                 break;
-            case cssd_background_attachment:
-                n = parse_name( decl, css_bg_attachment_names, -1 );
-                break;
             case cssd_background:
                 {
                     // Limited parsing of this possibly complex property
@@ -2734,6 +2744,34 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                         buf<<(lUInt32) (cssd_background_color | importance | parsed_important);
                         buf<<(lUInt32) color.type;
                         buf<<(lUInt32) color.value;
+                    }
+                }
+                break;
+            case cssd_background_size:
+                {
+                    // https://developer.mozilla.org/en-US/docs/Web/CSS/background-size
+                    css_length_t len[2];
+                    int i;
+                    for (i = 0; i < 2; i++) {
+                        if ( !parse_number_value( decl, len[i], true, false, true, false, true ) )
+                            break;
+                    }
+                    if (i) {
+                        if (i == 1) { // Only 1 value parsed
+                            if ( len[0].type == css_val_unspecified ) { // "auto", "contain" or "cover"
+                                len[1].type = css_val_unspecified;
+                                len[1].value = len[0].value;
+                            }
+                            else { // first value is a length: second value should be "auto"
+                                len[1].type = css_val_unspecified;
+                                len[1].value = css_generic_auto;
+                            }
+                        }
+                        buf<<(lUInt32) (prop_code | importance | parse_important(decl));
+                        for (i = 0; i < 2; i++) {
+                            buf<<(lUInt32) len[i].type;
+                            buf<<(lUInt32) len[i].value;
+                        }
                     }
                 }
                 break;
@@ -3048,11 +3086,12 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
         case cssd_background_repeat:
             style->Apply( (css_background_repeat_value_t) *p++, &style->background_repeat, imp_bit_background_repeat, is_important );
             break;
-        case cssd_background_attachment:
-            style->Apply( (css_background_attachment_value_t) *p++, &style->background_attachment, imp_bit_background_attachment, is_important );
-            break;
         case cssd_background_position:
             style->Apply( (css_background_position_value_t) *p++, &style->background_position, imp_bit_background_position, is_important );
+            break;
+        case cssd_background_size:
+            style->Apply( read_length(p), &style->background_size[0], imp_bit_background_size_h, is_important );
+            style->Apply( read_length(p), &style->background_size[1], imp_bit_background_size_v, is_important );
             break;
         case cssd_border_spacing:
             style->Apply( read_length(p), &style->border_spacing[0], imp_bit_border_spacing_h, is_important );

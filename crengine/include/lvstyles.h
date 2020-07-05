@@ -75,18 +75,19 @@ enum css_style_rec_important_bit {
     imp_bit_border_color_left     = 1ULL << 45,
     imp_bit_background_image      = 1ULL << 46,
     imp_bit_background_repeat     = 1ULL << 47,
-    imp_bit_background_attachment = 1ULL << 48,
-    imp_bit_background_position   = 1ULL << 49,
-    imp_bit_border_collapse       = 1ULL << 50,
-    imp_bit_border_spacing_h      = 1ULL << 51,
-    imp_bit_border_spacing_v      = 1ULL << 52,
-    imp_bit_orphans               = 1ULL << 53,
-    imp_bit_widows                = 1ULL << 54,
-    imp_bit_float                 = 1ULL << 55,
-    imp_bit_clear                 = 1ULL << 56,
-    imp_bit_direction             = 1ULL << 57,
-    imp_bit_content               = 1ULL << 58,
-    imp_bit_cr_hint               = 1ULL << 59
+    imp_bit_background_position   = 1ULL << 48,
+    imp_bit_background_size_h     = 1ULL << 49,
+    imp_bit_background_size_v     = 1ULL << 50,
+    imp_bit_border_collapse       = 1ULL << 51,
+    imp_bit_border_spacing_h      = 1ULL << 52,
+    imp_bit_border_spacing_v      = 1ULL << 53,
+    imp_bit_orphans               = 1ULL << 54,
+    imp_bit_widows                = 1ULL << 55,
+    imp_bit_float                 = 1ULL << 56,
+    imp_bit_clear                 = 1ULL << 57,
+    imp_bit_direction             = 1ULL << 58,
+    imp_bit_content               = 1ULL << 59,
+    imp_bit_cr_hint               = 1ULL << 60
 };
 
 // Style handling flags
@@ -104,8 +105,8 @@ struct css_style_rec_tag {
     int                  refCount; // for reference counting
     lUInt32              hash; // cache calculated hash value here
     lUInt64              important;  // bitmap for !important (used only by LVCssDeclaration)
-                                     // we have currently below 60 css properties
-                                     // lvstsheet knows about 82, which are mapped to these 60
+                                     // we have currently below 61 css properties
+                                     // lvstsheet knows about 83, which are mapped to these 61
                                      // update bits above if you add new properties below
     lUInt64              importance; // bitmap for important bit's importance/origin
                                      // (allows for 2 level of !important importance)
@@ -145,8 +146,8 @@ struct css_style_rec_tag {
     css_length_t border_color[4]; ///< border-top-color, -right-, -bottom-, -left-
     lString8 background_image;
     css_background_repeat_value_t background_repeat;
-    css_background_attachment_value_t background_attachment;
     css_background_position_value_t background_position;
+    css_length_t background_size[2];//first width and second height
     css_border_collapse_value_t border_collapse;
     css_length_t border_spacing[2];//first horizontal and the second vertical spacing
     css_orphans_widows_value_t orphans;
@@ -197,7 +198,6 @@ struct css_style_rec_tag {
     , border_style_right(css_border_none)
     , border_style_left(css_border_none)
     , background_repeat(css_background_r_none)
-    , background_attachment(css_background_a_none)
     , background_position(css_background_p_none)
     , border_collapse(css_border_seperate)
     , orphans(css_orphans_widows_inherit)
@@ -218,6 +218,8 @@ struct css_style_rec_tag {
         border_width[1] = css_length_t(css_val_unspecified, 0);
         border_width[2] = css_length_t(css_val_unspecified, 0);
         border_width[3] = css_length_t(css_val_unspecified, 0);
+        background_size[0] = css_length_t(css_val_unspecified, 0);
+        background_size[1] = css_length_t(css_val_unspecified, 0);
     }
     void AddRef() { refCount++; }
     int Release() { return --refCount; }

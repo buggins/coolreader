@@ -3481,8 +3481,9 @@ void copystyle( css_style_ref_t source, css_style_ref_t dest )
     dest->border_color[3]=source->border_color[3];
     dest->background_image=source->background_image;
     dest->background_repeat=source->background_repeat;
-    dest->background_attachment=source->background_attachment;
     dest->background_position=source->background_position;
+    dest->background_size[0]=source->background_size[0];
+    dest->background_size[1]=source->background_size[1];
     dest->border_collapse=source->border_collapse;
     dest->border_spacing[0]=source->border_spacing[0];
     dest->border_spacing[1]=source->border_spacing[1];
@@ -7850,8 +7851,79 @@ void DrawBackgroundImage(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int d
         lString16 filepath = lString16(style->background_image.c_str());
         LVImageSourceRef img = enode->getParentNode()->getDocument()->getObjectImageSource(filepath);
         if (!img.isNull()) {
+            // Native image size
             int img_w =img->GetWidth();
             int img_h =img->GetHeight();
+
+            // See if background-size specified and we need to adjust image native size
+            css_length_t bg_w = style->background_size[0];
+            css_length_t bg_h = style->background_size[1];
+            if ( bg_w.type != css_val_unspecified || bg_w.value != 0 || bg_h.type != css_val_unspecified || bg_h.value != 0 ) {
+                int new_w = 0;
+                int new_h = 0;
+                RenderRectAccessor fmt( enode );
+                int container_w = fmt.getWidth();
+                int container_h = fmt.getHeight();
+                bool check_lengths = true;
+                if ( bg_w.type == css_val_unspecified && bg_h.type == css_val_unspecified ) {
+                    if ( bg_w.value == css_generic_contain && bg_h.value == css_generic_contain ) {
+                        // Image should be fully contained in container (no crop)
+                        int scale_w = 1024 * container_w / img_w;
+                        int scale_h = 1024 * container_h / img_h;
+                        if ( scale_w < scale_h ) {
+                            new_w = container_w;
+                            new_h = img_h * scale_w / 1024;
+                        }
+                        else {
+                            new_h = container_h;
+                            new_w = img_w * scale_h / 1024;
+                        }
+                        check_lengths = false;
+                    }
+                    else if ( bg_w.value == css_generic_cover && bg_h.value == css_generic_cover ) {
+                        // Image should fully cover container (crop allowed)
+                        int scale_w = 1024 * container_w / img_w;
+                        int scale_h = 1024 * container_h / img_h;
+                        if ( scale_w > scale_h ) {
+                            new_w = container_w;
+                            new_h = img_h * scale_w / 1024;
+                        }
+                        else {
+                            new_h = container_h;
+                            new_w = img_w * scale_h / 1024;
+                        }
+                        check_lengths = false;
+                    }
+                }
+                if ( check_lengths ) {
+                    int em = enode->getFont()->getSize();
+                    // These will compute to 0 if (css_val_unspecified, 0) when really not specified
+                    new_w = lengthToPx(style->background_size[0], container_w, em);
+                    new_h = lengthToPx(style->background_size[1], container_h, em);
+                    if ( new_w == 0 ) {
+                        if ( new_h == 0 ) { // keep image native size
+                            new_h = img_h;
+                            new_w = img_w;
+                        }
+                        else { // use style height, keep aspect ratio
+                            new_w = img_w * new_h / img_h;
+                        }
+                    }
+                    else if ( new_h == 0 ) { // use style width, keep aspect ratio
+                        new_h = new_w * img_h / img_w;
+                    }
+                }
+                if ( new_w == 0 || new_h == 0 ) {
+                    // width or height computed to 0: nothing to draw
+                    return;
+                }
+                if ( new_w != img_w || new_h != img_h ) {
+                    img = LVCreateStretchFilledTransform(img, new_w, new_h, IMG_TRANSFORM_STRETCH, IMG_TRANSFORM_STRETCH, 0, 0);
+                    img_w = new_w;
+                    img_h = new_h;
+                }
+            }
+
             // We can use some crengine facilities for background repetition and position,
             // which has the advantage that img will be decoded once even if tiling it many
             // times and if the target is many screen-heights long (like <BODY> could be).

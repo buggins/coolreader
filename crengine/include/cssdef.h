@@ -260,14 +260,6 @@ enum css_background_repeat_value_t {
     css_background_r_inherit,
     css_background_r_none
 };
-enum css_background_attachment_value_t {
-    css_background_scroll,
-    css_background_fixed,
-    css_background_local,
-    css_background_a_initial,
-    css_background_a_inherit,
-    css_background_a_none
-};
 enum css_background_position_value_t {
     css_background_left_top,
     css_background_left_center,
@@ -330,9 +322,11 @@ enum css_direction_t {
 };
 
 enum css_generic_value_t {
-    css_generic_auto = -1,   // (css_val_unspecified, css_generic_auto), for "margin: auto"
-    css_generic_normal = -2, // (css_val_unspecified, css_generic_normal), for "line-height: normal"
-    css_generic_transparent = -3  // (css_val_unspecified, css_generic_transparent), for "color: transparent"
+    css_generic_auto = -1,        // (css_val_unspecified, css_generic_auto), for "margin: auto"
+    css_generic_normal = -2,      // (css_val_unspecified, css_generic_normal), for "line-height: normal"
+    css_generic_transparent = -3, // (css_val_unspecified, css_generic_transparent), for "color: transparent"
+    css_generic_contain = -4,     // (css_val_unspecified, css_generic_contain), for "background-size: contain"
+    css_generic_cover = -5        // (css_val_unspecified, css_generic_cover), for "background-size: cover"
 };
 
 // Non standard property for providing hints to crengine via style tweaks
