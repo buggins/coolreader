@@ -281,7 +281,6 @@ enum lvdom_element_render_method
     erm_block,         ///< render as block element (render as containing other elements)
     erm_final,         ///< final element: render the whole it's content as single render block
     erm_inline,        ///< inline element
-    erm_runin,         ///< run-in (used as a solution to inline FB2 footnotes)
     erm_table,         ///< table element: render as table
     erm_table_row_group,    ///< table row group
     erm_table_header_group, ///< table header group

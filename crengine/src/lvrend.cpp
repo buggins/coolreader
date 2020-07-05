@@ -581,7 +581,6 @@ public:
                     }
                     break;
                 case erm_inline:
-                case erm_runin:
                     // do nothing
                     break;
                 }
