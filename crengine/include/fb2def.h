@@ -48,7 +48,7 @@ XS_TAG1I( inlineBox )
 //  - it doesn't have a text node child, the content will be fetched from
 //    its style->content when rendering and drawing text.
 // It does not box anything and has no child, so it's not considered a boxing node.
-XS_TAG1D( pseudoElem, false, css_d_none, css_ws_normal )
+XS_TAG1D( pseudoElem, false, css_d_none, css_ws_inherit )
 
 // Internal element for EPUB, containing each individual HTML file
 XS_TAG1( DocFragment )
@@ -59,10 +59,10 @@ XS_TAG2( xml_stylesheet, "?xml-stylesheet" )
 // Classic HTML / EPUB elements
 XS_TAG1( html )
 XS_TAG1( head )
-XS_TAG1D( title, true, css_d_block, css_ws_normal )
-XS_TAG1D( style, true, css_d_none, css_ws_normal )
-XS_TAG1D( script, true, css_d_none, css_ws_normal )
-XS_TAG1D( base, false, css_d_none, css_ws_normal ) // among crengine autoclose elements
+XS_TAG1D( title, true, css_d_block, css_ws_inherit )
+XS_TAG1D( style, true, css_d_none, css_ws_inherit )
+XS_TAG1D( script, true, css_d_none, css_ws_inherit )
+XS_TAG1D( base, false, css_d_none, css_ws_inherit ) // among crengine autoclose elements
 XS_TAG1T( body )
 XS_TAG1( param ) /* quite obsolete, child of <object>... was there, let's keep it */
 
@@ -123,16 +123,16 @@ XS_TAG1T( dt )
 XS_TAG1T( dd )
 
 // Tables
-XS_TAG1D( table, false, css_d_table, css_ws_normal )
-XS_TAG1D( caption, true, css_d_table_caption, css_ws_normal )
-XS_TAG1D( col, false, css_d_table_column, css_ws_normal )
-XS_TAG1D( colgroup, false, css_d_table_column_group, css_ws_normal )
-XS_TAG1D( tr, false, css_d_table_row, css_ws_normal )
-XS_TAG1D( tbody, false, css_d_table_row_group, css_ws_normal )
-XS_TAG1D( thead, false, css_d_table_header_group, css_ws_normal )
-XS_TAG1D( tfoot, false, css_d_table_footer_group, css_ws_normal )
-XS_TAG1D( th, true, css_d_table_cell, css_ws_normal )
-XS_TAG1D( td, true, css_d_table_cell, css_ws_normal )
+XS_TAG1D( table, false, css_d_table, css_ws_inherit )
+XS_TAG1D( caption, true, css_d_table_caption, css_ws_inherit )
+XS_TAG1D( col, false, css_d_table_column, css_ws_inherit )
+XS_TAG1D( colgroup, false, css_d_table_column_group, css_ws_inherit )
+XS_TAG1D( tr, false, css_d_table_row, css_ws_inherit )
+XS_TAG1D( tbody, false, css_d_table_row_group, css_ws_inherit )
+XS_TAG1D( thead, false, css_d_table_header_group, css_ws_inherit )
+XS_TAG1D( tfoot, false, css_d_table_footer_group, css_ws_inherit )
+XS_TAG1D( th, true, css_d_table_cell, css_ws_inherit )
+XS_TAG1D( td, true, css_d_table_cell, css_ws_inherit )
 
 // Inline elements
 XS_TAG1OBJ( img ) /* inline and specific handling as 'object' */
@@ -168,7 +168,7 @@ XS_TAG1I( u )
 XS_TAG1I( var )
 
 // Ruby elements (defaults to inline)
-XS_TAG1D( ruby, true, css_d_ruby, css_ws_normal )
+XS_TAG1D( ruby, true, css_d_ruby, css_ws_inherit )
 XS_TAG1I( rbc ) // no more in HTML5, but in 2001's https://www.w3.org/TR/ruby/
 XS_TAG1I( rtc )
 XS_TAG1I( rb )
@@ -189,10 +189,10 @@ XS_TAG1( epigraph )
 XS_TAG1( part )
 XS_TAG1( poem )
 XS_TAG1( stanza )
-XS_TAG1D( binary, true, css_d_none, css_ws_normal )
-XS_TAG1D( description, false, css_d_none, css_ws_normal )
-XS_TAG1D( genre, true, css_d_none, css_ws_normal )
-XS_TAG1D( stylesheet, true, css_d_none, css_ws_normal )
+XS_TAG1D( binary, true, css_d_none, css_ws_inherit )
+XS_TAG1D( description, false, css_d_none, css_ws_inherit )
+XS_TAG1D( genre, true, css_d_none, css_ws_inherit )
+XS_TAG1D( stylesheet, true, css_d_none, css_ws_inherit )
 XS_TAG1I( spacing )
 XS_TAG1I( strikethrough )
 XS_TAG1I( underline )
