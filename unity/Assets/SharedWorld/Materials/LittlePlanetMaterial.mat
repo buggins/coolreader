@@ -106,7 +106,7 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - TerrainForward: {r: -0.38546166, g: -0.28305253, b: 0.8782372, a: 0}
-    - TerrainPosition: {r: 0.8960528, g: -0.34200975, b: 0.2830525, a: 0}
+    - TerrainForward: {r: 0, g: 0, b: 1, a: 0}
+    - TerrainPosition: {r: 0, g: 1, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

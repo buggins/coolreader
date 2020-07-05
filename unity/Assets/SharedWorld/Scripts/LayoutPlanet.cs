@@ -11,6 +11,7 @@ public class LayoutPlanet : MonoBehaviour
   
   public GameObject treePrefab;
   public GameObject teleportPrefab;
+  public GameObject ballPrefab;
   
   public float TerrainSize = 100.0f;
   
@@ -25,7 +26,11 @@ public class LayoutPlanet : MonoBehaviour
   
   private Dictionary <GameObject, Vector3> objOriginalPositions;
   
-  private void placeObjects (GameObject prefab, float step = 0.1f)
+  private List <Rigidbody> physicsObjects;
+  private float checkNewPhysics = 1.0f;
+  private float checkCount = 0.0f;
+  
+  private void placeObjects (GameObject prefab, float step = 0.1f, float heightOffset = 0.0f)
   {
 //    float step = 0.1f;
     for (float x = 0.0f; x < 2.0f; x += step)
@@ -37,7 +42,7 @@ public class LayoutPlanet : MonoBehaviour
 
 //dx = dy = 0;          
           
-          Vector3 p = new Vector3 ((dx + x - 0.5f) * TerrainSize, 0.0f, (dy + y - 0.5f) * TerrainSize);
+          Vector3 p = new Vector3 ((dx + x - 0.5f) * TerrainSize, heightOffset, (dy + y - 0.5f) * TerrainSize);
           GameObject g = Instantiate (prefab, p, Quaternion.identity);
           g.tag = "PlanetSurfaceLocked";
         }
@@ -56,10 +61,12 @@ public class LayoutPlanet : MonoBehaviour
     }
   }
   
-  Vector3 sphere2cube (Vector3 s, out Vector2 uv)
+  Vector3 sphere2cube (Vector3 s, out Vector2 uv, out int face)
   {
     Vector3 r = new Vector3 (0, 0, 0);
     uv = new Vector2 (0, 0);
+    face = 0;
+    
     if ((Mathf.Abs (s.x) > Mathf.Abs (s.y)) && (Mathf.Abs (s.x) > Mathf.Abs (s.z)))
     {
       r = new Vector3 (Mathf.Sign (s.x), Mathf.Atan2 (s.y, Mathf.Abs (s.x)) / (Mathf.PI / 4.0f), Mathf.Atan2 (s.z, Mathf.Abs (s.x)) / (Mathf.PI / 4.0f));
@@ -104,7 +111,7 @@ public class LayoutPlanet : MonoBehaviour
   private float getHeightAtCube (Vector2 faceCoord, int face)
   {
     // Todo: adjust to select appropriate terrain if not all using the same on all faces.
-    Debug.Log ("Scale " + terraind.heightmapScale);
+//     Debug.Log ("Scale " + terraind.heightmapScale);
     int px = (int) ((faceCoord.x * TerrainSize) / terraind.heightmapScale.x);
     int py = (int) ((faceCoord.y * TerrainSize) / terraind.heightmapScale.z);
     float theight = 0.5f * terraind.GetHeight (px, py);
@@ -113,7 +120,11 @@ public class LayoutPlanet : MonoBehaviour
   
   private float getHeightAtSphere (Vector3 sphereCoords)
   {
-    return 0.0f;
+    Vector2 uv;
+    int face;
+    Vector3 r = sphere2cube (sphereCoords, out uv, out face);
+
+    return getHeightAtCube (uv, face);
   }
   
   private void replaceObjects ()
@@ -242,11 +253,14 @@ public class LayoutPlanet : MonoBehaviour
     void Start()
     {
       rand = new System.Random (423);
+
+      physicsObjects = new List <Rigidbody> ();
       
       buildGrid (100, 100);
       
-      placeObjects (treePrefab, 0.3f);
+      placeObjects (treePrefab, 0.3f, -1.0f);
       placeObjects (teleportPrefab, 0.1f);
+      placeObjects (ballPrefab, 0.3f, 2.0f);
       
       findObjectOriginals ();
 //       placeTrees ();    
@@ -271,8 +285,45 @@ public class LayoutPlanet : MonoBehaviour
       tf = new Vector4 (0, 0, 1, 0);
     }
 
+    // Update list of objects with rigidbodies.
+    private void checkPhysics ()
+    {
+      physicsObjects = new List <Rigidbody> ();
+      GameObject [] obj = GameObject.FindObjectsOfType <GameObject> ();
+      foreach (GameObject g in obj)
+      {
+        Rigidbody rb = g.GetComponent <Rigidbody> ();
+        if (rb != null)
+        {
+          physicsObjects.Add (rb);
+        }
+      }
+    }
+    
     void Update()
     {
+      if (checkCount > checkNewPhysics)
+      {
+        checkPhysics ();      
+        checkCount = 0.0f;
+      }
+      checkCount += Time.deltaTime;
+
+      foreach (Rigidbody rb in physicsObjects)      
+      {
+        Vector3 dir = (rb.gameObject.transform.position - (planetRadius * new Vector3 (0, -1, 0)));
+        Vector3 unitdir = dir.normalized;
+        rb.useGravity = false;
+        rb.AddForce (-unitdir, ForceMode.Force);
+        
+        float h = getHeightAtSphere (unitdir);
+        if (dir.magnitude < planetRadius + h)
+        {
+          rb.gameObject.transform.position = (planetRadius + h) * unitdir - (planetRadius * new Vector3 (0, 1, 0));
+          rb.AddForce (unitdir, ForceMode.Impulse);
+        }
+        // Debug.Log(g.name);
+      }
       
       if ((PhotonNetwork.LocalPlayer.TagObject != null) && 
           (Vector3.Distance (((GameObject) PhotonNetwork.LocalPlayer.TagObject).transform.position, new Vector3 ()) > 0.5f))

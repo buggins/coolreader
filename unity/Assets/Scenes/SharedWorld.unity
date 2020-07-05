@@ -234,6 +234,8 @@ MonoBehaviour:
   treePrefab: {fileID: 100016, guid: 469edab27ab6d004d84af2c4a851bd7f, type: 3}
   teleportPrefab: {fileID: 1820279796864588, guid: 2aa2b9067b9f143e7bf090faf0a0d419,
     type: 3}
+  ballPrefab: {fileID: 1366406209547488289, guid: 100c0f3579e77b077972ef94c989d284,
+    type: 3}
   TerrainSize: 100
   planetRadius: 60
   terraind: {fileID: 15600000, guid: 00a63f08c52ba46168b335272507e727, type: 2}
