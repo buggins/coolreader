@@ -12081,8 +12081,6 @@ public:
     {
 #if BUILD_LITE!=1
         ldomNode * elem = (ldomNode *)ptr->getNode();
-        if ( elem->getRendMethod() == erm_invisible )
-            return false;
         // Allow tweaking that with hints
         css_cr_hint_t hint = elem->getStyle()->cr_hint;
         if ( hint == css_cr_hint_text_selection_skip ) {
@@ -12096,21 +12094,28 @@ public:
             newBlock = true;
             return true;
         }
-        switch ( elem->getStyle()->display ) {
-            case css_d_none:
-                return false;
-            case css_d_inherit:
-            case css_d_ruby:
-            case css_d_run_in:
-            case css_d_inline:
-            case css_d_inline_block: // Make these behave as inline, in case they don't contain much
-            case css_d_inline_table: // (if they do, some inner block element will give newBlock=true)
-                newBlock = false;
-                return true;
-            default:
-                newBlock = true;
-                return true;
+        lvdom_element_render_method rm = elem->getRendMethod();
+        if ( rm == erm_invisible )
+            return false;
+        if ( rm == erm_inline ) {
+            // Don't set newBlock if rendering method is erm_inline,
+            // no matter the original CSS display.
+            // (Don't reset any previously set and not consumed newBlock)
+            return true;
         }
+        // For other rendering methods (that would bring newBlock=true),
+        // look at the initial CSS display, as we might have boxed some
+        // inline-like elements for rendering purpose.
+        css_display_t d = elem->getStyle()->display;
+        if ( d <= css_d_inline || d == css_d_inline_block || d == css_d_inline_table ) {
+            // inline, ruby; consider inline-block/-table as inline, in case
+            // they don't contain much (if they do, some inner block element
+            // will set newBlock=true).
+            return true;
+        }
+        // Otherwise, it's a block like node, and we want a \n before the next text
+        newBlock = true;
+        return true;
 #else
         newBlock = true;
         return true;
