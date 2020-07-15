@@ -18,7 +18,7 @@ ul { display: block; list-style-type: disc; margin-left: 1em }
 ol { display: block; list-style-type: decimal; margin-left: 1em }
 
 cite p, epigraph p { text-align: left; text-indent: 0px }
-v { text-align: left; text-align-last: right; text-indent: 1em hanging }
+v { text-align: left; text-align-last: -cr-right-if-not-first; text-indent: 1em hanging; hyphenate: none }
 
 stanza + stanza { margin-top: 1em; }
 stanza { margin-left: 15%; text-align: left; font-style: italic  }
@@ -109,7 +109,7 @@ coverpage { display: none }
 
 head, form, script { display: none; } 
 
-b,strong,i,em,dfn,var,q,u,del,s,strike,small,big,sub,sup,acronym,tt,sa mp,kbd,code { 
+b,strong,i,em,dfn,var,q,u,del,s,strike,small,big,sub,sup,acronym,tt,samp,kbd { 
    display: inline; 
 } 
 
