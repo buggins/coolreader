@@ -1836,6 +1836,7 @@ static const char * css_cr_only_if_names[]={
         "allow-style-w-h-absolute-units",
         "full-featured",
         "epub-document",
+        "fb2-document",
         NULL
 };
 enum cr_only_if_t {
@@ -1851,6 +1852,7 @@ enum cr_only_if_t {
     cr_only_if_allow_style_w_h_absolute_units,
     cr_only_if_full_featured,
     cr_only_if_epub_document,
+    cr_only_if_fb2_document, // fb2 or fb3
 };
 
 bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDocBase * doc, lString16 codeBase )
@@ -1944,6 +1946,15 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                             // but we don't expect to see -cr-only-if: in them.
                             if (doc) {
                                 match = doc->getProps()->getIntDef(DOC_PROP_FILE_FORMAT_ID, doc_format_none) == doc_format_epub;
+                                if (invert) {
+                                    match = !match;
+                                }
+                            }
+                        }
+                        else if ( name == cr_only_if_fb2_document ) {
+                            if (doc) {
+                                int doc_format = doc->getProps()->getIntDef(DOC_PROP_FILE_FORMAT_ID, doc_format_none);
+                                match = (doc_format == doc_format_fb2) || (doc_format == doc_format_fb3);
                                 if (invert) {
                                     match = !match;
                                 }
