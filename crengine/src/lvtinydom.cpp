@@ -4164,6 +4164,16 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                 for ( int i=indentBaseLevel; i<level; i++ )
                     *stream << "  ";
             *stream << "</" << elemName << ">";
+            if ( WNEFLAG(TEXT_HYPHENATE) ) {
+                // Additional minor formatting tweaks for when this is going to be fed
+                // to some other renderer, which is usually when we request HYPHENATE.
+                if ( node->getStyle()->display == css_d_run_in ) {
+                    // For FB2 footnotes, add a space between the number and text,
+                    // as none might be present in the source. If there were some,
+                    // the other renderer will probably collapse them.
+                    *stream << " ";
+                }
+            }
         }
         if (doNewLineAfterEndTag)
             *stream << "\n";

@@ -977,6 +977,8 @@ public:
         int pos = 0;
         int i;
         bool prev_was_space = true; // start with true, to get rid of all leading spaces
+        bool is_locked_spacing = false;
+        int last_non_collapsed_space_pos = 0; // reset to -1 if first char is not a space
         int last_non_space_pos = -1; // to get rid of all trailing spaces
         src_text_fragment_t * prev_src = NULL;
 
@@ -1098,7 +1100,9 @@ public:
                     m_flags[pos] |= LCHAR_ALLOW_WRAP_AFTER;
                 #endif
                 last_non_space_pos = pos;
+                last_non_collapsed_space_pos = -1;
                 prev_was_space = false;
+                is_locked_spacing = false;
                 pos++;
             }
             else if ( src->flags & LTEXT_SRC_IS_OBJECT ) {
@@ -1119,7 +1123,9 @@ public:
                     m_flags[pos] |= LCHAR_ALLOW_WRAP_AFTER;
                 #endif
                 last_non_space_pos = pos;
+                last_non_collapsed_space_pos = -1;
                 prev_was_space = false;
+                is_locked_spacing = false;
                 pos++;
             }
             else {
@@ -1193,25 +1199,62 @@ public:
                 for ( int k=0; k<len; k++ ) {
                     lChar16 c = m_text[pos];
 
+                    // If not on a 'pre' text node, we should strip trailing
+                    // spaces and collapse consecutive spaces (other spaces
+                    // like UNICODE_NO_BREAK_SPACE should not collapse).
                     bool is_space = (c == ' ');
-                    if ( is_space && prev_was_space && !preformatted ) {
-                        // On non-pre paragraphs, flag spaces following a space
-                        // so we can discard them later.
-                        // Note: for the empty lines or indentation we might add
-                        // with 'txform->AddSourceLine(L" "...)', we need to
-                        // provide LTEXT_FLAG_PREFORMATTED if we don't want them
-                        // to be collapsed.
-                        m_flags[pos] = LCHAR_IS_COLLAPSED_SPACE | LCHAR_ALLOW_WRAP_AFTER;
-                        // m_text[pos] = '_'; // uncomment when debugging
-                        // (We can replace the char to see it in printf() (m_text is not the
-                        // text that is drawn, it's measured but we correct the measure
-                        // by setting a zero width, it's just used here for analysis.
-                        // But best to let it as-is except for debugging)
+                    if ( is_space && !preformatted ) {
+                        if ( prev_was_space ) {
+                            // On non-pre text nodes, flag spaces following a space
+                            // so we can discard them later.
+                            // Note: the behaviour with consecutive spaces in a mix
+                            // of pre and non-pre text nodes has not been tested,
+                            // and what we do here might be wrong.
+                            // Note: with a mix of normal spaces and non-break-spaces,
+                            // we seem to behave just as Firefox.
+                            // Note: for the empty lines or indentation we might add
+                            // with 'txform->AddSourceLine(L" "...)', we need to
+                            // provide LTEXT_FLAG_PREFORMATTED if we don't want them
+                            // to be collapsed.
+                            m_flags[pos] = LCHAR_IS_COLLAPSED_SPACE | LCHAR_ALLOW_WRAP_AFTER;
+                            // m_text[pos] = '_'; // uncomment when debugging
+                            // (We can replace the char to see it in printf() (m_text is not the
+                            // text that is drawn, it's measured but we correct the measure
+                            // by setting a zero width, it's just used here for analysis.
+                            // But best to let it as-is except for debugging)
+                        }
+                        else {
+                            last_non_collapsed_space_pos = pos;
+                        }
+                        // Locked spacing can be set on any space among contiguous spaces,
+                        // but will be useful only on the non-collapsed one. We propagate
+                        // it on all previous and following spaces so we don't have to
+                        // redo-it after any BiDi re-ordering (not sure thus this will
+                        // be alright...)
+                        // (This is for now only used with FB2 run-in footnotes to ensure
+                        // a constant width between the footnote number and its following
+                        // text, but could be used with list item markers/numbers.)
+                        if ( src->flags & LTEXT_LOCKED_SPACING )
+                            is_locked_spacing = true;
+                        if ( is_locked_spacing ) {
+                            m_flags[pos] |= LCHAR_LOCKED_SPACING;
+                            if ( last_non_collapsed_space_pos >= 0 ) { // update previous spaces
+                                for ( int j=last_non_collapsed_space_pos; j<pos; j++ ) {
+                                    m_flags[j] |= LCHAR_LOCKED_SPACING;
+                                }
+                            }
+                        }
                     }
-                    if ( !is_space || preformatted ) // don't strip traling spaces if pre
+                    else {
+                        // don't strip traling spaces if pre
                         last_non_space_pos = pos;
-                    if ( !is_space )
-                        m_allow_strut_confinning = true;
+                        last_non_collapsed_space_pos = -1;
+                        is_locked_spacing = false;
+                        if ( !is_space ) {
+                            // Non empty text, we can do strut confinning
+                            m_allow_strut_confinning = true;
+                        }
+                    }
                     prev_was_space = is_space || (c == '\n');
                         // We might meet '\n' in PRE text, which shouldn't make any space
                         // collapsed - except when "white-space: pre-line". So, have
@@ -3056,26 +3099,11 @@ public:
                         // have its width reduced by a fraction of this space width or
                         // increased if needed (for text justification), so actually
                         // making that space larger or smaller.
-                        bool can_adjust_width = true;
                         // Note: checking if the first word of first line is one of the
                         // common opening quotation marks or dashes is done in measureText(),
                         // to have it work also with BiDi/RTL text (checking that here
                         // would be too late, as reordering has been done).
-                        if ( m_flags[i-1] & LCHAR_LOCKED_SPACING ) {
-                            can_adjust_width = false;
-                        }
-                        else if ( word->t.len>=2 && i>=2 && m_text[i-1]==UNICODE_NO_BREAK_SPACE
-                                                         && m_text[i-2]==UNICODE_NO_BREAK_SPACE ) {
-                            // condition for double nbsp after run-in footnote title
-                            can_adjust_width = false;
-                            // (not sure what this one and the next are about)
-                        }
-                        else if ( i < m_length-1 && m_text[i]==UNICODE_NO_BREAK_SPACE
-                                                 && m_text[i+1]==UNICODE_NO_BREAK_SPACE ) {
-                            // condition for double nbsp after run-in footnote title
-                            can_adjust_width = false;
-                        }
-                        if ( can_adjust_width ) {
+                        if ( !(m_flags[i-1] & LCHAR_LOCKED_SPACING) ) {
                             word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
                             int dw = getMaxCondensedSpaceTruncation(i-1);
                             if (dw>0) {

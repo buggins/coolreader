@@ -3198,14 +3198,31 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
 
             if ( isRunIn ) {
-                // append space to run-in object
+                // Append space to run-in object: both the run-in text node and
+                // the following paragraph first text node might not end or start
+                // with a space. But they might also both do, and we want all spaces
+                // to collapse into one - so, we don't set LTEXT_FLAG_PREFORMATTED,
+                // and we don't use UNICODE_NO_BREAK_SPACE.
                 LVFontRef font = enode->getFont();
                 css_style_ref_t style = enode->getStyle();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                txform->AddSourceLine( L" ", 1, cl, bgcl, font.get(), lang_cfg, LTEXT_LOCKED_SPACING|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                /*
+                // We used to specify two UNICODE_NO_BREAK_SPACE (that would not collapse)
+                // mostly so we were able to detect them in lvtextfm.cpp and avoid this
+                // spacing to change width with text justification.
                 lChar16 delimiter[] = {UNICODE_NO_BREAK_SPACE, UNICODE_NO_BREAK_SPACE}; //160
                 txform->AddSourceLine( delimiter, sizeof(delimiter)/sizeof(lChar16), cl, bgcl, font.get(), lang_cfg,
                                             LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
+                // Users who would like more spacing can use:
+                //   body[name="notes"] section title:after,
+                //   body[name="comments"] section title:after {
+                //       content: '\A0'
+                //   }
+                // But the text nodes spaces will then not collapse, and constant spacing
+                // won't be ensured (spacing may vary from one document to another).
+                */
             }
         }
 

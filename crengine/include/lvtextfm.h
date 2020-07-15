@@ -68,8 +68,8 @@ extern "C" {
 // Text white-space and hyphenation handling
 #define LTEXT_FLAG_PREFORMATTED      0x00010000  // text is preformatted (white-space: pre, pre-wrap, break-spaces)
 #define LTEXT_FLAG_NOWRAP            0x00020000  // text does not allow wrap (white-space: nowrap)
-#define LTEXT_HYPHENATE              0x00040000  // allow hyphenation
-#define LTEXT__AVAILABLE_BIT_20__    0x00080000
+#define LTEXT_LOCKED_SPACING         0x00040000  // regular spaces should not change width with text justification
+#define LTEXT_HYPHENATE              0x00080000  // allow hyphenation
 
 // Source object type (when source is not a text node)
 #define LTEXT_SRC_IS_OBJECT          0x00100000  // object (image)
