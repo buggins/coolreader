@@ -1082,10 +1082,12 @@ public:
                     // (it will allow wrap before and after an object, unless it's near
                     // some punctuation/quote/paren, whose rules will be ensured it seems).
                     int brk = lb_process_next_char(&lbCtx, (utf32_t)0xFFFC); // OBJECT REPLACEMENT CHARACTER
-                    if (brk == LINEBREAK_ALLOWBREAK)
-                        m_flags[pos-1] |= LCHAR_ALLOW_WRAP_AFTER;
-                    else
-                        m_flags[pos-1] &= ~LCHAR_ALLOW_WRAP_AFTER;
+                    if (pos > 0) {
+                        if (brk == LINEBREAK_ALLOWBREAK)
+                            m_flags[pos-1] |= LCHAR_ALLOW_WRAP_AFTER;
+                        else
+                            m_flags[pos-1] &= ~LCHAR_ALLOW_WRAP_AFTER;
+                    }
                 #else
                     m_flags[pos] |= LCHAR_ALLOW_WRAP_AFTER;
                 #endif
@@ -1101,10 +1103,12 @@ public:
                 #if (USE_LIBUNIBREAK==1)
                     // Let libunibreak know there was an object
                     int brk = lb_process_next_char(&lbCtx, (utf32_t)0xFFFC); // OBJECT REPLACEMENT CHARACTER
-                    if (brk == LINEBREAK_ALLOWBREAK)
-                        m_flags[pos-1] |= LCHAR_ALLOW_WRAP_AFTER;
-                    else
-                        m_flags[pos-1] &= ~LCHAR_ALLOW_WRAP_AFTER;
+                    if (pos > 0) {
+                        if (brk == LINEBREAK_ALLOWBREAK)
+                            m_flags[pos-1] |= LCHAR_ALLOW_WRAP_AFTER;
+                        else
+                            m_flags[pos-1] &= ~LCHAR_ALLOW_WRAP_AFTER;
+                    }
                 #else
                     m_flags[pos] |= LCHAR_ALLOW_WRAP_AFTER;
                 #endif
