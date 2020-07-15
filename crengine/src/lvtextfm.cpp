@@ -72,6 +72,9 @@
 #define FRM_ALLOC_SIZE 16
 #define FLT_ALLOC_SIZE 4
 
+// lvfreetypeface.cpp
+extern bool isHBScriptCursive( hb_script_t script );
+
 formatted_line_t * lvtextAllocFormattedLine( )
 {
     formatted_line_t * pline = (formatted_line_t *)calloc(1, sizeof(*pline));
