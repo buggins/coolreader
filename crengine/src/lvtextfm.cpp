@@ -2267,7 +2267,9 @@ public:
         // it is also the last (so, it is used for a single line paragraph).
         // Also, when "text-align-last: justify", Firefox does justify the last
         // (or single) line.
-        if ( last ) { // Last line of paragraph, or single line paragraph
+        // We support private keywords to not behave like that for standalone lines.
+        bool if_not_first = para->flags & LTEXT_LAST_LINE_IF_NOT_FIRST;
+        if ( last && ( if_not_first ? !first : true ) ) { // Last line of paragraph (it is also first when standalone)
             // https://drafts.csswg.org/css-text-3/#text-align-last-property
             //  "If 'auto' is specified, content on the affected line is aligned
             //  per text-align-all unless text-align-all is set to justify,

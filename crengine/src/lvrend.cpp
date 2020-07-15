@@ -2140,7 +2140,7 @@ lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt
     lUInt32 flg = oldflags;
     if ( is_block ) {
         // text alignment flags
-        flg = oldflags & ~LTEXT_FLAG_NEWLINE;
+        flg = oldflags & ~(LTEXT_FLAG_NEWLINE | (LTEXT_FLAG_NEWLINE<<LTEXT_LAST_LINE_ALIGN_SHIFT) | LTEXT_LAST_LINE_IF_NOT_FIRST);
         switch (style->text_align)
         {
             case css_ta_left:
@@ -2161,8 +2161,8 @@ lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt
             case css_ta_end:
                 flg |= (direction == REND_DIRECTION_RTL ? LTEXT_ALIGN_LEFT : LTEXT_ALIGN_RIGHT);
                 break;
-            case css_ta_auto: // shouldn't happen (only accepted with text-align-last)
             case css_ta_inherit:
+            default: // others values shouldn't happen (only accepted with text-align-last)
                 break;
         }
         switch (style->text_align_last)
@@ -2187,6 +2187,30 @@ lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt
                 break;
             case css_ta_auto: // let flg have none of the above set, which will mean "auto"
             case css_ta_inherit:
+                break;
+            case css_ta_left_if_not_first:     // Private text-align-last keywords
+                flg |= LTEXT_LAST_LINE_ALIGN_LEFT;
+                flg |= LTEXT_LAST_LINE_IF_NOT_FIRST;
+                break;
+            case css_ta_right_if_not_first:
+                flg |= LTEXT_LAST_LINE_ALIGN_RIGHT;
+                flg |= LTEXT_LAST_LINE_IF_NOT_FIRST;
+                break;
+            case css_ta_center_if_not_first:
+                flg |= LTEXT_LAST_LINE_ALIGN_CENTER;
+                flg |= LTEXT_LAST_LINE_IF_NOT_FIRST;
+                break;
+            case css_ta_justify_if_not_first:
+                flg |= LTEXT_LAST_LINE_ALIGN_WIDTH;
+                flg |= LTEXT_LAST_LINE_IF_NOT_FIRST;
+                break;
+            case css_ta_start_if_not_first:
+                flg |= (direction == REND_DIRECTION_RTL ? LTEXT_LAST_LINE_ALIGN_RIGHT : LTEXT_LAST_LINE_ALIGN_LEFT);
+                flg |= LTEXT_LAST_LINE_IF_NOT_FIRST;
+                break;
+            case css_ta_end_if_not_first:
+                flg |= (direction == REND_DIRECTION_RTL ? LTEXT_LAST_LINE_ALIGN_LEFT : LTEXT_LAST_LINE_ALIGN_RIGHT);
+                flg |= LTEXT_LAST_LINE_IF_NOT_FIRST;
                 break;
         }
     }
@@ -2505,7 +2529,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         // be prepended with the run-in node content.
                         lUInt32 next_sibling_flags = styleToTextFmtFlags( true, next_sibling->getStyle(), baseflags, direction );
                         // Grab only the alignment flags
-                        lUInt32 align_flags_mask = LTEXT_FLAG_NEWLINE | (LTEXT_FLAG_NEWLINE<<LTEXT_LAST_LINE_ALIGN_SHIFT);
+                        lUInt32 align_flags_mask = LTEXT_FLAG_NEWLINE | (LTEXT_FLAG_NEWLINE<<LTEXT_LAST_LINE_ALIGN_SHIFT) | LTEXT_LAST_LINE_IF_NOT_FIRST;
                         next_sibling_flags &= align_flags_mask;
                         // Update both flags and baseflags with the grabbed alignments
                         flags &= ~align_flags_mask;
@@ -2996,7 +3020,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         flags |= (is_rtl ? LTEXT_ALIGN_LEFT : LTEXT_ALIGN_RIGHT);
                         break;
                     case css_ta_inherit:
-                    case css_ta_auto:
+                    default: // others values shouldn't happen (only accepted with text-align-last)
                         break;
                     }
                 }
@@ -3247,7 +3271,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 baseflags |= (is_rtl ? LTEXT_ALIGN_LEFT : LTEXT_ALIGN_RIGHT);
                 break;
             case css_ta_inherit:
-            case css_ta_auto:
+            default: // others values shouldn't happen (only accepted with text-align-last)
                 break;
             }
             // Among inline nodes, only <BR> can carry a "clear: left/right/both".

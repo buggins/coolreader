@@ -104,7 +104,14 @@ enum css_text_align_t {
     css_ta_justify,
     css_ta_start, // = left if LTR, right if RTL
     css_ta_end,   // = right if LTR, left if LTR
-    css_ta_auto   // only accepted with text-align-last
+    // Next ones are only accepted with text-align-last
+    css_ta_auto,
+    css_ta_left_if_not_first,    // These non standard keywords allow text-align-last
+    css_ta_right_if_not_first,   // to not apply to a single line. The previous normal
+    css_ta_center_if_not_first,  // keywords apply to a single line (which is alone,
+    css_ta_justify_if_not_first, // so the last) according to the specs.
+    css_ta_start_if_not_first,
+    css_ta_end_if_not_first
 };
 
 /// vertical-align property values

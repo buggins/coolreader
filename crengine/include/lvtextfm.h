@@ -40,6 +40,7 @@ extern "C" {
 #define LTEXT_LAST_LINE_ALIGN_RIGHT  0x0020  // last line of justified paragraph should be right-aligned
 #define LTEXT_LAST_LINE_ALIGN_CENTER 0x0030  // last line of justified paragraph should be centered
 #define LTEXT_LAST_LINE_ALIGN_WIDTH  0x0040  // last line of justified paragraph should be justified
+#define LTEXT_LAST_LINE_IF_NOT_FIRST 0x0080  // previous flag doesn't apply if last line is also the first (standalone line)
 
 // Text vertical alignment
 #define LTEXT_VALIGN_MASK            0x0700  // vertical align flags mask
@@ -62,8 +63,7 @@ extern "C" {
 
 // (Don't waste the 4th bit not used in the 4-bits sets above)
 #define LTEXT_FLAG_OWNTEXT           0x0008  // store local copy of text instead of pointer
-#define LTEXT_IS_LINK                0x0080  // source text is a link (to gather in-page footnotes)
-#define LTEXT__AVAILABLE_BIT_16__    0x8000
+#define LTEXT_IS_LINK                0x8000  // source text is a link (to gather in-page footnotes)
 
 // Text white-space and hyphenation handling
 #define LTEXT_FLAG_PREFORMATTED      0x00010000  // text is preformatted (white-space: pre, pre-wrap, break-spaces)

@@ -1501,6 +1501,12 @@ static const char * css_ta_names[] =
     "start",
     "end",
     "auto",
+    "-cr-left-if-not-first",
+    "-cr-right-if-not-first",
+    "-cr-center-if-not-first",
+    "-cr-justify-if-not-first",
+    "-cr-start-if-not-first",
+    "-cr-end-if-not-first",
     NULL
 };
 
@@ -1969,7 +1975,7 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                 break;
             case cssd_text_align:
                 n = parse_name( decl, css_ta_names, -1 );
-                if ( n == css_ta_auto ) // only accepted with text-align-last
+                if ( n >= css_ta_auto ) // only accepted with text-align-last
                     n = -1;
                 break;
             case cssd_text_align_last:
