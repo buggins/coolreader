@@ -130,6 +130,9 @@ enum font_antialiasing_t {
 struct LVFontGlyphCacheItem;
 class TextLangCfg;
 
+class LVFont;
+typedef LVProtectedFastRef<LVFont> LVFontRef;
+
 /** \brief base class for fonts
 
     implements single interface for font of any engine
@@ -137,6 +140,13 @@ class TextLangCfg;
 class LVFont : public LVRefCounter {
 protected:
     int _visual_alignment_width;
+    /**
+     * @brief depth in fallback fonts chain:<br/>
+     * -1 - normal font (not fallback)
+     * 0 - first fallback font in chain
+     * n-1 - n'th fallback font in chain
+     */
+    int _fallback_index;
 public:
     lUInt32 _hash;
     /// glyph properties structure
@@ -163,9 +173,11 @@ public:
     /** \brief get glyph info
         \param code is unicode character code
         \param glyph is pointer to glyph_info_t struct to place retrieved info
-        \return true if glyh was found 
+        \param def_char replacement char if glyph for code not found for this font
+        \param fallbackPassMask bitmask of processed fallback fonts
+        \return true if glyph was found 
     */
-    virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar16 def_char = 0) = 0;
+    virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar16 def_char = 0, lUInt32 fallbackPassMask = 0) = 0;
 
     /** \brief measure text
         \param text is text string pointer
@@ -174,6 +186,7 @@ public:
         \param def_char is character to replace absent glyphs in font
         \param letter_spacing is number of pixels to add between letters
         \param hints: hint flags (direction, begin/end of paragraph, for Harfbuzz - unrelated to font hinting)
+        \param fallbackPassMask bitmask of processed fallback fonts
         \return number of characters before max_width reached 
     */
     virtual lUInt16 measureText(
@@ -185,7 +198,8 @@ public:
             TextLangCfg * lang_cfg = NULL,
             int letter_spacing = 0,
             bool allow_hyphenation = true,
-            lUInt32 hints = 0
+            lUInt32 hints = 0,
+            lUInt32 fallbackPassMask = 0
     ) = 0;
 
     /** \brief measure text
@@ -204,10 +218,12 @@ public:
 //    */
 //    virtual bool getGlyphImage(lUInt32 code, lUInt8 * buf, lChar16 def_char=0) = 0;
     /** \brief get glyph item
-        \param code is unicode character code
+        \param ch is unicode character code
+        \param def_char replacement char if glyph for ch not found for this font
+        \param fallbackPassMask bitmask of processed fallback fonts
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar16 def_char = 0) = 0;
+    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar16 def_char = 0, lUInt32 fallbackPassMask = 0) = 0;
 
     /// returns font baseline offset
     virtual int getBaseline() = 0;
@@ -248,10 +264,11 @@ public:
                        lChar16 def_char, lUInt32 * palette = NULL,
                        bool addHyphen = false, TextLangCfg * lang_cfg = NULL,
                        lUInt32 flags=0, int letter_spacing=0, int width=-1,
-                       int text_decoration_back_gap=0 ) = 0;
+                       int text_decoration_back_gap=0,
+                       lUInt32 fallbackPassMask = 0) = 0;
 
     /// constructor
-    LVFont() : _visual_alignment_width(-1), _hash(0) {}
+    LVFont() : _visual_alignment_width(-1), _hash(0), _fallback_index(-1) {}
 
     /// get bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual bool getBitmapMode() { return false; }
@@ -305,13 +322,19 @@ public:
     virtual bool checkFontLangCompat(const lString8 &langCode) { return true; }
 
     /// set fallback font for this font
-    void setFallbackFont(LVProtectedFastRef<LVFont> font) { CR_UNUSED(font); }
+    virtual void setFallbackFont(LVFontRef font) { CR_UNUSED(font); }
 
-    /// get fallback font for this font
-    LVFont *getFallbackFont() { return NULL; }
+    /** \brief get fallback font for this font
+     * \param bitmask of processed fallback fonts
+     */
+    virtual LVFont *getFallbackFont(lUInt32 fallbackPassMask) {
+        CR_UNUSED(fallbackPassMask)
+        return NULL;
+    }
+    
+    virtual int getFallbackIndex() const { return _fallback_index; }
+    virtual void setFallbackIndex(int index) { _fallback_index = index; }
 };
-
-typedef LVProtectedFastRef<LVFont> LVFontRef;
 
 /// to compare two fonts
 bool operator==(const LVFont &r1, const LVFont &r2);

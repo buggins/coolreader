@@ -20,6 +20,7 @@
 #include "lvfontglyphcache.h"
 #include "lvfontdef.h"
 #include "lvfontcache.h"
+#include "lvstring8collection.h"
 
 #if (DEBUG_FONT_MAN == 1)
 #include <stdio.h>
@@ -33,7 +34,7 @@
 class LVFreeTypeFontManager : public LVFontManager {
 private:
     lString8 _path;
-    lString8 _fallbackFontFace;
+    lString8Collection _fallbackFontFaces;
     LVFontCache _cache;
     FT_Library _library;
     LVFontGlobalGlyphCache _globalCache;
@@ -49,14 +50,23 @@ public:
     /// set fallback font
     virtual bool SetFallbackFontFace(lString8 face);
 
+    /// set fallback font face list semicolon separated (returns true if any font is found)
+    virtual bool SetFallbackFontFaces(lString8 facesStr );
+
     /// get fallback font face (returns empty string if no fallback font is set)
-    virtual lString8 GetFallbackFontFace() { return _fallbackFontFace; }
+    virtual lString8 GetFallbackFontFace(int index = 0);
+
+    /// get fallback font faces list (returns empty string list collection if no fallback fonts is set)
+    virtual lString8 GetFallbackFontFaces();
+
+    /// get count of fallback fonts
+    virtual int GetFallbackFontCount();
 
     /// returns fallback font for specified size
-    virtual LVFontRef GetFallbackFont(int size);
+    virtual LVFontRef GetFallbackFont(int size, int index=0);
 
     /// returns fallback font for specified size, weight and italic
-    virtual LVFontRef GetFallbackFont(int size, int weight=400, bool italic=false );
+    virtual LVFontRef GetFallbackFont(int size, int weight=400, bool italic=false, int index=0 );
 
     bool isBitmapModeForSize(int size);
 

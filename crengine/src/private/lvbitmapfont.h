@@ -30,11 +30,11 @@ private:
 public:
     LBitmapFont() : m_font(NULL) {}
 
-    virtual bool getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar16 def_char = 0);
+    virtual bool getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar16 def_char = 0, lUInt32 fallbackPassMask = 0);
 
     virtual lUInt16
     measureText(const lChar16 *text, int len, lUInt16 *widths, lUInt8 *flags, int max_width,
-                lChar16 def_char, TextLangCfg * lang_cfg = NULL, int letter_spacing = 0, bool allow_hyphenation = true, lUInt32 hints=0);
+                lChar16 def_char, TextLangCfg * lang_cfg = NULL, int letter_spacing = 0, bool allow_hyphenation = true, lUInt32 hints=0, lUInt32 fallbackPassMask = 0);
 
     /** \brief measure text
         \param text is text string pointer
@@ -62,7 +62,7 @@ public:
 
     //virtual bool getGlyphImage(lUInt32 code, lUInt8 *buf, lChar16 def_char = 0);
 
-    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar16 def_char = 0);
+    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar16 def_char = 0, lUInt32 fallbackPassMask = 0);
 
     /// returns char width
     virtual int getCharWidth(lChar16 ch, lChar16 def_char = 0) {

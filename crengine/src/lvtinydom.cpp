@@ -387,6 +387,7 @@ lUInt32 calcGlobalSettingsHash(int documentId)
     hash = hash * 31 + (int)fontMan->GetHintingMode();
     if ( LVRendGetFontEmbolden() )
         hash = hash * 75 + 2384761;
+    hash = hash * 31 + fontMan->GetFallbackFontFaces().getHash();
     if ( gFlgFloatingPunctuationEnabled )
         hash = hash * 75 + 1761;
     hash = hash * 31 + TextLangMan::getHash();

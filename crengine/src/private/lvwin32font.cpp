@@ -118,7 +118,7 @@ bool LVBaseWin32Font::Create(int size, int weight, bool italic, css_font_family_
     \param glyph is pointer to glyph_info_t struct to place retrieved info
     \return true if glyh was found 
 */
-bool LVWin32DrawFont::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char )
+bool LVWin32DrawFont::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char, lUInt32 fallbackPassMask )
 {
     return false;
 }
@@ -192,7 +192,8 @@ lUInt16 LVWin32DrawFont::measureText(
                     TextLangCfg * lang_cfg = NULL,
                     int letter_spacing,
                     bool allow_hyphenation,
-                    lUInt32 hints
+                    lUInt32 hints,
+                    lUInt32 fallbackPassMask
                  )
 {
     if (_hfont==NULL)
@@ -300,7 +301,8 @@ int LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
                    const lChar16 * text, int len, 
                    lChar16 def_char, lUInt32 * palette, bool addHyphen, TextLangCfg * lang_cfg,
                    lUInt32 flags, int letter_spacing, int width,
-                   int text_decoration_back_gap )
+                   int text_decoration_back_gap,
+                   lUInt32 fallbackPassMask )
 {
     if (_hfont==NULL)
         return 0;
@@ -515,7 +517,7 @@ glyph_t * LVWin32Font::GetGlyphRec( lChar16 ch )
     \param glyph is pointer to glyph_info_t struct to place retrieved info
     \return true if glyh was found 
 */
-bool LVWin32Font::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char )
+bool LVWin32Font::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char, lUInt32 fallbackPassMask )
 {
     if (_hfont==NULL)
         return false;
@@ -561,7 +563,8 @@ lUInt16 LVWin32Font::measureText(
                     TextLangCfg * lang_cfg,
                     int letter_spacing,
                     bool allow_hyphenation,
-                    lUInt32 hints
+                    lUInt32 hints,
+                    lUInt32 fallbackPassMask
                  )
 {
     if (_hfont==NULL)

@@ -6214,6 +6214,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	lString8 defFontFace;
 	static const char * goodFonts[] = { "DejaVu Sans", "FreeSans",
 			"Liberation Sans", "Arial", "Verdana", NULL };
+	static const char * fallbackFonts = "Droid Sans Fallback; Noto Sans CJK SC; Noto Sans Arabic UI; Noto Sans Devanagari UI; FreeSans; FreeSerif; Noto Serif; Noto Sans; Arial Unicode MS";
 	for (int i = 0; goodFonts[i]; i++) {
 		if (list.contains(lString16(goodFonts[i]))) {
 			defFontFace = lString8(goodFonts[i]);
@@ -6229,8 +6230,9 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	if (list.length() > 0 && !list.contains(props->getStringDef(PROP_FONT_FACE,
 			defFontFace.c_str())))
 		props->setString(PROP_FONT_FACE, list[0]);
-	props->setStringDef(PROP_FALLBACK_FONT_FACE, props->getStringDef(PROP_FONT_FACE,
-                        defFontFace.c_str()));
+	//props->setStringDef(PROP_FALLBACK_FONT_FACE, props->getStringDef(PROP_FONT_FACE,
+    //                    defFontFace.c_str()));
+	props->setStringDef(PROP_FALLBACK_FONT_FACES, fallbackFonts);
 
 	props->setIntDef(PROP_FONT_SIZE,
 			m_font_sizes[m_font_sizes.length() * 2 / 3]);
@@ -6510,24 +6512,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         } else if (name == PROP_PAGE_MARGIN_TOP || name
                    == PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT
                    || name == PROP_PAGE_MARGIN_BOTTOM) {
-#if 0
-            int margin = props->getIntDef(name.c_str(), 8);
-            int maxmargin = (name == PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT) ? m_dx / 3 : m_dy / 3;
-            if (margin > maxmargin)
-                margin = maxmargin;
-            lvRect rc = getPageMargins();
-            if (name == PROP_PAGE_MARGIN_TOP)
-                rc.top = margin;
-            else if (name == PROP_PAGE_MARGIN_BOTTOM)
-                rc.bottom = margin;
-            else if (name == PROP_PAGE_MARGIN_LEFT)
-                rc.left = margin;
-            else if (name == PROP_PAGE_MARGIN_RIGHT)
-                rc.right = margin;
-            setPageMargins(rc);
-#else
             needUpdateMargins = true;
-#endif
         } else if (name == PROP_FONT_FACE) {
             setDefaultFontFace(UnicodeToUtf8(value));
             needUpdateMargins = true;
@@ -6537,6 +6522,14 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 fontMan->SetFallbackFontFace(UnicodeToUtf8(value));
             value = Utf8ToUnicode(fontMan->GetFallbackFontFace());
             if ( UnicodeToUtf8(value) != oldFace ) {
+                REQUEST_RENDER("propsApply  fallback font face")
+            }
+        } else if (name == PROP_FALLBACK_FONT_FACES) {
+            lString8 oldFaces = fontMan->GetFallbackFontFaces();
+            if ( UnicodeToUtf8(value)!=oldFaces )
+                fontMan->SetFallbackFontFaces(UnicodeToUtf8(value));
+            value = Utf8ToUnicode(fontMan->GetFallbackFontFaces());
+            if ( UnicodeToUtf8(value) != oldFaces ) {
                 REQUEST_RENDER("propsApply  fallback font face")
             }
         } else if (name == PROP_STATUS_FONT_FACE) {

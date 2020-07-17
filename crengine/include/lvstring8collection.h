@@ -41,6 +41,8 @@ public:
     	for (int i = 0; i < src.length(); i++)
     		add(src[i]);
     }
+    /// calculate hash
+    lUInt32 getHash() const;
     /// split string by delimiters, and add all substrings to collection
     void split(const lString8 & str, const lString8 & delimiter);
     void erase(int offset, int count);
@@ -63,12 +65,15 @@ public:
         addAll(other);
         return *this;
     }
+    bool operator==(const lString8Collection& other) const;
+    bool operator!=(const lString8Collection& other) const;
     int length() const { return count; }
     void clear();
     ~lString8Collection()
     {
         clear();
     }
+    bool empty() const { return 0 == count; }
 };
 
 #endif // __LV_STRING8COLLECTION_H_INCLUDED__

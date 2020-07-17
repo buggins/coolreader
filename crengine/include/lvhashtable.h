@@ -128,8 +128,8 @@ public:
         memset( _table, 0, sizeof(pair*) * _size );
         _count = 0;
     }
-    int length() { return _count; }
-    int size() { return _size; }
+    int length() const { return _count; }
+    int size() const { return _size; }
     void resize( int nsize )
     {
         pair ** new_table = new pair * [ nsize ]();
@@ -190,7 +190,7 @@ public:
             }
         }
     }
-    valueT get( const keyT & key )
+    valueT get( const keyT & key ) const
     {
         lUInt32 index = getHash( key ) % ( _size );
         pair * p = _table[index];
@@ -203,7 +203,7 @@ public:
         }
         return valueT();
     }
-    bool get( const keyT & key, valueT & res )
+    bool get( const keyT & key, valueT & res ) const
     {
         lUInt32 index = getHash( key ) % ( _size );
         pair * p = _table[index];

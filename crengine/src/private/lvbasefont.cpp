@@ -18,7 +18,7 @@
 
 int LVBaseFont::DrawTextString(LVDrawBuf * buf, int x, int y,
                    const lChar16 * text, int len,
-                   lChar16 def_char, lUInt32 * palette, bool addHyphen, TextLangCfg *lang_cfg, lUInt32 , int , int, int )
+                   lChar16 def_char, lUInt32 * palette, bool addHyphen, TextLangCfg *lang_cfg, lUInt32 , int , int, int , lUInt32 fallbackPassMask)
 {
     //static lUInt8 glyph_buf[16384];
     //LVFont::glyph_info_t info;

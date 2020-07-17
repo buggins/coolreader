@@ -46,6 +46,52 @@ void lString8Collection::erase(int offset, int cnt)
         clear();
 }
 
+bool lString8Collection::operator==(const lString8Collection& other) const
+{
+    bool equal = false;
+    // Compare <this> with <other> ignoring item order
+    if (count == other.length()) {
+        equal = true;
+        for (int i = 0; i < count; i++) {
+            bool found = false;
+            for (int j = 0; j < other.length(); j++) {
+                if (((lString8 *)chunks)[i] == other[j]) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                equal = false;
+                break;
+            }
+        }
+    }
+    return equal;
+}
+
+bool lString8Collection::operator!=(const lString8Collection &other) const
+{
+    bool equal = false;
+    // Compare <this> with <other> ignoring item order
+    if (count == other.length()) {
+        equal = true;
+        for (int i = 0; i < count; i++) {
+            bool found = false;
+            for (int j = 0; j < other.length(); j++) {
+                if (((lString8 *)chunks)[i] == other[j]) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                equal = false;
+                break;
+            }
+        }
+    }
+    return !equal;
+}
+
 void lString8Collection::reserve(int space)
 {
     if ( count + space > size )
@@ -69,6 +115,15 @@ int lString8Collection::add( const lString8 & str )
     str.addref();
     return count++;
 }
+
+lUInt32 lString8Collection::getHash() const
+{
+    lUInt32 hash = 0;
+    for (int i = 0; i < count; i++)
+        hash = 31*hash + ((lString8 *)chunks)[i].getHash();
+    return hash;
+}
+
 void lString8Collection::clear()
 {
     for (int i=0; i<count; i++)
