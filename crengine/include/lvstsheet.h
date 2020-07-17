@@ -89,62 +89,6 @@ public:
 
 typedef LVRef<LVCssDeclaration> LVCssDeclRef;
 
-// See https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-classes
-enum LVCssSelectorPseudoClass
-{
-    csspc_root,             // :root
-    csspc_dir,              // :dir(rtl), :dir(ltr)
-    csspc_first_child,      // :first-child
-    csspc_first_of_type,    // :first-of-type
-    csspc_nth_child,        // :nth-child(even), :nth-child(3n+4)
-    csspc_nth_of_type,      // :nth-of-type()
-    // Those after this won't be valid when checked in the initial
-    // document loading phase when the XML is being parsed, as at
-    // this point, the checked node is always the last node as we
-    // haven't yet parsed its following siblings. When meeting one,
-    // we'll need to re-render and re-check styles after load with
-    // a fully built DOM.
-    csspc_last_child,       // :last-child
-    csspc_last_of_type,     // :last-of-type
-    csspc_nth_last_child,   // :nth-last-child()
-    csspc_nth_last_of_type, // :nth-last-of-type()
-    csspc_only_child,       // :only-child
-    csspc_only_of_type,     // :only-of-type
-    csspc_empty,            // :empty
-};
-
-static const char * css_pseudo_classes[] =
-{
-    "root",
-    "dir",
-    "first-child",
-    "first-of-type",
-    "nth-child",
-    "nth-of-type",
-    "last-child",
-    "last-of-type",
-    "nth-last-child",
-    "nth-last-of-type",
-    "only-child",
-    "only-of-type",
-    "empty",
-    NULL
-};
-
-// https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements
-enum LVCssSelectorPseudoElement
-{
-    csspe_before = 1,   // ::before
-    csspe_after  = 2,   // ::after
-};
-
-static const char * css_pseudo_elements[] =
-{
-    "before",
-    "after",
-    NULL
-};
-
 enum LVCssSelectorRuleType
 {
     cssrt_universal,         // *
