@@ -49,18 +49,11 @@ void lString8Collection::erase(int offset, int cnt)
 bool lString8Collection::operator==(const lString8Collection& other) const
 {
     bool equal = false;
-    // Compare <this> with <other> ignoring item order
+    // Compare <this> with <other> consider items order
     if (count == other.length()) {
         equal = true;
         for (int i = 0; i < count; i++) {
-            bool found = false;
-            for (int j = 0; j < other.length(); j++) {
-                if (((lString8 *)chunks)[i] == other[j]) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
+            if (((lString8 *)chunks)[i] != other[i]) {
                 equal = false;
                 break;
             }
@@ -71,25 +64,7 @@ bool lString8Collection::operator==(const lString8Collection& other) const
 
 bool lString8Collection::operator!=(const lString8Collection &other) const
 {
-    bool equal = false;
-    // Compare <this> with <other> ignoring item order
-    if (count == other.length()) {
-        equal = true;
-        for (int i = 0; i < count; i++) {
-            bool found = false;
-            for (int j = 0; j < other.length(); j++) {
-                if (((lString8 *)chunks)[i] == other[j]) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                equal = false;
-                break;
-            }
-        }
-    }
-    return !equal;
+    return !operator ==(other);
 }
 
 void lString8Collection::reserve(int space)
