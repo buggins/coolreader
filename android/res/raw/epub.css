@@ -145,6 +145,22 @@ u, ins                  { text-decoration: underline; }
 del, s, strike          { text-decoration: line-through; }
 a                       { text-decoration: underline; $link.all }
 
+/* Ruby support */
+ruby {
+    /* These will have no effect when ruby is reset to display: inline */
+    text-align: center;
+    text-indent: 0;
+}
+rb, rubyBox[T=rb] {
+    line-height: 1;
+}
+rt, rubyBox[T=rt] {
+    line-height: 1.2;
+    font-size: 50%;
+    font-variant-east-asian: ruby;
+    -cr-hint: text-selection-skip;
+}
+
 code {
    $code.all
 }
@@ -169,6 +185,10 @@ img[align=right i]   { float: right; }
 table[align=left i]  { float: left; }
 table[align=right i] { float: right; }
 
+/* EPUB3 epub:type="pagebreak" may sometimes have the page number
+ * as content: hide it. (Usually, its content is empty and the
+ * page number is in a title= attribute.) */
+span[type=pagebreak] { display: none; }
 
 /* Old element or className based selectors involving display: that
  * we need to support for older gDOMVersionRequested
