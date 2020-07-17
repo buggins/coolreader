@@ -3058,7 +3058,7 @@ public:
                                 word->min_width = word->width - dw;
                             }
                         }
-                        if ( lastWord ) {
+                        if ( !visualAlignmentEnabled && lastWord ) {
                             // If last word of line, remove any trailing space from word's width
                             word->width = m_widths[i>1 ? i-2 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
                             word->min_width = word->width;
