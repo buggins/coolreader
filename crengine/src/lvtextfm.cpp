@@ -1800,7 +1800,7 @@ public:
                             widths[k] -= cumulative_width_removed;
                             if ( first_word_len >= 0 ) { // This is the space (or nbsp) after first word
                                 if ( first_word_len == 1 ) { // Previous word is a single char
-                                    if ( isLeftPunctuation(m_text[k-1]) ) {
+                                    if ( k > 0 && isLeftPunctuation(m_text[k-1]) ) {
                                         // This space follows one of the common opening quotation marks or
                                         // dashes used to introduce a quotation or a part of a dialog:
                                         // https://en.wikipedia.org/wiki/Quotation_mark
