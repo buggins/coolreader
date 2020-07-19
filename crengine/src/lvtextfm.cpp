@@ -424,7 +424,7 @@ public:
     bool m_has_float_to_position;
     bool m_has_ongoing_float;
     bool m_no_clear_own_floats;
-    bool m_allow_strut_confinning;
+    bool m_allow_strut_confining;
     bool m_has_multiple_scripts;
     bool m_indent_first_line_done;
     int  m_indent_after_first_line;
@@ -969,10 +969,7 @@ public:
         }
         #endif
 
-        // Whether any "-cr-hint: strut-confined" should be applied: only when
-        // we have non-space-only text in the paragraph - standalone images
-        // possibly separated by spaces don't need to be reduced in size.
-        m_allow_strut_confinning = false;
+        bool has_non_space = false; // If we have non-empty text, we can do strut confining
 
         int pos = 0;
         int i;
@@ -1251,8 +1248,7 @@ public:
                         last_non_collapsed_space_pos = -1;
                         is_locked_spacing = false;
                         if ( !is_space ) {
-                            // Non empty text, we can do strut confinning
-                            m_allow_strut_confinning = true;
+                            has_non_space = true;
                         }
                     }
                     prev_was_space = is_space || (c == '\n');
@@ -1433,6 +1429,13 @@ public:
             }
         }
         TR("%s", LCSTR(lString16(m_text, m_length)));
+
+        // Whether any "-cr-hint: strut-confined" should be applied: only when
+        // we have non-space-only text in the paragraph - standalone images
+        // possibly separated by spaces don't need to be reduced in size.
+        // And only when we actually have a strut set (list item markers
+        // with "list-style-position: outside" don't have any set).
+        m_allow_strut_confining = has_non_space && m_pbuffer->strut_height > 0;
 
         #if (USE_FRIBIDI==1)
         if ( has_rtl ) {
@@ -2009,7 +2012,7 @@ public:
                             UnicodeToLocal(ldomXPointer((ldomNode*)m_srcs[start]->object, 0).toString()).c_str());
                         */
                         resizeImage(width, height, m_pbuffer->width, m_max_img_height, m_length>1);
-                        if ( (m_srcs[start]->flags & LTEXT_STRUT_CONFINED) && m_allow_strut_confinning ) {
+                        if ( (m_srcs[start]->flags & LTEXT_STRUT_CONFINED) && m_allow_strut_confining ) {
                             // Text with "-cr-hint: strut-confined" might just be vertically shifted,
                             // but won't change widths. But images who will change height must also
                             // have their width reduced to keep their aspect ratio.
@@ -2816,7 +2819,7 @@ public:
                 bool adjust_line_box = true;
                 // We will make sure elements with "-cr-hint: strut-confined"
                 // do not change the strut baseline and height
-                bool strut_confined = (srcline->flags & LTEXT_STRUT_CONFINED) && m_allow_strut_confinning;
+                bool strut_confined = (srcline->flags & LTEXT_STRUT_CONFINED) && m_allow_strut_confining;
 
                 if ( srcline->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object: image or inline-block box (floats have been skipped above)
@@ -2839,7 +2842,7 @@ public:
                     else { // image
                         word->flags = LTEXT_WORD_IS_OBJECT;
                         // The image dimensions have already been resized to fit
-                        // into m_pbuffer->width (and strut confinning if requested.
+                        // into m_pbuffer->width (and strut confining if requested.
                         // Note: it can happen when there is some text-indent than
                         // the image width exceeds the available width: it might be
                         // shown overflowing or overrideing other content.
