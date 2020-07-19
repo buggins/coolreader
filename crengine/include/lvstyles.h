@@ -156,7 +156,7 @@ struct css_style_rec_tag {
     css_clear_t            clear;
     css_direction_t        direction;
     lString16              content;
-    css_cr_hint_t          cr_hint;
+    css_length_t           cr_hint;
     // The following should only be used when applying stylesheets while in lvend.cpp setNodeStyle(),
     // and cleaned up there, before the style is cached and shared. They are not serialized.
     lInt8                flags; // bitmap of STYLE_REC_FLAG_*
@@ -205,7 +205,7 @@ struct css_style_rec_tag {
     , float_(css_f_none)
     , clear(css_c_none)
     , direction(css_dir_inherit)
-    , cr_hint(css_cr_hint_none)
+    , cr_hint(css_val_inherited, 0)
     , flags(0)
     , pseudo_elem_before_style(NULL)
     , pseudo_elem_after_style(NULL)
@@ -243,7 +243,7 @@ struct css_style_rec_tag {
             if (is_important == 0x3) importance |= bit; // update importance flag (!important comes from higher_importance CSS)
         }
     }
-    // Similar to previous one, but logical-OR'ing values, for bitmaps (currently, only style->font_features)
+    // Similar to previous one, but logical-OR'ing values, for bitmaps (currently, only style->font_features and style->cr_hint)
     inline void ApplyAsBitmapOr( css_length_t value, css_length_t *field, css_style_rec_important_bit bit, lUInt8 is_important ) {
         if (     !(important & bit)
               || (is_important == 0x3)

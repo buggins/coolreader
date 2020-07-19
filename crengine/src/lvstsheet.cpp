@@ -1789,40 +1789,6 @@ static const char * css_dir_names[] =
     NULL
 };
 
-// -cr-hint names (non standard property for providing hints to crengine via style tweaks)
-static const char * css_cr_hint_names[]={
-        "inherit",
-        "none",
-                            // For footnote popup detection:
-        "noteref",          // link is to a footnote
-        "noteref-ignore",   // link is not to a footnote (even if everything else indicates it is)
-        "footnote",         // block is a footnote (must be a full footnote block container)
-        "footnote-ignore",  // block is not a footnote (even if everything else indicates it is)
-        "footnote-inpage",  // block is a footnote (must be a full footnote block container), and to be
-                            // displayed at the bottom of all pages that contain a link to it.
-        "toc-level1",       // to be considered as TOC item of level N when building alternate TOC
-        "toc-level2",
-        "toc-level3",
-        "toc-level4",
-        "toc-level5",
-        "toc-level6",
-        "toc-ignore",       // ignore these H1...H6 when building alternate TOC
-
-        // Next one is not really a hint, but might have some active effect on rendering/layout.
-        // It has effect on inline nodes only, while the ones above mostly apply to block
-        // nodes. So, provide it with a lower specificity if those above also need to be used.
-        "strut-confined",   // text and images should not overflow/modify their paragraph strut
-                            // baseline and height (it could have been a non-standard named
-                            // value for line-height:, but we want to be able to not override
-                            // existing line-height: values)
-
-        // Tweak text selection when traversing a node with these hints
-        "text-selection-inline", // don't add a '\n' before inner text, even if the node happens to be block
-        "text-selection-block",  // add a '\n' before inner text even if the node happens to be inline
-        "text-selection-skip",   // don't include inner text in text selection
-        NULL
-};
-
 static const char * css_cr_only_if_names[]={
         "any",
         "always",
@@ -1973,7 +1939,54 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                 break;
             // non standard property for providing hints via style tweaks
             case cssd_cr_hint:
-                n = parse_name( decl, css_cr_hint_names, -1 );
+                {
+                    // All values are mapped into a single style->cr_hint 31 bits bitmap
+                    int hints = 0; // "none" = no hint
+                    int nb_parsed = 0;
+                    int nb_invalid = 0;
+                    while ( *decl && *decl !=';' && *decl!='}') {
+                        // Details in crengine/include/cssdef.h (checks ordered by most likely to be seen)
+                        if ( substr_icompare("none", decl) ) {
+                            // Forget everything parsed previously, and prevent inheritance
+                            hints = CSS_CR_HINT_NONE_NO_INHERIT;
+                        }
+                        else if ( substr_icompare("footnote-inpage", decl) )        hints |= CSS_CR_HINT_FOOTNOTE_INPAGE;
+                        else if ( substr_icompare("strut-confined", decl) )         hints |= CSS_CR_HINT_STRUT_CONFINED;
+                        else if ( substr_icompare("text-selection-skip", decl) )    hints |= CSS_CR_HINT_TEXT_SELECTION_SKIP;
+                        else if ( substr_icompare("text-selection-inline", decl) )  hints |= CSS_CR_HINT_TEXT_SELECTION_INLINE;
+                        else if ( substr_icompare("text-selection-block", decl) )   hints |= CSS_CR_HINT_TEXT_SELECTION_BLOCK;
+                        else if ( substr_icompare("toc-level1", decl) )             hints |= CSS_CR_HINT_TOC_LEVEL1;
+                        else if ( substr_icompare("toc-level2", decl) )             hints |= CSS_CR_HINT_TOC_LEVEL2;
+                        else if ( substr_icompare("toc-level3", decl) )             hints |= CSS_CR_HINT_TOC_LEVEL3;
+                        else if ( substr_icompare("toc-level4", decl) )             hints |= CSS_CR_HINT_TOC_LEVEL4;
+                        else if ( substr_icompare("toc-level5", decl) )             hints |= CSS_CR_HINT_TOC_LEVEL5;
+                        else if ( substr_icompare("toc-level6", decl) )             hints |= CSS_CR_HINT_TOC_LEVEL6;
+                        else if ( substr_icompare("toc-ignore", decl) )             hints |= CSS_CR_HINT_TOC_IGNORE;
+                        else if ( substr_icompare("noteref", decl) )                hints |= CSS_CR_HINT_NOTEREF;
+                        else if ( substr_icompare("noteref-ignore", decl) )         hints |= CSS_CR_HINT_NOTEREF_IGNORE;
+                        else if ( substr_icompare("footnote", decl) )               hints |= CSS_CR_HINT_FOOTNOTE;
+                        else if ( substr_icompare("footnote-ignore", decl) )        hints |= CSS_CR_HINT_FOOTNOTE_IGNORE;
+                        //
+                        else if ( parse_important(decl) ) {
+                            parsed_important = IMPORTANT_DECL_SET;
+                            break; // stop looking for more
+                        }
+                        else { // unsupported or invalid named value
+                            nb_invalid++;
+                            // Walk over unparsed value, and continue checking
+                            while (*decl && *decl !=' ' && *decl !=';' && *decl!='}')
+                                decl++;
+                        }
+                        nb_parsed++;
+                        skip_spaces( decl );
+                    }
+                    if ( nb_parsed - nb_invalid > 0 ) { // at least one valid named value seen
+                        buf<<(lUInt32) (prop_code | importance | parsed_important);
+                        buf<<(lUInt32) css_val_unspecified; // len.type
+                        buf<<(lUInt32) hints; // len.value
+                        // (css_val_unspecified just says this value has no unit)
+                    }
+                }
                 break;
             case cssd_display:
                 n = parse_name( decl, css_d_names, -1 );
@@ -3158,7 +3171,18 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             style->Apply( (css_direction_t) *p++, &style->direction, imp_bit_direction, is_important );
             break;
         case cssd_cr_hint:
-            style->Apply( (css_cr_hint_t) *p++, &style->cr_hint, imp_bit_cr_hint, is_important );
+            {
+                // We want to 'OR' the bitmap from any declaration that is to be applied to this node
+                // (while still ensuring !important) - unless this declaration had "-cr-hint: none"
+                // in which case we should reset previously set bits
+                css_length_t cr_hint = read_length(p);
+                if ( cr_hint.value & CSS_CR_HINT_NONE_NO_INHERIT ) {
+                    style->Apply( cr_hint, &style->cr_hint, imp_bit_cr_hint, is_important );
+                }
+                else {
+                    style->ApplyAsBitmapOr( cr_hint, &style->cr_hint, imp_bit_cr_hint, is_important );
+                }
+            }
             break;
         case cssd_content:
             {

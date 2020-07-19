@@ -2381,7 +2381,7 @@ lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
             // Scale it according to gInterlineScaleFactor
             if (style->line_height.type != css_val_screen_px && gInterlineScaleFactor != INTERLINE_SCALE_FACTOR_NO_SCALE)
                 line_h = (line_h * gInterlineScaleFactor) >> INTERLINE_SCALE_FACTOR_SHIFT;
-            if ( style->cr_hint == css_cr_hint_strut_confined )
+            if ( STYLE_HAS_CR_HINT(style, STRUT_CONFINED) )
                 flags |= LTEXT_STRUT_CONFINED;
         }
         marker += "\t";
@@ -2658,7 +2658,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             int f_half_leading = (line_h - fh) / 2;
             txform->setStrut(line_h, fb + f_half_leading);
         }
-        else if ( style->cr_hint == css_cr_hint_strut_confined ) {
+        else if ( STYLE_HAS_CR_HINT(style, STRUT_CONFINED) ) {
             // Previous branch for the top final node has set the strut.
             // Inline nodes having "-cr-hint: strut-confined" will be confined
             // inside that strut.
@@ -3534,7 +3534,8 @@ void copystyle( css_style_ref_t source, css_style_ref_t dest )
     dest->clear = source->clear;
     dest->direction = source->direction;
     dest->content = source->content ;
-    dest->cr_hint = source->cr_hint;
+    dest->cr_hint.type = source->cr_hint.type ;
+    dest->cr_hint.value = source->cr_hint.value ;
 }
 
 // Only used by renderBlockElementLegacy()
@@ -3774,7 +3775,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
         lString16 footnoteId;
         // Allow displaying footnote content at the bottom of all pages that contain a link
         // to it, when -cr-hint: footnote-inpage is set on the footnote block container.
-        if ( style->cr_hint == css_cr_hint_footnote_inpage &&
+        if ( STYLE_HAS_CR_HINT(style, FOOTNOTE_INPAGE) &&
                     enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES)) {
             footnoteId = enode->getFirstInnerAttributeValue(attr_id);
             if ( !footnoteId.empty() )
@@ -6089,7 +6090,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     lString16 footnoteId;
     // Allow displaying footnote content at the bottom of all pages that contain a link
     // to it, when -cr-hint: footnote-inpage is set on the footnote block container.
-    if ( style->cr_hint == css_cr_hint_footnote_inpage &&
+    if ( STYLE_HAS_CR_HINT(style, FOOTNOTE_INPAGE) &&
                 enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES)) {
         footnoteId = enode->getFirstInnerAttributeValue(attr_id);
         if ( !footnoteId.empty() )
@@ -9051,6 +9052,18 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     // stop any font-variant without !important from being applied.)
     pstyle->font_features.value |= parent_style->font_features.value;
     pstyle->font_features.type = css_val_unspecified;
+
+    // cr_hint is also a bitmap, and only some bits are inherited.
+    // A node starts with (css_val_inherited, 0), but if some
+    // stylesheet has applied some -cr-hint to it, we meet it
+    // here with (css_val_unspecified, bitmap) and we report the
+    // inheritable bits from the parent.
+    // Unless "-cr-hint: none" has been applied to the node, which
+    // prevents inheritance
+    if ( !STYLE_HAS_CR_HINT(pstyle, NONE_NO_INHERIT) ) {
+        pstyle->cr_hint.value |= (parent_style->cr_hint.value & CSS_CR_HINT_INHERITABLE_MASK);
+        pstyle->cr_hint.type = css_val_unspecified;
+    }
 
     //UPDATE_LEN_FIELD( text_indent );
     spreadParent( pstyle->text_indent, parent_style->text_indent );

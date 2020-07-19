@@ -84,7 +84,7 @@ int gDOMVersionRequested     = DOM_VERSION_CURRENT;
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
 // increment to force complete reload/reparsing of old file
-#define CACHE_FILE_FORMAT_VERSION "3.12.65"
+#define CACHE_FILE_FORMAT_VERSION "3.12.66"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0025
@@ -4382,7 +4382,8 @@ bool ldomDocument::setRenderProps( int width, int dy, bool /*showCover*/, int /*
     s->float_ = css_f_none;
     s->clear = css_c_none;
     s->direction = css_dir_inherit;
-    s->cr_hint = css_cr_hint_none;
+    s->cr_hint.type = css_val_unspecified;
+    s->cr_hint.value = CSS_CR_HINT_NONE;
     //lUInt32 defStyleHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     //defStyleHash = defStyleHash * 31 + getDocFlags();
     if ( _last_docflags != getDocFlags() ) {
@@ -12105,15 +12106,15 @@ public:
 #if BUILD_LITE!=1
         ldomNode * elem = (ldomNode *)ptr->getNode();
         // Allow tweaking that with hints
-        css_cr_hint_t hint = elem->getStyle()->cr_hint;
-        if ( hint == css_cr_hint_text_selection_skip ) {
+        css_style_ref_t style = elem->getStyle();
+        if ( STYLE_HAS_CR_HINT(style, TEXT_SELECTION_SKIP) ) {
             return false;
         }
-        else if ( hint == css_cr_hint_text_selection_inline ) {
+        else if ( STYLE_HAS_CR_HINT(style, TEXT_SELECTION_INLINE) ) {
             newBlock = false;
             return true;
         }
-        else if ( hint == css_cr_hint_text_selection_block ) {
+        else if ( STYLE_HAS_CR_HINT(style, TEXT_SELECTION_BLOCK) ) {
             newBlock = true;
             return true;
         }
@@ -12129,7 +12130,7 @@ public:
         // For other rendering methods (that would bring newBlock=true),
         // look at the initial CSS display, as we might have boxed some
         // inline-like elements for rendering purpose.
-        css_display_t d = elem->getStyle()->display;
+        css_display_t d = style->display;
         if ( d <= css_d_inline || d == css_d_inline_block || d == css_d_inline_table ) {
             // inline, ruby; consider inline-block/-table as inline, in case
             // they don't contain much (if they do, some inner block element
@@ -17342,11 +17343,18 @@ static inline void makeTocFromCrHintsOrHeadings( ldomNode * node, bool ensure_cr
 {
     int level;
     if ( ensure_cr_hints ) {
-        css_cr_hint_t hint = node->getStyle()->cr_hint;
-        if ( hint == css_cr_hint_toc_ignore )
+        css_style_ref_t style = node->getStyle();
+        if ( STYLE_HAS_CR_HINT(style, TOC_IGNORE) )
             return; // requested to be ignored via style tweaks
-        if ( hint >= css_cr_hint_toc_level1 && hint <= css_cr_hint_toc_level6 )
-            level = hint - css_cr_hint_toc_level1 + 1;
+        if ( STYLE_HAS_CR_HINT(style, TOC_LEVELS_MASK) ) {
+            if      ( STYLE_HAS_CR_HINT(style, TOC_LEVEL1) ) level = 1;
+            else if ( STYLE_HAS_CR_HINT(style, TOC_LEVEL2) ) level = 2;
+            else if ( STYLE_HAS_CR_HINT(style, TOC_LEVEL3) ) level = 3;
+            else if ( STYLE_HAS_CR_HINT(style, TOC_LEVEL4) ) level = 4;
+            else if ( STYLE_HAS_CR_HINT(style, TOC_LEVEL5) ) level = 5;
+            else if ( STYLE_HAS_CR_HINT(style, TOC_LEVEL6) ) level = 6;
+            else level = 7; // should not be reached
+        }
         else if ( node->getNodeId() >= el_h1 && node->getNodeId() <= el_h6 )
             // el_h1 .. el_h6 are consecutive and ordered in include/fb2def.h
             level = node->getNodeId() - el_h1 + 1;
@@ -17780,7 +17788,8 @@ void runBasicTinyDomUnitTests()
         style1->text_indent.value = 0;
         style1->line_height.type = css_val_unspecified;
         style1->line_height.value = css_generic_normal; // line-height: normal
-        style1->cr_hint = css_cr_hint_none;
+        style1->cr_hint.type = css_val_unspecified;
+        style1->cr_hint.value = CSS_CR_HINT_NONE;
 
         css_style_ref_t style2;
         style2 = css_style_ref_t( new css_style_rec_t );
@@ -17812,7 +17821,8 @@ void runBasicTinyDomUnitTests()
         style2->text_indent.value = 0;
         style2->line_height.type = css_val_unspecified;
         style2->line_height.value = css_generic_normal; // line-height: normal
-        style2->cr_hint = css_cr_hint_none;
+        style2->cr_hint.type = css_val_unspecified;
+        style2->cr_hint.value = CSS_CR_HINT_NONE;
 
         css_style_ref_t style3;
         style3 = css_style_ref_t( new css_style_rec_t );
@@ -17844,7 +17854,8 @@ void runBasicTinyDomUnitTests()
         style3->text_indent.value = 0;
         style3->line_height.type = css_val_unspecified;
         style3->line_height.value = css_generic_normal; // line-height: normal
-        style3->cr_hint = css_cr_hint_none;
+        style3->cr_hint.type = css_val_unspecified;
+        style3->cr_hint.value = CSS_CR_HINT_NONE;
 
         el1->setStyle(style1);
         css_style_ref_t s1 = el1->getStyle();

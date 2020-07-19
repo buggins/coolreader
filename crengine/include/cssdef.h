@@ -336,28 +336,54 @@ enum css_generic_value_t {
     css_generic_cover = -5        // (css_val_unspecified, css_generic_cover), for "background-size: cover"
 };
 
-// Non standard property for providing hints to crengine via style tweaks
-// (see src/lvstsheet.cpp css_cr_hint_names[]= for explanations)
-enum css_cr_hint_t {
-    css_cr_hint_inherit,
-    css_cr_hint_none,
-    css_cr_hint_noteref,
-    css_cr_hint_noteref_ignore,
-    css_cr_hint_footnote,
-    css_cr_hint_footnote_ignore,
-    css_cr_hint_footnote_inpage,
-    css_cr_hint_toc_level1,
-    css_cr_hint_toc_level2,
-    css_cr_hint_toc_level3,
-    css_cr_hint_toc_level4,
-    css_cr_hint_toc_level5,
-    css_cr_hint_toc_level6,
-    css_cr_hint_toc_ignore,
-    css_cr_hint_strut_confined,
-    css_cr_hint_text_selection_inline,
-    css_cr_hint_text_selection_block,
-    css_cr_hint_text_selection_skip
-};
+// -cr-hint is a non standard property for providing hints to crengine via style tweaks
+// Handled as a bitmap, with a flag for each hint, as we might set multiple on a same node (max 31 bits)
+#define CSS_CR_HINT_NONE                    0x00000000 // default value
+
+// Reset any hint previously set and don't inherit any from parent
+#define CSS_CR_HINT_NONE_NO_INHERIT         0x00000001 // -cr-hint: none
+
+// Text and images should not overflow/modify their paragraph strut baseline and height
+// (it could have been a non-standard named value for line-height:, but we want to be
+// able to not override existing line-height: values)
+#define CSS_CR_HINT_STRUT_CONFINED          0x00000002 // -cr-hint: strut-confined (inheritable)
+
+// A node with these should be considered as TOC item of level N when building alternate TOC
+#define CSS_CR_HINT_TOC_LEVEL1              0x00000100 // -cr-hint: toc-level1
+#define CSS_CR_HINT_TOC_LEVEL2              0x00000200 // -cr-hint: toc-level2
+#define CSS_CR_HINT_TOC_LEVEL3              0x00000400 // -cr-hint: toc-level3
+#define CSS_CR_HINT_TOC_LEVEL4              0x00000800 // -cr-hint: toc-level4
+#define CSS_CR_HINT_TOC_LEVEL5              0x00001000 // -cr-hint: toc-level5
+#define CSS_CR_HINT_TOC_LEVEL6              0x00002000 // -cr-hint: toc-level6
+#define CSS_CR_HINT_TOC_LEVELS_MASK         0x00003F00
+// Ignore H1...H6 that have this when building alternate TOC
+#define CSS_CR_HINT_TOC_IGNORE              0x00004000 // -cr-hint: toc-ignore
+
+// Tweak text selection behaviour when traversing a node with these hints
+#define CSS_CR_HINT_TEXT_SELECTION_INLINE   0x00010000 // -cr-hint: text-selection-inline  don't add a '\n' before inner text
+                                                       //                                  (even if the node happens to be block)
+#define CSS_CR_HINT_TEXT_SELECTION_BLOCK    0x00020000 // -cr-hint: text-selection-block   add a '\n' before inner text (even
+                                                       //                                  if the node happens to be inline)
+#define CSS_CR_HINT_TEXT_SELECTION_SKIP     0x00040000 // -cr-hint: text-selection-skip    don't include inner text in selection
+
+// To be set on a block element: it is a footnote (must be a full footnote block container),
+// and to be displayed at the bottom of all pages that contain a link to it.
+#define CSS_CR_HINT_FOOTNOTE_INPAGE         0x00080000 // -cr-hint: footnote-inpage
+
+// For footnote popup detection by koreader-base/cre.cpp
+#define CSS_CR_HINT_NOTEREF                 0x01000000 // -cr-hint: noteref         link is to a footnote
+#define CSS_CR_HINT_NOTEREF_IGNORE          0x02000000 // -cr-hint: noteref-ignore  link is not to a footnote (even if
+                                                       //                           everything else indicates it is)
+#define CSS_CR_HINT_FOOTNOTE                0x04000000 // -cr-hint: footnote        block is a footnote (must be a full
+                                                       //                           footnote block container)
+#define CSS_CR_HINT_FOOTNOTE_IGNORE         0x08000000 // -cr-hint: footnote-ignore block is not a footnote (even if
+                                                       //                           everything else indicates it is)
+
+// A few of them are inheritable, most are not.
+#define CSS_CR_HINT_INHERITABLE_MASK        0x00000002
+
+// Macro for easier checking
+#define STYLE_HAS_CR_HINT(s, h)     ( (bool)(s->cr_hint.value & CSS_CR_HINT_##h) )
 
 /// css length value
 typedef struct css_length_tag {
