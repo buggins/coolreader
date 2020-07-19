@@ -2365,6 +2365,7 @@ private:
     bool _rendered;
     bool _just_rendered_from_cache;
     bool _toc_from_cache_valid;
+    lUInt32 _warnings_seen_bitmap;
     ldomXRangeList _selections;
 #endif
 
@@ -2492,6 +2493,8 @@ public:
 #endif
     /// saves document contents as XML to stream with specified encoding
     bool saveToStream( LVStreamRef stream, const char * codepage, bool treeLayout=false );
+    /// print a warning message (only once if warning_id provided, between 1 and 32)
+    void printWarning(const char * msg, int warning_id=0);
 #if BUILD_LITE!=1
     /// get default font reference
     font_ref_t getDefaultFont() { return _def_font; }

@@ -3509,6 +3509,7 @@ ldomDocument::ldomDocument()
 , _rendered(false)
 , _just_rendered_from_cache(false)
 , _toc_from_cache_valid(false)
+, _warnings_seen_bitmap(0)
 #endif
 , lists(100)
 {
@@ -4244,6 +4245,19 @@ bool ldomDocument::saveToStream( LVStreamRef stream, const char *, bool treeLayo
     *stream.get() << UnicodeToLocal(cs16(L"\xFEFF"));
     writeNode( stream.get(), getRootNode(), treeLayout );
     return true;
+}
+
+void ldomDocument::printWarning(const char * msg, int warning_id) {
+    // Provide a warning_id from 1 to 32 to have this warning emited only once
+    // Provide 0 to have it printed it every time
+    lUInt32 warning_bit = 0;
+    if ( warning_id > 0 && warning_id <= 32 ) {
+        warning_bit = 1 << (warning_id-1);
+    }
+    if ( !( warning_bit & _warnings_seen_bitmap) ) {
+        printf("CRE WARNING: %s\n", msg);
+        _warnings_seen_bitmap |= warning_bit;
+    }
 }
 
 ldomDocument::~ldomDocument()
@@ -9653,6 +9667,10 @@ void ldomXPointerEx::initIndex()
     while ( p ) {
         m[_level] = p->getNodeIndex();
         _level++;
+        if ( _level == MAX_DOM_LEVEL ) {
+            getDocument()->printWarning("ldomXPointerEx level overflow (too many nested nodes)", 1);
+            break;
+        }
         p = p->getParentNode();
     }
     for ( int i=0; i<_level; i++ ) {
