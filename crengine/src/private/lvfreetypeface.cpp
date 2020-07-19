@@ -328,9 +328,11 @@ LVFont *LVFreeTypeFace::getFallbackFont(lUInt32 fallbackPassMask) {
             LVFontRef font;
             LVFontRef font_prev = _fallbackFont;
             for (int i = 1; i < count; i++) {
-                font = fontMan->GetFallbackFont(_size, _weight, _italic, i);
-                font_prev->setFallbackFont(font);
-                font_prev = font;
+                if (_faceName != fontMan->GetFallbackFontFace(i)) {
+                    font = fontMan->GetFallbackFont(_size, _weight, _italic, i);
+                    font_prev->setFallbackFont(font);
+                    font_prev = font;
+                }
             }
             // to loop fallback fonts chain
             font->setFallbackFont(_fallbackFont);
@@ -341,10 +343,12 @@ LVFont *LVFreeTypeFace::getFallbackFont(lUInt32 fallbackPassMask) {
     if (full_mask != fallbackPassMask)
         res = _fallbackFont;
     // Get first unprocessed font
+#if 0
     if (!res.isNull() ) {
         if ( _faceName == res->getTypeFace() )
             res = res->getFallbackFont(fallbackPassMask | ( _fallback_index >= 0 ? (1 << _fallback_index) : 0) );
     }
+#endif
     if (!res.isNull() ) {
         if ( (1 << res->getFallbackIndex() ) & fallbackPassMask ) {       // already processed
             // full_mask != fallbackPassMask, then recursion is not endless
