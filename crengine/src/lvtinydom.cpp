@@ -4545,7 +4545,12 @@ bool ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback,
             printf("CRE: styles re-init needed after load, re-rendering\n");
             // We should clear RenderRectAccessor, that may have been used for
             // caching CSS checks results (i.e. :nth-child(), :last-of-type...)
-            getRootNode()->clearRenderDataRecursive();
+            if ( hasRenderData() ) {
+                // (We would crash in the following if no RenderRectAccessor has
+                // been created, which may happen if we're here not because of
+                // CSS checks but because of embedded fonts.)
+                getRootNode()->clearRenderDataRecursive();
+            }
         }
         CRLog::info("rendering context is changed - full render required...");
         // Clear LFormattedTextRef cache
