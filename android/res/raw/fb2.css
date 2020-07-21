@@ -17,7 +17,7 @@ li { display: list-item; text-indent: 0em;  }
 ul { display: block; list-style-type: disc; margin-left: 1em }
 ol { display: block; list-style-type: decimal; margin-left: 1em }
 
-v { text-align: left; text-align-last: right; text-indent: 1em hanging }
+v { text-align: left; text-align-last: -cr-right-if-not-first; text-indent: 1em hanging; hyphenate: none }
 
 stanza { $poem.all }
 stanza + stanza { margin-top: 1em; }
@@ -68,7 +68,7 @@ th {  font-weight: bold; text-align: center; }
 /* #808080; */
 table caption { text-indent: 0px; padding: 4px; }
 
-tt, samp, kbd, code, pre { font-family: "Courier New", "Courier", monospace; } 
+tt, samp, kbd, code, pre { font-family: "Droid Sans Mono", "Liberation Mono", "DeJaVu Sans Mono", "Courier New", "Courier", monospace; } 
 code, pre { 
     display: block; 
     white-space: pre; 
@@ -104,7 +104,7 @@ coverpage { display: none }
 
 head, form, script { display: none; } 
 
-b,strong,i,em,dfn,var,q,u,del,s,strike,small,big,sub,sup,acronym,tt,sa mp,kbd,code { 
+b,strong,i,em,dfn,var,q,u,del,s,strike,small,big,sub,sup,acronym,tt,samp,kbd {
    display: inline; 
 } 
 
