@@ -15510,15 +15510,12 @@ void ldomNode::clearRenderDataRecursive()
     if ( !isElement() )
         return;
     lvdomElementFormatRec rec;
-    ldomDataStorageManager& rectStorage = getDocument()->_rectStorage;
-    if (rectStorage.getUncompressedSize() > 0) {
-        rectStorage.setRendRectData(_handle._dataIndex, &rec);
-        int cnt = getChildCount();
-        for (int i=0; i<cnt; i++) {
-            ldomNode * child = getChildNode( i );
-            if ( child->isElement() ) {
-                child->clearRenderDataRecursive();
-            }
+    getDocument()->_rectStorage.setRendRectData(_handle._dataIndex, &rec);
+    int cnt = getChildCount();
+    for (int i=0; i<cnt; i++) {
+        ldomNode * child = getChildNode( i );
+        if ( child->isElement() ) {
+            child->clearRenderDataRecursive();
         }
     }
 }
