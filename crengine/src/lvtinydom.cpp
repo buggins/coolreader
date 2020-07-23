@@ -2668,7 +2668,7 @@ void ldomDataStorageManager::setStyleData( lUInt32 elemDataIndex, const ldomNode
     // assume storage has raw data chunks
     int index = elemDataIndex>>4; // element sequential index
     int chunkIndex = index >> STYLE_DATA_CHUNK_ITEMS_SHIFT;
-    while ( _chunks.length() < chunkIndex ) {
+    while ( _chunks.length() <= chunkIndex ) {
         //if ( _chunks.length()>0 )
         //    _chunks[_chunks.length()-1]->compact();
         _chunks.add( new ldomTextStorageChunk(STYLE_DATA_CHUNK_SIZE, this, _chunks.length()) );
@@ -2705,7 +2705,7 @@ void ldomDataStorageManager::setRendRectData( lUInt32 elemDataIndex, const lvdom
     // assume storage has raw data chunks
     int index = elemDataIndex>>4; // element sequential index
     int chunkIndex = index >> RECT_DATA_CHUNK_ITEMS_SHIFT;
-    while ( _chunks.length() < chunkIndex ) {
+    while ( _chunks.length() <= chunkIndex ) {
         //if ( _chunks.length()>0 )
         //    _chunks[_chunks.length()-1]->compact();
         _chunks.add( new ldomTextStorageChunk(RECT_DATA_CHUNK_SIZE, this, _chunks.length()) );
@@ -4544,14 +4544,6 @@ bool ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback,
             // is invalid (should happen now only when EPUB has embedded fonts
             // or some pseudoclass like :last-child has been met).
             printf("CRE: styles re-init needed after load, re-rendering\n");
-            // We should clear RenderRectAccessor, that may have been used for
-            // caching CSS checks results (i.e. :nth-child(), :last-of-type...)
-            if ( hasRenderData() ) {
-                // (We would crash in the following if no RenderRectAccessor has
-                // been created, which may happen if we're here not because of
-                // CSS checks but because of embedded fonts.)
-                getRootNode()->clearRenderDataRecursive();
-            }
         }
         CRLog::info("rendering context is changed - full render required...");
         // Clear LFormattedTextRef cache
@@ -7435,6 +7427,14 @@ ldomDocumentWriter::~ldomDocumentWriter()
             // Some pseudoclass like :last-child has been met which has set this flag
             printf("CRE: document loaded, but styles re-init needed (cause: peculiar CSS pseudoclasses met)\n");
             _document->forceReinitStyles();
+        }
+        if ( _document->hasRenderData() ) {
+            // We have created some RenderRectAccessors, to cache some CSS check results
+            // (i.e. :nth-child(), :last-of-type...): we should clean them.
+            // (We do that here for after the initial loading phase - on re-renderings,
+            // this is done in updateRendMethod() called by initNodeRendMethodRecursive()
+            // on all nodes.)
+            _document->getRootNode()->clearRenderDataRecursive();
         }
     }
 

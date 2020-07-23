@@ -1555,6 +1555,8 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         m_doc->registerEmbeddedFonts();
         printf("CRE: document loaded, but styles re-init needed (cause: embedded fonts)\n");
         m_doc->forceReinitStyles();
+        // todo: we could avoid forceReinitStyles() when embedded fonts are disabled
+        // (but being here is quite rare - and having embedded font disabled even more)
     }
 
     if ( fragmentCount==0 )
