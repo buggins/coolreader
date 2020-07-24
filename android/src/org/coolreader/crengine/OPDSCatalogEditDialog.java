@@ -46,19 +46,10 @@ public class OPDSCatalogEditDialog extends BaseDialog {
 		if (OPDSConst.BLACK_LIST_MODE == OPDSConst.BLACK_LIST_MODE_FORCE) {
 			mActivity.showToast(R.string.black_list_enforced);
 		} else if (OPDSConst.BLACK_LIST_MODE == OPDSConst.BLACK_LIST_MODE_WARN) {
-			mActivity.askConfirmation(R.string.black_list_warning, new Runnable() {
-				@Override
-				public void run() {
-					save();
-					OPDSCatalogEditDialog.super.onPositiveButtonClick();
-				}
-				
-			}, new Runnable() {
-				@Override
-				public void run() {
-					onNegativeButtonClick();
-				}
-			});
+			mActivity.askConfirmation(R.string.black_list_warning, () -> {
+				save();
+				OPDSCatalogEditDialog.super.onPositiveButtonClick();
+			}, this::onNegativeButtonClick);
 		} else {
 			save();
 			super.onPositiveButtonClick();

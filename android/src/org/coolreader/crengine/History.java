@@ -40,15 +40,12 @@ public class History extends FileInfoChangeSource {
 			callback.onBookInfoLoaded(res);
 			return;
 		}
-		db.loadBookInfo(file, new CRDBService.BookInfoLoadingCallback() {
-			@Override
-			public void onBooksInfoLoaded(BookInfo bookInfo) {
-				if (bookInfo == null) {
-					bookInfo = new BookInfo(file);
-					mBooks.add(0, bookInfo);
-				}
-				callback.onBookInfoLoaded(bookInfo);
+		db.loadBookInfo(file, bookInfo -> {
+			if (bookInfo == null) {
+				bookInfo = new BookInfo(file);
+				mBooks.add(0, bookInfo);
 			}
+			callback.onBookInfoLoaded(bookInfo);
 		});
 	}
 	
@@ -142,32 +139,22 @@ public class History extends FileInfoChangeSource {
 			callback.onRecentBooksListLoaded(mBooks);
 		} else {
 			// not yet loaded. Wait until ready: sync with DB thread.
-			db.sync(new Runnable() {
-				@Override
-				public void run() {
-					callback.onRecentBooksListLoaded(mBooks);
-				}
-			});
+			db.sync(() -> callback.onRecentBooksListLoaded(mBooks));
 		}
-			
 	}
 	
 	public boolean loadFromDB(final CRDBService.LocalBinder db, int maxItems )
 	{
 		Log.v("cr3", "History.loadFromDB()");
 		mRecentBooksFolder = mScanner.getRecentDir();
-		db.loadRecentBooks(100, new CRDBService.RecentBooksLoadingCallback() {
-			@Override
-			public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
-				if (bookList != null) {
-					mBooks = bookList;
-					updateRecentDir();
-				}
+		db.loadRecentBooks(100, bookList -> {
+			if (bookList != null) {
+				mBooks = bookList;
+				updateRecentDir();
 			}
 		});
 		if ( mRecentBooksFolder==null )
 			Log.v("cr3", "History.loadFromDB() : mRecentBooksFolder is null");
 		return true;
 	}
-
 }

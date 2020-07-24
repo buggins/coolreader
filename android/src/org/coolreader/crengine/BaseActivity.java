@@ -1,27 +1,10 @@
 package org.coolreader.crengine;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Locale;
-
-import org.coolreader.Dictionaries;
-import org.coolreader.Dictionaries.DictInfo;
-import org.coolreader.R;
-import org.coolreader.db.CRDBService;
-import org.coolreader.db.CRDBServiceAccessor;
-
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -36,20 +19,32 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.text.ClipboardManager;
 import android.util.DisplayMetrics;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
-import android.view.View.OnCreateContextMenuListener;
 import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.Toast;
+
+import org.coolreader.Dictionaries;
+import org.coolreader.Dictionaries.DictInfo;
+import org.coolreader.R;
+import org.coolreader.db.CRDBService;
+import org.coolreader.db.CRDBServiceAccessor;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Locale;
 
 @SuppressLint("Registered")
 public class BaseActivity extends Activity implements Settings {
@@ -705,12 +700,7 @@ public class BaseActivity extends Activity implements Settings {
 	private boolean setSystemUiVisibility(int value) {
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
 			if (!systemUiVisibilityListenerIsSet && null != mDecorView) {
-				mDecorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-					@Override
-					public void onSystemUiVisibilityChange(int visibility) {
-						lastSystemUiVisibility = visibility;
-					}
-				});
+				mDecorView.setOnSystemUiVisibilityChangeListener(visibility -> lastSystemUiVisibility = visibility);
 				systemUiVisibilityListenerIsSet = true;
 			}
 			boolean a4 = DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH;
@@ -794,14 +784,11 @@ public class BaseActivity extends Activity implements Settings {
 			return;
 		}
 		// repeat again in short interval
-		Runnable task = new Runnable() {
-			@Override
-			public void run() {
-				if (!isStarted())
-					return;
-				if (!Engine.getInstance(BaseActivity.this).setKeyBacklight(0)) {
-					//log.w("Cannot control key backlight directly (delayed)");
-				}
+		Runnable task = () -> {
+			if (!isStarted())
+				return;
+			if (!Engine.getInstance(BaseActivity.this).setKeyBacklight(0)) {
+				//log.w("Cannot control key backlight directly (delayed)");
 			}
 		};
 		BackgroundThread.instance().postGUI(task, 1);
@@ -818,14 +805,11 @@ public class BaseActivity extends Activity implements Settings {
 			return;
 		}
 		// repeat again in short interval
-		Runnable task = new Runnable() {
-			@Override
-			public void run() {
-				if (!isStarted())
-					return;
-				if (!Engine.getInstance(BaseActivity.this).setKeyBacklight(1)) {
-					//log.w("Cannot control key backlight directly (delayed)");
-				}
+		Runnable task = () -> {
+			if (!isStarted())
+				return;
+			if (!Engine.getInstance(BaseActivity.this).setKeyBacklight(1)) {
+				//log.w("Cannot control key backlight directly (delayed)");
 			}
 		};
 		BackgroundThread.instance().postGUI(task, 1);
@@ -908,42 +892,39 @@ public class BaseActivity extends Activity implements Settings {
 			backlightControl.onUserActivity();
 		// Hack
 		//if ( backlightControl.isHeld() )
-		BackgroundThread.instance().executeGUI(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					float b;
-					int dimmingAlpha = 255;
-					// screenBacklightBrightness is 0..100
-					if (screenBacklightBrightness >= 0) {
-						int percent = screenBacklightBrightness;
-						if (!allowLowBrightness() && percent < MIN_BRIGHTNESS_IN_BROWSER)
-							percent = MIN_BRIGHTNESS_IN_BROWSER;
-						float minb = MIN_BACKLIGHT_LEVEL_PERCENT / 100.0f;
-						if (percent >= 10) {
-							// real brightness control, no colors dimming
-							b = (percent - 10) / (100.0f - 10.0f); // 0..1
-							b = minb + b * (1 - minb); // minb..1
-							if (b < minb) // BRIGHTNESS_OVERRIDE_OFF
-								b = minb;
-							else if (b > 1.0f)
-								b = 1.0f; //BRIGHTNESS_OVERRIDE_FULL
-						} else {
-							// minimal brightness with colors dimming
+		BackgroundThread.instance().executeGUI(() -> {
+			try {
+				float b;
+				int dimmingAlpha = 255;
+				// screenBacklightBrightness is 0..100
+				if (screenBacklightBrightness >= 0) {
+					int percent = screenBacklightBrightness;
+					if (!allowLowBrightness() && percent < MIN_BRIGHTNESS_IN_BROWSER)
+						percent = MIN_BRIGHTNESS_IN_BROWSER;
+					float minb = MIN_BACKLIGHT_LEVEL_PERCENT / 100.0f;
+					if (percent >= 10) {
+						// real brightness control, no colors dimming
+						b = (percent - 10) / (100.0f - 10.0f); // 0..1
+						b = minb + b * (1 - minb); // minb..1
+						if (b < minb) // BRIGHTNESS_OVERRIDE_OFF
 							b = minb;
-							dimmingAlpha = 255 - (11 - percent) * 180 / 10;
-						}
+						else if (b > 1.0f)
+							b = 1.0f; //BRIGHTNESS_OVERRIDE_FULL
 					} else {
-						// system
-						b = -1.0f; //BRIGHTNESS_OVERRIDE_NONE
+						// minimal brightness with colors dimming
+						b = minb;
+						dimmingAlpha = 255 - (11 - percent) * 180 / 10;
 					}
-					setDimmingAlpha(dimmingAlpha);
-					//log.v("Brightness: " + b + ", dim: " + dimmingAlpha);
-					updateBacklightBrightness(b);
-					updateButtonsBrightness(keyBacklightOff ? 0.0f : -1.0f);
-				} catch (Exception e) {
-					// ignore
+				} else {
+					// system
+					b = -1.0f; //BRIGHTNESS_OVERRIDE_NONE
 				}
+				setDimmingAlpha(dimmingAlpha);
+				//log.v("Brightness: " + b + ", dim: " + dimmingAlpha);
+				updateBacklightBrightness(b);
+				updateButtonsBrightness(keyBacklightOff ? 0.0f : -1.0f);
+			} catch (Exception e) {
+				// ignore
 			}
 		});
 	}
@@ -1252,19 +1233,10 @@ public class BaseActivity extends Activity implements Settings {
 			try {
 				final int n = Integer.valueOf(value);
 				// delay before setting brightness
-				BackgroundThread.instance().postGUI(new Runnable() {
-					public void run() {
-						BackgroundThread.instance().postBackground(new Runnable() {
-							public void run() {
-								BackgroundThread.instance().postGUI(new Runnable() {
-									public void run() {
-										setScreenBacklightLevel(n);
-									}
-								});
-							}
-						});
-					}
-				}, 100);
+				BackgroundThread.instance()
+						.postGUI(() -> BackgroundThread.instance()
+								.postBackground(() -> BackgroundThread.instance()
+										.postGUI(() -> setScreenBacklightLevel(n))), 100);
 			} catch (Exception e) {
 				// ignore
 			}
@@ -1286,16 +1258,10 @@ public class BaseActivity extends Activity implements Settings {
 	public void askConfirmation(int questionResourceId, final Runnable action, final Runnable cancelAction) {
 		AlertDialog.Builder dlg = new AlertDialog.Builder(this);
 		dlg.setMessage(questionResourceId);
-		dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
-			public void onClick(DialogInterface arg0, int arg1) {
-				action.run();
-			}
-		});
-		dlg.setNegativeButton(R.string.dlg_button_cancel, new OnClickListener() {
-			public void onClick(DialogInterface arg0, int arg1) {
-				if (cancelAction != null)
-					cancelAction.run();
-			}
+		dlg.setPositiveButton(R.string.dlg_button_ok, (arg0, arg1) -> action.run());
+		dlg.setNegativeButton(R.string.dlg_button_cancel, (arg0, arg1) -> {
+			if (cancelAction != null)
+				cancelAction.run();
 		});
 		dlg.show();
 	}
@@ -1303,15 +1269,9 @@ public class BaseActivity extends Activity implements Settings {
 	public void askConfirmation(String question, final Runnable action) {
 		AlertDialog.Builder dlg = new AlertDialog.Builder(this);
 		dlg.setTitle(question);
-		dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
-			public void onClick(DialogInterface arg0, int arg1) {
-				action.run();
-			}
-		});
-		dlg.setNegativeButton(R.string.dlg_button_cancel, new OnClickListener() {
-			public void onClick(DialogInterface arg0, int arg1) {
-				// do nothing
-			}
+		dlg.setPositiveButton(R.string.dlg_button_ok, (arg0, arg1) -> action.run());
+		dlg.setNegativeButton(R.string.dlg_button_cancel, (arg0, arg1) -> {
+			// do nothing
 		});
 		dlg.show();
 	}
@@ -1325,30 +1285,20 @@ public class BaseActivity extends Activity implements Settings {
 	}
 
 	public void showActionsPopupMenu(final ReaderAction[] actions, final CRToolBar.OnActionHandler onActionHandler) {
-		ArrayList<ReaderAction> list = new ArrayList<ReaderAction>(actions.length);
-		for (ReaderAction a : actions)
-			list.add(a);
+		ArrayList<ReaderAction> list = new ArrayList<>(actions.length);
+		list.addAll(Arrays.asList(actions));
 		showActionsPopupMenu(list, onActionHandler);
 	}
 
 	public void showActionsPopupMenu(final ArrayList<ReaderAction> actions, final CRToolBar.OnActionHandler onActionHandler) {
 		registerForContextMenu(contentView);
-		contentView.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
-			@Override
-			public void onCreateContextMenu(ContextMenu menu, View v,
-											ContextMenuInfo menuInfo) {
-				//populate only it is not populated by children
-				if (menu.size() == 0) {
-					int order = 0;
-					for (final ReaderAction action : actions) {
-						MenuItem item = menu.add(0, action.menuItemId, order++, action.nameId);
-						item.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-							@Override
-							public boolean onMenuItemClick(MenuItem item) {
-								return onActionHandler.onActionSelected(action);
-							}
-						});
-					}
+		contentView.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
+			//populate only it is not populated by children
+			if (menu.size() == 0) {
+				int order = 0;
+				for (final ReaderAction action : actions) {
+					MenuItem item = menu.add(0, action.menuItemId, order++, action.nameId);
+					item.setOnMenuItemClickListener(item1 -> onActionHandler.onActionSelected(action));
 				}
 			}
 		});

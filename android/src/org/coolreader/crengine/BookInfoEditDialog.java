@@ -1,11 +1,5 @@
 package org.coolreader.crengine;
 
-import java.util.ArrayList;
-
-import org.coolreader.CoolReader;
-import org.coolreader.R;
-import org.coolreader.crengine.CoverpageManager.CoverpageBitmapReadyListener;
-
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -20,7 +14,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -29,6 +22,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.RatingBar;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
+
+import java.util.ArrayList;
 
 public class BookInfoEditDialog extends BaseDialog {
 	private CoolReader mActivity;
@@ -239,26 +237,13 @@ public class BookInfoEditDialog extends BaseDialog {
         ViewGroup view = (ViewGroup)mInflater.inflate(R.layout.book_info_edit_dialog, null);
         
         ImageButton btnBack = (ImageButton)view.findViewById(R.id.base_dlg_btn_back);
-        btnBack.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onNegativeButtonClick();
-			}
-		});
+        btnBack.setOnClickListener(v -> onNegativeButtonClick());
         ImageButton btnOpenBook = (ImageButton)view.findViewById(R.id.btn_open_book);
-        btnOpenBook.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onPositiveButtonClick();
-			}
-		});
+        btnOpenBook.setOnClickListener(v -> onPositiveButtonClick());
         ImageButton btnDeleteBook = (ImageButton)view.findViewById(R.id.book_delete);
-        btnDeleteBook.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mActivity.askDeleteBook(mBookInfo.getFileInfo());
-				dismiss();
-			}
+        btnDeleteBook.setOnClickListener(v -> {
+			mActivity.askDeleteBook(mBookInfo.getFileInfo());
+			dismiss();
 		});
         
         edTitle = (EditText)view.findViewById(R.id.book_title);
@@ -271,12 +256,9 @@ public class BookInfoEditDialog extends BaseDialog {
         rgState.check(state >= 0 && state < stateButtons.length ? stateButtons[state] : R.id.book_state_new);
 
         final ImageView image = (ImageView)view.findViewById(R.id.book_cover);
-        image.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				// open book
-				onPositiveButtonClick();
-			}
+        image.setOnClickListener(v -> {
+			// open book
+			onPositiveButtonClick();
 		});
         int w = mWindowSize * 4 / 10;
         int h = w * 4 / 3;
@@ -285,28 +267,23 @@ public class BookInfoEditDialog extends BaseDialog {
         image.setMinimumWidth(w);
         image.setMaxWidth(w);
         Bitmap bmp = Bitmap.createBitmap(w, h, Config.RGB_565);
-        Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), file, bmp, new CoverpageBitmapReadyListener() {
-			@Override
-			public void onCoverpageReady(CoverpageManager.ImageItem file, Bitmap bitmap) {
-		        BitmapDrawable drawable = new BitmapDrawable(bitmap);
-				image.setImageDrawable(drawable);
-			}
-		}); 
+        Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), file, bmp, (file1, bitmap) -> {
+			BitmapDrawable drawable = new BitmapDrawable(bitmap);
+			image.setImageDrawable(drawable);
+		});
 
         final ImageView progress = (ImageView)view.findViewById(R.id.book_progress);
         int percent = -1;
         Bookmark bmk = mBookInfo.getLastPosition();
         if (bmk != null)
         	percent = bmk.getPercent();
-        if (percent >= 0 && percent <= 10000) {
-        	progress.setMinimumWidth(w);
-        	progress.setMaxWidth(w);
-        	progress.setMinimumHeight(8);
+		progress.setMinimumWidth(w);
+		progress.setMaxWidth(w);
+		if (percent >= 0 && percent <= 10000) {
+			progress.setMinimumHeight(8);
         	progress.setMaxHeight(8);
         } else {
-        	progress.setMinimumWidth(w);
-        	progress.setMaxWidth(w);
-        	progress.setMinimumHeight(0);
+			progress.setMinimumHeight(0);
         	progress.setMaxHeight(0);
         }
         progress.setImageDrawable(new ProgressDrawable(w, 8, percent));
@@ -323,19 +300,13 @@ public class BookInfoEditDialog extends BaseDialog {
     	ImageButton btnRemoveRecent = ((ImageButton)view.findViewById(R.id.book_recent_delete));
     	ImageButton btnOpenFolder = ((ImageButton)view.findViewById(R.id.book_folder_open));
         if (mIsRecentBooksItem) {
-        	btnRemoveRecent.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					mActivity.askDeleteRecent(mBookInfo.getFileInfo());
-					dismiss();
-				}
+        	btnRemoveRecent.setOnClickListener(v -> {
+				mActivity.askDeleteRecent(mBookInfo.getFileInfo());
+				dismiss();
 			});
-        	btnOpenFolder.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					mActivity.showDirectory(mBookInfo.getFileInfo());
-					dismiss();
-				}
+        	btnOpenFolder.setOnClickListener(v -> {
+				mActivity.showDirectory(mBookInfo.getFileInfo());
+				dismiss();
 			});
         } else {
         	ViewGroup parent = ((ViewGroup)btnRemoveRecent.getParent());
@@ -392,12 +363,9 @@ public class BookInfoEditDialog extends BaseDialog {
 	@Override
 	protected void onPositiveButtonClick() {
 		save();
-		mActivity.loadDocument(mBookInfo.getFileInfo(), new Runnable() {
-			@Override
-			public void run() {
-				// error occured
-				// ignoring
-			}
+		mActivity.loadDocument(mBookInfo.getFileInfo(), () -> {
+			// error occured
+			// ignoring
 		});
 		super.onPositiveButtonClick();
 	}

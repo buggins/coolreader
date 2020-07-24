@@ -20,6 +20,8 @@ package org.coolreader.crengine;
 
 //package android.util;
 
+import android.util.Base64OutputStream;
+
 import java.io.UnsupportedEncodingException;
 
 /**

@@ -1,8 +1,5 @@
 package org.coolreader.crengine;
 
-import org.coolreader.R;
-import org.coolreader.db.CRDBService;
-
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.os.Bundle;
@@ -10,12 +7,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import org.coolreader.R;
+import org.coolreader.db.CRDBService;
 
 import java.util.ArrayList;
 
@@ -135,13 +134,9 @@ public class SearchDlg extends BaseDialog {
 			setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 			setLongClickable(true);
 			setAdapter(new SearchDlg.SearchListAdapter());
-			setOnItemLongClickListener(new OnItemLongClickListener() {
-				@Override
-				public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-											   int position, long arg3) {
-					openContextMenu(SearchDlg.SearchList.this);
-					return true;
-				}
+			setOnItemLongClickListener((arg0, arg1, position, arg3) -> {
+				openContextMenu(SearchList.this);
+				return true;
 			});
 		}
 
@@ -167,14 +162,11 @@ public class SearchDlg extends BaseDialog {
     		mEditView.setText(initialText);
     	mCaseSensitive = (CheckBox)mDialogView.findViewById(R.id.search_case_sensitive);
     	mReverse = (CheckBox)mDialogView.findViewById(R.id.search_reverse);
-		activity.getDB().loadSearchHistory(this.mBookInfo, new CRDBService.SearchHistoryLoadingCallback() {
-			@Override
-			public void onSearchHistoryLoaded(ArrayList<String> searches) {
-				mSearches = searches;
-				ViewGroup body = (ViewGroup)mDialogView.findViewById(R.id.history_list);
-				mList = new SearchDlg.SearchList(activity, false);
-				body.addView(mList);
-			}
+		activity.getDB().loadSearchHistory(this.mBookInfo, (CRDBService.SearchHistoryLoadingCallback) searches -> {
+			mSearches = searches;
+			ViewGroup body = (ViewGroup)mDialogView.findViewById(R.id.history_list);
+			mList = new SearchList(activity, false);
+			body.addView(mList);
 		});
 		//setView(mDialogView);
 		//setFlingHandlers(mList, null, null);

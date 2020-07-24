@@ -78,12 +78,9 @@ public class ServiceThread extends Thread {
 	public boolean waitForCompletion(long timeout) {
 		final Object lock = new Object();
 		synchronized (lock) {
-			mHandler.post(new Runnable() {
-				@Override
-				public void run() {
-					synchronized (lock) {
-						lock.notify();
-					}
+			mHandler.post(() -> {
+				synchronized (lock) {
+					lock.notify();
 				}
 			});
 			try {

@@ -1,15 +1,6 @@
 package org.coolreader.crengine;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Random;
-
-import org.coolreader.CoolReader;
-import org.coolreader.CoolReader.DonationListener;
-import org.coolreader.R;
-
 import android.content.ActivityNotFoundException;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
@@ -19,6 +10,13 @@ import android.widget.Button;
 import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
 import android.widget.TextView;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
 
 public class AboutDialog extends BaseDialog implements TabContentFactory {
 	final CoolReader mCoolReader;
@@ -51,23 +49,13 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 			btn.setEnabled(false);
 			btn.setText(R.string.dlg_about_donation_installed);
 		} else {
-			btn.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					installPackage(packageName);
-				}
-			});
+			btn.setOnClickListener(v -> installPackage(packageName));
 		}
 	}
 	
 	private void setupInAppDonationButton( final Button btn, final double amount ) {
 		btn.setText("$" + amount);
-		btn.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mCoolReader.makeDonation(amount);
-			}
-		});
+		btn.setOnClickListener(v -> mCoolReader.makeDonation(amount));
 	}
 	
 	private void updateTotalDonations() {
@@ -162,18 +150,8 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), 1);
 			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_iron), 0.3);
 			updateTotalDonations();
-			mCoolReader.setDonationListener(new DonationListener() {
-				@Override
-		    	public void onDonationTotalChanged(double total) {
-		    		updateTotalDonations();
-		    	}
-		    });
-			setOnDismissListener(new OnDismissListener() {
-				@Override
-				public void onDismiss(DialogInterface dialog) {
-					mCoolReader.setDonationListener(null);
-				}
-			});
+			mCoolReader.setDonationListener(total -> updateTotalDonations());
+			setOnDismissListener(dialog -> mCoolReader.setDonationListener(null));
 		} else {
 			setupDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_gold), "org.coolreader.donation.gold");
 			setupDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_silver), "org.coolreader.donation.silver");

@@ -1,22 +1,21 @@
 package org.coolreader.crengine;
 
-import java.util.HashMap;
-
-import org.coolreader.R;
-import org.coolreader.plugins.AuthenticationCallback;
-import org.coolreader.plugins.OnlineStoreRegistrationParam;
-import org.coolreader.plugins.OnlineStoreWrapper;
-
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import org.coolreader.R;
+import org.coolreader.plugins.AuthenticationCallback;
+import org.coolreader.plugins.OnlineStoreRegistrationParam;
+import org.coolreader.plugins.OnlineStoreWrapper;
+
+import java.util.HashMap;
 
 public class OnlineStoreNewAccountDialog extends BaseDialog {
 	private BaseActivity mActivity;
@@ -63,19 +62,9 @@ public class OnlineStoreNewAccountDialog extends BaseDialog {
         ViewGroup view = (ViewGroup)mInflater.inflate(R.layout.online_store_new_account_dialog, null);
         
         ImageButton btnBack = (ImageButton)view.findViewById(R.id.base_dlg_btn_back);
-        btnBack.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onNegativeButtonClick();
-			}
-		});
+        btnBack.setOnClickListener(v -> onNegativeButtonClick());
         btnRegister = (Button)view.findViewById(R.id.btn_new_account);
-        btnRegister.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onPositiveButtonClick();
-			}
-		});
+        btnRegister.setOnClickListener(v -> onPositiveButtonClick());
         
         lblTitle = (TextView)view.findViewById(R.id.dlg_title);
         lblDescription = (TextView)view.findViewById(R.id.lbl_description);

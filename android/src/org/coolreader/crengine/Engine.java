@@ -182,14 +182,12 @@ public class Engine {
 					log.i("exited task.work() "
 							+ task.getClass().getName());
 				// post success callback
-				BackgroundThread.instance().postGUI(new Runnable() {
-					public void run() {
-						if (LOG_ENGINE_TASKS)
-							log.i("running task.done() "
-									+ task.getClass().getName()
-									+ " in gui thread");
-						task.done();
-					}
+				BackgroundThread.instance().postGUI(() -> {
+					if (LOG_ENGINE_TASKS)
+						log.i("running task.done() "
+								+ task.getClass().getName()
+								+ " in gui thread");
+					task.done();
 				});
 				// } catch ( final FatalError e ) {
 				// TODO:
@@ -213,13 +211,11 @@ public class Engine {
 				log.e("exception while running task "
 						+ task.getClass().getName(), e);
 				// post error callback
-				BackgroundThread.instance().postGUI(new Runnable() {
-					public void run() {
-						log.e("running task.fail(" + e.getMessage()
-								+ ") " + task.getClass().getSimpleName()
-								+ " in gui thread ");
-						task.fail(e);
-					}
+				BackgroundThread.instance().postGUI(() -> {
+					log.e("running task.fail(" + e.getMessage()
+							+ ") " + task.getClass().getSimpleName()
+							+ " in gui thread ");
+					task.fail(e);
 				});
 			}
 		}
@@ -333,28 +329,20 @@ public class Engine {
 		 */
 		public void hide() {
 			this.cancelled = true;
-			BackgroundThread.instance().executeGUI(new Runnable() {
-				@Override
-				public void run() {
-					if (shown)
-						hideProgress();
-					shown = false;
-				}
-
+			BackgroundThread.instance().executeGUI(() -> {
+				if (shown)
+					hideProgress();
+				shown = false;
 			});
 		}
 
 		DelayedProgress(final int percent, final String msg, final int delayMillis) {
 			this.cancelled = false;
-			BackgroundThread.instance().postGUI(new Runnable() {
-				@Override
-				public void run() {
-					if (!cancelled) {
-						showProgress(percent, msg);
-						shown = true;
-					}
+			BackgroundThread.instance().postGUI(() -> {
+				if (!cancelled) {
+					showProgress(percent, msg);
+					shown = true;
 				}
-
 			}, delayMillis);
 		}
 	}
@@ -391,51 +379,49 @@ public class Engine {
 		log.v("showProgress(" + mainProgress + ", \"" + msg
 				+ "\") is called : " + Thread.currentThread().getName());
 		if (enable_progress) {
-			BackgroundThread.instance().executeGUI(new Runnable() {
-				public void run() {
-					// show progress
-					//log.v("showProgress() - in GUI thread");
-					if (progressId != nextProgressId) {
-						//log.v("showProgress() - skipping duplicate progress event");
-						return;
-					}
-					if (mProgress == null) {
-						//log.v("showProgress() - creating progress window");
-						try {
-							if (mActivity != null && mActivity.isStarted()) {
-								mProgress = new ProgressDialog(mActivity);
-								mProgress
-										.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-								if (progressIcon != null)
-									mProgress.setIcon(progressIcon);
-								else
-									mProgress.setIcon(R.mipmap.cr3_logo);
-								mProgress.setMax(10000);
-								mProgress.setCancelable(false);
-								mProgress.setProgress(mainProgress);
-								mProgress
-										.setTitle(mActivity
-												.getResources()
-												.getString(
-														R.string.progress_please_wait));
-								mProgress.setMessage(msg);
-								mProgress.show();
-								progressShown = true;
-							}
-						} catch (Exception e) {
-							Log.e("cr3",
-									"Exception while trying to show progress dialog",
-									e);
-							progressShown = false;
-							mProgress = null;
-						}
-					} else {
-						mProgress.setProgress(mainProgress);
-						mProgress.setMessage(msg);
-						if (!mProgress.isShowing()) {
+			BackgroundThread.instance().executeGUI(() -> {
+				// show progress
+				//log.v("showProgress() - in GUI thread");
+				if (progressId != nextProgressId) {
+					//log.v("showProgress() - skipping duplicate progress event");
+					return;
+				}
+				if (mProgress == null) {
+					//log.v("showProgress() - creating progress window");
+					try {
+						if (mActivity != null && mActivity.isStarted()) {
+							mProgress = new ProgressDialog(mActivity);
+							mProgress
+									.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+							if (progressIcon != null)
+								mProgress.setIcon(progressIcon);
+							else
+								mProgress.setIcon(R.mipmap.cr3_logo);
+							mProgress.setMax(10000);
+							mProgress.setCancelable(false);
+							mProgress.setProgress(mainProgress);
+							mProgress
+									.setTitle(mActivity
+											.getResources()
+											.getString(
+													R.string.progress_please_wait));
+							mProgress.setMessage(msg);
 							mProgress.show();
 							progressShown = true;
 						}
+					} catch (Exception e) {
+						Log.e("cr3",
+								"Exception while trying to show progress dialog",
+								e);
+						progressShown = false;
+						mProgress = null;
+					}
+				} else {
+					mProgress.setProgress(mainProgress);
+					mProgress.setMessage(msg);
+					if (!mProgress.isShowing()) {
+						mProgress.show();
+						progressShown = true;
 					}
 				}
 			});
@@ -451,25 +437,23 @@ public class Engine {
 		log.v("hideProgress() - is called : "
 				+ Thread.currentThread().getName());
 		// log.v("hideProgress() is called");
-		BackgroundThread.instance().executeGUI(new Runnable() {
-			public void run() {
-				// hide progress
+		BackgroundThread.instance().executeGUI(() -> {
+			// hide progress
 //				log.v("hideProgress() - in GUI thread");
-				if (progressId != nextProgressId) {
+			if (progressId != nextProgressId) {
 //					Log.v("cr3",
 //							"hideProgress() - skipping duplicate progress event");
-					return;
-				}
-				if (mProgress != null) {
-					// if ( mProgress.isShowing() )
-					// mProgress.hide();
-					progressShown = false;
-					progressIcon = null;
-					if (mProgress.isShowing())
-						mProgress.dismiss();
-					mProgress = null;
+				return;
+			}
+			if (mProgress != null) {
+				// if ( mProgress.isShowing() )
+				// mProgress.hide();
+				progressShown = false;
+				progressIcon = null;
+				if (mProgress.isShowing())
+					mProgress.dismiss();
+				mProgress = null;
 //					log.v("hideProgress() - in GUI thread, finished");
-				}
 			}
 		});
 	}
@@ -989,19 +973,17 @@ public class Engine {
 
 	private void setHyphenationDictionaryInternal(final HyphDict dict) {
 		// byte[] image = loadResourceBytes(R.drawable.tx_old_book);
-		BackgroundThread.instance().postBackground(new Runnable() {
-			public void run() {
-				byte[] data = null;
-				if (dict.type == HYPH_DICT) {
-					if (dict.resource != 0) {
-						data = loadResourceBytes(dict.resource);
-					} else if (dict.file != null) {
-						data = loadResourceBytes(dict.file);
-					}
+		BackgroundThread.instance().postBackground(() -> {
+			byte[] data = null;
+			if (dict.type == HYPH_DICT) {
+				if (dict.resource != 0) {
+					data = loadResourceBytes(dict.resource);
+				} else if (dict.file != null) {
+					data = loadResourceBytes(dict.file);
 				}
-				log.i("Setting engine's hyphenation dictionary to " + dict);
-				setHyphenationMethod(dict.type, data);
 			}
+			log.i("Setting engine's hyphenation dictionary to " + dict);
+			setHyphenationMethod(dict.type, data);
 		});
 	}
 

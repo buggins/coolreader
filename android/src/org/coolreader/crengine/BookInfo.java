@@ -1,14 +1,13 @@
 package org.coolreader.crengine;
 
+import android.util.Log;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-
-import android.util.Log;
 
 public class BookInfo {
 	private FileInfo fileInfo;
@@ -193,16 +192,7 @@ public class BookInfo {
 	}
 
 	synchronized public void sortBookmarks() {
-		Collections.sort(bookmarks, new Comparator<Bookmark>() {
-			@Override
-			public int compare(Bookmark bm1, Bookmark bm2) {
-				if ( bm1.getPercent() < bm2.getPercent() )
-					return -1;
-				if ( bm1.getPercent() > bm2.getPercent() )
-					return 1;
-				return 0;
-			}
-		});
+		Collections.sort(bookmarks, (bm1, bm2) -> Integer.compare(bm1.getPercent(), bm2.getPercent()));
 	}
 	
 	synchronized public String getBookmarksExportText() {

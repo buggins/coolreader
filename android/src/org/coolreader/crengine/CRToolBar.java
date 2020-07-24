@@ -331,14 +331,11 @@ public class CRToolBar extends ViewGroup {
 		ib.layout(rc.left, rc.top, rc.right, rc.bottom);
 		if (item == null)
 			overflowButton = ib;
-		ib.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if (item != null)
-					onButtonClick(item);
-				else
-					showOverflowMenu();
-			}
+		ib.setOnClickListener(v -> {
+			if (item != null)
+				onButtonClick(item);
+			else
+				showOverflowMenu();
 		});
 		ib.setAlpha(nightMode ? 0x60 : buttonAlpha);
 		addView(ib);
@@ -410,14 +407,11 @@ public class CRToolBar extends ViewGroup {
         			item.layout(layoutItemRect.left, layoutItemRect.top, layoutItemRect.right, layoutItemRect.bottom);
         			//item.forceLayout();
         			addView(item);
-        			item.setOnClickListener(new OnClickListener() {
-						@Override
-						public void onClick(View v) {
-							if (action != null)
-								onButtonClick(action);
-							else
-								showOverflowMenu();
-						}
+        			item.setOnClickListener(v -> {
+						if (action != null)
+							onButtonClick(action);
+						else
+							showOverflowMenu();
 					});
         		}
 //        		addView(scroll);
@@ -584,55 +578,42 @@ public class CRToolBar extends ViewGroup {
 		}
 		final ReaderAction foundLongMenuAction = longMenuAction;
 		
-		popup.setTouchInterceptor(new OnTouchListener() {
-			
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
-					popup.dismiss();
-					return true;
-				}
-				return false;
-			}
-		});
-		tb.setOnActionHandler(new OnActionHandler() {
-			@Override
-			public boolean onActionSelected(ReaderAction item) {
+		popup.setTouchInterceptor((v, event) -> {
+			if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
 				popup.dismiss();
-				return onActionHandler.onActionSelected(item);
+				return true;
 			}
+			return false;
+		});
+		tb.setOnActionHandler(item -> {
+			popup.dismiss();
+			return onActionHandler.onActionSelected(item);
 		});
 		if (onOverflowHandler != null)
-			tb.setOnOverflowHandler(new OnOverflowHandler() {
-				@Override
-				public boolean onOverflowActions(ArrayList<ReaderAction> actions) {
-					popup.dismiss();
-					return onOverflowHandler.onOverflowActions(actions);
-				}
+			tb.setOnOverflowHandler(actions1 -> {
+				popup.dismiss();
+				return onOverflowHandler.onOverflowActions(actions1);
 			});
 		// close on menu or back keys
 		tb.setFocusable(true);
 		tb.setFocusableInTouchMode(true);
-		tb.setOnKeyListener(new OnKeyListener() {
-			@Override
-			public boolean onKey(View view, int keyCode, KeyEvent event) {
-				if (event.getAction() == KeyEvent.ACTION_DOWN) {
-					if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
-						//popup.dismiss();
-						return true;
-					}
-				} else if (event.getAction() == KeyEvent.ACTION_UP) {
-					if (keyCode == KeyEvent.KEYCODE_MENU && foundLongMenuAction != null && event.getDownTime() >= 500) {
-						popup.dismiss();
-						return onActionHandler.onActionSelected(foundLongMenuAction);
-					}
-					if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
-						popup.dismiss();
-						return true;
-					}
+		tb.setOnKeyListener((view, keyCode, event) -> {
+			if (event.getAction() == KeyEvent.ACTION_DOWN) {
+				if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
+					//popup.dismiss();
+					return true;
 				}
-				return false;
+			} else if (event.getAction() == KeyEvent.ACTION_UP) {
+				if (keyCode == KeyEvent.KEYCODE_MENU && foundLongMenuAction != null && event.getDownTime() >= 500) {
+					popup.dismiss();
+					return onActionHandler.onActionSelected(foundLongMenuAction);
+				}
+				if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
+					popup.dismiss();
+					return true;
+				}
 			}
+			return false;
 		});
 		//popup.setBackgroundDrawable(new BitmapDrawable());
 		popup.setWidth(WindowManager.LayoutParams.FILL_PARENT);

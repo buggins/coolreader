@@ -1,29 +1,25 @@
 package org.coolreader.crengine;
 
-import java.util.HashMap;
-
-import org.coolreader.CoolReader;
-import org.coolreader.R;
-
 import android.graphics.drawable.BitmapDrawable;
-import android.os.Message;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
-import android.widget.PopupWindow.OnDismissListener;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import com.s_trace.motion_watchdog.HandlerThread;
 import com.s_trace.motion_watchdog.MotionWatchdogHandler;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
+
+import java.util.HashMap;
 
 public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	PopupWindow mWindow;
@@ -60,18 +56,15 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 			return;
 		isSpeaking = false;
 		closed = true;
-		BackgroundThread.instance().executeGUI(new Runnable() {
-			@Override
-			public void run() {
-				stop();
-				restoreReaderMode();
-				mReaderView.clearSelection();
-				if (onCloseListener != null)
-					onCloseListener.run();
-				if ( mWindow.isShowing() )
-					mWindow.dismiss();
-				mReaderView.save();
-			}
+		BackgroundThread.instance().executeGUI(() -> {
+			stop();
+			restoreReaderMode();
+			mReaderView.clearSelection();
+			if (onCloseListener != null)
+				onCloseListener.run();
+			if ( mWindow.isShowing() )
+				mWindow.dismiss();
+			mReaderView.save();
 		});
 	}
 	
@@ -214,49 +207,35 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 //		});
 		//super(panel);
 		mPanel = panel;
-		mPanel.findViewById(R.id.tts_play_pause).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				toggleStartStop();
+		mPanel.findViewById(R.id.tts_play_pause).setOnClickListener(v -> toggleStartStop());
+		mPanel.findViewById(R.id.tts_back).setOnClickListener(v -> {
+			if ( isSpeaking ) {
+				isSpeaking = false;
+				mTTS.stop();
+				isSpeaking = true;
 			}
+			moveSelection( ReaderCommand.DCMD_SELECT_PREV_SENTENCE );
 		});
-		mPanel.findViewById(R.id.tts_back).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				if ( isSpeaking ) {
-					isSpeaking = false;
-					mTTS.stop();
-					isSpeaking = true;
-				}
-				moveSelection( ReaderCommand.DCMD_SELECT_PREV_SENTENCE );
+		mPanel.findViewById(R.id.tts_forward).setOnClickListener(v -> {
+			if ( isSpeaking ) {
+				isSpeaking = false;
+				mTTS.stop();
+				isSpeaking = true;
 			}
+			moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
 		});
-		mPanel.findViewById(R.id.tts_forward).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				if ( isSpeaking ) {
-					isSpeaking = false;
-					mTTS.stop();
-					isSpeaking = true;
-				}
-				moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
-			}
-		});
-		mPanel.findViewById(R.id.tts_stop).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				stopAndClose();
-			}
-		});
+		mPanel.findViewById(R.id.tts_stop).setOnClickListener(v -> stopAndClose());
 		mPanel.setFocusable(true);
 		mPanel.setEnabled(true);
-		mPanel.setOnKeyListener( new OnKeyListener() {
-
-			public boolean onKey(View v, int keyCode, KeyEvent event) {
-				if ( event.getAction()==KeyEvent.ACTION_UP ) {
-					switch ( keyCode ) {
-					case KeyEvent.KEYCODE_VOLUME_DOWN:
-					case KeyEvent.KEYCODE_VOLUME_UP:
-						return true;
-					case KeyEvent.KEYCODE_BACK:
-						stopAndClose();
-						return true;
+		mPanel.setOnKeyListener((v, keyCode, event) -> {
+			if ( event.getAction()==KeyEvent.ACTION_UP ) {
+				switch ( keyCode ) {
+				case KeyEvent.KEYCODE_VOLUME_DOWN:
+				case KeyEvent.KEYCODE_VOLUME_UP:
+					return true;
+				case KeyEvent.KEYCODE_BACK:
+					stopAndClose();
+					return true;
 //					case KeyEvent.KEYCODE_DPAD_LEFT:
 //					case KeyEvent.KEYCODE_DPAD_UP:
 //						//mReaderView.findNext(pattern, true, caseInsensitive);
@@ -265,38 +244,31 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 //					case KeyEvent.KEYCODE_DPAD_DOWN:
 //						//mReaderView.findNext(pattern, false, caseInsensitive);
 //						return true;
-					}
-				} else if ( event.getAction()==KeyEvent.ACTION_DOWN ) {
-					switch ( keyCode ) {
-					case KeyEvent.KEYCODE_VOLUME_DOWN: {
-						int p = sbVolume.getProgress() - 5;
-						if ( p<0 )
-							p = 0;
-						sbVolume.setProgress(p);
-						return true;
-					}
-					case KeyEvent.KEYCODE_VOLUME_UP:
-						int p = sbVolume.getProgress() + 5;
-						if ( p>100 )
-							p = 100;
-						sbVolume.setProgress(p);
-						return true;
-					}
-					if ( keyCode == KeyEvent.KEYCODE_BACK) {
-						return true;
-					}
 				}
-				return false;
+			} else if ( event.getAction()==KeyEvent.ACTION_DOWN ) {
+				switch ( keyCode ) {
+				case KeyEvent.KEYCODE_VOLUME_DOWN: {
+					int p = sbVolume.getProgress() - 5;
+					if ( p<0 )
+						p = 0;
+					sbVolume.setProgress(p);
+					return true;
+				}
+				case KeyEvent.KEYCODE_VOLUME_UP:
+					int p = sbVolume.getProgress() + 5;
+					if ( p>100 )
+						p = 100;
+					sbVolume.setProgress(p);
+					return true;
+				}
+				return keyCode == KeyEvent.KEYCODE_BACK;
 			}
-			
+			return false;
 		});
 
-		mWindow.setOnDismissListener(new OnDismissListener() {
-			@Override
-			public void onDismiss() {
-				if ( !closed )
-					stopAndClose();
-			}
+		mWindow.setOnDismissListener(() -> {
+			if (!closed)
+				stopAndClose();
 		});
 		
 		mWindow.setBackgroundDrawable(new BitmapDrawable());
@@ -338,7 +310,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-				float rate = 1.0f;
+				float rate;
 				if ( progress<50 )
 					rate = 0.3f + 0.7f * progress / 50f;
 				else

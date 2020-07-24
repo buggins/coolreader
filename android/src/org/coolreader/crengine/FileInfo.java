@@ -908,93 +908,69 @@ public class FileInfo {
 	}
 	
 	public static enum SortOrder {
-		FILENAME(R.string.mi_book_sort_order_filename, new Comparator<FileInfo>() {
-			public int compare( FileInfo f1, FileInfo f2 )
-			{
-				if ( f1==null || f2==null )
-					return 0;
-				return Utils.cmp(f1.getFileNameToDisplay(), f2.getFileNameToDisplay());
-			}
+		FILENAME(R.string.mi_book_sort_order_filename, (f1, f2) -> {
+			if ( f1==null || f2==null )
+				return 0;
+			return Utils.cmp(f1.getFileNameToDisplay(), f2.getFileNameToDisplay());
 		}),
-		FILENAME_DESC(R.string.mi_book_sort_order_filename_desc, new Comparator<FileInfo>() {
-			public int compare( FileInfo f1, FileInfo f2 )
-			{
-				if ( f1==null || f2==null )
-					return 0;
-				return Utils.cmp(f2.getFileNameToDisplay(), f1.getFileNameToDisplay());
-			}
+		FILENAME_DESC(R.string.mi_book_sort_order_filename_desc, (f1, f2) -> {
+			if ( f1==null || f2==null )
+				return 0;
+			return Utils.cmp(f2.getFileNameToDisplay(), f1.getFileNameToDisplay());
 		}),
-		TIMESTAMP(R.string.mi_book_sort_order_timestamp, new Comparator<FileInfo>() {
-			public int compare( FileInfo f1, FileInfo f2 )
-			{
-				if ( f1==null || f2==null )
-					return 0;
-				return firstNz( cmp(f1.createTime, f2.createTime), Utils.cmp(f1.filename, f2.filename) );
-			}
+		TIMESTAMP(R.string.mi_book_sort_order_timestamp, (f1, f2) -> {
+			if ( f1==null || f2==null )
+				return 0;
+			return firstNz( cmp(f1.createTime, f2.createTime), Utils.cmp(f1.filename, f2.filename) );
 		}),
-		TIMESTAMP_DESC(R.string.mi_book_sort_order_timestamp_desc, new Comparator<FileInfo>() {
-			public int compare( FileInfo f1, FileInfo f2 )
-			{
-				if ( f1==null || f2==null )
-					return 0;
-				return firstNz( cmp(f2.createTime, f1.createTime), Utils.cmp(f2.filename, f1.filename) );
-			}
+		TIMESTAMP_DESC(R.string.mi_book_sort_order_timestamp_desc, (f1, f2) -> {
+			if ( f1==null || f2==null )
+				return 0;
+			return firstNz( cmp(f2.createTime, f1.createTime), Utils.cmp(f2.filename, f1.filename) );
 		}),
-		AUTHOR_TITLE(R.string.mi_book_sort_order_author, new Comparator<FileInfo>() {
-			public int compare( FileInfo f1, FileInfo f2 )
-			{
-				if ( f1==null || f2==null )
-					return 0;
-				return firstNz(
-						cmpNotNullFirst(Utils.formatAuthors(f1.authors), Utils.formatAuthors(f2.authors))
-						,cmpNotNullFirst(f1.series, f2.series)
-						,cmp(f1.getSeriesNumber(), f2.getSeriesNumber())
-						,cmpNotNullFirst(f1.title, f2.title)
-						,Utils.cmp(f1.filename, f2.filename) 
-						);
-			}
+		AUTHOR_TITLE(R.string.mi_book_sort_order_author, (f1, f2) -> {
+			if ( f1==null || f2==null )
+				return 0;
+			return firstNz(
+					cmpNotNullFirst(Utils.formatAuthors(f1.authors), Utils.formatAuthors(f2.authors))
+					,cmpNotNullFirst(f1.series, f2.series)
+					,cmp(f1.getSeriesNumber(), f2.getSeriesNumber())
+					,cmpNotNullFirst(f1.title, f2.title)
+					,Utils.cmp(f1.filename, f2.filename)
+					);
 		}),
-		AUTHOR_TITLE_DESC(R.string.mi_book_sort_order_author_desc, new Comparator<FileInfo>() {
-			public int compare( FileInfo f1, FileInfo f2 )
-			{
-				if ( f1==null || f2==null )
-					return 0;
-				return firstNz(
-						cmpNotNullFirst(Utils.formatAuthors(f2.authors), Utils.formatAuthors(f1.authors))
-						,cmpNotNullFirst(f2.series, f1.series)
-						,cmp(f2.getSeriesNumber(), f1.getSeriesNumber())
-						,cmpNotNullFirst(f2.title, f1.title)
-						,Utils.cmp(f2.filename, f1.filename)
-				);
-			}
+		AUTHOR_TITLE_DESC(R.string.mi_book_sort_order_author_desc, (f1, f2) -> {
+			if ( f1==null || f2==null )
+				return 0;
+			return firstNz(
+					cmpNotNullFirst(Utils.formatAuthors(f2.authors), Utils.formatAuthors(f1.authors))
+					,cmpNotNullFirst(f2.series, f1.series)
+					,cmp(f2.getSeriesNumber(), f1.getSeriesNumber())
+					,cmpNotNullFirst(f2.title, f1.title)
+					,Utils.cmp(f2.filename, f1.filename)
+			);
 		}),
-		TITLE_AUTHOR(R.string.mi_book_sort_order_title, new Comparator<FileInfo>() {
-			public int compare( FileInfo f1, FileInfo f2 )
-			{
-				if ( f1==null || f2==null )
-					return 0;
-				return firstNz(
-						cmpNotNullFirst(f1.series, f2.series)
-						,cmp(f1.getSeriesNumber(), f2.getSeriesNumber())
-						,cmpNotNullFirst(f1.title, f2.title)
-						,cmpNotNullFirst(Utils.formatAuthors(f1.authors), Utils.formatAuthors(f2.authors))
-						,Utils.cmp(f1.filename, f2.filename) 
-						);
-			}
+		TITLE_AUTHOR(R.string.mi_book_sort_order_title, (f1, f2) -> {
+			if ( f1==null || f2==null )
+				return 0;
+			return firstNz(
+					cmpNotNullFirst(f1.series, f2.series)
+					,cmp(f1.getSeriesNumber(), f2.getSeriesNumber())
+					,cmpNotNullFirst(f1.title, f2.title)
+					,cmpNotNullFirst(Utils.formatAuthors(f1.authors), Utils.formatAuthors(f2.authors))
+					,Utils.cmp(f1.filename, f2.filename)
+					);
 		}),
-		TITLE_AUTHOR_DESC(R.string.mi_book_sort_order_title_desc, new Comparator<FileInfo>() {
-			public int compare( FileInfo f1, FileInfo f2 )
-			{
-				if ( f1==null || f2==null )
-					return 0;
-				return firstNz(
-						cmpNotNullFirst(f2.series, f1.series)
-						,cmp(f2.getSeriesNumber(), f1.getSeriesNumber())
-						,cmpNotNullFirst(f2.title, f1.title)
-						,cmpNotNullFirst(Utils.formatAuthors(f2.authors), Utils.formatAuthors(f1.authors))
-						,Utils.cmp(f2.filename, f1.filename)
-				);
-			}
+		TITLE_AUTHOR_DESC(R.string.mi_book_sort_order_title_desc, (f1, f2) -> {
+			if ( f1==null || f2==null )
+				return 0;
+			return firstNz(
+					cmpNotNullFirst(f2.series, f1.series)
+					,cmp(f2.getSeriesNumber(), f1.getSeriesNumber())
+					,cmpNotNullFirst(f2.title, f1.title)
+					,cmpNotNullFirst(Utils.formatAuthors(f2.authors), Utils.formatAuthors(f1.authors))
+					,Utils.cmp(f2.filename, f1.filename)
+			);
 		});
 		//================================================
 		private final Comparator<FileInfo> comparator;

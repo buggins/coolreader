@@ -39,13 +39,10 @@ public class ToastView {
     private static Handler mHandler = new Handler();
     private static PopupWindow window = null;
 
-    private static Runnable handleDismiss = new Runnable() {
-        @Override
-        public void run() {
-            if (window != null) {
-                window.dismiss();
-                show();
-            }
+    private static Runnable handleDismiss = () -> {
+        if (window != null) {
+            window.dismiss();
+            show();
         }
     };
 

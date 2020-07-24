@@ -137,11 +137,7 @@ public class FileUtils {
 
 	public static void collectFileTree(File rootFile, List<File> flattenedFileList, AtomicBoolean abortHolder) {
 		if (rootFile.exists()) {
-			Comparator<File> comparator = new Comparator<File>() {
-				public int compare(File var1, File var2) {
-					return -var1.getName().compareToIgnoreCase(var2.getName());
-				}
-			};
+			Comparator<File> comparator = (var1, var2) -> -var1.getName().compareToIgnoreCase(var2.getName());
 			Stack<File> stack = new Stack<File>();
 			stack.push(rootFile);
 			while (true) {
@@ -670,38 +666,30 @@ public class FileUtils {
 	}
 
 	public static void sortListByName(List<File> fileList, final SortOrder sortOrder) {
-		Collections.sort(fileList, new Comparator<File>() {
-			public int compare(File var1, File var2) {
-				int var3 = ComparatorUtils.booleanComparator(var1.isDirectory(), var2.isDirectory(), SortOrder.Desc);
-				return var3 == 0 ? ComparatorUtils.stringComparator(var1.getName(), var2.getName(), sortOrder) : var3;
-			}
+		Collections.sort(fileList, (var1, var2) -> {
+			int var3 = ComparatorUtils.booleanComparator(var1.isDirectory(), var2.isDirectory(), SortOrder.Desc);
+			return var3 == 0 ? ComparatorUtils.stringComparator(var1.getName(), var2.getName(), sortOrder) : var3;
 		});
 	}
 
 	public static void sortListByCreationTime(List<File> fileList, final SortOrder sortOrder) {
-		Collections.sort(fileList, new Comparator<File>() {
-			public int compare(File var1, File var2) {
-				int var3 = ComparatorUtils.booleanComparator(var1.isDirectory(), var2.isDirectory(), SortOrder.Desc);
-				return var3 == 0 ? ComparatorUtils.longComparator(var1.lastModified(), var2.lastModified(), sortOrder) : var3;
-			}
+		Collections.sort(fileList, (var1, var2) -> {
+			int var3 = ComparatorUtils.booleanComparator(var1.isDirectory(), var2.isDirectory(), SortOrder.Desc);
+			return var3 == 0 ? ComparatorUtils.longComparator(var1.lastModified(), var2.lastModified(), sortOrder) : var3;
 		});
 	}
 
 	public static void sortListBySize(List<File> fileList, final SortOrder sortOrder) {
-		Collections.sort(fileList, new Comparator<File>() {
-			public int compare(File var1, File var2) {
-				int var3 = ComparatorUtils.booleanComparator(var1.isDirectory(), var2.isDirectory(), SortOrder.Desc);
-				return var3 == 0 ? ComparatorUtils.longComparator(var1.length(), var2.length(), sortOrder) : var3;
-			}
+		Collections.sort(fileList, (var1, var2) -> {
+			int var3 = ComparatorUtils.booleanComparator(var1.isDirectory(), var2.isDirectory(), SortOrder.Desc);
+			return var3 == 0 ? ComparatorUtils.longComparator(var1.length(), var2.length(), sortOrder) : var3;
 		});
 	}
 
 	public static void sortListByFileType(List<File> fileList, final SortOrder sortOrder) {
-		Collections.sort(fileList, new Comparator<File>() {
-			public int compare(File var1, File var2) {
-				int var3 = ComparatorUtils.booleanComparator(var1.isDirectory(), var2.isDirectory(), SortOrder.Desc);
-				return var3 == 0 ? ComparatorUtils.stringComparator(FileUtils.getFileExtension(var1), FileUtils.getFileExtension(var2), sortOrder) : var3;
-			}
+		Collections.sort(fileList, (var1, var2) -> {
+			int var3 = ComparatorUtils.booleanComparator(var1.isDirectory(), var2.isDirectory(), SortOrder.Desc);
+			return var3 == 0 ? ComparatorUtils.stringComparator(FileUtils.getFileExtension(var1), FileUtils.getFileExtension(var2), sortOrder) : var3;
 		});
 	}
 
@@ -718,11 +706,9 @@ public class FileUtils {
 	}
 
 	public static void updateMtpDb(Context context, File file) {
-		MediaScannerConnection.scanFile(context, new String[]{file.getAbsolutePath()}, (String[]) null, new OnScanCompletedListener() {
-			public void onScanCompleted(String path, Uri uri) {
-				//Debug.i(FileUtils.class, "file " + path + " was scanned successfully: " + uri, new Object[0]);
-				Log.i(TAG, "file " + path + " was scanned successfully: " + uri);
-			}
+		MediaScannerConnection.scanFile(context, new String[]{file.getAbsolutePath()}, (String[]) null, (path, uri) -> {
+			//Debug.i(FileUtils.class, "file " + path + " was scanned successfully: " + uri, new Object[0]);
+			Log.i(TAG, "file " + path + " was scanned successfully: " + uri);
 		});
 	}
 

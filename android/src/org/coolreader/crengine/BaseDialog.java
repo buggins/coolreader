@@ -1,9 +1,6 @@
 package org.coolreader.crengine;
 
-import org.coolreader.R;
-
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -12,12 +9,13 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import org.coolreader.R;
 
 public class BaseDialog extends Dialog {
 
@@ -86,12 +84,7 @@ public class BaseDialog extends Dialog {
 		}
 		Log.i("cr3", "BaseDialog.window=" + getWindow());
         setCancelable(true);
-        setOnDismissListener(new OnDismissListener() {
-			@Override
-			public void onDismiss(DialogInterface dialog) {
-				onClose();
-			}
-        });
+        setOnDismissListener(dialog -> onClose());
         onCreate();
 	}
 
@@ -156,32 +149,16 @@ public class BaseDialog extends Dialog {
 			if (thirdButtonImage == 0) {
 				layout.removeView(negativeButton);
 			} else {
-				negativeButton.setOnClickListener(new View.OnClickListener() {
-					public void onClick(View v) {
-						onThirdButtonClick();
-					}
-				});
+				negativeButton.setOnClickListener(v -> onThirdButtonClick());
 			}
-			positiveButton.setOnClickListener(new View.OnClickListener() {
-				public void onClick(View v) {
-					onPositiveButtonClick();
-				}
-			});
+			positiveButton.setOnClickListener(v -> onPositiveButtonClick());
 			//negativeButton.setOnClickListener(new View.OnClickListener() {
-			backButton.setOnClickListener(new View.OnClickListener() {
-				public void onClick(View v) {
-					onNegativeButtonClick();
-				}
-			});
+			backButton.setOnClickListener(v -> onNegativeButtonClick());
 		} else {
 			layout.removeView(positiveButton);
 			layout.removeView(negativeButton);
 			if (title != null) {
-				backButton.setOnClickListener(new View.OnClickListener() {
-					public void onClick(View v) {
-						onPositiveButtonClick();
-					}
-				});
+				backButton.setOnClickListener(v -> onPositiveButtonClick());
 			} else {
 				parent.removeView(layout);
                 buttonsLayout = null;
@@ -190,24 +167,21 @@ public class BaseDialog extends Dialog {
 		if (title != null)
 			setTitle(title);
 		if (buttonsLayout != null) {
-			buttonsLayout.setOnTouchListener(new OnTouchListener() {
-				@Override
-				public boolean onTouch(View v, MotionEvent event) {
-					if (event.getAction() == MotionEvent.ACTION_DOWN) {
-						int x = (int)event.getX();
-						int dx = v.getWidth();
-						if (x < dx / 3) {
-							if (needCancelButton)
-								onNegativeButtonClick();
-							else
-								onPositiveButtonClick();
-						} else if (x > dx * 2 / 3) {
+			buttonsLayout.setOnTouchListener((v, event) -> {
+				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					int x = (int)event.getX();
+					int dx = v.getWidth();
+					if (x < dx / 3) {
+						if (needCancelButton)
+							onNegativeButtonClick();
+						else
 							onPositiveButtonClick();
-						}
-						return true;
+					} else if (x > dx * 2 / 3) {
+						onPositiveButtonClick();
 					}
-					return false;
+					return true;
 				}
+				return false;
 			});
 		}
 	}
@@ -261,29 +235,14 @@ public class BaseDialog extends Dialog {
 	 * @param rtlHandler, pass null to call onPositiveButtonClick
 	 */
 	public void setFlingHandlers(View view, Runnable ltrHandler, Runnable rtlHandler) {
+		// cancel
 		if (ltrHandler == null)
-			ltrHandler = new Runnable() {
-				@Override
-				public void run() {
-					// cancel
-					onNegativeButtonClick();
-				}
-			};
+			ltrHandler = this::onNegativeButtonClick;
+		// ok
 		if (rtlHandler == null)
-			rtlHandler = new Runnable() {
-				@Override
-				public void run() {
-					// ok
-					onPositiveButtonClick();
-				}
-			};
+			rtlHandler = this::onPositiveButtonClick;
 		final GestureDetector detector = new GestureDetector(new MyGestureListener(ltrHandler, rtlHandler));
-		view.setOnTouchListener(new OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				return detector.onTouchEvent(event);
-			}
-		});
+		view.setOnTouchListener((v, event) -> detector.onTouchEvent(event));
 	}
 
 	private class MyGestureListener extends SimpleOnGestureListener {

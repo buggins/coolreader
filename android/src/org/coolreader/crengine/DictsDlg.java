@@ -108,13 +108,9 @@ public class DictsDlg extends BaseDialog {
 			setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 			setLongClickable(true);
 			setAdapter(new DictListAdapter());
-			setOnItemLongClickListener(new OnItemLongClickListener() {
-				@Override
-				public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-						int position, long arg3) {
-					openContextMenu(DictList.this);
-					return true;
-				}
+			setOnItemLongClickListener((arg0, arg1, position, arg3) -> {
+				openContextMenu(DictList.this);
+				return true;
 			});
 		}
 

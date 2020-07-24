@@ -1,8 +1,5 @@
 package org.coolreader.crengine;
 
-import org.coolreader.CoolReader;
-import org.coolreader.R;
-
 import android.app.SearchManager;
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
@@ -12,15 +9,14 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnKeyListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.PopupWindow;
-import android.widget.PopupWindow.OnDismissListener;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
 
 public class SelectionToolbarDlg {
 	PopupWindow mWindow;
@@ -117,7 +113,7 @@ public class SelectionToolbarDlg {
 				changeSelectionBound(start, diff/SELECTION_CONTROL_STEP);
 			}
 		}
-	};
+	}
 	
 	private void closeDialog(boolean clearSelection) {
 		if (clearSelection)
@@ -139,95 +135,69 @@ public class SelectionToolbarDlg {
 		//mReaderView.getS
 		
 		mWindow = new PopupWindow( mAnchor.getContext() );
-		mWindow.setTouchInterceptor(new OnTouchListener() {
-			
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
-					closeDialog(true);
-					return true;
-				}
-				return false;
+		mWindow.setTouchInterceptor((v, event) -> {
+			if (event.getAction()==MotionEvent.ACTION_OUTSIDE) {
+				closeDialog(true);
+				return true;
 			}
+			return false;
 		});
 		//super(panel);
 		mPanel = panel;
-		mPanel.findViewById(R.id.selection_copy).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				mReaderView.copyToClipboard(selection.text);
-				closeDialog(true);
-			}
+		mPanel.findViewById(R.id.selection_copy).setOnClickListener(v -> {
+			mReaderView.copyToClipboard(selection.text);
+			closeDialog(true);
 		});
 
-		mPanel.findViewById(R.id.selection_dict).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				mCoolReader.findInDictionary( selection.text );
-				closeDialog(!mReaderView.getSettings().getBool(ReaderView.PROP_APP_SELECTION_PERSIST, false));
-			}
+		mPanel.findViewById(R.id.selection_dict).setOnClickListener(v -> {
+			mCoolReader.findInDictionary( selection.text );
+			closeDialog(!mReaderView.getSettings().getBool(ReaderView.PROP_APP_SELECTION_PERSIST, false));
 		});
 
-		mPanel.findViewById(R.id.selection_dict).setOnLongClickListener(new View.OnLongClickListener() {
-			public boolean onLongClick(View v) {
-				//mCoolReader.showToast("long tap on dic");
-				DictsDlg dlg = new DictsDlg(mCoolReader, mReaderView, selection.text);
-				dlg.show();
-				closeDialog(!mReaderView.getSettings().getBool(ReaderView.PROP_APP_SELECTION_PERSIST, false));
-				return true;
-			}
+		mPanel.findViewById(R.id.selection_dict).setOnLongClickListener(v -> {
+			//mCoolReader.showToast("long tap on dic");
+			DictsDlg dlg = new DictsDlg(mCoolReader, mReaderView, selection.text);
+			dlg.show();
+			closeDialog(!mReaderView.getSettings().getBool(ReaderView.PROP_APP_SELECTION_PERSIST, false));
+			return true;
 		});
 
-		mPanel.findViewById(R.id.selection_bookmark).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				mReaderView.showNewBookmarkDialog(selection);
-				closeDialog(true);
-			}
+		mPanel.findViewById(R.id.selection_bookmark).setOnClickListener(v -> {
+			mReaderView.showNewBookmarkDialog(selection);
+			closeDialog(true);
 		});
 
-		mPanel.findViewById(R.id.selection_bookmark).setOnLongClickListener(new View.OnLongClickListener() {
-			public boolean onLongClick(View v) {
-				BookmarksDlg dlg = new BookmarksDlg(mCoolReader, mReaderView);
-				dlg.show();
-				closeDialog(true);
-				return true;
-			}
+		mPanel.findViewById(R.id.selection_bookmark).setOnLongClickListener(v -> {
+			BookmarksDlg dlg = new BookmarksDlg(mCoolReader, mReaderView);
+			dlg.show();
+			closeDialog(true);
+			return true;
 		});
-		mPanel.findViewById(R.id.selection_email).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				mReaderView.sendQuotationInEmail(selection);
-				closeDialog(true);
-			}
+		mPanel.findViewById(R.id.selection_email).setOnClickListener(v -> {
+			mReaderView.sendQuotationInEmail(selection);
+			closeDialog(true);
 		});
-		mPanel.findViewById(R.id.selection_find).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				mReaderView.showSearchDialog(selection.text.trim());
-				closeDialog(true);
-			}
+		mPanel.findViewById(R.id.selection_find).setOnClickListener(v -> {
+			mReaderView.showSearchDialog(selection.text.trim());
+			closeDialog(true);
 		});
-		mPanel.findViewById(R.id.selection_find).setOnLongClickListener(new View.OnLongClickListener() {
-			public boolean onLongClick(View v) {
-				final Intent emailIntent = new Intent(Intent.ACTION_WEB_SEARCH);
-				emailIntent.putExtra(SearchManager.QUERY, selection.text.trim());
-				mCoolReader.startActivity(emailIntent);
-				closeDialog(true);
-				return true;
-			}
+		mPanel.findViewById(R.id.selection_find).setOnLongClickListener(v -> {
+			final Intent emailIntent = new Intent(Intent.ACTION_WEB_SEARCH);
+			emailIntent.putExtra(SearchManager.QUERY, selection.text.trim());
+			mCoolReader.startActivity(emailIntent);
+			closeDialog(true);
+			return true;
 		});
-		mPanel.findViewById(R.id.selection_cancel).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				closeDialog(true);
-			}
-		});
+		mPanel.findViewById(R.id.selection_cancel).setOnClickListener(v -> closeDialog(true));
 		new BoundControlListener((SeekBar)mPanel.findViewById(R.id.selection_left_bound_control), true);
 		new BoundControlListener((SeekBar)mPanel.findViewById(R.id.selection_right_bound_control), false);
 		mPanel.setFocusable(true);
-		mPanel.setOnKeyListener( new OnKeyListener() {
-
-			public boolean onKey(View v, int keyCode, KeyEvent event) {
-				if ( event.getAction()==KeyEvent.ACTION_UP ) {
-					switch ( keyCode ) {
-					case KeyEvent.KEYCODE_BACK:
-						closeDialog(true);
-						return true;
+		mPanel.setOnKeyListener((v, keyCode, event) -> {
+			if (event.getAction()==KeyEvent.ACTION_UP) {
+				switch ( keyCode ) {
+				case KeyEvent.KEYCODE_BACK:
+					closeDialog(true);
+					return true;
 //					case KeyEvent.KEYCODE_DPAD_LEFT:
 //					case KeyEvent.KEYCODE_DPAD_UP:
 //						//mReaderView.findNext(pattern, true, caseInsensitive);
@@ -236,31 +206,23 @@ public class SelectionToolbarDlg {
 //					case KeyEvent.KEYCODE_DPAD_DOWN:
 //						//mReaderView.findNext(pattern, false, caseInsensitive);
 //						return true;
-					}
-				} else if ( event.getAction()==KeyEvent.ACTION_DOWN ) {
-						switch ( keyCode ) {
+				}
+			} else if ( event.getAction()==KeyEvent.ACTION_DOWN ) {
+					switch ( keyCode ) {
 //						case KeyEvent.KEYCODE_BACK:
 //						case KeyEvent.KEYCODE_DPAD_LEFT:
 //						case KeyEvent.KEYCODE_DPAD_UP:
 //						case KeyEvent.KEYCODE_DPAD_RIGHT:
 //						case KeyEvent.KEYCODE_DPAD_DOWN:
 //							return true;
-						}
 					}
-				if ( keyCode == KeyEvent.KEYCODE_BACK) {
-					return true;
 				}
-				return false;
-			}
-			
+			return keyCode == KeyEvent.KEYCODE_BACK;
 		});
 
-		mWindow.setOnDismissListener(new OnDismissListener() {
-			@Override
-			public void onDismiss() {
-				restoreReaderMode();
-				mReaderView.clearSelection();
-			}
+		mWindow.setOnDismissListener(() -> {
+			restoreReaderMode();
+			mReaderView.clearSelection();
 		});
 		
 		mWindow.setBackgroundDrawable(new BitmapDrawable());
@@ -293,25 +255,13 @@ public class SelectionToolbarDlg {
 		int maxy = mReaderView.getSurface().getHeight() * 4 / 5; 
 		if (y > maxy) {
 			setReaderMode(); // selection is overlapped by toolbar: set scroll mode and move
-			BackgroundThread.instance().postGUI(new Runnable() {
-				@Override
-				public void run() {
-					//mReaderView.doEngineCommand(ReaderCommand.DCMD_REQUEST_RENDER, 0);
-					BackgroundThread.instance().postBackground(new Runnable() {
-						@Override
-						public void run() {
-							BackgroundThread.instance().postGUI(new Runnable() {
-								@Override
-								public void run() {
-									mReaderView.doEngineCommand(ReaderCommand.DCMD_SCROLL_BY, mReaderView.getSurface().getHeight() / 3);
-									mReaderView.redraw();
-								}
-							});
-						}
-					});
-				}
+			BackgroundThread.instance().postGUI(() -> {
+				//mReaderView.doEngineCommand(ReaderCommand.DCMD_REQUEST_RENDER, 0);
+				BackgroundThread.instance().postBackground(() -> BackgroundThread.instance().postGUI(() -> {
+					mReaderView.doEngineCommand(ReaderCommand.DCMD_SCROLL_BY, mReaderView.getSurface().getHeight() / 3);
+					mReaderView.redraw();
+				}));
 			});
 		}
 	}
-	
 }

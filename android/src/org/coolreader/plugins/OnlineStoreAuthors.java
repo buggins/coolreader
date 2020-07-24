@@ -19,12 +19,6 @@ public class OnlineStoreAuthors implements AsyncResponse {
 		return list.get(index);
 	}
 	public void sortByName() {
-		Collections.sort(list, new Comparator<OnlineStoreAuthor>() {
-			@Override
-			public int compare(OnlineStoreAuthor lhs, OnlineStoreAuthor rhs) {
-				return Utils.cmp(lhs.lastName, rhs.lastName);
-			}
-		});
-		
+		Collections.sort(list, (lhs, rhs) -> Utils.cmp(lhs.lastName, rhs.lastName));
 	}
 }

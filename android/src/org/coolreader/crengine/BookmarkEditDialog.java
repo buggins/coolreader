@@ -1,15 +1,13 @@
 package org.coolreader.crengine;
 
-import org.coolreader.CoolReader;
-import org.coolreader.R;
-
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.TextView;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
 
 public class BookmarkEditDialog extends BaseDialog {
 	
@@ -55,25 +53,19 @@ public class BookmarkEditDialog extends BaseDialog {
 		if ( isNew ) {
 			btnComment.setChecked(isComment);
 			btnCorrection.setChecked(!isComment);
-			btnComment.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-				@Override
-				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-					if ( isChecked ) {
-						mBookmark.setType(Bookmark.TYPE_COMMENT); 
-						commentLabel.setText(R.string.dlg_bookmark_edit_comment); // : R.string.dlg_bookmark_edit_correction
-					}
+			btnComment.setOnCheckedChangeListener((buttonView, isChecked) -> {
+				if ( isChecked ) {
+					mBookmark.setType(Bookmark.TYPE_COMMENT);
+					commentLabel.setText(R.string.dlg_bookmark_edit_comment); // : R.string.dlg_bookmark_edit_correction
 				}
 			});
-			btnCorrection.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-				@Override
-				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-					if ( isChecked ) {
-						mBookmark.setType(Bookmark.TYPE_CORRECTION); 
-						commentLabel.setText(R.string.dlg_bookmark_edit_correction);
-						String oldText = commentEdit.getText().toString();
-						if ( oldText==null || oldText.length()==0 )
-							commentEdit.setText(mBookmark.getPosText());
-					}
+			btnCorrection.setOnCheckedChangeListener((buttonView, isChecked) -> {
+				if ( isChecked ) {
+					mBookmark.setType(Bookmark.TYPE_CORRECTION);
+					commentLabel.setText(R.string.dlg_bookmark_edit_correction);
+					String oldText = commentEdit.getText().toString();
+					if ( oldText==null || oldText.length()==0 )
+						commentEdit.setText(mBookmark.getPosText());
 				}
 			});
 		} else {
@@ -104,14 +96,9 @@ public class BookmarkEditDialog extends BaseDialog {
 
 	@Override
 	protected void onThirdButtonClick() {
-		mCoolReader.askConfirmation(R.string.win_title_confirm_bookmark_delete, new Runnable() {
-			@Override
-			public void run() {
-				mReaderView.removeBookmark(mBookmark);
-				onNegativeButtonClick();
-			}
+		mCoolReader.askConfirmation(R.string.win_title_confirm_bookmark_delete, () -> {
+			mReaderView.removeBookmark(mBookmark);
+			onNegativeButtonClick();
 		});
 	}
-
-	
 }

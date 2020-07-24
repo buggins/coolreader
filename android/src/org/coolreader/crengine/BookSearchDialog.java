@@ -1,17 +1,14 @@
 package org.coolreader.crengine;
 
-import java.util.ArrayList;
-
-import org.coolreader.CoolReader;
-import org.coolreader.R;
-import org.coolreader.db.CRDBService;
-
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
 
 public class BookSearchDialog extends BaseDialog {
 	
@@ -70,24 +67,18 @@ public class BookSearchDialog extends BaseDialog {
 		if ( closing )
 			return;
 		final int mySearchTaskId = ++searchTaskId;
-		BackgroundThread.instance().postGUI(new Runnable() {
-			@Override
-			public void run() {
-				if ( searchTaskId == mySearchTaskId ) {
-					if ( searchActive )
-						return;
-					searchActive = true;
-					find( new SearchCallback() {
-						@Override
-						public void done(FileInfo[] results) {
-							searchActive = false;
-							statusText.setText(mCoolReader.getString(R.string.dlg_book_search_found) + " " + results.length);
-							if ( searchTaskId != mySearchTaskId ) {
-								postSearchTask();
-							}
-						}
-					});
-				}
+		BackgroundThread.instance().postGUI(() -> {
+			if ( searchTaskId == mySearchTaskId ) {
+				if ( searchActive )
+					return;
+				searchActive = true;
+				find(results -> {
+					searchActive = false;
+					statusText.setText(mCoolReader.getString(R.string.dlg_book_search_found) + " " + results.length);
+					if ( searchTaskId != mySearchTaskId ) {
+						postSearchTask();
+					}
+				});
 			}
 		}, 3000);
 	}
@@ -114,12 +105,7 @@ public class BookSearchDialog extends BaseDialog {
 		final String filename = filenameEdit.getText().toString().trim();
 		if (mCoolReader == null || mCoolReader.getDB() == null)
 			return;
-		mCoolReader.getDB().findByPatterns(MAX_RESULTS, author, title, series, filename, new CRDBService.BookSearchCallback() {
-			@Override
-			public void onBooksFound(ArrayList<FileInfo> fileList) {
-				cb.done(fileList.toArray(new FileInfo[fileList.size()]));
-			}
-		});
+		mCoolReader.getDB().findByPatterns(MAX_RESULTS, author, title, series, filename, fileList -> cb.done(fileList.toArray(new FileInfo[fileList.size()])));
 	}
 	
 	@Override

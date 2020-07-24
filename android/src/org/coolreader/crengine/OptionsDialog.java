@@ -1,20 +1,6 @@
 package org.coolreader.crengine;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.EnumSet;
-
-import org.coolreader.CoolReader;
-import org.coolreader.Dictionaries;
-import org.coolreader.Dictionaries.DictInfo;
-import org.coolreader.R;
-import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
-import org.coolreader.plugins.OnlineStorePluginManager;
-
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -26,12 +12,8 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -41,6 +23,17 @@ import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
 import android.widget.TabWidget;
 import android.widget.TextView;
+
+import org.coolreader.CoolReader;
+import org.coolreader.Dictionaries;
+import org.coolreader.Dictionaries.DictInfo;
+import org.coolreader.R;
+import org.coolreader.plugins.OnlineStorePluginManager;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.EnumSet;
 
 public class OptionsDialog extends BaseDialog implements TabContentFactory, OptionOwner, Settings {
 
@@ -416,19 +409,17 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public String getValueLabel() { return mProperties.getProperty(property); }
 		public void onSelect()
 		{ 
-			ColorPickerDialog dlg = new ColorPickerDialog(mActivity, new OnColorChangedListener() {
-				public void colorChanged(int color) {
-					mProperties.setColor(property, color);
-					if ( property.equals(PROP_BACKGROUND_COLOR) ) {
-						String texture = mProperties.getProperty(PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
-						if ( texture!=null && !texture.equals(Engine.NO_TEXTURE.id) ) {
-							// reset background image
-							mProperties.setProperty(PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
-							// TODO: show notification?
-						}
+			ColorPickerDialog dlg = new ColorPickerDialog(mActivity, color -> {
+				mProperties.setColor(property, color);
+				if ( property.equals(PROP_BACKGROUND_COLOR) ) {
+					String texture = mProperties.getProperty(PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
+					if ( texture!=null && !texture.equals(Engine.NO_TEXTURE.id) ) {
+						// reset background image
+						mProperties.setProperty(PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
+						// TODO: show notification?
 					}
-					refreshList();
 				}
+				refreshList();
 			}, mProperties.getColor(property, defColor), label);
 			dlg.show();
 		}
@@ -505,14 +496,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 //			valueView.setClickable(false);
 			labelView.setText(label);
 			valueView.setChecked(getValueBoolean());
-			valueView.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-					@Override
-					public void onCheckedChanged(CompoundButton arg0,
-							boolean checked) {
+			valueView.setOnCheckedChangeListener((arg0, checked) -> {
 //						mProperties.setBool(property, checked);
 //						refreshList();
-					}
-				});
+			});
 			setupIconView((ImageView)view.findViewById(R.id.option_icon));
 //			view.setClickable(true);
 //			view.setFocusable(true);
@@ -846,34 +833,24 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			text.setText(getString(action.nameId));
 			longtext.setText(getString(longAction.nameId));
 			view.setLongClickable(true);
-			view.setOnClickListener(new View.OnClickListener () {
-				@Override
-				public void onClick(View v) {
-					// TODO: i18n
-					ActionOption option = new ActionOption(mOwner, getString(R.string.options_app_tap_action_short), propName, true, false);
-					option.setOnChangeHandler(new Runnable() {
-						public void run() {
-							ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
-							text.setText(getString(action.nameId));
-						}
-					});
-					option.onSelect();
-				}
+			view.setOnClickListener(v -> {
+				// TODO: i18n
+				ActionOption option = new ActionOption(mOwner, getString(R.string.options_app_tap_action_short), propName, true, false);
+				option.setOnChangeHandler(() -> {
+					ReaderAction action1 = ReaderAction.findById( mProperties.getProperty(propName) );
+					text.setText(getString(action1.nameId));
+				});
+				option.onSelect();
 			});
-			view.setOnLongClickListener(new View.OnLongClickListener () {
-				@Override
-				public boolean onLongClick(View v) {
-					// TODO: i18n
-					ActionOption option = new ActionOption(mOwner, getString(R.string.options_app_tap_action_long), longPropName, true, true);
-					option.setOnChangeHandler(new Runnable() {
-						public void run() {
-							ReaderAction longAction = ReaderAction.findById( mProperties.getProperty(longPropName) );
-							longtext.setText(getString(longAction.nameId));
-						}
-					});
-					option.onSelect();
-					return true;
-				}
+			view.setOnLongClickListener(v -> {
+				// TODO: i18n
+				ActionOption option = new ActionOption(mOwner, getString(R.string.options_app_tap_action_long), longPropName, true, true);
+				option.setOnChangeHandler(() -> {
+					ReaderAction longAction1 = ReaderAction.findById( mProperties.getProperty(longPropName) );
+					longtext.setText(getString(longAction1.nameId));
+				});
+				option.onSelect();
+				return true;
 			});
 		}
 
@@ -1033,14 +1010,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			String currValue = mProperties.getProperty(property);
 			boolean isSelected = item.value!=null && currValue!=null && item.value.equals(currValue) ;//getSelectedItemIndex()==position;
 			cb.setChecked(isSelected);
-			cb.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					listView.getOnItemClickListener().onItemClick(listView, listView, position, 0);
+			cb.setOnClickListener(v -> {
+				listView.getOnItemClickListener().onItemClick(listView, listView, position, 0);
 //					mProperties.setProperty(property, item.value);
 //					dismiss();
 //					optionsListView.refresh();
-				}
 			});
 		}
 		
@@ -1129,15 +1103,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			listView.setSelection(selItem);
 			dlg.setView(listView);
 			//final AlertDialog d = dlg.create();
-			listView.setOnItemClickListener(new OnItemClickListener() {
-
-				public void onItemClick(AdapterView<?> adapter, View listview,
-						int position, long id) {
-					Pair item = list.get(position);
-					onClick(item);
-					dlg.dismiss();
-					closed();
-				}
+			listView.setOnItemClickListener((adapter, listview, position, id) -> {
+				Pair item = list.get(position);
+				onClick(item);
+				dlg.dismiss();
+				closed();
 			});
 			dlg.show();
 		}
@@ -2060,19 +2030,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
         else if (mode == Mode.BROWSER)
         	setupBrowserOptions();
         
-		setOnCancelListener(new OnCancelListener() {
-
-			public void onCancel(DialogInterface dialog) {
-				onPositiveButtonClick();
-			}
-		});
+		setOnCancelListener(dialog -> onPositiveButtonClick());
 
 		ImageButton positiveButton = (ImageButton)view.findViewById(R.id.options_btn_back);
-		positiveButton.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				onPositiveButtonClick();
-			}
-		});
+		positiveButton.setOnClickListener(v -> onPositiveButtonClick());
 		
 //		ImageButton negativeButton = (ImageButton)mTabs.findViewById(R.id.options_btn_cancel);
 //		negativeButton.setOnClickListener(new View.OnClickListener() {

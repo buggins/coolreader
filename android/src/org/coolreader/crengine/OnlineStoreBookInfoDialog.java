@@ -1,18 +1,5 @@
 package org.coolreader.crengine;
 
-import java.io.File;
-
-import org.coolreader.CoolReader;
-import org.coolreader.R;
-import org.coolreader.crengine.CoverpageManager.CoverpageBitmapReadyListener;
-import org.coolreader.plugins.BookInfoCallback;
-import org.coolreader.plugins.DownloadBookCallback;
-import org.coolreader.plugins.OnlineStoreBook;
-import org.coolreader.plugins.OnlineStoreBookInfo;
-import org.coolreader.plugins.OnlineStorePluginManager;
-import org.coolreader.plugins.OnlineStoreWrapper;
-import org.coolreader.plugins.PurchaseBookCallback;
-
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -30,6 +17,18 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
+import org.coolreader.plugins.BookInfoCallback;
+import org.coolreader.plugins.DownloadBookCallback;
+import org.coolreader.plugins.OnlineStoreBook;
+import org.coolreader.plugins.OnlineStoreBookInfo;
+import org.coolreader.plugins.OnlineStorePluginManager;
+import org.coolreader.plugins.OnlineStoreWrapper;
+import org.coolreader.plugins.PurchaseBookCallback;
+
+import java.io.File;
 
 public class OnlineStoreBookInfoDialog extends BaseDialog {
 	private CoolReader mActivity;
@@ -92,26 +91,11 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
         mContentView = view;
         
         ImageButton btnBack = (ImageButton)view.findViewById(R.id.base_dlg_btn_back);
-        btnBack.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onNegativeButtonClick();
-			}
-		});
+        btnBack.setOnClickListener(v -> onNegativeButtonClick());
         btnBuyOrDownload = (Button)view.findViewById(R.id.btn_buy);
-        btnBuyOrDownload.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onBuyButtonClick();
-			}
-		});
+        btnBuyOrDownload.setOnClickListener(v -> onBuyButtonClick());
         btnPreview = (Button)view.findViewById(R.id.btn_preview);
-        btnPreview.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onPreviewButtonClick();
-			}
-		});
+        btnPreview.setOnClickListener(v -> onPreviewButtonClick());
         lblTitle = (TextView)view.findViewById(R.id.lbl_book_title);
         lblSeries = (TextView)view.findViewById(R.id.lbl_book_series);
         lblAuthors = (TextView)view.findViewById(R.id.lbl_book_author);
@@ -131,13 +115,10 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
         image.setMinimumWidth(w);
         image.setMaxWidth(w);
         Bitmap bmp = Bitmap.createBitmap(w, h, Config.RGB_565);
-        Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), mFileInfo, bmp, new CoverpageBitmapReadyListener() {
-			@Override
-			public void onCoverpageReady(CoverpageManager.ImageItem file, Bitmap bitmap) {
-		        BitmapDrawable drawable = new BitmapDrawable(bitmap);
-				image.setImageDrawable(drawable);
-			}
-		}); 
+        Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), mFileInfo, bmp, (file, bitmap) -> {
+			BitmapDrawable drawable = new BitmapDrawable(bitmap);
+			image.setImageDrawable(drawable);
+		});
 
         if (mBookInfo.book.rating > 0)
         	rbBookRating.setRating(mBookInfo.book.rating / 2.0f);
@@ -203,62 +184,49 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 				download(false);
 			} else {
 				// buy
-				mActivity.askConfirmation(getString(R.string.online_store_price) + " " + mBookInfo.book.price + " " + getString(R.string.online_store_confirm_purchase), new Runnable() {
-					@Override
-					public void run() {
-						String bookId = mFileInfo.getOnlineCatalogPluginId();
-						progress.show();
-						mPlugin.purchaseBook(bookId, new PurchaseBookCallback() {
-							@Override
-							public void onError(int errorCode, String errorMessage) {
-								progress.hide();
-								mActivity.showToast(getString(R.string.online_store_purchase_error) + ": " + errorMessage);
+				mActivity.askConfirmation(getString(R.string.online_store_price) + " " + mBookInfo.book.price + " " + getString(R.string.online_store_confirm_purchase), () -> {
+					String bookId = mFileInfo.getOnlineCatalogPluginId();
+					progress.show();
+					mPlugin.purchaseBook(bookId, new PurchaseBookCallback() {
+						@Override
+						public void onError(int errorCode, String errorMessage) {
+							progress.hide();
+							mActivity.showToast(getString(R.string.online_store_purchase_error) + ": " + errorMessage);
+						}
+
+						@Override
+						public void onBookPurchased(String bookId, double newAccountBalance) {
+							progress.hide();
+							mBookInfo.accountBalance = newAccountBalance;
+							mBookInfo.isPurchased = true;
+							updateInfo();
+							mActivity.showToast(getString(R.string.online_store_confirm_purchase) + " " + getString(R.string.online_store_purchase_new_balance) + " " + newAccountBalance);
+						}
+
+						@Override
+						public void onLowBalance(String bookId, double accountBalance, double bookPrice) {
+							progress.hide();
+							final String refillUrl = mPlugin.getAccountRefillUrl();
+							if (refillUrl != null) {
+								mActivity.askConfirmation(R.string.online_store_refill_account_balance_request_litres, () -> {
+									try {
+										Uri uri = Uri.parse(refillUrl);
+										Intent myIntent = new Intent(Intent.ACTION_VIEW, uri);
+										mActivity.startActivity(myIntent);
+									} catch (ActivityNotFoundException e) {
+										mActivity.showToast("Cannot open web page");
+									}
+								});
+							} else {
+								mActivity.showToast("Not enough money on account");
 							}
-							
-							@Override
-							public void onBookPurchased(String bookId, double newAccountBalance) {
-								progress.hide();
-								mBookInfo.accountBalance = newAccountBalance;
-								mBookInfo.isPurchased = true;
-								updateInfo();
-								mActivity.showToast(getString(R.string.online_store_confirm_purchase) + " " + getString(R.string.online_store_purchase_new_balance) + " " + newAccountBalance);
-							}
-							
-							@Override
-							public void onLowBalance(String bookId, double accountBalance, double bookPrice) {
-								progress.hide();
-								final String refillUrl = mPlugin.getAccountRefillUrl();
-								if (refillUrl != null) {
-									mActivity.askConfirmation(R.string.online_store_refill_account_balance_request_litres, new Runnable() {
-										@Override
-										public void run() {
-											try {
-												Uri uri = Uri.parse(refillUrl);
-											    Intent myIntent = new Intent(Intent.ACTION_VIEW, uri);
-											    mActivity.startActivity(myIntent);
-											} catch (ActivityNotFoundException e) {
-												mActivity.showToast("Cannot open web page");
-											}
-											
-										}
-									});
-								} else {
-									mActivity.showToast("Not enough money on account");
-								}
-							}
-							
-						});
-					}
+						}
+					});
 				});
 			}
 		} else {
 			// LOGIN
-			OnlineStoreLoginDialog dlg = new OnlineStoreLoginDialog(mActivity, mPlugin, new Runnable() {
-				@Override
-				public void run() {
-					reloadBookInfo();
-				}
-			});
+			OnlineStoreLoginDialog dlg = new OnlineStoreLoginDialog(mActivity, mPlugin, this::reloadBookInfo);
 			dlg.show();
 		}
 	}

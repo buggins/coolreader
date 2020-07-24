@@ -110,12 +110,7 @@ public class LitresConnection {
 		workerThread.post(new Runnable() {
 			void onError(int errorCode, String errorMessage) {
 				contentHandler.onError(errorCode, errorMessage);
-				callbackHandler.post(new Runnable() {
-					@Override
-					public void run() {
-						resultHandler.onResponse(contentHandler.getResponse());
-					}
-				});
+				callbackHandler.post(() -> resultHandler.onResponse(contentHandler.getResponse()));
 			}
 
 			@Override
@@ -210,7 +205,7 @@ public class LitresConnection {
 //					spf.setNamespaceAware(true);
 //					spf.setFeature("http://xml.org/sax/features/namespaces", false);
 					SAXParser sp = spf.newSAXParser();
-					//XMLReader xr = sp.getXMLReader();				
+					//XMLReader xr = sp.getXMLReader();
 					sp.parse(is, contentHandler);
 					is.close();
 
@@ -229,12 +224,7 @@ public class LitresConnection {
 						}
 					}
 				}
-				callbackHandler.post(new Runnable() {
-					@Override
-					public void run() {
-						resultHandler.onResponse(contentHandler.getResponse());
-					}
-				});
+				callbackHandler.post(() -> resultHandler.onResponse(contentHandler.getResponse()));
 			}
 		});
 	}
@@ -245,12 +235,7 @@ public class LitresConnection {
 		workerThread.post(new Runnable() {
 			void onError(int errorCode, String errorMessage) {
 				contentHandler.onError(errorCode, errorMessage);
-				callbackHandler.post(new Runnable() {
-					@Override
-					public void run() {
-						resultHandler.onResponse(contentHandler.getResponse());
-					}
-				});
+				callbackHandler.post(() -> resultHandler.onResponse(contentHandler.getResponse()));
 			}
 
 			@Override
@@ -360,12 +345,7 @@ public class LitresConnection {
 						}
 					}
 				}
-				callbackHandler.post(new Runnable() {
-					@Override
-					public void run() {
-						resultHandler.onResponse(contentHandler.getResponse());
-					}
-				});
+				callbackHandler.post(() -> resultHandler.onResponse(contentHandler.getResponse()));
 			}
 		});
 	}

@@ -189,15 +189,12 @@ public class BackgroundThread extends Thread {
 				if (delay > 0) {
 					final int id = ++delayedTaskId;
 					//L.v("posting delayed (" + delay + ") task " + id + " " + task);
-					guiHandler.postDelayed(new Runnable() {
-						@Override
-						public void run() {
-							try {
-								task.run();
-								//L.v("finished delayed (" + delay + ") task " + id + " " + task);
-							} catch (Throwable e) {
-								Log.e("cr3", "Exception while processing task in GUI thread: " + task, e);
-							}
+					guiHandler.postDelayed(() -> {
+						try {
+							task.run();
+							//L.v("finished delayed (" + delay + ") task " + id + " " + task);
+						} catch (Throwable e) {
+							Log.e("cr3", "Exception while processing task in GUI thread: " + task, e);
 						}
 					}, delay);
 				} else
@@ -241,16 +238,12 @@ public class BackgroundThread extends Thread {
 			if (isGUIThread())
 				task.run(); // run in this thread
 			else {
-				postGUI(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							task.run();
-						} catch (Throwable e) {
-							Log.e("cr3",
-									"Exception while executing task in GUI thread: " + task, e);
-						}
-
+				postGUI(() -> {
+					try {
+						task.run();
+					} catch (Throwable e) {
+						Log.e("cr3",
+								"Exception while executing task in GUI thread: " + task, e);
 					}
 				});
 			}
@@ -258,35 +251,19 @@ public class BackgroundThread extends Thread {
 			Log.e("cr3", "Exception in executeGUI: " + task, e);
 		}
 	}
-
-    public <T> Callable<T> guard( final Callable<T> task )
-    {
-    	return new Callable<T>() {
-    		public T call() throws Exception {
-    			return task.call();
-    		}
-    	};
-    }
-    
     
     /**
      * Waits until all pending background tasks are executed.
      */
     public void syncWithBackground() {
-    	callBackground( new Callable<Integer>() {
-			@Override
-			public Integer call() throws Exception {
-				return null;
-			}
-    	});
+    	callBackground((Callable<Integer>) () -> null);
     }
 	
     public <T> T callBackground( final Callable<T> srcTask )
     {
-    	final Callable<T> task = srcTask; //guard(srcTask);
-    	if ( isBackgroundThread() ) {
+		if (isBackgroundThread())  {
     		try {
-    			return task.call();
+    			return srcTask.call();
     		} catch ( Exception e ) {
     			return null;
     		}
@@ -294,16 +271,14 @@ public class BackgroundThread extends Thread {
     	//L.d("executeSync called");
     	if(DBG) L.d("callBackground : posting Background task " + Thread.currentThread().getName());
     	final Sync<T> sync = new Sync<T>();
-    	postBackground( new Runnable() {
-    		public void run() {
-    			if(DBG) L.d("callBackground : inside background thread " + Thread.currentThread().getName());
-    			try {
-    				sync.set( task.call() );
-    			} catch ( Exception e ) {
-    				sync.set( null );
-    			}
-    		}
-    	});
+    	postBackground(() -> {
+			if(DBG) L.d("callBackground : inside background thread " + Thread.currentThread().getName());
+			try {
+				sync.set(srcTask.call());
+			} catch ( Exception e ) {
+				sync.set(null);
+			}
+		});
     	if(DBG) L.d("callBackground : calling get " + Thread.currentThread().getName());
     	T res = sync.get();
     	if(DBG) L.d("callBackground : returned from get " + Thread.currentThread().getName());
@@ -324,27 +299,25 @@ public class BackgroundThread extends Thread {
     	}
     	if(DBG) L.d("callGUI : posting GUI task " + Thread.currentThread().getName());
     	final Sync<T> sync = new Sync<T>();
-    	postGUI( new Runnable() {
-    		public void run() {
-    			if(DBG) L.d("callGUI : inside GUI thread " + Thread.currentThread().getName());
-    	    	T result = null;
-    			try {
-        	    	L.d("callGUI : calling source callable " + Thread.currentThread().getName());
-    				result = task.call();
-    			} catch ( Exception e ) {
-    				if(DBG) L.e("exception in postGUI", e);
-    				throw new RuntimeException(e);
-    			}
-    			try {
-    				if(DBG) L.d("callGUI : calling sync.set " + Thread.currentThread().getName());
-    				sync.set( result );
-    				if(DBG) L.d("callGUI : returned from sync.set " + Thread.currentThread().getName());
-    			} catch ( Exception e ) {
-    				if(DBG) L.e("exception in postGUI", e);
-    				throw new RuntimeException(e);
-    			}
-    		}
-    	});
+    	postGUI(() -> {
+			if(DBG) L.d("callGUI : inside GUI thread " + Thread.currentThread().getName());
+			T result = null;
+			try {
+				L.d("callGUI : calling source callable " + Thread.currentThread().getName());
+				result = task.call();
+			} catch ( Exception e ) {
+				if(DBG) L.e("exception in postGUI", e);
+				throw new RuntimeException(e);
+			}
+			try {
+				if(DBG) L.d("callGUI : calling sync.set " + Thread.currentThread().getName());
+				sync.set( result );
+				if(DBG) L.d("callGUI : returned from sync.set " + Thread.currentThread().getName());
+			} catch ( Exception e ) {
+				if(DBG) L.e("exception in postGUI", e);
+				throw new RuntimeException(e);
+			}
+		});
     	if(DBG) L.d("callGUI : calling get " + Thread.currentThread().getName());
     	T res = sync.get();
     	if(DBG) L.d("callGUI : returned from get " + Thread.currentThread().getName());
@@ -355,24 +328,17 @@ public class BackgroundThread extends Thread {
 	
 	public void waitForBackgroundCompletion() {
 		Engine.suspendLongOperation();
-		callBackground(new Callable<Object>() {
-			public Object call() {
-				return null;
-			}
-		});
+		callBackground(() -> null);
 	}
 	
 	public void quit() {
-		postBackground(new Runnable() {
-			@Override
-			public void run() {
-				if (handler != null) {
-					L.i("Calling quit() on background thread looper.");
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
-						handler.getLooper().quitSafely();
-					else
-						handler.getLooper().quit();
-				}
+		postBackground(() -> {
+			if (handler != null) {
+				L.i("Calling quit() on background thread looper.");
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
+					handler.getLooper().quitSafely();
+				else
+					handler.getLooper().quit();
 			}
 		});
 	}
