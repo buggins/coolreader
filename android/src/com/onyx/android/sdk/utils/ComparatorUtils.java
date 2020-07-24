@@ -10,38 +10,30 @@ public class ComparatorUtils {
 	}
 
 	public static int stringComparator(String lhs, String rhs, SortOrder ascOrder) {
-		switch (ascOrder) {
-			case Desc:
-				return Collator.getInstance(Locale.getDefault()).compare(rhs, lhs);
-			default:
-				return Collator.getInstance(Locale.getDefault()).compare(lhs, rhs);
+		if (ascOrder == SortOrder.Desc) {
+			return Collator.getInstance(Locale.getDefault()).compare(rhs, lhs);
 		}
+		return Collator.getInstance(Locale.getDefault()).compare(lhs, rhs);
 	}
 
 	public static int longComparator(long lhs, long rhs, SortOrder ascOrder) {
-		switch (ascOrder) {
-			case Desc:
-				return rhs < lhs ? -1 : (lhs == rhs ? 0 : 1);
-			default:
-				return lhs < rhs ? -1 : (lhs == rhs ? 0 : 1);
+		if (ascOrder == SortOrder.Desc) {
+			return Long.compare(rhs, lhs);
 		}
+		return Long.compare(lhs, rhs);
 	}
 
 	public static int integerComparator(int lhs, int rhs, SortOrder ascOrder) {
-		switch (ascOrder) {
-			case Desc:
-				return rhs < lhs ? -1 : (lhs == rhs ? 0 : 1);
-			default:
-				return lhs < rhs ? -1 : (lhs == rhs ? 0 : 1);
+		if (ascOrder == SortOrder.Desc) {
+			return Integer.compare(rhs, lhs);
 		}
+		return Integer.compare(lhs, rhs);
 	}
 
 	public static int booleanComparator(boolean lhs, boolean rhs, SortOrder ascOrder) {
-		switch (ascOrder) {
-			case Desc:
-				return lhs == rhs ? 0 : (rhs ? 1 : -1);
-			default:
-				return lhs == rhs ? 0 : (lhs ? 1 : -1);
+		if (ascOrder == SortOrder.Desc) {
+			return Boolean.compare(rhs, lhs);
 		}
+		return Boolean.compare(lhs, rhs);
 	}
 }
