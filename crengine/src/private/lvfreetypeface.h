@@ -121,6 +121,7 @@ protected:
     FT_Face _face;
     FT_GlyphSlot _slot;
     FT_Matrix _matrix;                 /* transformation matrix */
+    FT_Matrix _matrix2;                /* helper matrix for fake italic metrics */
     int _size; // caracter height in pixels
     int _height; // full line height in pixels
     int _hyphen_width;
