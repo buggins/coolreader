@@ -51,6 +51,8 @@
 // crengine default used to be "width: 100%", but now that we
 // can shrink to fit, it is "width: auto".
 
+bool gHangingPunctuationEnabled = false;
+
 int gInterlineScaleFactor = INTERLINE_SCALE_FACTOR_NO_SCALE;
 
 int gRenderDPI = DEF_RENDER_DPI; // if 0: old crengine behaviour: 1px/pt=1px, 1in/cm/pc...=0px
@@ -1461,8 +1463,10 @@ public:
                         LFormattedTextRef txform;
                         int em = cell->elem->getFont()->getSize();
                         css_style_ref_t elem_style = cell->elem->getStyle();
-                        int padding_left = lengthToPx( elem_style->padding[0], cell->width, em ) + measureBorder(cell->elem,3);
-                        int padding_right = lengthToPx( elem_style->padding[1], cell->width, em ) + measureBorder(cell->elem,1);
+                        int border_left = measureBorder(cell->elem,3);
+                        int border_right = measureBorder(cell->elem,1);
+                        int padding_left = lengthToPx( elem_style->padding[0], cell->width, em ) + border_left;
+                        int padding_right = lengthToPx( elem_style->padding[1], cell->width, em ) + border_right;
                         int padding_top = lengthToPx( elem_style->padding[2], cell->width, em ) + measureBorder(cell->elem,0);
                         int padding_bottom = lengthToPx( elem_style->padding[3], cell->width, em ) + measureBorder(cell->elem,2);
                         RenderRectAccessor fmt( cell->elem );
@@ -1474,6 +1478,8 @@ public:
                             fmt.setInnerX( padding_left );
                             fmt.setInnerY( padding_top );
                             fmt.setInnerWidth( cell->width - padding_left - padding_right );
+                            fmt.setUsableLeftOverflow( padding_left - border_left );
+                            fmt.setUsableRightOverflow( padding_right - border_right );
                             RENDER_RECT_SET_FLAG(fmt, INNER_FIELDS_SET);
                             RENDER_RECT_SET_DIRECTION(fmt, cell->direction);
                             fmt.setLangNodeIndex( TextLangMan::getLangNodeIndex(cell->elem) );
@@ -1593,6 +1599,7 @@ public:
                             baseline = REQ_BASELINE_FOR_TABLE;
                         }
                         int h = renderBlockElement( *cell_context, cell->elem, 0, 0, cell->width,
+                                                    0, 0, // no usable left/right overflow outside cell
                                                     cell->direction, &baseline, rend_flags);
                         cell->height = h;
                         if ( cell->valign == 0 ) { // vertical-align: baseline
@@ -2223,7 +2230,8 @@ lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt
         flg |= LTEXT_FLAG_PREFORMATTED;
     if ( style->white_space == css_ws_nowrap ) // white-space: nowrap
         flg |= LTEXT_FLAG_NOWRAP;
-    //flg |= oldflags & ~LTEXT_FLAG_NEWLINE;
+    if ( STYLE_HAS_CR_HINT(style, FIT_GLYPHS) ) // glyph fitting via -cr-hint
+        flg |= LTEXT_FIT_GLYPHS;
     return flg;
 }
 
@@ -2631,6 +2639,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // it is set to a negative value (the width of the marker), so to handle text
             // indentation from the outside marker just like regular negative text-indent.
             // So, sadly, let's keep it that way to not break legacy rendering.
+            // todo: pass indent via txform->setTextIndent() (like we do for the strut
+            // below, and get rid of it in AddSourceLine())
             indent = lengthToPx(style->text_indent, width, em);
             // lvstsheet sets the lowest bit to 1 when text-indent has the "hanging" keyword:
             if ( style->text_indent.value & 0x00000001 ) {
@@ -4191,6 +4201,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                     fmt.setX( fmt.getX() );
                     fmt.setY( fmt.getY() );
                     fmt.setLangNodeIndex( 0 ); // No support for lang in legacy rendering
+                    // (No support for overflows and hanging punctuation in legacy mode)
                     fmt.push();
                     //if ( CRLog::isTraceEnabled() )
                     //    CRLog::trace("rendering final node: %s %d %s", LCSTR(enode->getNodeName()), enode->getDataIndex(), LCSTR(ldomXPointer(enode,0).toString()) );
@@ -4422,25 +4433,31 @@ private:
         lInt32 lang_node_idx;
         int x_min;
         int x_max;
+        int usable_overflow_x_min;
+        int usable_overflow_x_max;
         int l_y;
         int in_y_min;
         int in_y_max;
         bool avoid_pb_inside;
-        void reset(int dir, lInt32 langNodeIdx, int xmin, int xmax, int ly, int iymin, int iymax, bool avoidpbinside) {
+        void reset(int dir, lInt32 langNodeIdx, int xmin, int xmax, int overxmin, int overxmax, int ly, int iymin, int iymax, bool avoidpbinside) {
             direction = dir;
             lang_node_idx = langNodeIdx;
             x_min = xmin;
             x_max = xmax;
+            usable_overflow_x_min = overxmin;
+            usable_overflow_x_max = overxmax;
             l_y = ly;
             in_y_min = iymin;
             in_y_max = iymax;
             avoid_pb_inside = avoidpbinside;
         }
-        BlockShift(int dir, lInt32 langNodeIdx, int xmin, int xmax, int ly, int iymin, int iymax, bool avoidpbinside) :
+        BlockShift(int dir, lInt32 langNodeIdx, int xmin, int xmax, int overxmin, int overxmax, int ly, int iymin, int iymax, bool avoidpbinside) :
                 direction(dir),
                 lang_node_idx(langNodeIdx),
                 x_min(xmin),
                 x_max(xmax),
+                usable_overflow_x_min(overxmin),
+                usable_overflow_x_max(overxmax),
                 l_y(ly),
                 in_y_min(iymin),
                 in_y_max(iymax),
@@ -4451,16 +4468,32 @@ private:
         public:
         ldomNode * node;
         int level; // level that owns this float
+        int inward_margin; // inner margin (left margin for right floats, right margin for left floats),
+                           // allows knowing how much the main text glyphs and hanging punctuation
+                           // can protrude inside this float (we limit that to the first level margin,
+                           // not including any additional inner padding or margin)
         bool is_right;
         bool final_pos; // true if y0/y1 are the final absolute position and this
                         // float should not be moved when pushing vertical margins.
         BlockFloat( int x0, int y0, int x1, int y1, bool r, int l, bool f, ldomNode * n=NULL) :
                 lvRect(x0,y0,x1,y1),
                 level(l),
+                inward_margin(0),
                 is_right(r),
                 final_pos(f),
                 node(n)
-                { }
+                {
+                    if (n && n->getChildCount() > 0) {
+                        // The margins were used to position the original
+                        // float node in its wrapping floatBox - so get it
+                        // back from their relative positions
+                        RenderRectAccessor fmt(n->getChildNode(0));
+                        if (is_right)
+                            inward_margin = fmt.getX();
+                        else
+                            inward_margin = (x1 - x0) - (fmt.getX() + fmt.getWidth());
+                    }
+                }
     };
     int direction; // flow inline direction (LTR/RTL)
     lInt32 lang_node_idx; // dataIndex of nearest upper node with a lang="" attribute (0 if none)
@@ -4480,6 +4513,8 @@ private:
     int  in_y_max;    //   that overflow this level height)
     int  x_min;       // current left min x
     int  x_max;       // current right max x
+    int  usable_overflow_x_min;  // current left and right x usable for glyph overflows and hanging punctuation,
+    int  usable_overflow_x_max;  //   reset when some border or background color change is met
     int  baseline_req; // baseline type requested (REQ_BASELINE_FOR_INLINE_BLOCK or REQ_BASELINE_FOR_TABLE)
     int  baseline_y;   // baseline y relative to formatting context top (computed when rendering inline-block/table)
     bool baseline_set; // (set to true on first baseline met)
@@ -4503,7 +4538,8 @@ private:
     int  vm_back_usable_as_margin; // previously moved vertical space where next margin could be accounted in
 
 public:
-    FlowState( LVRendPageContext & ctx, int width, int rendflags, int dir=REND_DIRECTION_UNSET, lInt32 langNodeIdx=0 ):
+    FlowState( LVRendPageContext & ctx, int width, int usable_left_overflow, int usable_right_overflow,
+                            int rendflags, int dir=REND_DIRECTION_UNSET, lInt32 langNodeIdx=0 ):
         direction(dir),
         lang_node_idx(langNodeIdx),
         context(ctx),
@@ -4544,6 +4580,8 @@ public:
             }
             top_clear_level = is_main_flow ? 1 : 2; // see resetFloatsLevelToTopLevel()
             page_height = context.getPageHeight();
+            usable_overflow_x_min = x_min - usable_left_overflow;
+            usable_overflow_x_max = x_max + usable_right_overflow;
         }
     ~FlowState() {
         // Shouldn't be needed as these must have been cleared
@@ -4595,6 +4633,12 @@ public:
     }
     bool getAvoidPbInside() {
         return avoid_pb_inside;
+    }
+    int getUsableLeftOverflow() {
+        return x_min - usable_overflow_x_min;
+    }
+    int getUsableRightOverflow() {
+        return usable_overflow_x_max - x_max;
     }
 
     void setRequestedBaselineType(int baseline_req_type) {
@@ -5327,20 +5371,29 @@ public:
 
     // Enter/leave a block level: backup/restore some of this FlowState
     // fields, and do some housekeeping.
-    void newBlockLevel( int width, int d_left, bool avoid_pb, int dir, lInt32 langNodeIdx ) {
+    void newBlockLevel( int width, int d_left, int usable_overflow_reset_left, int usable_overflow_reset_right,
+                                bool avoid_pb, int dir, lInt32 langNodeIdx ) {
         // Don't new/delete to avoid too many malloc/free, keep and re-use/reset
         // the ones already created
         if ( _shifts.length() <= level ) {
-            _shifts.push( new BlockShift( direction, lang_node_idx, x_min, x_max, l_y, in_y_min, in_y_max, avoid_pb_inside ) );
+            _shifts.push( new BlockShift( direction, lang_node_idx,
+                                    x_min, x_max, usable_overflow_x_min, usable_overflow_x_max,
+                                    l_y, in_y_min, in_y_max, avoid_pb_inside ) );
         }
         else {
-            _shifts[level]->reset( direction, lang_node_idx, x_min, x_max, l_y, in_y_min, in_y_max, avoid_pb_inside );
+            _shifts[level]->reset( direction, lang_node_idx,
+                                    x_min, x_max, usable_overflow_x_min, usable_overflow_x_max,
+                                    l_y, in_y_min, in_y_max, avoid_pb_inside );
         }
         direction = dir;
         if (langNodeIdx != -1)
             lang_node_idx = langNodeIdx;
         x_min += d_left;
         x_max = x_min + width;
+        if ( usable_overflow_reset_left >= 0 ) // -1 means: don't reset, keep previous level limits
+            usable_overflow_x_min = x_min - usable_overflow_reset_left;
+        if ( usable_overflow_reset_right >= 0 )
+            usable_overflow_x_max = x_max + usable_overflow_reset_right;
         l_y = c_y;
         in_y_min = c_y;
         in_y_max = c_y;
@@ -5362,6 +5415,8 @@ public:
         lang_node_idx = prev->lang_node_idx;
         x_min = prev->x_min;
         x_max = prev->x_max;
+        usable_overflow_x_min = prev->usable_overflow_x_min;
+        usable_overflow_x_max = prev->usable_overflow_x_max;
         l_y = prev->l_y;
         in_y_min = in_y_min < prev->in_y_min ? in_y_min : prev->in_y_min; // keep sublevel's one if smaller
         in_y_max = in_y_max > prev->in_y_max ? in_y_max : prev->in_y_max; // keep sublevel's one if larger
@@ -5772,6 +5827,7 @@ public:
                         footprint.floats[floats_involved][2] = x1 - x0; // width
                         footprint.floats[floats_involved][3] = y1 - y0; // height
                         footprint.floats[floats_involved][4] = flt->is_right;
+                        footprint.floats[floats_involved][5] = flt->inward_margin;
                     }
                     floats_involved++;
                 }
@@ -5902,7 +5958,17 @@ void BlockFloatFootprint::generateEmbeddedFloatsFromFloatIds( ldomNode * node,  
         floats[floats_cnt][1] = y0;      // y
         floats[floats_cnt][2] = x1 - x0; // width
         floats[floats_cnt][3] = y1 - y0; // height
-        floats[floats_cnt][4] = RENDER_RECT_HAS_FLAG(fmt, FLOATBOX_IS_RIGHT); // is_right
+        bool is_right = RENDER_RECT_HAS_FLAG(fmt, FLOATBOX_IS_RIGHT);
+        floats[floats_cnt][4] = is_right;
+        int inward_margin = 0;
+        if ( fbox->getChildCount() > 0 ) {
+            RenderRectAccessor fmt(fbox->getChildNode(0));
+            if ( is_right )
+                inward_margin = fmt.getX();
+            else
+                inward_margin = (x1 - x0) - (fmt.getX() + fmt.getWidth());
+        }
+        floats[floats_cnt][5] = inward_margin;
         /* Uncomment for checking reproducible results:
             if (x1 < x0) printf("!!!! %d %d %d %d\n", rc.left, rc.right, rc.top, rc.bottom);
             if ( bf0!=floats[floats_cnt][0] || bf1!=floats[floats_cnt][1] || bf2!=floats[floats_cnt][2] ||
@@ -5930,6 +5996,9 @@ void BlockFloatFootprint::generateEmbeddedFloatsFromFootprints( int final_width 
     // which case they'll have no visual impact on the text),
     // just so we can clear them when a <BR style="clear:">
     // is met.
+    // Note: we give inward_margin=0 with fake floats (we
+    // could compute them, but we would need 2 other slots
+    // in RenderRectAccessor to store them, so let's not).
     // Top left rectangle
     if ( left_h > 0 ) {
         floats[floats_cnt][0] = 0;      // x
@@ -5937,6 +6006,7 @@ void BlockFloatFootprint::generateEmbeddedFloatsFromFootprints( int final_width 
         floats[floats_cnt][2] = left_w; // width
         floats[floats_cnt][3] = left_h; // height
         floats[floats_cnt][4] = 0;      // is_right
+        floats[floats_cnt][5] = 0;      // inward_margin
         floats_cnt++;
     }
     // Top right rectangle
@@ -5946,6 +6016,7 @@ void BlockFloatFootprint::generateEmbeddedFloatsFromFootprints( int final_width 
         floats[floats_cnt][2] = right_w;               // width
         floats[floats_cnt][3] = right_h;               // height
         floats[floats_cnt][4] = 1;                     // is_right
+        floats[floats_cnt][5] = 0;                     // inward_margin
         floats_cnt++;
     }
     // Dummy 0x0 float for minimal y for next left float
@@ -5955,6 +6026,7 @@ void BlockFloatFootprint::generateEmbeddedFloatsFromFootprints( int final_width 
         floats[floats_cnt][2] = 0;          // width
         floats[floats_cnt][3] = 0;          // height
         floats[floats_cnt][4] = 0;          // is_right
+        floats[floats_cnt][5] = 0;          // inward_margin
         floats_cnt++;
     }
     // Dummy 0x0 float for minimal y for next right float
@@ -5964,6 +6036,7 @@ void BlockFloatFootprint::generateEmbeddedFloatsFromFootprints( int final_width 
         floats[floats_cnt][2] = 0;           // width
         floats[floats_cnt][3] = 0;           // height
         floats[floats_cnt][4] = 1;           // is_right
+        floats[floats_cnt][5] = 0;           // inward_margin
         floats_cnt++;
     }
 }
@@ -6149,14 +6222,12 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
     int em = enode->getFont()->getSize();
 
-    int padding_left   = lengthToPx( style->padding[0], container_width, em )
-                            + measureBorder(enode, 3) + DEBUG_TREE_DRAW;
-    int padding_right  = lengthToPx( style->padding[1], container_width, em )
-                            + measureBorder(enode, 1) + DEBUG_TREE_DRAW;
-    int padding_top    = lengthToPx( style->padding[2], container_width, em )
-                            + measureBorder(enode, 0) + DEBUG_TREE_DRAW;
-    int padding_bottom = lengthToPx( style->padding[3], container_width, em )
-                            + measureBorder(enode, 2) + DEBUG_TREE_DRAW;
+    int border_left = measureBorder(enode, 3);
+    int border_right = measureBorder(enode, 1);
+    int padding_left   = lengthToPx( style->padding[0], container_width, em ) + border_left + DEBUG_TREE_DRAW;
+    int padding_right  = lengthToPx( style->padding[1], container_width, em ) + border_right + DEBUG_TREE_DRAW;
+    int padding_top    = lengthToPx( style->padding[2], container_width, em ) + measureBorder(enode, 0) + DEBUG_TREE_DRAW;
+    int padding_bottom = lengthToPx( style->padding[3], container_width, em ) + measureBorder(enode, 2) + DEBUG_TREE_DRAW;
 
     css_length_t css_margin_left  = style->margin[0];
     css_length_t css_margin_right = style->margin[1];
@@ -6821,11 +6892,32 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 // to renderBlockElement() even if it feels a bit out of place,
                 // notably in the float positionning code. But it works...
 
+                // Update left and right overflows (usable by glyphs) if this node
+                // has some background or borders, to be given below to 'flow'.
+                int usable_overflow_reset_left = -1;
+                int usable_overflow_reset_right = -1;
+                if ( style->background_color.type == css_val_color || !style->background_image.empty() ) {
+                    // New (or same) background color specified (we assume there is
+                    // a color change): avoid glyphs/hanging punctuation from leaking
+                    // over the background change.
+                    usable_overflow_reset_left = padding_left;
+                    usable_overflow_reset_right = padding_right;
+                }
+                // If there's some border, avoid glyphs/hanging punctuation from
+                // leaking on or over the border.
+                if ( border_left ) {
+                    usable_overflow_reset_left = padding_left - border_left;
+                }
+                if ( border_right ) {
+                    usable_overflow_reset_right = padding_right - border_right;
+                }
+
                 // Shrink flow state area: children that are float will be
                 // constrained into this area
                 // ('width' already had margin_left/_right substracted)
                 flow->newBlockLevel(width - list_marker_padding - padding_left - padding_right, // width
                        margin_left + (is_rtl ? 0 : list_marker_padding) + padding_left, // d_left
+                       usable_overflow_reset_left, usable_overflow_reset_right,
                        break_inside==RN_SPLIT_AVOID,
                        direction,
                        has_lang_attribute ? enode->getDataIndex() : -1);
@@ -6885,8 +6977,12 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                         // padding-left/right) for the flow to correctly position inner floats:
                         // flow->addFloat() will additionally shift its positionning by the
                         // child x/y set by this renderBlockElement().
+                        // We provide 0,0 as the usable left/right overflows, so no glyph/hanging
+                        // punctuation will leak outside the floatBox - but the floatBox contains
+                        // the initial float element's margins, which can then be used if it has
+                        // no border (if borders, only the padding can be used).
                         renderBlockElement( alt_context, child, (is_rtl ? 0 : list_marker_padding) + padding_left,
-                                    padding_top, width - list_marker_padding - padding_left - padding_right, direction );
+                                    padding_top, width - list_marker_padding - padding_left - padding_right, 0, 0, direction );
                         flow->addFloat(child, child_clear, is_right, flt_vertical_margin);
                         // Gather footnotes links accumulated by alt_context
                         lString16Collection * link_ids = alt_context.getLinkIds();
@@ -7169,6 +7265,27 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 fmt.setInnerY( padding_top );
                 fmt.setInnerWidth( inner_width );
                 RENDER_RECT_SET_FLAG(fmt, INNER_FIELDS_SET);
+                // Usable overflow for glyphs and hanging punctuation
+                int usable_overflow_left = flow->getUsableLeftOverflow() + margin_left;
+                int usable_overflow_right = flow->getUsableRightOverflow() + margin_right;
+                if ( style->background_color.type == css_val_color || !style->background_image.empty() ) {
+                    // New (or same) background color specified (we assume there is
+                    // a color change): avoid glyphs/hanging punctuation from leaking
+                    // over the background change.
+                    usable_overflow_left = padding_left;
+                    usable_overflow_right = padding_right;
+                }
+                // If there's some border, avoid glyphs/hanging punctuation from
+                // leaking on or over the border.
+                if ( border_left ) {
+                    usable_overflow_left = padding_left - border_left;
+                }
+                if ( border_right ) {
+                    usable_overflow_right = padding_right - border_right;
+                }
+                fmt.setUsableLeftOverflow( usable_overflow_left );
+                fmt.setUsableRightOverflow( usable_overflow_right );
+                // Done with updating RenderRectAccessor fields, have them saved
                 fmt.push();
                 // (These setInner* needs to be set before creating float_footprint if
                 // we want to debug/valide floatIds coordinates)
@@ -7392,7 +7509,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 }
 
 // Entry points for rendering the root node, a table cell or a float
-int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction, int * baseline, int rend_flags )
+int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width,
+            int usable_left_overflow, int usable_right_overflow, int direction, int * baseline, int rend_flags )
 {
     if ( BLOCK_RENDERING(rend_flags, ENHANCED) ) {
         // Create a flow state (aka "block formatting context") for the rendering
@@ -7400,7 +7518,8 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         // (We are called when rendering the root node, and when rendering each float
         // met along walking the root node hierarchy - and when meeting a new float
         // in a float, etc...)
-        FlowState flow( context, width, rend_flags, direction, TextLangMan::getLangNodeIndex(enode) );
+        FlowState flow( context, width, usable_left_overflow, usable_right_overflow, rend_flags,
+                                direction, TextLangMan::getLangNodeIndex(enode) );
         if (baseline != NULL) {
             flow.setRequestedBaselineType(*baseline);
         }
@@ -7417,11 +7536,13 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         return renderBlockElementLegacy( context, enode, x, y, width);
     }
 }
-int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction, int * baseline )
+int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width,
+            int usable_left_overflow, int usable_right_overflow, int direction, int * baseline )
 {
     // Use global rendering flags
     // Note: we're not currently using it with other flags that the global ones.
-    return renderBlockElement( context, enode, x, y, width, direction, baseline, gRenderBlockRenderingFlags );
+    return renderBlockElement( context, enode, x, y, width, usable_left_overflow, usable_right_overflow,
+                                        direction, baseline, gRenderBlockRenderingFlags );
 }
 
 //draw border lines,support color,width,all styles, not support border-collapse
@@ -9280,6 +9401,10 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
     // Start measurements and recursions:
     getRenderedWidths(node, maxWidth, minWidth, direction, ignoreMargin, rendFlags,
         curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, NULL, false, isStartNode);
+    // We took more care with including side bearings into minWidth when considering
+    // single words, than into maxWidth: so trust minWidth if larger than maxWidth.
+    if ( maxWidth < minWidth)
+        maxWidth = minWidth;
 }
 
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction, bool ignoreMargin, int rendFlags,
@@ -9899,6 +10024,22 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         bool nowrap = (parent_style->white_space == css_ws_nowrap) || (parent_style->white_space == css_ws_pre);
         bool pre = parent_style->white_space >= css_ws_pre;
         int space_width_scale_percent = pre ? 100 : parent->getDocument()->getSpaceWidthScalePercent();
+
+        // If fit_glyphs, we'll adjust below each word width with calls to
+        // getLeftSideBearing() and getRightSideBearing(). These should be
+        // called with the exact same parameters as used in lvtextfm.cpp
+        // addLine(). (Previously, we adjusted overflows and underflows on
+        // the left, and only overflows on the right. We now only adjust
+        // overflows on both sides - but don't touch underflows to keep
+        // the text natural alignment.)
+        // bool fit_glyphs = STYLE_HAS_CR_HINT(parent_style, FIT_GLYPHS);
+        //
+        // Best to always measure accounting for overflows: we don't know
+        // what adjusments lvtextfm.cpp AddLine() will do depending on
+        // the usable_left/right_overflows it got.
+        // (Let's keep this easily toggable in case we need it.)
+        #define fit_glyphs true
+
         // measure text
         const lChar16 * txt = text.c_str();
         #ifdef DEBUG_GETRENDEREDWIDTHS
@@ -9908,10 +10049,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         #define MAX_TEXT_CHUNK_SIZE 4096
         static lUInt16 widths[MAX_TEXT_CHUNK_SIZE+1];
         static lUInt8 flags[MAX_TEXT_CHUNK_SIZE+1];
-        // We adjust below each word width with calls to getLeftSideBearing()
-        // and getRightSideBearing(). These should be called with the exact same
-        // parameters as used in lvtextfm.cpp getAdditionalCharWidth() and
-        // getAdditionalCharWidthOnLeft().
+
         // todo: use fribidi and split measurement at fribidi level change,
         // and beware left/right side bearing adjustments...
         #if (USE_LIBUNIBREAK==1)
@@ -9967,11 +10105,11 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                         collapseNextSpace = true; // ignore next spaces, even if in another node
                         lastSpaceWidth = pre ? 0 : w; // Don't remove last space width if 'pre'
                         curMaxWidth += w; // add this space to non-wrap width
-                        if (curWordWidth > 0) { // there was a word before this space
+                        if (fit_glyphs && curWordWidth > 0) { // there was a word before this space
                             if (start+i > 0) {
                                 // adjust for last word's last char overflow (italic, letter f...)
                                 lChar16 prevc = *(txt + start + i - 1);
-                                int right_overflow = - font->getRightSideBearing(prevc, true, true);
+                                int right_overflow = - font->getRightSideBearing(prevc, true);
                                 curWordWidth += right_overflow;
                             }
                         }
@@ -9983,31 +10121,33 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                         collapseNextSpace = false; // next space should not be ignored
                         lastSpaceWidth = 0; // no width to take off if we stop with this char
                         curMaxWidth += w;
-                        if (curWordWidth > 0) { // there was a word or CJK char before this CJK char
+                        if (fit_glyphs && curWordWidth > 0) { // there was a word or CJK char before this CJK char
                             if (start+i > 0) {
                                 // adjust for last word's last char or previous CJK char right overflow
                                 lChar16 prevc = *(txt + start + i - 1);
-                                int right_overflow = - font->getRightSideBearing(prevc, true, true);
+                                int right_overflow = - font->getRightSideBearing(prevc, true);
                                 curWordWidth += right_overflow;
                             }
                         }
                         if (curWordWidth > minWidth) // done with previous word
                             minWidth = curWordWidth; // longest word found
                         curWordWidth = w;
-                        // adjust for leading overflow
-                        int left_overflow = - font->getLeftSideBearing(c, false, true);
-                        curWordWidth += left_overflow;
-                        if (start + i == 0) // at start of text only? (not sure)
-                            curMaxWidth += left_overflow; // also add it to max width
+                        if (fit_glyphs) {
+                            // adjust for leading overflow
+                            int left_overflow = - font->getLeftSideBearing(c, true);
+                            curWordWidth += left_overflow;
+                            if (start + i == 0) // at start of text only? (not sure)
+                                curMaxWidth += left_overflow; // also add it to max width
+                        }
                     }
                 }
                 else if (brk == LINEBREAK_MUSTBREAK) { // \n if pre
                     // Get done with current word
-                    if (curWordWidth > 0) { // we end with a word
+                    if (fit_glyphs && curWordWidth > 0) { // we end with a word
                         if (start+i > 0) {
                             // adjust for last word's last char or previous CJK char right overflow
                             lChar16 prevc = *(txt + start + i - 1);
-                            int right_overflow = - font->getRightSideBearing(prevc, true, true);
+                            int right_overflow = - font->getRightSideBearing(prevc, true);
                             curWordWidth += right_overflow;
                             curMaxWidth += right_overflow;
                         }
@@ -10039,9 +10179,9 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                         collapseNextSpace = false; // next space should not be ignored
                         lastSpaceWidth = 0; // no width to take off if we stop with this char
                     }
-                    if (curWordWidth == 0) { // first char of a word
+                    if (fit_glyphs && curWordWidth == 0) { // first char of a word
                         // adjust for leading overflow on first char of a word
-                        int left_overflow = - font->getLeftSideBearing(c, false, true);
+                        int left_overflow = - font->getLeftSideBearing(c, true);
                         curWordWidth += left_overflow;
                         if (start + i == 0) // at start of text only? (not sure)
                             curMaxWidth += left_overflow; // also add it to max width
@@ -10077,11 +10217,11 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     collapseNextSpace = true; // ignore next spaces, even if in another node
                     lastSpaceWidth = w;
                     curMaxWidth += w; // add this space to non-wrap width
-                    if (curWordWidth > 0) { // there was a word before this space
+                    if (fit_glyphs && curWordWidth > 0) { // there was a word before this space
                         if (start+i > 0) {
                             // adjust for last word's last char overflow (italic, letter f...)
                             lChar16 prevc = *(txt + start + i - 1);
-                            int right_overflow = - font->getRightSideBearing(prevc, true, true);
+                            int right_overflow = - font->getRightSideBearing(prevc, true);
                             curWordWidth += right_overflow;
                         }
                     }
@@ -10093,29 +10233,31 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     collapseNextSpace = false; // next space should not be ignored
                     lastSpaceWidth = 0; // no width to take off if we stop with this char
                     curMaxWidth += w;
-                    if (curWordWidth > 0) { // there was a word or CJK char before this CJK char
+                    if (fit_glyphs && curWordWidth > 0) { // there was a word or CJK char before this CJK char
                         if (start+i > 0) {
                             // adjust for last word's last char or previous CJK char right overflow
                             lChar16 prevc = *(txt + start + i - 1);
-                            int right_overflow = - font->getRightSideBearing(prevc, true, true);
+                            int right_overflow = - font->getRightSideBearing(prevc, true);
                             curWordWidth += right_overflow;
                         }
                     }
                     if (curWordWidth > minWidth) // done with previous word
                         minWidth = curWordWidth; // longest word found
                     curWordWidth = w;
-                    // adjust for leading overflow
-                    int left_overflow = - font->getLeftSideBearing(c, false, true);
-                    curWordWidth += left_overflow;
-                    if (start + i == 0) // at start of text only? (not sure)
-                        curMaxWidth += left_overflow; // also add it to max width
+                    if (fit_glyphs) {
+                        // adjust for leading overflow
+                        int left_overflow = - font->getLeftSideBearing(c, true);
+                        curWordWidth += left_overflow;
+                        if (start + i == 0) // at start of text only? (not sure)
+                            curMaxWidth += left_overflow; // also add it to max width
+                    }
                 }
                 else { // A char part of a word
                     collapseNextSpace = false; // next space should not be ignored
                     lastSpaceWidth = 0; // no width to take off if we stop with this char
-                    if (curWordWidth == 0) { // first char of a word
+                    if (fit_glyphs && curWordWidth == 0) { // first char of a word
                         // adjust for leading overflow on first char of a word
-                        int left_overflow = - font->getLeftSideBearing(c, false, true);
+                        int left_overflow = - font->getLeftSideBearing(c, true);
                         curWordWidth += left_overflow;
                         if (start + i == 0) // at start of text only? (not sure)
                             curMaxWidth += left_overflow; // also add it to max width
@@ -10135,11 +10277,11 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             }
             #endif // not USE_LIBUNIBREAK==1
             if ( chars_measured == len ) { // done with this text node
-                if (curWordWidth > 0) { // we end with a word
+                if (fit_glyphs && curWordWidth > 0) { // we end with a word
                     if (start+len > 0) {
                         // adjust for word last char right overflow
                         lChar16 prevc = *(txt + start + len - 1);
-                        int right_overflow = - font->getRightSideBearing(prevc, true, true);
+                        int right_overflow = - font->getRightSideBearing(prevc, true);
                         curWordWidth += right_overflow;
                         curMaxWidth += right_overflow; // also add it to max width
                     }

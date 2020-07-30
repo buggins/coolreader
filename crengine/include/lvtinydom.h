@@ -722,6 +722,11 @@ public:
     void setInnerY( int y );
     void setInnerWidth( int w );
 
+    int  getUsableLeftOverflow();
+    int  getUsableRightOverflow();
+    void setUsableLeftOverflow( int dx );
+    void setUsableRightOverflow( int dx );
+
     int  getTopOverflow();
     int  getBottomOverflow();
     void setTopOverflow( int dy );
@@ -2512,9 +2517,12 @@ public:
 #if BUILD_LITE!=1
     bool isRendered() { return _rendered; }
     /// renders (formats) document in memory: returns true if re-rendering needed, false if not
-    virtual bool render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space, CRPropRef props );
+    virtual bool render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy,
+                         bool showCover, int y0, font_ref_t def_font, int def_interline_space,
+                         CRPropRef props, int usable_left_overflow=0, int usable_right_overflow=0 );
     /// set global rendering properties
-    virtual bool setRenderProps( int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space, CRPropRef props );
+    virtual bool setRenderProps( int width, int dy, bool showCover, int y0, font_ref_t def_font,
+                                 int def_interline_space, CRPropRef props );
 #endif
     /// create xpointer from pointer string
     ldomXPointer createXPointer( const lString16 & xPointerStr );

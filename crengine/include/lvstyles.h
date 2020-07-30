@@ -324,6 +324,9 @@ protected:
         // is also limited to that for being carried in lInt16 slots when
         // formatting text in lvtextfm.cpp.)
 
+    short _usable_left_overflow;   // Usable overflow for hanging punctuation
+    short _usable_right_overflow;  // and glyphs negative side bearings
+
     // Children blocks should be fully contained in their parent block,
     // and sibling nodes blocks should not overlap with other siblings,
     // except when float are involved and we allow them to continue
@@ -354,18 +357,19 @@ protected:
     int _listprop_node_idx; // dataIndex of the UL/OL node this erm_final block
                             // should get its marker from
 
-    // Added for padding from 15 to 16 32-bits ints
-    int _available1;
+    // We're now at 16 32-bits ints. If needing new fields, add some padding:
+    // Added for padding from 17 to 20 32-bits ints
+    // int _available1; int _available2; int _available3;
 
 public:
     lvdomElementFormatRec()
     : _x(0), _width(0), _y(0), _height(0)
     , _inner_width(0), _inner_x(0), _inner_y(0), _baseline(0)
+    , _usable_left_overflow(0), _usable_right_overflow(0)
     , _top_overflow(0), _bottom_overflow(0)
     , _lang_node_idx(0) , _listprop_node_idx(0)
     , _flags(0), _extra0(0)
     , _extra1(0), _extra2(0), _extra3(0), _extra4(0), _extra5(0)
-    , _available1(0)
     {
     }
     ~lvdomElementFormatRec()
@@ -375,23 +379,23 @@ public:
     {
         _x = _width = _y = _height = 0;
         _inner_width = _inner_x = _inner_y = _baseline = 0;
+        _usable_left_overflow = _usable_right_overflow = 0;
         _top_overflow = _bottom_overflow = 0;
         _lang_node_idx = _listprop_node_idx = 0;
         _flags = _extra0 = 0;
         _extra1 = _extra2 = _extra3 = _extra4 = _extra5 = 0;
-        _available1 = 0;
     }
     bool operator == ( lvdomElementFormatRec & v )
     {
         return (_height==v._height && _y==v._y && _width==v._width && _x==v._x &&
                 _inner_width==v._inner_width && _inner_x==v._inner_x &&
                 _inner_y==v._inner_y && _baseline==v._baseline &&
+                _usable_left_overflow==v._usable_left_overflow && _usable_right_overflow==v._usable_right_overflow &&
                 _top_overflow==v._top_overflow && _bottom_overflow==v._bottom_overflow &&
                 _lang_node_idx==v._lang_node_idx && _listprop_node_idx==v._listprop_node_idx &&
                 _flags==v._flags && _extra0==v._extra0 &&
                 _extra1==v._extra1 && _extra2==v._extra2 && _extra3==v._extra3 &&
-                _extra4==v._extra4 && _extra5==v._extra5 &&
-                _available1==v._available1
+                _extra4==v._extra4 && _extra5==v._extra5
                 );
     }
     bool operator != ( lvdomElementFormatRec & v )
@@ -399,12 +403,12 @@ public:
         return (_height!=v._height || _y!=v._y || _width!=v._width || _x!=v._x ||
                 _inner_width!=v._inner_width || _inner_x!=v._inner_x ||
                 _inner_y!=v._inner_y || _baseline!=v._baseline ||
+                _usable_left_overflow!=v._usable_left_overflow || _usable_right_overflow!=v._usable_right_overflow ||
                 _top_overflow!=v._top_overflow || _bottom_overflow!=v._bottom_overflow ||
                 _lang_node_idx!=v._lang_node_idx || _listprop_node_idx!=v._listprop_node_idx ||
                 _flags!=v._flags || _extra0!=v._extra0 ||
                 _extra1!=v._extra1 || _extra2!=v._extra2 || _extra3!=v._extra3 ||
-                _extra4!=v._extra4 || _extra5!=v._extra5 ||
-                _available1!=v._available1
+                _extra4!=v._extra4 || _extra5!=v._extra5
                 );
     }
     // Get/Set

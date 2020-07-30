@@ -347,6 +347,9 @@ enum css_generic_value_t {
 // (it could have been a non-standard named value for line-height:, but we want to be
 // able to not override existing line-height: values)
 #define CSS_CR_HINT_STRUT_CONFINED          0x00000002 // -cr-hint: strut-confined (inheritable)
+// Glyphs should not overflow line edges, and across text nodes or over images
+// (it can also be used to disable hanging punctuation on the targeted nodes).
+#define CSS_CR_HINT_FIT_GLYPHS              0x00000004 // -cr-hint: fit-glyphs (inheritable)
 
 // A node with these should be considered as TOC item of level N when building alternate TOC
 #define CSS_CR_HINT_TOC_LEVEL1              0x00000100 // -cr-hint: toc-level1
@@ -380,7 +383,7 @@ enum css_generic_value_t {
                                                        //                           everything else indicates it is)
 
 // A few of them are inheritable, most are not.
-#define CSS_CR_HINT_INHERITABLE_MASK        0x00000002
+#define CSS_CR_HINT_INHERITABLE_MASK        0x00000006
 
 // Macro for easier checking
 #define STYLE_HAS_CR_HINT(s, h)     ( (bool)(s->cr_hint.value & CSS_CR_HINT_##h) )

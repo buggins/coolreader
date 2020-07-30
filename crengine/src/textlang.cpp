@@ -752,3 +752,183 @@ lString16 & TextLangCfg::getClosingQuote( bool update_level ) {
     _quote_nesting_level--;
     return ((_quote_nesting_level+1) % 2) ? _close_quote1 : _close_quote2;
 }
+
+int TextLangCfg::getHyphenHangingPercent() {
+    return 70; // 70%
+}
+
+int TextLangCfg::getHangingPercent( bool right_hanging, bool & check_font, const lChar16 * text, int pos, int next_usable ) {
+    // We get provided with the BiDi re-ordered m_text (so, visually
+    // ordered) and the index of char: if needed, we can look at
+    // previous or next chars for context to decide how much to hang
+    // (i.e. consecutive punctuations).
+
+    // If we ever need to tweak this per language, try to avoid checks
+    // for the lang_tag in here:
+    // - either set bool members to enable or disable some checks and tweaks
+    // - or make this hanging_percent_func_generic, and add dedicated
+    //   functions per language, hanging_percent_func_french, that
+    //   could fallback to calling hanging_percent_func_generic after
+    //   some checks - and have TextLangCfg::getHangingPercent() call
+    //   the dedicated function pointer stored as a member.
+
+    // We might want to prevent any hanging with Chinese and Japanese
+    // as the text might be mostly full-width glyphs, and this might
+    // break the grid. This is less risky if the main font is a CJK
+    // font, but if it is not, punctuation might be picked from the
+    // main non-CJK font and won't be full-width.
+    // Or we could round any value to 0 or 100%  (and/or tweak any
+    // glyph in lvtextfm.cpp so it looks like it is full-width).
+
+    lChar16 ch = text[pos];
+    int ratio = 0;
+
+    // In French, there's usually a space before and after guillemets,
+    // or before a quotation mark. Having them hanging, and then a
+    // space, looks like there's a hole in the margin.
+    // So, avoid hanging if the next/prev char is a space char.
+    // This might not happen in other languages, so let's do that
+    // prevention generically. If needed, make that dependant on
+    // a boolean member, set to true if LANG_STARTS_WITH(("fr")).
+    if ( right_hanging ) {
+        if ( pos > 0 ) {
+            lChar16 prev_ch = text[pos-1];
+            if ( prev_ch == 0x0020 || prev_ch == 0x00A0 || (prev_ch >= 0x2000 && prev_ch <= 0x200A ) ) {
+                // Normal space, no-break space, and other unicode spaces (except zero-width ones)
+                return 0;
+            }
+        }
+    }
+    else {
+        if ( next_usable > 0 ) {
+            lChar16 next_ch = text[pos+1];
+            if ( next_ch == 0x0020 || next_ch == 0x00A0 || (next_ch >= 0x2000 && next_ch <= 0x200A ) ) {
+                // Normal space, no-break space, and other unicode spaces (except zero-width ones)
+                return 0;
+            }
+        }
+    }
+
+    // For the common punctuations, parens and quotes, we check and
+    // return the same value whether asked for left or right hanging.
+    // Normally, libunibreak has prevented them from happening on
+    // one of the sides - but with RTL text, they may happen on
+    // the other side. Also, some BiDi mirrorable chars "([])" might
+    // be mirrored in the provided *text when not-using HarfBuzz, but
+    // won't be mirrored when using HarfBuzz - so let's handle
+    // all of them no matter the hanging side asked for.
+    // Also, because in some languages, quotation marks and guillemets
+    // are used reverted, we include left and right ones in both sets.
+
+    // Most values taken from the "protusion" section in:
+    // https://source.contextgarden.net/tex/context/base/mkiv/font-imp-quality.lua
+    // https://www.w3.org/Mail/flatten/index?subject=Amending+hanging-punctuation+for+Western+typography&list=www-style
+    // and the microtypography thesis: http://www.pragma-ade.nl/pdftex/thesis.pdf
+    // (screenshot at https://github.com/koreader/koreader/issues/6235#issuecomment-639307634)
+
+    switch (ch) {
+        case 0x0027: // ' single quote
+        case 0x002C: // , comma
+        case 0x002D: // - minus
+        case 0x002E: // . period
+        case 0x0060: // ` back quote
+        // case 0x00AD: // soft hyphen (we don't draw them, so don't handle them)
+        case 0x060C: // ، arabic comma
+        case 0x06D4: // ۔ arabic full stop
+        case 0x2010: // ‐ hyphen
+        case 0x2018: // ‘ left single quotation mark
+        case 0x2019: // ’ right single quotation mark
+        case 0x201A: // ‚ single low-9 quotation mark
+        case 0x201B: // ‛ single high-reversed-9 quotation mark
+        case 0x2039: // ‹ left single guillemet
+        case 0x203A: // › right single guillemet
+            ratio = 70;
+            break;
+        case 0x0022: // " double quote
+        case 0x003A: // : colon
+        case 0x003B: // ; semicolon
+        case 0x00AB: // « left guillemet
+        case 0x00BB: // » right guillemet
+        case 0x061B: // ؛ arabic semicolon
+        case 0x201C: // “ left double quotation mark
+        case 0x201D: // ” right double quotation mark
+        case 0x201E: // „ double low-9 quotation mark
+        case 0x201F: // ‟ double high-reversed-9 quotation mark
+            ratio = 50;
+            break;
+        case 0x2013: // – endash
+            ratio = 30;
+            break;
+        case 0x0021: // !
+        case 0x003F: // ?
+        case 0x00A1: // ¡
+        case 0x00BF: // ¿
+        case 0x061F: // ؟
+        case 0x2014: // — emdash
+        case 0x2026: // … ellipsis
+            ratio = 20;
+            break;
+        case 0x0028: // (
+        case 0x0029: // )
+        case 0x005B: // [
+        case 0x005D: // ]
+        case 0x007B: // {
+        case 0x007D: // }
+            ratio  = 5;
+            break;
+        default:
+            break;
+    }
+    if ( ratio ) {
+        check_font = false;
+        return ratio;
+    }
+    // Other are non punctuation but slight adjustment for some letters,
+    // that might be ignored if the font already include some negative
+    // left side bearing.
+    check_font = true;
+    if ( right_hanging ) {
+        switch (ch) {
+            case 'A':
+            case 'F':
+            case 'K':
+            case 'L':
+            case 'T':
+            case 'V':
+            case 'W':
+            case 'X':
+            case 'Y':
+            case 'k':
+            case 'r':
+            case 't':
+            case 'v':
+            case 'w':
+            case 'x':
+            case 'y':
+                ratio  = 5;
+                break;
+            default:
+                break;
+        }
+    }
+    else { // left hanging
+        switch (ch) {
+            case 'A':
+            case 'J':
+            case 'T':
+            case 'V':
+            case 'W':
+            case 'X':
+            case 'Y':
+            case 'v':
+            case 'w':
+            case 'x':
+            case 'y':
+                ratio  = 5;
+                break;
+            default:
+                break;
+        }
+    }
+    return ratio;
+}

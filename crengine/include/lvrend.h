@@ -92,7 +92,7 @@ public:
     // Floats to transfer to final block for it to
     // start with these 5 "fake" embedded floats
     int floats_cnt;
-    int floats[5][5]; // max 5 floats, with (x,y,w,h,is_right) each
+    int floats[5][6]; // max 5 floats, with (x,y,w,h,is_right,inward_margin) each
 
     int getFinalMinY() { return used_min_y; };
     int getFinalMaxY() { return used_max_y; };
@@ -127,9 +127,11 @@ lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt
 void renderFinalBlock( ldomNode * node, LFormattedText * txform, RenderRectAccessor * fmt, lUInt32 & flags,
                        int indent, int line_h, TextLangCfg * lang_cfg=NULL, int valign_dy=0, bool * is_link_start=NULL );
 /// renders block which contains subblocks (with gRenderBlockRenderingFlags as flags)
-int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction=REND_DIRECTION_UNSET, int * baseline=NULL );
+int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width,
+        int usable_left_overflow=0, int usable_right_overflow=0, int direction=REND_DIRECTION_UNSET, int * baseline=NULL );
 /// renders block which contains subblocks
-int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction, int * baseline, int rend_flags );
+int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width,
+        int usable_left_overflow, int usable_right_overflow, int direction, int * baseline, int rend_flags );
 /// renders table element
 int renderTable( LVRendPageContext & context, ldomNode * element, int x, int y, int width,
                  bool shrink_to_fit, int & fitted_width, int direction=REND_DIRECTION_UNSET,
@@ -172,6 +174,8 @@ int scaleForRenderDPI( int value );
 extern int gRenderDPI;
 extern bool gRenderScaleFontWithDPI;
 extern int gRootFontSize;
+
+extern bool gHangingPunctuationEnabled;
 
 #define INTERLINE_SCALE_FACTOR_NO_SCALE 1024
 #define INTERLINE_SCALE_FACTOR_SHIFT 10

@@ -20,9 +20,6 @@
 #include "lvbmpbuf.h"
 #include "textlang.h"
 
-// comment out following line to use old formatter
-#define USE_NEW_FORMATTER 1
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -82,7 +79,8 @@ extern "C" {
 #define LTEXT_SRC_IS_CLEAR_BOTH      0x03000000  // text follows <BR style="clear: both">
 #define LTEXT_SRC_IS_CLEAR_LAST      0x04000000  // ignorable text, added when nothing follows <BR style="clear: both">
 
-#define LTEXT__AVAILABLE_BIT_28__    0x08000000
+#define LTEXT_FIT_GLYPHS             0x08000000  // Avoid glyph overflows and override at line edges and between text nodes
+
 #define LTEXT__AVAILABLE_BIT_29__    0x10000000
 #define LTEXT__AVAILABLE_BIT_30__    0x20000000
 #define LTEXT__AVAILABLE_BIT_31__    0x40000000
@@ -213,7 +211,8 @@ typedef struct
    lInt32                y;           /**< start y position of float */
    lInt16                x;           /**< start x position */
    lUInt16               width;       /**< width */
-   lUInt16               height;      /**< height */
+   lUInt32               height;      /**< height */
+   lUInt16               inward_margin; /**< inward margin */
    css_clear_t           clear;       /**< clear: css property value */
    bool                  is_right;    /**< is float: right */
    bool                  to_position; /**< not yet positionned */
@@ -433,6 +432,8 @@ public:
 
     lUInt32 Format(lUInt16 width, lUInt16 page_height,
                         int para_direction=0, // = REND_DIRECTION_UNSET in lvrend.h
+                        int usable_left_overflow=0, int usable_right_overflow=0,
+                        bool hanging_punctuation=false,
                         BlockFloatFootprint * float_footprint = NULL );
 
     int GetSrcCount()
@@ -481,7 +482,5 @@ public:
 };
 
 #endif
-
-extern bool gFlgFloatingPunctuationEnabled;
 
 #endif

@@ -1952,6 +1952,7 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                         }
                         else if ( substr_icompare("footnote-inpage", decl) )        hints |= CSS_CR_HINT_FOOTNOTE_INPAGE;
                         else if ( substr_icompare("strut-confined", decl) )         hints |= CSS_CR_HINT_STRUT_CONFINED;
+                        else if ( substr_icompare("fit-glyphs", decl) )             hints |= CSS_CR_HINT_FIT_GLYPHS;
                         else if ( substr_icompare("text-selection-skip", decl) )    hints |= CSS_CR_HINT_TEXT_SELECTION_SKIP;
                         else if ( substr_icompare("text-selection-inline", decl) )  hints |= CSS_CR_HINT_TEXT_SELECTION_INLINE;
                         else if ( substr_icompare("text-selection-block", decl) )   hints |= CSS_CR_HINT_TEXT_SELECTION_BLOCK;

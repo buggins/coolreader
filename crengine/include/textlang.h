@@ -150,6 +150,9 @@ public:
     lString16 & getOpeningQuote( bool update_level=true );
     lString16 & getClosingQuote( bool update_level=true );
 
+    int getHyphenHangingPercent();
+    int getHangingPercent( bool right_hanging, bool & check_font, const lChar16 * text, int pos, int next_usable );
+
     #if USE_HARFBUZZ==1
     hb_language_t getHBLanguage() const { return _hb_language; }
     #endif

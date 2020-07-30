@@ -2822,7 +2822,8 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
 		//CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
 		bool did_rerender = m_doc->render(pages, isDocumentOpened() ? m_callback : NULL, dx, dy,
 					m_showCover, m_showCover ? dy + m_pageMargins.bottom * 4 : 0,
-					m_font, m_def_interline_space, m_props);
+					m_font, m_def_interline_space, m_props,
+					m_pageMargins.left, m_pageMargins.right);
 
 #if 0
                 // For debugging lvpagesplitter.cpp (small books)
@@ -6442,7 +6443,9 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             if (mode >= HINTING_MODE_DISABLED && mode <= HINTING_MODE_AUTOHINT) {
                 //CRLog::debug("Setting hinting mode to %d", mode);
                 fontMan->SetHintingMode((hinting_mode_t)mode);
-                requestRender();
+                REQUEST_RENDER("propsApply - font hinting")
+                    // requestRender() does m_doc->clearRendBlockCache(), which is needed
+                    // on hinting mode change
             }
         } else if (name == PROP_HIGHLIGHT_SELECTION_COLOR || name == PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT || name == PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT) {
             REQUEST_RENDER("propsApply - highlight")
@@ -6663,9 +6666,11 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             REQUEST_RENDER("propsApply footnotes")
         } else if (name == PROP_FLOATING_PUNCTUATION) {
             bool value = props->getBoolDef(PROP_FLOATING_PUNCTUATION, true);
-            if ( gFlgFloatingPunctuationEnabled != value ) {
-                gFlgFloatingPunctuationEnabled = value;
-                REQUEST_RENDER("propsApply floating punct")
+            if ( gHangingPunctuationEnabled != value ) {
+                gHangingPunctuationEnabled = value;
+                REQUEST_RENDER("propsApply - hanging punctuation")
+                    // requestRender() does m_doc->clearRendBlockCache(), which is needed
+                    // on hanging punctuation change
             }
             needUpdateMargins = true;
         } else if (name == PROP_REQUESTED_DOM_VERSION) {
