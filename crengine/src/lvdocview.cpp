@@ -425,18 +425,6 @@ void LVDocView::updatePageMargins() {
 
 /// sets page margins
 void LVDocView::setPageMargins(lvRect rc) {
-    bool floatingPunct = m_props->getBoolDef(PROP_FLOATING_PUNCTUATION, true);
-    int align = 0;
-    if (floatingPunct) {
-        m_font = fontMan->GetFont(m_font_size, 400 + LVRendGetFontEmbolden(),
-                false, DEFAULT_FONT_FAMILY, m_defaultFontFace);
-        if (!m_font.isNull())
-            align = m_font->getVisualAligmentWidth() / 2;
-    }
-    if (align > rc.right)
-        align = rc.right;
-    //rc.left += align;
-    rc.right -= align;
     if (m_pageMargins.left + m_pageMargins.right != rc.left + rc.right
             || m_pageMargins.top + m_pageMargins.bottom != rc.top + rc.bottom) {
 
@@ -6669,10 +6657,9 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             if ( gHangingPunctuationEnabled != value ) {
                 gHangingPunctuationEnabled = value;
                 REQUEST_RENDER("propsApply - hanging punctuation")
-                    // requestRender() does m_doc->clearRendBlockCache(), which is needed
-                    // on hanging punctuation change
+                // requestRender() does m_doc->clearRendBlockCache(), which is needed
+                // on hanging punctuation change
             }
-            needUpdateMargins = true;
         } else if (name == PROP_REQUESTED_DOM_VERSION) {
             int value = props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
             if (gDOMVersionRequested != value) {
