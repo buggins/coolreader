@@ -8484,11 +8484,6 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     // If RTL, have the marker aligned to the right inside list_marker_width
                     lUInt32 txt_flags = is_rtl ? LTEXT_ALIGN_RIGHT : 0;
                     int list_marker_width;
-
-                    // Temporary disabling hanging punctuation
-                    bool flagSaved = gFlgFloatingPunctuationEnabled;
-                    gFlgFloatingPunctuationEnabled = false;
-                    
                     lString16 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, txt_flags);
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
                     lvRect clip;
@@ -8503,7 +8498,6 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                             txform->Draw( &drawbuf, doc_x+x0 + shift_x - list_marker_width, doc_y+y0 + padding_top, NULL, NULL );
                         }
                     }
-                    gFlgFloatingPunctuationEnabled = flagSaved;
                     // Note: if there's a float on the left of the list item, we let
                     // the marker where it would be if there were no float, while Firefox
                     // would shift it by the float width. But for both, the marker may
