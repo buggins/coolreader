@@ -7478,7 +7478,6 @@ ldomDocumentWriter::~ldomDocumentWriter()
         _document->getRootNode()->initNodeFont();
         //if ( !_document->validateDocument() )
         //    CRLog::error("*** document style validation failed!!!");
-        _document->updateRenderContext();
         _document->dumpStatistics();
         if ( _document->_nodeStylesInvalidIfLoading ) {
             // Some pseudoclass like :last-child has been met which has set this flag
