@@ -126,7 +126,7 @@
 
 -keep class org.coolreader.crengine.Engine {
 	native <methods>;
-	byte[] loadHyphDictData(String);
+	byte[] loadHyphDictData(java.lang.String);
 }
 
 -keep class org.coolreader.crengine.Engine$HyphDict {
