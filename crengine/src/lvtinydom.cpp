@@ -4347,13 +4347,16 @@ public:
 
         lString16 codeBase = cssFile;
         LVExtractLastPathElement(codeBase);
-        LVStreamRef cssStream = _document->getContainer()->OpenStream(cssFile.c_str(), LVOM_READ);
-        if ( !cssStream.isNull() ) {
-            lString16 css;
-            css << LVReadTextFile( cssStream );
-            int offset = _inProgress.add(cssFile);
-            ret = Parse(codeBase, css) || ret;
-            _inProgress.erase(offset, 1);
+        LVContainerRef container = _document->getContainer();
+        if (!container.isNull()) {
+            LVStreamRef cssStream = container->OpenStream(cssFile.c_str(), LVOM_READ);
+            if (!cssStream.isNull()) {
+                lString16 css;
+                css << LVReadTextFile(cssStream);
+                int offset = _inProgress.add(cssFile);
+                ret = Parse(codeBase, css) || ret;
+                _inProgress.erase(offset, 1);
+            }
         }
         return ret;
     }
