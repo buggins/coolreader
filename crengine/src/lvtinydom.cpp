@@ -7541,6 +7541,7 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
         }
     }
     */
+    bool isStyleSheetTag = tagname[0] == 's' && !lStr_cmp(tagname, "stylesheet");
 
     lUInt16 id = _document->getElementNameIndex(tagname);
     //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
@@ -7555,11 +7556,25 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
         _parser->Stop();
     }
 
-    /* This is now dealt with in :OnTagBody(), just before creating this <stylesheet> tag
-    if ( isStyleSheetTag ) {
+    // For EPUB/HTML, this is now dealt with in :OnTagBody(), just before creating this <stylesheet> tag.
+    // But for FB2, where we have:
+    //   <FictionBook>
+    //     <stylesheet type="text/css">
+    //       some css
+    //     </stylesheet>
+    //     <p>...
+    //     other content
+    //   </FictionBook>
+    // we need to apply the <stylesheet> content we have just left, so it applies
+    // to the coming up content.
+    // We check the parent we have just pop'ed is a <FictionBook>.
+    // Caveat: any style set on the <FictionBook> element itself won't be applied now
+    // in this loading phase (as we have already set its style) - but it will apply
+    // on re-renderings.
+    if ( isStyleSheetTag && _currNode && _currNode->getElement()->getNodeId() == el_FictionBook ) {
         //CRLog::trace("</stylesheet> found");
 #if BUILD_LITE!=1
-        if ( !_popStyleOnFinish ) {
+        if ( !_popStyleOnFinish && _document->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
             //CRLog::trace("saving current stylesheet before applying of document stylesheet");
             _document->getStyleSheet()->push();
             _popStyleOnFinish = true;
@@ -7567,7 +7582,6 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
         }
 #endif
     }
-    */
 
     //logfile << " !c!\n";
 }
