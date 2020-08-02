@@ -297,8 +297,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     if (legacy_render) {
         m_ui->label_9->setVisible(true);
         m_ui->cbHyphenation->setVisible(true);
-    }
-    else {
+    } else {
         bool embedded_lang = m_props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, true);
         m_ui->label_9->setVisible(!embedded_lang);
         m_ui->cbHyphenation->setVisible(!embedded_lang);
@@ -1160,8 +1159,7 @@ void SettingsDlg::on_cbRendFlags_currentIndexChanged(int index)
     if (legacy_render) {
         m_ui->label_9->setVisible(true);
         m_ui->cbHyphenation->setVisible(true);
-    }
-    else {
+    } else {
         bool embedded_lang = m_props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, true);
         m_ui->label_9->setVisible(!embedded_lang);
         m_ui->cbHyphenation->setVisible(!embedded_lang);
@@ -1185,8 +1183,7 @@ void SettingsDlg::on_cbDOMLevel_currentIndexChanged(int index)
     if (legacy_render) {
         m_ui->label_9->setVisible(true);
         m_ui->cbHyphenation->setVisible(true);
-    }
-    else {
+    } else {
         bool embedded_lang = m_props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, true);
         m_ui->label_9->setVisible(!embedded_lang);
         m_ui->cbHyphenation->setVisible(!embedded_lang);

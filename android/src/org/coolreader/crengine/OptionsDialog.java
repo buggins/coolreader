@@ -1907,44 +1907,29 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_text_autoformat_enable), PROP_TXT_OPTION_PREFORMATTED).setDefaultValue("1").noIcon());
 		}
 		if (/*isHtmlFormat*/ isFormatWithEmbeddedStyle) {
-			mOptionsCSS.add(new ListOption(this, getString(R.string.options_rendering_preset), PROP_RENDER_BLOCK_RENDERING_FLAGS).add(mRenderingPresets, mRenderingPresetsTitles).setDefaultValue(Integer.valueOf(Engine.BLOCK_RENDERING_FLAGS_WEB).toString()).noIcon()
-					.setOnChangeHandler(new Runnable() {
-						@Override
-						public void run() {
-							boolean legacyRender = mProperties.getInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0) == 0 ||
-									mProperties.getInt(PROP_REQUESTED_DOM_VERSION, 0) < 20180524;
-							mEnableMultiLangOption.setEnabled(!legacyRender);
-							if (legacyRender) {
-								mHyphDictOption.setEnabled(true);
-								mEnableHyphOption.setEnabled(false);
-							} else {
-								boolean embeddedLang = mProperties.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
-								mHyphDictOption.setEnabled(embeddedLang);
-								mEnableHyphOption.setEnabled(embeddedLang);
-							}
-						}
-					})
+			Runnable renderindChangeListsner = new Runnable() {
+				@Override
+				public void run() {
+					boolean legacyRender = mProperties.getInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0) == 0 ||
+							mProperties.getInt(PROP_REQUESTED_DOM_VERSION, 0) < 20180524;
+					mEnableMultiLangOption.setEnabled(!legacyRender);
+					if (legacyRender) {
+						mHyphDictOption.setEnabled(true);
+						mEnableHyphOption.setEnabled(false);
+					} else {
+						boolean embeddedLang = mProperties.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
+						mHyphDictOption.setEnabled(!embeddedLang);
+						mEnableHyphOption.setEnabled(embeddedLang);
+					}
+				}
+			};
+			mOptionsCSS.add(new ListOption(this, getString(R.string.options_rendering_preset), PROP_RENDER_BLOCK_RENDERING_FLAGS).add(mRenderingPresets, mRenderingPresetsTitles).setDefaultValue(Integer.valueOf(Engine.BLOCK_RENDERING_FLAGS_WEB).toString())
+					.noIcon()
+					.setOnChangeHandler(renderindChangeListsner)
 			);
-			mOptionsCSS.add(new ListOption(this, getString(R.string.options_requested_dom_level), PROP_REQUESTED_DOM_VERSION).add(mDOMVersionPresets, mDOMVersionPresetTitles).setDefaultValue(Integer.valueOf(Engine.DOM_VERSION_CURRENT).toString()).noIcon()
-					.setOnChangeHandler(new Runnable() {
-						@Override
-						public void run() {
-							boolean legacyRender = mProperties.getInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0) == 0 ||
-									mProperties.getInt(PROP_REQUESTED_DOM_VERSION, 0) < 20180524;
-							mEnableMultiLangOption.setEnabled(!legacyRender);
-							if (legacyRender) {
-								mHyphDictOption.setEnabled(true);
-								mEnableHyphOption.setEnabled(false);
-							} else {
-								boolean embeddedLang = mProperties.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
-								mHyphDictOption.setEnabled(embeddedLang);
-								mEnableHyphOption.setEnabled(embeddedLang);
-							}
-							mHyphDictOption.refreshItem();
-							mEnableMultiLangOption.refreshItem();
-							mEnableHyphOption.refreshItem();
-						}
-					})
+			mOptionsCSS.add(new ListOption(this, getString(R.string.options_requested_dom_level), PROP_REQUESTED_DOM_VERSION).add(mDOMVersionPresets, mDOMVersionPresetTitles).setDefaultValue(Integer.valueOf(Engine.DOM_VERSION_CURRENT).toString())
+					.noIcon()
+					.setOnChangeHandler(renderindChangeListsner)
 			);
 		}
 		for (int i=0; i<styleCodes.length; i++)
