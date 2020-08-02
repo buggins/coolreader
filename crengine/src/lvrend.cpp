@@ -2145,6 +2145,8 @@ LVFontRef getFont(css_style_rec_t * style, int documentId)
 lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt32 oldflags, int direction )
 {
     lUInt32 flg = oldflags;
+    if (style.isNull())
+        return flg;
     if ( is_block ) {
         // text alignment flags
         flg = oldflags & ~(LTEXT_FLAG_NEWLINE | (LTEXT_FLAG_NEWLINE<<LTEXT_LAST_LINE_ALIGN_SHIFT) | LTEXT_LAST_LINE_IF_NOT_FIRST);
