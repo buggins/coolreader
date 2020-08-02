@@ -289,11 +289,22 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
         m_ui->cbHyphenation->addItem( s );
     }
     m_ui->cbHyphenation->setCurrentIndex(hi>=0 ? hi : 1);
-    bool embedded_lang = m_props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, true);
-    m_ui->label_9->setVisible(!embedded_lang);
-    m_ui->cbHyphenation->setVisible(!embedded_lang);
-    m_ui->label_48->setVisible(embedded_lang);
-    m_ui->cbEnableHyph->setVisible(embedded_lang);
+    bool legacy_render = (0 == rendFlags) || (0 == DOMVersionIndex);
+    m_ui->label_47->setVisible(!legacy_render);
+    m_ui->cbMultiLang->setVisible(!legacy_render);
+    m_ui->label_48->setVisible(!legacy_render);
+    m_ui->cbEnableHyph->setVisible(!legacy_render);
+    if (legacy_render) {
+        m_ui->label_9->setVisible(true);
+        m_ui->cbHyphenation->setVisible(true);
+    }
+    else {
+        bool embedded_lang = m_props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, true);
+        m_ui->label_9->setVisible(!embedded_lang);
+        m_ui->cbHyphenation->setVisible(!embedded_lang);
+        m_ui->label_48->setVisible(embedded_lang);
+        m_ui->cbEnableHyph->setVisible(embedded_lang);
+    }
 
 
     m_ui->crSample->setOptions( m_props );
@@ -1140,6 +1151,23 @@ void SettingsDlg::on_cbRendFlags_currentIndexChanged(int index)
     if (index < 0 || index >= MAX_REND_FLAGS_INDEX)
         index = 0;
     m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, rend_flags[index]);
+    int DOMVersion = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, 0);
+    bool legacy_render = (0 == index) || (DOMVersion < 20180524);
+    m_ui->label_47->setVisible(!legacy_render);
+    m_ui->cbMultiLang->setVisible(!legacy_render);
+    m_ui->label_48->setVisible(!legacy_render);
+    m_ui->cbEnableHyph->setVisible(!legacy_render);
+    if (legacy_render) {
+        m_ui->label_9->setVisible(true);
+        m_ui->cbHyphenation->setVisible(true);
+    }
+    else {
+        bool embedded_lang = m_props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, true);
+        m_ui->label_9->setVisible(!embedded_lang);
+        m_ui->cbHyphenation->setVisible(!embedded_lang);
+        m_ui->label_48->setVisible(embedded_lang);
+        m_ui->cbEnableHyph->setVisible(embedded_lang);
+    }
     // don't update preview to not change global variable gRenderBlockRenderingFlags too early!
     //updateStyleSample();
 }
@@ -1148,6 +1176,23 @@ void SettingsDlg::on_cbDOMLevel_currentIndexChanged(int index)
 {
     if (index < 0 || index >= MAX_DOM_VERSIONS_INDEX)
         index = 0;
+    int rendFlags = m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
+    bool legacy_render = (0 == rendFlags) || (0 == index);
+    m_ui->label_47->setVisible(!legacy_render);
+    m_ui->cbMultiLang->setVisible(!legacy_render);
+    m_ui->label_48->setVisible(!legacy_render);
+    m_ui->cbEnableHyph->setVisible(!legacy_render);
+    if (legacy_render) {
+        m_ui->label_9->setVisible(true);
+        m_ui->cbHyphenation->setVisible(true);
+    }
+    else {
+        bool embedded_lang = m_props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, true);
+        m_ui->label_9->setVisible(!embedded_lang);
+        m_ui->cbHyphenation->setVisible(!embedded_lang);
+        m_ui->label_48->setVisible(embedded_lang);
+        m_ui->cbEnableHyph->setVisible(embedded_lang);
+    }
     m_props->setInt(PROP_REQUESTED_DOM_VERSION, DOM_versions[index]);
 }
 

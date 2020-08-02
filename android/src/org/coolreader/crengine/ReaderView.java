@@ -1730,6 +1730,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		return false;
 	}
 
+	public boolean isFormatWithEmbeddedStyles() {
+		if (mOpened && mBookInfo != null) {
+			DocumentFormat fmt = mBookInfo.getFileInfo().format;
+			return fmt == DocumentFormat.EPUB || fmt == DocumentFormat.HTML || fmt == DocumentFormat.FB2 || fmt == DocumentFormat.FB3;
+		}
+		return false;
+	}
+
 	public boolean isHtmlFormat() {
 		if (mOpened && mBookInfo != null) {
 			DocumentFormat fmt = mBookInfo.getFileInfo().format;
