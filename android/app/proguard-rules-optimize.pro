@@ -126,6 +126,12 @@
 
 -keep class org.coolreader.crengine.Engine {
 	native <methods>;
+	byte[] loadHyphDictData(java.lang.String);
+}
+
+-keep class org.coolreader.crengine.Engine$HyphDict {
+	int type;
+	java.lang.String code;
 }
 
 -keep class org.coolreader.crengine.FileInfo {

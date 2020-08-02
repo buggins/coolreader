@@ -267,7 +267,7 @@ public:
     /// flush on destroy
     virtual ~LVDefStreamBuffer()
     {
-        close();
+        close(); // NOLINT: Call to virtual function during destruction
     }
 };
 
@@ -1104,8 +1104,9 @@ public:
         //
         if (m_hFile == INVALID_HANDLE_VALUE || m_mode==LVOM_READ )
             return LVERR_FAIL;
-        lvpos_t oldpos;
-        Tell(&oldpos);
+        lvpos_t oldpos = 0;
+        if (!Tell(&oldpos))
+            return LVERR_FAIL;
         if (!Seek(size, LVSEEK_SET, NULL))
             return LVERR_FAIL;
         SetEndOfFile( m_hFile);
@@ -1114,8 +1115,9 @@ public:
 #else
         if (m_fd == -1)
             return LVERR_FAIL;
-        lvpos_t oldpos;
-        Tell(&oldpos);
+        lvpos_t oldpos = 0;
+        if (!Tell(&oldpos))
+            return LVERR_FAIL;
         if (!Seek(size, LVSEEK_SET, NULL))
             return LVERR_FAIL;
         Seek(oldpos, LVSEEK_SET, NULL);
@@ -2285,9 +2287,9 @@ private:
                 m_zstream.avail_out = ARC_OUTBUF_SIZE - outpos;
             }
         }
-        int decoded = m_zstream.avail_out;
+        // int decoded = m_zstream.avail_out;
         int res = inflate( &m_zstream, m_inbytesleft > 0 ? Z_NO_FLUSH : Z_FINISH ); //m_inbytesleft | m_zstream.avail_in
-        decoded -= m_zstream.avail_out;
+        // decoded -= m_zstream.avail_out;
         if (res == Z_STREAM_ERROR)
         {
             return -1;
@@ -2295,7 +2297,7 @@ private:
         if (res == Z_BUF_ERROR)
         {
             //return -1;
-            res = 0; // DEBUG
+            //res = 0; // DEBUG
         }
         avail = getAvailBytes();
         return avail;
@@ -2343,6 +2345,7 @@ private:
             else if (avail==0)
             {
                 avail = decodeNext();
+                (void)avail; // never read
                 return bytesRead;
             }
 
@@ -3010,7 +3013,7 @@ public:
 	{
 		if (!m_pBuffer)
 			return LVERR_FAIL;
-		lvpos_t newpos = m_pos;
+		lvpos_t newpos;
 		switch (origin) {
 		case LVSEEK_SET:
 			newpos = offset;
@@ -3029,7 +3032,7 @@ public:
 			*pNewPos = m_pos;
 		return LVERR_OK;
 	}
-	virtual lverror_t Close()
+	lverror_t Close()
 	{
 		if (!m_pBuffer)
 			return LVERR_FAIL;
@@ -3554,7 +3557,7 @@ public:
                 *dst++ = *src++;
             }
             count -= n;
-            bytesLeft -= n;
+            // bytesLeft -= n;
             bytesRead += n;
             _pos += n;
         }
@@ -3772,7 +3775,7 @@ lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
                     //   ^ ^
                     s.erase( lastElementStart, i+4-lastElementStart );
                     changed = true;
-                    lastElementStart = -1;
+                    // lastElementStart = -1;
                     break;
                 }
             }
@@ -4315,7 +4318,7 @@ class LVBlockWriteStream : public LVNamedStream
 public:
     virtual lverror_t Flush( bool sync ) {
         CRTimerUtil infinite;
-        return Flush(sync, infinite);
+        return Flush(sync, infinite); // NOLINT: Call to virtual function during destruction
     }
     /// flushes unsaved data from buffers to file, with optional flush of OS buffers
     virtual lverror_t Flush( bool sync, CRTimerUtil & timeout )
@@ -4345,7 +4348,7 @@ public:
 
     virtual ~LVBlockWriteStream()
     {
-        Flush( true );
+        Flush( true ); // NOLINT: Call to virtual function during destruction
     }
 
     virtual const lChar16 * GetName()

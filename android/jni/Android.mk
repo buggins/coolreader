@@ -5,16 +5,17 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    := cr3engine-3-2-X
 
-# Generate CREngine blob with statically linked libjpeg, libpng, freetype, harfbuzz, chmlib
+# Generate CREngine blob with statically linked libjpeg, libpng, freetype, harfbuzz, fribidi, libunibreak, chmlib
 
 CRFLAGS := -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH \
-     -DFT2_BUILD_LIBRARY=1 -DFT_CONFIG_MODULES_H=\<builds/android/include/config/ftmodule.h\> -DFT_CONFIG_OPTIONS_H=\<builds/android/include/config/ftoption.h\> \
+     -DFT2_BUILD_LIBRARY=1 -DFT_CONFIG_MODULES_H=\<android/config/ftmodule.h\> -DFT_CONFIG_OPTIONS_H=\<android/config/ftoption.h\> \
      -DDOC_DATA_COMPRESSION_LEVEL=1 -DDOC_BUFFER_SIZE=0x1000000 \
      -DENABLE_CACHE_FILE_CONTENTS_VALIDATION=1 \
      -DLDOM_USE_OWN_MEM_MAN=0 \
      -DCR3_ANTIWORD_PATCH=1 -DENABLE_ANTIWORD=1 \
      -DMAX_IMAGE_SCALE_MUL=2 \
-     -DUSE_NANOSVG=1
+     -DUSE_NANOSVG=1 \
+     -DBUNDLED_FRIBIDI=1
 
 CR3_ROOT := $(LOCAL_PATH)/../..
 
@@ -28,7 +29,11 @@ LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/thirdparty/libjpeg \
     $(CR3_ROOT)/thirdparty/antiword \
     $(CR3_ROOT)/thirdparty/chmlib/src \
-    $(CR3_ROOT)/thirdparty/nanosvg/src
+    $(CR3_ROOT)/thirdparty/nanosvg/src \
+    $(CR3_ROOT)/thirdparty/fribidi/lib \
+    $(CR3_ROOT)/thirdparty/libunibreak/src \
+    $(CR3_ROOT)/android/app/thirdparty_libs/freetype \
+    $(CR3_ROOT)/android/app/thirdparty_libs/fribidi/lib
 
 
 LOCAL_CFLAGS += $(CRFLAGS)
@@ -83,6 +88,7 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/crconcurrent.cpp \
     ../../crengine/src/hist.cpp \
     ../../crengine/src/xxhash.c \
+    ../../crengine/src/textlang.cpp \
     ../../crengine/src/private/lvfontglyphcache.cpp \
     ../../crengine/src/private/lvfontboldtransform.cpp \
     ../../crengine/src/private/lvfontcache.cpp \
@@ -133,7 +139,9 @@ LOCAL_STATIC_LIBRARIES := \
     local_freetype \
     local_harfbuzz \
     local_chmlib \
-    local_antiword
+    local_antiword \
+    local_fribidi \
+    local_libunibreak
 
 LOCAL_LDLIBS    := -lm -llog -lz -ldl -flto
 # 

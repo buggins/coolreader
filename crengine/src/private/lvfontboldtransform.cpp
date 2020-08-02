@@ -39,8 +39,8 @@ int LVFontBoldTransform::getHyphenWidth() {
 }
 
 bool
-LVFontBoldTransform::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar16 def_char) {
-    bool res = _baseFont->getGlyphInfo(code, glyph, def_char);
+LVFontBoldTransform::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar16 def_char, lUInt32 fallbackPassMask) {
+    bool res = _baseFont->getGlyphInfo(code, glyph, def_char, fallbackPassMask);
     if (!res)
         return res;
     glyph->blackBoxX += glyph->blackBoxX > 0 ? _hShift : 0;
@@ -52,8 +52,8 @@ LVFontBoldTransform::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
 
 lUInt16
 LVFontBoldTransform::measureText(const lChar16 *text, int len, lUInt16 *widths, lUInt8 *flags,
-                                 int max_width, lChar16 def_char, int letter_spacing,
-                                 bool allow_hyphenation, lUInt32 hints) {
+                                 int max_width, lChar16 def_char, TextLangCfg *lang_cfg, int letter_spacing,
+                                 bool allow_hyphenation, lUInt32 hints, lUInt32 fallbackPassMask) {
     CR_UNUSED(allow_hyphenation);
     lUInt16 res = _baseFont->measureText(
             text, len,
@@ -61,9 +61,11 @@ LVFontBoldTransform::measureText(const lChar16 *text, int len, lUInt16 *widths, 
             flags,
             max_width,
             def_char,
+            lang_cfg,
             letter_spacing,
             allow_hyphenation,
-            hints
+            hints,
+            fallbackPassMask
     );
     int w = 0;
     for (int i = 0; i < res; i++) {
@@ -73,7 +75,7 @@ LVFontBoldTransform::measureText(const lChar16 *text, int len, lUInt16 *widths, 
     return res;
 }
 
-lUInt32 LVFontBoldTransform::getTextWidth(const lChar16 *text, int len) {
+lUInt32 LVFontBoldTransform::getTextWidth(const lChar16 *text, int len, TextLangCfg *lang_cfg) {
     static lUInt16 widths[MAX_LINE_CHARS + 1];
     static lUInt8 flags[MAX_LINE_CHARS + 1];
     if (len > MAX_LINE_CHARS)
@@ -93,13 +95,13 @@ lUInt32 LVFontBoldTransform::getTextWidth(const lChar16 *text, int len) {
     return 0;
 }
 
-LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt32 ch, lChar16 def_char) {
+LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt32 ch, lChar16 def_char, lUInt32 fallbackPassMask) {
 
     LVFontGlyphCacheItem *item = _glyph_cache.get(ch);
     if (item)
         return item;
 
-    LVFontGlyphCacheItem *olditem = _baseFont->getGlyph(ch, def_char);
+    LVFontGlyphCacheItem *olditem = _baseFont->getGlyph(ch, def_char, fallbackPassMask);
     if (!olditem)
         return NULL;
 
@@ -140,8 +142,8 @@ LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt32 ch, lChar16 def_char
 }
 
 int LVFontBoldTransform::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *text, int len,
-                                         lChar16 def_char, lUInt32 *palette, bool addHyphen,
-                                         lUInt32 flags, int letter_spacing, int width, int text_decoration_back_gap) {
+                                         lChar16 def_char, lUInt32 *palette, bool addHyphen, TextLangCfg * lang_cfg,
+                                         lUInt32 flags, int letter_spacing, int width, int text_decoration_back_gap, lUInt32 fallbackPassMask) {
     if (len <= 0)
         return 0;
     if ( letter_spacing < 0 ) {
@@ -205,7 +207,7 @@ int LVFontBoldTransform::DrawTextString(LVDrawBuf *buf, int x, int y, const lCha
         x0 -= text_decoration_back_gap;
         int h = _size > 30 ? 2 : 1;
         lUInt32 cl = buf->GetTextColor();
-        if ( (flags & LFNT_DRAW_UNDERLINE) || (flags & LFNT_DRAW_BLINK) ) {
+        if ( flags & LFNT_DRAW_UNDERLINE ) {
             int liney = y + _baseline + h;
             buf->FillRect( x0, liney, x, liney+h, cl );
         }

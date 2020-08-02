@@ -33,22 +33,41 @@ public:
     virtual void gc() = 0;
 
     /// returns most similar font
-    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family,
-                              lString8 typeface, int documentId = -1, bool useBias=false) = 0;
-
+    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
+                                int features=0, int documentId = -1, bool useBias=false) = 0;
     /// set fallback font face (returns true if specified font is found)
     virtual bool SetFallbackFontFace( lString8 face ) {
         CR_UNUSED(face);
         return false;
     }
+    /// set fallback font face list semicolon separated (returns true if any font is found)
+    virtual bool SetFallbackFontFaces( lString8 faces ) {
+        CR_UNUSED(faces);
+        return false;
+    }
 
     /// get fallback font face (returns empty string if no fallback font is set)
-    virtual lString8 GetFallbackFontFace() { return lString8::empty_str; }
+    virtual lString8 GetFallbackFontFace(int index = 0) {
+        CR_UNUSED(index);
+        return lString8::empty_str;
+    }
+
+    /// get fallback font faces list (returns empty string list collection if no fallback fonts is set)
+    virtual lString8 GetFallbackFontFaces() { return lString8::empty_str; }
+
+    /// get count of fallback fonts
+    virtual int GetFallbackFontCount() { return 0; }
 
     /// returns fallback font for specified size
-    virtual LVFontRef GetFallbackFont(int /*size*/) { return LVFontRef(); }
+    virtual LVFontRef GetFallbackFont(int size, int index=0) {
+        CR_UNUSED2(size, index);
+        return LVFontRef();
+    }
     /// returns fallback font for specified size, weight and italic
-    virtual LVFontRef GetFallbackFont(int size, int weight=400, bool italic=false ) { return LVFontRef(); }
+    virtual LVFontRef GetFallbackFont(int size, int weight=400, bool italic=false, int index=0 ) {
+        CR_UNUSED4(size, weight, italic, index);
+        return LVFontRef();
+    }
     /// registers font by name
     virtual bool RegisterFont( lString8 name ) = 0;
     /// registers font by name and face

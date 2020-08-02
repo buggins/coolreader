@@ -50,7 +50,7 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found
     */
-    virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar16 def_char = 0);
+    virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar16 def_char = 0, lUInt32 fallbackPassMask = 0);
 
     /** \brief measure text
         \param text is text string pointer
@@ -66,9 +66,11 @@ public:
             lUInt8 *flags,
             int max_width,
             lChar16 def_char,
+            TextLangCfg * lang_cfg = NULL,
             int letter_spacing = 0,
             bool allow_hyphenation = true,
-            lUInt32 hints=0
+            lUInt32 hints=0,
+            lUInt32 fallbackPassMask = 0
     );
 
     /** \brief measure text
@@ -77,14 +79,14 @@ public:
         \return width of specified string
     */
     virtual lUInt32 getTextWidth(
-            const lChar16 *text, int len
+            const lChar16 *text, int len, TextLangCfg * lang_cfg = NULL
     );
 
     /** \brief get glyph item
         \param code is unicode character
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar16 def_char = 0);
+    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar16 def_char = 0, lUInt32 fallbackPassMask = 0);
 
     /** \brief get glyph image in 1 byte per pixel format
         \param code is unicode character
@@ -141,10 +143,12 @@ public:
 
     /// draws text string
     virtual int DrawTextString(LVDrawBuf *buf, int x, int y,
-                                const lChar16 *text, int len,
-                                lChar16 def_char, lUInt32 *palette, bool addHyphen,
-                                lUInt32 flags, int letter_spacing,
-                                int width, int text_decoration_back_gap);
+                               const lChar16 *text, int len,
+                               lChar16 def_char, lUInt32 *palette = NULL,
+                               bool addHyphen = false, TextLangCfg * lang_cfg = NULL,
+                               lUInt32 flags = 0, int letter_spacing = 0,
+                               int width = -1, int text_decoration_back_gap = 0,
+                               lUInt32 fallbackPassMask = 0);
 
     /// get bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual bool getBitmapMode() {
@@ -188,6 +192,11 @@ public:
 
     virtual void Clear() {
         _baseFont->Clear();
+    }
+
+    virtual void setFallbackIndex(int index) {
+        LVFont::setFallbackIndex(index);
+        _baseFont->setFallbackIndex(index);
     }
 
     virtual ~LVFontBoldTransform() {

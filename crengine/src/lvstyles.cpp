@@ -32,6 +32,7 @@ lUInt32 calcHash(font_ref_t & f)
     v = v * 31 + (lUInt32)f->getItalic();
     v = v * 31 + (lUInt32)f->getShapingMode();
     v = v * 31 + (lUInt32)f->getKerning();
+    v = v * 31 + (lUInt32)f->getFeatures();
     v = v * 31 + (lUInt32)f->getHintingMode();
     v = v * 31 + (lUInt32)f->getBitmapMode();
     v = v * 31 + (lUInt32)f->getTypeFace().getHash();
@@ -44,7 +45,7 @@ lUInt32 calcHash(font_ref_t & f)
 lUInt32 calcHash(css_style_rec_t & rec)
 {
     if ( !rec.hash )
-        rec.hash = ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+        rec.hash = ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
            (lUInt32)(rec.important >> 32)) * 31
          + (lUInt32)(rec.important & 0xFFFFFFFFULL)) * 31
          + (lUInt32)(rec.importance >> 32)) * 31
@@ -65,6 +66,7 @@ lUInt32 calcHash(css_style_rec_t & rec)
          + (lUInt32)rec.font_size.value) * 31
          + (lUInt32)rec.font_style) * 31
          + (lUInt32)rec.font_weight) * 31
+         + (lUInt32)rec.font_features.pack()) * 31
          + (lUInt32)rec.line_height.pack()) * 31
          + (lUInt32)rec.color.pack()) * 31
          + (lUInt32)rec.background_color.pack()) * 31
@@ -92,8 +94,9 @@ lUInt32 calcHash(css_style_rec_t & rec)
          + (lUInt32)rec.border_color[2].pack()) * 31
          + (lUInt32)rec.border_color[3].pack()) * 31
          + (lUInt32)rec.background_repeat)*31
-         + (lUInt32)rec.background_attachment)*31
          + (lUInt32)rec.background_position)*31
+         + (lUInt32)rec.background_size[0].pack())*31
+         + (lUInt32)rec.background_size[1].pack())*31
          + (lUInt32)rec.font_family) * 31
          + (lUInt32)rec.border_collapse)*31
          + (lUInt32)rec.border_spacing[0].pack())*31
@@ -103,9 +106,10 @@ lUInt32 calcHash(css_style_rec_t & rec)
          + (lUInt32)rec.float_) * 31
          + (lUInt32)rec.clear) * 31
          + (lUInt32)rec.direction) * 31
-         + (lUInt32)rec.cr_hint) * 31
+         + (lUInt32)rec.cr_hint.pack()) * 31
          + (lUInt32)rec.font_name.getHash()
-         + (lUInt32)rec.background_image.getHash());
+         + (lUInt32)rec.background_image.getHash()
+         + (lUInt32)rec.content.getHash());
     return rec.hash;
 }
 
@@ -144,6 +148,7 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.font_weight == r2.font_weight &&
            r1.font_name == r2.font_name &&
            r1.font_family == r2.font_family&&
+           r1.font_features == r2.font_features&&
            r1.border_style_top==r2.border_style_top&&
            r1.border_style_right==r2.border_style_right&&
            r1.border_style_bottom==r2.border_style_bottom&&
@@ -158,8 +163,9 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.border_color[3]==r2.border_color[3]&&
            r1.background_image==r2.background_image&&
            r1.background_repeat==r2.background_repeat&&
-           r1.background_attachment==r2.background_attachment&&
            r1.background_position==r2.background_position&&
+           r1.background_size[0]==r2.background_size[0]&&
+           r1.background_size[1]==r2.background_size[1]&&
            r1.border_collapse==r2.border_collapse&&
            r1.border_spacing[0]==r2.border_spacing[0]&&
            r1.border_spacing[1]==r2.border_spacing[1]&&
@@ -168,6 +174,7 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.float_ == r2.float_&&
            r1.clear == r2.clear&&
            r1.direction == r2.direction&&
+           r1.content == r2.content&&
            r1.cr_hint==r2.cr_hint;
 }
 
@@ -321,6 +328,7 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     ST_PUT_LEN(font_size);          //    css_length_t         font_size;
     ST_PUT_ENUM(font_style);        //    css_font_style_t     font_style;
     ST_PUT_ENUM(font_weight);       //    css_font_weight_t    font_weight;
+    ST_PUT_LEN(font_features);      //    css_length_t         font_features;
     ST_PUT_LEN(text_indent);        //    css_length_t         text_indent;
     ST_PUT_LEN(line_height);        //    css_length_t         line_height;
     ST_PUT_LEN(width);              //    css_length_t         width;
@@ -344,8 +352,9 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     ST_PUT_LEN4(border_color);
     buf<<background_image;
     ST_PUT_ENUM(background_repeat);
-    ST_PUT_ENUM(background_attachment);
     ST_PUT_ENUM(background_position);
+    ST_PUT_LEN(background_size[0]);
+    ST_PUT_LEN(background_size[1]);
     ST_PUT_ENUM(border_collapse);
     ST_PUT_LEN(border_spacing[0]);
     ST_PUT_LEN(border_spacing[1]);
@@ -354,7 +363,8 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     ST_PUT_ENUM(float_);
     ST_PUT_ENUM(clear);
     ST_PUT_ENUM(direction);
-    ST_PUT_ENUM(cr_hint);
+    buf << content;
+    ST_PUT_LEN(cr_hint);
     lUInt32 hash = calcHash(*this);
     buf << hash;
     return !buf.error();
@@ -379,6 +389,7 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     ST_GET_LEN(font_size);                                  //    css_length_t         font_size;
     ST_GET_ENUM(css_font_style_t, font_style);              //    css_font_style_t     font_style;
     ST_GET_ENUM(css_font_weight_t, font_weight);            //    css_font_weight_t    font_weight;
+    ST_GET_LEN(font_features);                              //    css_length_t         font_features;
     ST_GET_LEN(text_indent);                                //    css_length_t         text_indent;
     ST_GET_LEN(line_height);                                //    css_length_t         line_height;
     ST_GET_LEN(width);                                      //    css_length_t         width;
@@ -402,8 +413,9 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     ST_GET_LEN4(border_color);
     buf>>background_image;
     ST_GET_ENUM(css_background_repeat_value_t ,background_repeat);
-    ST_GET_ENUM(css_background_attachment_value_t ,background_attachment);
     ST_GET_ENUM(css_background_position_value_t ,background_position);
+    ST_GET_LEN(background_size[0]);
+    ST_GET_LEN(background_size[1]);
     ST_GET_ENUM(css_border_collapse_value_t ,border_collapse);
     ST_GET_LEN(border_spacing[0]);
     ST_GET_LEN(border_spacing[1]);
@@ -412,7 +424,8 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     ST_GET_ENUM(css_float_t, float_);
     ST_GET_ENUM(css_clear_t, clear);
     ST_GET_ENUM(css_direction_t, direction);
-    ST_GET_ENUM(css_cr_hint_t, cr_hint);
+    buf>>content;
+    ST_GET_LEN(cr_hint);
     lUInt32 hash = 0;
     buf >> hash;
     // printf("imp: %llx oldhash: %lx ", important, hash);

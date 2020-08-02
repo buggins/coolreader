@@ -66,7 +66,7 @@ static int size_8 = 0;
 
 /// get reference to atomic constant string for string literal e.g. cs8("abc") -- fast and memory effective
 const lString8 & cs8(const char * str) {
-    int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
+    int index =  (int)(((ptrdiff_t)str * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK);
     for (;;) {
         const void * p = const_ptrs_8[index];
         if (p == str) {
@@ -95,7 +95,7 @@ static int size_16 = 0;
 
 /// get reference to atomic constant wide string for string literal e.g. cs16("abc") -- fast and memory effective
 const lString16 & cs16(const char * str) {
-    int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
+    int index =  (int)(((ptrdiff_t)str * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK);
     for (;;) {
         const void * p = const_ptrs_16[index];
         if (p == str) {
@@ -2680,10 +2680,12 @@ static void DecodeWtf8(const char * s,  lChar16 * p, int len)
             *p++ = (char)ch;
             s++;
         } else if ( (ch & 0xE0) == 0xC0 ) {
+            matched = true;
             *p++ = ((ch & 0x1F) << 6)
                     | CONT_BYTE(1,0);
             s += 2;
         } else if ( (ch & 0xF0) == 0xE0 ) {
+            matched = true;
             *p++ = ((ch & 0x0F) << 12)
                 | CONT_BYTE(1,6)
                 | CONT_BYTE(2,0);
@@ -2702,6 +2704,7 @@ static void DecodeWtf8(const char * s,  lChar16 * p, int len)
             }
         } else if ( (ch & 0xF8) == 0xF0 ) {
             // Mostly unused
+            matched = true;
             *p++ = ((ch & 0x07) << 18)
                 | CONT_BYTE(1,12)
                 | CONT_BYTE(2,6)

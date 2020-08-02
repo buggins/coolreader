@@ -110,7 +110,9 @@ public:
     /// get buffer size
     virtual lvsize_t getSize() = 0;
     /// flush on destroy
-    virtual ~LVStreamBuffer() { close(); }
+    virtual ~LVStreamBuffer() {
+        close(); // NOLINT: Call to virtual function during destruction
+    }
     /// detach from stream, write changes if necessary
     virtual bool close() { return true; }
 };

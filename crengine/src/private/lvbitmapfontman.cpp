@@ -39,13 +39,14 @@ lString8 LVBitmapFontManager::makeFontFileName(lString8 name) {
     return filename;
 }
 
-LVFontRef LVBitmapFontManager::GetFont(int size, int weight, bool italic, css_font_family_t family,
-                                       lString8 typeface, int documentId) {
+LVFontRef LVBitmapFontManager::GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
+                                       int features, int documentId, bool useBias) {
     LVFontDef *def = new LVFontDef(
             lString8::empty_str,
             size,
             weight,
             italic,
+            0,
             family,
             typeface,
             documentId
@@ -94,6 +95,7 @@ bool LVBitmapFontManager::RegisterFont(lString8 name) {
                 hdr.fontHeight,
                 hdr.flgBold ? 700 : 400,
                 hdr.flgItalic ? true : false,
+                -1,
                 (css_font_family_t) hdr.fontFamily,
                 lString8(hdr.fontName)
         );

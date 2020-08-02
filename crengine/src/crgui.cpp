@@ -1250,7 +1250,7 @@ int CRMenu::getScrollHeight()
     int scrollHeight = 0;
     CRScrollSkinRef sskin = skin->getScrollSkin();
     if ( nItems > _pageItems || !sskin->getAutohide() ) {
-        nItems = _pageItems;
+        // nItems = _pageItems;
         scrollHeight = SCROLL_HEIGHT;
         if ( sskin->getMinSize().y>0 )
             scrollHeight = sskin->getMinSize().y;

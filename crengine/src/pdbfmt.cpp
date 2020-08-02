@@ -557,6 +557,8 @@ private:
             return false;
         LVArray<lUInt8> srcbuf;
         LVArray<lUInt8> * buf = _compression ? &srcbuf : dstbuf;
+        if ( buf->empty() )
+            buf->reserve(1); // ensure buf->_array is no more NULL for _stream->Read(dstbuf->get() above
         if (!readRecordNoUnpack(index, buf))
             return false;
 

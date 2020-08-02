@@ -10,6 +10,7 @@ my %ic_bigicons_sizes = (ldpi=>36, mdpi=>48, hdpi=>72, xhdpi=>96, xxhdpi=>144, x
 
 my %ic_actions_list=(
 	'cr3_option_text_ligatures-48x48-src.svg' => 'cr3_option_text_ligatures.png',
+	'cr3_option_text_multilang-48x48-src.svg' => 'cr3_option_text_multilang.png',
 
 	'cr3_button_prev_hc-48x48-src.svg' => 'cr3_button_prev_hc.png',
 	'cr3_button_next_hc-48x48-src.svg' => 'cr3_button_next_hc.png',
@@ -46,6 +47,7 @@ my %ic_actions_list=(
 	'cr3_option_text_floating_punct_hc-48x48-src.svg' => 'cr3_option_text_floating_punct_hc.png',
 	'cr3_option_text_kerning_hc-48x48-src.svg' => 'cr3_option_text_kerning_hc.png',
 	'cr3_option_text_ligatures_hc-48x48-src.svg' => 'cr3_option_text_ligatures_hc.png',
+	'cr3_option_text_multilang_hc-48x48-src.svg' => 'cr3_option_text_multilang_hc.png',
 	'cr3_option_images_hc-48x48-src.svg' => 'cr3_option_images_hc.png',
 	'cr3_option_font_gamma_hc-48x48-src.svg' => 'cr3_option_font_gamma_hc.png',
 	'cr3_option_text_width_hc-48x48-src.svg' => 'cr3_option_text_width_hc.png',

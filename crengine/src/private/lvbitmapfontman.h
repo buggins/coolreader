@@ -42,7 +42,7 @@ public:
 
     virtual LVFontRef
     GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
-            int documentId);
+            int features=0, int documentId = -1, bool useBias=false);
 
     virtual bool RegisterFont(lString8 name);
 

@@ -19,6 +19,14 @@ extern "C" {
 #define org_coolreader_crengine_Engine_HYPH_BOOK 0L
 #undef org_coolreader_crengine_Engine_CACHE_DIR_SIZE
 #define org_coolreader_crengine_Engine_CACHE_DIR_SIZE 32000000L
+#undef org_coolreader_crengine_Engine_BLOCK_RENDERING_FLAGS_LEGACY
+#define org_coolreader_crengine_Engine_BLOCK_RENDERING_FLAGS_LEGACY 0L
+#undef org_coolreader_crengine_Engine_BLOCK_RENDERING_FLAGS_FLAT
+#define org_coolreader_crengine_Engine_BLOCK_RENDERING_FLAGS_FLAT 16977969L
+#undef org_coolreader_crengine_Engine_BLOCK_RENDERING_FLAGS_BOOK
+#define org_coolreader_crengine_Engine_BLOCK_RENDERING_FLAGS_BOOK 20402481L
+#undef org_coolreader_crengine_Engine_BLOCK_RENDERING_FLAGS_WEB
+#define org_coolreader_crengine_Engine_BLOCK_RENDERING_FLAGS_WEB 2147483647L
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    initInternal
@@ -26,6 +34,14 @@ extern "C" {
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
   (JNIEnv *, jclass, jobjectArray, jint);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    initDictionaries
+ * Signature: ([Lorg/coolreader/crengine/Engine/HyphDict;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initDictionaries
+  (JNIEnv *, jclass, jobjectArray);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -133,19 +149,19 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInte
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    getDomVersionCurrent
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_Engine_getDomVersionCurrent
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    isLink
  * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_Engine_isLink
   (JNIEnv *, jclass, jstring);
-
-/*
- * Class:     org_coolreader_crengine_Engine
- * Method:    setHyphenationMethod
- * Signature: (I[B)Z
- */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMethod
-  (JNIEnv *, jobject, jint, jbyteArray);
 
 #ifdef __cplusplus
 }

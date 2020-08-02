@@ -12,10 +12,17 @@
 #endif
 #include <QDir>
 
+#include "lvrend.h"         // for BLOCK_RENDERING_FLAGS_XXX presets
+
 static int def_margins[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30, 40, 50, 60 };
 #define MAX_MARGIN_INDEX (sizeof(def_margins)/sizeof(int))
 
 DECL_DEF_CR_FONT_SIZES;
+
+static int rend_flags[] = { BLOCK_RENDERING_FLAGS_LEGACY, BLOCK_RENDERING_FLAGS_FLAT, BLOCK_RENDERING_FLAGS_BOOK, BLOCK_RENDERING_FLAGS_WEB };
+#define MAX_REND_FLAGS_INDEX (sizeof(rend_flags)/sizeof(int))
+static int DOM_versions[] = { 0, gDOMVersionCurrent };
+#define MAX_DOM_VERSIONS_INDEX (sizeof(DOM_versions)/sizeof(int))
 
 static bool initDone = false;
 
@@ -173,11 +180,30 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
         m_ui->cbViewMode->setCurrentIndex( lp==1 ? 0 : 1 );
     int hinting = m_props->getIntDef(PROP_FONT_HINTING, 2);
     m_ui->cbFontHinting->setCurrentIndex(hinting);
-    int shaping = m_props->getIntDef(PROP_FONT_SHAPING, 0);
+    int shaping = m_props->getIntDef(PROP_FONT_SHAPING, 1);
     m_ui->cbFontShaping->setCurrentIndex(shaping);
     int highlight = m_props->getIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, 1);
     m_ui->cbBookmarkHighlightMode->setCurrentIndex(highlight);
 
+    int rendFlagsIndex = 0;
+    int rendFlags = m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_WEB);
+    for (int i = 0; i < MAX_REND_FLAGS_INDEX; i++) {
+        if (rendFlags == rend_flags[i]) {
+            rendFlagsIndex = i;
+            break;
+        }
+    }
+    m_ui->cbRendFlags->setCurrentIndex(rendFlagsIndex);
+
+    int DOMVersionIndex = 0;
+    int DOMVersion = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, 0);
+    for (int i = 0; i < MAX_DOM_VERSIONS_INDEX; i++) {
+        if (DOMVersion == DOM_versions[i]) {
+            DOMVersionIndex = i;
+            break;
+        }
+    }
+    m_ui->cbDOMLevel->setCurrentIndex(DOMVersionIndex);
 
     int n = m_props->getIntDef( PROP_PAGE_MARGIN_LEFT, 8 );
     int mi = 0;
@@ -247,6 +273,8 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     int isi = m_ui->cbInterlineSpace->findText(v);
     m_ui->cbInterlineSpace->setCurrentIndex(isi>=0 ? isi : 6);
 
+    optionToUi( PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, m_ui->cbMultiLang );
+    optionToUi( PROP_TEXTLANG_HYPHENATION_ENABLED, m_ui->cbEnableHyph );
     int hi = -1;
     v = m_props->getStringDef(PROP_HYPHENATION_DICT,"@algorithm"); //HYPH_DICT_ID_ALGORITHM;
     for ( int i=0; i<HyphMan::getDictList()->length(); i++ ) {
@@ -261,6 +289,11 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
         m_ui->cbHyphenation->addItem( s );
     }
     m_ui->cbHyphenation->setCurrentIndex(hi>=0 ? hi : 1);
+    bool embedded_lang = m_props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, true);
+    m_ui->label_9->setVisible(!embedded_lang);
+    m_ui->cbHyphenation->setVisible(!embedded_lang);
+    m_ui->label_48->setVisible(embedded_lang);
+    m_ui->cbEnableHyph->setVisible(embedded_lang);
 
 
     m_ui->crSample->setOptions( m_props );
@@ -303,6 +336,7 @@ SettingsDlg::~SettingsDlg()
 bool SettingsDlg::showDlg(  QWidget * parent, CR3View * docView )
 {
     SettingsDlg * dlg = new SettingsDlg( parent, docView );
+    dlg->setAttribute(Qt::WA_DeleteOnClose, true);
     dlg->show();
     return true;
 }
@@ -802,7 +836,8 @@ void SettingsDlg::updateStyleSample()
 
     m_ui->crSample->getDocView()->getPageImage(0);
 
-    HyphMan::getDictList()->activate( qt2cr(m_oldHyph) );
+    if (!m_props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, true))
+        HyphMan::getDictList()->activate( qt2cr(m_oldHyph) );
 }
 
 QColor SettingsDlg::getColor( const char * optionName, unsigned def )
@@ -1098,4 +1133,36 @@ void SettingsDlg::on_cbFontShaping_currentIndexChanged(int index)
 {
     m_props->setInt(PROP_FONT_SHAPING, index);
     updateStyleSample();
+}
+
+void SettingsDlg::on_cbRendFlags_currentIndexChanged(int index)
+{
+    if (index < 0 || index >= MAX_REND_FLAGS_INDEX)
+        index = 0;
+    m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, rend_flags[index]);
+    // don't update preview to not change global variable gRenderBlockRenderingFlags too early!
+    //updateStyleSample();
+}
+
+void SettingsDlg::on_cbDOMLevel_currentIndexChanged(int index)
+{
+    if (index < 0 || index >= MAX_DOM_VERSIONS_INDEX)
+        index = 0;
+    m_props->setInt(PROP_REQUESTED_DOM_VERSION, DOM_versions[index]);
+}
+
+void SettingsDlg::on_cbMultiLang_stateChanged(int state)
+{
+    setCheck( PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, state );
+    m_ui->label_9->setVisible(state != Qt::Checked);
+    m_ui->cbHyphenation->setVisible(state != Qt::Checked);
+    m_ui->label_48->setVisible(state == Qt::Checked);
+    m_ui->cbEnableHyph->setVisible(state == Qt::Checked);
+    // don't update preview to not change static field TextLangMan::_embedded_langs_enabled too early!
+}
+
+void SettingsDlg::on_cbEnableHyph_stateChanged(int state)
+{
+    setCheck( PROP_TEXTLANG_HYPHENATION_ENABLED, state );
+    // don't update preview to not change static field TextLangMan::_hyphenation_enabled too early!
 }

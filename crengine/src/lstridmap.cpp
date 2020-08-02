@@ -78,7 +78,7 @@ LDOMNameIdMapItem * LDOMNameIdMapItem::deserialize( SerialBuf & buf )
         lUInt8 display;
         lUInt8 white_space;
         buf >> display >> white_space >> props.allow_text >> props.is_object;
-        if ( display > css_d_none || white_space > css_ws_nowrap )
+        if ( display > css_d_none || white_space > css_ws_break_spaces )
             return NULL;
         props.display = (css_display_t)display;
         props.white_space = (css_white_space_t)white_space;
@@ -319,3 +319,15 @@ void LDOMNameIdMap::dumpUnknownItems( FILE * f, int start_id )
     }
 }
 
+lString16 LDOMNameIdMap::getUnknownItems( int start_id )
+{
+    lString16 items;
+    for (int i=start_id; i<m_size; i++) {
+        if (m_by_id[i] != NULL) {
+            if ( !items.empty() )
+                items << " ";
+            items << m_by_id[i]->value;
+        }
+    }
+    return items;
+}

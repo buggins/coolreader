@@ -22,6 +22,20 @@ ELSE()
   ADD_DEFINITIONS( -DNDEBUG=1 )
 ENDIF(${CMAKE_BUILD_TYPE} STREQUAL Debug)
 
+option(USE_DEBUG_EXTRA_OPTS "Add extra debug flags and technique" OFF)
+
+if(USE_DEBUG_EXTRA_OPTS)
+    add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
+    set(DEBUG_EXTRA_FLAGS "-fstack-check -fstack-protector -fno-omit-frame-pointer -Wshift-overflow=2")
+    if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+        set (DEBUG_EXTRA_FLAGS "${DEBUG_EXTRA_FLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize-recover")
+        set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -fstack-check -fstack-protector")
+        set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -fstack-check -fstack-protector")
+    endif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${DEBUG_EXTRA_FLAGS}")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DEBUG_EXTRA_FLAGS}")
+endif(USE_DEBUG_EXTRA_OPTS)
+
 if(MSVC)
   # Force to always compile with W4
   if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
@@ -31,7 +45,10 @@ if(MSVC)
   endif()
 elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   # Update if necessary
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic -std=c++11 -fPIC -Wno-misleading-indentation")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-long-long -pedantic -std=gnu11 -fPIC -Wno-misleading-indentation")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic -std=c++11 -fPIC -Wno-misleading-indentation -Wno-reorder")
+  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fomit-frame-pointer")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fomit-frame-pointer")
 endif()
 
 if (NOT DEFINED GUI)
@@ -148,10 +165,10 @@ else()
   SET(USE_UNRAR 0)
 endif(DEFINED USE_UNRAR)
 
-find_path(NANOSVG_INCLUDE_DIR nanosvg.h)
-if (NOT NANOSVG_FOUND)
-SET(NANOSVG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/nanosvg/src)
-endif(NOT NANOSVG_FOUND)
+find_path(NANOSVG_INCLUDE_DIR nanosvg.h DOC "Path to NanoSVG include dir")
+if (NOT NANOSVG_INCLUDE_DIR)
+  SET(NANOSVG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/nanosvg/src)
+endif(NOT NANOSVG_INCLUDE_DIR)
 
 ADD_DEFINITIONS(-DUSE_NANOSVG=1)
 INCLUDE_DIRECTORIES(${NANOSVG_INCLUDE_DIR})
@@ -255,6 +272,30 @@ else()
 	set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_FONTCONFIG=0)
 endif (FONTCONFIG_FOUND)
 
+if (NOT MSVC)
+	find_package(FriBidi)
+endif(NOT MSVC)
+
+if (NOT FRIBIDI_FOUND)
+  message("System FriBidi not found, will build local one\n")
+  ADD_SUBDIRECTORY(thirdparty/fribidi)
+  SET(FRIBIDI_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/fribidi/lib)
+  SET(FRIBIDI_LIBRARIES fribidi)
+  set(DESKTOP_DEFS ${DESKTOP_DEFS} -DBUNDLED_FRIBIDI=1 -I${CMAKE_BINARY_DIR}/thirdparty/fribidi)
+endif (NOT FRIBIDI_FOUND)
+
+if (NOT MSVC)
+	find_package(libunibreak)
+endif(NOT MSVC)
+
+if (NOT LIBUNIBREAK_FOUND)
+  message("System libunibreak not found, will build local one\n")
+  ADD_SUBDIRECTORY(thirdparty/libunibreak)
+  SET(LIBUNIBREAK_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/libunibreak/src)
+  SET(LIBUNIBREAK_LIBRARIES unibreak)
+endif (NOT LIBUNIBREAK_FOUND)
+
+
 endif (NOT MAC)
 
 #if (ENABLE_CHM)
@@ -285,6 +326,8 @@ INCLUDE_DIRECTORIES(
   ${HARFBUZZ_INCLUDE_DIRS}
   ${ANTIWORD_INCLUDE_DIR}
   ${CHM_INCLUDE_DIR}
+  ${FRIBIDI_INCLUDE_DIR}
+  ${LIBUNIBREAK_INCLUDE_DIR}
 )
 
 if ( ${GUI} STREQUAL FB2PROPS )
@@ -301,6 +344,8 @@ SET(STD_LIBS
   ${CHM_LIBRARIES}
   ${ZLIB_LIBRARIES}
   ${ANTIWORD_LIBRARIES}
+  ${FRIBIDI_LIBRARIES}
+  ${LIBUNIBREAK_LIBRARIES}
   qimagescale
 )
 if (FONTCONFIG_FOUND)

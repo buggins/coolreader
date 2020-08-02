@@ -39,65 +39,74 @@ enum css_style_rec_important_bit {
     imp_bit_font_size             = 1ULL << 9,
     imp_bit_font_style            = 1ULL << 10,
     imp_bit_font_weight           = 1ULL << 11,
-    imp_bit_text_indent           = 1ULL << 12,
-    imp_bit_line_height           = 1ULL << 13,
-    imp_bit_width                 = 1ULL << 14,
-    imp_bit_height                = 1ULL << 15,
-    imp_bit_margin_left           = 1ULL << 16,
-    imp_bit_margin_right          = 1ULL << 17,
-    imp_bit_margin_top            = 1ULL << 18,
-    imp_bit_margin_bottom         = 1ULL << 19,
-    imp_bit_padding_left          = 1ULL << 20,
-    imp_bit_padding_right         = 1ULL << 21,
-    imp_bit_padding_top           = 1ULL << 22,
-    imp_bit_padding_bottom        = 1ULL << 23,
-    imp_bit_color                 = 1ULL << 24,
-    imp_bit_background_color      = 1ULL << 25,
-    imp_bit_letter_spacing        = 1ULL << 26,
-    imp_bit_page_break_before     = 1ULL << 27,
-    imp_bit_page_break_after      = 1ULL << 28,
-    imp_bit_page_break_inside     = 1ULL << 29,
-    imp_bit_hyphenate             = 1ULL << 30,
-    imp_bit_list_style_type       = 1ULL << 31,
-    imp_bit_list_style_position   = 1ULL << 32,
-    imp_bit_border_style_top      = 1ULL << 33,
-    imp_bit_border_style_bottom   = 1ULL << 34,
-    imp_bit_border_style_right    = 1ULL << 35,
-    imp_bit_border_style_left     = 1ULL << 36,
-    imp_bit_border_width_top      = 1ULL << 37,
-    imp_bit_border_width_right    = 1ULL << 38,
-    imp_bit_border_width_bottom   = 1ULL << 39,
-    imp_bit_border_width_left     = 1ULL << 40,
-    imp_bit_border_color_top      = 1ULL << 41,
-    imp_bit_border_color_right    = 1ULL << 42,
-    imp_bit_border_color_bottom   = 1ULL << 43,
-    imp_bit_border_color_left     = 1ULL << 44,
-    imp_bit_background_image      = 1ULL << 45,
-    imp_bit_background_repeat     = 1ULL << 46,
-    imp_bit_background_attachment = 1ULL << 47,
+    imp_bit_font_features         = 1ULL << 12,
+    imp_bit_text_indent           = 1ULL << 13,
+    imp_bit_line_height           = 1ULL << 14,
+    imp_bit_width                 = 1ULL << 15,
+    imp_bit_height                = 1ULL << 16,
+    imp_bit_margin_left           = 1ULL << 17,
+    imp_bit_margin_right          = 1ULL << 18,
+    imp_bit_margin_top            = 1ULL << 19,
+    imp_bit_margin_bottom         = 1ULL << 20,
+    imp_bit_padding_left          = 1ULL << 21,
+    imp_bit_padding_right         = 1ULL << 22,
+    imp_bit_padding_top           = 1ULL << 23,
+    imp_bit_padding_bottom        = 1ULL << 24,
+    imp_bit_color                 = 1ULL << 25,
+    imp_bit_background_color      = 1ULL << 26,
+    imp_bit_letter_spacing        = 1ULL << 27,
+    imp_bit_page_break_before     = 1ULL << 28,
+    imp_bit_page_break_after      = 1ULL << 29,
+    imp_bit_page_break_inside     = 1ULL << 30,
+    imp_bit_hyphenate             = 1ULL << 31,
+    imp_bit_list_style_type       = 1ULL << 32,
+    imp_bit_list_style_position   = 1ULL << 33,
+    imp_bit_border_style_top      = 1ULL << 34,
+    imp_bit_border_style_bottom   = 1ULL << 35,
+    imp_bit_border_style_right    = 1ULL << 36,
+    imp_bit_border_style_left     = 1ULL << 37,
+    imp_bit_border_width_top      = 1ULL << 38,
+    imp_bit_border_width_right    = 1ULL << 39,
+    imp_bit_border_width_bottom   = 1ULL << 40,
+    imp_bit_border_width_left     = 1ULL << 41,
+    imp_bit_border_color_top      = 1ULL << 42,
+    imp_bit_border_color_right    = 1ULL << 43,
+    imp_bit_border_color_bottom   = 1ULL << 44,
+    imp_bit_border_color_left     = 1ULL << 45,
+    imp_bit_background_image      = 1ULL << 46,
+    imp_bit_background_repeat     = 1ULL << 47,
     imp_bit_background_position   = 1ULL << 48,
-    imp_bit_border_collapse       = 1ULL << 49,
-    imp_bit_border_spacing_h      = 1ULL << 50,
-    imp_bit_border_spacing_v      = 1ULL << 51,
-    imp_bit_orphans               = 1ULL << 52,
-    imp_bit_widows                = 1ULL << 53,
-    imp_bit_float                 = 1ULL << 54,
-    imp_bit_clear                 = 1ULL << 55,
-    imp_bit_direction             = 1ULL << 56,
-    imp_bit_cr_hint               = 1ULL << 57
+    imp_bit_background_size_h     = 1ULL << 49,
+    imp_bit_background_size_v     = 1ULL << 50,
+    imp_bit_border_collapse       = 1ULL << 51,
+    imp_bit_border_spacing_h      = 1ULL << 52,
+    imp_bit_border_spacing_v      = 1ULL << 53,
+    imp_bit_orphans               = 1ULL << 54,
+    imp_bit_widows                = 1ULL << 55,
+    imp_bit_float                 = 1ULL << 56,
+    imp_bit_clear                 = 1ULL << 57,
+    imp_bit_direction             = 1ULL << 58,
+    imp_bit_content               = 1ULL << 59,
+    imp_bit_cr_hint               = 1ULL << 60
 };
+
+// Style handling flags
+#define STYLE_REC_FLAG_MATCHED  0x01 // This style has had some stylesheet declaration matched and applied.
+                                     // Currently only used for a pseudo element style,
+                                     // see LVCssSelector::apply() if more generic usage needed.
 
 /**
     \brief Element style record.
 
     Contains set of style properties.
 */
-typedef struct css_style_rec_tag {
+typedef struct css_style_rec_tag css_style_rec_t;
+struct css_style_rec_tag {
     int                  refCount; // for reference counting
     lUInt32              hash; // cache calculated hash value here
     lUInt64              important;  // bitmap for !important (used only by LVCssDeclaration)
-                                     // we have currently below 58 css properties
-                                     // lvstsheet knows about 73, which are mapped to these 58
+                                     // we have currently below 61 css properties
+                                     // lvstsheet knows about 83, which are mapped to these 61
                                      // update bits above if you add new properties below
     lUInt64              importance; // bitmap for important bit's importance/origin
                                      // (allows for 2 level of !important importance)
@@ -113,6 +122,7 @@ typedef struct css_style_rec_tag {
     css_length_t         font_size;
     css_font_style_t     font_style;
     css_font_weight_t    font_weight;
+    css_length_t         font_features;
     css_length_t         text_indent;
     css_length_t         line_height;
     css_length_t         width;
@@ -136,8 +146,8 @@ typedef struct css_style_rec_tag {
     css_length_t border_color[4]; ///< border-top-color, -right-, -bottom-, -left-
     lString8 background_image;
     css_background_repeat_value_t background_repeat;
-    css_background_attachment_value_t background_attachment;
     css_background_position_value_t background_position;
+    css_length_t background_size[2];//first width and second height
     css_border_collapse_value_t border_collapse;
     css_length_t border_spacing[2];//first horizontal and the second vertical spacing
     css_orphans_widows_value_t orphans;
@@ -145,7 +155,14 @@ typedef struct css_style_rec_tag {
     css_float_t            float_; // "float" is a C++ keyword...
     css_clear_t            clear;
     css_direction_t        direction;
-    css_cr_hint_t          cr_hint;
+    lString16              content;
+    css_length_t           cr_hint;
+    // The following should only be used when applying stylesheets while in lvend.cpp setNodeStyle(),
+    // and cleaned up there, before the style is cached and shared. They are not serialized.
+    lInt8                flags; // bitmap of STYLE_REC_FLAG_*
+    css_style_rec_t *    pseudo_elem_before_style;
+    css_style_rec_t *    pseudo_elem_after_style;
+
     css_style_rec_tag()
     : refCount(0)
     , hash(0)
@@ -162,6 +179,7 @@ typedef struct css_style_rec_tag {
     , font_size(css_val_inherited, 0)
     , font_style(css_fs_inherit)
     , font_weight(css_fw_inherit)
+    , font_features(css_val_inherited, 0)
     , text_indent(css_val_inherited, 0)
     , line_height(css_val_inherited, 0)
     , width(css_val_unspecified, 0)
@@ -180,7 +198,6 @@ typedef struct css_style_rec_tag {
     , border_style_right(css_border_none)
     , border_style_left(css_border_none)
     , background_repeat(css_background_r_none)
-    , background_attachment(css_background_a_none)
     , background_position(css_background_p_none)
     , border_collapse(css_border_seperate)
     , orphans(css_orphans_widows_inherit)
@@ -188,7 +205,10 @@ typedef struct css_style_rec_tag {
     , float_(css_f_none)
     , clear(css_c_none)
     , direction(css_dir_inherit)
-    , cr_hint(css_cr_hint_none)
+    , cr_hint(css_val_inherited, 0)
+    , flags(0)
+    , pseudo_elem_before_style(NULL)
+    , pseudo_elem_after_style(NULL)
     {
         // css_length_t fields are initialized by css_length_tag()
         // to (css_val_screen_px, 0)
@@ -198,6 +218,8 @@ typedef struct css_style_rec_tag {
         border_width[1] = css_length_t(css_val_unspecified, 0);
         border_width[2] = css_length_t(css_val_unspecified, 0);
         border_width[3] = css_length_t(css_val_unspecified, 0);
+        background_size[0] = css_length_t(css_val_unspecified, 0);
+        background_size[1] = css_length_t(css_val_unspecified, 0);
     }
     void AddRef() { refCount++; }
     int Release() { return --refCount; }
@@ -220,8 +242,20 @@ typedef struct css_style_rec_tag {
             if (is_important & 0x1) important |= bit;   // update important flag
             if (is_important == 0x3) importance |= bit; // update importance flag (!important comes from higher_importance CSS)
         }
-    };
-} css_style_rec_t;
+    }
+    // Similar to previous one, but logical-OR'ing values, for bitmaps (currently, only style->font_features and style->cr_hint)
+    inline void ApplyAsBitmapOr( css_length_t value, css_length_t *field, css_style_rec_important_bit bit, lUInt8 is_important ) {
+        if (     !(important & bit)
+              || (is_important == 0x3)
+              || (is_important == 0x1 && !(importance & bit) )
+           ) {
+            field->value |= value.value; // logical-or values
+            field->type = value.type;    // use the one from value (always css_val_unspecified for font_features)
+            if (is_important & 0x1) important |= bit;
+            if (is_important == 0x3) importance |= bit;
+        }
+    }
+};
 
 /// style record reference type
 typedef LVFastRef< css_style_rec_t > css_style_ref_t;
@@ -249,18 +283,15 @@ enum lvdom_element_render_method
     erm_block,         ///< render as block element (render as containing other elements)
     erm_final,         ///< final element: render the whole it's content as single render block
     erm_inline,        ///< inline element
-    erm_mixed,         ///< block and inline elements are mixed: autobox inline portions of nodes; TODO
-    erm_list_item,     ///< render as block element as list item
     erm_table,         ///< table element: render as table
-    erm_table_row_group, ///< table row group
+    erm_table_row_group,    ///< table row group
     erm_table_header_group, ///< table header group
     erm_table_footer_group, ///< table footer group
-    erm_table_row,  ///< table row
+    erm_table_row,          ///< table row
     erm_table_column_group, ///< table column group
-    erm_table_column, ///< table column
-    erm_table_cell, ///< table cell
-    erm_table_caption, ///< table caption
-    erm_runin          ///< run-in
+    erm_table_column,       ///< table column
+    // Note that table cells always become either erm_block or erm_final depending on their content
+    // and that table captions are set erm_final.
 };
 
 /// node format record
@@ -293,6 +324,9 @@ protected:
         // is also limited to that for being carried in lInt16 slots when
         // formatting text in lvtextfm.cpp.)
 
+    short _usable_left_overflow;   // Usable overflow for hanging punctuation
+    short _usable_right_overflow;  // and glyphs negative side bearings
+
     // Children blocks should be fully contained in their parent block,
     // and sibling nodes blocks should not overlap with other siblings,
     // except when float are involved and we allow them to continue
@@ -303,8 +337,8 @@ protected:
     int _top_overflow;    // Overflow (positive value) below _y
     int _bottom_overflow; // Overflow (positive value) after _y+_height
 
-    int _listprop_node_idx; // dataIndex of the UL/OL node this erm_final block
-                           // should get its marker from
+    int _lang_node_idx;     // dataIndex of the upper node this erm_final block
+                            // should get its lang= langage from
 
     // Flags & extras, to have additional info related to this rect cached.
     // - For erm_final nodes, these contain the footprint of outer floats
@@ -320,18 +354,22 @@ protected:
     int  _extra4;
     int  _extra5;
 
-    // Added for padding from 14 to 16 32-bits ints
-    int _available1;
-    int _available2;
+    int _listprop_node_idx; // dataIndex of the UL/OL node this erm_final block
+                            // should get its marker from
+
+    // We're now at 16 32-bits ints. If needing new fields, add some padding:
+    // Added for padding from 17 to 20 32-bits ints
+    // int _available1; int _available2; int _available3;
 
 public:
     lvdomElementFormatRec()
     : _x(0), _width(0), _y(0), _height(0)
     , _inner_width(0), _inner_x(0), _inner_y(0), _baseline(0)
-    , _top_overflow(0), _bottom_overflow(0), _listprop_node_idx(0)
+    , _usable_left_overflow(0), _usable_right_overflow(0)
+    , _top_overflow(0), _bottom_overflow(0)
+    , _lang_node_idx(0) , _listprop_node_idx(0)
     , _flags(0), _extra0(0)
     , _extra1(0), _extra2(0), _extra3(0), _extra4(0), _extra5(0)
-    , _available1(0), _available2(0)
     {
     }
     ~lvdomElementFormatRec()
@@ -341,23 +379,23 @@ public:
     {
         _x = _width = _y = _height = 0;
         _inner_width = _inner_x = _inner_y = _baseline = 0;
+        _usable_left_overflow = _usable_right_overflow = 0;
         _top_overflow = _bottom_overflow = 0;
-        _listprop_node_idx = 0;
+        _lang_node_idx = _listprop_node_idx = 0;
         _flags = _extra0 = 0;
         _extra1 = _extra2 = _extra3 = _extra4 = _extra5 = 0;
-        _available1 = 0; _available2 = 0;
     }
     bool operator == ( lvdomElementFormatRec & v )
     {
         return (_height==v._height && _y==v._y && _width==v._width && _x==v._x &&
                 _inner_width==v._inner_width && _inner_x==v._inner_x &&
                 _inner_y==v._inner_y && _baseline==v._baseline &&
+                _usable_left_overflow==v._usable_left_overflow && _usable_right_overflow==v._usable_right_overflow &&
                 _top_overflow==v._top_overflow && _bottom_overflow==v._bottom_overflow &&
-                _listprop_node_idx==v._listprop_node_idx &&
+                _lang_node_idx==v._lang_node_idx && _listprop_node_idx==v._listprop_node_idx &&
                 _flags==v._flags && _extra0==v._extra0 &&
                 _extra1==v._extra1 && _extra2==v._extra2 && _extra3==v._extra3 &&
-                _extra4==v._extra4 && _extra5==v._extra5 &&
-                _available1==v._available1 && _available2==v._available2
+                _extra4==v._extra4 && _extra5==v._extra5
                 );
     }
     bool operator != ( lvdomElementFormatRec & v )
@@ -365,12 +403,12 @@ public:
         return (_height!=v._height || _y!=v._y || _width!=v._width || _x!=v._x ||
                 _inner_width!=v._inner_width || _inner_x!=v._inner_x ||
                 _inner_y!=v._inner_y || _baseline!=v._baseline ||
+                _usable_left_overflow!=v._usable_left_overflow || _usable_right_overflow!=v._usable_right_overflow ||
                 _top_overflow!=v._top_overflow || _bottom_overflow!=v._bottom_overflow ||
-                _listprop_node_idx!=v._listprop_node_idx ||
+                _lang_node_idx!=v._lang_node_idx || _listprop_node_idx!=v._listprop_node_idx ||
                 _flags!=v._flags || _extra0!=v._extra0 ||
                 _extra1!=v._extra1 || _extra2!=v._extra2 || _extra3!=v._extra3 ||
-                _extra4!=v._extra4 || _extra5!=v._extra5 ||
-                _available1!=v._available1 || _available2!=v._available2
+                _extra4!=v._extra4 || _extra5!=v._extra5
                 );
     }
     // Get/Set

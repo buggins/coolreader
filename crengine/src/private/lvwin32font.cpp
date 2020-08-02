@@ -118,7 +118,7 @@ bool LVBaseWin32Font::Create(int size, int weight, bool italic, css_font_family_
     \param glyph is pointer to glyph_info_t struct to place retrieved info
     \return true if glyh was found 
 */
-bool LVWin32DrawFont::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char )
+bool LVWin32DrawFont::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char, lUInt32 fallbackPassMask )
 {
     return false;
 }
@@ -157,7 +157,7 @@ int LVWin32DrawFont::getCharWidth( lChar16 ch, lChar16 def_char )
     return dx[0];
 }
 
-lUInt32 LVWin32DrawFont::getTextWidth( const lChar16 * text, int len )
+lUInt32 LVWin32DrawFont::getTextWidth( const lChar16 * text, int len, TextLangCfg * lang_cfg = NULL )
 {
     //
     static lUInt16 widths[MAX_LINE_CHARS+1];
@@ -171,7 +171,8 @@ lUInt32 LVWin32DrawFont::getTextWidth( const lChar16 * text, int len )
                     widths,
                     flags,
                     MAX_LINE_WIDTH,
-                    L' '  // def_char
+                    L' ',  // def_char
+                    lang_cfg
                  );
     if ( res>0 && res<MAX_LINE_CHARS )
         return widths[res-1];
@@ -188,9 +189,11 @@ lUInt16 LVWin32DrawFont::measureText(
                     lUInt8 * flags,
                     int max_width,
                     lChar16 def_char,
+                    TextLangCfg * lang_cfg = NULL,
                     int letter_spacing,
                     bool allow_hyphenation,
-                    lUInt32 hints
+                    lUInt32 hints,
+                    lUInt32 fallbackPassMask
                  )
 {
     if (_hfont==NULL)
@@ -285,6 +288,10 @@ lUInt16 LVWin32DrawFont::measureText(
         
     }
     HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+    if ( lang_cfg )
+        lang_cfg->getHyphMethod()->hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, hyphwidth, max_width);
+    else // Use global lang hyph method
+        HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, hyphwidth, max_width);
 
     return nchars;
 }
@@ -292,9 +299,10 @@ lUInt16 LVWin32DrawFont::measureText(
 /// draws text string (returns x advance)
 int LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y, 
                    const lChar16 * text, int len, 
-                   lChar16 def_char, lUInt32 * palette, bool addHyphen,
+                   lChar16 def_char, lUInt32 * palette, bool addHyphen, TextLangCfg * lang_cfg,
                    lUInt32 flags, int letter_spacing, int width,
-                   int text_decoration_back_gap )
+                   int text_decoration_back_gap,
+                   lUInt32 fallbackPassMask )
 {
     if (_hfont==NULL)
         return 0;
@@ -509,7 +517,7 @@ glyph_t * LVWin32Font::GetGlyphRec( lChar16 ch )
     \param glyph is pointer to glyph_info_t struct to place retrieved info
     \return true if glyh was found 
 */
-bool LVWin32Font::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char )
+bool LVWin32Font::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char, lUInt32 fallbackPassMask )
 {
     if (_hfont==NULL)
         return false;
@@ -520,7 +528,7 @@ bool LVWin32Font::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_
     return true;
 }
 
-lUInt32 LVWin32Font::getTextWidth( const lChar16 * text, int len )
+lUInt32 LVWin32Font::getTextWidth( const lChar16 * text, int len, TextLangCfg * lang_cfg )
 {
     //
     static lUInt16 widths[MAX_LINE_CHARS+1];
@@ -534,7 +542,8 @@ lUInt32 LVWin32Font::getTextWidth( const lChar16 * text, int len )
                     widths,
                     flags,
                     MAX_LINE_WIDTH,
-                    L' '  // def_char
+                    L' ',  // def_char
+                    lang_cfg
                  );
     if ( res>0 && res<MAX_LINE_CHARS )
         return widths[res-1];
@@ -551,9 +560,11 @@ lUInt16 LVWin32Font::measureText(
                     lUInt8 * flags,
                     int max_width,
                     lChar16 def_char,
+                    TextLangCfg * lang_cfg,
                     int letter_spacing,
                     bool allow_hyphenation,
-                    lUInt32 hints
+                    lUInt32 hints,
+                    lUInt32 fallbackPassMask
                  )
 {
     if (_hfont==NULL)
@@ -613,7 +624,10 @@ lUInt16 LVWin32Font::measureText(
             break;
         
     }
-    HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, hyphwidth, max_width);
+    if ( lang_cfg )
+        lang_cfg->getHyphMethod()->hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+    else // Use global lang hyph method
+        HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
 
     return nchars;
 }

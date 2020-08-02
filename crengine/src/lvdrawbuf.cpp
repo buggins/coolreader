@@ -22,7 +22,7 @@
 #define CHECK_GUARD_BYTE \
 	{ \
         if (_bpp != 1 && _bpp != 2 && _bpp !=3 && _bpp != 4 && _bpp != 8 && _bpp != 16 && _bpp != 32) crFatalError(-5, "wrong bpp"); \
-        if (_ownData && _data[_rowsize * _dy] != GUARD_BYTE) crFatalError(-5, "corrupted bitmap buffer"); \
+        if (_ownData && _data && _data[_rowsize * _dy] != GUARD_BYTE) crFatalError(-5, "corrupted bitmap buffer"); \
     }
 
 void LVDrawBuf::RoundRect( int x0, int y0, int x1, int y1, int borderWidth, int radius, lUInt32 color, int cornerFlags )
@@ -666,17 +666,19 @@ public:
                             continue;
                         }
                     } else if ( alpha != 0 ) {
-                        lUInt32 origColor = row[x];
+                        lUInt8 origLuma = row[x];
+                        // Expand lower bitdepths to Y8
                         if ( bpp == 3 ) {
-                            origColor = origColor & 0xE0;
-                            origColor = origColor | (origColor>>3) | (origColor>>6);
-                        } else {
-                            origColor = origColor & 0xF0;
-                            origColor = origColor | (origColor>>4);
+                            origLuma = origLuma & 0xE0;
+                            origLuma = origLuma | (origLuma>>3) | (origLuma>>6);
+                        } else if ( bpp == 4 ) {
+                            origLuma = origLuma & 0xF0;
+                            origLuma = origLuma | (origLuma>>4);
                         }
-                        origColor = origColor | (origColor<<8) | (origColor<<16);
-                        ApplyAlphaRGB( origColor, cl, alpha );
-                        cl = origColor;
+                        // Expand Y8 to RGB32 (i.e., duplicate, R = G = B = Y)
+                        lUInt32 bufColor = origLuma | (origLuma<<8) | (origLuma<<16);
+                        ApplyAlphaRGB( bufColor, cl, alpha );
+                        cl = bufColor;
                     }
 
                     lUInt8 dcl;
@@ -725,12 +727,12 @@ public:
                             continue;
                         }
                     } else if ( alpha != 0 ) {
-                        lUInt32 origColor = (row[ byteindex ] & mask)>>bitindex;
-                        origColor = origColor | (origColor<<2);
-                        origColor = origColor | (origColor<<4);
-                        origColor = origColor | (origColor<<8) | (origColor<<16);
-                        ApplyAlphaRGB( origColor, cl, alpha );
-                        cl = origColor;
+                        lUInt8 origLuma = (row[ byteindex ] & mask)>>bitindex;
+                        origLuma = origLuma | (origLuma<<2);
+                        origLuma = origLuma | (origLuma<<4);
+                        lUInt32 bufColor = origLuma | (origLuma<<8) | (origLuma<<16);
+                        ApplyAlphaRGB( bufColor, cl, alpha );
+                        cl = bufColor;
                     }
 
                     lUInt32 dcl = 0;
@@ -1139,8 +1141,8 @@ LVGrayDrawBuf::LVGrayDrawBuf(int dx, int dy, int bpp, void * auxdata )
     _bpp = bpp;
     _rowsize = (bpp<=2) ? (_dx * _bpp + 7) / 8 : _dx;
 
-    _backgroundColor = GetWhiteColor();
-    _textColor = GetBlackColor();
+    _backgroundColor = GetWhiteColor(); // NOLINT: Call to virtual function during construction
+    _textColor = GetBlackColor();       // NOLINT
 
     if ( auxdata ) {
         _data = (lUInt8 *) auxdata;
@@ -1265,7 +1267,6 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
         shift0 = 0;// not used
     }
     dst = dstline;
-    xx = width;
 
     bitmap += bx + by*bmp_width;
     shift = shift0;
@@ -1832,6 +1833,8 @@ void LVColorDrawBuf::InvertRect(int x0, int y0, int x1, int y1)
 /// draws bitmap (1 byte per pixel) using specified palette
 void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * palette )
 {
+    if ( !_data )
+        return;
     //int buf_width = _dx; /* 2bpp */
     int initial_height = height;
     int bx = 0;
@@ -1878,8 +1881,6 @@ void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int h
     if (height<=0)
         return;
 
-    xx = width;
-
     bitmap += bx + by*bmp_width;
 
     if ( _bpp==16 ) {
@@ -1895,6 +1896,11 @@ void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int h
             src = bitmap;
             dstline = ((lUInt16*)GetScanLine(y++)) + x;
             dst = dstline;
+
+            if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+                bitmap += bmp_width;
+                continue;
+            }
 
             for (xx = width; xx>0; --xx)
             {
@@ -1928,6 +1934,11 @@ void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int h
             src = bitmap;
             dstline = ((lUInt32*)GetScanLine(y++)) + x;
             dst = dstline;
+
+            if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+                bitmap += bmp_width;
+                continue;
+            }
 
             for (xx = width; xx>0; --xx)
             {
@@ -2477,6 +2488,8 @@ void LVColorDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32
     CR_UNUSED(options);
     CR_UNUSED(palette);
     //
+    if ( !_data )
+        return;
     lvRect clip;
     buf->GetClipRect(&clip);
     int bpp = buf->GetBitsPerPixel();
@@ -2611,6 +2624,8 @@ void LVColorDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32
 void LVColorDrawBuf::DrawOnTop( LVDrawBuf * buf, int x, int y)
 {
     //
+    if ( !_data )
+        return;
     lvRect clip;
     buf->GetClipRect(&clip);
     int bpp = buf->GetBitsPerPixel();
@@ -2974,7 +2989,7 @@ LVColorDrawBuf::LVColorDrawBuf(int dx, int dy, int bpp)
     ,_ownData(true)
 {
     _rowsize = dx*(_bpp>>3);
-    Resize( dx, dy );
+    Resize( dx, dy ); // NOLINT: Call to virtual function during construction
 }
 
 /// creates wrapper around external RGBA buffer

@@ -294,7 +294,7 @@ private:
     LVImageSourceRef m_backgroundImage;
     LVRef<LVColorDrawBuf> m_backgroundImageScaled;
     bool m_backgroundTiled;
-    bool m_stylesheetNeedsUpdate;;
+    bool m_stylesheetNeedsUpdate;
     int m_highlightBookmarks;
     LVPtrVector<LVBookMarkPercentInfo> m_bookmarksPercents;
 
@@ -330,6 +330,7 @@ private:
 
     LVArray<int> m_section_bounds;
     bool m_section_bounds_valid;
+    bool m_section_bounds_externally_updated;
 
     LVMutex _mutex;
 #if CR_ENABLE_PAGE_IMAGE_CACHE==1
@@ -603,6 +604,8 @@ public:
     int getCurrentPageCharCount();
     /// returns number of images on current page
     int getCurrentPageImageCount();
+    /// returns number of images on given page
+    int getPageImageCount(LVRef<ldomXRange>& range);
     /// calculate page header rectangle
     virtual void getPageHeaderRectangle( int pageIndex, lvRect & headerRc );
     /// calculate page header height
@@ -632,7 +635,7 @@ public:
     /// returns true if document is opened
     bool isDocumentOpened();
     /// returns section bounds, in 1/100 of percent
-    LVArray<int> & getSectionBounds( );
+    LVArray<int> & getSectionBounds( bool for_external_update=false );
     /// sets battery state
     virtual bool setBatteryState( int newState );
     /// returns battery state
@@ -653,6 +656,11 @@ public:
     bool getFlatToc( LVPtrVector<LVTocItem, false> & items );
     /// update page numbers for items
     void updatePageNumbers( LVTocItem * item );
+    /// returns pointer to LVPageMapItems container
+    LVPageMap * getPageMap();
+    /// update PageMap items page infos
+    void updatePageMapInfo( LVPageMap * pagemap );
+
     /// set view mode (pages/scroll) - DVM_SCROLL/DVM_PAGES
     void setViewMode( LVDocViewMode view_mode, int visiblePageCount=-1 );
     /// get view mode (pages/scroll)

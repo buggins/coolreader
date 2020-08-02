@@ -53,6 +53,9 @@ enum LVDocCmd
     // 137
     DCMD_SET_DOC_FONTS, // set embedded fonts option (1=enabled, 0=disabled)
 
+    // 138
+    DCMD_SET_REQUESTED_DOM_VERSION,     // set requested dom version for document parsing
+    DCMD_RENDER_BLOCK_RENDERING_FLAGS,  // set requested dom version for document parsing
 
     //=======================================
     DCMD_EDIT_CURSOR_LEFT,

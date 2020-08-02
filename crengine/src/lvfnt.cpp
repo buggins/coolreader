@@ -205,7 +205,7 @@ void lvfontUnpackGlyph( const lUInt8 * packed, const hrle_decode_info_t * table,
     int inx;
 
     srcshift = 0; //(srcskip & 3);
-    srccount = 0;
+    // srccount = 0;
     /* newline */
     lUInt8 * unp_end = unpacked + unp_size;
     for (;unpacked<unp_end;)

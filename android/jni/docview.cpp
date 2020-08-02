@@ -1390,6 +1390,26 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getSettingsIntern
     return env.toJavaProperties(props);
 }
 
+/*
+ * Class:     org_coolreader_crengine_DocView
+ * Method:    getDocPropsInternal
+ * Signature: ()Ljava/util/Properties;
+ */
+JNIEXPORT jobject JNICALL
+Java_org_coolreader_crengine_DocView_getDocPropsInternal
+  (JNIEnv * _env, jobject _this)
+{
+    CRLog::trace("DocView_getDocPropsInternal");
+    CRJNIEnv env(_env);
+    DocViewNative * p = getNative(_env, _this);
+    if (!p) {
+        CRLog::error("Cannot get native view");
+        return NULL;
+    }
+    CRPropRef props = p->_docview->getDocProps();
+    return env.toJavaProperties(props);
+}
+
 #define PROP_NIGHT_MODE "crengine.night.mode"
 
 /*
@@ -1697,9 +1717,29 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
     CRIntField(v,"pageNumber").set(p->_docview->getCurPage());
     CRIntField(v,"pageCount").set(p->_docview->getPageCount());
     CRIntField(v,"pageMode").set(p->_docview->getViewMode()==DVM_PAGES ? p->_docview->getVisiblePageCount() : 0);
+#if 0
+    // Each functions bellow call p->_docview->getPageDocumentRange(-1) inside.
+    // To increase performance, it should be called only once.
     CRIntField(v,"charCount").set(p->_docview->getCurrentPageCharCount());
     CRIntField(v,"imageCount").set(p->_docview->getCurrentPageImageCount());
     CRStringField(v,"pageText").set(p->_docview->getPageText(false, -1));
+#else
+	p->_docview->getMutex().lock();
+	LVRef<ldomXRange> range = p->_docview->getPageDocumentRange(-1);
+	p->_docview->getMutex().unlock();
+	lString16 text;
+	if (!range.isNull())
+		text = range->getRangeText();
+	int charCount = 0;
+	for (int i = 0; i < text.length(); i++) {
+		lChar16 ch = text[i];
+		if (ch>='0')
+			charCount++;
+	}
+	CRIntField(v,"charCount").set(charCount);
+	CRIntField(v,"imageCount").set(p->_docview->getPageImageCount(range));
+	CRStringField(v,"pageText").set(text);
+#endif
 	return obj;
 }
 

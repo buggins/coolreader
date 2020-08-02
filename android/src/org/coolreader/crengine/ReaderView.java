@@ -40,7 +40,7 @@ import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
 
-public class ReaderView implements android.view.SurfaceHolder.Callback, Settings, OnKeyListener, OnTouchListener, OnFocusChangeListener {
+public class ReaderView implements android.view.SurfaceHolder.Callback, Settings, DocProperties, OnKeyListener, OnTouchListener, OnFocusChangeListener {
 
 	public static final Logger log = L.create("rv", Log.VERBOSE);
 	public static final Logger alog = L.create("ra", Log.WARN);
@@ -1730,6 +1730,48 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		return false;
 	}
 
+	public boolean isHtmlFormat() {
+		if (mOpened && mBookInfo != null) {
+			DocumentFormat fmt = mBookInfo.getFileInfo().format;
+			return fmt == DocumentFormat.EPUB || fmt == DocumentFormat.HTML || fmt == DocumentFormat.PDB;
+		}
+		return false;
+	}
+
+	public int getDOMVersion() {
+		if (mOpened && mBookInfo != null) {
+			return mBookInfo.getFileInfo().domVersion;
+		}
+		return Engine.DOM_VERSION_CURRENT;
+	}
+
+	public void setDOMVersion(int version) {
+		if (null != mBookInfo) {
+			mBookInfo.getFileInfo().domVersion = version;
+			doEngineCommand(ReaderCommand.DCMD_SET_REQUESTED_DOM_VERSION, version);
+			mActivity.getDB().saveBookInfo(mBookInfo);
+			if (mOpened)
+				reloadDocument();
+		}
+	}
+
+	public int getBlockRenderingFlags() {
+		if (mOpened && mBookInfo != null) {
+			return mBookInfo.getFileInfo().blockRenderingFlags;
+		}
+		return 0;
+	}
+
+	public void setBlockRenderingFlags(int flags) {
+		if (null != mBookInfo) {
+			mBookInfo.getFileInfo().blockRenderingFlags = flags;
+			doEngineCommand(ReaderCommand.DCMD_SET_RENDER_BLOCK_RENDERING_FLAGS, flags);
+			mActivity.getDB().saveBookInfo(mBookInfo);
+			if (mOpened)
+				reloadDocument();
+		}
+	}
+
 	public void toggleTextFormat() {
 		if (mOpened && mBookInfo != null) {
 			log.d("toggleDocumentStyles()");
@@ -2568,6 +2610,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		props.remove(PROP_TXT_OPTION_PREFORMATTED);
 		props.remove(PROP_EMBEDDED_STYLES);
 		props.remove(PROP_EMBEDDED_FONTS);
+		props.remove(PROP_REQUESTED_DOM_VERSION);
+		props.remove(PROP_RENDER_BLOCK_RENDERING_FLAGS);
 		BackgroundThread.ensureBackground();
 		log.v("applySettings()");
 		boolean isFullScreen = props.getBool(PROP_APP_FULLSCREEN, false);
@@ -2588,8 +2632,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			final String bookLanguage = fileInfo.getLanguage();
 			final String fontFace = props.getProperty(PROP_FONT_FACE);
 			String fcLangCode = null;
-			if (null != bookLanguage && bookLanguage.length() > 0)
+			if (null != bookLanguage && bookLanguage.length() > 0) {
 				fcLangCode = Engine.findCompatibleFcLangCode(bookLanguage);
+				if (props.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false))
+					props.setProperty(PROP_TEXTLANG_MAIN_LANG, bookLanguage);
+			}
 			if (null != fcLangCode && fcLangCode.length() > 0) {
 				boolean res = Engine.checkFontLanguageCompatibility(fontFace, fcLangCode);
 				log.d("Checking font \"" + fontFace + "\" for compatibility with language \"" + bookLanguage + "\" fcLangCode=" + fcLangCode + ": res=" + res);
@@ -2819,17 +2866,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					|| PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION.equals(key)
 				// TODO: redesign all this mess!
 			) {
-				newSettings.setProperty(key, value);
-			} else if (PROP_HYPHENATION_DICT.equals(key)) {
-				Engine.HyphDict dict = HyphDict.byCode(value);
-				if (mEngine.setHyphenationDictionary(dict)) {
-					if (isBookLoaded()) {
-						String language = getBookInfo().getFileInfo().getLanguage();
-						mEngine.setHyphenationLanguage(language);
-						doEngineCommand(ReaderCommand.DCMD_REQUEST_RENDER, 0);
-						//drawPage();
-					}
-				}
 				newSettings.setProperty(key, value);
 			}
 		}
@@ -4826,7 +4862,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			}
 			String language = fileInfo.getLanguage();
 			log.v("update hyphenation language: " + language + " for " + fileInfo.getTitle());
-			mEngine.setHyphenationLanguage(language);
 			this.filename = fileInfo.getPathName();
 			this.path = fileInfo.arcname != null ? fileInfo.arcname : fileInfo.pathname;
 			this.inputStream = inputStream;
@@ -4877,6 +4912,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.i("Loading document " + filename);
 			doc.doCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, disableInternalStyles ? 0 : 1);
 			doc.doCommand(ReaderCommand.DCMD_SET_TEXT_FORMAT.nativeId, disableTextAutoformat ? 0 : 1);
+			doc.doCommand(ReaderCommand.DCMD_SET_REQUESTED_DOM_VERSION.nativeId, mBookInfo.getFileInfo().domVersion);
+			if (0 == mBookInfo.getFileInfo().domVersion) {
+				doc.doCommand(ReaderCommand.DCMD_SET_RENDER_BLOCK_RENDERING_FLAGS.nativeId, 0);
+			} else {
+				doc.doCommand(ReaderCommand.DCMD_SET_RENDER_BLOCK_RENDERING_FLAGS.nativeId, mBookInfo.getFileInfo().blockRenderingFlags);
+			}
 			boolean success;
 			if (null != inputStream)
 				success = doc.loadDocumentFromStream(inputStream, filename);
@@ -4916,6 +4957,18 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
 			if (Services.getHistory() != null) {
 				Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
+				java.util.Properties props = doc.getDocProps();
+				if (null != props) {
+					String crc32Str = props.getProperty(DOC_PROP_FILE_CRC32, "0");
+					if (crc32Str.startsWith("0x"))
+						crc32Str = crc32Str.substring(2);
+					try {
+						mBookInfo.getFileInfo().crc32 = Integer.valueOf(crc32Str, 16);
+					} catch (NumberFormatException e) {
+						mBookInfo.getFileInfo().crc32 = 0;
+					}
+				} else
+					mBookInfo.getFileInfo().crc32 = 0;
 				mActivity.waitForCRDBService(new Runnable() {
 					@Override
 					public void run() {

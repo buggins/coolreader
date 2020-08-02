@@ -1903,29 +1903,29 @@ int AutodetectCodePageUtf( const unsigned char * buf, int buf_size, char * cp_na
 {
     // checking byte order signatures
     if ( buf[0]==0xEF && buf[1]==0xBB && buf[2]==0xBF ) {
-        strcpy( cp_name, "utf-8" );
-        strcpy( lang_name, "en" );
+        strcpy( cp_name, "utf-8" );     // NOLINT: strcpy is fine with hardcoded string with len < 32
+        strcpy( lang_name, "en" );      // NOLINT
         return 1;
     } else if ( buf[0]==0 && buf[1]==0 && buf[2]==0xFE && buf[3]==0xFF ) {
-        strcpy( cp_name, "utf-32be" );
-        strcpy( lang_name, "en" );
+        strcpy( cp_name, "utf-32be" ); // NOLINT
+        strcpy( lang_name, "en" );     // NOLINT
         return 1;
     } else if ( buf[0]==0xFE && buf[1]==0xFF ) {
-        strcpy( cp_name, "utf-16be" );
-        strcpy( lang_name, "en" );
+        strcpy( cp_name, "utf-16be" ); // NOLINT
+        strcpy( lang_name, "en" );     // NOLINT
         return 1;
     } else if ( buf[0]==0xFF && buf[1]==0xFE && buf[2]==0 && buf[3]==0 ) {
-        strcpy( cp_name, "utf-32le" );
-        strcpy( lang_name, "en" );
+        strcpy( cp_name, "utf-32le" ); // NOLINT
+        strcpy( lang_name, "en" );     // NOLINT
         return 1;
     } else if ( buf[0]==0xFF && buf[1]==0xFE ) {
-        strcpy( cp_name, "utf-16le" );
-        strcpy( lang_name, "en" );
+        strcpy( cp_name, "utf-16le" ); // NOLINT
+        strcpy( lang_name, "en" );     // NOLINT
         return 1;
     }
     if ( isValidUtf8Data( buf, buf_size ) ) {
-        strcpy( cp_name, "utf-8" );
-        strcpy( lang_name, "en" );
+        strcpy( cp_name, "utf-8" );    // NOLINT
+        strcpy( lang_name, "en" );     // NOLINT
         return 1;
     }
    return 0;
@@ -2043,8 +2043,8 @@ int AutodetectCodePage(const unsigned char * buf, int buf_size, char * cp_name, 
 		   bestq = q;
 	   }
    }
-   strcpy(cp_name, cp_stat_table[bestn].cp_name);
-   strcpy(lang_name, cp_stat_table[bestn].lang_name);
+   strcpy(cp_name, cp_stat_table[bestn].cp_name);     // NOLINT: strcpy is fine, all strings are len < 32
+   strcpy(lang_name, cp_stat_table[bestn].lang_name); // NOLINT
    CRLog::debug("Detected codepage:%s lang:%s index:%d %s", cp_name, lang_name, bestn, skipHtml ? "(skipHtml)" : "");
    if (skipHtml) {
        if (detectXmlHtmlEncoding(buf, buf_size, cp_name)) {

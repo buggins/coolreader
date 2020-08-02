@@ -284,6 +284,7 @@ public:
     inline int getEnd() const { return start + height; }
     inline int getStart() const { return start; }
     inline int getHeight() const { return height; }
+    inline lUInt16 getFlags() const { return flags; }
 
     LVRendLineInfo() : links(NULL), start(-1), height(0), flags(0) { }
     LVRendLineInfo( int line_start, int line_end, lUInt16 line_flags )
@@ -331,6 +332,7 @@ public:
     CompactArray<LVRendLineInfo*, 2, 4> & getLines() { return lines; }
     bool empty() { return lines.empty(); }
     void clear() { lines.clear(); }
+    lString16 getId() { return id; }
 };
 
 class LVDocViewCallback;
@@ -358,22 +360,24 @@ class LVRendPageContext
     // page list to fill
     LVRendPageList * page_list;
     // page height
-    int          page_h;
-    // Links gathered when no page_list
+    int page_h;
+    // Whether to gather lines or not (only footnote links will be gathered if not)
+    bool gather_lines;
+    // Links gathered when !gather_lines
     lString16Collection link_ids;
 
     LVHashTable<lString16, LVFootNoteRef> footNotes;
 
     LVFootNote * curr_note;
 
-    LVFootNote * getOrCreateFootNote( lString16 id )
+    LVFootNoteRef getOrCreateFootNote( lString16 id )
     {
         LVFootNoteRef ref = footNotes.get(id);
         if ( ref.isNull() ) {
             ref = LVFootNoteRef( new LVFootNote( id ) );
             footNotes.set( id, ref );
         }
-        return ref.get();
+        return ref;
     }
 
     void split();
@@ -386,14 +390,16 @@ public:
     }
     bool updateRenderProgress( int numFinalBlocksRendered );
 
+    bool wantsLines() { return gather_lines; }
+
     /// Get the number of links in the current line links list, or
-    // in link_ids when no page_list
+    // in link_ids when !gather_lines
     int getCurrentLinksCount();
 
     /// append or insert footnote link to last added line
     void addLink( lString16 id, int pos=-1 );
 
-    /// get gathered links when no page_list
+    /// get gathered links when !gather_lines
     // (returns a reference to avoid lString16Collection destructor from
     // being called twice and a double free crash)
     lString16Collection * getLinkIds() { return &link_ids; }
@@ -410,11 +416,14 @@ public:
     /// returns page list pointer
     LVRendPageList * getPageList() { return page_list; }
 
-    LVRendPageContext(LVRendPageList * pageList, int pageHeight);
+    LVRendPageContext(LVRendPageList * pageList, int pageHeight, bool gatherLines=true);
 
     /// add source line
     void AddLine( int starty, int endy, int flags );
 
+    LVPtrVector<LVRendLineInfo> * getLines() {
+        return &lines;
+    };
     void Finalize();
 };
 

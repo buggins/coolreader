@@ -28,11 +28,7 @@ public class Services {
 		BackgroundThread.instance().setGUIHandler(new Handler());
 				
 		mEngine = Engine.getInstance(activity);
-		
-        String code = activity.settings().getProperty(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
-        Engine.HyphDict dict = HyphDict.byCode(code);
-		mEngine.setHyphenationDictionary(dict);
-		
+
        	mScanner = new Scanner(activity, mEngine);
        	mScanner.initRoots(mEngine.getMountedRootsMap());
 

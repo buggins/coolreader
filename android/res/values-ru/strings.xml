@@ -179,7 +179,7 @@
     <string name="options_text_shaping">Формировщик текста</string>
     <string name="options_text_shaping_simple">Простой (быстрый, без лигатур, кернинг может не работать)</string>
     <string name="options_text_shaping_light">Легкий (без лигатур)</string>
-    <string name="options_text_shaping_full">Полный (с лигатурами)</string>
+    <string name="options_text_shaping_full">Полный (с лигатурами, RTL)</string>
     <string name="options_font_kerning">Кернинг шрифта</string>
     <string name="action_zoom_out">Уменьшить шрифт</string>
     <string name="options_style_floating_punctuation">Висячая пунктуация</string>
@@ -602,4 +602,7 @@
         freetype, harfbuzz, chmlib, antiword, Nook EPD utils от DairyKnight
     </string>
     <string name="third_party_tango_mod_icon_set">Высококонтрастные значки основаны на Tango Icon Library: http://tango.freedesktop.org/Tango_Icon_Library</string>
+    <string name="options_rendering_preset">Опции рендеринга</string>
+    <string name="options_style_multilang">Поддержка мультиязычных документов</string>
+    <string name="options_style_enable_hyphenation">Разрешить переносы</string>
 </resources>

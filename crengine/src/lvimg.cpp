@@ -1295,7 +1295,7 @@ public:
         do {
             rev_buf[pos++] = str_table[code];
             code = str_nextchar[code];
-        } while (code>=0);
+        } while (code>=0 && pos < LSWDECODER_MAX_TABLE_SIZE/2);
         while (--pos>=0) {
             if (!WriteOutChar(rev_buf[pos]))
                 return 0;
@@ -1440,7 +1440,16 @@ public:
 
                     // add  old + code[0]
                     if (AddString(oldcode, last_table[code])<0)
-                        return 0; // table overflow
+                        // return 0; // table overflow
+                        {}
+                        // Ignore table overflow, which seems ok, and done by Pillow:
+                        //   https://github.com/python-pillow/Pillow/blob/ae43af61/src/libImaging/GifDecode.c#L234-L251
+                        // which is fine handling this image:
+                        //   https://cms-assets.tutsplus.com/uploads/users/30/posts/19890/image/hanging-punctuation-example.gif
+                        // (Aborting on table overflow, we would fail while in the middle
+                        // of the last line of text in this image.)
+                        // (giflib/lib/dgif_lib.c is fine with this image too, but its algo is too different
+                        // to have an idea how it handles this situation.)
 
 
                 } else {
@@ -1452,7 +1461,9 @@ public:
 
                     // add  old + old[0]
                     if (AddString(oldcode, last_table[oldcode])<0)
-                        return 0; // table overflow
+                        // return 0; // table overflow
+                        {}
+                        // Ignore table overflow, see above (might be less needed here than there?)
                 }
             }
 

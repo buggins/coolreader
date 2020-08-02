@@ -2,6 +2,8 @@ body { text-align: left; margin: 0; text-indent: 0px }
 
 p { $def.all } 
 
+style { display: inline; }
+
 empty-line { height: 1em }
 
 hr { height: 1px; background-color: #808080; margin-top: 0.5em; margin-bottom: 0.5em; /* 2px */ }
@@ -17,7 +19,7 @@ li { display: list-item; text-indent: 0em;  }
 ul { display: block; list-style-type: disc; margin-left: 1em }
 ol { display: block; list-style-type: decimal; margin-left: 1em }
 
-v { text-align: left; text-align-last: right; text-indent: 1em hanging }
+v { text-align: left; text-align-last: -cr-right-if-not-first; text-indent: 1em hanging; hyphenate: none }
 
 stanza { $poem.all }
 stanza + stanza { margin-top: 1em; }
@@ -62,26 +64,31 @@ h3 { font-size: 130% }
 h4 { font-size: 120% }
 h5 { font-size: 110% }
 
-table { font-size: 80% }
-td, th { text-indent: 0px; padding: 3px }
-th {  font-weight: bold; text-align: center; background-color: #DDD  } 
+table { font-size: 80%; width: 100%; }
+td, th { text-indent: 0px; padding: 3px; }
+/* table borders */
+table, th, td { border-width: 2px; border-style: ridge; border-color: #888; border-collapse: collapse; }
+th {  font-weight: bold; text-align: center; background-color: #ddd; }
 /* #808080; */
-table caption { text-indent: 0px; padding: 4px; background-color: #EEE }
+table caption { text-indent: 0px; padding: 4px; }
 
-tt, samp, kbd, code, pre { font-family: "Courier New", "Courier", monospace; } 
+tt, samp, kbd, code, pre { font-family: "Droid Sans Mono", "Liberation Mono", "DeJaVu Sans Mono", "Courier New", "Courier", monospace; } 
 code, pre { 
     display: block; 
     white-space: pre; 
     $pre.all
 }
 
-body[name="notes"] { $footnote.all }
+body[name="notes"] { $footnote.all; }
 body[name="notes"] section title { display: run-in; text-align: left; $footnote-title.all page-break-before: auto; page-break-inside: auto; page-break-after: auto; }
-body[name="notes"] section title p { display: inline }
+body[name="notes"] section title p { display: inline; }
+body[name="notes"] section { -cr-hint: footnote-inpage; }
 
-body[name="comments"] { $footnote.all }
+body[name="comments"] { $footnote.all; font-style: italic; }
 body[name="comments"] section title { display: run-in; text-align: left; $footnote-title.all page-break-before: auto; page-break-inside: auto; page-break-after: auto; }
-body[name="comments"] section title p { display: inline }
+body[name="comments"] section title p { display: inline; }
+body[name="comments"] section { -cr-hint: footnote-inpage; }
+
 
 description { display: block; }
 title-info { display: block; }
@@ -101,7 +108,7 @@ coverpage { display: none }
 
 head, form, script { display: none; } 
 
-b,strong,i,em,dfn,var,q,u,del,s,strike,small,big,sub,sup,acronym,tt,sa mp,kbd,code { 
+b,strong,i,em,dfn,var,q,u,del,s,strike,small,big,sub,sup,acronym,tt,samp,kbd {
    display: inline; 
 } 
 

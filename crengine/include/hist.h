@@ -189,7 +189,7 @@ public:
     void setFilePath( const lString16 & s ) { _fpath = s; }
     void setFileSize( lvsize_t sz ) { _size = sz; }
     void setDOMversion( int v ) { _domVersion = v; }
-    void convertBookmarks(ldomDocument * doc);
+    void convertBookmarks(ldomDocument * doc, int newDOMversion);
     CRFileHistRecord()
         : _size(0), _domVersion(20171225)
     {
