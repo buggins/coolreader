@@ -17,7 +17,9 @@
 
 //==================================================
 // RTF file parser
-
+#ifdef LOG_RTF_PARSING
+#include "../include/crlog.h"
+#endif
 
 #undef RTF_CMD
 #undef RTF_CHR
@@ -173,6 +175,8 @@ public:
         bool intbl = m_stack.getInt( pi_intbl )>0;
         bool asteriskFlag = (s == "* * *");
         bool titleFlag = m_stack.getInt( pi_align )==ha_center && len<200;
+        if( !intbl )
+            SetTableState( tbls_none );
         if ( last_notitle && titleFlag && !asteriskFlag ) {
             OnAction(RA_SECTION);
         }
@@ -230,6 +234,9 @@ public:
             m_callback->OnTagClose(NULL, L"strong");
         }
     }
+    virtual void OnBlob(const lUInt8*, int)
+    {
+    }
     virtual void OnAction( int action )
     {
         if ( action==RA_PARA || action==RA_SECTION ) {
@@ -281,6 +288,9 @@ public:
     virtual void OnText( const lChar16 *, int, lUInt32 )
     {
     }
+    virtual void OnBlob(const lUInt8*, int)
+    {
+    }
     virtual void OnTblProp( int, int )
     {
     }
@@ -329,6 +339,12 @@ public:
                     _lastDigit = d;
             }
         }
+    }
+    virtual void OnBlob(const lUInt8 * data, int size)
+    {
+        _fmt = m_stack.getInt(pi_imgfmt);
+        if(_fmt)
+            _buf.append(data, size);
     }
     virtual void OnTblProp( int, int )
     {
@@ -562,6 +578,17 @@ bool LVRtfParser::Parse()
                 OnControlWord( cwname, PARAM_VALUE_NONE, asteriskFlag );
             }
             m_buf_pos += (int)(p - (m_buf + m_buf_pos));
+            int binLength = m_stack.getInt( pi_bin );
+            if(binLength > 0) {
+                if(m_buf_len - m_buf_pos < binLength) {
+                    if( !FillBuffer(binLength)) {
+                        errorFlag = true;
+                        break;
+                    }
+                }
+                m_stack.getDestination()->OnBlob( m_buf + m_buf_pos, binLength);
+                m_buf_pos += binLength;
+            }
         } else {
             //lChar16 txtch = 0;
             if ( ch=='\\' ) {

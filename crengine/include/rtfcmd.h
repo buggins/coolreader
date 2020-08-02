@@ -17,6 +17,7 @@ RTF_CHR( "\r", par_r, 13 )
 RTF_CHR( "_", nb_hyphen, '-' )
 RTF_IPR( ansicpg, pi_ansicpg, 1252 )
 RTF_IPR( b, pi_ch_bold, 1 )
+RTF_IPR( bin, pi_bin, 0 )
 RTF_CHC( bullet, 'o' )
 RTF_TPR( cell, tpi_cell, 0 )     // Denotes the end of a table cell.
 RTF_TPR( clmgf, tpi_clmgf, 0 )   // The first cell in a range of table cells to be merged.
