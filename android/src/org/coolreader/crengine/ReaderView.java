@@ -1730,6 +1730,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		return false;
 	}
 
+	public boolean isFormatWithEmbeddedStyles() {
+		if (mOpened && mBookInfo != null) {
+			DocumentFormat fmt = mBookInfo.getFileInfo().format;
+			return fmt == DocumentFormat.EPUB || fmt == DocumentFormat.HTML || fmt == DocumentFormat.FB2 || fmt == DocumentFormat.FB3;
+		}
+		return false;
+	}
+
 	public boolean isHtmlFormat() {
 		if (mOpened && mBookInfo != null) {
 			DocumentFormat fmt = mBookInfo.getFileInfo().format;
@@ -4976,11 +4984,16 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					}
 				});
 				if (coverPageBytes != null && mBookInfo != null && mBookInfo.getFileInfo() != null) {
-					if (mBookInfo.getFileInfo().format.needCoverPageCaching()) {
-						// TODO: fix it
-//		        		if (mActivity.getBrowser() != null)
-//		        			mActivity.getBrowser().setCoverpageData(new FileInfo(mBookInfo.getFileInfo()), coverPageBytes);
+					// TODO: fix it
+					/*
+					DocumentFormat format = mBookInfo.getFileInfo().format;
+					if (null != format) {
+						if (format.needCoverPageCaching()) {
+//		        			if (mActivity.getBrowser() != null)
+//		        				mActivity.getBrowser().setCoverpageData(new FileInfo(mBookInfo.getFileInfo()), coverPageBytes);
+						}
 					}
+					*/
 					if (DeviceInfo.EINK_NOOK)
 						updateNookTouchCoverpage(mBookInfo.getFileInfo().getPathName(), coverPageBytes);
 					//mEngine.setProgressDrawable(coverPageDrawable);

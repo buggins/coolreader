@@ -24,7 +24,7 @@ public enum DocumentFormat {
 	EPUB("epub.css", R.raw.epub, R.drawable.cr3_browser_book_epub, true, true, 9, 
 			new String[] {".epub"},
 			new String[] {"application/epub+zip"}),// doc_format_epub,
-	HTML("html5.css", R.raw.html5, R.drawable.cr3_browser_book_html, false, false, 8,
+	HTML("htm.css", R.raw.htm, R.drawable.cr3_browser_book_html, false, false, 8, 
 			new String[] {".htm", ".html", ".shtml", ".xhtml"},
 			new String[] {"text/html"}),// doc_format_html,
 	TXT_BOOKMARK("fb2.css", R.raw.fb2, R.drawable.cr3_browser_book_fb2, false, false, 0, 

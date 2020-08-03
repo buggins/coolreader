@@ -37,6 +37,8 @@ subtitle, subtitle p, h3 p, h4 p, h5 p, h6 p {
     $subtitle.all
 }
 
+cite { display: block; }
+
 title, h1, h2, h3, h4, h5, h6, subtitle { 
 	hyphenate: none; 
 }

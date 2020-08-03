@@ -2145,6 +2145,8 @@ LVFontRef getFont(css_style_rec_t * style, int documentId)
 lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt32 oldflags, int direction )
 {
     lUInt32 flg = oldflags;
+    if (style.isNull())
+        return flg;
     if ( is_block ) {
         // text alignment flags
         flg = oldflags & ~(LTEXT_FLAG_NEWLINE | (LTEXT_FLAG_NEWLINE<<LTEXT_LAST_LINE_ALIGN_SHIFT) | LTEXT_LAST_LINE_IF_NOT_FIRST);
@@ -3770,11 +3772,11 @@ int pagebreakhelper(ldomNode *enode,int width)
 // int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction, int rend_flags );
 
 // Prototypes of the 2 alternative block rendering recursive functions
-int  renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int x, int y, int width );
+int  renderBlockElementLegacy(LVRendPageContext & context, ldomNode * enode, int x, int y, int width , int usable_right_overflow);
 void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int width, int flags );
 
 // Legacy/original CRE block rendering
-int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int x, int y, int width )
+int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int usable_right_overflow )
 {
     if (!enode)
         return 0;
@@ -4132,7 +4134,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                             int h = renderBlockElementLegacy(context, child,
                                                              padding_left + list_marker_padding, y,
                                                              width - padding_left - padding_right -
-                                                             list_marker_padding);
+                                                             list_marker_padding, usable_right_overflow);
                             y += h;
                             block_height += h;
                         }
@@ -4201,7 +4203,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                     fmt.setX( fmt.getX() );
                     fmt.setY( fmt.getY() );
                     fmt.setLangNodeIndex( 0 ); // No support for lang in legacy rendering
-                    // (No support for overflows and hanging punctuation in legacy mode)
+                    fmt.setUsableRightOverflow(usable_right_overflow);  // Partially support of hanging punctuation in legacy mode
                     fmt.push();
                     //if ( CRLog::isTraceEnabled() )
                     //    CRLog::trace("rendering final node: %s %d %s", LCSTR(enode->getNodeName()), enode->getDataIndex(), LCSTR(ldomXPointer(enode,0).toString()) );
@@ -7533,7 +7535,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         return flow.getCurrentAbsoluteY();
     } else {
         // (Legacy rendering does not support direction)
-        return renderBlockElementLegacy( context, enode, x, y, width);
+        return renderBlockElementLegacy( context, enode, x, y, width, usable_right_overflow);
     }
 }
 int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width,

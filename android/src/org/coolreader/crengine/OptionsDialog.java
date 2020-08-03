@@ -297,6 +297,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionBase mHyphDictOption;
 	OptionBase mEmbedFontsOptions;
 	OptionBase mFootNotesOption;
+	OptionBase mEnableMultiLangOption;
 	OptionBase mEnableHyphOption;
 
 	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
@@ -355,6 +356,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public OptionBase setOnChangeHandler( Runnable handler ) {
 			onChangeHandler = handler;
 			return this;
+		}
+		public void setEnabled(boolean enabled) {
+			this.enabled = enabled;
+			refreshItem();
 		}
 
 		public int getItemViewType() {
@@ -487,6 +492,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	private static boolean showIcons = true;
 	private static boolean isTextFormat = false;
 	private static boolean isEpubFormat = false;
+	private static boolean isFormatWithEmbeddedStyle = false;
 	private static boolean isHtmlFormat = false;
 	private Mode mode;
 	
@@ -1449,6 +1455,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mProperties.setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, mReaderView.getBlockRenderingFlags());
 			isTextFormat = readerView.isTextFormat();
 			isEpubFormat = readerView.isFormatWithEmbeddedFonts();
+			isFormatWithEmbeddedStyle = readerView.isFormatWithEmbeddedStyles();
 			isHtmlFormat = readerView.isHtmlFormat();
 		}
 		showIcons = mProperties.getBool(PROP_APP_SETTINGS_SHOW_ICONS, true);
@@ -1883,23 +1890,47 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsCSS = new OptionsListView(getContext());
 		//mProperties.setBool(PROP_TXT_OPTION_PREFORMATTED, mReaderView.isTextAutoformatEnabled());
 		//mProperties.setBool(PROP_EMBEDDED_STYLES, mReaderView.getDocumentStylesEnabled());
-		mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_book_styles_enable), PROP_EMBEDDED_STYLES).setDefaultValue("1").noIcon().setOnChangeHandler(new Runnable() {
-			@Override
-			public void run() {
-				boolean value = mProperties.getBool(PROP_EMBEDDED_STYLES, false);
-				mEmbedFontsOptions.enabled = isEpubFormat && value;
-			}
-		}) );
+		mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_book_styles_enable), PROP_EMBEDDED_STYLES).setDefaultValue("1").noIcon()
+				.setOnChangeHandler(new Runnable() {
+					@Override
+					public void run() {
+						boolean value = mProperties.getBool(PROP_EMBEDDED_STYLES, false);
+						mEmbedFontsOptions.setEnabled(isEpubFormat && value);
+					}
+				})
+		);
 		mEmbedFontsOptions = new BoolOption(this, getString(R.string.options_font_embedded_document_font_enabled), PROP_EMBEDDED_FONTS).setDefaultValue("1").noIcon();
 		boolean value = mProperties.getBool(PROP_EMBEDDED_STYLES, false);
-		mEmbedFontsOptions.enabled = isEpubFormat && value;
+		mEmbedFontsOptions.setEnabled(isEpubFormat && value);
 		mOptionsCSS.add(mEmbedFontsOptions);
 		if (isTextFormat) {
 			mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_text_autoformat_enable), PROP_TXT_OPTION_PREFORMATTED).setDefaultValue("1").noIcon());
 		}
-		if (isHtmlFormat) {
-			mOptionsCSS.add(new ListOption(this, getString(R.string.options_rendering_preset), PROP_RENDER_BLOCK_RENDERING_FLAGS).add(mRenderingPresets, mRenderingPresetsTitles).setDefaultValue(Integer.valueOf(Engine.BLOCK_RENDERING_FLAGS_WEB).toString()).noIcon());
-			mOptionsCSS.add(new ListOption(this, getString(R.string.options_requested_dom_level), PROP_REQUESTED_DOM_VERSION).add(mDOMVersionPresets, mDOMVersionPresetTitles).setDefaultValue(Integer.valueOf(Engine.DOM_VERSION_CURRENT).toString()).noIcon());
+		if (/*isHtmlFormat*/ isFormatWithEmbeddedStyle) {
+			Runnable renderindChangeListsner = new Runnable() {
+				@Override
+				public void run() {
+					boolean legacyRender = mProperties.getInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0) == 0 ||
+							mProperties.getInt(PROP_REQUESTED_DOM_VERSION, 0) < 20180524;
+					mEnableMultiLangOption.setEnabled(!legacyRender);
+					if (legacyRender) {
+						mHyphDictOption.setEnabled(true);
+						mEnableHyphOption.setEnabled(false);
+					} else {
+						boolean embeddedLang = mProperties.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
+						mHyphDictOption.setEnabled(!embeddedLang);
+						mEnableHyphOption.setEnabled(embeddedLang);
+					}
+				}
+			};
+			mOptionsCSS.add(new ListOption(this, getString(R.string.options_rendering_preset), PROP_RENDER_BLOCK_RENDERING_FLAGS).add(mRenderingPresets, mRenderingPresetsTitles).setDefaultValue(Integer.valueOf(Engine.BLOCK_RENDERING_FLAGS_WEB).toString())
+					.noIcon()
+					.setOnChangeHandler(renderindChangeListsner)
+			);
+			mOptionsCSS.add(new ListOption(this, getString(R.string.options_requested_dom_level), PROP_REQUESTED_DOM_VERSION).add(mDOMVersionPresets, mDOMVersionPresetTitles).setDefaultValue(Integer.valueOf(Engine.DOM_VERSION_CURRENT).toString())
+					.noIcon()
+					.setOnChangeHandler(renderindChangeListsner)
+			);
 		}
 		for (int i=0; i<styleCodes.length; i++)
 			mOptionsCSS.add(createStyleEditor(styleCodes[i], styleTitles[i]));
@@ -1968,7 +1999,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		TabWidget tabWidget = (TabWidget)mTabs.findViewById(android.R.id.tabs);
 		//tabWidget.
 		//new TabHost(getContext());
-		
+
+		boolean legacyRender = mProperties.getInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0) == 0 ||
+				mProperties.getInt(PROP_REQUESTED_DOM_VERSION, 0) < 20180524;
+
 		mOptionsStyles = new OptionsListView(getContext());
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).add(filterFontSizes(mFontSizes)).setDefaultValue("24").setIconIdByAttr(R.attr.cr3_option_font_size_drawable, R.drawable.cr3_option_font_size));
@@ -1977,19 +2011,22 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_antialias_drawable, R.drawable.cr3_option_text_antialias));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_interline_space), PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100").setIconIdByAttr(R.attr.cr3_option_line_spacing_drawable, R.drawable.cr3_option_line_spacing));
 		//
-		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_style_multilang), PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_text_multilang_drawable, R.drawable.cr3_option_text_multilang).setOnChangeHandler(new Runnable() {
+		mEnableMultiLangOption = new BoolOption(this, getString(R.string.options_style_multilang), PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_text_multilang_drawable, R.drawable.cr3_option_text_multilang)
+				.setOnChangeHandler(new Runnable() {
 					@Override
 					public void run() {
 						boolean value = mProperties.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
-						mHyphDictOption.enabled = !value;
-						mEnableHyphOption.enabled = value;
+						mHyphDictOption.setEnabled(!value);
+						mEnableHyphOption.setEnabled(value);
 					}
-		}));
+				});
+		mEnableMultiLangOption.enabled = !legacyRender;
+		mOptionsStyles.add(mEnableMultiLangOption);
 		mEnableHyphOption = new BoolOption(this, getString(R.string.options_style_enable_hyphenation), PROP_TEXTLANG_HYPHENATION_ENABLED).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_text_hyphenation_drawable, R.drawable.cr3_option_text_hyphenation);
-		mEnableHyphOption.enabled = mProperties.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
+		mEnableHyphOption.enabled = !legacyRender && mProperties.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
 		mOptionsStyles.add(mEnableHyphOption);
 		mHyphDictOption = new HyphenationOptions(this, getString(R.string.options_hyphenation_dictionary)).setIconIdByAttr(R.attr.cr3_option_text_hyphenation_drawable, R.drawable.cr3_option_text_hyphenation);
-		mHyphDictOption.enabled = !mProperties.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
+		mHyphDictOption.enabled = legacyRender || !mProperties.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
 		mOptionsStyles.add(mHyphDictOption);
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_style_floating_punctuation), PROP_FLOATING_PUNCTUATION).setDefaultValue("1").setIconIdByAttr(R.attr.cr3_option_text_floating_punct_drawable, R.drawable.cr3_option_text_other));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_text_shaping), PROP_FONT_SHAPING).add(mShaping, mShapingTitles).setDefaultValue("1").setIconIdByAttr(R.attr.cr3_option_text_ligatures_drawable, R.drawable.cr3_option_text_ligatures));
@@ -2008,13 +2045,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsPage.add(new BoolOption(this, getString(R.string.options_view_toolbar_hide_in_fullscreen), PROP_TOOLBAR_HIDE_IN_FULLSCREEN).setDefaultValue("0"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_toolbar_appearance), PROP_TOOLBAR_APPEARANCE).
 				add(mToolbarApperance, mToolbarApperanceTitles).setDefaultValue("0"));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_mode), PROP_PAGE_VIEW_MODE).add(mViewModes, mViewModeTitles).setDefaultValue("1").setIconIdByAttr(R.attr.cr3_option_view_mode_scroll_drawable, R.drawable.cr3_option_view_mode_scroll).setOnChangeHandler(new Runnable() {
-			@Override
-			public void run() {
-				int value = mProperties.getInt(PROP_PAGE_VIEW_MODE, 1);
-				mFootNotesOption.enabled = value == 1;
-			}
-		}));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_mode), PROP_PAGE_VIEW_MODE).add(mViewModes, mViewModeTitles).setDefaultValue("1").setIconIdByAttr(R.attr.cr3_option_view_mode_scroll_drawable, R.drawable.cr3_option_view_mode_scroll)
+				.setOnChangeHandler(new Runnable() {
+					@Override
+					public void run() {
+						int value = mProperties.getInt(PROP_PAGE_VIEW_MODE, 1);
+						mFootNotesOption.setEnabled(value == 1);
+					}
+				})
+		);
 		//mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
 		if (DeviceInfo.getSDKLevel() >= 9)
 			mOptionsPage.add(new ListOption(this, getString(R.string.options_page_orientation), PROP_APP_SCREEN_ORIENTATION).add(mOrientations_API9, mOrientationsTitles_API9).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_page_orientation_landscape_drawable, R.drawable.cr3_option_page_orientation_landscape));
