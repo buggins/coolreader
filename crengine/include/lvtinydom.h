@@ -1740,6 +1740,15 @@ public:
     /// move to next visible word end
     bool nextVisibleWordEnd( bool thisBlockOnly = false );
 
+    /// move to previous visible word beginning (in sentence)
+    bool prevVisibleWordStartInSentence();
+    /// move to previous visible word end (in sentence)
+    bool prevVisibleWordEndInSentence();
+    /// move to next visible word beginning (in sentence)
+    bool nextVisibleWordStartInSentence();
+    /// move to next visible word end (in sentence)
+    bool nextVisibleWordEndInSentence();
+
     /// move to beginning of current visible text sentence
     bool thisSentenceStart();
     /// move to end of current visible text sentence
