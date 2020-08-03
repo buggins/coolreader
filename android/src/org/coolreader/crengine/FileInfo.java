@@ -57,6 +57,9 @@ public class FileInfo {
 	public boolean isDirectory;
 	public boolean isListed;
 	public boolean isScanned;
+	public int crc32;
+	public int domVersion;
+	public int blockRenderingFlags;
 	public FileInfo parent; // parent item
 	public Object tag; // some additional information
 	
@@ -236,6 +239,8 @@ public class FileInfo {
 							size = (int)entry.getSize();
 							arcsize = (int)entry.getCompressedSize();
 							createTime = entry.getTime();
+							domVersion = Engine.DOM_VERSION_CURRENT;
+							blockRenderingFlags = Engine.BLOCK_RENDERING_FLAGS_WEB;
 							break;
 						}
 					}
@@ -264,6 +269,8 @@ public class FileInfo {
 			format = fmt;
 			createTime = f.lastModified();
 			size = (int)f.length();
+			domVersion = Engine.DOM_VERSION_CURRENT;
+			blockRenderingFlags = Engine.BLOCK_RENDERING_FLAGS_WEB;
 		} else {
 			filename = f.getName();
 			path = f.getParent();
@@ -279,6 +286,8 @@ public class FileInfo {
 	
 	public FileInfo()
 	{
+		domVersion = Engine.DOM_VERSION_CURRENT;
+		blockRenderingFlags = Engine.BLOCK_RENDERING_FLAGS_WEB;
 	}
 
 	/// doesn't copy parent and children
@@ -308,6 +317,9 @@ public class FileInfo {
 		language = v.language;
 		username = v.username;
 		password = v.password;
+		crc32 = v.crc32;
+		domVersion = v.domVersion;
+		blockRenderingFlags = v.blockRenderingFlags;
 		id = v.id;
 	}
 	
@@ -1188,6 +1200,12 @@ public class FileInfo {
 			if (other.title != null)
 				return false;
 		} else if (!title.equals(other.title))
+			return false;
+		if (crc32 != other.crc32)
+			return false;
+		if (domVersion != other.domVersion)
+			return false;
+		if (blockRenderingFlags != other.blockRenderingFlags)
 			return false;
 		return true;
 	}

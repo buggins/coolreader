@@ -211,7 +211,6 @@ void lvdrawbufDrawUnpacked( draw_buf_t * buf, int x, int y, const lUInt8 * bitma
     dstline = buf->data + buf->bytesPerRow*y + (x >> 2);
     dst = dstline;
     shift0 = (x & 3);
-    xx = width;
 
     bitmap += bx + by*bmp_width;
     shift = shift0;
@@ -241,8 +240,8 @@ void lvdrawbufDrawUnpacked( draw_buf_t * buf, int x, int y, const lUInt8 * bitma
 void lvdrawbufDrawPacked( draw_buf_t * buf, int x, int y, const lUInt8 * bitmap, int width, int height, const hrle_decode_info_t * table )
 {
     int buf_width = buf->bytesPerRow << 2; /* 2bpp */
-    int bx = 0;
-    int by = 0;
+    // int bx = 0;
+    // int by = 0;
     int xx;
     int bmp_width = width;
     lUInt16  b;
@@ -259,7 +258,7 @@ void lvdrawbufDrawPacked( draw_buf_t * buf, int x, int y, const lUInt8 * bitmap,
     if (x<0)
     {
         width += x;
-        bx -= x;
+        // bx -= x;
         x = 0;
         if (width<=0)
             return;
@@ -267,7 +266,7 @@ void lvdrawbufDrawPacked( draw_buf_t * buf, int x, int y, const lUInt8 * bitmap,
     if (y<0)
     {
         height += y;
-        by -= y;
+        // by -= y;
         y = 0;
         if (height<=0)
             return;
@@ -288,7 +287,7 @@ void lvdrawbufDrawPacked( draw_buf_t * buf, int x, int y, const lUInt8 * bitmap,
     dst = dstline;
     shift0 = (x & 3);
     xx = width;
-    srcskip = by*bmp_width + bx;
+    //srcskip = by*bmp_width + bx;
     //bitmap += srcskip >> 2;
     srcshift = 0; //(srcskip & 3);
     srcskip = 0;

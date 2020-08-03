@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 struct css_elem_def_props_t;
+class SerialBuf;
 
 //===========================================
 class LDOMNameIdMapItem 
@@ -117,6 +118,7 @@ public:
 
     // debug dump of all unknown entities
     void dumpUnknownItems( FILE * f, int start_id );
+    lString16 getUnknownItems( int start_id );
 };
 
 #endif

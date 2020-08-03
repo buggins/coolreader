@@ -243,13 +243,16 @@ public class BaseDialog extends Dialog {
 	
 	protected void onCreate() {
 		// when dialog is created
+		Log.d("DLG","BaseDialog.onCreate()");
+		activity.onDialogCreated(this);
 	}
 	
 	protected void onClose() {
 		// when dialog is closed
+		Log.d("DLG","BaseDialog.onClose()");
+		activity.onDialogClosed(this);
 	}
-	
-	
+
 	
 	/**
 	 * Set View's gesture handlers for LTR and RTL horizontal fling

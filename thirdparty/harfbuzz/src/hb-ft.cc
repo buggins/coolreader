@@ -29,6 +29,8 @@
 
 #include "hb.hh"
 
+#ifdef HAVE_FREETYPE
+
 #include "hb-ft.h"
 
 #include "hb-font.hh"
@@ -96,7 +98,7 @@ _hb_ft_font_create (FT_Face ft_face, bool symbol, bool unref)
 
   ft_font->load_flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
 
-  ft_font->cached_x_scale.set (0);
+  ft_font->cached_x_scale.set_relaxed (0);
   ft_font->advance_cache.init ();
 
   return ft_font;
@@ -228,8 +230,8 @@ hb_ft_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
        done < count && (*first_glyph = FT_Get_Char_Index (ft_font->ft_face, *first_unicode));
        done++)
   {
-    first_unicode = &StructAtOffset<hb_codepoint_t> (first_unicode, unicode_stride);
-    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_unicode = &StructAtOffsetUnaligned<hb_codepoint_t> (first_unicode, unicode_stride);
+    first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
   }
   /* We don't need to do ft_font->symbol dance here, since HB calls the singular
    * nominal_glyph() for what we don't handle here. */
@@ -292,8 +294,8 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
     }
 
     *first_advance = (v * mult + (1<<9)) >> 10;
-    first_glyph = &StructAtOffset<hb_codepoint_t> (first_glyph, glyph_stride);
-    first_advance = &StructAtOffset<hb_position_t> (first_advance, advance_stride);
+    first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+    first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
   }
 }
 
@@ -345,6 +347,25 @@ hb_ft_get_glyph_v_origin (hb_font_t *font,
 
   return true;
 }
+
+#ifndef HB_NO_OT_SHAPE_FALLBACK
+static hb_position_t
+hb_ft_get_glyph_h_kerning (hb_font_t *font,
+			   void *font_data,
+			   hb_codepoint_t left_glyph,
+			   hb_codepoint_t right_glyph,
+			   void *user_data HB_UNUSED)
+{
+  const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  FT_Vector kerningv;
+
+  FT_Kerning_Mode mode = font->x_ppem ? FT_KERNING_DEFAULT : FT_KERNING_UNFITTED;
+  if (FT_Get_Kerning (ft_font->ft_face, left_glyph, right_glyph, mode, &kerningv))
+    return 0;
+
+  return kerningv.x;
+}
+#endif
 
 static hb_bool_t
 hb_ft_get_glyph_extents (hb_font_t *font,
@@ -439,7 +460,7 @@ hb_ft_get_glyph_from_name (hb_font_t *font HB_UNUSED,
   else {
     /* Make a nul-terminated version. */
     char buf[128];
-    len = MIN (len, (int) sizeof (buf) - 1);
+    len = hb_min (len, (int) sizeof (buf) - 1);
     strncpy (buf, name, len);
     buf[len] = '\0';
     *glyph = FT_Get_Name_Index (ft_face, buf);
@@ -450,7 +471,7 @@ hb_ft_get_glyph_from_name (hb_font_t *font HB_UNUSED,
     /* Check whether the given name was actually the name of glyph 0. */
     char buf[128];
     if (!FT_Get_Glyph_Name(ft_face, 0, buf, sizeof (buf)) &&
-        len < 0 ? !strcmp (buf, name) : !strncmp (buf, name, len))
+	len < 0 ? !strcmp (buf, name) : !strncmp (buf, name, len))
       return true;
   }
 
@@ -479,12 +500,12 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
 }
 
 #if HB_USE_ATEXIT
-static void free_static_ft_funcs (void);
+static void free_static_ft_funcs ();
 #endif
 
 static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft_font_funcs_lazy_loader_t>
 {
-  static inline hb_font_funcs_t *create (void)
+  static hb_font_funcs_t *create ()
   {
     hb_font_funcs_t *funcs = hb_font_funcs_create ();
 
@@ -497,6 +518,10 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
     hb_font_funcs_set_glyph_v_advance_func (funcs, hb_ft_get_glyph_v_advance, nullptr, nullptr);
     //hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ft_get_glyph_h_origin, nullptr, nullptr);
     hb_font_funcs_set_glyph_v_origin_func (funcs, hb_ft_get_glyph_v_origin, nullptr, nullptr);
+#ifndef HB_NO_OT_SHAPE_FALLBACK
+    hb_font_funcs_set_glyph_h_kerning_func (funcs, hb_ft_get_glyph_h_kerning, nullptr, nullptr);
+#endif
+    //hb_font_funcs_set_glyph_v_kerning_func (funcs, hb_ft_get_glyph_v_kerning, nullptr, nullptr);
     hb_font_funcs_set_glyph_extents_func (funcs, hb_ft_get_glyph_extents, nullptr, nullptr);
     hb_font_funcs_set_glyph_contour_point_func (funcs, hb_ft_get_glyph_contour_point, nullptr, nullptr);
     hb_font_funcs_set_glyph_name_func (funcs, hb_ft_get_glyph_name, nullptr, nullptr);
@@ -514,14 +539,14 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
 
 #if HB_USE_ATEXIT
 static
-void free_static_ft_funcs (void)
+void free_static_ft_funcs ()
 {
   static_ft_funcs.free_instance ();
 }
 #endif
 
 static hb_font_funcs_t *
-_hb_ft_get_font_funcs (void)
+_hb_ft_get_font_funcs ()
 {
   return static_ft_funcs.get_unconst ();
 }
@@ -539,7 +564,7 @@ _hb_ft_font_set_funcs (hb_font_t *font, FT_Face ft_face, bool unref)
 
 
 static hb_blob_t *
-reference_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
+_hb_ft_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 {
   FT_Face ft_face = (FT_Face) user_data;
   FT_Byte *buffer;
@@ -594,7 +619,7 @@ hb_ft_face_create (FT_Face           ft_face,
     face = hb_face_create (blob, ft_face->face_index);
     hb_blob_destroy (blob);
   } else {
-    face = hb_face_create_for_tables (reference_table, ft_face, destroy);
+    face = hb_face_create_for_tables (_hb_ft_reference_table, ft_face, destroy);
   }
 
   hb_face_set_index (face, ft_face->face_index);
@@ -745,13 +770,13 @@ hb_ft_font_create_referenced (FT_Face ft_face)
 }
 
 #if HB_USE_ATEXIT
-static void free_static_ft_library (void);
+static void free_static_ft_library ();
 #endif
 
-static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer (FT_Library),
+static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<FT_Library>,
 							     hb_ft_library_lazy_loader_t>
 {
-  static inline FT_Library create (void)
+  static FT_Library create ()
   {
     FT_Library l;
     if (FT_Init_FreeType (&l))
@@ -763,11 +788,11 @@ static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer (
 
     return l;
   }
-  static inline void destroy (FT_Library l)
+  static void destroy (FT_Library l)
   {
     FT_Done_FreeType (l);
   }
-  static inline FT_Library get_null (void)
+  static FT_Library get_null ()
   {
     return nullptr;
   }
@@ -775,14 +800,14 @@ static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer (
 
 #if HB_USE_ATEXIT
 static
-void free_static_ft_library (void)
+void free_static_ft_library ()
 {
   static_ft_library.free_instance ();
 }
 #endif
 
 static FT_Library
-get_ft_library (void)
+get_ft_library ()
 {
   return static_ft_library.get_unconst ();
 }
@@ -815,8 +840,8 @@ hb_ft_font_set_funcs (hb_font_t *font)
     return;
   }
 
-  if (FT_Select_Charmap (ft_face, FT_ENCODING_UNICODE))
-    FT_Select_Charmap (ft_face, FT_ENCODING_MS_SYMBOL);
+  if (FT_Select_Charmap (ft_face, FT_ENCODING_MS_SYMBOL))
+    FT_Select_Charmap (ft_face, FT_ENCODING_UNICODE);
 
   FT_Set_Char_Size (ft_face,
 		    abs (font->x_scale), abs (font->y_scale),
@@ -841,7 +866,7 @@ hb_ft_font_set_funcs (hb_font_t *font)
     if (ft_coords)
     {
       for (unsigned int i = 0; i < num_coords; i++)
-	ft_coords[i] = coords[i] << 2;
+	ft_coords[i] = coords[i] * 4;
       FT_Set_Var_Blend_Coordinates (ft_face, num_coords, ft_coords);
       free (ft_coords);
     }
@@ -854,3 +879,6 @@ hb_ft_font_set_funcs (hb_font_t *font)
   _hb_ft_font_set_funcs (font, ft_face, true);
   hb_ft_font_set_load_flags (font, FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING);
 }
+
+
+#endif

@@ -10,6 +10,7 @@
 */
 
 #include "../include/props.h"
+#include "../include/serialbuf.h"
 #include <stdio.h>
 
 
@@ -600,7 +601,7 @@ bool CRPropAccessor::loadFromStream( LVStream * stream )
             lString8 value( eqpos+1, (int)(elp - eqpos - 1));
             setString( name.c_str(), Utf8ToUnicode(removeBackslashChars(value)) );
         }
-        for ( p=elp; *elp && *elp!='\r' && *elp!='\n'; elp++)
+        for ( ; *elp && *elp!='\r' && *elp!='\n'; elp++)
             ;
         p = elp;
 		while ( *p=='\r' || *p=='\n' )
@@ -714,7 +715,7 @@ void CRPropContainer::clear()
 void CRPropContainer::setString( const char * propName, const lString16 &value )
 {
     int pos = 0;
-    if ( !findItem( propName, pos ) ) {
+    if ( _list.empty() || !findItem( propName, pos ) ) {
         _list.insert( pos, new CRPropItem( propName, value ) );
         _revision++;
     } else {
@@ -901,6 +902,7 @@ bool CRPropAccessor::deserialize( SerialBuf & buf )
             return false;
         buf >> val;
         setString( nm.c_str(), val );
+        // CRLog::debug("  deserialized prop %s: %s", nm.c_str(), UnicodeToLocal(val).c_str());
     }
     buf.checkCRC( buf.pos() - pos );
     return !buf.error();

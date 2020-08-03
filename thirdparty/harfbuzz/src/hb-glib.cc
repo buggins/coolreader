@@ -28,6 +28,8 @@
 
 #include "hb.hh"
 
+#ifdef HAVE_GLIB
+
 #include "hb-glib.h"
 
 #include "hb-machinery.hh"
@@ -337,12 +339,12 @@ hb_glib_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 
 
 #if HB_USE_ATEXIT
-static void free_static_glib_funcs (void);
+static void free_static_glib_funcs ();
 #endif
 
 static struct hb_glib_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_t<hb_glib_unicode_funcs_lazy_loader_t>
 {
-  static inline hb_unicode_funcs_t *create (void)
+  static hb_unicode_funcs_t *create ()
   {
     hb_unicode_funcs_t *funcs = hb_unicode_funcs_create (nullptr);
 
@@ -365,14 +367,14 @@ static struct hb_glib_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader
 
 #if HB_USE_ATEXIT
 static
-void free_static_glib_funcs (void)
+void free_static_glib_funcs ()
 {
   static_glib_funcs.free_instance ();
 }
 #endif
 
 hb_unicode_funcs_t *
-hb_glib_get_unicode_funcs (void)
+hb_glib_get_unicode_funcs ()
 {
   return static_glib_funcs.get_unconst ();
 }
@@ -403,4 +405,7 @@ hb_glib_blob_create (GBytes *gbytes)
 			 g_bytes_ref (gbytes),
 			 _hb_g_bytes_unref);
 }
+#endif
+
+
 #endif

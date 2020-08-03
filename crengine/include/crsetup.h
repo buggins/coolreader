@@ -42,6 +42,8 @@
 #define USE_GIF                              0
 #define USE_FREETYPE                         0
 #define USE_HARFBUZZ                         0
+#define USE_FRIBIDI                          0
+#define USE_LIBUNIBREAK                      0
 #define USE_GLYPHCACHE_HASHTABLE             0
 #define GLYPH_CACHE_SIZE                     0x1000
 #define ZIP_STREAM_BUFFER_SIZE               0x1000
@@ -54,6 +56,8 @@
 #define USE_GIF                              1
 #define USE_FREETYPE                         1
 #define USE_HARFBUZZ                         1
+#define USE_FRIBIDI                          1
+#define USE_LIBUNIBREAK                      1
 #define USE_GLYPHCACHE_HASHTABLE             0
 #define GLYPH_CACHE_SIZE                     0x20000
 #define ZIP_STREAM_BUFFER_SIZE               0x80000
@@ -66,23 +70,29 @@
 #ifndef LDOM_USE_OWN_MEM_MAN
 #define LDOM_USE_OWN_MEM_MAN                 1
 #endif
+
 #ifdef ANDROID
 #define CR_USE_THREADS                       1
 #define USE_ATOMIC_REFCOUNT
 #else
 #define CR_USE_THREADS                       0
 #endif // ANDROID
+
 #define USE_LIBJPEG                          1
 #define USE_LIBPNG                           1
 #define USE_GIF                              1
 #define USE_ZLIB                             1
+
 #ifndef COLOR_BACKBUFFER
 #define COLOR_BACKBUFFER                     1
 #endif
+
 #define USE_ANSI_FILES                       1
 #define GRAY_INVERSE                         0
 #define USE_FREETYPE                         1
 #define USE_HARFBUZZ                         1
+#define USE_FRIBIDI                          1
+#define USE_LIBUNIBREAK                      1
 #define USE_GLYPHCACHE_HASHTABLE             1
 
 #ifndef ANDROID
@@ -116,9 +126,13 @@
 #if defined(CYGWIN)
 #define USE_FREETYPE                         0
 #define USE_HARFBUZZ                         0
+#define USE_FRIBIDI                          0
+#define USE_LIBUNIBREAK                      0
 #else
 #define USE_FREETYPE                         1
 #define USE_HARFBUZZ                         1
+#define USE_FRIBIDI                          1
+#define USE_LIBUNIBREAK                      1
 #endif
 #define ALLOW_KERNING                        1
 #define USE_GLYPHCACHE_HASHTABLE             1

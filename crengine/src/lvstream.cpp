@@ -27,6 +27,7 @@
 #include "../include/lvstream.h"
 #include "../include/lvptrvec.h"
 #include "../include/crtxtenc.h"
+#include "../include/crlog.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -266,7 +267,7 @@ public:
     /// flush on destroy
     virtual ~LVDefStreamBuffer()
     {
-        close();
+        close(); // NOLINT: Call to virtual function during destruction
     }
 };
 
@@ -698,7 +699,7 @@ public:
 		}
         return LVERR_OK;
     }
-	
+
     lverror_t OpenFile( lString16 fname, lvopen_mode_t mode, lvsize_t minSize = (lvsize_t)-1 )
     {
         m_mode = mode;
@@ -812,7 +813,7 @@ public:
         return LVERR_OK;
 #endif
     }
-    LVFileMappedStream() 
+    LVFileMappedStream()
 #if defined(_WIN32)
 		: m_hFile(NULL), m_hMap(NULL),
 #else
@@ -1103,8 +1104,9 @@ public:
         //
         if (m_hFile == INVALID_HANDLE_VALUE || m_mode==LVOM_READ )
             return LVERR_FAIL;
-        lvpos_t oldpos;
-        Tell(&oldpos);
+        lvpos_t oldpos = 0;
+        if (!Tell(&oldpos))
+            return LVERR_FAIL;
         if (!Seek(size, LVSEEK_SET, NULL))
             return LVERR_FAIL;
         SetEndOfFile( m_hFile);
@@ -1113,8 +1115,9 @@ public:
 #else
         if (m_fd == -1)
             return LVERR_FAIL;
-        lvpos_t oldpos;
-        Tell(&oldpos);
+        lvpos_t oldpos = 0;
+        if (!Tell(&oldpos))
+            return LVERR_FAIL;
         if (!Seek(size, LVSEEK_SET, NULL))
             return LVERR_FAIL;
         Seek(oldpos, LVSEEK_SET, NULL);
@@ -1558,10 +1561,8 @@ public:
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
         // WIN32 API
         fn << mask;
-        WIN32_FIND_DATAW data;
-        WIN32_FIND_DATAA dataa;
-        memset(&data, 0, sizeof(data));
-        memset(&dataa, 0, sizeof(dataa));
+        WIN32_FIND_DATAW data = { 0 };
+        WIN32_FIND_DATAA dataa = { 0 };
         //lString8 bs = DOMString(path).ToAnsiString();
         HANDLE hFind = FindFirstFileW(fn.c_str(), &data);
         bool unicode=true;
@@ -1870,8 +1871,7 @@ public:
         m_bufSize = (bufSize + CACHE_BUF_BLOCK_SIZE - 1) >> CACHE_BUF_BLOCK_SHIFT;
         if (m_bufSize<3)
             m_bufSize = 3;
-        m_buf = new BufItem* [m_bufItems];
-        memset( m_buf, 0, sizeof( BufItem*) * m_bufItems );
+        m_buf = new BufItem* [m_bufItems]();
         SetName( stream->GetName() );
     }
     virtual ~LVCachedStream()
@@ -1945,8 +1945,7 @@ public:
         int extraItems = (m_bufSize - count); // max move backward
         if (extraItems<0)
             extraItems = 0;
-        char * flags = new char[ count ];
-        memset( flags, 0, count );
+        char * flags = new char[ count ]();
 
         //if ( m_stream
         int start = (int)m_pos;
@@ -2097,6 +2096,10 @@ struct ZipHd2
     lUInt16     getZIPAttr() { return _Attr_and_Offset[0]; }
     lUInt32     getAttr() { return _Attr_and_Offset[1] | ((lUInt32)_Attr_and_Offset[2]<<16); }
     lUInt32     getOffset() { return _Attr_and_Offset[3] | ((lUInt32)_Attr_and_Offset[4]<<16); }
+    void        setOffset(lUInt32 offset) {
+        _Attr_and_Offset[3] = (lUInt16)(offset & 0xFFFF);
+        _Attr_and_Offset[4] = (lUInt16)(offset >> 16);
+    }
     void byteOrderConv()
     {
         //
@@ -2284,9 +2287,9 @@ private:
                 m_zstream.avail_out = ARC_OUTBUF_SIZE - outpos;
             }
         }
-        int decoded = m_zstream.avail_out;
+        // int decoded = m_zstream.avail_out;
         int res = inflate( &m_zstream, m_inbytesleft > 0 ? Z_NO_FLUSH : Z_FINISH ); //m_inbytesleft | m_zstream.avail_in
-        decoded -= m_zstream.avail_out;
+        // decoded -= m_zstream.avail_out;
         if (res == Z_STREAM_ERROR)
         {
             return -1;
@@ -2294,7 +2297,7 @@ private:
         if (res == Z_BUF_ERROR)
         {
             //return -1;
-            res = 0; // DEBUG
+            //res = 0; // DEBUG
         }
         avail = getAvailBytes();
         return avail;
@@ -2342,6 +2345,7 @@ private:
             else if (avail==0)
             {
                 avail = decodeNext();
+                (void)avail; // never read
                 return bytesRead;
             }
 
@@ -2459,6 +2463,8 @@ public:
         lUInt32 packSize = hdr.getPackSize();
         lUInt32 unpSize = hdr.getUnpSize();
         if ( packSize==0 && unpSize==0 ) {
+            // Can happen when local header does not carry these sizes
+            // Use the ones provided that come from zip central directory
             packSize = srcPackSize;
             unpSize = srcUnpSize;
         }
@@ -2467,16 +2473,16 @@ public:
         if (hdr.getMethod() == 0)
         {
             // store method, copy as is
-            if ( hdr.getPackSize() != hdr.getUnpSize() )
+            if ( packSize != unpSize )
                 return NULL;
-            LVStreamFragment * fragment = new LVStreamFragment( stream, pos, hdr.getPackSize());
+            LVStreamFragment * fragment = new LVStreamFragment( stream, pos, packSize);
             fragment->SetName( name.c_str() );
             return fragment;
         }
         else if (hdr.getMethod() == 8)
         {
             // deflate
-            LVStreamRef srcStream( new LVStreamFragment( stream, pos, hdr.getPackSize()) );
+            LVStreamRef srcStream( new LVStreamFragment( stream, pos, packSize) );
             LVZipDecodeStream * res = new LVZipDecodeStream( srcStream, pos,
                 packSize, unpSize, hdr.getCRC() );
             res->SetName( name.c_str() );
@@ -2489,14 +2495,20 @@ public:
 
 class LVZipArc : public LVArcContainerBase
 {
+protected:
+    // whether the alternative "truncated" method was used, or is to be used
+    bool m_alt_reading_method = false;
 public:
+    bool isAltReadingMethod() { return m_alt_reading_method; }
+    void setAltReadingMethod() { m_alt_reading_method = true; }
+
     virtual LVStreamRef OpenStream( const wchar_t * fname, lvopen_mode_t /*mode*/ )
     {
         if ( fname[0]=='/' )
             fname++;
         int found_index = -1;
         for (int i=0; i<m_list.length(); i++) {
-            if ( !lStr_cmp( fname, m_list[i]->GetName() ) ) {
+            if ( m_list[i]->GetName() != NULL && !lStr_cmp( fname, m_list[i]->GetName() ) ) {
                 if ( m_list[i]->IsContainer() ) {
                     // found directory with same name!!!
                     return LVStreamRef();
@@ -2592,6 +2604,18 @@ public:
         }
 
         truncated = !found;
+
+        // If the main reading method (using zip header at the end of the
+        // archive) failed, we can try using the alternative method used
+        // when this zip header is missing ("truncated"), which uses
+        // local zip headers met along while scanning the zip.
+        if (m_alt_reading_method)
+            truncated = true; // do as if truncated
+        else if (truncated) // archive detected as truncated
+            // flag that, so there's no need to try that alt method,
+            // as it was used on first scan
+            m_alt_reading_method = true;
+
         if (truncated)
             NextPosition=0;
 
@@ -2600,7 +2624,7 @@ public:
 
 
         ZipLocalFileHdr ZipHd1;
-        ZipHd2 ZipHeader;
+        ZipHd2 ZipHeader = { 0 };
         unsigned ZipHeader_size = 0x2E; //sizeof(ZipHd2); //0x34; //
         unsigned ZipHd1_size = 0x1E; //sizeof(ZipHd1); //sizeof(ZipHd1)
           //lUInt32 ReadSize;
@@ -2612,6 +2636,11 @@ public:
 
             if (truncated)
             {
+                // The offset (that we don't find in a local header, but
+                // that we will store in the ZipHeader we're building)
+                // happens to be the current position here.
+                lUInt32 offset = (lUInt32)m_stream->GetPos();
+
                 m_stream->Read( &ZipHd1, ZipHd1_size, &ReadSize);
                 ZipHd1.byteOrderConv();
 
@@ -2625,8 +2654,6 @@ public:
                     return 0;
                 }
 
-                memset(&ZipHeader,0,ZipHeader_size);
-
                 ZipHeader.UnpVer=ZipHd1.UnpVer;
                 ZipHeader.UnpOS=ZipHd1.UnpOS;
                 ZipHeader.Flags=ZipHd1.Flags;
@@ -2636,6 +2663,10 @@ public:
                 ZipHeader.NameLen=ZipHd1.getNameLen();
                 ZipHeader.AddLen=ZipHd1.getAddLen();
                 ZipHeader.Method=ZipHd1.getMethod();
+                ZipHeader.setOffset(offset);
+                // We may get a last invalid record with NameLen=0, which shouldn't hurt.
+                // If it does, use:
+                // if (ZipHeader.NameLen == 0) break;
             } else {
 
                 m_stream->Read( &ZipHeader, ZipHeader_size, &ReadSize);
@@ -2742,8 +2773,17 @@ public:
                 return NULL;
         LVZipArc * arc = new LVZipArc( stream );
         int itemCount = arc->ReadContents();
+        if ( itemCount > 0 && arc->isAltReadingMethod() ) {
+            CRLog::warn("Zip file truncated: going on with possibly partial content.");
+        }
+        else if ( itemCount <= 0 && !arc->isAltReadingMethod() ) {
+            CRLog::warn("Zip file corrupted or invalid: trying alternative processing...");
+            arc->setAltReadingMethod();
+            itemCount = arc->ReadContents();
+        }
         if ( itemCount <= 0 )
         {
+            CRLog::error("Zip file corrupted or invalid: processing failure.");
             delete arc;
             return NULL;
         }
@@ -2973,7 +3013,7 @@ public:
 	{
 		if (!m_pBuffer)
 			return LVERR_FAIL;
-		lvpos_t newpos = m_pos;
+		lvpos_t newpos;
 		switch (origin) {
 		case LVSEEK_SET:
 			newpos = offset;
@@ -2992,7 +3032,7 @@ public:
 			*pNewPos = m_pos;
 		return LVERR_OK;
 	}
-	virtual lverror_t Close()
+	lverror_t Close()
 	{
 		if (!m_pBuffer)
 			return LVERR_FAIL;
@@ -3010,7 +3050,7 @@ public:
 		m_bufsize = 4096;
 		m_size = 0;
 		m_pos = 0;
-        m_pBuffer = (lUInt8*)malloc((int)m_bufsize);
+		m_pBuffer = (lUInt8*)malloc((int)m_bufsize);
 		m_own_buffer = true;
 		m_mode = LVOM_READWRITE;
 		return LVERR_OK;
@@ -3517,7 +3557,7 @@ public:
                 *dst++ = *src++;
             }
             count -= n;
-            bytesLeft -= n;
+            // bytesLeft -= n;
             bytesRead += n;
             _pos += n;
         }
@@ -3735,13 +3775,19 @@ lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
                     //   ^ ^
                     s.erase( lastElementStart, i+4-lastElementStart );
                     changed = true;
-                    lastElementStart = -1;
+                    // lastElementStart = -1;
                     break;
                 }
             }
         }
     } while ( changed && s.length()>=pattern.length() );
-    // "./"
+    // Replace "/./" inside with "/"
+    pattern.clear();
+    pattern << separator << "." << separator;
+    lString16 replacement;
+    replacement << separator;
+    while ( s.replace( pattern, replacement ) ) ;
+    // Remove "./" at start
     if ( s.length()>2 && s[0]=='.' && s[1]==separator )
         s.erase(0, 2);
     return s;
@@ -4056,9 +4102,8 @@ class LVBlockWriteStream : public LVNamedStream
             , modified_start((lvpos_t)-1), modified_end((lvpos_t)-1)
             , size( block_size ), next(NULL)
         {
-            buf = (lUInt8*)malloc( size );
+            buf = (lUInt8*)calloc(size, sizeof(*buf));
             if ( buf ) {
-                memset(buf, 0, size);
     //            modified_start = 0;
     //            modified_end = size;
             }
@@ -4273,7 +4318,7 @@ class LVBlockWriteStream : public LVNamedStream
 public:
     virtual lverror_t Flush( bool sync ) {
         CRTimerUtil infinite;
-        return Flush(sync, infinite);
+        return Flush(sync, infinite); // NOLINT: Call to virtual function during destruction
     }
     /// flushes unsaved data from buffers to file, with optional flush of OS buffers
     virtual lverror_t Flush( bool sync, CRTimerUtil & timeout )
@@ -4303,7 +4348,7 @@ public:
 
     virtual ~LVBlockWriteStream()
     {
-        Flush( true );
+        Flush( true ); // NOLINT: Call to virtual function during destruction
     }
 
     virtual const lChar16 * GetName()

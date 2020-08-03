@@ -33,10 +33,13 @@ public:
     virtual css_font_family_t getFontFamily() const { return _family; }
 
     /// draws text string
-    virtual void DrawTextString(LVDrawBuf *buf, int x, int y,
-                                const lChar16 *text, int len,
-                                lChar16 def_char, lUInt32 *palette, bool addHyphen,
-                                lUInt32 flags = 0, int letter_spacing = 0);
+    virtual int DrawTextString( LVDrawBuf * buf, int x, int y,
+                       const lChar16 * text, int len,
+                       lChar16 def_char, lUInt32 * palette = NULL,
+                       bool addHyphen = false, TextLangCfg * lang_cfg = NULL,
+                       lUInt32 flags=0, int letter_spacing=0, int width=-1,
+                       int text_decoration_back_gap=0, 
+                       lUInt32 fallbackPassMask = 0);
 };
 
 #endif  // __LV_BASEFONT_H_INCLUDED__

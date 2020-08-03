@@ -462,6 +462,12 @@ bool CR3View::loadDocument( QString fileName )
     clearSelection();
     bool res = _docview->LoadDocument( qt2cr(fileName).c_str() );
     if ( res ) {
+        CRPropRef props = _docview->propsGetCurrent();
+        if (props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false)) {
+            lString16 doc_lang = _docview->getLanguage();
+            if (!doc_lang.empty())
+                _docview->propApply(lString8(PROP_TEXTLANG_MAIN_LANG), doc_lang);
+        }
         //_docview->swapToCache();
         QByteArray utf8 = fileName.toUtf8();
         CRLog::debug( "Trying to restore position for %s", utf8.constData() );

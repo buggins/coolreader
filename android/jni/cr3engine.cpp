@@ -4,6 +4,7 @@
 #include <jni.h>
 #include <time.h>
 #include <android/log.h>
+#include <android/api-level.h>
 
 
 #include <stdio.h>
@@ -475,36 +476,6 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getArchiveIte
 }
 
 
-/*
- * Class:     org_coolreader_crengine_Engine
- * Method:    setHyphenationMethod
- * Signature: (I[B)Z
- */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMethod
-  (JNIEnv * _env, jobject _engine, jint method, jbyteArray data)
-{
-	CRJNIEnv env(_env);
-	if ( method==0 ) {
-		CRLog::info("Selecting hyphenation method: Disabled");
-		return HyphMan::activateDictionary(lString16(HYPH_DICT_ID_NONE));
-	} else if ( method==1 ) {
-		CRLog::info("Selecting hyphenation method: Algoryphmic");
-		return HyphMan::activateDictionary(lString16(HYPH_DICT_ID_ALGORITHM));
-	} else {
-		CRLog::info("Selecting hyphenation method: Dictionary");
-		LVStreamRef stream = env.jbyteArrayToStream( data );
-		CRLog::debug("Stream is created from byte array, length=%d", (int)(stream.isNull()?0:stream->GetSize()));
-		bool res = HyphMan::activateDictionaryFromStream(stream);
-		if ( !res ) {
-			CRLog::error("Dictionary activation is failed: disabling hyphenation");
-			HyphMan::activateDictionary(lString16(HYPH_DICT_ID_NONE));
-			return false;
-		}
-		return true;
-	}
-}
-
-
 class JNICDRLogger : public CRLog
 {
 public:
@@ -552,7 +523,9 @@ void cr3androidFatalErrorHandler(int errorCode, const char * errorText )
 /// set fatal error handler
 void crSetFatalErrorHandler( lv_FatalErrorHandler_t * handler );
 
-jboolean initInternal(JNIEnv * penv, jclass obj, jobjectArray fontArray) {
+jboolean initInternal(JNIEnv * penv, jclass obj, jobjectArray fontArray, jint sdk_int) {
+
+	CRJNIEnv::sdk_int = sdk_int;
 
 	CRJNIEnv env(penv);
 
@@ -591,14 +564,102 @@ jboolean initInternal(JNIEnv * penv, jclass obj, jobjectArray fontArray) {
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    initInternal
- * Signature: ([Ljava/lang/String;)Z
+ * Signature: ([Ljava/lang/String;I)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
-  (JNIEnv * penv, jclass obj, jobjectArray fontArray)
+  (JNIEnv * penv, jclass obj, jobjectArray fontArray, jint sdk_int)
 {
 	jboolean res = JNI_FALSE;
-	COFFEE_TRY_JNI(penv, res = initInternal(penv, obj, fontArray));
+	COFFEE_TRY_JNI(penv, res = initInternal(penv, obj, fontArray, sdk_int));
 	return res;
+}
+
+class HyphDataLoaderProxy : public HyphDataLoader {
+	JavaVM *mJavaVM;
+public:
+	HyphDataLoaderProxy(JavaVM *jvm) :
+			HyphDataLoader(), mJavaVM(jvm) {
+	}
+
+	virtual ~HyphDataLoaderProxy() {}
+
+	virtual LVStreamRef loadData(lString16 id) {
+		JNIEnv *penv = NULL;
+		bool attached = false;
+		mJavaVM->GetEnv((void **) &penv, JNI_VERSION_1_6);
+		if (NULL == penv) {
+			// caller thread is not attached yet
+			mJavaVM->AttachCurrentThread(&penv, NULL);
+			attached = true;
+		}
+		LVStreamRef stream = LVStreamRef();
+		jclass pjcEngine = penv->FindClass("org/coolreader/crengine/Engine");
+		if (NULL == pjcEngine)
+			return stream;
+		jmethodID pjmEngine_loadHyphDictData = penv->GetStaticMethodID(pjcEngine, "loadHyphDictData", "(Ljava/lang/String;)[B");
+		if (NULL == pjmEngine_loadHyphDictData)
+			return stream;
+		CRJNIEnv env(penv);
+		jstring jid = env.toJavaString(id);
+		jbyteArray data = static_cast<jbyteArray>(penv->CallStaticObjectMethod(pjcEngine, pjmEngine_loadHyphDictData, jid));
+		stream = env.jbyteArrayToStream(data);
+		if (attached)
+			mJavaVM->DetachCurrentThread();
+		return stream;
+	}
+};
+
+jboolean initDictionaries(JNIEnv *penv, jclass clazz, jobjectArray dictArray) {
+	jclass pjcHyphDict = penv->FindClass("org/coolreader/crengine/Engine$HyphDict");
+	if (NULL == pjcHyphDict)
+		return JNI_FALSE;
+	jfieldID pjfHyphDict_type = penv->GetFieldID(pjcHyphDict, "type", "I");
+	if (NULL == pjfHyphDict_type)
+		return JNI_FALSE;
+    jfieldID pjfHyphDict_code = penv->GetFieldID(pjcHyphDict, "code", "Ljava/lang/String;");
+    if (NULL == pjfHyphDict_code)
+        return JNI_FALSE;
+
+	int len = penv->GetArrayLength(dictArray);
+	HyphDictionary *dict;
+	CRJNIEnv env(penv);
+	HyphDictType dict_type;
+	for (int i = 0; i < len; i++) {
+		jobject obj = penv->GetObjectArrayElement(dictArray, i);
+		int type = penv->GetIntField(obj, pjfHyphDict_type);
+		jstring code = static_cast<jstring>(penv->GetObjectField(obj, pjfHyphDict_code));
+		switch (type) {     // convert org/coolreader/crengine/Engine$HyphDict$type into HyphDictType
+			case 0:         // org/coolreader/crengine/Engine$HYPH_NONE
+				dict_type = HDT_NONE;
+				break;
+			case 1:         // org/coolreader/crengine/Engine$HYPH_ALGO
+				dict_type = HDT_ALGORITHM;
+				break;
+			case 2:         // org/coolreader/crengine/Engine$HYPH_DICT
+				dict_type = HDT_DICT_ALAN;
+				break;
+			default:
+				dict_type = HDT_NONE;
+				break;
+		}
+		lString16 dict_code = env.fromJavaString(code);
+		dict = new HyphDictionary(dict_type, dict_code, dict_code, dict_code);
+		if (!HyphMan::addDictionaryItem(dict))
+		    delete dict;
+	}
+	JavaVM *jvm;
+	env->GetJavaVM(&jvm);
+	HyphMan::setDataLoader(new HyphDataLoaderProxy( jvm ));
+	return JNI_TRUE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_coolreader_crengine_Engine_initDictionaries
+ (JNIEnv * penv, jclass clazz, jobjectArray dictArray)
+{
+    jboolean res = JNI_FALSE;
+    COFFEE_TRY_JNI(penv, res = initDictionaries(penv, clazz, dictArray));
+    return res;
 }
 
 /*
@@ -709,6 +770,61 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_checkFontLanguage
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    listFilesInternal
+ * Signature: (Ljava/io/File;)[Ljava/io/File;
+ */
+JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInternal
+		(JNIEnv *penv, jclass, jobject jdir)
+{
+	CRJNIEnv env(penv);
+	if (NULL == jdir)
+		return NULL;
+	jclass pjcFile = env->FindClass("java/io/File");
+	if (NULL == pjcFile)
+		return NULL;
+	jmethodID pjmFile_GetAbsolutePath = env->GetMethodID(pjcFile, "getAbsolutePath", "()Ljava/lang/String;");
+	if (NULL == pjmFile_GetAbsolutePath)
+		return NULL;
+	jmethodID pjmFile_Ctor = env->GetMethodID(pjcFile, "<init>", "(Ljava/lang/String;)V");
+	if (NULL == pjmFile_Ctor)
+		return NULL;
+	jstring jpathname = (jstring)env->CallObjectMethod(jdir, pjmFile_GetAbsolutePath);
+	if (NULL == jpathname)
+		return NULL;
+	lString16 path = env.fromJavaString(jpathname);
+	jobjectArray jarray = NULL;
+	LVContainerRef dir = LVOpenDirectory(path);
+	if ( !dir.isNull() ) {
+		jstring emptyString = env->NewStringUTF("");
+		jobject emptyFile = env->NewObject(pjcFile, pjmFile_Ctor, emptyString);
+		jarray = env->NewObjectArray(dir->GetObjectCount(), pjcFile, emptyFile);
+		if (NULL != jarray) {
+			for (int i = 0; i < dir->GetObjectCount(); i++) {
+				const LVContainerItemInfo *item = dir->GetObjectInfo(i);
+				if (item && item->GetName()) {
+					lString16 fileName = path + "/" + item->GetName();
+					jstring jfilename = env.toJavaString(fileName);
+					if (NULL != jfilename) {
+						env->ExceptionClear();
+						jobject jfile = env->NewObject(pjcFile, pjmFile_Ctor, jfilename);
+						if (env->ExceptionCheck() == JNI_TRUE)
+							env->ExceptionClear();
+						else {
+							if (NULL != jfile)
+								env->SetObjectArrayElement(jarray, i, jfile);
+						}
+						env->DeleteLocalRef(jfile);
+						env->DeleteLocalRef(jfilename);
+					}
+				}
+			}
+		}
+	}
+	return jarray;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    isLink
  * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
@@ -771,22 +887,37 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setKeyBacklightIn
 	return JNI_TRUE;
 }
 
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    getDomVersionCurrent
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_Engine_getDomVersionCurrent
+  (JNIEnv *, jclass)
+{
+	return gDOMVersionCurrent;
+}
+
 //=====================================================================
 
 static JNINativeMethod sEngineMethods[] = {
   /* name, signature, funcPtr */
-  {"initInternal", "([Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_initInternal},
+  {"initInternal", "([Ljava/lang/String;I)Z", (void*)Java_org_coolreader_crengine_Engine_initInternal},
   {"uninitInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_uninitInternal},
+  {"initDictionaries", "([Lorg/coolreader/crengine/Engine$HyphDict;)Z", (void*)Java_org_coolreader_crengine_Engine_initDictionaries},
   {"getFontFaceListInternal", "()[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getFontFaceListInternal},
   {"setCacheDirectoryInternal", "(Ljava/lang/String;I)Z", (void*)Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal},
   {"scanBookPropertiesInternal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal},
-  {"setHyphenationMethod", "(I[B)Z", (void*)Java_org_coolreader_crengine_Engine_setHyphenationMethod},
   {"getArchiveItemsInternal", "(Ljava/lang/String;)[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getArchiveItemsInternal},
   {"isLink", "(Ljava/lang/String;)Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_isLink},
   {"suspendLongOperationInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_suspendLongOperationInternal},
   {"setKeyBacklightInternal", "(I)Z", (void*)Java_org_coolreader_crengine_Engine_setKeyBacklightInternal},
   {"scanBookCoverInternal", "(Ljava/lang/String;)[B", (void*)Java_org_coolreader_crengine_Engine_scanBookCoverInternal},
   {"drawBookCoverInternal", "(Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V", (void*)Java_org_coolreader_crengine_Engine_drawBookCoverInternal},
+  {"haveFcLangCodeInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_haveFcLangCodeInternal},
+  {"checkFontLanguageCompatibilityInternal", "(Ljava/lang/String;Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal},
+  {"listFilesInternal", "(Ljava/io/File;)[Ljava/io/File;", (void*)Java_org_coolreader_crengine_Engine_listFilesInternal},
+  {"getDomVersionCurrent", "()I", (void*)Java_org_coolreader_crengine_Engine_getDomVersionCurrent}
 };
 
 
@@ -796,7 +927,9 @@ static JNINativeMethod sDocViewMethods[] = {
   {"destroyInternal", "()V", (void*)Java_org_coolreader_crengine_DocView_destroyInternal},
   {"getPageImageInternal", "(Landroid/graphics/Bitmap;I)V", (void*)Java_org_coolreader_crengine_DocView_getPageImageInternal},
   {"loadDocumentInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_DocView_loadDocumentInternal},
+  {"loadDocumentFromMemoryInternal", "([BLjava/lang/String;)Z", (void*)Java_org_coolreader_crengine_DocView_loadDocumentFromMemoryInternal},
   {"getSettingsInternal", "()Ljava/util/Properties;", (void*)Java_org_coolreader_crengine_DocView_getSettingsInternal},
+  {"getDocPropsInternal", "()Ljava/util/Properties;", (void*)Java_org_coolreader_crengine_DocView_getDocPropsInternal},
   {"applySettingsInternal", "(Ljava/util/Properties;)Z", (void*)Java_org_coolreader_crengine_DocView_applySettingsInternal},
   {"setStylesheetInternal", "(Ljava/lang/String;)V", (void*)Java_org_coolreader_crengine_DocView_setStylesheetInternal},
   {"resizeInternal", "(II)V", (void*)Java_org_coolreader_crengine_DocView_resizeInternal},

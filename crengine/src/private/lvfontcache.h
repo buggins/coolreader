@@ -18,6 +18,7 @@
 #include "../../include/crsetup.h"
 #include "../../include/lvfont.h"
 #include "../../include/lvptrvec.h"
+#include "../../include/lvstring16collection.h"
 #include "lvfontdef.h"
 
 /// font cache item
@@ -58,9 +59,11 @@ public:
 
     void addInstance(const LVFontDef *def, LVFontRef ref);
 
+    bool setAsPreferredFontWithBias( lString8 face, int bias, bool clearOthersBias );
+
     LVPtrVector<LVFontCacheItem> *getInstances() { return &_instance_list; }
 
-    LVFontCacheItem *find(const LVFontDef *def);
+    LVFontCacheItem *find(const LVFontDef *def, bool useBias=false);
 
     LVFontCacheItem *findFallback(lString8 face, int size);
 
@@ -105,7 +108,9 @@ public:
 
     virtual void clearFallbackFonts() {
         for (int i = 0; i < _registered_list.length(); i++) {
-            _registered_list[i]->getFont()->setFallbackFont(LVFontRef());
+            LVFontRef fontRef = _registered_list[i]->getFont();
+            if (!fontRef.isNull())
+                fontRef->setFallbackFont(LVFontRef());
         }
     }
 

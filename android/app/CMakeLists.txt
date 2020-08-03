@@ -14,18 +14,25 @@ include_directories(${CR3_ROOT}/crengine/fc-lang)
 include_directories(${CR3_ROOT}/thirdparty/libpng)
 include_directories(${CR3_ROOT}/thirdparty/freetype)
 include_directories(${CR3_ROOT}/thirdparty/freetype/include)
+include_directories(thirdparty_libs/freetype)
 include_directories(${CR3_ROOT}/thirdparty/harfbuzz/src)
 include_directories(${CR3_ROOT}/thirdparty/libjpeg)
 include_directories(${CR3_ROOT}/thirdparty/antiword)
 include_directories(${CR3_ROOT}/thirdparty/chmlib/src)
+include_directories(${CR3_ROOT}/thirdparty/nanosvg/src)
+include_directories(${CR3_ROOT}/thirdparty/fribidi/lib)
+include_directories(thirdparty_libs/fribidi/lib)
+include_directories(${CR3_ROOT}/thirdparty/libunibreak/src)
 
 add_definitions(-DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH)
-add_definitions(-DFT_CONFIG_MODULES_H=<builds/android/include/config/ftmodule.h> -DFT_CONFIG_OPTIONS_H=<builds/android/include/config/ftoption.h>)
+add_definitions(-DFT_CONFIG_MODULES_H=<android/config/ftmodule.h> -DFT_CONFIG_OPTIONS_H=<android/config/ftoption.h>)
 add_definitions(-DDOC_DATA_COMPRESSION_LEVEL=1 -DDOC_BUFFER_SIZE=0x1000000)
 add_definitions(-DENABLE_CACHE_FILE_CONTENTS_VALIDATION=1)
 add_definitions(-DLDOM_USE_OWN_MEM_MAN=0)
 add_definitions(-DCR3_ANTIWORD_PATCH=1 -DENABLE_ANTIWORD=1)
 add_definitions(-DMAX_IMAGE_SCALE_MUL=2)
+add_definitions(-DUSE_NANOSVG=1)
+add_definitions(-DBUNDLED_FRIBIDI=1)
 
 #set(LOCAL_CFLAGS "-Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall")
 # Option '-Wl,--no-merge-exidx-entries' removed as incompatible with clang.
@@ -34,7 +41,7 @@ set(LOCAL_CFLAGS "${LOCAL_CFLAGS} -funwind-tables")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${LOCAL_CFLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LOCAL_CFLAGS}")
 
-set(CMAKE_C_FLAGS_DEBUG             "-O0 -g")
+set(CMAKE_C_FLAGS_DEBUG             "-O0 -g -D_DEBUG -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE           "-O3 -g0 -flto -DNDEBUG")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO    "-O3 -g1 -flto -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG           ${CMAKE_C_FLAGS_DEBUG})
@@ -44,6 +51,11 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO  ${CMAKE_C_FLAGS_RELWITHDEBINFO})
 set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/cp_stats.cpp
     ${CR3_ROOT}/crengine/src/lvstring.cpp
+    ${CR3_ROOT}/crengine/src/lvstring8collection.cpp
+    ${CR3_ROOT}/crengine/src/lvstring16collection.cpp
+    ${CR3_ROOT}/crengine/src/lvstring16hashedcollection.cpp
+    ${CR3_ROOT}/crengine/src/crlog.cpp
+    ${CR3_ROOT}/crengine/src/serialbuf.cpp
     ${CR3_ROOT}/crengine/src/props.cpp
     ${CR3_ROOT}/crengine/src/lstridmap.cpp
     ${CR3_ROOT}/crengine/src/rtfimp.cpp
@@ -79,6 +91,8 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/wolutil.cpp
     ${CR3_ROOT}/crengine/src/crconcurrent.cpp
     ${CR3_ROOT}/crengine/src/hist.cpp
+    ${CR3_ROOT}/crengine/src/xxhash.c
+    ${CR3_ROOT}/crengine/src/textlang.cpp
     ${CR3_ROOT}/crengine/src/private/lvfontglyphcache.cpp
     ${CR3_ROOT}/crengine/src/private/lvfontboldtransform.cpp
     ${CR3_ROOT}/crengine/src/private/lvfontcache.cpp
@@ -154,6 +168,8 @@ target_link_libraries( # Specifies the target library.
                        harfbuzz
                        chmlib
                        antiword
+                       fribidi
+                       unibreak
 
                        # Links the target library to the log library
                        # included in the NDK.

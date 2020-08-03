@@ -1,0 +1,192 @@
+[
+    {
+        "name": "None",
+        "filename": "@none",
+        "language": "-"
+    },
+    {
+        "name": "Soft-hyphens only",
+        "filename": "@softhyphens",
+        "language": "-",
+        "separator": true
+    },
+    {
+        "name": "Algorithm",
+        "filename": "@algorithm",
+        "language": "-"
+    },
+    {
+        "name": "Bulgarian",
+        "filename": "Bulgarian.pattern",
+        "language": "bg",
+        "aliases": ["bul"]
+    },
+    {
+        "name": "Catalan",
+        "filename": "Catalan.pattern",
+        "language": "ca",
+        "aliases": ["cat"]
+    },
+    {
+        "name": "Czech",
+        "filename": "Czech.pattern",
+        "language": "cs",
+        "aliases": ["ces"]
+    },
+    {
+        "name": "Danish",
+        "filename": "Danish.pattern",
+        "language": "da",
+        "aliases": ["dan"]
+    },
+    {
+        "name": "Dutch",
+        "filename": "Dutch.pattern",
+        "language": "nl",
+        "aliases": ["nld"]
+    },
+    {
+        "name": "English (UK)",
+        "filename": "English_GB.pattern",
+        "language": "en-GB"
+    },
+    {
+        "name": "English (US)",
+        "filename": "English_US.pattern",
+        "language": "en-US",
+        "aliases": ["en", "eng"]
+    },
+    {
+        "name": "Finnish",
+        "filename": "Finnish.pattern",
+        "language": "fi",
+        "aliases": ["fin"]
+    },
+    {
+        "name": "French",
+        "filename": "French.pattern",
+        "left_hyphen_min": 2,
+        "right_hyphen_min":1,
+        "language": "fr",
+        "aliases": ["fra", "fre"]
+    },
+    {
+        "name": "Galician",
+        "filename": "Galician.pattern",
+        "language": "gl",
+        "aliases": ["glg"]
+    },
+
+    {
+        "name": "German",
+        "filename": "German.pattern",
+        "language": "de",
+        "aliases": ["deu"]
+    },
+    {
+        "name": "Greek",
+        "filename": "Greek.pattern",
+        "language": "el",
+        "aliases": ["ell"]
+    },
+    {
+        "name": "Hungarian",
+        "filename": "Hungarian.pattern",
+        "language": "hu",
+        "aliases": ["hun"]
+    },
+    {
+        "name": "Icelandic",
+        "filename": "Icelandic.pattern",
+        "language": "is",
+        "aliases": ["isl"]
+    },
+    {
+        "name": "Irish",
+        "filename": "Irish.pattern",
+        "language": "ga",
+        "aliases": ["gle"]
+    },
+    {
+        "name": "Italian",
+        "filename": "Italian.pattern",
+        "language": "it",
+        "aliases": ["ita"]
+    },
+    {
+        "name": "Norwegian",
+        "filename": "Norwegian.pattern",
+        "language": "no",
+        "aliases": ["nor"]
+    },
+    {
+        "name": "Polish",
+        "filename": "Polish.pattern",
+        "language": "pl",
+        "aliases": ["pol"]
+    },
+    {
+        "name": "Portuguese",
+        "filename": "Portuguese.pattern",
+        "language": "pt",
+        "aliases": ["por"]
+    },
+    {
+        "name": "Romanian",
+        "filename": "Roman.pattern",
+        "language": "ro",
+        "aliases": ["ron"]
+    },
+    {
+        "name": "Russian + English (UK)",
+        "filename": "Russian_EnGB.pattern",
+        "language": "ru,en-GB"
+    },
+    {
+        "name": "Russian + English (US)",
+        "filename": "Russian_EnUS.pattern",
+        "language": "ru,en-US"
+    },
+    {
+        "name": "Russian",
+        "filename": "Russian.pattern",
+        "language": "ru",
+        "aliases": ["rus"]
+    },
+    {
+        "name": "Slovak",
+        "filename": "Slovak.pattern",
+        "language": "sk",
+        "aliases": ["slk"]
+    },
+    {
+        "name": "Slovenian",
+        "filename": "Slovenian.pattern",
+        "language": "sl",
+        "aliases": ["slv"]
+    },
+    {
+        "name": "Spanish",
+        "filename": "Spanish.pattern",
+        "language": "es",
+        "aliases": ["spa"]
+    },
+    {
+        "name": "Swedish",
+        "filename": "Swedish.pattern",
+        "language": "sv",
+        "aliases": ["swe"]
+    },
+    {
+        "name": "Turkish",
+        "filename": "Turkish.pattern",
+        "language": "tr",
+        "aliases": ["tur"]
+    },
+    {
+        "name": "Ukrainian",
+        "filename": "Ukrain.pattern",
+        "language": "uk",
+        "aliases": ["ukr"]
+    }
+]

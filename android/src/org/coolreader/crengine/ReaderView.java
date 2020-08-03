@@ -3,6 +3,7 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -39,7 +40,7 @@ import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
 
-public class ReaderView implements android.view.SurfaceHolder.Callback, Settings, OnKeyListener, OnTouchListener, OnFocusChangeListener {
+public class ReaderView implements android.view.SurfaceHolder.Callback, Settings, DocProperties, OnKeyListener, OnTouchListener, OnFocusChangeListener {
 
 	public static final Logger log = L.create("rv", Log.VERBOSE);
 	public static final Logger alog = L.create("ra", Log.WARN);
@@ -109,7 +110,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 		@Override
 		protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
-			log.i("onSizeChanged(" + w + ", " + h + ")");
+			log.i("onSizeChanged(" + w + ", " + h + ")" + " activity.isDialogActive=" + getActivity().isDialogActive());
 			super.onSizeChanged(w, h, oldw, oldh);
 			requestResize(w, h);
 		}
@@ -119,6 +120,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			if (visibility == VISIBLE) {
 				mActivity.einkRefresh();
 				startStats();
+				checkSize();
 			} else
 				stopStats();
 			super.onWindowVisibilityChanged(visibility);
@@ -129,6 +131,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			if (hasWindowFocus) {
 				mActivity.einkRefresh();
 				startStats();
+				checkSize();
 			} else
 				stopStats();
 			super.onWindowFocusChanged(hasWindowFocus);
@@ -1727,6 +1730,56 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		return false;
 	}
 
+	public boolean isFormatWithEmbeddedStyles() {
+		if (mOpened && mBookInfo != null) {
+			DocumentFormat fmt = mBookInfo.getFileInfo().format;
+			return fmt == DocumentFormat.EPUB || fmt == DocumentFormat.HTML || fmt == DocumentFormat.FB2 || fmt == DocumentFormat.FB3;
+		}
+		return false;
+	}
+
+	public boolean isHtmlFormat() {
+		if (mOpened && mBookInfo != null) {
+			DocumentFormat fmt = mBookInfo.getFileInfo().format;
+			return fmt == DocumentFormat.EPUB || fmt == DocumentFormat.HTML || fmt == DocumentFormat.PDB;
+		}
+		return false;
+	}
+
+	public int getDOMVersion() {
+		if (mOpened && mBookInfo != null) {
+			return mBookInfo.getFileInfo().domVersion;
+		}
+		return Engine.DOM_VERSION_CURRENT;
+	}
+
+	public void setDOMVersion(int version) {
+		if (null != mBookInfo) {
+			mBookInfo.getFileInfo().domVersion = version;
+			doEngineCommand(ReaderCommand.DCMD_SET_REQUESTED_DOM_VERSION, version);
+			mActivity.getDB().saveBookInfo(mBookInfo);
+			if (mOpened)
+				reloadDocument();
+		}
+	}
+
+	public int getBlockRenderingFlags() {
+		if (mOpened && mBookInfo != null) {
+			return mBookInfo.getFileInfo().blockRenderingFlags;
+		}
+		return 0;
+	}
+
+	public void setBlockRenderingFlags(int flags) {
+		if (null != mBookInfo) {
+			mBookInfo.getFileInfo().blockRenderingFlags = flags;
+			doEngineCommand(ReaderCommand.DCMD_SET_RENDER_BLOCK_RENDERING_FLAGS, flags);
+			mActivity.getDB().saveBookInfo(mBookInfo);
+			if (mOpened)
+				reloadDocument();
+		}
+	}
+
 	public void toggleTextFormat() {
 		if (mOpened && mBookInfo != null) {
 			log.d("toggleDocumentStyles()");
@@ -2565,6 +2618,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		props.remove(PROP_TXT_OPTION_PREFORMATTED);
 		props.remove(PROP_EMBEDDED_STYLES);
 		props.remove(PROP_EMBEDDED_FONTS);
+		props.remove(PROP_REQUESTED_DOM_VERSION);
+		props.remove(PROP_RENDER_BLOCK_RENDERING_FLAGS);
 		BackgroundThread.ensureBackground();
 		log.v("applySettings()");
 		boolean isFullScreen = props.getBool(PROP_APP_FULLSCREEN, false);
@@ -2585,8 +2640,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			final String bookLanguage = fileInfo.getLanguage();
 			final String fontFace = props.getProperty(PROP_FONT_FACE);
 			String fcLangCode = null;
-			if (null != bookLanguage && bookLanguage.length() > 0)
+			if (null != bookLanguage && bookLanguage.length() > 0) {
 				fcLangCode = Engine.findCompatibleFcLangCode(bookLanguage);
+				if (props.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false))
+					props.setProperty(PROP_TEXTLANG_MAIN_LANG, bookLanguage);
+			}
 			if (null != fcLangCode && fcLangCode.length() > 0) {
 				boolean res = Engine.checkFontLanguageCompatibility(fontFace, fcLangCode);
 				log.d("Checking font \"" + fontFace + "\" for compatibility with language \"" + bookLanguage + "\" fcLangCode=" + fcLangCode + ": res=" + res);
@@ -2817,17 +2875,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				// TODO: redesign all this mess!
 			) {
 				newSettings.setProperty(key, value);
-			} else if (PROP_HYPHENATION_DICT.equals(key)) {
-				Engine.HyphDict dict = HyphDict.byCode(value);
-				if (mEngine.setHyphenationDictionary(dict)) {
-					if (isBookLoaded()) {
-						String language = getBookInfo().getFileInfo().getLanguage();
-						mEngine.setHyphenationLanguage(language);
-						doEngineCommand(ReaderCommand.DCMD_REQUEST_RENDER, 0);
-						//drawPage();
-					}
-				}
-				newSettings.setProperty(key, value);
 			}
 		}
 	}
@@ -2955,7 +3002,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	public boolean reloadDocument() {
 		if (this.mBookInfo != null && this.mBookInfo.getFileInfo() != null) {
 			save(); // save current position
-			post(new LoadDocumentTask(this.mBookInfo, null));
+			post(new LoadDocumentTask(this.mBookInfo, null, null));
 			return true;
 		}
 		return false;
@@ -2981,7 +3028,37 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 							@Override
 							public void run() {
 								log.v("synced posting LoadDocument task to GUI thread");
-								post(new LoadDocumentTask(bookInfo, errorHandler));
+								post(new LoadDocumentTask(bookInfo, null, errorHandler));
+							}
+						});
+					}
+				});
+			}
+		});
+		return true;
+	}
+
+	public boolean loadDocumentFromStream(final InputStream inputStream, final FileInfo fileInfo, final Runnable errorHandler) {
+		log.v("loadDocument(" + fileInfo.getPathName() + ")");
+		if (this.mBookInfo != null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname) && mOpened) {
+			log.d("trying to load already opened document");
+			mActivity.showReader();
+			drawPage();
+			return false;
+		}
+		Services.getHistory().getOrCreateBookInfo(mActivity.getDB(), fileInfo, new History.BookInfoLoadedCallack() {
+			@Override
+			public void onBookInfoLoaded(final BookInfo bookInfo) {
+				log.v("posting LoadDocument task to background thread");
+				BackgroundThread.instance().postBackground(new Runnable() {
+					@Override
+					public void run() {
+						log.v("posting LoadDocument task to GUI thread");
+						BackgroundThread.instance().postGUI(new Runnable() {
+							@Override
+							public void run() {
+								log.v("synced posting LoadDocument task to GUI thread");
+								post(new LoadDocumentTask(bookInfo, inputStream, errorHandler));
 							}
 						});
 					}
@@ -3072,6 +3149,30 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.v("loadDocument() : item from history : " + fi);
 		}
 		return loadDocument(fi, errorHandler);
+	}
+
+	public boolean loadDocumentFromStream(InputStream inputStream, String contentPath, final Runnable errorHandler) {
+		BackgroundThread.ensureGUI();
+		save();
+		log.i("loadDocument(" + contentPath + ")");
+		if (contentPath == null || inputStream == null) {
+			log.v("loadDocument() : no filename or stream specified");
+			if (errorHandler != null)
+				errorHandler.run();
+			return false;
+		}
+		BookInfo book = Services.getHistory().getBookInfo(contentPath);
+		if (book != null)
+			log.v("loadDocument() : found book in history : " + book);
+		FileInfo fi = null;
+		if (book == null) {
+			log.v("loadDocument() : book not found in history, building FileInfo by Uri...");
+			fi = new FileInfo(contentPath);
+		} else {
+			fi = book.getFileInfo();
+			log.v("loadDocument() : item from history : " + fi);
+		}
+		return loadDocumentFromStream(inputStream, fi, errorHandler);
 	}
 
 	public BookInfo getBookInfo() {
@@ -3246,6 +3347,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			return currentImageViewer.prepareImage();
 
 		PositionProperties currpos = doc.getPositionProps(null);
+		if (null == currpos)
+			return null;
 
 		boolean isPageView = currpos.pageMode != 0;
 
@@ -3446,6 +3549,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		boolean changed = (requestedWidth != internalDX) || (requestedHeight != internalDY);
 		if (!changed)
 			return;
+		if (getActivity().isDialogActive()) {
+			log.d("checkSize() : dialog is active, skipping resize");
+			return;
+		}
 //		if (mIsOnFront || !mOpened) {
 		log.d("checkSize() : calling resize");
 		resize();
@@ -4741,18 +4848,19 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	private class LoadDocumentTask extends Task {
 		String filename;
 		String path;
+		InputStream inputStream;
 		Runnable errorHandler;
 		String pos;
 		int profileNumber;
 		boolean disableInternalStyles;
 		boolean disableTextAutoformat;
 
-		LoadDocumentTask(BookInfo bookInfo, Runnable errorHandler) {
+		LoadDocumentTask(BookInfo bookInfo, InputStream inputStream, Runnable errorHandler) {
 			BackgroundThread.ensureGUI();
 			mBookInfo = bookInfo;
 			FileInfo fileInfo = bookInfo.getFileInfo();
 			log.v("LoadDocumentTask for " + fileInfo);
-			if (fileInfo.getTitle() == null) {
+			if (fileInfo.getTitle() == null && inputStream == null) {
 				// As a book 'should' have a title, no title means we should
 				// retrieve the book metadata from the engine to get the
 				// book language.
@@ -4762,9 +4870,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			}
 			String language = fileInfo.getLanguage();
 			log.v("update hyphenation language: " + language + " for " + fileInfo.getTitle());
-			mEngine.setHyphenationLanguage(language);
 			this.filename = fileInfo.getPathName();
 			this.path = fileInfo.arcname != null ? fileInfo.arcname : fileInfo.pathname;
+			this.inputStream = inputStream;
 			this.errorHandler = errorHandler;
 			//FileInfo fileInfo = new FileInfo(filename);
 			disableInternalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG);
@@ -4812,7 +4920,17 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.i("Loading document " + filename);
 			doc.doCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, disableInternalStyles ? 0 : 1);
 			doc.doCommand(ReaderCommand.DCMD_SET_TEXT_FORMAT.nativeId, disableTextAutoformat ? 0 : 1);
-			boolean success = doc.loadDocument(filename);
+			doc.doCommand(ReaderCommand.DCMD_SET_REQUESTED_DOM_VERSION.nativeId, mBookInfo.getFileInfo().domVersion);
+			if (0 == mBookInfo.getFileInfo().domVersion) {
+				doc.doCommand(ReaderCommand.DCMD_SET_RENDER_BLOCK_RENDERING_FLAGS.nativeId, 0);
+			} else {
+				doc.doCommand(ReaderCommand.DCMD_SET_RENDER_BLOCK_RENDERING_FLAGS.nativeId, mBookInfo.getFileInfo().blockRenderingFlags);
+			}
+			boolean success;
+			if (null != inputStream)
+				success = doc.loadDocumentFromStream(inputStream, filename);
+			else
+				success = doc.loadDocument(filename);
 			if (success) {
 				log.v("loadDocumentInternal completed successfully");
 
@@ -4847,6 +4965,18 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
 			if (Services.getHistory() != null) {
 				Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
+				java.util.Properties props = doc.getDocProps();
+				if (null != props) {
+					String crc32Str = props.getProperty(DOC_PROP_FILE_CRC32, "0");
+					if (crc32Str.startsWith("0x"))
+						crc32Str = crc32Str.substring(2);
+					try {
+						mBookInfo.getFileInfo().crc32 = Integer.valueOf(crc32Str, 16);
+					} catch (NumberFormatException e) {
+						mBookInfo.getFileInfo().crc32 = 0;
+					}
+				} else
+					mBookInfo.getFileInfo().crc32 = 0;
 				mActivity.waitForCRDBService(new Runnable() {
 					@Override
 					public void run() {
@@ -4854,11 +4984,16 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					}
 				});
 				if (coverPageBytes != null && mBookInfo != null && mBookInfo.getFileInfo() != null) {
-					if (mBookInfo.getFileInfo().format.needCoverPageCaching()) {
-						// TODO: fix it
-//		        		if (mActivity.getBrowser() != null)
-//		        			mActivity.getBrowser().setCoverpageData(new FileInfo(mBookInfo.getFileInfo()), coverPageBytes);
+					// TODO: fix it
+					/*
+					DocumentFormat format = mBookInfo.getFileInfo().format;
+					if (null != format) {
+						if (format.needCoverPageCaching()) {
+//		        			if (mActivity.getBrowser() != null)
+//		        				mActivity.getBrowser().setCoverpageData(new FileInfo(mBookInfo.getFileInfo()), coverPageBytes);
+						}
 					}
+					*/
 					if (DeviceInfo.EINK_NOOK)
 						updateNookTouchCoverpage(mBookInfo.getFileInfo().getPathName(), coverPageBytes);
 					//mEngine.setProgressDrawable(coverPageDrawable);
@@ -4882,7 +5017,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 						mActivity.showReader();
 					}
 				});
-				mActivity.setLastBook(filename);
+				// Save last opened book ONLY if book opened from real file not stream.
+				if (null == inputStream)
+					mActivity.setLastBook(filename);
 			}
 		}
 
@@ -4893,7 +5030,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			mActivity.waitForCRDBService(new Runnable() {
 				@Override
 				public void run() {
-					Services.getHistory().removeBookInfo(mActivity.getDB(), mBookInfo.getFileInfo(), true, false);
+					if (Services.getHistory() != null)
+						Services.getHistory().removeBookInfo(mActivity.getDB(), mBookInfo.getFileInfo(), true, false);
 				}
 			});
 			mBookInfo = null;

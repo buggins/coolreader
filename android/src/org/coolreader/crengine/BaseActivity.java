@@ -193,6 +193,21 @@ public class BaseActivity extends Activity implements Settings {
 		bindCRDBService();
 	}
 
+	protected BaseDialog currentDialog;
+	public void onDialogCreated(BaseDialog dlg) {
+		currentDialog = dlg;
+	}
+	public void onDialogClosed(BaseDialog dlg) {
+    	if (currentDialog == dlg) {
+    		currentDialog = null;
+		}
+	}
+	public BaseDialog getCurrentDialog() {
+    	return currentDialog;
+	}
+	public boolean isDialogActive() {
+    	return currentDialog != null;
+	}
 
 	@Override
 	protected void onDestroy() {
@@ -1735,8 +1750,8 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_SHOW_BATTERY, "1");
 			props.applyDefault(ReaderView.PROP_SHOW_POS_PERCENT, "0");
 			props.applyDefault(ReaderView.PROP_SHOW_PAGE_COUNT, "1");
-			props.applyDefault(ReaderView.PROP_FONT_KERNING_ENABLED, "0");
-			props.applyDefault(ReaderView.PROP_FONT_LIGATURES_ENABLED, "0");
+			props.applyDefault(ReaderView.PROP_FONT_KERNING_ENABLED, "0");		// by default disabled
+			props.applyDefault(ReaderView.PROP_FONT_SHAPING, "1");				// by default 'Light (HarfBuzz without ligatures)'
 			props.applyDefault(ReaderView.PROP_SHOW_TIME, "1");
 			props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
 			props.applyDefault(ReaderView.PROP_APP_GESTURE_PAGE_FLIPPING, "1");
@@ -1750,6 +1765,8 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS, "0");
 			props.applyDefault(ReaderView.PROP_APP_SELECTION_ACTION, "0");
 			props.applyDefault(ReaderView.PROP_APP_MULTI_SELECTION_ACTION, "0");
+
+			props.setProperty(ReaderView.PROP_RENDER_DPI, Integer.valueOf((int)(96*mActivity.getDensityFactor())).toString());
 
 			props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, "1");
 			props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE, "1");
@@ -1785,8 +1802,13 @@ public class BaseActivity extends Activity implements Settings {
 
 			props.setProperty(ReaderView.PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
 			props.setProperty(ReaderView.PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
-			props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
+			props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.name);
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, "0");
+
+			props.applyDefault(ReaderView.PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, "0");
+			props.applyDefault(ReaderView.PROP_TEXTLANG_HYPHENATION_ENABLED, "1");
+			props.applyDefault(ReaderView.PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY, "0");
+			props.applyDefault(ReaderView.PROP_TEXTLANG_HYPH_FORCE_ALGORITHMIC, "0");
 
 			props.applyDefault(ReaderView.PROP_STATUS_LOCATION, Settings.VIEWER_STATUS_PAGE);
 			//props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, DeviceInfo.getSDKLevel() < DeviceInfo.HONEYCOMB ? Settings.VIEWER_TOOLBAR_NONE : Settings.VIEWER_TOOLBAR_SHORT_SIDE);

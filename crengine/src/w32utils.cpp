@@ -33,8 +33,7 @@ void DrawBuf2DC(HDC dc, int x, int y, LVDrawBuf * buf, COLORREF * palette, int s
 
     int buf_width = buf->GetWidth();
     int bytesPerRow = (buf_width * buf->GetBitsPerPixel() + 7) / 8;
-    BITMAPINFO bmi;
-    memset( &bmi, 0, sizeof(bmi) );
+    BITMAPINFO bmi = { 0 };
     bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
     bmi.bmiHeader.biWidth = buf_width * scale;
     bmi.bmiHeader.biHeight = 1;
@@ -51,7 +50,7 @@ void DrawBuf2DC(HDC dc, int x, int y, LVDrawBuf * buf, COLORREF * palette, int s
     drawdc = CreateCompatibleDC(NULL);
     SelectObject(drawdc, drawbmp);
 
-    
+
     int pixelsPerByte = (8 / buf->GetBitsPerPixel());
     int mask = (1<<buf->GetBitsPerPixel()) - 1;
     for (int yy=0; yy<buf->GetHeight(); yy++)
@@ -92,13 +91,11 @@ void SaveBitmapToFile( const char * fname, LVGrayDrawBuf * bmp )
     int rowsize = ((bmp->GetWidth()+1)/2);
     int img_size = rowsize * bmp->GetHeight();
     int padding = rowsize - rowsize;
-    BITMAPFILEHEADER fh;
+    BITMAPFILEHEADER fh = { 0 };
     struct {
         BITMAPINFOHEADER hdr;
         RGBQUAD colors[16];
-    } bmi;
-    memset(&fh, 0, sizeof(fh));
-    memset(&bmi, 0, sizeof(bmi));
+    } bmi = { 0 };
     fh.bfType = 0x4D42;
     fh.bfSize = sizeof(fh) + sizeof(bmi) + img_size;
     fh.bfOffBits = sizeof(fh) + sizeof(bmi);

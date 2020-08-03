@@ -32,6 +32,7 @@
 #include "lvstring.h"
 #include "lvarray.h"
 #include "lvptrvec.h"
+#include "crtimerutil.h"
 
 #if LVLONG_FILE_SUPPORT == 1
 typedef   lUInt64   lvsize_t;    ///< file size type
@@ -109,7 +110,9 @@ public:
     /// get buffer size
     virtual lvsize_t getSize() = 0;
     /// flush on destroy
-    virtual ~LVStreamBuffer() { close(); }
+    virtual ~LVStreamBuffer() {
+        close(); // NOLINT: Call to virtual function during destruction
+    }
     /// detach from stream, write changes if necessary
     virtual bool close() { return true; }
 };

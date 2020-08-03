@@ -36,18 +36,15 @@ struct hb_aat_map_t
 
   public:
 
-  inline void init (void)
+  void init ()
   {
     memset (this, 0, sizeof (*this));
     chain_flags.init ();
   }
-  inline void fini (void)
-  {
-    chain_flags.fini ();
-  }
+  void fini () { chain_flags.fini (); }
 
   public:
-  hb_vector_t<hb_mask_t, 1> chain_flags;
+  hb_vector_t<hb_mask_t> chain_flags;
 };
 
 struct hb_aat_map_builder_t
@@ -69,7 +66,7 @@ struct hb_aat_map_builder_t
     hb_aat_layout_feature_selector_t  setting;
     unsigned  seq; /* For stable sorting only. */
 
-    static int cmp (const void *pa, const void *pb)
+    HB_INTERNAL static int cmp (const void *pa, const void *pb)
     {
       const feature_info_t *a = (const feature_info_t *) pa;
       const feature_info_t *b = (const feature_info_t *) pb;
@@ -77,7 +74,7 @@ struct hb_aat_map_builder_t
 	     (a->seq < b->seq ? -1 : a->seq > b->seq ? 1 : 0);
     }
 
-    int cmp (unsigned int ty) const
+    int cmp (hb_aat_layout_feature_type_t ty) const
     {
       return (type != ty) ? (type < ty ? -1 : 1) : 0;
     }
@@ -87,7 +84,7 @@ struct hb_aat_map_builder_t
   hb_face_t *face;
 
   public:
-  hb_vector_t<feature_info_t, 32> features;
+  hb_sorted_vector_t<feature_info_t> features;
 };
 
 

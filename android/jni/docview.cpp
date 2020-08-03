@@ -891,6 +891,25 @@ bool DocViewNative::loadDocument( lString16 filename )
     return res;
 }
 
+bool DocViewNative::loadDocument( LVStreamRef stream, lString16 contentPath )
+{
+	CRLog::info("Loading document from memory stream, content path: %s", LCSTR(contentPath));
+	bool res = _docview->LoadDocument(stream, contentPath.c_str(), false);
+	if (res)
+		CRLog::info("Document %s is loaded successfully", LCSTR(contentPath));
+	else {
+		CRLog::info("Document %s not is loaded due to error", LCSTR(contentPath));
+		if (_docview->getDocument() == NULL) {
+			// _docview->LoadDocument() can return false with _docview->m_doc == NULL when:
+			// 1. I/O error - failed to open file
+			// 2. open archive without supported files
+			CRLog::error("Document is NULL, inserting stub.");
+			_docview->createDefaultDocument(lString16::empty_str, Utf8ToUnicode("Error while opening file!"));
+		}
+	}
+	return res;
+}
+
 bool DocViewNative::openRecentBook()
 {
 	CRLog::debug("DocViewNative::openRecentBook()");
@@ -1333,6 +1352,27 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_loadDocumentInte
 
 /*
  * Class:     org_coolreader_crengine_DocView
+ * Method:    loadDocumentFromMemoryInternal
+ * Signature: ([BLjava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_loadDocumentFromMemoryInternal
+		(JNIEnv * _env, jobject _this, jbyteArray buf, jstring contentPath)
+{
+	CRJNIEnv env(_env);
+	DocViewNative * p = getNative(_env, _this);
+	if (!p) {
+		CRLog::error("Cannot get native view");
+		return JNI_FALSE;
+	}
+	DocViewCallback callback( _env, p->_docview, _this );
+	LVStreamRef stream = env.jbyteArrayToStream(buf);
+	lString16 contentPath16 = env.fromJavaString(contentPath);
+	bool res = p->loadDocument(stream, contentPath16);
+	return res ? JNI_TRUE : JNI_FALSE;
+}
+
+/*
+ * Class:     org_coolreader_crengine_DocView
  * Method:    getSettings
  * Signature: ()Ljava/util/Properties;
  */
@@ -1347,6 +1387,26 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getSettingsIntern
     	return NULL;
     }
 	CRPropRef props = p->_docview->propsGetCurrent();
+    return env.toJavaProperties(props);
+}
+
+/*
+ * Class:     org_coolreader_crengine_DocView
+ * Method:    getDocPropsInternal
+ * Signature: ()Ljava/util/Properties;
+ */
+JNIEXPORT jobject JNICALL
+Java_org_coolreader_crengine_DocView_getDocPropsInternal
+  (JNIEnv * _env, jobject _this)
+{
+    CRLog::trace("DocView_getDocPropsInternal");
+    CRJNIEnv env(_env);
+    DocViewNative * p = getNative(_env, _this);
+    if (!p) {
+        CRLog::error("Cannot get native view");
+        return NULL;
+    }
+    CRPropRef props = p->_docview->getDocProps();
     return env.toJavaProperties(props);
 }
 
@@ -1657,9 +1717,29 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
     CRIntField(v,"pageNumber").set(p->_docview->getCurPage());
     CRIntField(v,"pageCount").set(p->_docview->getPageCount());
     CRIntField(v,"pageMode").set(p->_docview->getViewMode()==DVM_PAGES ? p->_docview->getVisiblePageCount() : 0);
+#if 0
+    // Each functions bellow call p->_docview->getPageDocumentRange(-1) inside.
+    // To increase performance, it should be called only once.
     CRIntField(v,"charCount").set(p->_docview->getCurrentPageCharCount());
     CRIntField(v,"imageCount").set(p->_docview->getCurrentPageImageCount());
     CRStringField(v,"pageText").set(p->_docview->getPageText(false, -1));
+#else
+	p->_docview->getMutex().lock();
+	LVRef<ldomXRange> range = p->_docview->getPageDocumentRange(-1);
+	p->_docview->getMutex().unlock();
+	lString16 text;
+	if (!range.isNull())
+		text = range->getRangeText();
+	int charCount = 0;
+	for (int i = 0; i < text.length(); i++) {
+		lChar16 ch = text[i];
+		if (ch>='0')
+			charCount++;
+	}
+	CRIntField(v,"charCount").set(charCount);
+	CRIntField(v,"imageCount").set(p->_docview->getPageImageCount(range));
+	CRStringField(v,"pageText").set(text);
+#endif
 	return obj;
 }
 

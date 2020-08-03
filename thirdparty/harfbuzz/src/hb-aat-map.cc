@@ -26,6 +26,10 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "hb.hh"
+
+#ifndef HB_NO_AAT_SHAPE
+
 #include "hb-aat-map.hh"
 
 #include "hb-aat-layout.hh"
@@ -54,11 +58,11 @@ void
 hb_aat_map_builder_t::compile (hb_aat_map_t  &m)
 {
   /* Sort features and merge duplicates */
-  if (features.len)
+  if (features.length)
   {
     features.qsort ();
     unsigned int j = 0;
-    for (unsigned int i = 1; i < features.len; i++)
+    for (unsigned int i = 1; i < features.length; i++)
       if (features[i].type != features[j].type)
 	features[++j] = features[i];
     features.shrink (j + 1);
@@ -66,3 +70,6 @@ hb_aat_map_builder_t::compile (hb_aat_map_t  &m)
 
   hb_aat_layout_compile_map (this, &m);
 }
+
+
+#endif

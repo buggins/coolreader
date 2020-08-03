@@ -2,10 +2,12 @@
 project(freetype)
 
 set(FREETYPE_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/freetype)
+set(FREETYPE_CONFIG_DIR ${PROJECT_SOURCE_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${FREETYPE_CONFIG_DIR})
 
-add_definitions(-DFT2_BUILD_LIBRARY=1 -DFT_CONFIG_MODULES_H=<builds/android/include/config/ftmodule.h> -DFT_CONFIG_OPTIONS_H=<builds/android/include/config/ftoption.h>)
+add_definitions(-DFT2_BUILD_LIBRARY=1 -DFT_CONFIG_MODULES_H=<android/config/ftmodule.h> -DFT_CONFIG_OPTIONS_H=<android/config/ftoption.h>)
 
 set(FREETYPE_SRC_FILES
     ${FREETYPE_SRC_DIR}/src/autofit/autofit.c
@@ -16,6 +18,7 @@ set(FREETYPE_SRC_FILES
     ${FREETYPE_SRC_DIR}/src/base/ftglyph.c
     ${FREETYPE_SRC_DIR}/src/base/ftbitmap.c
     ${FREETYPE_SRC_DIR}/src/base/ftlcdfil.c
+    ${FREETYPE_SRC_DIR}/src/base/ftsynth.c
     ${FREETYPE_SRC_DIR}/src/bdf/bdf.c
     ${FREETYPE_SRC_DIR}/src/cache/ftcache.c
     ${FREETYPE_SRC_DIR}/src/cff/cff.c

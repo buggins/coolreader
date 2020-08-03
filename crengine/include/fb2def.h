@@ -29,125 +29,206 @@
 //=====================================================
 XS_BEGIN_TAGS
 
+// Boxing elements (inserted in the DOM tree between original parent and children):
+//
+// Internal element for block wrapping inline elements (without a proper parent
+// block container) among proper block siblings (would be better named "blockBox")
 XS_TAG1T( autoBoxing )
+// Internal element for tabular elements added to complete incomplete tables
+XS_TAG1T( tabularBox )
+// Internal element for ruby wrapping completion (so we can render them as inline-table with tweaks)
+XS_TAG1I( rubyBox )
+// Internal element for float rendering
+XS_TAG1T( floatBox )
+// Internal element for inline-block and inline-table rendering
+XS_TAG1I( inlineBox )
+
+// Internal element created for CSS pseudo elements ::before and ::after :
+//  - defaults to "display: none", but will be set to "inline" when style is applied
+//  - it doesn't have a text node child, the content will be fetched from
+//    its style->content when rendering and drawing text.
+// It does not box anything and has no child, so it's not considered a boxing node.
+XS_TAG1D( pseudoElem, false, css_d_none, css_ws_inherit )
+
+// Internal element for EPUB, containing each individual HTML file
+XS_TAG1( DocFragment )
 
 XS_TAG2( xml, "?xml" )
 XS_TAG2( xml_stylesheet, "?xml-stylesheet" )
-XS_TAG1( FictionBook )
-XS_TAG1D( genre, true, css_d_none, css_ws_normal )
-XS_TAG1( annotation )
-XS_TAG1T( id )
-XS_TAG1T( version )
-XS_TAG1( output )
-XS_TAG1( part )
-XS_TAG1( param )
-XS_TAG1T( body )
-XS_TAG1T( p )
-XS_TAG1( coverpage )
-XS_TAG1OBJ( image )
-XS_TAG1OBJ( img )
-XS_TAG1T( lang )
-XS_TAG1( section )
-XS_TAG1D( form, true, css_d_none, css_ws_normal )
-XS_TAG1D( binary, true, css_d_none, css_ws_normal )
-XS_TAG2T( text_author, "text-author" )
 
-//epub
+// Classic HTML / EPUB elements
+XS_TAG1( html )
+XS_TAG1( head )
+XS_TAG1D( title, true, css_d_block, css_ws_inherit )
+XS_TAG1D( style, true, css_d_none, css_ws_inherit )
+XS_TAG1D( script, true, css_d_none, css_ws_inherit )
+XS_TAG1D( base, false, css_d_none, css_ws_inherit ) // among crengine autoclose elements
+XS_TAG1T( body )
+XS_TAG1( param ) /* quite obsolete, child of <object>... was there, let's keep it */
+
+// Block elements
+XS_TAG1T( hr )
+XS_TAG1T( svg )
+XS_TAG1T( form )
+XS_TAG1D( pre, true, css_d_block, css_ws_pre )
+XS_TAG1T( blockquote )
 XS_TAG1T( div )
-XS_TAG1( svg )
-XS_TAG1( dl )
-XS_TAG1T( dt )
-XS_TAG1T( dd )
-XS_TAG1( ol )
-XS_TAG1( ul )
-XS_TAG1D( li, true, css_d_list_item, css_ws_inherit )
 XS_TAG1T( h1 )
 XS_TAG1T( h2 )
 XS_TAG1T( h3 )
 XS_TAG1T( h4 )
 XS_TAG1T( h5 )
 XS_TAG1T( h6 )
-XS_TAG1D( pre, true, css_d_block, css_ws_pre )
-XS_TAG1T( blockquote )
-XS_TAG1I( em )
-XS_TAG1I( q )
-XS_TAG1I( span )
-XS_TAG1I( br )
+XS_TAG1T( p )
+XS_TAG1T( output )
+XS_TAG1T( section )
 
-XS_TAG1D( title, true, css_d_block, css_ws_normal )
+// Keep this block starting with "address" and ending with "xmp" as we
+// are using: if (id >= el_address && id <= el_xmp) in lvrend.cpp
+// Additional semantic block elements
+XS_TAG1T( address )
+XS_TAG1T( article )
+XS_TAG1T( aside )
+XS_TAG1T( canvas ) // no support for canvas, but keep it block
+XS_TAG1T( fieldset )
+XS_TAG1T( figcaption )
+XS_TAG1T( figure )
+XS_TAG1T( footer )
+XS_TAG1T( header )
+XS_TAG1T( hgroup )
+XS_TAG1T( legend ) // child of fieldset, rendered as block by most browsers
+XS_TAG1T( main )
+XS_TAG1T( nav )
+XS_TAG1T( noscript )
+XS_TAG1T( video ) // no support for video, but keep it block
+// Additional obsoleted block elements
+XS_TAG1T( center )
+XS_TAG1T( dir )    // similar to "ul"
+XS_TAG1T( menu )   // similar to "ul"
+// Other non-inline elements present in html5.css
+XS_TAG1T( noframes )
+XS_TAG1D( listing, true, css_d_block, css_ws_pre ) // similar to "pre"
+XS_TAG1D( textarea, true, css_d_block, css_ws_pre ) // similar to "pre"
+XS_TAG1D( plaintext, true, css_d_block, css_ws_pre ) // start of raw text (no end tag), not supported
+XS_TAG1D( xmp, true, css_d_block, css_ws_pre ) // similar to "pre"
 
+// Lists
+XS_TAG1T( ol )
+XS_TAG1T( ul )
+XS_TAG1D( li, true, css_d_list_item_block, css_ws_inherit )
+
+// Definitions
+XS_TAG1T( dl )
+XS_TAG1T( dt )
+XS_TAG1T( dd )
+
+// Tables
+XS_TAG1D( table, false, css_d_table, css_ws_inherit )
+XS_TAG1D( caption, true, css_d_table_caption, css_ws_inherit )
+XS_TAG1D( col, false, css_d_table_column, css_ws_inherit )
+XS_TAG1D( colgroup, false, css_d_table_column_group, css_ws_inherit )
+XS_TAG1D( tr, false, css_d_table_row, css_ws_inherit )
+XS_TAG1D( tbody, false, css_d_table_row_group, css_ws_inherit )
+XS_TAG1D( thead, false, css_d_table_header_group, css_ws_inherit )
+XS_TAG1D( tfoot, false, css_d_table_footer_group, css_ws_inherit )
+XS_TAG1D( th, true, css_d_table_cell, css_ws_inherit )
+XS_TAG1D( td, true, css_d_table_cell, css_ws_inherit )
+
+// Inline elements
+XS_TAG1OBJ( img ) /* inline and specific handling as 'object' */
+XS_TAG1I( a )
+XS_TAG1I( acronym )
 XS_TAG1I( b )
+XS_TAG1I( bdi )
+XS_TAG1I( bdo )
+XS_TAG1I( big )
+XS_TAG1I( br )
+XS_TAG1I( cite ) // conflict between HTML (inline) and FB2 (block): default here to inline (fb2.css puts it back to block)
+XS_TAG1I( code ) // should not be css_ws_pre according to specs
+XS_TAG1I( del )
+XS_TAG1I( dfn )
+XS_TAG1I( em )
+XS_TAG1I( emphasis )
+XS_TAG1I( font )
 XS_TAG1I( i )
-
-// type="styleType"
-XS_TAG1I( strikethrough )
+XS_TAG1I( ins )
+XS_TAG1I( kbd )
+XS_TAG1I( nobr )
+XS_TAG1I( q )
+XS_TAG1I( samp )
+XS_TAG1I( small )
+XS_TAG1I( span )
+XS_TAG1I( s )
+XS_TAG1I( strike )
+XS_TAG1I( strong )
 XS_TAG1I( sub )
 XS_TAG1I( sup )
-XS_TAG1I( style )
-XS_TAG1I( strong )
-XS_TAG1I( emphasis )
-XS_TAG1D( code, true, css_d_inline, css_ws_pre )
-XS_TAG1I( a )
+XS_TAG1I( tt )
+XS_TAG1I( u )
+XS_TAG1I( var )
 
-XS_TAG1( html )
-XS_TAG1( head )
+// Ruby elements (defaults to inline)
+XS_TAG1D( ruby, true, css_d_ruby, css_ws_inherit )
+XS_TAG1I( rbc ) // no more in HTML5, but in 2001's https://www.w3.org/TR/ruby/
+XS_TAG1I( rtc )
+XS_TAG1I( rb )
+XS_TAG1I( rt )
+XS_TAG1I( rp )
 
-XS_TAG1( hr )
+// EPUB3 elements (in ns_epub - otherwise set to inline like any unknown element)
+XS_TAG1I( switch )  // <epub:switch>
+XS_TAG1I( case )    // <epub:case required-namespace="...">
+XS_TAG1I( default ) // <epub:default>
 
-// table
-XS_TAG1D( table, false, css_d_table, css_ws_normal )
-XS_TAG1D( caption, true, css_d_table_caption, css_ws_normal )
-XS_TAG1D( col, false, css_d_table_column, css_ws_normal )
-XS_TAG1D( colgroup, false, css_d_table_column_group, css_ws_normal )
-XS_TAG1D( tr, false, css_d_table_row, css_ws_normal )
-XS_TAG1D( tbody, false, css_d_table_row_group, css_ws_normal )
-XS_TAG1D( thead, false, css_d_table_header_group, css_ws_normal )
-XS_TAG1D( tfoot, false, css_d_table_footer_group, css_ws_normal )
-XS_TAG1D( th, true, css_d_table_cell, css_ws_normal )
-XS_TAG1D( td, true, css_d_table_cell, css_ws_normal )
-
-XS_TAG1T( cite )
-XS_TAG1T( v )
-XS_TAG1( stanza )
-XS_TAG1( epigraph )
-XS_TAG1T( subtitle )
-XS_TAG1( poem )
-XS_TAG2( empty_line, "empty-line" )
-
-XS_TAG1T( history )
+// FB2 elements
+XS_TAG1( FictionBook )
+XS_TAG1( annotation )
 XS_TAG1( author )
-XS_TAG1T( date )
-XS_TAG1T( year )
-XS_TAG1T( sequence )
-
-XS_TAG1D( stylesheet, true, css_d_none, css_ws_normal )
-XS_TAG1D( description, false, css_d_none, css_ws_normal )
-XS_TAG2( title_info, "title-info" )
-XS_TAG2( src_title_info, "src-title-info" )
-XS_TAG2( document_info, "document-info" )
-XS_TAG2( publish_info, "publish-info" )
-XS_TAG2T( custom_info, "custom-info" )
-
-// type="xs:string"
-XS_TAG2T( home_page, "home-page" )
-XS_TAG2T( src_url, "src-url" )
-XS_TAG1T( email )
-
-// type="textFieldType"
-XS_TAG2T( book_title, "book-title" )
-XS_TAG2T( program_used, "program-used" )
-XS_TAG2I( first_name, "first-name" )
-XS_TAG2I( middle_name, "middle-name" )
-XS_TAG2I( last_name, "last-name" )
-XS_TAG2T( src_ocr, "src-ocr" )
-XS_TAG2T( book_name, "book-name" )
-XS_TAG1T( publisher )
+XS_TAG1( coverpage )
+XS_TAG1( epigraph )
+XS_TAG1( part )
+XS_TAG1( poem )
+XS_TAG1( stanza )
+XS_TAG1D( binary, true, css_d_none, css_ws_inherit )
+XS_TAG1D( description, false, css_d_none, css_ws_inherit )
+XS_TAG1D( genre, true, css_d_none, css_ws_inherit )
+XS_TAG1D( stylesheet, true, css_d_none, css_ws_inherit )
+XS_TAG1I( spacing )
+XS_TAG1I( strikethrough )
+XS_TAG1I( underline )
+XS_TAG1OBJ( image )
 XS_TAG1T( city )
+XS_TAG1T( date )
+XS_TAG1T( email )
+XS_TAG1T( history )
+XS_TAG1T( id )
 XS_TAG1T( isbn )
-XS_TAG1T( nickname )
 XS_TAG1T( keywords )
-
-XS_TAG1( DocFragment )
+XS_TAG1T( lang )
+XS_TAG1T( nickname )
+XS_TAG1T( publisher )
+XS_TAG1T( sequence )
+XS_TAG1T( subtitle )
+XS_TAG1T( v )
+XS_TAG1T( version )
+XS_TAG1T( year )
+XS_TAG2( document_info, "document-info" )
+XS_TAG2( empty_line, "empty-line" )
+XS_TAG2( publish_info, "publish-info" )
+XS_TAG2( src_title_info, "src-title-info" )
+XS_TAG2( title_info, "title-info" )
+XS_TAG2I( first_name, "first-name" )
+XS_TAG2I( last_name, "last-name" )
+XS_TAG2I( middle_name, "middle-name" )
+XS_TAG2T( book_name, "book-name" )
+XS_TAG2T( book_title, "book-title" )
+XS_TAG2T( custom_info, "custom-info" )
+XS_TAG2T( home_page, "home-page" )
+XS_TAG2T( program_used, "program-used" )
+XS_TAG2T( src_lang, "src-lang" )
+XS_TAG2T( src_ocr, "src-ocr" )
+XS_TAG2T( src_url, "src-url" )
+XS_TAG2T( text_author, "text-author" )
 
 XS_END_TAGS
 
@@ -171,6 +252,7 @@ XS_ATTR( width )
 XS_ATTR( height )
 XS_ATTR( colspan )
 XS_ATTR( rowspan )
+XS_ATTR( rbspan )
 XS_ATTR( align )
 XS_ATTR( valign )
 XS_ATTR( currency )
@@ -190,6 +272,46 @@ XS_ATTR( StyleSheet )
 XS_ATTR( title )
 XS_ATTR( subtitle )
 XS_ATTR( suptitle )
+XS_ATTR( start )
+XS_ATTR( role )
+XS_ATTR( dir )
+XS_ATTR( lang )
+XS_ATTR( recindex ) // used with mobi images
+// Note that attributes parsed in the HTML are lowercased, unlike the ones
+// we explicitely set while building the DOM. So, for our internal elements
+// needs, let's use some uppercase to avoid conflicts with HTML content
+// and the risk to have them matched by publishers CSS selectors.
+XS_ATTR( T )      // to flag subtype of boxing internal elements if needed
+XS_ATTR( Before ) // for pseudoElem internal element
+XS_ATTR( After )  // for pseudoElem internal element
+// Other classic attributes present in html5.css
+XS_ATTR2( accept_charset, "accept-charset" )
+XS_ATTR( alt )
+XS_ATTR( background )
+XS_ATTR( bgcolor )
+XS_ATTR( border )
+XS_ATTR( cellpadding )
+XS_ATTR( cellspacing )
+XS_ATTR( clear )
+XS_ATTR( color )
+XS_ATTR( cols )
+XS_ATTR( disabled )
+XS_ATTR( face )
+XS_ATTR( hidden )
+XS_ATTR( hspace )
+XS_ATTR2( http_equiv, "http-equiv" )
+XS_ATTR( nowrap )
+XS_ATTR( readonly )
+XS_ATTR( rel )
+XS_ATTR( rows )
+XS_ATTR( rules )
+XS_ATTR( scheme )
+XS_ATTR( selected )
+XS_ATTR( src )
+XS_ATTR( tabindex )
+XS_ATTR( target )
+XS_ATTR( vspace )
+XS_ATTR( wrap )
 
 XS_END_ATTRS
 
@@ -204,6 +326,7 @@ XS_NS( xsi )
 XS_NS( xmlns )
 XS_NS( xlink )
 XS_NS( xs )
+XS_NS( epub )
 
 XS_END_NS
 

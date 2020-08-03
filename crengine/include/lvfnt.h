@@ -215,13 +215,53 @@ lUInt16 lvfontMeasureText( const lvfont_handle pfont,
                     lChar16 def_char
                  );
 
-#define LCHAR_IS_SPACE              1 ///< flag: this char is one of unicode space chars
-#define LCHAR_ALLOW_WRAP_AFTER      2 ///< flag: line break after this char is allowed
-#define LCHAR_DEPRECATED_WRAP_AFTER 4 ///< flag: line break after this char is possible but deprecated
-#define LCHAR_ALLOW_HYPH_WRAP_AFTER 8 ///< flag: line break after this char is allowed with addition of hyphen
-#define LCHAR_IS_EOL               16 ///< flag: this char is CR or LF
-#define LCHAR_IS_OBJECT            32 ///< flag: this char is object or image
-#define LCHAR_MANDATORY_NEWLINE    64 ///< flag: this char must start with new line
+// These lower than 0x0100 (that fit in a lUint8) may be set by lvfntman's measureText()
+// (to possibly get some informative flags back from harfbuzz) and hyphman's hyphenate().
+// (These should be changed or dropped with care, as they may be used by some other parts of CoolReader)
+#define LCHAR_IS_SPACE               0x0001 ///< flag: this char is one of the unicode space chars.
+                                            //         It is set only on the normal space and the normal non-breakable
+                                            //         space (spaces that can have their widths expanded or shrunk).
+                                            //         It is not set on the unicode fixed width spaces.
+#define LCHAR_ALLOW_WRAP_AFTER       0x0002 ///< flag: line break after this char is allowed.
+                                            //         It is set on all spaces, except non-breakable ones.
+                                            //         It is set on soft-hyphen.
+                                            //         It is not set on CJK chars.
+#define LCHAR_DEPRECATED_WRAP_AFTER  0x0004 ///< flag: line break after this char is possible but deprecated
+                                            //         When not using libunibreak: it is set on '-' and other unicode hyphens.
+                                            //         When using libunibreak: set on all text inside "white-space: nowrap"
+#define LCHAR_ALLOW_HYPH_WRAP_AFTER  0x0008 ///< flag: line break after this char is allowed with addition of hyphen
+                                            //         It is set by Hyphman when finding hyphenation points in a word.
+#define LCHAR_MANDATORY_NEWLINE      0x0010 ///< flag: this char must start with new line
+#define LCHAR_IS_CLUSTER_TAIL        0x0020 ///< flag: this char is a tail of a cluster (eg. ligature,
+                                            //         whose glyph is carried by first char)
+                                            //         It is set by harfbuzz when used.
+
+// (This one is actually not set by lvfntman)
+#define LCHAR_LOCKED_SPACING         0x0040 ///< flag: forbid any letter spacing tweak on this char
+                                            //         (for cursive scripts like arabic, and special cases)
+#define LCHAR__AVAILABLE_BIT_08__    0x0080
+
+/// The next ones, not fitting in a lUInt8, should only be set and used by lvtextfm
+#define LCHAR_IS_OBJECT              0x0100 ///< flag: this char is object (image, float)
+#define LCHAR_IS_COLLAPSED_SPACE     0x0200 ///< flag: this char is a space that should not be rendered
+#define LCHAR_IS_TO_IGNORE           0x0400 ///< flag: this char is to be ignored/skipped in text measurement and drawing
+#define LCHAR_IS_RTL                 0x0800 ///< flag: this char is part of a RTL segment
+
+#define LCHAR__AVAILABLE_BIT_13__    0x1000
+#define LCHAR__AVAILABLE_BIT_14__    0x2000
+#define LCHAR__AVAILABLE_BIT_15__    0x4000
+#define LCHAR__AVAILABLE_BIT_16__    0x8000
+
+// Some idea, if needed:
+// #define LCHAR_IS_CJK_NOT_PUNCT       0x1000 ///< flag: this char is part a CJK char but not a punctuation
+// #define LCHAR_IS_CJK_LEFT_PUNCT      0x2000 ///< flag: this char is part a CJK left punctuation
+// #define LCHAR_IS_CJK_RIGHT_PUNCT     0x4000 ///< flag: this char is part a CJK right punctuation
+// #define LCHAR_IS_CJK_PUNCT           0x6000 ///< flag: (for checking) this char is a CJK punctuation (neutral if set)
+// #define LCHAR_IS_CJK                 0x7000 ///< flag: (for checking) this char is a CJK char
+
+// LCHAR_IS_EOL was not used by any code, and has been replaced by LCHAR_IS_CLUSTER_TAIL
+// #define LCHAR_IS_EOL              0x0010 ///< flag: this char is CR or LF
+
 
 /** \brief returns true if character is unicode space 
     \param code is character

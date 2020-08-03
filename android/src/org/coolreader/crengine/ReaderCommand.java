@@ -48,8 +48,10 @@ public enum ReaderCommand
 
 	DCMD_SET_DOC_FONTS(137),
 
-    
-	
+	DCMD_SET_REQUESTED_DOM_VERSION(138),
+	DCMD_SET_RENDER_BLOCK_RENDERING_FLAGS(139),
+
+
 	// definitions from android/jni/readerview.h
 	DCMD_OPEN_RECENT_BOOK(2000),
 	DCMD_CLOSE_BOOK(2001),

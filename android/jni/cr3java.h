@@ -58,6 +58,7 @@ public:
 class CRJNIEnv {
 public:
 	JNIEnv * env;
+	static uint8_t sdk_int;
     CRJNIEnv(JNIEnv * pEnv) : env(pEnv) { }
     JNIEnv * operator -> () { return env; }
 	lString16 fromJavaString( jstring str );

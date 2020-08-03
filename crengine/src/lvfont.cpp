@@ -46,6 +46,7 @@ bool operator==(const LVFont &r1, const LVFont &r2) {
            && r1.getItalic() == r2.getItalic()
            && r1.getFontFamily() == r2.getFontFamily()
            && r1.getTypeFace() == r2.getTypeFace()
+           && r1.getShapingMode() == r2.getShapingMode()
            && r1.getKerning() == r2.getKerning()
            && r1.getHintingMode() == r2.getHintingMode();
 }

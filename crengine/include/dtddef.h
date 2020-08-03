@@ -125,25 +125,25 @@ struct ns_def_t {
 #define XS_BEGIN_TAGS \
         static elem_def_t fb2_elem_table [] =  {
 #define XS_TAG1(itm) \
-        { el_ ## itm, #itm, {false, false, css_d_block, css_ws_normal} },
+        { el_ ## itm, #itm, {false, false, css_d_block, css_ws_inherit} },
 #define XS_TAG2(itm, name) \
-        { el_ ## itm, name, {false, false, css_d_block, css_ws_normal} },
+        { el_ ## itm, name, {false, false, css_d_block, css_ws_inherit} },
 #define XS_TAG1T(itm) \
-        { el_ ## itm, #itm, {true, false, css_d_block, css_ws_normal} },
+        { el_ ## itm, #itm, {true, false, css_d_block, css_ws_inherit} },
 #define XS_TAG1OBJ(itm) \
-        { el_ ## itm, #itm, {false, true, css_d_inline, css_ws_normal} },
+        { el_ ## itm, #itm, {false, true, css_d_inline, css_ws_inherit} },
 #define XS_TAG2T(itm, name) \
-        { el_ ## itm, name, {true, false, css_d_block, css_ws_normal} },
+        { el_ ## itm, name, {true, false, css_d_block, css_ws_inherit} },
 #define XS_TAG1I(itm) \
-        { el_ ## itm, #itm, {true, false, css_d_inline, css_ws_normal} },
+        { el_ ## itm, #itm, {true, false, css_d_inline, css_ws_inherit} },
 #define XS_TAG2I(itm, name) \
-        { el_ ## itm, name, {true, false, css_d_inline, css_ws_normal} },
+        { el_ ## itm, name, {true, false, css_d_inline, css_ws_inherit} },
 #define XS_TAG1D(itm, txt, disp, ws) \
         { el_ ## itm, #itm, {txt, false, disp, ws} },
 #define XS_TAG2D(itm, name, txt, false, disp, ws) \
         { el_ ## itm, name, {txt, false, disp, ws} },
 #define XS_END_TAGS \
-        { 0, NULL, {false, false, css_d_block, css_ws_normal} } \
+        { 0, NULL, {false, false, css_d_block, css_ws_inherit} } \
         };
 
 #undef  XS_BEGIN_ATTRS

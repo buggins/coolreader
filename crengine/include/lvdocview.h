@@ -258,7 +258,8 @@ private:
     ldomXPointer _posBookmark; // bookmark for current position
 
     int m_battery_state;
-    int m_font_size;
+    int m_requested_font_size;
+    int m_font_size; // = m_requested_font_size, possibly scaled according to DPI
     int m_status_font_size;
     int m_def_interline_space;
     LVArray<int> m_font_sizes;
@@ -293,6 +294,7 @@ private:
     LVImageSourceRef m_backgroundImage;
     LVRef<LVColorDrawBuf> m_backgroundImageScaled;
     bool m_backgroundTiled;
+    bool m_stylesheetNeedsUpdate;
     int m_highlightBookmarks;
     LVPtrVector<LVBookMarkPercentInfo> m_bookmarksPercents;
 
@@ -328,6 +330,7 @@ private:
 
     LVArray<int> m_section_bounds;
     bool m_section_bounds_valid;
+    bool m_section_bounds_externally_updated;
 
     LVMutex _mutex;
 #if CR_ENABLE_PAGE_IMAGE_CACHE==1
@@ -386,7 +389,6 @@ protected:
 
     virtual void getNavigationBarRectangle( int pageIndex, lvRect & rc );
 
-    virtual void getPageRectangle( int pageIndex, lvRect & pageRect );
     /// returns document offset for next page
     int getNextPageOffset();
     /// returns document offset for previous page
@@ -397,7 +399,11 @@ protected:
     void createEmptyDocument();
     /// get document rectangle for specified cursor position, returns false if not visible
     bool getCursorDocRect( ldomXPointer ptr, lvRect & rc );
+    /// load document from stream (internal)
+    bool loadDocumentInt( LVStreamRef stream, bool metadataOnly = false );
 public:
+    /// get outer (before margins are applied) page rectangle
+    virtual void getPageRectangle( int pageIndex, lvRect & pageRect );
     /// get screen rectangle for specified cursor position, returns false if not visible
     bool getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor = false );
     /// set status bar and clock mode
@@ -598,6 +604,8 @@ public:
     int getCurrentPageCharCount();
     /// returns number of images on current page
     int getCurrentPageImageCount();
+    /// returns number of images on given page
+    int getPageImageCount(LVRef<ldomXRange>& range);
     /// calculate page header rectangle
     virtual void getPageHeaderRectangle( int pageIndex, lvRect & headerRc );
     /// calculate page header height
@@ -627,7 +635,7 @@ public:
     /// returns true if document is opened
     bool isDocumentOpened();
     /// returns section bounds, in 1/100 of percent
-    LVArray<int> & getSectionBounds( );
+    LVArray<int> & getSectionBounds( bool for_external_update=false );
     /// sets battery state
     virtual bool setBatteryState( int newState );
     /// returns battery state
@@ -648,6 +656,11 @@ public:
     bool getFlatToc( LVPtrVector<LVTocItem, false> & items );
     /// update page numbers for items
     void updatePageNumbers( LVTocItem * item );
+    /// returns pointer to LVPageMapItems container
+    LVPageMap * getPageMap();
+    /// update PageMap items page infos
+    void updatePageMapInfo( LVPageMap * pagemap );
+
     /// set view mode (pages/scroll) - DVM_SCROLL/DVM_PAGES
     void setViewMode( LVDocViewMode view_mode, int visiblePageCount=-1 );
     /// get view mode (pages/scroll)
@@ -716,15 +729,15 @@ public:
     void setPageSkin( CRPageSkinRef skin );
 
     /// returns xpointer for specified window point
-    ldomXPointer getNodeByPoint( lvPoint pt );
+    ldomXPointer getNodeByPoint( lvPoint pt, bool strictBounds=false );
     /// returns image source for specified window point, if point is inside image
     LVImageSourceRef getImageByPoint(lvPoint pt);
     /// draws scaled image into buffer, clear background according to current settings
     bool drawImage(LVDrawBuf * buf, LVImageSourceRef img, int x, int y, int dx, int dy);
     /// converts point from window to document coordinates, returns true if success
     bool windowToDocPoint( lvPoint & pt );
-    /// converts point from documsnt to window coordinates, returns true if success
-    bool docToWindowPoint( lvPoint & pt );
+    /// converts point from document to window coordinates, returns true if success
+    bool docToWindowPoint( lvPoint & pt, bool isRectBottom=false, bool fitToPage=false );
 
     /// returns document
     ldomDocument * getDocument() {
@@ -740,6 +753,10 @@ public:
     lString16 getLanguage() { return m_doc_props->getStringDef(DOC_PROP_LANGUAGE); }
     /// returns book author(s)
     lString16 getAuthors() { return m_doc_props->getStringDef(DOC_PROP_AUTHORS); }
+    /// returns book description
+    lString16 getDescription() { return m_doc_props->getStringDef(DOC_PROP_DESCRIPTION); }
+    /// returns book keywords (separated by "; ")
+    lString16 getKeywords() { return m_doc_props->getStringDef(DOC_PROP_KEYWORDS); }
     /// returns book series name and number (series name #1)
     lString16 getSeries()
     {
@@ -771,6 +788,10 @@ public:
     bool exportWolFile( const wchar_t * fname, bool flgGray, int levels );
     /// export to WOL format
     bool exportWolFile( LVStream * stream, bool flgGray, int levels );
+
+    /// get a stream for reading to document internal file (path inside the ZIP for EPUBs,
+    /// path relative to document directory for non-container documents like HTML)
+    LVStreamRef getDocumentFileStream( lString16 filePath );
 
     /// draws page to image buffer
     void drawPageTo( LVDrawBuf * drawBuf, LVRendPageInfo & page, lvRect * pageRect, int pageCount, int basePage);
@@ -818,6 +839,10 @@ public:
     void ZoomFont( int delta );
     /// retrieves current base font size
     int  getFontSize() { return m_font_size; }
+    /// retrieves requested font size (before scaling for DPI)
+    int  getRequestedFontSize() { return m_requested_font_size; }
+    /// scale font size according to gRenderDPI
+    int scaleFontSizeForDPI( int fontSize );
     /// sets new base font size
     void setFontSize( int newSize );
     /// retrieves current status bar font size
@@ -850,23 +875,26 @@ public:
     /// set vertical position of view inside document
     int SetPos( int pos, bool savePos=true, bool allowScrollAfterEnd = false);
 
-	int getPageHeight(int pageIndex);
+    // get page start y (in full document height)
+    int getPageStartY(int pageIndex);
+    // get page height
+    int getPageHeight(int pageIndex);
 
     /// get number of current page
     int getCurPage();
     /// move to specified page
-    bool goToPage(int page, bool updatePosBookmark = true);
+    bool goToPage(int page, bool updatePosBookmark = true, bool regulateTwoPages = true);
     /// returns page count
     int getPageCount();
 
     /// clear view
     void Clear();
     /// load document from file
-    bool LoadDocument( const char * fname );
+    bool LoadDocument( const char * fname, bool metadataOnly = false );
     /// load document from file
-    bool LoadDocument( const lChar16 * fname );
+    bool LoadDocument( const lChar16 * fname, bool metadataOnly = false );
     /// load document from stream
-    bool LoadDocument( LVStreamRef stream );
+    bool LoadDocument( LVStreamRef stream, const lChar16 * contentPath, bool metadataOnly = false );
 
     /// save last file position
     void savePosition();
@@ -891,7 +919,7 @@ public:
     void setRenderProps( int dx, int dy );
 
     /// Constructor
-    LVDocView( int bitsPerPixel=-1 );
+    LVDocView( int bitsPerPixel=-1, bool noDefaultDocument=false );
     /// Destructor
     virtual ~LVDocView();
 };

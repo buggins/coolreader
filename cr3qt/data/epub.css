@@ -1,112 +1,230 @@
-body { 
+body {
+    text-indent: 0;
+    margin: 0;
+    text-align: justify;
+}
+
+head, script {
+    display: none;
+}
+
+/* EPUB container of each individual HTML file */
+DocFragment {
+    page-break-before: always;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0.7em;
+    margin-bottom: 0.5em;
+    font-weight: bold;
+    text-indent: 0;
+    hyphens: none;
+    page-break-inside: avoid;
+    page-break-after: avoid;
+}
+
+h1, h2 {
+    $title.all
+}
+
+h3, h4, h5, h6, .title3, .title4, .title5, .subtitle { 
+    $subtitle.all
+}
+
+h1 { font-size: 150%; }
+h2 { font-size: 140%; }
+h3 { font-size: 130%; }
+h4 { font-size: 120%; }
+h5 { font-size: 110%; }
+
+/* Block elements */
+p {
     $def.all
 }
 
-*.justindent { text-align: justify; text-indent: 1.3em; margin-top:0em; margin-bottom: 0em }
-DocFragment { page-break-before: always }
-
-h1, .title  { font-size: 150% }
-h2, .title1 { font-size: 140% }
-h3, .title2 { font-size: 130%; }
-h4, .title3 { font-size: 120%; }
-h5, .title4 { font-size: 110%; }
-
-.subtitle { 
-	font-style: italic; 
-	margin-top: 0.5em; 
-	margin-bottom: 0.3em 
+blockquote {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: 2em;
+    margin-right: 1em;
+    $cite.all
+}
+blockquote:dir(rtl) {
+    margin-left: 1em;
+    margin-right: 2em;
+}
+hr {
+    height: 2px;
+    background-color: #808080;
+    margin: 0.5em auto;
+}
+center {
+    text-align: center;
 }
 
-h1, h2, .title, .title1, .title2 { 
-	display: block;
-	$title.all
-	hyphenate: none;
-	adobe-hyphenate: none;
-} 
-h3, h4, h5, h6, .title3, .title4, .title5, .subtitle { 
-	display: block;
-	$subtitle.all
-	hyphenate: none;
-	adobe-hyphenate: none;
-} 
-h1, h2, h3, .title, .title1, .title2, .title3 { 
-	page-break-before: always; 
-	page-break-inside: avoid; 
-	page-break-after: avoid; 
+/* Lists */
+ul {
+    list-style-type: disc;
+    margin-left: 1em;
 }
-.subtitle, h4, h5, h6, .title4, .title5 { 
-	page-break-inside: avoid; 
-	page-break-after: avoid; 
+ol {
+    list-style-type: decimal;
+    margin-left: 1em;
+}
+ul:dir(rtl), ol:dir(rtl) {
+    margin-left: 0;
+    margin-right: 1em;
+}
+li {
+    display: list-item;
+    text-indent: 0;
 }
 
-img { 
-	text-align: center; 
-	text-indent: 0px; 
-	display: block; 
-	margin: 0.5em; 
-   	border-style: solid; 
-   	border-width: medium; 
+/* Definitions */
+dl {
+    margin-left: 0;
 }
-.section_image { text-align: center; }
-.coverpage { text-align: center; }
-p image { display: inline }
-li image { display: inline }
+dt {
+    margin-left: 0;
+    margin-top: 0.3em;
+    font-weight: bold;
+}
+dd {
+    margin-left: 1.3em;
+}
+dd:dir(rtl) {
+    margin-left: 0;
+    margin-right: 1.3em;
+}
 
-a { display:inline; $link.all }
-p { $def.all }
+/* Tables */
+table {
+    font-size: 80%;
+    margin: 3px 0;
+}
+table table { /* stop imbricated tables from getting smaller */
+    font-size: 100%;
+}
+td, th {
+    text-indent: 0;
+    padding: 3px;
+}
+th {
+    font-weight: bold;
+    text-align: center;
+    background-color: #DDD;
+}
+table caption {
+    text-indent: 0;
+    padding: 4px;
+    background-color: #EEE;
+}
 
-.empty-line { height: 1em }
+/* Monospace block elements */
+/* (note that xmp should ignore html, which won't be done, but pre is a better
+ * approximation than no pre */
+pre, xmp {
+    white-space: pre; /* has to be set in fb2def.h to work */
+    font-family: "Droid Sans Mono", "Liberation Mono", "DeJaVu Sans Mono", monospace;
+    text-align: left;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    /* background-color: #BFBFBF; */
+}
 
-hr { height: 2px; background-color: #808080; margin-top: 0.5em; margin-bottom: 0.5em }
+/* Inline elements (all unknown elements default now to display: inline) */
+code, kbd, samp, tt     { font-family: "Droid Sans Mono", "Liberation Mono", "DeJaVu Sans Mono", monospace; }
+sup                     { font-size: 70%; vertical-align: super; }
+sub                     { font-size: 70%; vertical-align: sub; }
+small                   { font-size: 80%; }
+big                     { font-size: 130%; }
+b, strong               { font-weight: bold; }
+i, em, dfn, var, cite   { font-style: italic; }
+u, ins                  { text-decoration: underline; }
+del, s, strike          { text-decoration: line-through; }
+a                       { text-decoration: underline; $link.all }
 
-sub { vertical-align: sub; font-size: 70% }
-sup { vertical-align: super; font-size: 70% }
+/* Ruby support */
+ruby {
+    /* These will have no effect when ruby is reset to display: inline */
+    text-align: center;
+    text-indent: 0;
+}
+rb, rubyBox[T=rb] {
+    line-height: 1;
+}
+rt, rubyBox[T=rt] {
+    line-height: 1.2;
+    font-size: 50%;
+    font-variant-east-asian: ruby;
+    -cr-hint: text-selection-skip;
+}
 
-li { display: list-item; text-indent: 0em;  }
-ul { display: block; list-style-type: disc; margin-left: 1em }
-ol { display: block; list-style-type: decimal; margin-left: 1em }
-
-span { display: inline }
-div { display: block }
-
-.citation p { $cite.all }
-.epigraph p { $epigraph.all }
-.v { text-align: left; text-align-last: right; text-indent: 1em hanging }
-
-.stanza + .stanza { margin-top: 1em; }
-.stanza { $poem.all  }
-.poem { margin-top: 1em; margin-bottom: 1em; text-indent: 0px }
-.epigraph_author { font-weight: bold; font-style: italic; margin-left: 15%; }
-.citation_author { font-weight: bold; font-style: italic; margin-left: 15%; margin-right: 10%; }
-
-table { font-size: 80% }
-td, th { text-indent: 0px; padding: 3px }
-th {  font-weight: bold; text-align: center; background-color: #DDD  }
-table caption { text-indent: 0px; padding: 4px; background-color: #EEE }
-
-.fb2_info { display: block; page-break-before: always; }
-
-head, form, script { display: none; } 
-
-b, strong, i, em, dfn, var, q, u, del, s, strike, small, big, sub, sup, acronym, tt, sa mp, kbd, code { 
-   display: inline; 
-} 
-
-b, strong { font-weight: bold; } 
-i, em, dfn, var { font-style: italic; } 
-u { text-decoration: underline; } 
-del, s, strike, strikethrough { text-decoration: line-through; } 
-small { font-size: 80%; } 
-big { font-size: 130%; } 
-
-.code, pre { 
-   display: block; 
-   white-space: pre; 
+code {
    $code.all
-} 
+}
 
-nobr { display: inline; hyphenate: none; white-space: nowrap; } 
+nobr {
+    display: inline;
+    hyphens: none;
+    white-space: nowrap;
+}
 
-dl { margin-left: 0em; } 
-dt { display: block; margin-left: 0em; margin-top:0.3em; font-weight: bold; } 
-dd { display: block; margin-left: 1.3em; } 
+/* Element added for each empty line when rendering plain txt files */
+empty-line {
+    height: 1em;
+}
+
+/* Attributes that make some elements float or clear */
+br[clear=all i], br[clear=both i]   { clear: both; }
+br[clear=left i]     { clear: left; }
+br[clear=right i]    { clear: right; }
+img[align=left i]    { float: left; }
+img[align=right i]   { float: right; }
+table[align=left i]  { float: left; }
+table[align=right i] { float: right; }
+
+/* EPUB3 epub:type="pagebreak" may sometimes have the page number
+ * as content: hide it. (Usually, its content is empty and the
+ * page number is in a title= attribute.) */
+span[type=pagebreak] { display: none; }
+
+/* Old element or className based selectors involving display: that
+ * we need to support for older gDOMVersionRequested
+ * DO NOT MODIFY BELOW to not break past highlights */
+
+/* Images are now inline by default, and no more block with exceptions.
+ * Note that when 'block', lvrend.cpp displays the title="" content
+ * under the image */
+img {
+    -cr-ignore-if-dom-version-greater-or-equal: 20180528;
+    text-align: center;
+    text-indent: 0;
+    display: block;
+}
+sup img { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: inline; }
+sub img { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: inline; }
+a img   { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: inline; }
+p img   { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: inline; }
+p image { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: inline; } /* non html */
+
+/* With dom_version < 20180528, unknown elements defaulted to 'display: inherit'
+ * These ones here were explicitely set to inline (and some others not
+ * specified here were also set to inline in fb2def.h */
+b, strong, i, em, dfn, var, q, u, del, s, strike, small, big, sub, sup, acronym, tt, samp, kbd, code {
+    -cr-ignore-if-dom-version-greater-or-equal: 20180528;
+    display: inline;
+}
+
+form {
+    -cr-ignore-if-dom-version-greater-or-equal: 20180528;
+    display: none;
+}
+
+.title, .title1, .title2, .title3, .title4, .title5, .subtitle {
+    -cr-ignore-if-dom-version-greater-or-equal: 20180528;
+    display: block;
+}
+.fb2_info { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: block; }
+.code     { -cr-ignore-if-dom-version-greater-or-equal: 20180528; display: block; }

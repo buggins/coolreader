@@ -1,9 +1,11 @@
 
 #include "lvfontglyphcache_a.h"
 #include "lvfontglyphcache_b.h"
+#include "../../src/private/lvfontglyphcache.h"
 #include "lvtypes.h"
 
 #include <stdio.h>
+#include <stdint.h>
 #include <sys/time.h>
 #include <limits.h>
 
@@ -271,7 +273,12 @@ int main(int /*argc*/, char* /*argv*/[])
     LVFontGlobalGlyphCacheB globalCacheB(0x40000);
     LVFontLocalGlyphCacheB localCacheB(&globalCacheB, 256);
     LVFontGlyphCacheItemB* itemB;
-    u_int64_t tmp;
+
+    LVFontGlobalGlyphCache globalCache(0x40000);
+    LVFontLocalGlyphCache localCache(&globalCache);
+    LVFontGlyphCacheItem* item;
+
+    volatile uint64_t tmp;
     struct timeval ts1;
     struct timeval ts2;
     int64_t elapsed;
@@ -296,10 +303,18 @@ int main(int /*argc*/, char* /*argv*/[])
             itemB->origin_y = 0;
             localCacheB.put(itemB);
         }
+        item = LVFontGlyphCacheItem::newItem(&localCache, glyphCodes_tofill[i], 10, 10);
+        if (item)
+        {
+            item->origin_x = 0;
+            item->origin_y = 0;
+            localCache.put(item);
+        }
     }
 
     printf("size of global cacheA: %u\n", globalCacheA.getSize());
     printf("size of global cacheB: %u\n", globalCacheB.getSize());
+    printf("size of global cache: no data...\n");
 
     // bench lookup based on linked list
     printf("bench cache based on linked list...\n");
@@ -319,7 +334,7 @@ int main(int /*argc*/, char* /*argv*/[])
     printf("t = %lld\n", tmp);
 
     // bench lookup based on hash table
-    printf("bench cache based on hash table...\n");
+    printf("bench cache based on hash table (candidate introduced in cr3.2.32)...\n");
     gettimeofday(&ts1, NULL);
     for (j = 0; j < bench_sz; j++)
     {
@@ -334,9 +349,26 @@ int main(int /*argc*/, char* /*argv*/[])
     printf("%lld us\n", elapsed);
     printf("t = %lld\n", tmp);
 
+    // bench lookup based on hash table
+    printf("bench cache based on hash table (current version)...\n");
+    gettimeofday(&ts1, NULL);
+    for (j = 0; j < bench_sz; j++)
+    {
+        for (i = 0; i < lookup_seq_sz; i++)
+        {
+            item = localCache.get(lookup_seq[i]);
+            tmp += item->origin_x;
+        }
+    }
+    gettimeofday(&ts2, NULL);
+    elapsed = timevalcmp(&ts2, &ts1);
+    printf("%lld us\n", elapsed);
+    printf("t = %lld\n", tmp);
+
     // cleanup
     globalCacheA.clear();
     globalCacheB.clear();
+    globalCache.clear();
     return 0;
 }
 

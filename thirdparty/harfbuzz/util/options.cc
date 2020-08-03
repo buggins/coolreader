@@ -31,6 +31,8 @@
 #endif
 #include <hb-ot.h>
 
+#define DELIMITERS "<+>{},;&#\\xXuUnNiI\n\t\v\f\r "
+
 static struct supported_font_funcs_t {
 	char name[4];
 	void (*func) (hb_font_t *);
@@ -62,7 +64,7 @@ fail (hb_bool_t suggest_help, const char *format, ...)
 
 
 static gchar *
-shapers_to_string (void)
+shapers_to_string ()
 {
   GString *shapers = g_string_new (nullptr);
   const char **shaper_list = hb_shape_list_shapers ();
@@ -95,7 +97,7 @@ show_version (const char *name G_GNUC_UNUSED,
 
 
 void
-option_parser_t::add_main_options (void)
+option_parser_t::add_main_options ()
 {
   GOptionEntry entries[] =
   {
@@ -194,8 +196,8 @@ parse_shapers (const char *name G_GNUC_UNUSED,
     bool found = false;
     for (const char **hb_shaper = hb_shape_list_shapers (); *hb_shaper; hb_shaper++) {
       if (strcmp (*shaper, *hb_shaper) == 0) {
-        found = true;
-        break;
+	found = true;
+	break;
       }
     }
     if (!found) {
@@ -226,9 +228,9 @@ list_shapers (const char *name G_GNUC_UNUSED,
 
 static gboolean
 parse_features (const char *name G_GNUC_UNUSED,
-	        const char *arg,
-	        gpointer    data,
-	        GError    **error G_GNUC_UNUSED)
+		const char *arg,
+		gpointer    data,
+		GError    **error G_GNUC_UNUSED)
 {
   shape_options_t *shape_opts = (shape_options_t *) data;
   char *s = (char *) arg;
@@ -269,9 +271,9 @@ parse_features (const char *name G_GNUC_UNUSED,
 
 static gboolean
 parse_variations (const char *name G_GNUC_UNUSED,
-	        const char *arg,
-	        gpointer    data,
-	        GError    **error G_GNUC_UNUSED)
+		  const char *arg,
+		  gpointer    data,
+		  GError    **error G_GNUC_UNUSED)
 {
   font_options_t *font_opts = (font_options_t *) data;
   char *s = (char *) arg;
@@ -333,9 +335,9 @@ parse_text (const char *name G_GNUC_UNUSED,
 
 static gboolean
 parse_unicodes (const char *name G_GNUC_UNUSED,
-	        const char *arg,
-	        gpointer    data,
-	        GError    **error G_GNUC_UNUSED)
+		const char *arg,
+		gpointer    data,
+		GError    **error G_GNUC_UNUSED)
 {
   text_options_t *text_opts = (text_options_t *) data;
 
@@ -347,28 +349,37 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
   }
 
   GString *gs = g_string_new (nullptr);
-  char *s = (char *) arg;
-  char *p;
-
-  while (s && *s)
+  if (0 == strcmp (arg, "*"))
   {
-    while (*s && strchr ("<+>{},;&#\\xXuUnNiI\n\t\v\f\r ", *s))
-      s++;
-    if (!*s)
-      break;
+    g_string_append_c (gs, '*');
+  }
+  else
+  {
 
-    errno = 0;
-    hb_codepoint_t u = strtoul (s, &p, 16);
-    if (errno || s == p)
+    char *s = (char *) arg;
+    char *p;
+
+    while (s && *s)
     {
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "Failed parsing Unicode values at: '%s'", s);
-      return false;
+      while (*s && strchr (DELIMITERS, *s))
+	s++;
+      if (!*s)
+	break;
+
+      errno = 0;
+      hb_codepoint_t u = strtoul (s, &p, 16);
+      if (errno || s == p)
+      {
+	g_string_free (gs, TRUE);
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+  		   "Failed parsing Unicode values at: '%s'", s);
+	return false;
+      }
+
+      g_string_append_unichar (gs, u);
+
+      s = p;
     }
-
-    g_string_append_unichar (gs, u);
-
-    s = p;
   }
 
   text_opts->text_len = gs->len;
@@ -432,7 +443,8 @@ shape_options_t::add_options (option_parser_t *parser)
     "    Features can be enabled or disabled, either globally or limited to\n"
     "    specific character ranges.  The format for specifying feature settings\n"
     "    follows.  All valid CSS font-feature-settings values other than 'normal'\n"
-    "    and 'inherited' are also accepted, though, not documented below.\n"
+    "    and the global values are also accepted, though not documented below.\n"
+    "    CSS string escapes are not supported."
     "\n"
     "    The range indices refer to the positions between Unicode characters,\n"
     "    unless the --utf8-clusters is provided, in which case range indices\n"
@@ -638,7 +650,7 @@ output_options_t::add_options (option_parser_t *parser)
 
 
 hb_font_t *
-font_options_t::get_font (void) const
+font_options_t::get_font () const
 {
   if (font)
     return font;
@@ -704,7 +716,7 @@ font_options_t::get_font (void) const
       GString *s = g_string_new (nullptr);
       for (unsigned int i = 0; i < ARRAY_LENGTH (supported_font_funcs); i++)
       {
-        if (i)
+	if (i)
 	  g_string_append_c (s, '/');
 	g_string_append (s, supported_font_funcs[i].name);
       }
@@ -795,7 +807,7 @@ text_options_t::get_line (unsigned int *len)
 
 
 FILE *
-output_options_t::get_file_handle (void)
+output_options_t::get_file_handle ()
 {
   if (fp)
     return fp;
@@ -865,9 +877,9 @@ format_options_t::add_options (option_parser_t *parser)
   parser->add_group (entries,
 		     "output-syntax",
 		     "Output syntax:\n"
-         "    text: [<glyph name or index>=<glyph cluster index within input>@<horizontal displacement>,<vertical displacement>+<horizontal advance>,<vertical advance>|...]\n"
-         "    json: [{\"g\": <glyph name or index>, \"ax\": <horizontal advance>, \"ay\": <vertical advance>, \"dx\": <horizontal displacement>, \"dy\": <vertical displacement>, \"cl\": <glyph cluster index within input>}, ...]\n"
-         "\nOutput syntax options:",
+	 "    text: [<glyph name or index>=<glyph cluster index within input>@<horizontal displacement>,<vertical displacement>+<horizontal advance>,<vertical advance>|...]\n"
+	 "    json: [{\"g\": <glyph name or index>, \"ax\": <horizontal advance>, \"ay\": <vertical advance>, \"dx\": <horizontal displacement>, \"dy\": <vertical displacement>, \"cl\": <glyph cluster index within input>}, ...]\n"
+	 "\nOutput syntax options:",
 		     "Options for the syntax of the output",
 		     this);
 }
@@ -968,19 +980,4 @@ format_options_t::serialize_buffer_of_glyphs (hb_buffer_t  *buffer,
   serialize_line_no (line_no, gs);
   serialize_glyphs (buffer, font, output_format, format_flags, gs);
   g_string_append_c (gs, '\n');
-}
-
-void
-subset_options_t::add_options (option_parser_t *parser)
-{
-  GOptionEntry entries[] =
-  {
-    {"no-hinting", 0, 0, G_OPTION_ARG_NONE,  &this->drop_hints,   "Whether to drop hints",   nullptr},
-    {nullptr}
-  };
-  parser->add_group (entries,
-         "subset",
-         "Subset options:",
-         "Options subsetting",
-         this);
 }

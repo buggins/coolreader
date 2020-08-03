@@ -20,6 +20,7 @@
 #include "lvfontglyphcache.h"
 #include "lvfontdef.h"
 #include "lvfontcache.h"
+#include "lvstring8collection.h"
 
 #if (DEBUG_FONT_MAN == 1)
 #include <stdio.h>
@@ -30,11 +31,10 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-
 class LVFreeTypeFontManager : public LVFontManager {
 private:
     lString8 _path;
-    lString8 _fallbackFontFace;
+    lString8Collection _fallbackFontFaces;
     LVFontCache _cache;
     FT_Library _library;
     LVFontGlobalGlyphCache _globalCache;
@@ -50,11 +50,23 @@ public:
     /// set fallback font
     virtual bool SetFallbackFontFace(lString8 face);
 
+    /// set fallback font face list semicolon separated (returns true if any font is found)
+    virtual bool SetFallbackFontFaces(lString8 facesStr );
+
     /// get fallback font face (returns empty string if no fallback font is set)
-    virtual lString8 GetFallbackFontFace() { return _fallbackFontFace; }
+    virtual lString8 GetFallbackFontFace(int index = 0);
+
+    /// get fallback font faces list (returns empty string list collection if no fallback fonts is set)
+    virtual lString8 GetFallbackFontFaces();
+
+    /// get count of fallback fonts
+    virtual int GetFallbackFontCount();
 
     /// returns fallback font for specified size
-    virtual LVFontRef GetFallbackFont(int size);
+    virtual LVFontRef GetFallbackFont(int size, int index=0);
+
+    /// returns fallback font for specified size, weight and italic
+    virtual LVFontRef GetFallbackFont(int size, int weight=400, bool italic=false, int index=0 );
 
     bool isBitmapModeForSize(int size);
 
@@ -69,11 +81,17 @@ public:
         return _hintingMode;
     }
 
-    /// set kerning mode
-    virtual void setKerning(bool kerning);
+    /// get kerning mode
+    virtual bool GetKerning() { return _allowKerning; }
 
-    /// set ligatures mode
-    virtual void setLigatures(bool ligatures);
+    /// set kerning mode
+    virtual void SetKerning(bool kerningEnabled);
+
+    /// sets shaping mode
+    virtual void SetShapingMode( shaping_mode_t mode );
+
+    /// get shaping mode
+    virtual shaping_mode_t GetShapingMode() { return _shapingMode; }
 
     /// clear glyph cache
     virtual void clearGlyphCache();
@@ -98,11 +116,10 @@ public:
     /// returns registered font files
     virtual void getFontFileNameList(lString16Collection &list);
 
-    bool setalias(lString8 alias, lString8 facename, int id, bool italic, bool bold);
+    bool SetAlias(lString8 alias, lString8 facename, int id, bool bold, bool italic);
 
-    virtual LVFontRef
-    GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
-            int documentId);
+    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
+            int features = 0, int documentId = -1, bool useBias = false);
 
     bool checkCharSet(FT_Face face);
 
@@ -121,6 +138,8 @@ public:
     virtual bool RegisterFont(lString8 name);
 
     virtual bool Init(lString8 path);
+
+    virtual bool SetAsPreferredFontWithBias( lString8 face, int bias, bool clearOthersBias );
 };
 
 #endif  // (USE_FREETYPE==1)

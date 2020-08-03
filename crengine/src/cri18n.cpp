@@ -14,6 +14,8 @@
 
 #include "../include/cri18n.h"
 #include "../include/lvstream.h"
+#include "../include/crlog.h"
+#include "../include/lvstring8collection.h"
 
 CRI18NTranslator * CRI18NTranslator::_translator = NULL;
 CRI18NTranslator * CRI18NTranslator::_defTranslator = NULL;
@@ -258,7 +260,7 @@ bool CRIniFileTranslator::open(const char * fileName)
             lString8 value( eqpos+1, (lvsize_t)(elp - eqpos - 1));
             _map.set(name, value);
         }
-        for ( p=elp; *elp && *elp!='\r' && *elp!='\n'; elp++)
+        for ( ; *elp && *elp!='\r' && *elp!='\n'; elp++)
             ;
         p = elp;
 		while ( *p=='\r' || *p=='\n' )

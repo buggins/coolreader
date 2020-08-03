@@ -40,7 +40,8 @@ public:
     {
         _cache.gc();
     }
-    virtual LVFontRef GetFont(int size, int weight, bool bitalic, css_font_family_t family, lString8 typeface, int documentId );
+    virtual LVFontRef GetFont(int size, int weight, bool bitalic, css_font_family_t family, lString8 typeface,
+                              int features=0, int documentId = -1, bool useBias=false);
 
     virtual bool RegisterFont( const LOGFONTA * lf );
     virtual bool RegisterFont( lString8 name )

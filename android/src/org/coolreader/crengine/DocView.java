@@ -3,6 +3,10 @@ package org.coolreader.crengine;
 
 import android.graphics.Bitmap;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 public class DocView {
 
 	public static final Logger log = L.create("dv");
@@ -160,6 +164,32 @@ public class DocView {
 	}
 
 	/**
+	 * Load document from input stream.
+	 * @param inputStream
+	 * @param contentPath
+	 * @return
+	 */
+	public boolean loadDocumentFromStream(InputStream inputStream, String contentPath) {
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		byte [] buf = new byte [1024];
+		int readBytes;
+		while (true) {
+			try {
+				readBytes = inputStream.read(buf);
+				if (readBytes > 0)
+					outputStream.write(buf, 0, readBytes);
+				else
+					break;
+			} catch (IOException e) {
+				break;
+			}
+		}
+		synchronized(mutex) {
+			return loadDocumentFromMemoryInternal(outputStream.toByteArray(), contentPath);
+		}
+	}
+
+	/**
 	 * Get settings from native object.
 	 * @return
 	 */
@@ -177,6 +207,12 @@ public class DocView {
 	public boolean applySettings(java.util.Properties settings) {
 		synchronized(mutex) {
 			return applySettingsInternal(settings);
+		}
+	}
+
+	public java.util.Properties getDocProps() {
+		synchronized (mutex) {
+			return getDocPropsInternal();
 		}
 	}
 
@@ -411,10 +447,14 @@ public class DocView {
 
 	private native boolean loadDocumentInternal(String fileName);
 
+	private native boolean loadDocumentFromMemoryInternal(byte [] buf, String contentPath);
+
 	private native java.util.Properties getSettingsInternal();
 
 	private native boolean applySettingsInternal(
 			java.util.Properties settings);
+
+	private native java.util.Properties getDocPropsInternal();
 
 	private native void setStylesheetInternal(String stylesheet);
 

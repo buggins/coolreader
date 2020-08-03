@@ -194,7 +194,6 @@ private slots:
     void on_buttonBox_accepted();
     void on_buttonBox_rejected();
     void on_cbFontKerning_stateChanged(int );
-    void on_cbLigatures_stateChanged(int );
     void on_cbFloatingPunctuation_stateChanged(int );
     void on_cbFontGamma_currentIndexChanged(QString );
     void on_cbStyleName_currentIndexChanged(int index);
@@ -225,6 +224,11 @@ private slots:
     void on_cbImageBlockZoominScale_currentIndexChanged(int index);
     void on_cbImageBlockZoomoutMode_currentIndexChanged(int index);
     void on_cbImageBlockZoomoutScale_currentIndexChanged(int index);
+    void on_cbFontShaping_currentIndexChanged(int index);
+    void on_cbRendFlags_currentIndexChanged(int index);
+    void on_cbDOMLevel_currentIndexChanged(int index);
+    void on_cbMultiLang_stateChanged(int state);
+    void on_cbEnableHyph_stateChanged(int state);
 };
 
 #endif // SETTINGSDLG_H
