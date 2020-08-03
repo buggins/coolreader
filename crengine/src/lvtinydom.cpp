@@ -11867,7 +11867,7 @@ bool ldomXPointerEx::thisSentenceStart()
     for (;;) {
         if ( isSentenceStart() )
             return true;
-        if ( !prevVisibleWordStartInSentence(true) )
+        if ( !prevVisibleWordStartInSentence() )
             return false;
     }
 }
