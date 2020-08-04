@@ -63,6 +63,7 @@ XS_TAG1D( title, true, css_d_block, css_ws_inherit )
 XS_TAG1D( style, true, css_d_none, css_ws_inherit )
 XS_TAG1D( script, true, css_d_none, css_ws_inherit )
 XS_TAG1D( base, false, css_d_none, css_ws_inherit ) // among crengine autoclose elements
+XS_TAG1D( link, false, css_d_none, css_ws_inherit )
 XS_TAG1T( body )
 XS_TAG1( param ) /* quite obsolete, child of <object>... was there, let's keep it */
 
