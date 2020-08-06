@@ -7819,7 +7819,7 @@ private:
 public:
     virtual ~LVBase64NodeStream() { }
     LVBase64NodeStream( ldomNode * element )
-        : m_elem(element), m_curr_node(element), m_size(0), m_pos(0)
+        : m_elem(element), m_curr_node(element), m_text_pos(0), m_size(0), m_pos(0)
     {
         // calculate size
         rewind();
