@@ -1,20 +1,5 @@
 package org.coolreader.crengine;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.TimeZone;
-
-import org.coolreader.R;
-import org.coolreader.crengine.FileInfo.SortOrder;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -26,6 +11,24 @@ import android.graphics.drawable.GradientDrawable;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
+
+import org.coolreader.R;
+import org.coolreader.crengine.FileInfo.SortOrder;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
 
 public class Utils {
 	public static long timeStamp() {
@@ -346,30 +349,26 @@ public class Utils {
 
 	public static String formatTime( Activity activity, long timeStamp )
 	{
-		if ( timeStamp<5000*60*60*24*1000 )
+		if (timeStamp < 5000*60*60*24*1000L)
 			return "";
-		TimeZone tz = java.util.TimeZone.getDefault();
-		Calendar c = Calendar.getInstance(tz);
-		c.setTimeInMillis(timeStamp);
-		return DateFormat.getTimeFormat(activity.getApplicationContext()).format(c.getTime());
+		final Instant instant = Instant.ofEpochMilli(timeStamp);
+		return DateFormat.getTimeFormat(activity.getApplicationContext()).format(Date.from(instant));
 	}
 	
 	public static String formatDate( Activity activity, long timeStamp )
 	{
-		if ( timeStamp<5000*60*60*24*1000 )
+		if (timeStamp < 5000*60*60*24*1000L)
 			return "";
-		TimeZone tz = java.util.TimeZone.getDefault();
-		Calendar now = Calendar.getInstance(tz);
-		Calendar c = Calendar.getInstance(tz);
-		c.setTimeInMillis(timeStamp);
-		if ( c.get(Calendar.YEAR)<1980 )
+		final LocalDate now = LocalDate.now();
+		final Instant timestampInstant = Instant.ofEpochMilli(timeStamp);
+		final LocalDate timestampDate = LocalDateTime.ofInstant(timestampInstant, ZoneId.systemDefault())
+				.toLocalDate();
+		if (timestampDate.getYear() < 1980)
 			return "";
-		if ( c.get(Calendar.YEAR)==now.get(Calendar.YEAR)
-				&& c.get(Calendar.MONTH)==now.get(Calendar.MONTH)
-				&& c.get(Calendar.DAY_OF_MONTH)==now.get(Calendar.DAY_OF_MONTH)) {
+		if (timestampDate.equals(now)) {
 			return formatTime(activity, timeStamp);
 		} else {
-			return DateFormat.getDateFormat(activity.getApplicationContext()).format(c.getTime());
+			return DateFormat.getDateFormat(activity.getApplicationContext()).format(Date.from(timestampInstant));
 		}
 	}
 	
