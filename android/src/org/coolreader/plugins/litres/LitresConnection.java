@@ -145,27 +145,19 @@ public class LitresConnection {
 					connection.setRequestMethod("POST");
 
 					String postParams = mapParamsToEncodedString(params);
-					OutputStream outputStream = connection.getOutputStream();
-					OutputStreamWriter wr = new OutputStreamWriter(outputStream);
-					wr.write(postParams);
-					wr.close();
-					outputStream.flush();
-					outputStream.close();
+					try (OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream())) {
+						wr.write(postParams);
+						wr.flush();
+					}
 
-					String fileName = null;
 					String disp = connection.getHeaderField("Content-Disposition");
 					if (disp != null) {
 						int p = disp.indexOf("filename=");
-						if (p > 0) {
-							fileName = disp.substring(p + 9);
-						}
 					}
 					//connection.setDoOutput(true);
 					//connection.set
 
-					int response = -1;
-
-					response = connection.getResponseCode();
+					int response = connection.getResponseCode();
 					L.d("Response: " + response);
 					if (response != 200) {
 						onError(response, "Error " + response + " " + connection.getResponseMessage());
@@ -191,7 +183,7 @@ public class LitresConnection {
 						is = new GZIPInputStream(new BufferedInputStream(is, 8192));
 					}
 
-					//					byte[] buf = new byte[contentLen];
+//					byte[] buf = new byte[contentLen];
 //					if (is.read(buf) != contentLen) {
 //						contentHandler.onError(0, "Wrong content length");
 //						return;
@@ -200,15 +192,15 @@ public class LitresConnection {
 //					is = null;
 //					is = new ByteArrayInputStream(buf);
 
-					SAXParserFactory spf = SAXParserFactory.newInstance();
-					spf.setValidating(false);
-//					spf.setNamespaceAware(true);
-//					spf.setFeature("http://xml.org/sax/features/namespaces", false);
-					SAXParser sp = spf.newSAXParser();
-					//XMLReader xr = sp.getXMLReader();				
-					sp.parse(is, contentHandler);
-					is.close();
-
+					try (InputStream inputStream = is) {
+						SAXParserFactory spf = SAXParserFactory.newInstance();
+						spf.setValidating(false);
+//					    spf.setNamespaceAware(true);
+//					    spf.setFeature("http://xml.org/sax/features/namespaces", false);
+						SAXParser sp = spf.newSAXParser();
+						//XMLReader xr = sp.getXMLReader();
+						sp.parse(inputStream, contentHandler);
+					}
 				} catch (ParserConfigurationException e) {
 					contentHandler.onError(0, "Error while parsing response");
 				} catch (SAXException e) {
@@ -269,12 +261,10 @@ public class LitresConnection {
 						connection.setDoOutput(true);
 						connection.setRequestMethod("POST");
 						String postParams = mapParamsToEncodedString(params);
-						OutputStream outputStream = connection.getOutputStream();
-						OutputStreamWriter wr = new OutputStreamWriter(outputStream);
-						wr.write(postParams);
-						wr.close();
-						outputStream.flush();
-						outputStream.close();
+						try (OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream())) {
+							wr.write(postParams);
+							wr.flush();
+						}
 					} else {
 						//Log.d(TAG, "setting up GET method");
 						connection.setDoInput(true);
@@ -305,33 +295,19 @@ public class LitresConnection {
 						return;
 					}
 
-					InputStream is = null;
-					OutputStream os = null;
-					try {
-						is = connection.getInputStream();
+					InputStream is = connection.getInputStream();
 
-						if ("gzip".equals(contentEncoding)) {
-							L.d("Stream is compressed with GZIP");
-							is = new GZIPInputStream(new BufferedInputStream(is, 8192));
-						}
+					if ("gzip".equals(contentEncoding)) {
+						L.d("Stream is compressed with GZIP");
+						is = new GZIPInputStream(new BufferedInputStream(is, 8192));
+					}
 
-						Log.i(TAG, "downloading file to " + contentHandler.fileToSave + "  contentLen=" + contentLen);
-						os = new FileOutputStream(contentHandler.fileToSave);
-						int bytesRead = Utils.copyStreamContent(os, is);
+					Log.i(TAG, "downloading file to " + contentHandler.fileToSave + "  contentLen=" + contentLen);
+
+					try (InputStream inputStream = is;
+						 OutputStream outputStream = new FileOutputStream(contentHandler.fileToSave)) {
+						int bytesRead = Utils.copyStreamContent(outputStream, inputStream);
 						Log.i(TAG, "downloaded bytes: " + bytesRead);
-					} finally {
-						try {
-							if (os != null)
-								os.close();
-						} catch (IOException e) {
-							// ignore
-						}
-						try {
-							if (is != null)
-								is.close();
-						} catch (IOException e) {
-							// ignore
-						}
 					}
 				} catch (IOException e) {
 					contentHandler.fileToSave.delete();

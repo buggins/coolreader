@@ -643,10 +643,8 @@ xml:base="http://lib.ololo.cc/opds/">
 			L.d("Download started: " + outFile.getAbsolutePath());
 //			long lastTs = System.currentTimeMillis(); 
 //			int lastPercent = -1;
-			FileOutputStream os = null;
 			boolean success = false;
-			try {
-				os = new FileOutputStream(outFile);
+			try (FileOutputStream os = new FileOutputStream(outFile)) {
 				byte[] buf = new byte[16384];
 				int totalWritten = 0;
 				while (totalWritten<contentLength || contentLength==-1) {
@@ -669,8 +667,6 @@ xml:base="http://lib.ololo.cc/opds/">
 				}
 				success = true;
 			} finally {
-				if ( os!=null )
-					os.close();
 				if ( !success ) {
 					if ( outFile.exists() && outFile.isFile() ) {
 						L.w("deleting unsuccessully downloaded file " + outFile);

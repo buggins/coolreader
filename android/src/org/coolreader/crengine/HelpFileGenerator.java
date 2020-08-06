@@ -90,10 +90,8 @@ public class HelpFileGenerator {
 			return null;
 		}
 		File fn = getHelpFileName(dir);
-		try {
-			FileOutputStream os = new FileOutputStream(fn);
+		try (FileOutputStream os = new FileOutputStream(fn)) {
 			os.write(data);
-			os.close();
 		} catch (IOException e) {
 			return null;
 		}

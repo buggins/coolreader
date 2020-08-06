@@ -137,7 +137,7 @@ public class Engine {
 	public static File[] getDataDirectories(String subdir,
 											boolean createIfNotExists, boolean writableOnly) {
 		File[] roots = getStorageDirectories(writableOnly);
-		ArrayList<File> res = new ArrayList<File>(roots.length);
+		ArrayList<File> res = new ArrayList<>(roots.length);
 		for (File dir : roots) {
 			File dataDir = getSubdir(dir, ".cr3", createIfNotExists,
 					writableOnly);
@@ -463,8 +463,7 @@ public class Engine {
 	}
 
 	public static String loadFileUtf8(File file) {
-		try {
-			InputStream is = new FileInputStream(file);
+		try (InputStream is = new FileInputStream(file)) {
 			return loadResourceUtf8(is);
 		} catch (Exception e) {
 			log.w("cannot load resource from file " + file);
@@ -474,8 +473,7 @@ public class Engine {
 
 	public String loadResourceUtf8(int id) {
 		try {
-			InputStream is = this.mActivity.getResources().openRawResource(id);
-			return loadResourceUtf8(is);
+			return loadResourceUtf8(mActivity.getResources().openRawResource(id));
 		} catch (Exception e) {
 			log.e("cannot load resource " + id);
 			return null;
@@ -483,16 +481,14 @@ public class Engine {
 	}
 
 	public static String loadResourceUtf8(InputStream is) {
-		try {
-			int available = is.available();
+		try (InputStream inputStream = is) {
+			int available = inputStream.available();
 			if (available <= 0)
 				return null;
-			byte buf[] = new byte[available];
-			if (is.read(buf) != available)
+			byte[] buf = new byte[available];
+			if (inputStream.read(buf) != available)
 				throw new IOException("Resource not read fully");
-			is.close();
-			String utf8 = new String(buf, 0, available, "UTF8");
-			return utf8;
+			return new String(buf, 0, available, "UTF8");
 		} catch (Exception e) {
 			log.e("cannot load resource");
 			return null;
@@ -501,8 +497,7 @@ public class Engine {
 
 	public byte[] loadResourceBytes(int id) {
 		try {
-			InputStream is = this.mActivity.getResources().openRawResource(id);
-			return loadResourceBytes(is);
+			return loadResourceBytes(mActivity.getResources().openRawResource(id));
 		} catch (Exception e) {
 			log.e("cannot load resource");
 			return null;
@@ -512,11 +507,8 @@ public class Engine {
 	public static byte[] loadResourceBytes(File f) {
 		if (f == null || !f.isFile() || !f.exists())
 			return null;
-		FileInputStream is = null;
-		try {
-			is = new FileInputStream(f);
-			byte[] res = loadResourceBytes(is);
-			return res;
+		try (FileInputStream is = new FileInputStream(f)) {
+			return loadResourceBytes(is);
 		} catch (IOException e) {
 			log.e("Cannot open file " + f);
 		}
@@ -524,14 +516,13 @@ public class Engine {
 	}
 
 	public static byte[] loadResourceBytes(InputStream is) {
-		try {
-			int available = is.available();
+		try (InputStream inputStream = is) {
+			int available = inputStream.available();
 			if (available <= 0)
 				return null;
-			byte buf[] = new byte[available];
-			if (is.read(buf) != available)
+			byte[] buf = new byte[available];
+			if (inputStream.read(buf) != available)
 				throw new IOException("Resource not read fully");
-			is.close();
 			return buf;
 		} catch (Exception e) {
 			log.e("cannot load resource");
@@ -1094,13 +1085,10 @@ public class Engine {
 			log.e("File " + oldPlace.getAbsolutePath() + " does not exist!");
 			return false;
 		}
-		FileOutputStream os = null;
-		FileInputStream is = null;
-		try {
+		try (FileInputStream is = new FileInputStream(oldPlace);
+			 FileOutputStream os = new FileOutputStream(newPlace)) {
 			if (!newPlace.createNewFile())
 				return false; // cannot create file
-			os = new FileOutputStream(newPlace);
-			is = new FileInputStream(oldPlace);
 			byte[] buf = new byte[0x10000];
 			for (; ; ) {
 				int bytesRead = is.read(buf);
@@ -1114,18 +1102,6 @@ public class Engine {
 		} catch (IOException e) {
 			return false;
 		} finally {
-			try {
-				if (os != null)
-					os.close();
-			} catch (IOException ee) {
-				// ignore
-			}
-			try {
-				if (is != null)
-					is.close();
-			} catch (IOException ee) {
-				// ignore
-			}
 			if (removeNewFile)
 				newPlace.delete();
 		}
@@ -1284,7 +1260,7 @@ public class Engine {
 		try {
 			String reg = "(?i).*vold.*(vfat|ntfs|exfat|fat32|ext3|ext4).*rw.*";
 			String reg2 = "(?i).*fuse.*(vfat|ntfs|exfat|fat32|ext3|ext4).*rw.*";
-			String s = "";
+			StringBuilder s = new StringBuilder();
 			try {
 				final Process process = new ProcessBuilder().command("mount")
 						.redirectErrorStream(true).start();
@@ -1297,18 +1273,18 @@ public class Engine {
 					process.destroy();
 					return out;
 				}
-				final InputStream is = process.getInputStream();
-				final byte[] buffer = new byte[1024];
-				while (is.read(buffer) != -1) {
-					s = s + new String(buffer);
+				try (InputStream is = process.getInputStream()) {
+					final byte[] buffer = new byte[1024];
+					while (is.read(buffer) != -1) {
+						s.append(new String(buffer));
+					}
 				}
-				is.close();
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 
 			// parse output
-			final String[] lines = s.split("\n");
+			final String[] lines = s.toString().split("\n");
 			for (String line : lines) {
 				if (!line.toLowerCase(Locale.US).contains("asec")) {
 					log.d("mount entry: " + line);
