@@ -652,13 +652,10 @@ public class MainDB extends BaseDB {
 	}
 	
 	private void sortItems(ArrayList<FileInfo> items, final ItemGroupExtractor extractor) {
-		Collections.sort(items, new Comparator<FileInfo>() {
-			@Override
-			public int compare(FileInfo lhs, FileInfo rhs) {
-				String l = extractor.getComparisionField(lhs) != null ? extractor.getComparisionField(lhs).toUpperCase() : "";
-				String r = extractor.getComparisionField(rhs) != null ? extractor.getComparisionField(rhs).toUpperCase() : "";
-				return l.compareTo(r);
-			}
+		Collections.sort(items, (lhs, rhs) -> {
+			String l = extractor.getComparisionField(lhs) != null ? extractor.getComparisionField(lhs).toUpperCase() : "";
+			String r = extractor.getComparisionField(rhs) != null ? extractor.getComparisionField(rhs).toUpperCase() : "";
+			return l.compareTo(r);
 		});
 	}
 	

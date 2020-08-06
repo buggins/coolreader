@@ -1,10 +1,9 @@
 package org.coolreader.crengine;
 
-import org.coolreader.CoolReader;
-import org.coolreader.crengine.CRToolBar.OnActionHandler;
-
 import android.graphics.Rect;
 import android.view.ViewGroup;
+
+import org.coolreader.CoolReader;
 
 public class ReaderViewLayout extends ViewGroup implements Settings {
 
@@ -63,12 +62,9 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 			if (isToolbarVisible())
 				toolbarView.showOverflowMenu();
 			else
-				toolbarView.showAsPopup(this, new OnActionHandler() {
-					@Override
-					public boolean onActionSelected(ReaderAction item) {
-						activity.getReaderView().onAction(item);
-						return true;
-					}
+				toolbarView.showAsPopup(this, item -> {
+					activity.getReaderView().onAction(item);
+					return true;
 				}, null);
 //			new OnOverflowHandler() {
 //					@Override
@@ -212,14 +208,11 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 			statusView.layout(statusRc.left, statusRc.top, statusRc.right, statusRc.bottom);
 			
 			if (activity.isFullscreen()) {
-				BackgroundThread.instance().postGUI(new Runnable() {
-					@Override
-					public void run() {
-						log.v("Invalidating toolbar ++++++++++");
-						toolbarView.forceLayout();
-						contentView.getSurface().invalidate();
-						toolbarView.invalidate();
-					}
+				BackgroundThread.instance().postGUI(() -> {
+					log.v("Invalidating toolbar ++++++++++");
+					toolbarView.forceLayout();
+					contentView.getSurface().invalidate();
+					toolbarView.invalidate();
 				}, 100);
 			}
 			

@@ -1,10 +1,5 @@
 package org.coolreader.crengine;
 
-import java.util.ArrayList;
-
-import org.coolreader.CoolReader;
-import org.coolreader.R;
-
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Paint;
@@ -16,15 +11,17 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
+
+import java.util.ArrayList;
 
 public class BookmarksDlg  extends BaseDialog {
 	CoolReader mCoolReader;
@@ -104,12 +101,12 @@ public class BookmarksDlg  extends BaseDialog {
 				}
 				view = mInflater.inflate(res, null);
 			} else {
-				view = (View)convertView;
+				view = convertView;
 			}
-			TextView labelView = (TextView)view.findViewById(R.id.bookmark_item_shortcut);
-			TextView posTextView = (TextView)view.findViewById(R.id.bookmark_item_pos_text);
-			TextView titleTextView = (TextView)view.findViewById(R.id.bookmark_item_title);
-			TextView commentTextView = (TextView)view.findViewById(R.id.bookmark_item_comment_text);
+			TextView labelView = view.findViewById(R.id.bookmark_item_shortcut);
+			TextView posTextView = view.findViewById(R.id.bookmark_item_pos_text);
+			TextView titleTextView = view.findViewById(R.id.bookmark_item_title);
+			TextView commentTextView = view.findViewById(R.id.bookmark_item_comment_text);
 			if ( type==ITEM_CORRECTION && posTextView!=null )
 				posTextView.setPaintFlags(posTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG );
 				
@@ -210,14 +207,10 @@ public class BookmarksDlg  extends BaseDialog {
 			setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 			setShortcutMode(shortcutMode);
 			setLongClickable(true);
-			setOnItemLongClickListener(new OnItemLongClickListener() {
-				@Override
-				public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-						int position, long arg3) {
-					selectedItem = position;
-					openContextMenu(BookmarkList.this);
-					return true;
-				}
+			setOnItemLongClickListener((arg0, arg1, position, arg3) -> {
+				selectedItem = position;
+				openContextMenu(BookmarkList.this);
+				return true;
 			});
 		}
 
@@ -261,7 +254,7 @@ public class BookmarksDlg  extends BaseDialog {
 		mBookInfo = mReaderView.getBookInfo();
 		setPositiveButtonImage(Utils.resolveResourceIdByAttr(activity, R.attr.cr3_button_add_drawable, R.drawable.cr3_button_add), R.string.mi_bookmark_add);
 		View frame = mInflater.inflate(R.layout.bookmark_list_dialog, null);
-		ViewGroup body = (ViewGroup)frame.findViewById(R.id.bookmark_list);
+		ViewGroup body = frame.findViewById(R.id.bookmark_list);
 		mList = new BookmarkList(activity, false);
 		body.addView(mList);
 		setView(frame);
@@ -390,14 +383,12 @@ public class BookmarksDlg  extends BaseDialog {
 	    	MenuItem menuItem = menu.getItem(i);
 	    	if ( menuItem.getItemId()==R.id.bookmark_shortcut_goto || menuItem.getItemId()==R.id.bookmark_edit ||
 	    			menuItem.getItemId()==R.id.bookmark_delete )
-	    		menuItem.setEnabled(bm!=null);
+	    		menuItem.setEnabled(true);
 	    	if ( menuItem.getItemId()==R.id.bookmark_edit )
-	    		menuItem.setEnabled(bm!=null && (bm.getType()==Bookmark.TYPE_COMMENT || bm.getType()==Bookmark.TYPE_CORRECTION));
-	    	menuItem.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-				public boolean onMenuItemClick(MenuItem item) {
-					onContextItemSelected(item);
-					return true;
-				}
+	    		menuItem.setEnabled(bm.getType() == Bookmark.TYPE_COMMENT || bm.getType() == Bookmark.TYPE_CORRECTION);
+	    	menuItem.setOnMenuItemClickListener(item -> {
+				onContextItemSelected(item);
+				return true;
 			});
 	    }
 	}
@@ -410,7 +401,4 @@ public class BookmarksDlg  extends BaseDialog {
 		}
 		return super.onKeyDown(keyCode, event);
 	}
-	
-	
-
 }

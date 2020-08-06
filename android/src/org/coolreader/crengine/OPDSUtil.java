@@ -1,6 +1,13 @@
 package org.coolreader.crengine;
 
 import android.annotation.SuppressLint;
+
+import org.coolreader.CoolReader;
+import org.coolreader.crengine.Engine.DelayedProgress;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,19 +28,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Stack;
 import java.util.concurrent.Callable;
-import javax.net.ssl.HostnameVerifier;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import org.coolreader.CoolReader;
-import org.coolreader.crengine.Engine.DelayedProgress;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
 @SuppressLint("SimpleDateFormat")
 public class OPDSUtil {
@@ -487,12 +488,9 @@ xml:base="http://lib.ololo.cc/opds/">
 			}
 		}
 		private void onError(final String msg) {
-			BackgroundThread.instance().executeGUI(new Runnable() {
-				@Override
-				public void run() {
-					hideProgress();
-					callback.onError(msg);
-				}
+			BackgroundThread.instance().executeGUI(() -> {
+				hideProgress();
+				callback.onError(msg);
 			});
 		}
 		private void parseFeed( InputStream is ) throws Exception {
@@ -681,12 +679,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				}
 			}
 			L.d("Download finished");
-			BackgroundThread.instance().executeGUI(new Runnable() {
-				@Override
-				public void run() {
-					callback.onDownloadEnd(type, url, outFile);
-				}
-			});
+			BackgroundThread.instance().executeGUI(() -> callback.onDownloadEnd(type, url, outFile));
 		}
 		public static int findSubstring( byte[]buf, String str ) {
 			for ( int i=0; i<buf.length-str.length(); i++ ) {
@@ -771,12 +764,7 @@ xml:base="http://lib.ololo.cc/opds/">
 	                    sc.init(null, trustAllCerts, new java.security.SecureRandom());
 	                    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 	                    
-	                	https.setHostnameVerifier(new HostnameVerifier() {
-						    @Override
-						    public boolean verify(String arg0, SSLSession arg1) {
-							    return true;
-						    }
-					    });
+	                	https.setHostnameVerifier((arg0, arg1) -> true);
 					}
 					if ( !(conn instanceof HttpURLConnection) ) {
 						onError("Only HTTP supported");
@@ -916,15 +904,11 @@ xml:base="http://lib.ololo.cc/opds/">
 					// partially loaded
 					if ( progressShown )
 						Services.getEngine().hideProgress();
-					final ArrayList<EntryInfo> entries = new ArrayList<EntryInfo>();
-					entries.addAll(handler.entries);
-					BackgroundThread.instance().executeGUI(new Runnable() {
-						@Override
-						public void run() {
-							L.d("Parsing is partially. " + handler.entries.size() + " entries found -- updating view");
-							if (!callback.onEntries(handler.docInfo, entries))
-								cancel();
-						}
+					final ArrayList<EntryInfo> entries = new ArrayList<>(handler.entries);
+					BackgroundThread.instance().executeGUI(() -> {
+						L.d("Parsing is partially. " + handler.entries.size() + " entries found -- updating view");
+						if (!callback.onEntries(handler.docInfo, entries))
+							cancel();
 					});
 				}
 			} while (loadNext && !cancelled);
@@ -932,27 +916,21 @@ xml:base="http://lib.ololo.cc/opds/">
 				delayedProgress.cancel();
 			hideProgress();
 			if (itemsLoadedPartially && !cancelled) {
-				BackgroundThread.instance().executeGUI(new Runnable() {
-					@Override
-					public void run() {
-						L.d("Parsing is finished successfully. " + handler.entries.size() + " entries found");
-						hideProgress();
-						if (!callback.onFinish(handler.docInfo, handler.entries))
-							cancel();
-					}
+				BackgroundThread.instance().executeGUI(() -> {
+					L.d("Parsing is finished successfully. " + handler.entries.size() + " entries found");
+					hideProgress();
+					if (!callback.onFinish(handler.docInfo, handler.entries))
+						cancel();
 				});
 			}
 		}
 
 		public void run() {
-			BackgroundThread.instance().postBackground(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						runInternal();
-					} catch ( Exception e ) {
-						L.e("exception while opening OPDS", e);
-					}
+			BackgroundThread.instance().postBackground(() -> {
+				try {
+					runInternal();
+				} catch ( Exception e ) {
+					L.e("exception while opening OPDS", e);
 				}
 			});
 		}

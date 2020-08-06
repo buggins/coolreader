@@ -1,12 +1,20 @@
 package org.coolreader.crengine;
 
+import android.app.AlertDialog;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.os.Environment;
+import android.util.Log;
+
+import org.coolreader.R;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,14 +25,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.zip.ZipEntry;
-
-import org.coolreader.R;
-
-import android.app.AlertDialog;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.os.Environment;
-import android.util.Log;
 
 /**
  * CoolReader Engine class.
@@ -182,14 +182,12 @@ public class Engine {
 					log.i("exited task.work() "
 							+ task.getClass().getName());
 				// post success callback
-				BackgroundThread.instance().postGUI(new Runnable() {
-					public void run() {
-						if (LOG_ENGINE_TASKS)
-							log.i("running task.done() "
-									+ task.getClass().getName()
-									+ " in gui thread");
-						task.done();
-					}
+				BackgroundThread.instance().postGUI(() -> {
+					if (LOG_ENGINE_TASKS)
+						log.i("running task.done() "
+								+ task.getClass().getName()
+								+ " in gui thread");
+					task.done();
 				});
 				// } catch ( final FatalError e ) {
 				// TODO:
@@ -213,13 +211,11 @@ public class Engine {
 				log.e("exception while running task "
 						+ task.getClass().getName(), e);
 				// post error callback
-				BackgroundThread.instance().postGUI(new Runnable() {
-					public void run() {
-						log.e("running task.fail(" + e.getMessage()
-								+ ") " + task.getClass().getSimpleName()
-								+ " in gui thread ");
-						task.fail(e);
-					}
+				BackgroundThread.instance().postGUI(() -> {
+					log.e("running task.fail(" + e.getMessage()
+							+ ") " + task.getClass().getSimpleName()
+							+ " in gui thread ");
+					task.fail(e);
 				});
 			}
 		}
@@ -333,28 +329,20 @@ public class Engine {
 		 */
 		public void hide() {
 			this.cancelled = true;
-			BackgroundThread.instance().executeGUI(new Runnable() {
-				@Override
-				public void run() {
-					if (shown)
-						hideProgress();
-					shown = false;
-				}
-
+			BackgroundThread.instance().executeGUI(() -> {
+				if (shown)
+					hideProgress();
+				shown = false;
 			});
 		}
 
 		DelayedProgress(final int percent, final String msg, final int delayMillis) {
 			this.cancelled = false;
-			BackgroundThread.instance().postGUI(new Runnable() {
-				@Override
-				public void run() {
-					if (!cancelled) {
-						showProgress(percent, msg);
-						shown = true;
-					}
+			BackgroundThread.instance().postGUI(() -> {
+				if (!cancelled) {
+					showProgress(percent, msg);
+					shown = true;
 				}
-
 			}, delayMillis);
 		}
 	}
@@ -391,51 +379,49 @@ public class Engine {
 		log.v("showProgress(" + mainProgress + ", \"" + msg
 				+ "\") is called : " + Thread.currentThread().getName());
 		if (enable_progress) {
-			BackgroundThread.instance().executeGUI(new Runnable() {
-				public void run() {
-					// show progress
-					//log.v("showProgress() - in GUI thread");
-					if (progressId != nextProgressId) {
-						//log.v("showProgress() - skipping duplicate progress event");
-						return;
-					}
-					if (mProgress == null) {
-						//log.v("showProgress() - creating progress window");
-						try {
-							if (mActivity != null && mActivity.isStarted()) {
-								mProgress = new ProgressDialog(mActivity);
-								mProgress
-										.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-								if (progressIcon != null)
-									mProgress.setIcon(progressIcon);
-								else
-									mProgress.setIcon(R.mipmap.cr3_logo);
-								mProgress.setMax(10000);
-								mProgress.setCancelable(false);
-								mProgress.setProgress(mainProgress);
-								mProgress
-										.setTitle(mActivity
-												.getResources()
-												.getString(
-														R.string.progress_please_wait));
-								mProgress.setMessage(msg);
-								mProgress.show();
-								progressShown = true;
-							}
-						} catch (Exception e) {
-							Log.e("cr3",
-									"Exception while trying to show progress dialog",
-									e);
-							progressShown = false;
-							mProgress = null;
-						}
-					} else {
-						mProgress.setProgress(mainProgress);
-						mProgress.setMessage(msg);
-						if (!mProgress.isShowing()) {
+			BackgroundThread.instance().executeGUI(() -> {
+				// show progress
+				//log.v("showProgress() - in GUI thread");
+				if (progressId != nextProgressId) {
+					//log.v("showProgress() - skipping duplicate progress event");
+					return;
+				}
+				if (mProgress == null) {
+					//log.v("showProgress() - creating progress window");
+					try {
+						if (mActivity != null && mActivity.isStarted()) {
+							mProgress = new ProgressDialog(mActivity);
+							mProgress
+									.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+							if (progressIcon != null)
+								mProgress.setIcon(progressIcon);
+							else
+								mProgress.setIcon(R.mipmap.cr3_logo);
+							mProgress.setMax(10000);
+							mProgress.setCancelable(false);
+							mProgress.setProgress(mainProgress);
+							mProgress
+									.setTitle(mActivity
+											.getResources()
+											.getString(
+													R.string.progress_please_wait));
+							mProgress.setMessage(msg);
 							mProgress.show();
 							progressShown = true;
 						}
+					} catch (Exception e) {
+						Log.e("cr3",
+								"Exception while trying to show progress dialog",
+								e);
+						progressShown = false;
+						mProgress = null;
+					}
+				} else {
+					mProgress.setProgress(mainProgress);
+					mProgress.setMessage(msg);
+					if (!mProgress.isShowing()) {
+						mProgress.show();
+						progressShown = true;
 					}
 				}
 			});
@@ -451,25 +437,23 @@ public class Engine {
 		log.v("hideProgress() - is called : "
 				+ Thread.currentThread().getName());
 		// log.v("hideProgress() is called");
-		BackgroundThread.instance().executeGUI(new Runnable() {
-			public void run() {
-				// hide progress
+		BackgroundThread.instance().executeGUI(() -> {
+			// hide progress
 //				log.v("hideProgress() - in GUI thread");
-				if (progressId != nextProgressId) {
+			if (progressId != nextProgressId) {
 //					Log.v("cr3",
 //							"hideProgress() - skipping duplicate progress event");
-					return;
-				}
-				if (mProgress != null) {
-					// if ( mProgress.isShowing() )
-					// mProgress.hide();
-					progressShown = false;
-					progressIcon = null;
-					if (mProgress.isShowing())
-						mProgress.dismiss();
-					mProgress = null;
+				return;
+			}
+			if (mProgress != null) {
+				// if ( mProgress.isShowing() )
+				// mProgress.hide();
+				progressShown = false;
+				progressIcon = null;
+				if (mProgress.isShowing())
+					mProgress.dismiss();
+				mProgress = null;
 //					log.v("hideProgress() - in GUI thread, finished");
-				}
 			}
 		});
 	}
@@ -1506,10 +1490,8 @@ public class Engine {
 				"/storage/external_SD",
 		};
 		// collect mount points from all possible sources
-		HashSet<String> mountPointsToAdd = new HashSet<String>();
-		for (String point : knownMountPoints) {
-			mountPointsToAdd.add(point);
-		}
+		HashSet<String> mountPointsToAdd = new HashSet<>();
+		mountPointsToAdd.addAll(Arrays.asList(knownMountPoints));
 		mountPointsToAdd.addAll(mountedPathsFromMountCmd);
 		mountPointsToAdd.addAll(mountedPathsFromMountFile);
 		mountPointsToAdd.addAll(mountedPathsStorageDir);
@@ -1641,24 +1623,22 @@ public class Engine {
 		for (File dir : rootDirs)
 			dirs.add(new File(dir, "fonts"));
 		dirs.add(new File(Environment.getRootDirectory(), "fonts"));
-		ArrayList<String> fontPaths = new ArrayList<String>();
+		ArrayList<String> fontPaths = new ArrayList<>();
 		for (File fontDir : dirs) {
 			if (fontDir.isDirectory()) {
 				log.v("Scanning directory " + fontDir.getAbsolutePath()
 						+ " for font files");
 				// get font names
-				String[] fileList = fontDir.list(new FilenameFilter() {
-					public boolean accept(File dir, String filename) {
-						String lc = filename.toLowerCase();
-						return (lc.endsWith(".ttf") || lc.endsWith(".otf")
-								|| lc.endsWith(".pfb") || lc.endsWith(".pfa"))
+				String[] fileList = fontDir.list((dir, filename) -> {
+					String lc = filename.toLowerCase();
+					return (lc.endsWith(".ttf") || lc.endsWith(".otf")
+							|| lc.endsWith(".pfb") || lc.endsWith(".pfa"))
 //								&& !filename.endsWith("Fallback.ttf")
-								;
-					}
+							;
 				});
 				// append path
-				for (int i = 0; i < fileList.length; i++) {
-					String pathName = new File(fontDir, fileList[i])
+				for (String s : fileList) {
+					String pathName = new File(fontDir, s)
 							.getAbsolutePath();
 					fontPaths.add(pathName);
 					log.v("found font: " + pathName);
@@ -1670,8 +1650,8 @@ public class Engine {
 	}
 
 	public static final ArrayList<String> getFontsDirs() {
-		HashMap<String, Integer> dirsCapacity = new HashMap<String, Integer>();
-		ArrayList<File> dirs = new ArrayList<File>();
+		HashMap<String, Integer> dirsCapacity = new HashMap<>();
+		ArrayList<File> dirs = new ArrayList<>();
 		File[] dataDirs = getDataDirectories("fonts", false, false);
 		for (File dir : dataDirs)
 			dirs.add(dir);
@@ -1695,7 +1675,7 @@ public class Engine {
 				}
 			}
 		}
-		ArrayList<String> resArray = new ArrayList<String>();
+		ArrayList<String> resArray = new ArrayList<>();
 		Map.Entry<String, Integer> entry;
 		Iterator<Map.Entry<String, Integer>> it = dirsCapacity.entrySet().iterator();
 		while (it.hasNext()) {

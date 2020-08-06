@@ -32,20 +32,16 @@ public class ToastView {
         }
     }
 
-
 	private static View mReaderView;
-    private static LinkedBlockingQueue<Toast> queue = new LinkedBlockingQueue<Toast>();
+    private static LinkedBlockingQueue<Toast> queue = new LinkedBlockingQueue<>();
     private static AtomicBoolean showing = new AtomicBoolean(false);
     private static Handler mHandler = new Handler();
     private static PopupWindow window = null;
 
-    private static Runnable handleDismiss = new Runnable() {
-        @Override
-        public void run() {
-            if (window != null) {
-                window.dismiss();
-                show();
-            }
+    private static final Runnable handleDismiss = () -> {
+        if (window != null) {
+            window.dismiss();
+            show();
         }
     };
 

@@ -174,7 +174,7 @@ public class CRDBService extends Service {
     }
 
     public static class FileInfoCache {
-    	private ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+    	private ArrayList<FileInfo> list = new ArrayList<>();
     	public void add(FileInfo item) {
     		list.add(item);
     	}
@@ -224,14 +224,9 @@ public class CRDBService extends Service {
 		execTask(new Task("loadOPDSCatalogs") {
 			@Override
 			public void work() {
-				final ArrayList<FileInfo> list = new ArrayList<FileInfo>(); 
+				final ArrayList<FileInfo> list = new ArrayList<>();
 				mainDB.loadOPDSCatalogs(list);
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onOPDSCatalogsLoaded(list);
-					}
-				});
+				sendTask(handler, () -> callback.onOPDSCatalogsLoaded(list));
 			}
 		});
 	}
@@ -241,16 +236,10 @@ public class CRDBService extends Service {
 			@Override
 			public void work() {
 				final ArrayList<String> list = mainDB.loadSearchHistory(book);
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onSearchHistoryLoaded(list);
-					}
-				});
+				sendTask(handler, () -> callback.onSearchHistoryLoaded(list));
 			}
 		});
 	}
-
 
 	public void removeOPDSCatalog(final Long id) {
 		execTask(new Task("removeOPDSCatalog") {
@@ -286,12 +275,7 @@ public class CRDBService extends Service {
 			@Override
 			public void work() {
 				final byte[] data = coverDB.loadBookCoverpage(fileInfo.getPathName());
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onCoverpageLoaded(fileInfo, data);
-					}
-				});
+				sendTask(handler, () -> callback.onCoverpageLoaded(fileInfo, data));
 			}
 		});
 	}
@@ -335,12 +319,7 @@ public class CRDBService extends Service {
 			@Override
 			public void work() {
 				mainDB.loadAuthorsList(p);
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onItemGroupsLoaded(p);
-					}
-				});
+				sendTask(handler, () -> callback.onItemGroupsLoaded(p));
 			}
 		});
 	}
@@ -351,12 +330,7 @@ public class CRDBService extends Service {
 			@Override
 			public void work() {
 				mainDB.loadSeriesList(p);
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onItemGroupsLoaded(p);
-					}
-				});
+				sendTask(handler, () -> callback.onItemGroupsLoaded(p));
 			}
 		});
 	}
@@ -367,12 +341,7 @@ public class CRDBService extends Service {
 			@Override
 			public void work() {
 				mainDB.loadTitleList(p);
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onItemGroupsLoaded(p);
-					}
-				});
+				sendTask(handler, () -> callback.onItemGroupsLoaded(p));
 			}
 		});
 	}
@@ -381,14 +350,9 @@ public class CRDBService extends Service {
 		execTask(new Task("findAuthorBooks") {
 			@Override
 			public void work() {
-				final ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+				final ArrayList<FileInfo> list = new ArrayList<>();
 				mainDB.findAuthorBooks(list, authorId);
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onFileInfoListLoaded(list);
-					}
-				});
+				sendTask(handler, () -> callback.onFileInfoListLoaded(list));
 			}
 		});
 	}
@@ -397,14 +361,9 @@ public class CRDBService extends Service {
 		execTask(new Task("findSeriesBooks") {
 			@Override
 			public void work() {
-				final ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+				final ArrayList<FileInfo> list = new ArrayList<>();
 				mainDB.findSeriesBooks(list, seriesId);
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onFileInfoListLoaded(list);
-					}
-				});
+				sendTask(handler, () -> callback.onFileInfoListLoaded(list));
 			}
 		});
 	}
@@ -413,14 +372,9 @@ public class CRDBService extends Service {
 		execTask(new Task("findBooksByRating") {
 			@Override
 			public void work() {
-				final ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+				final ArrayList<FileInfo> list = new ArrayList<>();
 				mainDB.findBooksByRating(list, minRate, maxRate);
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onFileInfoListLoaded(list);
-					}
-				});
+				sendTask(handler, () -> callback.onFileInfoListLoaded(list));
 			}
 		});
 	}
@@ -429,14 +383,9 @@ public class CRDBService extends Service {
 		execTask(new Task("findBooksByState") {
 			@Override
 			public void work() {
-				final ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+				final ArrayList<FileInfo> list = new ArrayList<>();
 				mainDB.findBooksByState(list, state);
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onFileInfoListLoaded(list);
-					}
-				});
+				sendTask(handler, () -> callback.onFileInfoListLoaded(list));
 			}
 		});
 	}
@@ -446,12 +395,7 @@ public class CRDBService extends Service {
 			@Override
 			public void work() {
 				final ArrayList<BookInfo> list = mainDB.loadRecentBooks(maxCount);
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onRecentBooksListLoaded(list);
-					}
-				});
+				sendTask(handler, () -> callback.onRecentBooksListLoaded(list));
 			}
 		});
 	}
@@ -460,12 +404,7 @@ public class CRDBService extends Service {
 		execTask(new Task("sync") {
 			@Override
 			public void work() {
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.run();
-					}
-				});
+				sendTask(handler, callback);
 			}
 		});
 	}
@@ -475,12 +414,7 @@ public class CRDBService extends Service {
 			@Override
 			public void work() {
 				final ArrayList<FileInfo> list = mainDB.findByPatterns(maxCount, author, title, series, filename);
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onBooksFound(list);
-					}
-				});
+				sendTask(handler, () -> callback.onBooksFound(list));
 			}
 		});
 	}
@@ -507,12 +441,7 @@ public class CRDBService extends Service {
 			@Override
 			public void work() {
 				final BookInfo bookInfo = mainDB.loadBookInfo(fileInfo);
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onBooksInfoLoaded(bookInfo);
-					}
-				});
+				sendTask(handler, () -> callback.onBooksInfoLoaded(bookInfo));
 			}
 		});
 	}
@@ -522,12 +451,7 @@ public class CRDBService extends Service {
 			@Override
 			public void work() {
 				final ArrayList<FileInfo> list = mainDB.loadFileInfos(pathNames);
-				sendTask(handler, new Runnable() {
-					@Override
-					public void run() {
-						callback.onFileInfoListLoaded(list);
-					}
-				});
+				sendTask(handler, () -> callback.onFileInfoListLoaded(list));
 			}
 		});
 	}
@@ -600,12 +524,7 @@ public class CRDBService extends Service {
             @Override
             public void work() {
                 final ArrayList<FileInfo> favorites = mainDB.loadFavoriteFolders();
-                sendTask(handler, new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onFileInfoListLoaded(favorites);
-                    }
-                });
+                sendTask(handler, () -> callback.onFileInfoListLoaded(favorites));
             }
         });
    	}
