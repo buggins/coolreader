@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -66,8 +65,8 @@ public class DictsDlg extends BaseDialog {
 			View view;
 			int res = R.layout.dict_item;
 			view = mInflater.inflate(res, null);
-			TextView labelView = (TextView)view.findViewById(R.id.dict_item_shortcut);
-			TextView titleTextView = (TextView)view.findViewById(R.id.dict_item_title);
+			TextView labelView = view.findViewById(R.id.dict_item_shortcut);
+			TextView titleTextView = view.findViewById(R.id.dict_item_title);
 		 	Dictionaries.DictInfo b = (Dictionaries.DictInfo)getItem(position);
 			if ( labelView!=null ) {
 				labelView.setText(String.valueOf(position+1));
@@ -90,7 +89,7 @@ public class DictsDlg extends BaseDialog {
 			return Dictionaries.getDictList().length==0;
 		}
 
-		private ArrayList<DataSetObserver> observers = new ArrayList<DataSetObserver>();
+		private ArrayList<DataSetObserver> observers = new ArrayList<>();
 		
 		public void registerDataSetObserver(DataSetObserver observer) {
 			observers.add(observer);
@@ -103,18 +102,14 @@ public class DictsDlg extends BaseDialog {
 	
 	class DictList extends BaseListView {
 
-		public DictList( Context context, boolean shortcutMode ) {
+		public DictList(Context context) {
 			super(context, true);
 			setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 			setLongClickable(true);
 			setAdapter(new DictListAdapter());
-			setOnItemLongClickListener(new OnItemLongClickListener() {
-				@Override
-				public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-						int position, long arg3) {
-					openContextMenu(DictList.this);
-					return true;
-				}
+			setOnItemLongClickListener((arg0, arg1, position, arg3) -> {
+				openContextMenu(DictList.this);
+				return true;
 			});
 		}
 
@@ -146,8 +141,8 @@ public class DictsDlg extends BaseDialog {
 		mReaderView = readerView;
 		//setPositiveButtonImage(R.drawable.cr3_button_add, R.string.mi_Dict_add);
 		View frame = mInflater.inflate(R.layout.dict_list_dialog, null);
-		ViewGroup body = (ViewGroup)frame.findViewById(R.id.dict_list);
-		mList = new DictList(activity, false);
+		ViewGroup body = frame.findViewById(R.id.dict_list);
+		mList = new DictList(activity);
 		body.addView(mList);
 		setView(frame);
 		setFlingHandlers(mList, null, null);

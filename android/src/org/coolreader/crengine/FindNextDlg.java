@@ -1,7 +1,5 @@
 package org.coolreader.crengine;
 
-import org.coolreader.R;
-
 import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 import android.view.Gravity;
@@ -9,13 +7,11 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnKeyListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.PopupWindow;
-import android.widget.PopupWindow.OnDismissListener;
+
+import org.coolreader.R;
 
 public class FindNextDlg {
 	PopupWindow mWindow;
@@ -49,79 +45,53 @@ public class FindNextDlg {
 		//mReaderView.getS
 		
 		mWindow = new PopupWindow( mAnchor.getContext() );
-		mWindow.setTouchInterceptor(new OnTouchListener() {
-			
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
-					mReaderView.clearSelection();
-					mWindow.dismiss();
-					return true;
-				}
-				return false;
+		mWindow.setTouchInterceptor((v, event) -> {
+			if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
+				mReaderView.clearSelection();
+				mWindow.dismiss();
+				return true;
 			}
+			return false;
 		});
 		//super(panel);
 		mPanel = panel;
-		mPanel.findViewById(R.id.search_btn_prev).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				mReaderView.findNext(pattern, true, caseInsensitive);
-			}
-		});
-		mPanel.findViewById(R.id.search_btn_next).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				mReaderView.findNext(pattern, false, caseInsensitive);
-			}
-		});
-		mPanel.findViewById(R.id.search_btn_close).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				mReaderView.clearSelection();
-				mWindow.dismiss();
-			}
+		mPanel.findViewById(R.id.search_btn_prev).setOnClickListener(v -> mReaderView.findNext(pattern, true, caseInsensitive));
+		mPanel.findViewById(R.id.search_btn_next).setOnClickListener(v -> mReaderView.findNext(pattern, false, caseInsensitive));
+		mPanel.findViewById(R.id.search_btn_close).setOnClickListener(v -> {
+			mReaderView.clearSelection();
+			mWindow.dismiss();
 		});
 		mPanel.setFocusable(true);
-		mPanel.setOnKeyListener( new OnKeyListener() {
-
-			public boolean onKey(View v, int keyCode, KeyEvent event) {
-				if ( event.getAction()==KeyEvent.ACTION_UP ) {
-					switch ( keyCode ) {
-					case KeyEvent.KEYCODE_BACK:
-						mReaderView.clearSelection();
-						mWindow.dismiss();
-						return true;
-					case KeyEvent.KEYCODE_DPAD_LEFT:
-					case KeyEvent.KEYCODE_DPAD_UP:
-						mReaderView.findNext(pattern, true, caseInsensitive);
-						return true;
-					case KeyEvent.KEYCODE_DPAD_RIGHT:
-					case KeyEvent.KEYCODE_DPAD_DOWN:
-						mReaderView.findNext(pattern, false, caseInsensitive);
-						return true;
-					}
-				} else if ( event.getAction()==KeyEvent.ACTION_DOWN ) {
-						switch ( keyCode ) {
-						case KeyEvent.KEYCODE_BACK:
-						case KeyEvent.KEYCODE_DPAD_LEFT:
-						case KeyEvent.KEYCODE_DPAD_UP:
-						case KeyEvent.KEYCODE_DPAD_RIGHT:
-						case KeyEvent.KEYCODE_DPAD_DOWN:
-							return true;
-						}
-					}
-				if ( keyCode == KeyEvent.KEYCODE_BACK) {
+		mPanel.setOnKeyListener((v, keyCode, event) -> {
+			if ( event.getAction()==KeyEvent.ACTION_UP ) {
+				switch ( keyCode ) {
+				case KeyEvent.KEYCODE_BACK:
+					mReaderView.clearSelection();
+					mWindow.dismiss();
+					return true;
+				case KeyEvent.KEYCODE_DPAD_LEFT:
+				case KeyEvent.KEYCODE_DPAD_UP:
+					mReaderView.findNext(pattern, true, caseInsensitive);
+					return true;
+				case KeyEvent.KEYCODE_DPAD_RIGHT:
+				case KeyEvent.KEYCODE_DPAD_DOWN:
+					mReaderView.findNext(pattern, false, caseInsensitive);
 					return true;
 				}
-				return false;
-			}
-			
+			} else if ( event.getAction()==KeyEvent.ACTION_DOWN ) {
+					switch ( keyCode ) {
+					case KeyEvent.KEYCODE_BACK:
+					case KeyEvent.KEYCODE_DPAD_LEFT:
+					case KeyEvent.KEYCODE_DPAD_UP:
+					case KeyEvent.KEYCODE_DPAD_RIGHT:
+					case KeyEvent.KEYCODE_DPAD_DOWN:
+						return true;
+					}
+				}
+			return keyCode == KeyEvent.KEYCODE_BACK;
 		});
 
-		mWindow.setOnDismissListener(new OnDismissListener() {
-			@Override
-			public void onDismiss() {
-				mReaderView.clearSelection();
-			}
-		});
+		mWindow.setOnDismissListener(() -> mReaderView.clearSelection());
 		
 		mWindow.setBackgroundDrawable(new BitmapDrawable());
 		//mWindow.setAnimationStyle(android.R.style.Animation_Toast);

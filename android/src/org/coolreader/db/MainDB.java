@@ -152,17 +152,15 @@ public class MainDB extends BaseDB {
 				// So, after reading this field from the database, we must recheck the format by pathname.
 				// TODO: check format by mime-type or file contents...
 				log.i("Update 'format' field in table 'book'...");
-				Cursor rs = null;
-				HashMap<Long, Long> formatsMap = new HashMap<Long, Long>();
-				try {
-					String sql = "SELECT id, pathname, format FROM book";
-					rs = mDB.rawQuery(sql, null);
-					if ( rs.moveToFirst() ) {
+				String sql = "SELECT id, pathname, format FROM book";
+				HashMap<Long, Long> formatsMap = new HashMap<>();
+				try (Cursor rs = mDB.rawQuery(sql, null)) {
+					if (rs.moveToFirst()) {
 						do {
 							Long id = rs.getLong(0);
 							String pathname = rs.getString(1);
-							Long old_format = rs.getLong(2);
-							if (old_format > 1) {		// skip 'none', 'fb2' - ordinal is not changed
+							long old_format = rs.getLong(2);
+							if (old_format > 1) {        // skip 'none', 'fb2' - ordinal is not changed
 								DocumentFormat new_format = DocumentFormat.byExtension(pathname);
 								if (null != new_format && old_format != new_format.ordinal())
 									formatsMap.put(id, (long) new_format.ordinal());
@@ -171,18 +169,13 @@ public class MainDB extends BaseDB {
 					}
 				} catch (Exception e) {
 					Log.e("cr3", "exception while reading format", e);
-				} finally {
-					if ( rs!=null )
-						rs.close();
 				}
 				// Save new format in table 'book'...
 				if (!formatsMap.isEmpty()) {
-					SQLiteStatement stmt = null;
 					int updatedCount = 0;
-					try {
-						mDB.beginTransaction();
-						stmt = mDB.compileStatement("UPDATE book SET format = ? WHERE id = ?");
-						for (Map.Entry<Long, Long> record : formatsMap.entrySet() ) {
+					mDB.beginTransaction();
+					try (SQLiteStatement stmt = mDB.compileStatement("UPDATE book SET format = ? WHERE id = ?")) {
+						for (Map.Entry<Long, Long> record : formatsMap.entrySet()) {
 							stmt.clearBindings();
 							stmt.bindLong(1, record.getValue());
 							stmt.bindLong(2, record.getKey());
@@ -194,8 +187,6 @@ public class MainDB extends BaseDB {
 					} catch (Exception e) {
 						Log.e("cr3", "exception while reading format", e);
 					} finally {
-						if (null != stmt)
-							stmt.close();
 						mDB.endTransaction();
 					}
 				}
@@ -402,12 +393,10 @@ public class MainDB extends BaseDB {
 
 	public ArrayList<String> loadSearchHistory(BookInfo book) {
 		log.i("loadSearchHistory()");
-		Cursor rs = null;
-		ArrayList<String> list = new ArrayList<String>();
-		try {
-			String sql = "SELECT search_text FROM search_history where book_fk=" + book.getFileInfo().id + " ORDER BY id desc";
-			rs = mDB.rawQuery(sql, null);
-			if ( rs.moveToFirst() ) {
+		String sql = "SELECT search_text FROM search_history where book_fk=" + book.getFileInfo().id + " ORDER BY id desc";
+		ArrayList<String> list = new ArrayList<>();
+		try (Cursor rs = mDB.rawQuery(sql, null)) {
+			if (rs.moveToFirst()) {
 				do {
 					String sHist = rs.getString(0);
 					list.add(sHist);
@@ -415,9 +404,6 @@ public class MainDB extends BaseDB {
 			}
 		} catch (Exception e) {
 			Log.e("cr3", "exception while loading search history", e);
-		} finally {
-			if ( rs!=null )
-				rs.close();
 		}
 		return list;
 	}
@@ -425,16 +411,14 @@ public class MainDB extends BaseDB {
 	public boolean loadOPDSCatalogs(ArrayList<FileInfo> list) {
 		log.i("loadOPDSCatalogs()");
 		boolean found = false;
-		Cursor rs = null;
-		try {
-			String sql = "SELECT id, name, url, username, password FROM opds_catalog ORDER BY last_usage DESC, name";
-			rs = mDB.rawQuery(sql, null);
-			if ( rs.moveToFirst() ) {
+		String sql = "SELECT id, name, url, username, password FROM opds_catalog ORDER BY last_usage DESC, name";
+		try (Cursor rs = mDB.rawQuery(sql, null)) {
+			if (rs.moveToFirst()) {
 				// remove existing entries
 				list.clear();
 				// read DB
 				do {
-					Long id = rs.getLong(0);
+					long id = rs.getLong(0);
 					String name = rs.getString(1);
 					String url = rs.getString(2);
 					String username = rs.getString(3);
@@ -454,9 +438,6 @@ public class MainDB extends BaseDB {
 			}
 		} catch (Exception e) {
 			Log.e("cr3", "exception while loading list of OPDS catalogs", e);
-		} finally {
-			if ( rs!=null )
-				rs.close();
 		}
 		return found;
 	}
@@ -468,14 +449,12 @@ public class MainDB extends BaseDB {
 
     public ArrayList<FileInfo> loadFavoriteFolders() {
         log.i("loadFavoriteFolders()");
-        Cursor rs = null;
-        ArrayList<FileInfo> list = new ArrayList<FileInfo>();
-        try {
-            String sql = "SELECT id, path, position FROM favorite_folders ORDER BY position, path";
-            rs = mDB.rawQuery(sql, null);
+        ArrayList<FileInfo> list = new ArrayList<>();
+        String sql = "SELECT id, path, position FROM favorite_folders ORDER BY position, path";
+        try (Cursor rs = mDB.rawQuery(sql, null)) {
             if ( rs.moveToFirst() ) {
                 do {
-                    Long id = rs.getLong(0);
+                    long id = rs.getLong(0);
                     String path = rs.getString(1);
                     int pos = rs.getInt(2);
                     FileInfo favorite = new FileInfo(path);
@@ -487,9 +466,6 @@ public class MainDB extends BaseDB {
             }
         } catch (Exception e) {
             Log.e("cr3", "exception while loading list of favorite folders", e);
-        } finally {
-            if ( rs!=null )
-                rs.close();
         }
         return list;
     }
@@ -499,30 +475,20 @@ public class MainDB extends BaseDB {
     }
 
     public void updateFavoriteFolder(FileInfo folder){
-        SQLiteStatement stmt = null;
-        try {
-            stmt = mDB.compileStatement("UPDATE favorite_folders SET position = ?, path = ? WHERE id = ?");
-            stmt.bindLong(1, folder.seriesNumber);
-            stmt.bindString(2, folder.pathname);
-            stmt.bindLong(3, folder.id);
-            stmt.execute();
-        } finally {
-            if(stmt!= null)
-                stmt.close();
-        }
+		try (SQLiteStatement stmt = mDB.compileStatement("UPDATE favorite_folders SET position = ?, path = ? WHERE id = ?")) {
+			stmt.bindLong(1, folder.seriesNumber);
+			stmt.bindString(2, folder.pathname);
+			stmt.bindLong(3, folder.id);
+			stmt.execute();
+		}
     }
 
     public void createFavoritesFolder(FileInfo folder){
-        SQLiteStatement stmt = null;
-        try {
-            stmt = mDB.compileStatement("INSERT INTO favorite_folders (id, path, position) VALUES (NULL, ?, ?)");
-            stmt.bindString(1, folder.pathname);
-            stmt.bindLong(2, folder.seriesNumber);
-            folder.id = stmt.executeInsert();
-        } finally {
-            if(stmt!= null)
-                stmt.close();
-        }
+		try (SQLiteStatement stmt = mDB.compileStatement("INSERT INTO favorite_folders (id, path, position) VALUES (NULL, ?, ?)")) {
+			stmt.bindString(1, folder.pathname);
+			stmt.bindLong(2, folder.seriesNumber);
+			folder.id = stmt.executeInsert();
+		}
     }
 
 	//=======================================================================================
@@ -551,18 +517,11 @@ public class MainDB extends BaseDB {
 
 	public boolean findBy( Bookmark v, String condition ) {
 		boolean found = false;
-		Cursor rs = null;
-		try {
-			condition = " WHERE " + condition;
-			rs = mDB.rawQuery(READ_BOOKMARK_SQL +
-					condition, null);
-			if ( rs.moveToFirst() ) {
+		try (Cursor rs = mDB.rawQuery(READ_BOOKMARK_SQL + " WHERE " + condition, null)) {
+			if (rs.moveToFirst()) {
 				readBookmarkFromCursor( v, rs );
 				found = true;
 			}
-		} finally {
-			if ( rs!=null )
-				rs.close();
 		}
 		return found;
 	}
@@ -570,11 +529,7 @@ public class MainDB extends BaseDB {
 	public boolean load( ArrayList<Bookmark> list, String condition )
 	{
 		boolean found = false;
-		Cursor rs = null;
-		try {
-			condition = " WHERE " + condition;
-			rs = mDB.rawQuery(READ_BOOKMARK_SQL +
-					condition, null);
+		try (Cursor rs = mDB.rawQuery(READ_BOOKMARK_SQL + " WHERE " + condition, null)) {
 			if ( rs.moveToFirst() ) {
 				do {
 					Bookmark v = new Bookmark();
@@ -583,27 +538,18 @@ public class MainDB extends BaseDB {
 					found = true;
 				} while ( rs.moveToNext() );
 			}
-		} finally {
-			if ( rs!=null )
-				rs.close();
 		}
 		return found;
 	}
 
-	public boolean loadBookmarks(BookInfo book)
-	{
+	public void loadBookmarks(BookInfo book) {
 		if (book.getFileInfo().id == null)
-			return false; // unknown book id
-		boolean found = false;
-		ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>(); 
-		if ( load( bookmarks, "book_fk=" + book.getFileInfo().id + " ORDER BY type" ) ) {
-			found = true;
+			return; // unknown book id
+		ArrayList<Bookmark> bookmarks = new ArrayList<>();
+		if (load( bookmarks, "book_fk=" + book.getFileInfo().id + " ORDER BY type" ) ) {
 			book.setBookmarks(bookmarks);
 		}
-		return found;
 	}
-
-	
 	
 	//=======================================================================================
     // Item groups access code
@@ -621,7 +567,7 @@ public class MainDB extends BaseDB {
 		public abstract String getComparisionField(FileInfo item);
 		public String getItemFirstLetters(FileInfo item, int level) {
 			String name = getComparisionField(item); //.filename;
-			int l = name == null ? 0 : (name.length() < level ? name.length() : level);  
+			int l = name == null ? 0 : Math.min(name.length(), level);
 			return l > 0 ? name.substring(0, l).toUpperCase() : "_";
 		}
 	}
@@ -652,13 +598,10 @@ public class MainDB extends BaseDB {
 	}
 	
 	private void sortItems(ArrayList<FileInfo> items, final ItemGroupExtractor extractor) {
-		Collections.sort(items, new Comparator<FileInfo>() {
-			@Override
-			public int compare(FileInfo lhs, FileInfo rhs) {
-				String l = extractor.getComparisionField(lhs) != null ? extractor.getComparisionField(lhs).toUpperCase() : "";
-				String r = extractor.getComparisionField(rhs) != null ? extractor.getComparisionField(rhs).toUpperCase() : "";
-				return l.compareTo(r);
-			}
+		Collections.sort(items, (lhs, rhs) -> {
+			String l = extractor.getComparisionField(lhs) != null ? extractor.getComparisionField(lhs).toUpperCase() : "";
+			String r = extractor.getComparisionField(rhs) != null ? extractor.getComparisionField(rhs).toUpperCase() : "";
+			return l.compareTo(r);
 		});
 	}
 	
@@ -708,18 +651,16 @@ public class MainDB extends BaseDB {
 	
 	private boolean loadItemList(ArrayList<FileInfo> list, String sql, String groupPrefixTag) {
 		boolean found = false;
-		Cursor rs = null;
-		try {
-			rs = mDB.rawQuery(sql, null);
-			if ( rs.moveToFirst() ) {
+		try (Cursor rs = mDB.rawQuery(sql, null)) {
+			if (rs.moveToFirst()) {
 				// read DB
 				do {
 					long id = rs.getLong(0);
 					String name = rs.getString(1);
 					if (FileInfo.AUTHOR_PREFIX.equals(groupPrefixTag))
 						name = Utils.authorNameFileAs(name);
-					Integer bookCount = rs.getInt(2);
-					
+					int bookCount = rs.getInt(2);
+
 					FileInfo item = new FileInfo();
 					item.isDirectory = true;
 					item.pathname = groupPrefixTag + id;
@@ -728,16 +669,13 @@ public class MainDB extends BaseDB {
 					item.isScanned = true;
 					item.id = id;
 					item.tag = bookCount;
-					
+
 					list.add(item);
 					found = true;
 				} while (rs.moveToNext());
 			}
 		} catch (Exception e) {
 			Log.e("cr3", "exception while loading list of authors", e);
-		} finally {
-			if ( rs!=null )
-				rs.close();
 		}
 		sortItems(list, new ItemGroupFilenameExtractor());
 		return found;
@@ -826,11 +764,9 @@ public class MainDB extends BaseDB {
 	private String findAuthors(int maxCount, String authorPattern) {
 		StringBuilder buf = new StringBuilder();
 		String sql = "SELECT id, name FROM author";
-		Cursor rs = null;
 		int count = 0;
-		try {
-			rs = mDB.rawQuery(sql, null);
-			if ( rs.moveToFirst() ) {
+		try (Cursor rs = mDB.rawQuery(sql, null)) {
+			if (rs.moveToFirst()) {
 				do {
 					long id = rs.getLong(0);
 					String name = rs.getString(1);
@@ -844,9 +780,6 @@ public class MainDB extends BaseDB {
 					}
 				} while (rs.moveToNext());
 			}
-		} finally {
-			if ( rs!=null )
-				rs.close();
 		}
 		return buf.toString();
 	}
@@ -1048,17 +981,12 @@ public class MainDB extends BaseDB {
 		}
 		condition = buf.toString();
 		boolean found = false;
-		Cursor rs = null;
-		try { 
-			rs = mDB.rawQuery(READ_FILEINFO_SQL +
-					condition, null);
-			if ( rs.moveToFirst() ) {
-				readFileInfoFromCursor( fileInfo, rs );
+		try (Cursor rs = mDB.rawQuery(READ_FILEINFO_SQL +
+				condition, null)) {
+			if (rs.moveToFirst()) {
+				readFileInfoFromCursor(fileInfo, rs);
 				found = true;
 			}
-		} finally {
-			if ( rs!=null )
-				rs.close();
 		}
 		return found;
 	}
@@ -1077,29 +1005,24 @@ public class MainDB extends BaseDB {
 		}
 		condition = buf.toString();
 		boolean found = false;
-		Cursor rs = null;
-		try { 
-			rs = mDB.rawQuery(READ_FILEINFO_SQL +
-					condition, null);
+		try (Cursor rs = mDB.rawQuery(READ_FILEINFO_SQL +
+				condition, null)) {
 			if (rs.moveToFirst()) {
 				do {
 					FileInfo fileInfo = new FileInfo();
-					readFileInfoFromCursor( fileInfo, rs );
+					readFileInfoFromCursor(fileInfo, rs);
 					result.add(fileInfo);
 					found = true;
 				} while (rs.moveToNext());
 			}
-		} finally {
-			if ( rs!=null )
-				rs.close();
 		}
 		return found;
 	}
 
 	private HashMap<String, Bookmark> loadBookmarks(FileInfo fileInfo) {
-		HashMap<String, Bookmark> map = new HashMap<String, Bookmark>();
+		HashMap<String, Bookmark> map = new HashMap<>();
 		if (fileInfo.id != null) {
-			ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>();
+			ArrayList<Bookmark> bookmarks = new ArrayList<>();
 			if (load(bookmarks, "book_fk=" + fileInfo.id + " ORDER BY type")) {
 				for (Bookmark b : bookmarks) {
 					// delete non-unique bookmarks
@@ -1119,9 +1042,9 @@ public class MainDB extends BaseDB {
 	private boolean save( Bookmark v, long bookId )
 	{
 		Log.d("cr3db", "saving bookmark id=" + v.getId() + ", bookId=" + bookId + ", pos=" + v.getStartPos());
+		Bookmark oldValue = new Bookmark();
 		if ( v.getId()!=null ) {
 			// update
-			Bookmark oldValue = new Bookmark();
 			oldValue.setId(v.getId());
 			if ( findBy(oldValue, "book_fk=" + bookId + " AND id=" + v.getId()) ) {
 				// found, updating
@@ -1133,7 +1056,6 @@ public class MainDB extends BaseDB {
 				v.setId( h.insert() );
 			}
 		} else {
-			Bookmark oldValue = new Bookmark();
 			QueryHelper h = new QueryHelper(v, oldValue, bookId);
 			v.setId( h.insert() );
 		}
@@ -1268,25 +1190,21 @@ public class MainDB extends BaseDB {
 	private boolean findRecentBooks( ArrayList<FileInfo> list, int maxCount, int limit )
 	{
 		String sql = READ_FILEINFO_SQL + " WHERE last_access_time>0 ORDER BY last_access_time DESC LIMIT " + limit;
-		Cursor rs = null;
 		boolean found = false;
-		try {
-			rs = mDB.rawQuery(sql, null);
-			if ( rs.moveToFirst() ) {
+		try (Cursor rs = mDB.rawQuery(sql, null)) {
+			if (rs.moveToFirst()) {
 				do {
 					FileInfo fileInfo = new FileInfo();
-					readFileInfoFromCursor( fileInfo, rs );
-					if ( !fileInfo.fileExists() )
+					readFileInfoFromCursor(fileInfo, rs);
+					if (!fileInfo.fileExists())
 						continue;
 					list.add(fileInfo);
 					fileInfoCache.put(fileInfo);
 					found = true;
-					if ( list.size()>maxCount )
+					if (list.size() > maxCount)
 						break;
 				} while (rs.moveToNext());
 			}
-		} finally {
-			rs.close();
 		}
 		return found;
 	}
@@ -1359,28 +1277,23 @@ public class MainDB extends BaseDB {
 				buf.append(")");
 				String sql = buf.toString();
 				Log.d("cr3db", "going to execute " + sql);
-				SQLiteStatement stmt = null;
-				Long id = null;
-				try {
-					stmt = mDB.compileStatement(sql);
-					for ( int i=1; i<=values.size(); i++ ) {
-						Object v = values.get(i-1);
-						valueBuf.append(v!=null ? v.toString() : "null");
+				long id;
+				try (SQLiteStatement stmt = mDB.compileStatement(sql)) {
+					for (int i = 1; i <= values.size(); i++) {
+						Object v = values.get(i - 1);
+						valueBuf.append(v != null ? v.toString() : "null");
 						valueBuf.append(",");
-						if ( v==null )
+						if (v == null)
 							stmt.bindNull(i);
 						else if (v instanceof String)
-							stmt.bindString(i, (String)v);
+							stmt.bindString(i, (String) v);
 						else if (v instanceof Long)
-							stmt.bindLong(i, (Long)v);
+							stmt.bindLong(i, (Long) v);
 						else if (v instanceof Double)
-							stmt.bindDouble(i, (Double)v);
+							stmt.bindDouble(i, (Double) v);
 					}
 					id = stmt.executeInsert();
 					Log.d("cr3db", "added book, id=" + id + ", query=" + sql);
-				} finally {
-					if ( stmt!=null )
-						stmt.close();
 				}
 				return id;
 			} catch ( Exception e ) {
@@ -1500,24 +1413,19 @@ public class MainDB extends BaseDB {
 	}
 
 	private boolean findBooks(String sql, ArrayList<FileInfo> list) {
-		Cursor rs = null;
 		boolean found = false;
-		try {
-			rs = mDB.rawQuery(sql, null);
-			if ( rs.moveToFirst() ) {
+		try (Cursor rs = mDB.rawQuery(sql, null)) {
+			if (rs.moveToFirst()) {
 				do {
 					FileInfo fileInfo = new FileInfo();
-					readFileInfoFromCursor( fileInfo, rs );
-					if ( !fileInfo.fileExists() )
+					readFileInfoFromCursor(fileInfo, rs);
+					if (!fileInfo.fileExists())
 						continue;
 					fileInfoCache.put(fileInfo);
 					list.add(new FileInfo(fileInfo));
 					found = true;
 				} while (rs.moveToNext());
 			}
-		} finally {
-			if (rs != null)
-				rs.close();
 		}
 		return found;
 	}
@@ -1525,11 +1433,9 @@ public class MainDB extends BaseDB {
 	private String findSeries(int maxCount, String seriesPattern) {
 		StringBuilder buf = new StringBuilder();
 		String sql = "SELECT id, name FROM series";
-		Cursor rs = null;
 		int count = 0;
-		try {
-			rs = mDB.rawQuery(sql, null);
-			if ( rs.moveToFirst() ) {
+		try (Cursor rs = mDB.rawQuery(sql, null)) {
+			if (rs.moveToFirst()) {
 				do {
 					long id = rs.getLong(0);
 					String name = rs.getString(1);
@@ -1543,9 +1449,6 @@ public class MainDB extends BaseDB {
 					}
 				} while (rs.moveToNext());
 			}
-		} finally {
-			if ( rs!=null )
-				rs.close();
 		}
 		return buf.toString();
 	}
@@ -1553,7 +1456,7 @@ public class MainDB extends BaseDB {
 	public ArrayList<FileInfo> findByPatterns(int maxCount, String author, String title, String series, String filename)
 	{
 		beginReading();
-		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		ArrayList<FileInfo> list = new ArrayList<>();
 		
 		StringBuilder buf = new StringBuilder();
 		boolean hasCondition = false;
@@ -1563,7 +1466,7 @@ public class MainDB extends BaseDB {
 				return list;
 			if ( buf.length()>0 )
 				buf.append(" AND ");
-			buf.append(" b.id IN (SELECT ba.book_fk FROM book_author ba WHERE ba.author_fk IN (" + authorIds + ")) ");
+			buf.append(" b.id IN (SELECT ba.book_fk FROM book_author ba WHERE ba.author_fk IN (").append(authorIds).append(")) ");
 			hasCondition = true;
 		}
 		if ( series!=null && series.length()>0 ) {
@@ -1572,7 +1475,7 @@ public class MainDB extends BaseDB {
 				return list;
 			if ( buf.length()>0 )
 				buf.append(" AND ");
-			buf.append(" b.series_fk IN (" + seriesIds + ") ");
+			buf.append(" b.series_fk IN (").append(seriesIds).append(") ");
 			hasCondition = true;
 		}
 		if ( title!=null && title.length()>0 ) {
@@ -1587,35 +1490,30 @@ public class MainDB extends BaseDB {
 		String condition = buf.length()==0 ? "" : " WHERE " + buf.toString();
 		String sql = READ_FILEINFO_SQL + condition;
 		Log.d("cr3", "sql: " + sql );
-		Cursor rs = null;
-		try { 
-			rs = mDB.rawQuery(sql, null);
-			if ( rs.moveToFirst() ) {
+		try (Cursor rs = mDB.rawQuery(sql, null)) {
+			if (rs.moveToFirst()) {
 				int count = 0;
 				do {
-					if ( title!=null && title.length()>0 )
+					if (title != null && title.length() > 0)
 						if (!Utils.matchPattern(rs.getString(5), title))
 							continue;
-					if ( filename!=null && filename.length()>0 )
+					if (filename != null && filename.length() > 0)
 						if (!Utils.matchPattern(rs.getString(3), filename))
 							continue;
-					FileInfo fi = new FileInfo(); 
-					readFileInfoFromCursor( fi, rs );
+					FileInfo fi = new FileInfo();
+					readFileInfoFromCursor(fi, rs);
 					list.add(fi);
 					fileInfoCache.put(fi);
 					count++;
-				} while ( count<maxCount && rs.moveToNext() );
+				} while (count < maxCount && rs.moveToNext());
 			}
-		} finally {
-			if ( rs!=null )
-				rs.close();
 		}
 		endReading();
 		return list;
 	}
 
 	public ArrayList<FileInfo> loadFileInfos(ArrayList<String> pathNames) {
-		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		ArrayList<FileInfo> list = new ArrayList<>();
 		if (!isOpened())
 			return list;
 		try {
@@ -1737,12 +1635,10 @@ public class MainDB extends BaseDB {
 		Log.i("cr3", "checking data for path correction");
 		beginReading();
 		int rowCount = 0;
-		Map<String, Long> map = new HashMap<String, Long>();
-		Cursor rs = null;
-		try {
-			String sql = "SELECT id, pathname FROM book";
-			rs = mDB.rawQuery(sql, null);
-			if ( rs.moveToFirst() ) {
+		Map<String, Long> map = new HashMap<>();
+		String sql = "SELECT id, pathname FROM book";
+		try (Cursor rs = mDB.rawQuery(sql, null)) {
+			if (rs.moveToFirst()) {
 				// read DB
 				do {
 					Long id = rs.getLong(0);
@@ -1760,9 +1656,6 @@ public class MainDB extends BaseDB {
 			}
 		} catch (Exception e) {
 			Log.e("cr3", "exception while loading list books to correct paths", e);
-		} finally {
-			if ( rs!=null )
-				rs.close();
 		}
 		Log.i("cr3", "Total rows: " + rowCount + ", " + (map.size() > 0 ? "need to correct " + map.size() + " items" : "no corrections required"));
 		if (map.size() > 0) {
@@ -1789,5 +1682,4 @@ public class MainDB extends BaseDB {
 			pathCorrectionRequired = false;
 		}
 	}
-
 }

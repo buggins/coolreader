@@ -1,7 +1,6 @@
 package org.coolreader.crengine;
 
 import org.coolreader.R;
-import org.coolreader.db.CRDBService;
 
 import android.content.Context;
 import android.database.DataSetObserver;
@@ -10,7 +9,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -93,8 +91,8 @@ public class SearchDlg extends BaseDialog {
 			View view;
 			int res = R.layout.dict_item;
 			view = mInflater.inflate(res, null);
-			TextView labelView = (TextView)view.findViewById(R.id.dict_item_shortcut);
-			TextView titleTextView = (TextView)view.findViewById(R.id.dict_item_title);
+			TextView labelView = view.findViewById(R.id.dict_item_shortcut);
+			TextView titleTextView = view.findViewById(R.id.dict_item_title);
 			String s = (String)getItem(position);
 			if ( labelView!=null ) {
 				labelView.setText(String.valueOf(position+1));
@@ -117,7 +115,7 @@ public class SearchDlg extends BaseDialog {
 			return mSearches.size()==0;
 		}
 
-		private ArrayList<DataSetObserver> observers = new ArrayList<DataSetObserver>();
+		private ArrayList<DataSetObserver> observers = new ArrayList<>();
 
 		public void registerDataSetObserver(DataSetObserver observer) {
 			observers.add(observer);
@@ -129,19 +127,14 @@ public class SearchDlg extends BaseDialog {
 	}
 
 	class SearchList extends BaseListView {
-
-		public SearchList(Context context, boolean shortcutMode ) {
+		public SearchList(Context context) {
 			super(context, true);
 			setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 			setLongClickable(true);
 			setAdapter(new SearchDlg.SearchListAdapter());
-			setOnItemLongClickListener(new OnItemLongClickListener() {
-				@Override
-				public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-											   int position, long arg3) {
-					openContextMenu(SearchDlg.SearchList.this);
-					return true;
-				}
+			setOnItemLongClickListener((arg0, arg1, position, arg3) -> {
+				openContextMenu(SearchList.this);
+				return true;
 			});
 		}
 
@@ -162,19 +155,16 @@ public class SearchDlg extends BaseDialog {
 		setPositiveButtonImage(R.drawable.cr3_button_find, R.string.action_search);
         mInflater = LayoutInflater.from(getContext());
         mDialogView = mInflater.inflate(R.layout.search_dialog, null);
-    	mEditView = (EditText)mDialogView.findViewById(R.id.search_text);
+    	mEditView = mDialogView.findViewById(R.id.search_text);
     	if (initialText != null)
     		mEditView.setText(initialText);
-    	mCaseSensitive = (CheckBox)mDialogView.findViewById(R.id.search_case_sensitive);
-    	mReverse = (CheckBox)mDialogView.findViewById(R.id.search_reverse);
-		activity.getDB().loadSearchHistory(this.mBookInfo, new CRDBService.SearchHistoryLoadingCallback() {
-			@Override
-			public void onSearchHistoryLoaded(ArrayList<String> searches) {
-				mSearches = searches;
-				ViewGroup body = (ViewGroup)mDialogView.findViewById(R.id.history_list);
-				mList = new SearchDlg.SearchList(activity, false);
-				body.addView(mList);
-			}
+    	mCaseSensitive = mDialogView.findViewById(R.id.search_case_sensitive);
+    	mReverse = mDialogView.findViewById(R.id.search_reverse);
+		activity.getDB().loadSearchHistory(this.mBookInfo, searches -> {
+			mSearches = searches;
+			ViewGroup body = mDialogView.findViewById(R.id.history_list);
+			mList = new SearchList(activity);
+			body.addView(mList);
 		});
 		//setView(mDialogView);
 		//setFlingHandlers(mList, null, null);

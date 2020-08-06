@@ -1,7 +1,5 @@
 package org.coolreader.crengine;
 
-import org.coolreader.crengine.Engine.HyphDict;
-
 import android.os.Handler;
 
 public class Services {
@@ -52,16 +50,13 @@ public class Services {
 			return;
 		}
 		mCoverpageManager.clear();
-		BackgroundThread.instance().postBackground(new Runnable() {
-			@Override
-			public void run() {
-				log.i("Stopping background thread");
-				if (mEngine == null)
-					return;
-				mEngine.uninit();
-				BackgroundThread.instance().quit();
-				mEngine = null;
-			}
+		BackgroundThread.instance().postBackground(() -> {
+			log.i("Stopping background thread");
+			if (mEngine == null)
+				return;
+			mEngine.uninit();
+			BackgroundThread.instance().quit();
+			mEngine = null;
 		});
 		mHistory = null;
 		mScanner = null;

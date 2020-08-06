@@ -68,22 +68,16 @@ public class TTS {
 	 * @return proxy
 	 */
 	private Object createOnInitProxy( final OnInitListener listener ) {
-		InvocationHandler handler = new InvocationHandler() {
-
-			@Override
-			public Object invoke(Object proxy, Method method, Object[] args)
-					throws Throwable {
-                log.d("invoking OnInit - " + method.getName());
-				if ( "onInit".equals(method.getName()) ) {
-					int status = (Integer)(args[0]);
-					log.i("OnInitListener.onInit() is called: status=" + status);
-					if ( status==SUCCESS )
-						initialized = true;
-					listener.onInit(status);
-				}
-				return null;
+		InvocationHandler handler = (proxy, method, args) -> {
+			log.d("invoking OnInit - " + method.getName());
+			if ( "onInit".equals(method.getName()) ) {
+				int status = (Integer)(args[0]);
+				log.i("OnInitListener.onInit() is called: status=" + status);
+				if ( status==SUCCESS )
+					initialized = true;
+				listener.onInit(status);
 			}
-			
+			return null;
 		};
 		return Proxy.newProxyInstance(
 				onInitListenerClass.getClassLoader(),
@@ -96,20 +90,14 @@ public class TTS {
 	 * @return proxy
 	 */
 	private Object createOnUtteranceCompletedListener( final OnUtteranceCompletedListener listener ) {
-		InvocationHandler handler = new InvocationHandler() {
-
-			@Override
-			public Object invoke(Object proxy, Method method, Object[] args)
-					throws Throwable {
-				log.d("invoking OnUtteranceCompletedListener - " + method.getName());
-                if ( "onUtteranceCompleted".equals(method.getName()) ) {
-					String id = (String)(args[0]);
-					log.d("OnUtteranceCompletedListener.onUtteranceCompleted() is called: id=" + id);
-					listener.onUtteranceCompleted(id);
-				}
-				return null;
+		InvocationHandler handler = (proxy, method, args) -> {
+			log.d("invoking OnUtteranceCompletedListener - " + method.getName());
+			if ("onUtteranceCompleted".equals(method.getName())) {
+				String id = (String)(args[0]);
+				log.d("OnUtteranceCompletedListener.onUtteranceCompleted() is called: id=" + id);
+				listener.onUtteranceCompleted(id);
 			}
-			
+			return null;
 		};
 		return Proxy.newProxyInstance(
 				onUtteranceCompletedListenerClass.getClassLoader(),

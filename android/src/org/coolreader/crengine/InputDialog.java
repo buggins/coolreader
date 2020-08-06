@@ -35,7 +35,7 @@ public class InputDialog extends BaseDialog {
         if (promptView != null) {
         	promptView.setText(prompt);
         }
-        SeekBar seekBar = (SeekBar)layout.findViewById(R.id.goto_position_seek_bar);
+        SeekBar seekBar = layout.findViewById(R.id.goto_position_seek_bar);
         if (seekBar != null) {
         	seekBar.setMax(maxValue - minValue);
         	seekBar.setProgress(currentValue);
