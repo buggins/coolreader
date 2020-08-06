@@ -137,6 +137,12 @@ protected:
     shaping_mode_t _shapingMode;
     bool _fallbackFontIsSet;
     LVFontRef _fallbackFont;
+    /**
+     * @brief Fallback mask for this fallback font.
+     * 0 - for normal (not fallback) font
+     * <any> - A mask with only one bit set, the number of which corresponds to the number in the fallback font chain.
+     */
+    lUInt32 _fallback_mask;
     bool           _embolden; // fake/synthetized bold
     bool           _allowKerning;
     FT_Pos         _embolden_half_strength; // for emboldening with Harfbuzz
@@ -153,6 +159,15 @@ protected:
 public:
 
     // fallback font support
+    
+    virtual lUInt32 getFallbackMask() const {
+        return _fallback_mask;
+    }
+
+    virtual void setFallbackMask(lUInt32 mask) {
+        _fallback_mask = mask;
+    }
+
     /// set fallback font for this font
     virtual void setFallbackFont(LVFontRef font);
 
