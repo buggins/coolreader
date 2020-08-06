@@ -1,15 +1,12 @@
 package org.coolreader.crengine;
 
-import org.coolreader.R;
-
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.PopupWindow.OnDismissListener;
+
+import org.coolreader.R;
 
 public class ProgressPopup {
 	private BaseActivity context;
@@ -31,19 +28,11 @@ public class ProgressPopup {
 	        popup.setOutsideTouchable(true);
 	        popup.showAtLocation(parent, Gravity.CENTER, 0, 0);
 	        popup.setTouchable(true);
-	        popup.setTouchInterceptor(new OnTouchListener() {
-				@Override
-				public boolean onTouch(View v, MotionEvent event) {
-					// process & ignore all touch events
-					return true;
-				}
+	        popup.setTouchInterceptor((v, event) -> {
+				// process & ignore all touch events
+				return true;
 			});
-	        popup.setOnDismissListener(new OnDismissListener() {
-				@Override
-				public void onDismiss() {
-					popup = null;
-				}
-			});
+	        popup.setOnDismissListener(() -> popup = null);
 		}
 	}
 	public void hide() {

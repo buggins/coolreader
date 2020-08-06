@@ -29,14 +29,11 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class CRToolBar extends ViewGroup {
-
-
 	private static final Logger log = L.create("tb");
 	
 	final private BaseActivity activity;
-	private ArrayList<ReaderAction> actions = new ArrayList<ReaderAction>();
-	private ArrayList<ReaderAction> iconActions = new ArrayList<ReaderAction>();
-	private boolean showLabels;
+	private ArrayList<ReaderAction> actions = new ArrayList<>();
+	private ArrayList<ReaderAction> iconActions = new ArrayList<>();
 	private int buttonHeight;
 	private int buttonWidth;
 	private int itemHeight; // multiline mode, line height 
@@ -48,7 +45,6 @@ public class CRToolBar extends ViewGroup {
 	private int BUTTON_SPACING = 4;
 	private int BAR_SPACING = 4;
 	private int buttonAlpha = 0xFF;
-	private int textColor = 0x000000;
 	private int windowDividerHeight = 0; // for popup window, height of divider below buttons
 	private ImageButton overflowButton;
 	private LayoutInflater inflater;
@@ -64,7 +60,7 @@ public class CRToolBar extends ViewGroup {
 		this.popupLocation = popupLocation;
 	}
 
-	private ArrayList<ReaderAction> itemsOverflow = new ArrayList<ReaderAction>();
+	private ArrayList<ReaderAction> itemsOverflow = new ArrayList<>();
 	
 	public void setButtonAlpha(int alpha) {
 		this.buttonAlpha = alpha;
@@ -96,8 +92,8 @@ public class CRToolBar extends ViewGroup {
 
 	private LinearLayout inflateItem(ReaderAction action) {
 		final LinearLayout view = (LinearLayout)inflater.inflate(R.layout.popup_toolbar_item, null);
-		ImageView icon = (ImageView)view.findViewById(R.id.action_icon);
-		TextView label = (TextView)view.findViewById(R.id.action_label);
+		ImageView icon = view.findViewById(R.id.action_icon);
+		TextView label = view.findViewById(R.id.action_label);
 		icon.setImageResource(action != null ? action.iconId : Utils.resolveResourceIdByAttr(activity, R.attr.cr3_button_more_drawable, R.drawable.cr3_button_more));
 		//icon.setMinimumHeight(buttonHeight);
 		icon.setMinimumWidth(buttonWidth);
@@ -111,7 +107,6 @@ public class CRToolBar extends ViewGroup {
 		super(context);
 		this.activity = context;
 		this.actions = actions;
-		this.showLabels = multiline;
 		this.isMultiline = multiline;
 		this.preferredItemHeight = activity.getPreferredItemHeight(); //context.getPreferredItemHeight();
 		this.inflater = LayoutInflater.from(activity);
@@ -132,21 +127,16 @@ public class CRToolBar extends ViewGroup {
 		if (activity instanceof CoolReader) {
 			//Properties settings = ((CoolReader)activity).getReaderView().getSettings();
 			//this.optionAppearance = settings.getInt(ReaderView.PROP_TOOLBAR_APPEARANCE, 0);
-			optionAppearance = Integer.valueOf(((CoolReader)activity).getToolbarAppearance());
+			optionAppearance = Integer.parseInt(((CoolReader)activity).getToolbarAppearance());
 			toolbarScale = 1.0f;
 			grayIcons = false;
 			switch (optionAppearance) {
 				case Settings.VIEWER_TOOLBAR_100:           // 0
-					toolbarScale = 1.0f;
-					grayIcons = false;
-					break;
 				case Settings.VIEWER_TOOLBAR_100_gray:      // 1
 					toolbarScale = 1.0f;
-					grayIcons = false;
 					break;
 				case Settings.VIEWER_TOOLBAR_75:            // 2
 					toolbarScale = 0.75f;
-					grayIcons = false;
 					break;
 				case Settings.VIEWER_TOOLBAR_75_gray:       // 3
 					toolbarScale = 0.75f;
@@ -154,7 +144,6 @@ public class CRToolBar extends ViewGroup {
 					break;
 				case Settings.VIEWER_TOOLBAR_50:            // 4
 					toolbarScale = 0.5f;
-					grayIcons = false;
 					break;
 				case Settings.VIEWER_TOOLBAR_50_gray:       // 5
 					toolbarScale = 0.5f;
@@ -166,7 +155,6 @@ public class CRToolBar extends ViewGroup {
 		buttonWidth = buttonHeight = sz - BUTTON_SPACING;
 		if (isMultiline)
 			buttonHeight = sz / 2;
-		int dpi = activity.getDensityDpi();
 		for (int i=0; i<actions.size(); i++) {
 			ReaderAction item = actions.get(i);
 			int iconId = item.iconId;
@@ -331,14 +319,11 @@ public class CRToolBar extends ViewGroup {
 		ib.layout(rc.left, rc.top, rc.right, rc.bottom);
 		if (item == null)
 			overflowButton = ib;
-		ib.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if (item != null)
-					onButtonClick(item);
-				else
-					showOverflowMenu();
-			}
+		ib.setOnClickListener(v -> {
+			if (item != null)
+				onButtonClick(item);
+			else
+				showOverflowMenu();
 		});
 		ib.setAlpha(nightMode ? 0x60 : buttonAlpha);
 		addView(ib);
@@ -410,14 +395,11 @@ public class CRToolBar extends ViewGroup {
         			item.layout(layoutItemRect.left, layoutItemRect.top, layoutItemRect.right, layoutItemRect.bottom);
         			//item.forceLayout();
         			addView(item);
-        			item.setOnClickListener(new OnClickListener() {
-						@Override
-						public void onClick(View v) {
-							if (action != null)
-								onButtonClick(action);
-							else
-								showOverflowMenu();
-						}
+        			item.setOnClickListener(v -> {
+						if (action != null)
+							onButtonClick(action);
+						else
+							showOverflowMenu();
 					});
         		}
 //        		addView(scroll);
@@ -584,55 +566,42 @@ public class CRToolBar extends ViewGroup {
 		}
 		final ReaderAction foundLongMenuAction = longMenuAction;
 		
-		popup.setTouchInterceptor(new OnTouchListener() {
-			
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
-					popup.dismiss();
-					return true;
-				}
-				return false;
-			}
-		});
-		tb.setOnActionHandler(new OnActionHandler() {
-			@Override
-			public boolean onActionSelected(ReaderAction item) {
+		popup.setTouchInterceptor((v, event) -> {
+			if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
 				popup.dismiss();
-				return onActionHandler.onActionSelected(item);
+				return true;
 			}
+			return false;
+		});
+		tb.setOnActionHandler(item -> {
+			popup.dismiss();
+			return onActionHandler.onActionSelected(item);
 		});
 		if (onOverflowHandler != null)
-			tb.setOnOverflowHandler(new OnOverflowHandler() {
-				@Override
-				public boolean onOverflowActions(ArrayList<ReaderAction> actions) {
-					popup.dismiss();
-					return onOverflowHandler.onOverflowActions(actions);
-				}
+			tb.setOnOverflowHandler(actions1 -> {
+				popup.dismiss();
+				return onOverflowHandler.onOverflowActions(actions1);
 			});
 		// close on menu or back keys
 		tb.setFocusable(true);
 		tb.setFocusableInTouchMode(true);
-		tb.setOnKeyListener(new OnKeyListener() {
-			@Override
-			public boolean onKey(View view, int keyCode, KeyEvent event) {
-				if (event.getAction() == KeyEvent.ACTION_DOWN) {
-					if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
-						//popup.dismiss();
-						return true;
-					}
-				} else if (event.getAction() == KeyEvent.ACTION_UP) {
-					if (keyCode == KeyEvent.KEYCODE_MENU && foundLongMenuAction != null && event.getDownTime() >= 500) {
-						popup.dismiss();
-						return onActionHandler.onActionSelected(foundLongMenuAction);
-					}
-					if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
-						popup.dismiss();
-						return true;
-					}
+		tb.setOnKeyListener((view, keyCode, event) -> {
+			if (event.getAction() == KeyEvent.ACTION_DOWN) {
+				if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
+					//popup.dismiss();
+					return true;
 				}
-				return false;
+			} else if (event.getAction() == KeyEvent.ACTION_UP) {
+				if (keyCode == KeyEvent.KEYCODE_MENU && foundLongMenuAction != null && event.getDownTime() >= 500) {
+					popup.dismiss();
+					return onActionHandler.onActionSelected(foundLongMenuAction);
+				}
+				if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
+					popup.dismiss();
+					return true;
+				}
 			}
+			return false;
 		});
 		//popup.setBackgroundDrawable(new BitmapDrawable());
 		popup.setWidth(WindowManager.LayoutParams.FILL_PARENT);

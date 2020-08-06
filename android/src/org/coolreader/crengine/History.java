@@ -7,7 +7,7 @@ import org.coolreader.db.CRDBService;
 import android.util.Log;
 
 public class History extends FileInfoChangeSource {
-	private ArrayList<BookInfo> mBooks = new ArrayList<BookInfo>();
+	private ArrayList<BookInfo> mBooks = new ArrayList<>();
 	private FileInfo mRecentBooksFolder;
 
 	public History(Scanner scanner)
@@ -29,26 +29,23 @@ public class History extends FileInfoChangeSource {
 		return mBooks.get(1);
 	}
 
-	public interface BookInfoLoadedCallack {
+	public interface BookInfoLoadedCallback {
 		void onBookInfoLoaded(BookInfo bookInfo);
 	}
 	
-	public void getOrCreateBookInfo(final CRDBService.LocalBinder db, final FileInfo file, final BookInfoLoadedCallack callback)
+	public void getOrCreateBookInfo(final CRDBService.LocalBinder db, final FileInfo file, final BookInfoLoadedCallback callback)
 	{
 		BookInfo res = getBookInfo(file);
 		if (res != null) {
 			callback.onBookInfoLoaded(res);
 			return;
 		}
-		db.loadBookInfo(file, new CRDBService.BookInfoLoadingCallback() {
-			@Override
-			public void onBooksInfoLoaded(BookInfo bookInfo) {
-				if (bookInfo == null) {
-					bookInfo = new BookInfo(file);
-					mBooks.add(0, bookInfo);
-				}
-				callback.onBookInfoLoaded(bookInfo);
+		db.loadBookInfo(file, bookInfo -> {
+			if (bookInfo == null) {
+				bookInfo = new BookInfo(file);
+				mBooks.add(0, bookInfo);
 			}
+			callback.onBookInfoLoaded(bookInfo);
 		});
 	}
 	
@@ -142,27 +139,18 @@ public class History extends FileInfoChangeSource {
 			callback.onRecentBooksListLoaded(mBooks);
 		} else {
 			// not yet loaded. Wait until ready: sync with DB thread.
-			db.sync(new Runnable() {
-				@Override
-				public void run() {
-					callback.onRecentBooksListLoaded(mBooks);
-				}
-			});
+			db.sync(() -> callback.onRecentBooksListLoaded(mBooks));
 		}
-			
 	}
 	
 	public boolean loadFromDB(final CRDBService.LocalBinder db, int maxItems )
 	{
 		Log.v("cr3", "History.loadFromDB()");
 		mRecentBooksFolder = mScanner.getRecentDir();
-		db.loadRecentBooks(100, new CRDBService.RecentBooksLoadingCallback() {
-			@Override
-			public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
-				if (bookList != null) {
-					mBooks = bookList;
-					updateRecentDir();
-				}
+		db.loadRecentBooks(100, bookList -> {
+			if (bookList != null) {
+				mBooks = bookList;
+				updateRecentDir();
 			}
 		});
 		if ( mRecentBooksFolder==null )

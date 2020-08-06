@@ -14,7 +14,7 @@ public class Scanner extends FileInfoChangeSource {
 	
 	public static final Logger log = L.create("sc");
 	
-	HashMap<String, FileInfo> mFileList = new HashMap<String, FileInfo>();
+	HashMap<String, FileInfo> mFileList = new HashMap<>();
 //	ArrayList<FileInfo> mFilesForParsing = new ArrayList<FileInfo>();
 	FileInfo mRoot;
 	
@@ -229,7 +229,7 @@ public class Scanner extends FileInfoChangeSource {
 		log.d("scanDirectoryFiles(" + baseDir.getPathName() + ") ");
 		
 		// store list of files to scan
-		ArrayList<String> pathNames = new ArrayList<String>();
+		ArrayList<String> pathNames = new ArrayList<>();
 		for (int i=0; i < baseDir.fileCount(); i++) {
 			pathNames.add(baseDir.getFile(i).getPathName());
 		}
@@ -247,81 +247,71 @@ public class Scanner extends FileInfoChangeSource {
 		}
 
 		// load book infos for files
-		db.loadFileInfos(pathNames, new CRDBService.FileInfoLoadingCallback() {
-			@Override
-			public void onFileInfoListLoaded(ArrayList<FileInfo> list) {
-				log.v("onFileInfoListLoaded");
-				// GUI thread
-				final ArrayList<FileInfo> filesForParsing = new ArrayList<FileInfo>();
-				ArrayList<FileInfo> filesForSave = new ArrayList<FileInfo>();
-				Map<String, FileInfo> mapOfFilesFoundInDb = new HashMap<String, FileInfo>();
-				for (FileInfo f : list)
-					mapOfFilesFoundInDb.put(f.getPathName(), f);
-						
-				for (int i=0; i<baseDir.fileCount(); i++) {
-					FileInfo item = baseDir.getFile(i);
-					FileInfo fromDB = mapOfFilesFoundInDb.get(item.getPathName());
-					if (fromDB != null) {
-						// use DB value
-						baseDir.setFile(i, fromDB);
+		db.loadFileInfos(pathNames, list -> {
+			log.v("onFileInfoListLoaded");
+			// GUI thread
+			final ArrayList<FileInfo> filesForParsing = new ArrayList<>();
+			ArrayList<FileInfo> filesForSave = new ArrayList<>();
+			Map<String, FileInfo> mapOfFilesFoundInDb = new HashMap<>();
+			for (FileInfo f : list)
+				mapOfFilesFoundInDb.put(f.getPathName(), f);
+
+			for (int i=0; i<baseDir.fileCount(); i++) {
+				FileInfo item = baseDir.getFile(i);
+				FileInfo fromDB = mapOfFilesFoundInDb.get(item.getPathName());
+				if (fromDB != null) {
+					// use DB value
+					baseDir.setFile(i, fromDB);
+				} else {
+					// not found in DB
+					if (item.format.canParseProperties()) {
+						filesForParsing.add(new FileInfo(item));
 					} else {
-						// not found in DB
-						if (item.format.canParseProperties()) {
-							filesForParsing.add(new FileInfo(item));
-						} else {
-							filesForSave.add(new FileInfo(item));
-						}
+						filesForSave.add(new FileInfo(item));
 					}
 				}
-				if (filesForSave.size() > 0) {
-					db.saveFileInfos(filesForSave);
-				}
-				if (filesForParsing.size() == 0 || control.isStopped()) {
-					readyCallback.run();
-					return;
-				}
-				// scan files in Background thread
-				BackgroundThread.instance().postBackground(new Runnable() {
-					@Override
-					public void run() {
-						// Background thread
-						final ArrayList<FileInfo> filesForSave = new ArrayList<FileInfo>();
-						try {
-							int count = filesForParsing.size();
-							for ( int i=0; i<count; i++ ) {
-								if (control.isStopped())
-									break;
-								progress.setProgress(i * 10000 / count);
-								FileInfo item = filesForParsing.get(i);
-								engine.scanBookProperties(item);
-								filesForSave.add(item);
-							}
-						} catch (Exception e) {
-							L.e("Exception while scanning", e);
-						}
-						progress.hide();
-						// jump to GUI thread
-						BackgroundThread.instance().postGUI(new Runnable() {
-							@Override
-							public void run() {
-								// GUI thread
-								try {
-									if (filesForSave.size() > 0) {
-										db.saveFileInfos(filesForSave);
-									}
-									for (FileInfo file : filesForSave)
-										baseDir.setFile(file);
-								} catch (Exception e ) {
-									L.e("Exception while scanning", e);
-								}
-								// call finish handler
-								readyCallback.run();
-							}
-						});
-					}
-					
-				});
 			}
+			if (filesForSave.size() > 0) {
+				db.saveFileInfos(filesForSave);
+			}
+			if (filesForParsing.size() == 0 || control.isStopped()) {
+				readyCallback.run();
+				return;
+			}
+			// scan files in Background thread
+			BackgroundThread.instance().postBackground(() -> {
+				// Background thread
+				final ArrayList<FileInfo> filesForSave1 = new ArrayList<>();
+				try {
+					int count = filesForParsing.size();
+					for ( int i=0; i<count; i++ ) {
+						if (control.isStopped())
+							break;
+						progress.setProgress(i * 10000 / count);
+						FileInfo item = filesForParsing.get(i);
+						engine.scanBookProperties(item);
+						filesForSave1.add(item);
+					}
+				} catch (Exception e) {
+					L.e("Exception while scanning", e);
+				}
+				progress.hide();
+				// jump to GUI thread
+				BackgroundThread.instance().postGUI(() -> {
+					// GUI thread
+					try {
+						if (filesForSave1.size() > 0) {
+							db.saveFileInfos(filesForSave1);
+						}
+						for (FileInfo file : filesForSave1)
+							baseDir.setFile(file);
+					} catch (Exception e ) {
+						L.e("Exception while scanning", e);
+					}
+					// call finish handler
+					readyCallback.run();
+				});
+			});
 		});
 	}
 	
@@ -354,7 +344,6 @@ public class Scanner extends FileInfoChangeSource {
 					if (scanControl.isStopped()) {
 						// scan is stopped
 						readyCallback.run();
-						return;
 					} else {
 						baseDir.isScanned = true;
 
@@ -365,7 +354,7 @@ public class Scanner extends FileInfoChangeSource {
 								return;
 							}
 							// make list of subdirectories to scan
-							final ArrayList<FileInfo> dirsToScan = new ArrayList<FileInfo>(); 
+							final ArrayList<FileInfo> dirsToScan = new ArrayList<>();
 							for ( int i=baseDir.dirCount()-1; i>=0; i-- ) {
 								File dir = new File(baseDir.getDir(i).getPathName());
 								if (!engine.getPathCorrector().isRecursivePath(dir))
@@ -382,12 +371,7 @@ public class Scanner extends FileInfoChangeSource {
 									final FileInfo dir = dirsToScan.get(0);
 									dirsToScan.remove(0);
 									final Runnable callback = this;
-									BackgroundThread.instance().postGUI(new Runnable() {
-										@Override
-										public void run() {
-											scanDirectory(db, dir, callback, true, scanControl);
-										}
-									});
+									BackgroundThread.instance().postGUI(() -> scanDirectory(db, dir, callback, true, scanControl));
 								}
 							};
 							dirIterator.run();
@@ -556,8 +540,7 @@ public class Scanner extends FileInfoChangeSource {
 		FileInfo opds = mRoot.findItemByPathName(FileInfo.OPDS_LIST_TAG);
 		if (opds == null)
 			return null;
-		FileInfo repository = opds.findItemByPathName(path);
-		return repository;
+		return opds.findItemByPathName(path);
 	}
 	
 	public FileInfo createSeriesRoot() {

@@ -1,14 +1,13 @@
 package org.coolreader.plugins;
 
+import org.coolreader.crengine.Utils;
+
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-
-import org.coolreader.crengine.Utils;
 
 
 public class OnlineStoreAuthors implements AsyncResponse {
-	private ArrayList<OnlineStoreAuthor> list = new ArrayList<OnlineStoreAuthor>();
+	private ArrayList<OnlineStoreAuthor> list = new ArrayList<>();
 	public void add(OnlineStoreAuthor author) {
 		list.add(author);
 	}
@@ -19,12 +18,6 @@ public class OnlineStoreAuthors implements AsyncResponse {
 		return list.get(index);
 	}
 	public void sortByName() {
-		Collections.sort(list, new Comparator<OnlineStoreAuthor>() {
-			@Override
-			public int compare(OnlineStoreAuthor lhs, OnlineStoreAuthor rhs) {
-				return Utils.cmp(lhs.lastName, rhs.lastName);
-			}
-		});
-		
+		Collections.sort(list, (lhs, rhs) -> Utils.cmp(lhs.lastName, rhs.lastName));
 	}
 }

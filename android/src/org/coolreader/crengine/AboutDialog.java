@@ -1,15 +1,6 @@
 package org.coolreader.crengine;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Random;
-
-import org.coolreader.CoolReader;
-import org.coolreader.CoolReader.DonationListener;
-import org.coolreader.R;
-
 import android.content.ActivityNotFoundException;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
@@ -19,6 +10,13 @@ import android.widget.Button;
 import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
 import android.widget.TextView;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
 
 public class AboutDialog extends BaseDialog implements TabContentFactory {
 	final CoolReader mCoolReader;
@@ -51,23 +49,13 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 			btn.setEnabled(false);
 			btn.setText(R.string.dlg_about_donation_installed);
 		} else {
-			btn.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					installPackage(packageName);
-				}
-			});
+			btn.setOnClickListener(v -> installPackage(packageName));
 		}
 	}
 	
 	private void setupInAppDonationButton( final Button btn, final double amount ) {
 		btn.setText("$" + amount);
-		btn.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mCoolReader.makeDonation(amount);
-			}
-		});
+		btn.setOnClickListener(v -> mCoolReader.makeDonation(amount));
 	}
 	
 	private void updateTotalDonations() {
@@ -91,11 +79,11 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		setTitle(R.string.dlg_about);
 		LayoutInflater inflater = LayoutInflater.from(getContext());
 		TabHost tabs = (TabHost)inflater.inflate(R.layout.about_dialog, null);
-		mAppTab = (View)inflater.inflate(R.layout.about_dialog_app, null);
+		mAppTab = inflater.inflate(R.layout.about_dialog_app, null);
 		((TextView)mAppTab.findViewById(R.id.version)).setText("Cool Reader " + mCoolReader.getVersion());
 
-		mDirsTab = (View)inflater.inflate(R.layout.about_dialog_dirs, null);
-		TextView fonts_dir = (TextView)mDirsTab.findViewById(R.id.fonts_dirs);
+		mDirsTab = inflater.inflate(R.layout.about_dialog_dirs, null);
+		TextView fonts_dir = mDirsTab.findViewById(R.id.fonts_dirs);
 
 		ArrayList<String> fontsDirs = Engine.getFontsDirs();
 		StringBuilder sbuf = new StringBuilder();
@@ -119,7 +107,7 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 				sbuf.append("\n");
 			}
 		}
-		TextView textures_dir = (TextView)mDirsTab.findViewById(R.id.textures_dirs);
+		TextView textures_dir = mDirsTab.findViewById(R.id.textures_dirs);
 		textures_dir.setText(sbuf.toString());
 
 		ArrayList<String> backgroundsDirs = Engine.getDataDirs(Engine.DataDirType.BackgroundsDirs);
@@ -132,7 +120,7 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 				sbuf.append("\n");
 			}
 		}
-		TextView backgrounds_dir = (TextView)mDirsTab.findViewById(R.id.backgrounds_dirs);
+		TextView backgrounds_dir = mDirsTab.findViewById(R.id.backgrounds_dirs);
 		backgrounds_dir.setText(sbuf.toString());
 
 		ArrayList<String> hyphDirs = Engine.getDataDirs(Engine.DataDirType.HyphsDirs);
@@ -145,39 +133,29 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 				sbuf.append("\n");
 			}
 		}
-		TextView hyph_dir = (TextView)mDirsTab.findViewById(R.id.hyph_dirs);
+		TextView hyph_dir = mDirsTab.findViewById(R.id.hyph_dirs);
 		hyph_dir.setText(sbuf.toString());
 
-		mLicenseTab = (View)inflater.inflate(R.layout.about_dialog_license, null);
+		mLicenseTab = inflater.inflate(R.layout.about_dialog_license, null);
 		String license = Engine.getInstance(mCoolReader).loadResourceUtf8(R.raw.license);
 		((TextView)mLicenseTab.findViewById(R.id.license)).setText(license);
 		boolean billingSupported = mCoolReader.isDonationSupported();
-		mDonationTab = (View)inflater.inflate(billingSupported ? R.layout.about_dialog_donation2 : R.layout.about_dialog_donation, null);
+		mDonationTab = inflater.inflate(billingSupported ? R.layout.about_dialog_donation2 : R.layout.about_dialog_donation, null);
 
 		if (billingSupported) {
-			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_vip), 100);
-			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_platinum), 30);
-			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_gold), 10);
-			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_silver), 3);
-			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), 1);
-			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_iron), 0.3);
+			setupInAppDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_vip), 100);
+			setupInAppDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_platinum), 30);
+			setupInAppDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_gold), 10);
+			setupInAppDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_silver), 3);
+			setupInAppDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), 1);
+			setupInAppDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_iron), 0.3);
 			updateTotalDonations();
-			mCoolReader.setDonationListener(new DonationListener() {
-				@Override
-		    	public void onDonationTotalChanged(double total) {
-		    		updateTotalDonations();
-		    	}
-		    });
-			setOnDismissListener(new OnDismissListener() {
-				@Override
-				public void onDismiss(DialogInterface dialog) {
-					mCoolReader.setDonationListener(null);
-				}
-			});
+			mCoolReader.setDonationListener(total -> updateTotalDonations());
+			setOnDismissListener(dialog -> mCoolReader.setDonationListener(null));
 		} else {
-			setupDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_gold), "org.coolreader.donation.gold");
-			setupDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_silver), "org.coolreader.donation.silver");
-			setupDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), "org.coolreader.donation.bronze");
+			setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_gold), "org.coolreader.donation.gold");
+			setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_silver), "org.coolreader.donation.silver");
+			setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), "org.coolreader.donation.bronze");
 		}
 		
 		tabs.setup();

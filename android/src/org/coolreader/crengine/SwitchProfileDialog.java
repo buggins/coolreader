@@ -1,17 +1,14 @@
 package org.coolreader.crengine;
 
-import org.coolreader.CoolReader;
-import org.coolreader.R;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.TextView;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
 
 public class SwitchProfileDialog extends BaseDialog {
 	CoolReader mCoolReader;
@@ -26,22 +23,14 @@ public class SwitchProfileDialog extends BaseDialog {
 		this.mReaderView = readerView;
 		this.mListView = new BaseListView(getContext(), false);
 		currentProfile = this.mCoolReader.getCurrentProfile(); // TODO: get from settings
-		mListView.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> listview, View view,
-					int position, long id) {
-				mReaderView.setCurrentProfile(position + 1);
-				SwitchProfileDialog.this.dismiss();
-			}
+		mListView.setOnItemClickListener((listview, view, position, id) -> {
+			mReaderView.setCurrentProfile(position + 1);
+			SwitchProfileDialog.this.dismiss();
 		});
-		mListView.setOnItemLongClickListener(new OnItemLongClickListener() {
-			@Override
-			public boolean onItemLongClick(AdapterView<?> listview, View view,
-					int position, long id) {
-				// TODO: rename?
-				SwitchProfileDialog.this.dismiss();
-				return true;
-			}
+		mListView.setOnItemLongClickListener((listview, view, position, id) -> {
+			// TODO: rename?
+			SwitchProfileDialog.this.dismiss();
+			return true;
 		});
 		mListView.setLongClickable(true);
 		mListView.setClickable(true);
@@ -49,22 +38,11 @@ public class SwitchProfileDialog extends BaseDialog {
 		mListView.setFocusableInTouchMode(true);
 		mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 		setView(mListView);
-		setFlingHandlers(mListView, new Runnable() {
-			@Override
-			public void run() {
-				// cancel
-				SwitchProfileDialog.this.dismiss();
-			}
-		}, new Runnable() {
-			@Override
-			public void run() {
-				// 
-				SwitchProfileDialog.this.dismiss();
-			}
-		});
+		//
+		// cancel
+		setFlingHandlers(mListView, SwitchProfileDialog.this::dismiss, SwitchProfileDialog.this::dismiss);
 		mListView.setAdapter(new ProfileListAdapter());
 	}
-
 	
 	private String[] profileNames = {
 		"Profile 1",
@@ -110,20 +88,17 @@ public class SwitchProfileDialog extends BaseDialog {
 				LayoutInflater inflater = LayoutInflater.from(getContext());
 				view = inflater.inflate(R.layout.profile_item, null);
 			} else {
-				view = (View)convertView;
+				view = convertView;
 			}
-			RadioButton cb = (RadioButton)view.findViewById(R.id.option_value_check);
-			TextView title = (TextView)view.findViewById(R.id.option_value_text);
+			RadioButton cb = view.findViewById(R.id.option_value_check);
+			TextView title = view.findViewById(R.id.option_value_text);
 			cb.setChecked(isCurrentItem);
 			cb.setFocusable(false);
 			cb.setFocusableInTouchMode(false);
 			title.setText(profileNames[position]);
-			cb.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					mReaderView.setCurrentProfile(position + 1);
-					SwitchProfileDialog.this.dismiss();
-				}
+			cb.setOnClickListener(v -> {
+				mReaderView.setCurrentProfile(position + 1);
+				SwitchProfileDialog.this.dismiss();
 			});
 			return view;
 		}
