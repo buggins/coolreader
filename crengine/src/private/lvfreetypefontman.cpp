@@ -85,6 +85,10 @@ bool LVFreeTypeFontManager::SetFallbackFontFaces(lString8 facesStr)
                 if (!exist) {
                     _fallbackFontFaces.add(face);
                     count++;
+                    if (8*sizeof(lUInt32) == count) {
+                        CRLog::warn("Too many fallback fonts specified, skipping.");
+                        break;
+                    }
                 }
             }
         }
@@ -135,13 +139,14 @@ LVFontRef LVFreeTypeFontManager::GetFallbackFont(int size, int index) {
     else if (size > 16)
         size &= 0xFFFE;
     LVFontCacheItem *item = _cache.findFallback(_fallbackFontFaces[index], size);
+    lUInt32 fallbackMask = 1 << index;
     if (!item->getFont().isNull()) {
-        item->getFont()->setFallbackIndex(index);
+        item->getFont()->setFallbackMask(fallbackMask);
         return item->getFont();
     }
-    LVFontRef fontRef = GetFont(size, 400, false, css_ff_sans_serif, _fallbackFontFaces[index], 0, -1);
+    LVFontRef fontRef = GetFont(size, 400, false, css_ff_sans_serif, _fallbackFontFaces[index], 0, -1, false);
     if (!fontRef.isNull())
-        fontRef->setFallbackIndex(index);
+        fontRef->setFallbackMask(fallbackMask);
     return fontRef;
 }
 
@@ -163,9 +168,9 @@ LVFontRef LVFreeTypeFontManager::GetFallbackFont(int size, int weight, bool ital
     // assuming the fallback font is a standalone regular font
     // without any bold/italic sibling.
     // GetFont() works just as fine when we need specified weigh and italic.
-    LVFontRef fontRef = GetFont(size, weight, italic, css_ff_sans_serif, _fallbackFontFaces[index], 0, -1);
+    LVFontRef fontRef = GetFont(size, weight, italic, css_ff_sans_serif, _fallbackFontFaces[index], 0, -1, false);
     if (!fontRef.isNull())
-        fontRef->setFallbackIndex(index);
+        fontRef->setFallbackMask(1 << index);
     return fontRef;
 }
 
@@ -801,7 +806,7 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
         }
         for (int i = 0; i < _fallbackFontFaces.length(); i++) {
             if (item->getDef()->getTypeFace() == _fallbackFontFaces[i]) {
-                ref->setFallbackIndex(i);
+                ref->setFallbackMask(1 << i);
                 break;
             }
         }

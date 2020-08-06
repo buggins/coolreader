@@ -79,7 +79,7 @@ public class Dictionaries {
 		new DictInfo("PopupDictionary", "Popup Dictionary", "com.barisatamer.popupdictionary", "com.barisatamer.popupdictionary.MainActivity", "android.intent.action.VIEW", 0),
 		new DictInfo("GoogleTranslate", "Google Translate", "com.google.android.apps.translate", "com.google.android.apps.translate.TranslateActivity", Intent.ACTION_SEND, 4),
 		new DictInfo("YandexTranslate", "Yandex Translate", "ru.yandex.translate", "ru.yandex.translate.ui.activities.MainActivity", Intent.ACTION_SEND, 4),
-		new DictInfo("Wikipedia", "Wikipedia", "org.wikipedia", "org.wikipedia.main.MainActivity", Intent.ACTION_SEND, 4),
+		new DictInfo("Wikipedia", "Wikipedia", "org.wikipedia", "org.wikipedia.search.SearchActivity", Intent.ACTION_SEND, 0),
 	};
 
 	public static final String DEFAULT_DICTIONARY_ID = "com.ngc.fora";
