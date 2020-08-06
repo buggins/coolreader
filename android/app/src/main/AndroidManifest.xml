@@ -26,13 +26,14 @@
     <uses-permission android:name="com.android.vending.BILLING" />
 
     <application
-        android:allowBackup="true"
-        android:allowClearUserData="true"
-        android:icon="@mipmap/cr3_logo"
-        android:label="@string/app_name"
-        android:process="org.coolreader"
-        android:resizeableActivity="true"
-        android:usesCleartextTraffic="true" >
+            android:name="android.support.multidex.MultiDexApplication"
+            android:allowBackup="true"
+            android:allowClearUserData="true"
+            android:icon="@mipmap/cr3_logo"
+            android:label="@string/app_name"
+            android:process="org.coolreader"
+            android:resizeableActivity="true"
+            android:usesCleartextTraffic="true">
 <!--
            android:configChanges="orientation|keyboardHidden|locale|screenSize"
 -->

@@ -4,7 +4,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "org.coolreader"
-        minSdkVersion 3
+        minSdkVersion 4 // This is the minimum supported by multidex
         targetSdkVersion 28
         // When new version released, version code must be incremented at least by 8
         // for compatibility with ABI versioning of split apk (see below).
@@ -17,6 +17,7 @@ android {
                 cppFlags ""
             }
         }
+        multiDexEnabled true
     }
     sourceSets {
         main {
@@ -118,10 +119,16 @@ android {
         // Sets Java compatibility to Java 8
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
     }
 }
 
 dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.0.10'
+    implementation 'com.android.support:multidex:1.0.3'
+
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
