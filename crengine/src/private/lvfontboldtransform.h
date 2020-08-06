@@ -30,6 +30,25 @@ class LVFontBoldTransform : public LVFont {
     int _baseline;
     LVFontLocalGlyphCache _glyph_cache;
 public:
+
+    virtual lUInt32 getFallbackMask() const {
+        return _baseFont->getFallbackMask();
+    }
+
+    virtual void setFallbackMask(lUInt32 mask) {
+        _baseFont->setFallbackMask(mask);
+    }
+
+    /// set fallback font for this font
+    virtual void setFallbackFont(LVFontRef font) {
+        _baseFont->setFallbackFont(font);
+    }
+
+    /// get fallback font for this font
+    virtual LVFont *getFallbackFont(lUInt32 fallbackPassMask) {
+        _baseFont->getFallbackFont(fallbackPassMask);
+    }
+
     /// returns font weight
     virtual int getWeight() const;
 
@@ -192,11 +211,6 @@ public:
 
     virtual void Clear() {
         _baseFont->Clear();
-    }
-
-    virtual void setFallbackIndex(int index) {
-        LVFont::setFallbackIndex(index);
-        _baseFont->setFallbackIndex(index);
     }
 
     virtual ~LVFontBoldTransform() {

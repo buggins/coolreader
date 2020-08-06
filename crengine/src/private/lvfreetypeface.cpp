@@ -320,45 +320,36 @@ void LVFreeTypeFace::setFallbackFont(LVFontRef font) {
 
 
 LVFont *LVFreeTypeFace::getFallbackFont(lUInt32 fallbackPassMask) {
-    lUInt32 full_mask = (1 << fontMan->GetFallbackFontCount()) - 1;
-    LVFontRef res;
+    int fallback_count = fontMan->GetFallbackFontCount();
+    lUInt32 full_mask = (1 << fallback_count) - 1;
+    if ((full_mask & (fallbackPassMask | _fallback_mask)) == full_mask)
+        return NULL;
     if (!_fallbackFontIsSet) {
-        int count = fontMan->GetFallbackFontCount();
-        if (count > 0) {
-            LVFontRef font;
-            LVFontRef font_prev;
-            for (int i = 0; i < count; i++) {
-                lString8 tmp = fontMan->GetFallbackFontFace(i);
-                if (_faceName != tmp) {
-                    font = fontMan->GetFallbackFont(_size, _weight, _italic, i);
-                    if (_fallbackFont.isNull())
-                        _fallbackFont = font;
-                    if (!font_prev.isNull())
-                        font_prev->setFallbackFont(font);
-                    font_prev = font;
+        if (fallback_count > 0) {
+            // restore this fallback font index
+            int index = -1;
+            if (_fallback_mask != 0) {
+                lUInt32 mask = _fallback_mask;
+                index = 0;
+                while ((mask & 0x01) == 0) {
+                    mask >>= 1;
+                    index++;
                 }
             }
-            // to loop fallback fonts chain
-            if (!font.isNull())
-                font->setFallbackFont(_fallbackFont);
-
+            // and get index for next fallback font
+            index++;
+            if (index == fallback_count)
+                index = 0;
+            _fallbackFont = fontMan->GetFallbackFont(_size, _weight, _italic, index);
         }
         _fallbackFontIsSet = true;
     }
-
-    if (full_mask != fallbackPassMask)
-        res = _fallbackFont;
+    LVFontRef res = _fallbackFont;
     // Get first unprocessed font
-#if 0
     if (!res.isNull() ) {
-        if ( _faceName == res->getTypeFace() )
-            res = res->getFallbackFont(fallbackPassMask | ( _fallback_index >= 0 ? (1 << _fallback_index) : 0) );
-    }
-#endif
-    if (!res.isNull() ) {
-        if ( (1 << res->getFallbackIndex() ) & fallbackPassMask ) {       // already processed
-            // full_mask != fallbackPassMask, then recursion is not endless
-            res = res->getFallbackFont(fallbackPassMask);
+        if ( res->getFallbackMask() & fallbackPassMask ) {       // already processed
+            // (full_mask & fallbackPassMask) != full_mask, then recursion is not endless
+            res = res->getFallbackFont(fallbackPassMask | _fallback_mask);
         }
     }
     return res.get();
@@ -374,7 +365,8 @@ LVFreeTypeFace::LVFreeTypeFace(LVMutex &mutex, FT_Library library,
           _drawMonochrome(false),
           _hintingMode(HINTING_MODE_AUTOHINT),
           _shapingMode(SHAPING_MODE_FREETYPE),
-          _fallbackFontIsSet(false)
+          _fallbackFontIsSet(false),
+          _fallback_mask(0)
 #if USE_HARFBUZZ == 1
         , _glyph_cache2(globalCache),
           _width_cache2(1024)
@@ -1032,7 +1024,7 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
                 return false;
         } else {
             // Fallback
-            lUInt32 passMask = fallbackPassMask | ( _fallback_index >= 0 ? (1 << _fallback_index) : 0 );
+            lUInt32 passMask = fallbackPassMask | _fallback_mask;
             return fallback->getGlyphInfo(code, glyph, def_char, passMask);
         }
     }
@@ -1224,7 +1216,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
     LVFont* fallbackFont = getFallbackFont(fallbackPassMask);
     // if this font is fallback font but already processed
     // delegate this function to next fallback font (if exist)
-    if (fallbackFont != NULL && _fallback_index >= 0 && (fallbackPassMask & (1 << _fallback_index))) {
+    if (fallbackFont != NULL && (fallbackPassMask & _fallback_mask)) {
         return fallbackFont->measureText(text, len, widths, flags, max_width, def_char, lang_cfg, letter_spacing, allow_hyphenation, hints, fallbackPassMask);
     }
     if (letter_spacing < 0)
@@ -1448,11 +1440,10 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
                                     fb_hints &= ~LFNT_HINT_BEGINS_PARAGRAPH;
                                 if ( t_notdef_end < len )
                                     fb_hints &= ~LFNT_HINT_ENDS_PARAGRAPH;
-                                lUInt32 passMask = fallbackPassMask | ( _fallback_index >= 0 ? (1 << _fallback_index) : 0 );
                                 fallbackFont->measureText( text + t_notdef_start, t_notdef_end - t_notdef_start,
                                                 widths + t_notdef_start, flags + t_notdef_start,
                                                 max_width, def_char, lang_cfg, letter_spacing, allow_hyphenation,
-                                                fb_hints, passMask );
+                                                fb_hints, fallbackPassMask | _fallback_mask );
                                 // Fix previous bad measurements
                                 int last_good_width = t_notdef_start > 0 ? widths[t_notdef_start-1] : 0;
                                 for (int tn = t_notdef_start; tn < t_notdef_end; tn++) {
@@ -1546,12 +1537,11 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
                 lUInt32 fb_hints = hints;
                 if ( t_notdef_start > 0 )
                     fb_hints &= ~LFNT_HINT_BEGINS_PARAGRAPH;
-                lUInt32 passMask = fallbackPassMask | ( _fallback_index >= 0 ? (1 << _fallback_index) : 0 );
                 int chars_measured = fallbackFont->measureText( text + t_notdef_start, // start
                                 t_notdef_end - t_notdef_start, // len
                                 widths + t_notdef_start, flags + t_notdef_start,
                                 max_width, def_char, lang_cfg, letter_spacing, allow_hyphenation,
-                                fb_hints, passMask );
+                                fb_hints, fallbackPassMask | _fallback_mask );
                 lastFitChar = t_notdef_start + chars_measured;
                 int last_good_width = t_notdef_start > 0 ? widths[t_notdef_start-1] : 0;
                 for (int tn = t_notdef_start; tn < t_notdef_end; tn++) {
@@ -1779,8 +1769,7 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar16 def_char, lUI
                 return NULL;
         } else {
             // Fallback
-            lUInt32 passMask = fallbackPassMask | ( _fallback_index >= 0 ? (1 << _fallback_index) : 0 );
-            return fallback->getGlyph(ch, def_char, passMask);
+            return fallback->getGlyph(ch, def_char, fallbackPassMask | _fallback_mask );
         }
     }
     LVFontGlyphCacheItem *item = _glyph_cache.get(ch);
@@ -1954,7 +1943,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *
     LVFont* fallbackFont = getFallbackFont(fallbackPassMask);
     // if this font is fallback font and already processed
     // delegate this function to next fallback font (if exist)
-    if (fallbackFont != NULL && _fallback_index >= 0 && (fallbackPassMask & (1 << _fallback_index)))
+    if (fallbackFont != NULL && (fallbackPassMask & _fallback_mask))
         return fallbackFont->DrawTextString(buf, x, y, text, len, def_char, palette, addHyphen, lang_cfg, flags, letter_spacing, width, text_decoration_back_gap, fallbackPassMask);
     if ( letter_spacing < 0 ) {
         letter_spacing = 0;
@@ -2182,11 +2171,10 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *
                 int fb_len = fb_t_end - fb_t_start;
                 // (width and text_decoration_back_gap are only used for
                 // text decoration, that we dropped: no update needed)
-                lUInt32 passMask = fallbackPassMask | ( _fallback_index >= 0 ? (1 << _fallback_index) : 0 );
                 int fb_advance = fallbackFont->DrawTextString( buf, x, fb_y,
                    fb_text, fb_len,
                    def_char, palette, fb_addHyphen, lang_cfg, fb_flags, letter_spacing,
-                   width, text_decoration_back_gap, passMask );
+                   width, text_decoration_back_gap, fallbackPassMask | _fallback_mask );
                 x += fb_advance;
                 #ifdef DEBUG_DRAW_TEXT
                     printf("DTHB ### drawn past notdef > X+= %d\n[...]", fb_advance);

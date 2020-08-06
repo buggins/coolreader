@@ -140,13 +140,6 @@ typedef LVProtectedFastRef<LVFont> LVFontRef;
 class LVFont : public LVRefCounter {
 protected:
     int _visual_alignment_width;
-    /**
-     * @brief depth in fallback fonts chain:<br/>
-     * -1 - normal font (not fallback)
-     * 0 - first fallback font in chain
-     * n-1 - n'th fallback font in chain
-     */
-    int _fallback_index;
 public:
     lUInt32 _hash;
     /// glyph properties structure
@@ -268,7 +261,7 @@ public:
                        lUInt32 fallbackPassMask = 0) = 0;
 
     /// constructor
-    LVFont() : _visual_alignment_width(-1), _hash(0), _fallback_index(-1) {}
+    LVFont() : _visual_alignment_width(-1), _hash(0) {}
 
     /// get bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual bool getBitmapMode() { return false; }
@@ -332,8 +325,8 @@ public:
         return NULL;
     }
     
-    virtual int getFallbackIndex() const { return _fallback_index; }
-    virtual void setFallbackIndex(int index) { _fallback_index = index; }
+    virtual lUInt32 getFallbackMask() const { return 0; }
+    virtual void setFallbackMask(lUInt32 mask) { CR_UNUSED(mask) }
 };
 
 /// to compare two fonts
