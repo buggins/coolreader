@@ -46,7 +46,7 @@ public:
 
     /// get fallback font for this font
     virtual LVFont *getFallbackFont(lUInt32 fallbackPassMask) {
-        _baseFont->getFallbackFont(fallbackPassMask);
+        return _baseFont->getFallbackFont(fallbackPassMask);
     }
 
     /// returns font weight
