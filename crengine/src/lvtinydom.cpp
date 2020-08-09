@@ -84,7 +84,7 @@ int gDOMVersionRequested     = DOM_VERSION_CURRENT;
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
 // increment to force complete reload/reparsing of old file
-#define CACHE_FILE_FORMAT_VERSION "3.12.67"
+#define CACHE_FILE_FORMAT_VERSION "3.12.68"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0025
@@ -7440,7 +7440,7 @@ ldomNode * ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 
     lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
 
     // Set a flag for OnText to accumulate the content of any <HEAD><STYLE>
-    if ( tagname[0] == 's' && !lStr_cmp(tagname, "style") && _currNode && _currNode->getElement()->isNodeName("head") ) {
+    if ( id == el_style && _currNode && _currNode->getElement()->getNodeId() == el_head ) {
         _inHeadStyle = true;
     }
 
@@ -7504,23 +7504,31 @@ ldomDocumentWriter::~ldomDocumentWriter()
 void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
 {
     //logfile << "ldomDocumentWriter::OnTagClose() [" << nsname << ":" << tagname << "]";
-    if (!_currNode)
+    if (!_currNode || !_currNode->getElement())
     {
         _errFlag = true;
         //logfile << " !c-err!\n";
         return;
     }
 
+    //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
+    lUInt16 curNodeId = _currNode->getElement()->getNodeId();
+    lUInt16 id = _document->getElementNameIndex(tagname);
+    _errFlag |= (id != curNodeId); // (we seem to not do anything with _errFlag)
+    // We should expect the tagname we got to be the same as curNode's element name,
+    // but it looks like we may get an upper closing tag, that pop() below might
+    // handle. So, here below, we check that both id and curNodeId match the
+    // element id we check for.
+
     // Parse <link rel="stylesheet">, put the css file link in _stylesheetLinks.
     // They will be added to <body><stylesheet> when we meet <BODY>
     // (duplicated in ldomDocumentWriterFilter::OnTagClose)
-    if (tagname[0] == 'l' && _currNode && !lStr_cmp(tagname, "link")) {
-        // link node
-        if ( _currNode && _currNode->getElement() && _currNode->getElement()->isNodeName("link") &&
-             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->isNodeName("head") &&
-             lString16(_currNode->getElement()->getAttributeValue("rel")).lowercase() == L"stylesheet" &&
-             lString16(_currNode->getElement()->getAttributeValue("type")).lowercase() == L"text/css" ) {
-            lString16 href = _currNode->getElement()->getAttributeValue("href");
+    if ( id == el_link && curNodeId == el_link ) { // link node
+        ldomNode * n = _currNode->getElement();
+        if ( n->getParentNode() && n->getParentNode()->getNodeId() == el_head &&
+                 lString16(n->getAttributeValue("rel")).lowercase() == L"stylesheet" &&
+                 lString16(n->getAttributeValue("type")).lowercase() == L"text/css" ) {
+            lString16 href = n->getAttributeValue("href");
             lString16 stylesheetFile = LVCombinePaths( _document->getCodeBase(), href );
             CRLog::debug("Internal stylesheet file: %s", LCSTR(stylesheetFile));
             // We no more apply it immediately: it will be when <BODY> is met
@@ -7530,23 +7538,8 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
         }
     }
 
-    /* This is now dealt with in :OnTagBody(), just before creating this <stylesheet> tag
-    bool isStyleSheetTag = !lStr_cmp(tagname, "stylesheet");
-    if ( isStyleSheetTag ) {
-        ldomNode *parentNode = _currNode->getElement()->getParentNode();
-        if (parentNode && parentNode->isNodeName("DocFragment")) {
-            _document->parseStyleSheet(_currNode->getElement()->getAttributeValue(attr_href),
-                                       _currNode->getElement()->getText());
-            isStyleSheetTag = false;
-        }
-    }
-    */
-    bool isStyleSheetTag = tagname[0] == 's' && !lStr_cmp(tagname, "stylesheet");
-
-    lUInt16 id = _document->getElementNameIndex(tagname);
-    //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
-    _errFlag |= (id != _currNode->getElement()->getNodeId());
     _currNode = pop( _currNode, id );
+        // _currNode is now the parent
 
     if ( _currNode )
         _flags = _currNode->getFlags();
@@ -7571,7 +7564,7 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
     // Caveat: any style set on the <FictionBook> element itself won't be applied now
     // in this loading phase (as we have already set its style) - but it will apply
     // on re-renderings.
-    if ( isStyleSheetTag && _currNode && _currNode->getElement()->getNodeId() == el_FictionBook ) {
+    if ( id == el_stylesheet && _currNode && _currNode->getElement()->getNodeId() == el_FictionBook ) {
         //CRLog::trace("</stylesheet> found");
 #if BUILD_LITE!=1
         if ( !_popStyleOnFinish && _document->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
@@ -7819,7 +7812,7 @@ private:
 public:
     virtual ~LVBase64NodeStream() { }
     LVBase64NodeStream( ldomNode * element )
-        : m_elem(element), m_curr_node(element), m_size(0), m_pos(0)
+        : m_elem(element), m_curr_node(element), m_text_pos(0), m_size(0), m_pos(0)
     {
         // calculate size
         rewind();
@@ -12913,8 +12906,11 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lC
 //        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
 //    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
 
+    lUInt16 id = _document->getElementNameIndex(tagname);
+    lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
+
     // Set a flag for OnText to accumulate the content of any <HEAD><STYLE>
-    if ( tagname[0] == 's' && !lStr_cmp(tagname, "style") && _currNode && _currNode->getElement()->isNodeName("head") ) {
+    if ( id == el_style && _currNode && _currNode->getElement()->getNodeId() == el_head ) {
         _inHeadStyle = true;
     }
 
@@ -12923,18 +12919,15 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lC
     // requested to keep previously recorded XPATHs valid.
     if ( _libRuDocumentDetected || gDOMVersionRequested < 20180503) {
         // Patch for bad LIB.RU books - BR delimited paragraphs in "Fine HTML" format
-        if ((tagname[0] == 'b' && tagname[1] == 'r' && tagname[2] == 0)
-            || (tagname[0] == 'd' && tagname[1] == 'd' && tagname[2] == 0)) {
+        if ( id == el_br || id == el_dd ) {
             // substitute to P
-            tagname = L"p";
+            id = el_p;
             _libRuParagraphStart = true; // to trim leading &nbsp;
         } else {
             _libRuParagraphStart = false;
         }
     }
 
-    lUInt16 id = _document->getElementNameIndex(tagname);
-    lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
     AutoClose( id, true );
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
     _flags = _currNode->getFlags();
@@ -13119,23 +13112,31 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * /*nsname*/, const lCh
 //    if ( nsname && nsname[0] )
 //        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
 //    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
-    if (!_currNode)
+    if (!_currNode || !_currNode->getElement())
     {
         _errFlag = true;
         //logfile << " !c-err!\n";
         return;
     }
 
+    //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
+    lUInt16 curNodeId = _currNode->getElement()->getNodeId();
+    lUInt16 id = _document->getElementNameIndex(tagname);
+    _errFlag |= (id != curNodeId); // (we seem to not do anything with _errFlag)
+    // We should expect the tagname we got to be the same as curNode's element name,
+    // but it looks like we may get an upper closing tag, that pop() or AutoClose()
+    // below might handle. So, here below, we check that both id and curNodeId match
+    // the element id we check for.
+
     // Parse <link rel="stylesheet">, put the css file link in _stylesheetLinks,
     // they will be added to <body><stylesheet> when we meet <BODY>
     // (duplicated in ldomDocumentWriter::OnTagClose)
-    if (tagname[0] == 'l' && _currNode && !lStr_cmp(tagname, "link")) {
-        // link node
-        if ( _currNode && _currNode->getElement() && _currNode->getElement()->isNodeName("link") &&
-             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->isNodeName("head") &&
-             lString16(_currNode->getElement()->getAttributeValue("rel")).lowercase() == L"stylesheet" &&
-             lString16(_currNode->getElement()->getAttributeValue("type")).lowercase() == L"text/css" ) {
-            lString16 href = _currNode->getElement()->getAttributeValue("href");
+    if ( id == el_link && curNodeId == el_link ) { // link node
+        ldomNode * n = _currNode->getElement();
+        if ( n->getParentNode() && n->getParentNode()->getNodeId() == el_head &&
+                 lString16(n->getAttributeValue("rel")).lowercase() == L"stylesheet" &&
+                 lString16(n->getAttributeValue("type")).lowercase() == L"text/css" ) {
+            lString16 href = n->getAttributeValue("href");
             lString16 stylesheetFile = LVCombinePaths( _document->getCodeBase(), href );
             CRLog::debug("Internal stylesheet file: %s", LCSTR(stylesheetFile));
             // We no more apply it immediately: it will be when <BODY> is met
@@ -13145,11 +13146,9 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * /*nsname*/, const lCh
         }
     }
 
-    lUInt16 id = _document->getElementNameIndex(tagname);
-
     // HTML title detection
-    if ( id==el_title && _currNode && _currNode->_element && _currNode->_element->getParentNode() != NULL
-                                   && _currNode->_element->getParentNode()->getNodeId() == el_head ) {
+    if ( id == el_title && curNodeId == el_title && _currNode->_element->getParentNode() &&
+                           _currNode->_element->getParentNode()->getNodeId() == el_head ) {
         lString16 s = _currNode->_element->getText();
         s.trim();
         if ( !s.empty() ) {
@@ -13158,15 +13157,13 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * /*nsname*/, const lCh
         }
     }
     //======== START FILTER CODE ============
-    if ( _currNode->_element ) // (should always be true, but avoid clang warning)
-        AutoClose( _currNode->_element->getNodeId(), false );
+    AutoClose( curNodeId, false );
     //======== END FILTER CODE ==============
-    //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
     // save closed element
-    ldomNode * closedElement = _currNode->getElement();
-    _errFlag |= (!closedElement || id != closedElement->getNodeId());
-    _currNode = pop( _currNode, id );
+    // ldomNode * closedElement = _currNode->getElement();
 
+    _currNode = pop( _currNode, id );
+        // _currNode is now the parent
 
     if ( _currNode ) {
         _flags = _currNode->getFlags();
