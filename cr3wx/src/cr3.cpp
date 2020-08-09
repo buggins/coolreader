@@ -297,6 +297,7 @@ void testFormatting()
                 0x000000,       /* text color */
                 0xFFFFFF,     /* background color */
                 font.get(),        /* font to draw string */
+                NULL,
                 flags,
                 16,    /* interline space, *16 (16=single, 32=double) */
                 30,    /* first line margin */
