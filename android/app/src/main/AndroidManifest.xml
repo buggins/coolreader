@@ -82,6 +82,9 @@
                 <data android:pathPattern=".*\\.xhtml"/>
                 <data android:pathPattern=".*\\.htm"/>
                 <data android:pathPattern=".*\\.chm"/>
+                <data android:pathPattern=".*\\..*\\.chm"/>
+                <data android:pathPattern=".*\\..*\\..*\\.chm"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.chm"/>
                 <data android:pathPattern=".*\\.epub"/>
                 <data android:pathPattern=".*\\..*\\.epub"/>
                 <data android:pathPattern=".*\\..*\\..*\\.epub"/>
