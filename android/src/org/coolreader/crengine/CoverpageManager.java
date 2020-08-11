@@ -659,7 +659,7 @@ public class CoverpageManager {
 	public void drawCoverpageFor(final CRDBService.LocalBinder db, final FileInfo file, final Bitmap buffer, final CoverpageBitmapReadyListener callback) {
 		db.loadBookCoverpage(file, (fileInfo, data) -> BackgroundThread.instance().postBackground(() -> {
 			byte[] imageData = data;
-			if (data == null && file.format.canParseCoverpages) {
+			if (data == null && file.format != null && file.format.canParseCoverpages) {
 				imageData = Services.getEngine().scanBookCover(file.getPathName());
 				if (imageData == null)
 					imageData = new byte[] {};
