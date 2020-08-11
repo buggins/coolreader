@@ -221,7 +221,7 @@ public class BookInfo {
 			if ( ps.length()<2 )
 				ps = "0" + ps;
 			ps = String.valueOf(percent/100) + "." + ps  + "%";
-			buf.append("## " + ps + " - " + (bm.getType()!=Bookmark.TYPE_COMMENT ? "comment" : "correction")  + "\n");
+			buf.append("## " + ps + " - " + (bm.getType()==Bookmark.TYPE_COMMENT ? "comment" : "correction")  + "\n");
 			if ( bm.getTitleText()!=null )
 				buf.append("## " + bm.getTitleText() + "\n");
 			if ( bm.getPosText()!=null )
