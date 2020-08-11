@@ -171,22 +171,29 @@ public class DocView {
 	 */
 	public boolean loadDocumentFromStream(InputStream inputStream, String contentPath) {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		byte [] buf = new byte [1024];
-		int readBytes;
-		while (true) {
-			try {
+		int errorCode = 0;
+		try {
+			byte [] buf = new byte [4096];
+			int readBytes;
+			while (true) {
 				readBytes = inputStream.read(buf);
 				if (readBytes > 0)
 					outputStream.write(buf, 0, readBytes);
 				else
 					break;
-			} catch (IOException e) {
-				break;
+			}
+		} catch (IOException e1) {
+			errorCode = 1;
+		} catch (OutOfMemoryError e2) {
+			errorCode = 2;
+		}
+		if (0 == errorCode) {
+			synchronized (mutex) {
+				return loadDocumentFromMemoryInternal(outputStream.toByteArray(), contentPath);
 			}
 		}
-		synchronized(mutex) {
-			return loadDocumentFromMemoryInternal(outputStream.toByteArray(), contentPath);
-		}
+		// TODO: pass error code to caller to show message for user.
+		return false;
 	}
 
 	/**
