@@ -389,14 +389,16 @@ public class CoolReader extends BaseActivity {
 				}
 			}
 		}
-		File file;
-		int pos = filePath.indexOf("@/");
-		if (pos > 0)
-			file = new File(filePath.substring(0, pos));
-		else
-			file = new File(filePath);
-		if (!file.exists())
-			filePath = null;
+		if (null != filePath) {
+			File file;
+			int pos = filePath.indexOf("@/");
+			if (pos > 0)
+				file = new File(filePath.substring(0, pos));
+			else
+				file = new File(filePath);
+			if (!file.exists())
+				filePath = null;
+		}
 		return filePath;
 	}
 

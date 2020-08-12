@@ -2533,7 +2533,13 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             if ( baseflags & LTEXT_FLAG_NEWLINE ) {
                 if ( enode->getNodeIndex() == 0 && parent && parent->getChildCount() > 1 ) {
                     ldomNode * next_sibling = parent->getChildNode(1);
-                    if ( next_sibling && !next_sibling->isNull() ) {
+                    if ( next_sibling && !next_sibling->isNull() && !next_sibling->isElement() ) {
+                        // The next sibling might be a text node, so get the next one
+                        if ( parent->getChildCount() > 2 ) {
+                            next_sibling = parent->getChildNode(2);
+                        }
+                    }
+                    if ( next_sibling && !next_sibling->isNull() && next_sibling->isElement() ) {
                         // next_sibling is an original block node that should have
                         // been erm_final, but has been made erm_inline so it can
                         // be prepended with the run-in node content.

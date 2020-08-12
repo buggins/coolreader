@@ -5749,29 +5749,78 @@ void LVXMLParser::SetSpaceMode( bool flgTrimSpaces )
 
 lString16 htmlCharset( lString16 htmlHeader )
 {
-    // META HTTP-EQUIV
-    htmlHeader.lowercase();
-    lString16 meta("meta http-equiv=\"content-type\"");
-    int p = htmlHeader.pos( meta );
-    if ( p<0 )
-        return lString16::empty_str;
-    htmlHeader = htmlHeader.substr( p + meta.length() );
-    p = htmlHeader.pos(">");
-    if ( p<0 )
-        return lString16::empty_str;
-    htmlHeader = htmlHeader.substr( 0, p );
-    CRLog::trace("http-equiv content-type: %s", UnicodeToUtf8(htmlHeader).c_str() );
-    p = htmlHeader.pos("charset=");
-    if ( p<0 )
-        return lString16::empty_str;
-    htmlHeader = htmlHeader.substr( p + 8 ); // skip "charset="
+    // Parse meta http-equiv or
+    // meta charset
+    // https://www.w3.org/TR/2011/WD-html5-author-20110809/the-meta-element.html
+    // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta
     lString16 enc;
-    for ( int i=0; i<(int)htmlHeader.length(); i++ ) {
-        lChar16 ch = htmlHeader[i];
-        if ( (ch>='a' && ch<='z') || (ch>='0' && ch<='9') || (ch=='-') || (ch=='_') )
-            enc += ch;
-        else
-            break;
+    int metapos = htmlHeader.pos("<meta");
+    if (metapos >= 0) {
+        // 1. attribute 'http-equiv'
+        int pos = htmlHeader.pos("http-equiv", metapos);
+        if (pos > 0) {
+            pos = htmlHeader.pos("=");
+            if (pos > 0) {
+                pos = htmlHeader.pos("content-type", pos);
+                if (pos > 0) {
+                    pos = htmlHeader.pos("content", pos);
+                    if (pos > 0) {
+                        pos = htmlHeader.pos("text/html", pos);
+                        if (pos > 0) {
+                            pos = htmlHeader.pos("charset", pos);
+                            if (pos > 0) {
+                                pos = htmlHeader.pos("=", pos);
+                                if (pos > 0) {
+                                    pos += 1;       // skip "="
+                                    // skip spaces
+                                    lChar16 ch;
+                                    for ( int i=0; i + pos < (int)htmlHeader.length(); i++ ) {
+                                        ch = htmlHeader[i + pos];
+                                        if ( !IsSpaceChar(ch) )
+                                            break;
+                                        pos++;
+                                    }
+                                    for ( int i=0; i + pos < (int)htmlHeader.length(); i++ ) {
+                                        ch = htmlHeader[pos + i];
+                                        if ( (ch>='a' && ch<='z') || (ch>='0' && ch<='9') || (ch=='-') || (ch=='_') )
+                                            enc += ch;
+                                        else
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // 2. Attribute 'charset'
+            pos = htmlHeader.pos("charset", metapos);
+            if (pos > 0) {
+                pos = htmlHeader.pos("=", pos);
+                if (pos > 0) {
+                    pos += 1;           // skip "="
+                    // skip spaces
+                    lChar16 ch;
+                    for ( int i=0; i + pos < (int)htmlHeader.length(); i++ ) {
+                        ch = htmlHeader[i + pos];
+                        if ( !IsSpaceChar(ch) )
+                            break;
+                        pos++;
+                    }
+                    ch = htmlHeader[pos];
+                    if ('\"' == ch)     // encoding in quotes
+                        pos++;
+                    for ( int i=0; i + pos < (int)htmlHeader.length(); i++ ) {
+                        ch = htmlHeader[pos + i];
+                        if ( (ch>='a' && ch<='z') || (ch>='0' && ch<='9') || (ch=='-') || (ch=='_') )
+                            enc += ch;
+                        else
+                            break;
+                    }
+                }
+            }
+        }
     }
     if (enc == "utf-16")
         return lString16::empty_str;
