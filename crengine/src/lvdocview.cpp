@@ -1007,15 +1007,17 @@ LVStreamRef LVDocView::getCoverPageImageStream() {
     // FB2 coverpage
 	//CRLog::trace("LVDocView::getCoverPageImage()");
 	//m_doc->dumpStatistics();
-	lUInt16 path[] = { el_FictionBook, el_description, el_title_info,
-			el_coverpage, 0 };
+	lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, 0 };
 	//lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, el_image, 0 };
 	ldomNode * rootNode = m_doc->getRootNode();
 	ldomNode * cover_el = 0;
-	if (rootNode)
+	if (rootNode) {
 		cover_el = rootNode->findChildElement(path);
-	//ldomNode * cover_img_el = m_doc->getRootNode()->findChildElement( path );
-
+		if (!cover_el) { // might otherwise be found inside <src-title-info>
+			lUInt16 path2[] = { el_FictionBook, el_description, el_src_title_info, el_coverpage, 0 };
+			cover_el = rootNode->findChildElement(path2);
+		}
+	}
 	if (cover_el) {
 		ldomNode * cover_img_el = cover_el->findChildElement(LXML_NS_ANY,
 				el_image, 0);
@@ -1034,15 +1036,17 @@ LVImageSourceRef LVDocView::getCoverPageImage() {
 	//        CRLog::trace("Image stream size is %d", (int)stream->GetSize() );
 	//CRLog::trace("LVDocView::getCoverPageImage()");
 	//m_doc->dumpStatistics();
-	lUInt16 path[] = { el_FictionBook, el_description, el_title_info,
-			el_coverpage, 0 };
+	lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, 0 };
 	//lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, el_image, 0 };
 	ldomNode * cover_el = 0;
 	ldomNode * rootNode = m_doc->getRootNode();
-	if (rootNode)
+	if (rootNode) {
 		cover_el = rootNode->findChildElement(path);
-	//ldomNode * cover_img_el = m_doc->getRootNode()->findChildElement( path );
-
+		if (!cover_el) { // might otherwise be found inside <src-title-info>
+			lUInt16 path2[] = { el_FictionBook, el_description, el_src_title_info, el_coverpage, 0 };
+			cover_el = rootNode->findChildElement(path2);
+		}
+	}
 	if (cover_el) {
 		ldomNode * cover_img_el = cover_el->findChildElement(LXML_NS_ANY,
 				el_image, 0);
