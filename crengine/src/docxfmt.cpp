@@ -3,6 +3,7 @@
 #include "../include/fb2def.h"
 #include "../include/lvopc.h"
 #include "../include/crlog.h"
+#include "xmlutil.h"
 
 #define DOCX_TAG_NAME(itm) docx_el_##itm##_name
 #define DOCX_TAG_ID(itm) docx_el_##itm
@@ -672,96 +673,11 @@ private:
     lString16 getListStyle(css_list_style_type_t listType);
 };
 
-class docx_ElementHandler;
-
-class docXMLreader : public LVXMLParserCallback
-{
-private:
-    enum docx_reader_state {
-        docx_in_start,
-        docx_in_xml_declaration,
-        docx_in_body,
-        docx_in_document
-    };
-    int m_skipTag;
-    docx_reader_state m_state;
-protected:
-    docx_ElementHandler *m_handler;
-    ldomDocumentWriter *m_writer;
-
-    inline bool isSkipping()
-    {
-        return (m_skipTag != 0);
-    }
-
-    inline void skipped()
-    {
-        m_skipTag--;
-    }
-
-public:
-    /// constructor
-    docXMLreader(ldomDocumentWriter *writer) : m_skipTag(0), m_state(docx_in_start),
-        m_handler(NULL), m_writer(writer)
-    {
-    }
-
-    /// destructor
-    virtual ~docXMLreader() { }
-    /// called on parsing start
-    virtual void OnStart(LVFileFormatParser *);
-    /// called on parsing end
-    virtual void OnStop() {  }
-
-    inline void skip()
-    {
-        m_skipTag++;
-    }
-
-    /// called on opening tag <
-    ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname);
-
-    /// called after > of opening tag (when entering tag body)
-    void OnTagBody();
-
-    /// called on tag close
-    void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
-
-    /// called on element attribute
-    void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
-
-    /// called on text
-    void OnText( const lChar16 * text, int len, lUInt32 flags );
-
-    /// add named BLOB data to document
-    bool OnBlob(lString16 name, const lUInt8 * data, int size);
-
-    docx_ElementHandler * getHandler()
-    {
-        return m_handler;
-    }
-
-    void setHandler(docx_ElementHandler *a_handler)
-    {
-        m_handler = a_handler;
-    }
-
-    void setWriter(ldomDocumentWriter *writer)
-    {
-        m_writer = writer;
-    }
-};
-
-class docx_ElementHandler
+class docx_ElementHandler : public xml_ElementHandler
 {
 protected:
-    docXMLreader * m_reader;
-    ldomDocumentWriter *m_writer;
-    docx_ElementHandler *m_savedHandler;
     docxImportContext *m_importContext;
     const item_def_t *m_children;
-    int m_element;
-    int m_state;
 protected:
     static bool parse_OnOff_attribute(const lChar16 * attrValue);
     static int parse_name(const struct item_def_t *tags, const lChar16 * nameValue);
@@ -769,50 +685,14 @@ protected:
     void generateLink(const lChar16 * target, const lChar16 * type, const lChar16 *text);
     void setChildrenInfo(const struct item_def_t *tags);
     docx_ElementHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context,
-                        int element, const struct item_def_t *children) :
-        m_reader(reader), m_writer(writer), m_importContext(context), m_children(children),
-        m_element(element), m_state(element)
+                        int element, const struct item_def_t *children) : xml_ElementHandler(reader, writer, element),
+        m_importContext(context), m_children(children)
     {
     }
     virtual ~docx_ElementHandler() {}
-public:
-    ldomNode * handleTagOpen(const lChar16 * nsname, const lChar16 * tagname);
-    virtual ldomNode * handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue)
+    int parseTagName(const lChar16 *tagname) override
     {
-        CR_UNUSED(nsname);
-
-        handleAttribute(attrname, attrvalue);
-    }
-    virtual void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue) {
-        CR_UNUSED2(attrname, attrvalue);
-    }
-    virtual void handleTagBody() {}
-    virtual void handleText( const lChar16 * text, int len, lUInt32 flags ) {
-        CR_UNUSED3(text,len,flags);
-    }
-    virtual void handleTagClose( const lChar16 * nsname, const lChar16 * tagname )
-    {
-        CR_UNUSED2(nsname, tagname);
-
-        if(m_state == m_element)
-            stop();
-        else
-            m_state = m_element;
-    }
-    virtual void start();
-    virtual void stop();
-    virtual void reset();
-};
-
-class docx_SkipElementHandler : public docx_ElementHandler
-{
-public:
-    docx_SkipElementHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context,
-                            int element) : docx_ElementHandler(reader, writer, context, element, no_elements) {}
-    void skipElement(int element) {
-        m_state = element;
-        start();
+        return parse_name(m_children, tagname);
     }
 };
 
@@ -1000,8 +880,8 @@ private:
     int m_rowCount;
     docx_titleHandler m_titleHandler;
     docx_pHandler m_pHandler;
-    docx_SkipElementHandler m_skipHandler;
-    docx_ElementHandler* m_pHandler_;
+    xml_SkipElementHandler m_skipHandler;
+    xml_ElementHandler* m_pHandler_;
     int m_colSpan;
     int m_column;
     int m_columnCount;
@@ -1017,7 +897,7 @@ public:
         docx_ElementHandler(reader, writer, context, docx_el_tbl, tbl_elements),
         m_rowCount(0), m_titleHandler(writer, context, titleHandler->useClassForTitle()),
         m_pHandler(reader, writer, context, &m_titleHandler),
-        m_skipHandler(reader, writer, context, docx_el_p), m_colSpan(1),
+        m_skipHandler(reader, writer, docx_el_p), m_colSpan(1),
         m_column(0), m_columnCount(0), m_vMergeState(VMERGE_NONE)
     {
     }
@@ -1293,98 +1173,6 @@ css_list_style_type_t docxNumLevel::getListType() const
     }
 }
 
-
-ldomNode * docXMLreader::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
-{
-    if ( m_state == docx_in_start && !lStr_cmp(tagname, "?xml") )
-        m_state = docx_in_xml_declaration;
-    else if( !isSkipping() ) {
-        if ( m_handler )
-            return m_handler->handleTagOpen(nsname, tagname);
-    } else
-        // skip nested tag
-        skip();
-    return NULL;
-}
-
-void docXMLreader::OnStart(LVFileFormatParser *)
-{
-    m_skipTag = 0;
-    m_state = docx_in_start;
-}
-
-void docXMLreader::OnTagBody()
-{
-    if( m_state != docx_in_xml_declaration && !isSkipping() && m_handler )
-        m_handler->handleTagBody();
-}
-
-void docXMLreader::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
-{
-    CR_UNUSED(nsname);
-
-    switch(m_state) {
-    case docx_in_xml_declaration:
-        m_state = docx_in_document;
-        break;
-    case docx_in_document:
-        if( isSkipping() )
-            skipped();
-        else if ( m_handler )
-            m_handler->handleTagClose(L"", tagname);
-        break;
-    default:
-        CRLog::error("Unexpected state");
-        break;
-    }
-}
-
-void docXMLreader::OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
-{
-    switch(m_state) {
-    case docx_in_xml_declaration:
-        if ( m_writer )
-            m_writer->OnAttribute(nsname, attrname, attrvalue);
-        break;
-    case docx_in_document:
-        if ( !isSkipping() && m_handler )
-            m_handler->handleAttribute(nsname, attrname, attrvalue);
-        break;
-    default:
-        CRLog::error("Unexpected state");
-    }
-}
-
-void docXMLreader::OnText( const lChar16 * text, int len, lUInt32 flags )
-{
-    if( !isSkipping() && m_handler )
-        m_handler->handleText(text, len, flags);
-}
-
-bool docXMLreader::OnBlob(lString16 name, const lUInt8 * data, int size)
-{
-    if ( !isSkipping() && m_writer )
-        return m_writer->OnBlob(name, data, size);
-    return false;
-}
-
-void docx_ElementHandler::start()
-{
-    m_savedHandler = m_reader->getHandler();
-    reset();
-    m_reader->setHandler(this);
-}
-
-void docx_ElementHandler::reset()
-{
-}
-
-void docx_ElementHandler::stop()
-{
-    m_reader->setHandler(m_savedHandler);
-    m_savedHandler = NULL;
-}
-
 bool docx_ElementHandler::parse_OnOff_attribute(const lChar16 * attrValue)
 {
     if ( !lStr_cmp(attrValue, "1") || !lStr_cmp(attrValue, "on") || !lStr_cmp(attrValue, "true") )
@@ -1443,25 +1231,6 @@ void docx_ElementHandler::generateLink(const lChar16 *target, const lChar16 *typ
 void docx_ElementHandler::setChildrenInfo(const struct item_def_t *tags)
 {
     m_children = tags;
-}
-
-ldomNode * docx_ElementHandler::handleTagOpen(int tagId)
-{
-    m_state = tagId;
-    return NULL;
-}
-
-ldomNode * docx_ElementHandler::handleTagOpen(const lChar16 * nsname, const lChar16 * tagname)
-{
-    int tag = parse_name(m_children, tagname);
-
-    CR_UNUSED(nsname);
-    if( -1 == tag) {
-        // skip the tag we are not interested in
-        m_reader->skip();
-        return NULL;
-    }
-    return handleTagOpen(tag);
 }
 
 ldomNode * docx_rPrHandler::handleTagOpen(int tagId)
