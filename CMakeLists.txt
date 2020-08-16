@@ -273,9 +273,7 @@ else()
 endif (FONTCONFIG_FOUND)
 
 if (NOT MSVC)
-	find_package(FriBidi)
-endif(NOT MSVC)
-
+find_package(FriBidi)
 if (NOT FRIBIDI_FOUND)
   message("System FriBidi not found, will build local one\n")
   ADD_SUBDIRECTORY(thirdparty/fribidi)
@@ -283,6 +281,8 @@ if (NOT FRIBIDI_FOUND)
   SET(FRIBIDI_LIBRARIES fribidi)
   set(DESKTOP_DEFS ${DESKTOP_DEFS} -DBUNDLED_FRIBIDI=1 -I${CMAKE_BINARY_DIR}/thirdparty/fribidi)
 endif (NOT FRIBIDI_FOUND)
+endif(NOT MSVC)
+
 
 if (NOT MSVC)
 	find_package(libunibreak)

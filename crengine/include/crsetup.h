@@ -131,7 +131,9 @@
 #else
 #define USE_FREETYPE                         1
 #define USE_HARFBUZZ                         1
+#ifndef _MSC_VER
 #define USE_FRIBIDI                          1
+#endif
 #define USE_LIBUNIBREAK                      1
 #endif
 #define ALLOW_KERNING                        1
