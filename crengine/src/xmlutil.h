@@ -1,6 +1,12 @@
 #include <lvxml.h>
 #include <lvtinydom.h>
 
+/// known docx items name and identifier
+struct item_def_t {
+    int      id;
+    const lChar16 * name;
+};
+
 class xml_ElementHandler;
 
 class docXMLreader : public LVXMLParserCallback

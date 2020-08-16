@@ -1247,6 +1247,7 @@ void CR3View::OnLoadFileFormatDetected( doc_format_t fileFormat )
         case doc_format_epub:
             filename = "epub.css";
             break;
+        case doc_format_odt:
         case doc_format_html:
             filename = "htm.css";
             break;

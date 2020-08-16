@@ -17,12 +17,6 @@
 //If true <title class="hx"><p>...</p></title> else <title><hx>..</hx></title>
 #define DOCX_USE_CLASS_FOR_HEADING true
 
-/// known docx items name and identifier
-struct item_def_t {
-    int      id;
-    const lChar16 * name;
-};
-
 static const lChar16* const docx_DocumentContentType   = L"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
 static const lChar16* const docx_NumberingContentType  = L"application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml";
 static const lChar16* const docx_StylesContentType     = L"application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml";
