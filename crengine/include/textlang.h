@@ -99,7 +99,7 @@ public:
     ~TextLangMan();
 };
 
-#define MAX_NB_LB_PROPS_ITEMS 10 // for our statically sized array (increase if needed)
+#define MAX_NB_LB_PROPS_ITEMS 20 // for our statically sized array (increase if needed)
 
 #if USE_LIBUNIBREAK==1
 typedef lChar16 (*lb_char_sub_func_t)(struct LineBreakContext *lbpCtx, const lChar16 * text, int pos, int next_usable);

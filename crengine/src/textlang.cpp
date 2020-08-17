@@ -786,6 +786,9 @@ TextLangCfg::TextLangCfg( lString16 lang_tag ) {
     if ( has_em_dash_alphabetic )                        _lb_props[n++] = { 0x2E3A, 0x2E3B, LBP_AL };
     // End of list
     _lb_props[n++] = { 0, 0, LBP_Undefined };
+        // When adding properties, be sure combinations for all languages
+        // do fit in _lb_props[MAX_NB_LB_PROPS_ITEMS] (MAX_NB_LB_PROPS_ITEMS
+        // is defined in textlang.h, currently at 20).
     // Done with libunibreak per-language LineBreakProperties extensions
 
     // Other line breaking and text layout tweaks
