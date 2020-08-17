@@ -101,7 +101,9 @@ public:
 
 #define MAX_NB_LB_PROPS_ITEMS 10 // for our statically sized array (increase if needed)
 
-typedef lChar16 (*lb_char_sub_func_t)(const lChar16 * text, int pos, int next_usable);
+#if USE_LIBUNIBREAK==1
+typedef lChar16 (*lb_char_sub_func_t)(struct LineBreakContext *lbpCtx, const lChar16 * text, int pos, int next_usable);
+#endif
 
 class TextLangCfg
 {

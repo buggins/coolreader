@@ -10095,7 +10095,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 lChar16 c = *(txt + start + i);
                 lChar16 next_c = *(txt + start + i + 1); // might be 0 at end of string
                 if ( lang_cfg->hasLBCharSubFunc() ) {
-                    next_c = lang_cfg->getLBCharSubFunc()(txt+start, i+1, len-1 - (i+1));
+                    next_c = lang_cfg->getLBCharSubFunc()(&lbCtx, txt+start, i+1, len-1 - (i+1));
                 }
                 int brk = lb_process_next_char(&lbCtx, (utf32_t)next_c);
                     // We don't really need to bother with consecutive spaces (that
