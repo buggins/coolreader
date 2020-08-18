@@ -83,13 +83,19 @@ merge_with_prev (
   first->next->prev = first;
   RL_LEN (first) += RL_LEN (second);
   if (second->next_isolate)
-    second->next_isolate->prev_isolate = first;
+    second->next_isolate->prev_isolate = second->prev_isolate;
+  /* The following edge case typically shouldn't happen, but fuzz
+     testing shows it does, and the assignment protects against
+     a dangling pointer. */
+  else if (second->next->prev_isolate == second)
+    second->next->prev_isolate = second->prev_isolate;
+  if (second->prev_isolate)
+    second->prev_isolate->next_isolate = second->next_isolate;
   first->next_isolate = second->next_isolate;
 
   fribidi_free (second);
   return first;
 }
-
 static void
 compact_list (
   FriBidiRun *list
