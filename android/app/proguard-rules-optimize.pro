@@ -31,11 +31,12 @@
 
 # Found in docview.cpp
 
--keep class org.coolreader.crengine.DocView {
-	native <methods>;
+-keep interface org.coolreader.crengine.ReaderCallback {
+	*;
 }
 
--keepclassmembers public class org.coolreader.crengine.DocView {
+-keep public class org.coolreader.crengine.DocView {
+	native <methods>;
     private long mNativeObject;
     private org.coolreader.crengine.ReaderCallback readerCallback;
 }
@@ -177,5 +178,10 @@
 	void setSortOrder(org.coolreader.crengine.FileInfo$SortOrder);
 }
 
-# Don't obfuscate anything...
--dontobfuscate
+# Needed to keep generic types and @Key annotations accessed via reflection
+
+-keepattributes Signature,RuntimeVisibleAnnotations,AnnotationDefault
+
+-keepclassmembers class * {
+  @com.google.api.client.util.Key <fields>;
+}

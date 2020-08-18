@@ -29,9 +29,9 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-            shrinkResources false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules-optimize.pro'
             externalNativeBuild {
                 cmake {
                     arguments "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
@@ -41,7 +41,7 @@ android {
                 doNotStrip "**/*.so"
             }
         }
-        release_minsize {
+        release_stripped {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules-optimize.pro'
