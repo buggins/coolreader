@@ -61,7 +61,7 @@
         <item name="android:listViewWhiteStyle">@style/ListView.Light</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.Large</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.Light</item>
 
@@ -78,7 +78,7 @@
         <item name="android:listViewWhiteStyle">@style/ListView.Dark</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.Large</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.Dark</item>
 
@@ -95,7 +95,7 @@
         <item name="android:listViewWhiteStyle">@style/ListView.White</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.Large</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.White</item>
 
@@ -180,7 +180,7 @@
         <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.Large</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.Black</item>
 
@@ -266,7 +266,7 @@
         <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.Large</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.Black</item>
 
@@ -284,7 +284,7 @@
         <item name="android:listViewWhiteStyle">@style/ListView.White</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.Large</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.White</item>
 
@@ -301,7 +301,7 @@
         <item name="android:listViewWhiteStyle">@style/ListView.White</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.Large</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.White</item>
 
@@ -386,7 +386,7 @@
         <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.Large</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.Black</item>
 
