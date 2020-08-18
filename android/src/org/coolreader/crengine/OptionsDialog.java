@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
@@ -285,12 +286,16 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionsListView mOptionsApplication;
 	OptionsListView mOptionsControls;
 	OptionsListView mOptionsBrowser;
+	OptionsListView mOptionsCloudSync;
 	// Disable options
 	OptionBase mHyphDictOption;
 	OptionBase mEmbedFontsOptions;
 	OptionBase mFootNotesOption;
 	OptionBase mEnableMultiLangOption;
 	OptionBase mEnableHyphOption;
+	OptionBase mGoogleDriveEnableSettingsOption;
+	OptionBase mGoogleDriveEnableBookmarksOption;
+	OptionBase mGoogleDriveEnableCurrentBookOption;
 
 	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
 	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
@@ -500,6 +505,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsPage.refresh();
 			mOptionsApplication.refresh();
 			mOptionsControls.refresh();
+			if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+				mOptionsCloudSync.refresh();
+			}
 		}
 	}
 	class BoolOption extends OptionBase {
@@ -1529,6 +1537,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			return mOptionsControls;
 		else if ( "Page".equals(tag))
 			return mOptionsPage;
+		if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			if ( "Clouds".equals(tag) )
+				return mOptionsCloudSync;
+		}
+
 		return null;
 	}
 
@@ -2081,20 +2094,46 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.mi_book_browser_simple_mode), PROP_APP_FILE_BROWSER_SIMPLE_MODE).noIcon());
-		
+		if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			boolean gdriveSyncEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, false);
+			mOptionsCloudSync = new OptionsListView(getContext());
+			mOptionsCloudSync.add(new BoolOption(this, getString(R.string.options_app_googledrive_sync_auto), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED).setDefaultValue("0").noIcon()
+				.setOnChangeHandler(() -> {
+					boolean syncEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, false);
+					mGoogleDriveEnableSettingsOption.setEnabled(syncEnabled);
+					mGoogleDriveEnableBookmarksOption.setEnabled(syncEnabled);
+					mGoogleDriveEnableCurrentBookOption.setEnabled(syncEnabled);
+				}));
+			mGoogleDriveEnableSettingsOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_settings), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_SETTINGS).setDefaultValue("0").noIcon();
+			mGoogleDriveEnableSettingsOption.enabled = gdriveSyncEnabled;
+			mGoogleDriveEnableBookmarksOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_bookmarks), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_BOOKMARKS).setDefaultValue("0").noIcon();
+			mGoogleDriveEnableBookmarksOption.enabled = gdriveSyncEnabled;
+			mGoogleDriveEnableCurrentBookOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_currentbook), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK).setDefaultValue("0").noIcon();
+			mGoogleDriveEnableCurrentBookOption.enabled = gdriveSyncEnabled;
+			mOptionsCloudSync.add(mGoogleDriveEnableSettingsOption);
+			mOptionsCloudSync.add(mGoogleDriveEnableBookmarksOption);
+			mOptionsCloudSync.add(mGoogleDriveEnableCurrentBookOption);
+		}
+
 		fillStyleEditorOptions();
 
 		mOptionsStyles.refresh();
 		mOptionsCSS.refresh();
 		mOptionsPage.refresh();
 		mOptionsApplication.refresh();
-		
+		if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			mOptionsCloudSync.refresh();
+		}
+
 		addTab("Styles", R.drawable.cr3_tab_style);
 		addTab("CSS", R.drawable.cr3_tab_css);
 		addTab("Page", R.drawable.cr3_tab_page);
 		addTab("Controls", R.drawable.cr3_tab_controls);
 		addTab("App", R.drawable.cr3_tab_application);
-		
+		if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			addTab("Clouds", R.drawable.cr3_tab_clouds);
+		}
+
 		setView(mTabs);
 	}
 	

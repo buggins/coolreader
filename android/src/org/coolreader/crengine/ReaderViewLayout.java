@@ -107,6 +107,8 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 				ReaderAction.RECENT_BOOKS,
 				ReaderAction.OPEN_PREVIOUS_BOOK,
 				ReaderAction.TOGGLE_AUTOSCROLL,
+				ReaderAction.GDRIVE_SYNCTO,
+				ReaderAction.GDRIVE_SYNCFROM,
 				ReaderAction.ABOUT,
 				ReaderAction.EXIT,
 			}), false);

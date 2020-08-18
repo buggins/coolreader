@@ -136,7 +136,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			else if (item.isOnlineCatalogPluginBook())
 				showOnlineCatalogBookDialog(item);
 			else
-				mActivity.loadDocument(item);
+				mActivity.loadDocument(item, true);
 			return true;
 		}
 
@@ -264,7 +264,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			if ( selectedItem.isOPDSDir() )
 				showOPDSDir(selectedItem, null);
 			else
-				mActivity.loadDocument(selectedItem);
+				mActivity.loadDocument(selectedItem, true);
 			return true;
 		case R.id.book_sort_order:
 			mActivity.showToast("Sorry, sort order selection is not yet implemented");
@@ -694,9 +694,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						mScanner.listDirectory(dir);
 						FileInfo item = dir.findItemByPathName(file.getAbsolutePath());
 						if ( item!=null )
-							mActivity.loadDocument(item);
+							mActivity.loadDocument(item, true);
 						else
-							mActivity.loadDocument(fi);
+							mActivity.loadDocument(fi, true);
 					}
 
 					@Override

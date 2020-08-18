@@ -4,6 +4,7 @@ $TARGET_DIR = "../android/res/";
 
 #                      dpi: 120       160       240        320         480            640
 my %ic_actions_sizes  = (ldpi=>24, mdpi=>32, hdpi=>48, xhdpi=>64, xxhdpi=>96,  xxxhdpi=>128);
+my %ic_tabs_sizes     = (ldpi=>30, mdpi=>40, hdpi=>60, xhdpi=>80, xxhdpi=>120, xxxhdpi=>160);
 my %ic_menu_sizes     = (ldpi=>36, mdpi=>48, hdpi=>72, xhdpi=>96, xxhdpi=>144, xxxhdpi=>192);
 my %ic_launcher_sizes = (ldpi=>36, mdpi=>48, hdpi=>72, xhdpi=>96, xxhdpi=>144, xxxhdpi=>192);
 my %ic_bigicons_sizes = (ldpi=>36, mdpi=>48, hdpi=>72, xhdpi=>96, xxhdpi=>144, xxxhdpi=>192);
@@ -11,6 +12,8 @@ my %ic_bigicons_sizes = (ldpi=>36, mdpi=>48, hdpi=>72, xhdpi=>96, xxhdpi=>144, x
 my %ic_actions_list=(
 	'cr3_option_text_ligatures-48x48-src.svg' => 'cr3_option_text_ligatures.png',
 	'cr3_option_text_multilang-48x48-src.svg' => 'cr3_option_text_multilang.png',
+	'google-drive-logo/drive-icon-48x48.svg' => 'google_drive.png',
+	'google-drive-logo/drive-icon-mono-48x48.svg' => 'google_drive_mono.png',
 
 	'cr3_button_prev_hc-48x48-src.svg' => 'cr3_button_prev_hc.png',
 	'cr3_button_next_hc-48x48-src.svg' => 'cr3_button_next_hc.png',
@@ -75,6 +78,10 @@ my %ic_actions_list=(
 	'cr3_browser_book_hc-48x48-src.svg' => 'cr3_browser_book_hc.png'
 );
 
+my %ic_tabs_list=(
+	'cr3_tab_clouds-48x48-src.svg' => 'cr3_tab_clouds.png',
+);
+
 my %ic_menu_list=(
 );
 
@@ -88,77 +95,59 @@ my %ic_bigicons_list=(
 	'media_flash_microsd-48x48-src.svg' => 'media_flash_microsd.png'
 );
 
-my ($srcfile, $dstfile);
-my ($dpi, $size);
-my $folder;
-my $resfile;
-my $cmd;
-my $ret;
+do_convert(\%ic_actions_list,  \%ic_actions_sizes);
+do_convert(\%ic_tabs_list,     \%ic_tabs_sizes);
+do_convert(\%ic_menu_list,     \%ic_menu_sizes);
+do_convert(\%ic_launcher_list, \%ic_launcher_sizes);
+do_convert(\%ic_bigicons_list, \%ic_bigicons_sizes);
 
-# action icons
-while (($srcfile, $dstfile) = each(%ic_actions_list))
-{
-	while (($dpi, $size) = each(%ic_actions_sizes))
-	{
-		$folder = "${TARGET_DIR}/drawable-${dpi}/";
-		if (-d $folder)
-		{
-			$resfile = "${folder}/${dstfile}";
-			$cmd = "inkscape -z -e ${resfile} -w ${size} -h ${size} ${srcfile}";
-			print "$cmd\n";
-			$ret = system($cmd);
-			print "Failed!\n" if $ret != 0;
-		}
-	}
-}
+1;
 
-# menu icons
-while (($srcfile, $dstfile) = each(%ic_menu_list))
-{
-	while (($dpi, $size) = each(%ic_menu_sizes))
-	{
-		$folder = "${TARGET_DIR}/drawable-${dpi}/";
-		if (-d $folder)
-		{
-			$resfile = "${folder}/${dstfile}";
-			$cmd = "inkscape -z -e ${resfile} -w ${size} -h ${size} ${srcfile}";
-			print "$cmd\n";
-			$ret = system($cmd);
-			print "Failed!\n" if $ret != 0;
-		}
-	}
-}
+# functions
 
-# launcher icons
-while (($srcfile, $dstfile) = each(%ic_launcher_list))
+sub do_convert($$)
 {
-	while (($dpi, $size) = each(%ic_launcher_sizes))
-	{
-		$folder = "${TARGET_DIR}/drawable-${dpi}/";
-		if (-d $folder)
-		{
-			$resfile = "${folder}/${dstfile}";
-			$cmd = "inkscape -z -e ${resfile} -w ${size} -h ${size} ${srcfile}";
-			print "$cmd\n";
-			$ret = system($cmd);
-			print "Failed!\n" if $ret != 0;
-		}
-	}
-}
+	my ($src_listref, $src_sizesref) = @_;
+	my %src_list = %$src_listref;
+	my %src_sizes = %$src_sizesref;
 
-# bigicons
-while (($srcfile, $dstfile) = each(%ic_bigicons_list))
-{
-	while (($dpi, $size) = each(%ic_bigicons_sizes))
+	my ($srcfile, $dstfile);
+	my ($dpi, $size);
+	my $folder;
+	my $resfile;
+	my $cmd;
+	my $ret;
+	my ($srcmtime, $resmtime);
+
+	while (($srcfile, $dstfile) = each(%src_list))
 	{
-		$folder = "${TARGET_DIR}/drawable-${dpi}/";
-		if (-d $folder)
+		if (-f $srcfile)
 		{
-			$resfile = "${folder}/${dstfile}";
-			$cmd = "inkscape -z -e ${resfile} -w ${size} -h ${size} ${srcfile}";
-			print "$cmd\n";
-			$ret = system($cmd);
-			print "Failed!\n" if $ret != 0;
+			(undef,undef,undef,undef,undef,undef,undef,undef,undef,$srcmtime,undef,undef,undef) = stat($srcfile);
+			while (($dpi, $size) = each(%src_sizes))
+			{
+				$folder = "${TARGET_DIR}/drawable-${dpi}/";
+				if (-d $folder)
+				{
+					$resfile = "${folder}/${dstfile}";
+					$resmtime = 0;
+					if (-f $resfile)
+					{
+						(undef,undef,undef,undef,undef,undef,undef,undef,undef,$resmtime,undef,undef,undef) = stat($resfile);
+					}
+					if ($srcmtime > $resmtime)
+					{
+						$cmd = "inkscape -o ${resfile} -w ${size} -h ${size} ${srcfile}";
+						print "$cmd\n";
+						$ret = system($cmd);
+						print "Failed!\n" if $ret != 0;
+					}
+					else
+					{
+						print "File \"${srcfile}\" is skipped.\n";
+					}
+				}
+			}
 		}
 	}
 }

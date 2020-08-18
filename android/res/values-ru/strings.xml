@@ -605,4 +605,21 @@
     <string name="options_rendering_preset">Опции рендеринга</string>
     <string name="options_style_multilang">Поддержка мультиязычных документов</string>
     <string name="options_style_enable_hyphenation">Разрешить переносы</string>
+    <string name="options_app_googledrive_sync_auto">Автоматическая синхронизация с Google Диском</string>
+    <string name="options_app_googledrive_sync_settings">Настройки на Диске</string>
+    <string name="options_app_googledrive_sync_bookmarks">Закладки и текущая позиция чтения на Диске</string>
+    <string name="options_app_googledrive_sync_currentbook">Читаемая в данный момент книга на Диске</string>
+    <string name="googledrive_disabled_cleanup_question">Вы отключили автоматическую синхронизацию с Google Диском, удалить все данные приложения на Google Диске?"</string>
+    <string name="googledrive_sync_completed">Синхронизация с Google Диском успешно завершена.</string>
+    <string name="googledrive_sync_failed_with">Произошел сбой при синхронизация с Google Диском: %s</string>
+    <string name="googledrive_sync_failed">Произошел сбой при синхронизация с Google Диском!</string>
+    <string name="googledrive_sync_aborted">Синхронизация с Google Диском прервана!</string>
+    <string name="googledrive_localfile_is_newer_confirm">Локальный файл \"%s\" новее чем удаленный файл на Google Диске, скачать удаленный файл или загрузить локальный на Диск?</string>
+    <string name="googledrive_load_remote">Скачать удаленный</string>
+    <string name="googledrive_upload_local">Загрузить локальный на Диск</string>
+    <string name="googledrive_remotefile_is_newer_confirm">Удаленный файл \"%s\" на Google Диске новее чем локальный файл, загрузить локальный на Диск или скачать удаленный?</string>
+    <string name="cloud_synchronization_">Облачная синхронизация…</string>
+    <string name="googledrive_sync_to">Синх. на Диск</string>
+    <string name="googledrive_sync_from">Синх. с Диска</string>
+    <string name="confirmation_title">Подтверждение</string>
 </resources>

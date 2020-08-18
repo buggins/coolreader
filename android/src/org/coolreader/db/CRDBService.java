@@ -419,6 +419,18 @@ public class CRDBService extends Service {
 		});
 	}
 
+	/*
+	public void findByFingerprint(final int maxCount, final String filename, int crc32, final BookSearchCallback callback, final Handler handler) {
+		execTask(new Task("findByFingerprint") {
+			@Override
+			public void work() {
+				final ArrayList<FileInfo> list = mainDB.findByFingerprint(maxCount, filename, crc32);
+				sendTask(handler, () -> callback.onBooksFound(list));
+			}
+		});
+	}
+	*/
+
 	private ArrayList<FileInfo> deepCopyFileInfos(final Collection<FileInfo> src) {
 		final ArrayList<FileInfo> list = new ArrayList<FileInfo>(src.size());
 		for (FileInfo fi : src)
@@ -693,12 +705,18 @@ public class CRDBService extends Service {
     	public void saveFileInfos(final Collection<FileInfo> list) {
     		getService().saveFileInfos(deepCopyFileInfos(list));
     	}
-    	
-    	public void findByPatterns(final int maxCount, final String author, final String title, final String series, final String filename, final BookSearchCallback callback) {
-    		getService().findByPatterns(maxCount, author, title, series, filename, callback, new Handler());
+
+    	/*
+    	public void findByFingerprint(final int maxCount, final String filename, int crc32, final BookSearchCallback callback) {
+    		getService().findByFingerprint(maxCount, filename, crc32, callback, new Handler());
     	}
-    	
-    	public void loadFileInfos(final ArrayList<String> pathNames, final FileInfoLoadingCallback callback) {
+    	*/
+
+		public void findByPatterns(final int maxCount, final String author, final String title, final String series, final String filename, final BookSearchCallback callback) {
+			getService().findByPatterns(maxCount, author, title, series, filename, callback, new Handler());
+		}
+
+		public void loadFileInfos(final ArrayList<String> pathNames, final FileInfoLoadingCallback callback) {
     		getService().loadFileInfos(pathNames, callback, new Handler());
     	}
 

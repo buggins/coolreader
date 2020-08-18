@@ -1085,7 +1085,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 							// absolute path to file
 							FileInfo fi = new FileInfo(link);
 							if (fi.exists()) {
-								mActivity.loadDocument(fi);
+								mActivity.loadDocument(fi, true);
 								return;
 							}
 							File baseDir = null;
@@ -1102,7 +1102,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 									if (baseDir != null && url != null && url.length() > 0) {
 										fi = new FileInfo(baseDir.getAbsolutePath() + "/" + url);
 										if (fi.exists()) {
-											mActivity.loadDocument(fi);
+											mActivity.loadDocument(fi, true);
 											return;
 										}
 									}
@@ -1110,7 +1110,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 									// from archive
 									fi = new FileInfo(mBookInfo.getFileInfo().getArchiveName() + FileInfo.ARC_SEPARATOR + link);
 									if (fi.exists()) {
-										mActivity.loadDocument(fi);
+										mActivity.loadDocument(fi, true);
 										return;
 									}
 								}
@@ -2441,6 +2441,13 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				log.i("Switched to dictionary: " + Integer.toString(mActivity.mDictionaries.isiDic2IsActive() + 1));
 				mActivity.showToast("Switched to dictionary: " + Integer.toString(mActivity.mDictionaries.isiDic2IsActive() + 1));
 				break;
+			case DCMD_GOOGLEDRIVE_SYNC:
+				if (0 == param) {							// sync to
+					mActivity.forceSyncToGoogleDrive();
+				} else if (1 == param) {					// sync from
+					mActivity.forceSyncFromGoogleDrive();
+				}
+				break;
 			default:
 				// do nothing
 				break;
@@ -2696,7 +2703,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	 * @return true if opened successfully
 	 */
 	public boolean showManual() {
-		return loadDocument(getManualFileName(), () -> mActivity.showToast("Error while opening manual"));
+		return loadDocument(getManualFileName(), null, () -> mActivity.showToast("Error while opening manual"));
 	}
 
 	private boolean hiliteTapZoneOnTap = false;
@@ -2928,17 +2935,19 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	public boolean reloadDocument() {
 		if (this.mBookInfo != null && this.mBookInfo.getFileInfo() != null) {
 			save(); // save current position
-			post(new LoadDocumentTask(this.mBookInfo, null, null));
+			post(new LoadDocumentTask(this.mBookInfo, null, null, null));
 			return true;
 		}
 		return false;
 	}
 
-	public boolean loadDocument(final FileInfo fileInfo, final Runnable errorHandler) {
+	public boolean loadDocument(final FileInfo fileInfo, final Runnable doneHandler, final Runnable errorHandler) {
 		log.v("loadDocument(" + fileInfo.getPathName() + ")");
 		if (this.mBookInfo != null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname) && mOpened) {
 			log.d("trying to load already opened document");
 			mActivity.showReader();
+			if (null != doneHandler)
+				doneHandler.run();
 			drawPage();
 			return false;
 		}
@@ -2948,18 +2957,20 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				log.v("posting LoadDocument task to GUI thread");
 				BackgroundThread.instance().postGUI(() -> {
 					log.v("synced posting LoadDocument task to GUI thread");
-					post(new LoadDocumentTask(bookInfo, null, errorHandler));
+					post(new LoadDocumentTask(bookInfo, null, doneHandler, errorHandler));
 				});
 			});
 		});
 		return true;
 	}
 
-	public boolean loadDocumentFromStream(final InputStream inputStream, final FileInfo fileInfo, final Runnable errorHandler) {
+	public boolean loadDocumentFromStream(final InputStream inputStream, final FileInfo fileInfo, final Runnable doneHandler, final Runnable errorHandler) {
 		log.v("loadDocument(" + fileInfo.getPathName() + ")");
 		if (this.mBookInfo != null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname) && mOpened) {
 			log.d("trying to load already opened document");
 			mActivity.showReader();
+			if (null != doneHandler)
+				doneHandler.run();
 			drawPage();
 			return false;
 		}
@@ -2969,7 +2980,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				log.v("posting LoadDocument task to GUI thread");
 				BackgroundThread.instance().postGUI(() -> {
 					log.v("synced posting LoadDocument task to GUI thread");
-					post(new LoadDocumentTask(bookInfo, inputStream, errorHandler));
+					post(new LoadDocumentTask(bookInfo, inputStream, doneHandler, errorHandler));
 				});
 			});
 		});
@@ -2988,13 +2999,13 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (bi != null && bi.getFileInfo() != null) {
 			save();
 			log.i("loadPreviousDocument() is called, prevBookName = " + bi.getFileInfo().getPathName());
-			return loadDocument(bi.getFileInfo().getPathName(), errorHandler);
+			return loadDocument(bi.getFileInfo().getPathName(), null, errorHandler);
 		}
 		errorHandler.run();
 		return false;
 	}
 
-	public boolean loadDocument(String fileName, final Runnable errorHandler) {
+	public boolean loadDocument(String fileName, final Runnable doneHandler, final Runnable errorHandler) {
 		BackgroundThread.ensureGUI();
 		save();
 		log.i("loadDocument(" + fileName + ")");
@@ -3056,10 +3067,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			fi = book.getFileInfo();
 			log.v("loadDocument() : item from history : " + fi);
 		}
-		return loadDocument(fi, errorHandler);
+		return loadDocument(fi, doneHandler, errorHandler);
 	}
 
-	public boolean loadDocumentFromStream(InputStream inputStream, String contentPath, final Runnable errorHandler) {
+	public boolean loadDocumentFromStream(InputStream inputStream, String contentPath, final Runnable doneHandler, final Runnable errorHandler) {
 		BackgroundThread.ensureGUI();
 		save();
 		log.i("loadDocument(" + contentPath + ")");
@@ -3080,12 +3091,20 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			fi = book.getFileInfo();
 			log.v("loadDocument() : item from history : " + fi);
 		}
-		return loadDocumentFromStream(inputStream, fi, errorHandler);
+		return loadDocumentFromStream(inputStream, fi, doneHandler, errorHandler);
 	}
 
 	public BookInfo getBookInfo() {
 		BackgroundThread.ensureGUI();
 		return mBookInfo;
+	}
+
+	public void showCloudSyncProgress(int progress) {
+		showProgress(progress, R.string.cloud_synchronization_);
+	}
+
+	public void hideSyncProgress() {
+		hideProgress();
 	}
 
 
@@ -4724,13 +4743,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		String filename;
 		String path;
 		InputStream inputStream;
+		Runnable doneHandler;
 		Runnable errorHandler;
 		String pos;
 		int profileNumber;
 		boolean disableInternalStyles;
 		boolean disableTextAutoformat;
 
-		LoadDocumentTask(BookInfo bookInfo, InputStream inputStream, Runnable errorHandler) {
+		LoadDocumentTask(BookInfo bookInfo, InputStream inputStream, Runnable doneHandler, Runnable errorHandler) {
 			BackgroundThread.ensureGUI();
 			mBookInfo = bookInfo;
 			FileInfo fileInfo = bookInfo.getFileInfo();
@@ -4748,6 +4768,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			this.filename = fileInfo.getPathName();
 			this.path = fileInfo.arcname != null ? fileInfo.arcname : fileInfo.pathname;
 			this.inputStream = inputStream;
+			this.doneHandler = doneHandler;
 			this.errorHandler = errorHandler;
 			//FileInfo fileInfo = new FileInfo(filename);
 			disableInternalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG);
@@ -4874,7 +4895,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 				hideProgress();
 				drawPage();
-				BackgroundThread.instance().postGUI(mActivity::showReader);
+				BackgroundThread.instance().postGUI(() -> {
+					mActivity.showReader();
+					if (null != doneHandler)
+						doneHandler.run();
+				});
 				// Save last opened book ONLY if book opened from real file not stream.
 				if (null == inputStream)
 					mActivity.setLastBook(filename);

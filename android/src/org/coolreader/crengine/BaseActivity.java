@@ -45,6 +45,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 @SuppressLint("Registered")
 public class BaseActivity extends Activity implements Settings {
@@ -308,6 +311,13 @@ public class BaseActivity extends Activity implements Settings {
 		return diagonalInches;
 	}
 
+	public String getSettingsFile(int profile) {
+		File file = mSettingsManager.getSettingsFile(profile);
+		if (file.exists())
+			return file.getAbsolutePath();
+		return null;
+	}
+
 	public boolean isSmartphone() {
 		return diagonalInches <= 6.8; //5.8;
 	}
@@ -395,7 +405,8 @@ public class BaseActivity extends Activity implements Settings {
 				R.attr.cr3_button_go_page_drawable, R.attr.cr3_button_go_percent_drawable, R.attr.cr3_browser_folder_drawable,
 				R.attr.cr3_button_tts_drawable, R.attr.cr3_browser_folder_recent_drawable, R.attr.cr3_button_scroll_go_drawable,
 				R.attr.cr3_btn_books_swap_drawable, R.attr.cr3_logo_button_drawable, R.attr.cr3_viewer_exit_drawable,
-				R.attr.cr3_button_book_open_drawable, R.attr.cr3_browser_folder_current_book_drawable, R.attr.cr3_browser_folder_opds_drawable};
+				R.attr.cr3_button_book_open_drawable, R.attr.cr3_browser_folder_current_book_drawable, R.attr.cr3_browser_folder_opds_drawable,
+				R.attr.google_drive_drawable };
 		TypedArray a = getTheme().obtainStyledAttributes(attrs);
 		int btnPrevDrawableRes = a.getResourceId(0, 0);
 		int btnNextDrawableRes = a.getResourceId(1, 0);
@@ -418,6 +429,7 @@ public class BaseActivity extends Activity implements Settings {
 		int btnBookOpenDrawableRes = a.getResourceId(18, 0);
 		int brFolderCurrBookDrawableRes = a.getResourceId(19, 0);
 		int brFolderOpdsDrawableRes = a.getResourceId(20, 0);
+		int googleDriveDrawableRes = a.getResourceId(21, 0);
 		a.recycle();
 		if (btnPrevDrawableRes != 0) {
 			ReaderAction.GO_BACK.setIconId(btnPrevDrawableRes);
@@ -463,6 +475,10 @@ public class BaseActivity extends Activity implements Settings {
 			ReaderAction.CURRENT_BOOK_DIRECTORY.setIconId(brFolderCurrBookDrawableRes);
 		if (brFolderOpdsDrawableRes != 0)
 			ReaderAction.OPDS_CATALOGS.setIconId(brFolderOpdsDrawableRes);
+		if (googleDriveDrawableRes != 0) {
+			ReaderAction.GDRIVE_SYNCTO.setIconId(googleDriveDrawableRes);
+			ReaderAction.GDRIVE_SYNCFROM.setIconId(googleDriveDrawableRes);
+		}
 	}
 
 	public void setCurrentTheme(InterfaceTheme theme) {
@@ -1338,6 +1354,10 @@ public class BaseActivity extends Activity implements Settings {
 		mSettingsManager.setSettings(settings, delayMillis, notify);
 	}
 
+	public void mergeSettings(Properties settings, boolean notify) {
+		mSettingsManager.mergeSettings(settings, notify);
+	}
+
 	public void notifySettingsChanged() {
 		setSettings(mSettingsManager.get(), -1, true);
 	}
@@ -1382,6 +1402,18 @@ public class BaseActivity extends Activity implements Settings {
 //		    		}
 //		    	}, delayMillis);
 //			}
+			if (notify)
+				mActivity.onSettingsChanged(mSettings, oldSettings);
+		}
+
+		public void mergeSettings(Properties settings, boolean notify) {
+			Properties oldSettings = mSettings;
+			mSettings = new Properties(oldSettings);
+			Set<Entry<Object, Object>> entries = settings.entrySet();
+			for (Entry<Object, Object> entry : entries) {
+				mSettings.put(entry.getKey(), entry.getValue());
+			}
+			saveSettings(mSettings);
 			if (notify)
 				mActivity.onSettingsChanged(mSettings, oldSettings);
 		}
