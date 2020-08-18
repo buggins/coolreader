@@ -185,3 +185,6 @@
 -keepclassmembers class * {
   @com.google.api.client.util.Key <fields>;
 }
+
+# Don't obfuscate anything to make the bug report more readable.
+-dontobfuscate
