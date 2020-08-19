@@ -1220,7 +1220,7 @@ public class Synchronizer {
 	}
 
 	private void syncBookmarks(InputStream inputStream) {
-		log.v("syncCurrentBookWithReaderView()");
+		log.v("syncBookmarks()");
 		// 1. Read & parse bookmarks from stream
 		FileInfo fileInfo = null;
 		List<Bookmark> bookmarks = null;
@@ -1279,6 +1279,7 @@ public class Synchronizer {
 	}
 
 	private void syncSetCurrentBook(FileInfo fileInfo) {
+		log.v("syncSetCurrentBook()");
 		BackgroundThread.instance().executeGUI(() -> m_coolReader.waitForCRDBService(() -> {
 			//m_coolReader.getDB().findByFingerprint(2, fileName, crc32,
 			m_coolReader.getDB().findByPatterns(2, fileInfo.authors, fileInfo.title, fileInfo.series, fileInfo.filename,
