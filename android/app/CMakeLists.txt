@@ -33,6 +33,7 @@ add_definitions(-DCR3_ANTIWORD_PATCH=1 -DENABLE_ANTIWORD=1)
 add_definitions(-DMAX_IMAGE_SCALE_MUL=2)
 add_definitions(-DUSE_NANOSVG=1)
 add_definitions(-DBUNDLED_FRIBIDI=1)
+add_definitions(-DKO_LIBUNIBREAK_PATCH=1)       # patch "add_lb_get_char_class.patch" for libunibreak from koreader
 
 #set(LOCAL_CFLAGS "-Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall")
 # Option '-Wl,--no-merge-exidx-entries' removed as incompatible with clang.

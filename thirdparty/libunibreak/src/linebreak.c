@@ -751,6 +751,12 @@ int lb_process_next_char(
 
     return brk;
 }
+enum LineBreakClass lb_get_char_class(
+        struct LineBreakContext *lbpCtx,
+        utf32_t ch)
+{
+    return get_char_lb_class_lang(ch, lbpCtx->lbpLang);
+}
 
 /**
  * Sets the line breaking information for a generic input string.

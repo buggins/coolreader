@@ -483,6 +483,7 @@ static quotes_spec _quotes_spec_table[] = {
 static quotes_spec _quotes_spec_default = { "", L"\x201c", L"\x201d", L"\x2018", L"\x2019" };
 
 #if USE_LIBUNIBREAK==1
+#if KO_LIBUNIBREAK_PATCH==1
 lChar16 lb_char_sub_func_english(struct LineBreakContext *lbpCtx, const lChar16 * text, int pos, int next_usable) {
     // https://github.com/koreader/crengine/issues/364
     // Normally, line breaks are allowed at both sides of an em-dash.
@@ -566,6 +567,7 @@ lChar16 lb_char_sub_func_english(struct LineBreakContext *lbpCtx, const lChar16 
     }
     return text[pos];
 }
+#endif      // KO_LIBUNIBREAK_PATCH==1
 
 lChar16 lb_char_sub_func_polish(struct LineBreakContext *lbpCtx, const lChar16 * text, int pos, int next_usable) {
     // https://github.com/koreader/koreader/issues/5645#issuecomment-559193057
@@ -788,10 +790,12 @@ TextLangCfg::TextLangCfg( lString16 lang_tag ) {
 
     // Other line breaking and text layout tweaks
     _lb_char_sub_func = NULL;
+#if KO_LIBUNIBREAK_PATCH==1
     if ( LANG_STARTS_WITH(("en")) ) { // English
         _lb_char_sub_func = &lb_char_sub_func_english;
-    }
-    else if ( LANG_STARTS_WITH(("pl")) ) { // Polish
+    } else
+#endif
+    if ( LANG_STARTS_WITH(("pl")) ) { // Polish
         _lb_char_sub_func = &lb_char_sub_func_polish;
         _duplicate_real_hyphen_on_next_line = true;
     }
