@@ -389,7 +389,7 @@ public class CoolReader extends BaseActivity {
 				}
 
 				@Override
-				public void onCurrentBookLoaded(FileInfo fileInfo) {
+				public void onCurrentBookInfoLoaded(FileInfo fileInfo) {
 					loadDocument(fileInfo, false);
 				}
 

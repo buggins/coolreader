@@ -1297,7 +1297,7 @@ public class Synchronizer {
 							FileInfo dbFileInfo = fileList.get(0);
 							if (null != m_onStatusListener) {
 								log.d("Book \"" + dbFileInfo + "\" found, call listener to load this book...");
-								m_onStatusListener.onCurrentBookLoaded(fileList.get(0));
+								m_onStatusListener.onCurrentBookInfoLoaded(fileList.get(0));
 							}
 						}
 					});

@@ -38,5 +38,5 @@ public interface OnSyncStatusListener {
 
 	void onBookmarksLoaded(BookInfo bookInfo);
 
-	void onCurrentBookLoaded(FileInfo fileInfo);
+	void onCurrentBookInfoLoaded(FileInfo fileInfo);
 }
