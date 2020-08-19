@@ -61,17 +61,18 @@ bool DetectOpenDocumentFormat( LVStreamRef stream )
 class odt_documentHandler : public xml_ElementHandler
 {
     LVArray<int> m_levels;
-    // xml_ElementHandler interface
+protected:
+    docx_titleHandler* m_titleHandler;
+    int m_outlineLevel;
 protected:
     int parseTagName(const lChar16 *tagname);
-
-    // xml_ElementHandler interface
 public:
-    odt_documentHandler(docXMLreader * reader, ldomDocumentWriter *writer) :
-        xml_ElementHandler(reader, writer, odt_el_NULL) {
+    odt_documentHandler(docXMLreader * reader, ldomDocumentWriter *writer, docx_titleHandler* titleHandler) :
+        xml_ElementHandler(reader, writer, odt_el_NULL), m_titleHandler(titleHandler), m_outlineLevel(0) {
     }
     ldomNode *handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 *attrname, const lChar16 *attrvalue);
+    void handleAttribute(const lChar16 *attrname, const lChar16 *attrValue);
+    void handleTagBody();
     void handleTagClose(const lChar16 *nsname, const lChar16 *tagname);
     void handleText(const lChar16 *text, int len, lUInt32 flags);
     void reset();
@@ -102,6 +103,23 @@ bool ImportOpenDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     ldomDocumentWriter writer(doc);
     docXMLreader docReader(&writer);
 
+#ifdef DOCX_FB2_DOM_STRUCTURE
+    writer.OnStart(NULL);
+    writer.OnTagOpen(NULL, L"?xml");
+    writer.OnAttribute(NULL, L"version", L"1.0");
+    writer.OnAttribute(NULL, L"encoding", L"utf-8");
+    writer.OnEncoding(L"utf-8", NULL);
+    writer.OnTagBody();
+    writer.OnTagClose(NULL, L"?xml");
+    writer.OnTagOpenNoAttr(NULL, L"FictionBook");
+    // DESCRIPTION
+    writer.OnTagOpenNoAttr(NULL, L"description");
+    writer.OnTagOpenNoAttr(NULL, L"title-info");
+    writer.OnTagOpenNoAttr(NULL, L"book-title");
+    writer.OnTagClose(NULL, L"book-title");
+    writer.OnTagClose(NULL, L"title-info");
+    writer.OnTagClose(NULL, L"description");
+#else
     writer.OnStart(NULL);
     writer.OnTagOpen(NULL, L"?xml");
     writer.OnAttribute(NULL, L"version", L"1.0");
@@ -110,8 +128,16 @@ bool ImportOpenDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     writer.OnTagBody();
     writer.OnTagClose(NULL, L"?xml");
     writer.OnTagOpenNoAttr(NULL, L"html");
+#endif
 
-    odt_documentHandler documentHandler(&docReader, &writer);
+#ifdef DOCX_FB2_DOM_STRUCTURE
+    //Two options when dealing with titles: (FB2|HTML)
+    docx_fb2TitleHandler titleHandler(&writer, DOCX_USE_CLASS_FOR_HEADING); //<section><title>..</title></section>
+#else
+    docx_titleHandler titleHandler(&writer);  //<hx>..</hx>
+#endif
+
+    odt_documentHandler documentHandler(&docReader, &writer, &titleHandler);
     docReader.setHandler(&documentHandler);
 
     LVXMLParser parser(m_stream, &docReader);
@@ -127,6 +153,11 @@ bool ImportOpenDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
         doc->compact();
         doc->dumpStatistics();
     }
+
+#if 1
+    // save compound XML document, for testing:
+    doc->saveToStream(LVOpenFileStream("D:/Temp/odt_dump.xml", LVOM_WRITE), NULL, true);
+#endif
     return true;
 }
 
@@ -145,12 +176,11 @@ ldomNode *odt_documentHandler::handleTagOpen(int tagId)
 {
     switch(tagId) {
     case odt_el_body:
-        m_writer->OnTagOpen(L"", L"body");
+        m_titleHandler->onBodyStart();
         m_writer->OnTagBody();
         break;
     case odt_el_h:
-        m_writer->OnTagOpen(L"", L"h3");
-        m_writer->OnTagBody();
+        m_outlineLevel = 0;
         break;
     case odt_el_p:
         m_writer->OnTagOpen(L"", L"p");
@@ -168,19 +198,34 @@ ldomNode *odt_documentHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void odt_documentHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrvalue)
+void odt_documentHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrValue)
 {
+    if(m_state == odt_el_h && !lStr_cmp(attrname, "outline-level") ) {
+        lString16 value = attrValue;
+        int tmp;
 
+        if(value.atoi(tmp))
+            m_outlineLevel = tmp - 1;
+    }
+}
+
+void odt_documentHandler::handleTagBody()
+{
+    if(m_state == odt_el_h) {
+        m_titleHandler->onTitleStart(m_outlineLevel + 1);
+        m_writer->OnTagBody();
+    }
 }
 
 void odt_documentHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname)
 {
     switch(m_state) {
     case odt_el_body:
+        m_titleHandler->onBodyEnd();
         m_writer->OnTagClose(nsname, tagname);
         break;
     case odt_el_h:
-        m_writer->OnTagClose(L"", L"h3");
+        m_titleHandler->onTitleEnd();
         break;
     case odt_el_p:
     case odt_el_span:
@@ -213,4 +258,5 @@ void odt_documentHandler::reset()
 {
     m_levels.clear();
     m_state = odt_el_NULL;
+    m_outlineLevel = 0;
 }

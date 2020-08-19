@@ -1,6 +1,11 @@
 #include <lvxml.h>
 #include <lvtinydom.h>
 
+// build FB2 DOM, comment out to build HTML DOM
+#define DOCX_FB2_DOM_STRUCTURE 1
+//If true <title class="hx"><p>...</p></title> else <title><hx>..</hx></title>
+#define DOCX_USE_CLASS_FOR_HEADING true
+
 /// known docx items name and identifier
 struct item_def_t {
     int      id;
@@ -145,4 +150,39 @@ public:
         m_state = element;
         start();
     }
+};
+
+class docx_titleHandler
+{
+public:
+    docx_titleHandler(ldomDocumentWriter *writer, bool useClassName=false) :
+        m_writer(writer), m_titleLevel(), m_useClassName(useClassName) {}
+    virtual ~docx_titleHandler() {}
+    virtual void onBodyStart();
+    virtual void onTitleStart(int level, bool noSection = false);
+    virtual void onTitleEnd();
+    virtual void onBodyEnd() {}
+    bool useClassForTitle() { return m_useClassName; }
+protected:
+    ldomDocumentWriter *m_writer;
+    int m_titleLevel;
+    bool m_useClassName;
+};
+
+class docx_fb2TitleHandler : public docx_titleHandler
+{
+public:
+    docx_fb2TitleHandler(ldomDocumentWriter *writer, bool useClassName) :
+        docx_titleHandler(writer, useClassName)
+    {}
+    void onBodyStart();
+    void onTitleStart(int level, bool noSection = false);
+    void onTitleEnd();
+private:
+    void makeSection(int startIndex);
+    void openSection(int level);
+    void closeSection(int level);
+private:
+    ldomNode *m_section;
+    bool m_hasTitle;
 };

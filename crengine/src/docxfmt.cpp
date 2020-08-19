@@ -12,10 +12,6 @@
 
 // comment this out to disable in-page footnotes
 #define DOCX_CRENGINE_IN_PAGE_FOOTNOTES 1
-// build FB2 DOM, comment out to build HTML DOM
-#define DOCX_FB2_DOM_STRUCTURE 1
-//If true <title class="hx"><p>...</p></title> else <title><hx>..</hx></title>
-#define DOCX_USE_CLASS_FOR_HEADING true
 
 static const lChar16* const docx_DocumentContentType   = L"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
 static const lChar16* const docx_NumberingContentType  = L"application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml";
@@ -764,42 +760,6 @@ public:
     void reset();
 };
 
-class docx_titleHandler
-{
-public:
-    docx_titleHandler(ldomDocumentWriter *writer, docxImportContext *context, bool useClassName=false) :
-        m_writer(writer), m_importContext(context), m_titleLevel(), m_useClassName(useClassName) {}
-    virtual ~docx_titleHandler() {}
-    virtual void onBodyStart();
-    virtual void onTitleStart(int level, bool noSection = false);
-    virtual void onTitleEnd();
-    virtual void onBodyEnd() {}
-    bool useClassForTitle() { return m_useClassName; }
-protected:
-    ldomDocumentWriter *m_writer;
-    docxImportContext *m_importContext;
-    int m_titleLevel;
-    bool m_useClassName;
-};
-
-class docx_fb2TitleHandler : public docx_titleHandler
-{
-public:
-    docx_fb2TitleHandler(ldomDocumentWriter *writer, docxImportContext *context, bool useClassName) :
-        docx_titleHandler(writer, context, useClassName)
-    {}
-    void onBodyStart();
-    void onTitleStart(int level, bool noSection = false);
-    void onTitleEnd();
-private:
-    void makeSection(int startIndex);
-    void openSection(int level);
-    void closeSection(int level);
-private:
-    ldomNode *m_section;
-    bool m_hasTitle;
-};
-
 class docx_hyperlinkHandler  : public docx_ElementHandler
 {
     docx_rHandler m_rHandler;
@@ -889,7 +849,7 @@ private:
 public:
     docx_tblHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, docx_titleHandler* titleHandler) :
         docx_ElementHandler(reader, writer, context, docx_el_tbl, tbl_elements),
-        m_rowCount(0), m_titleHandler(writer, context, titleHandler->useClassForTitle()),
+        m_rowCount(0), m_titleHandler(writer, titleHandler->useClassForTitle()),
         m_pHandler(reader, writer, context, &m_titleHandler),
         m_skipHandler(reader, writer, docx_el_p), m_colSpan(1),
         m_column(0), m_columnCount(0), m_vMergeState(VMERGE_NONE)
@@ -2102,9 +2062,9 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
 
 #ifdef DOCX_FB2_DOM_STRUCTURE
     //Two options when dealing with titles: (FB2|HTML)
-    docx_fb2TitleHandler titleHandler(&writer, &importContext, DOCX_USE_CLASS_FOR_HEADING); //<section><title>..</title></section>
+    docx_fb2TitleHandler titleHandler(&writer, DOCX_USE_CLASS_FOR_HEADING); //<section><title>..</title></section>
 #else
-    docx_titleHandler titleHandler(&writer, &importContext);  //<hx>..</hx>
+    docx_titleHandler titleHandler(&writer);  //<hx>..</hx>
 #endif
     docx_documentHandler documentHandler(&docReader, &writer, &importContext, &titleHandler);
     docReader.setHandler(&documentHandler);
@@ -2132,6 +2092,10 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
         doc->compact();
         doc->dumpStatistics();
     }
+#if 1
+    // save compound XML document, for testing:
+    doc->saveToStream(LVOpenFileStream("D:/Temp/docx_dump.xml", LVOM_WRITE), NULL, true);
+#endif
     return true;
 }
 
@@ -2870,102 +2834,4 @@ docxNumLevel *docxAbstractNum::getLevel(int level)
 void docxAbstractNum::reset()
 {
     m_levels.clear();
-}
-
-void docx_titleHandler::onBodyStart()
-{
-    m_writer->OnTagOpen(L"", docx_el_body_name);
-}
-
-void docx_titleHandler::onTitleStart(int level, bool noSection)
-{
-    CR_UNUSED(noSection);
-
-    m_titleLevel = level;
-    lString16 name = cs16("h") +  lString16::itoa(m_titleLevel);
-    if( m_useClassName ) {
-        m_writer->OnTagOpen(L"", L"p");
-        m_writer->OnAttribute(L"", L"class", name.c_str());
-    } else
-        m_writer->OnTagOpen(L"", name.c_str());
-}
-
-void docx_titleHandler::onTitleEnd()
-{
-    if( !m_useClassName ) {
-        lString16 tagName = cs16("h") +  lString16::itoa(m_titleLevel);
-        m_writer->OnTagClose(L"", tagName.c_str());
-    } else
-        m_writer->OnTagClose(L"", L"p");
-}
-
-void docx_fb2TitleHandler::onBodyStart()
-{
-    m_section = m_writer->OnTagOpen(L"", docx_el_body_name);
-}
-
-void docx_fb2TitleHandler::onTitleStart(int level, bool noSection)
-{
-    if( noSection )
-        docx_titleHandler::onTitleStart(level, true);
-    else {
-        if( m_titleLevel < level ) {
-            int startIndex = m_hasTitle ? 1 : 0;
-            int contentCount = m_section->getChildCount();
-            if(contentCount > startIndex)
-                makeSection(startIndex);
-        } else
-            closeSection(m_titleLevel - level + 1);
-        openSection(level);
-        m_writer->OnTagOpen(L"", L"title");
-        lString16 headingName = cs16("h") +  lString16::itoa(level);
-        if( m_useClassName ) {
-            m_writer->OnTagBody();
-            m_writer->OnTagOpen(L"", L"p");
-            m_writer->OnAttribute(L"", L"class", headingName.c_str());
-        } else {
-            m_writer->OnTagBody();
-            m_writer->OnTagOpen(L"", headingName.c_str());
-        }
-    }
-}
-
-void docx_fb2TitleHandler::onTitleEnd()
-{
-    if( !m_useClassName ) {
-        lString16 headingName = cs16("h") +  lString16::itoa(m_titleLevel);
-        m_writer->OnTagClose(L"", headingName.c_str());
-    } else
-        m_writer->OnTagClose(L"", L"p");
-
-    m_writer->OnTagClose(L"", L"title");
-    m_hasTitle = true;
-}
-
-void docx_fb2TitleHandler::makeSection(int startIndex)
-{
-    ldomNode *newSection = m_section->insertChildElement(startIndex, LXML_NS_NONE, el_section);
-    newSection->initNodeStyle();
-    m_section->moveItemsTo(newSection, startIndex + 1, m_section->getChildCount() - 1);
-    newSection->initNodeRendMethod( );
-    m_section = newSection;
-}
-
-void docx_fb2TitleHandler::openSection(int level)
-{
-    for(int i = m_titleLevel; i < level; i++) {
-        m_section = m_writer->OnTagOpen(L"", L"section");
-        m_writer->OnTagBody();
-    }
-    m_titleLevel = level;
-    m_hasTitle = false;
-}
-
-void docx_fb2TitleHandler::closeSection(int level)
-{
-    for(int i = 0; i < level; i++) {
-        m_writer->OnTagClose(L"", L"section");
-        m_titleLevel--;
-    }
-    m_hasTitle = false;
 }

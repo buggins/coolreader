@@ -1,3 +1,4 @@
+#include "../include/fb2def.h"
 #include "../include/crlog.h"
 #include "xmlutil.h"
 
@@ -109,4 +110,102 @@ void xml_ElementHandler::stop()
 
 void xml_ElementHandler::reset()
 {
+}
+
+void docx_titleHandler::onBodyStart()
+{
+    m_writer->OnTagOpen(L"", L"body");
+}
+
+void docx_titleHandler::onTitleStart(int level, bool noSection)
+{
+    CR_UNUSED(noSection);
+
+    m_titleLevel = level;
+    lString16 name = cs16("h") +  lString16::itoa(m_titleLevel);
+    if( m_useClassName ) {
+        m_writer->OnTagOpen(L"", L"p");
+        m_writer->OnAttribute(L"", L"class", name.c_str());
+    } else
+        m_writer->OnTagOpen(L"", name.c_str());
+}
+
+void docx_titleHandler::onTitleEnd()
+{
+    if( !m_useClassName ) {
+        lString16 tagName = cs16("h") +  lString16::itoa(m_titleLevel);
+        m_writer->OnTagClose(L"", tagName.c_str());
+    } else
+        m_writer->OnTagClose(L"", L"p");
+}
+
+void docx_fb2TitleHandler::onBodyStart()
+{
+    m_section = m_writer->OnTagOpen(L"", L"body");
+}
+
+void docx_fb2TitleHandler::onTitleStart(int level, bool noSection)
+{
+    if( noSection )
+        docx_titleHandler::onTitleStart(level, true);
+    else {
+        if( m_titleLevel < level ) {
+            int startIndex = m_hasTitle ? 1 : 0;
+            int contentCount = m_section->getChildCount();
+            if(contentCount > startIndex)
+                makeSection(startIndex);
+        } else
+            closeSection(m_titleLevel - level + 1);
+        openSection(level);
+        m_writer->OnTagOpen(L"", L"title");
+        lString16 headingName = cs16("h") +  lString16::itoa(level);
+        if( m_useClassName ) {
+            m_writer->OnTagBody();
+            m_writer->OnTagOpen(L"", L"p");
+            m_writer->OnAttribute(L"", L"class", headingName.c_str());
+        } else {
+            m_writer->OnTagBody();
+            m_writer->OnTagOpen(L"", headingName.c_str());
+        }
+    }
+}
+
+void docx_fb2TitleHandler::onTitleEnd()
+{
+    if( !m_useClassName ) {
+        lString16 headingName = cs16("h") +  lString16::itoa(m_titleLevel);
+        m_writer->OnTagClose(L"", headingName.c_str());
+    } else
+        m_writer->OnTagClose(L"", L"p");
+
+    m_writer->OnTagClose(L"", L"title");
+    m_hasTitle = true;
+}
+
+void docx_fb2TitleHandler::makeSection(int startIndex)
+{
+    ldomNode *newSection = m_section->insertChildElement(startIndex, LXML_NS_NONE, el_section);
+    newSection->initNodeStyle();
+    m_section->moveItemsTo(newSection, startIndex + 1, m_section->getChildCount() - 1);
+    newSection->initNodeRendMethod( );
+    m_section = newSection;
+}
+
+void docx_fb2TitleHandler::openSection(int level)
+{
+    for(int i = m_titleLevel; i < level; i++) {
+        m_section = m_writer->OnTagOpen(L"", L"section");
+        m_writer->OnTagBody();
+    }
+    m_titleLevel = level;
+    m_hasTitle = false;
+}
+
+void docx_fb2TitleHandler::closeSection(int level)
+{
+    for(int i = 0; i < level; i++) {
+        m_writer->OnTagClose(L"", L"section");
+        m_titleLevel--;
+    }
+    m_hasTitle = false;
 }
