@@ -355,7 +355,7 @@ public class CoolReader extends BaseActivity {
 				public void onAborted(Synchronizer.SyncDirection direction) {
 					// Hide sync indicator
 					runInReader(() -> mReaderView.hideSyncProgress());
-					BackgroundThread.instance().executeGUI(() -> showToast(R.string.googledrive_sync_aborted));
+					showToast(R.string.googledrive_sync_aborted);
 				}
 
 				@Override
