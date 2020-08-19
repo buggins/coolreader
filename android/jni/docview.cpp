@@ -1701,7 +1701,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
     } else {
         useCurPos = p->_docview->getViewMode()==DVM_SCROLL;
         if ( !useCurPos ) {
-            bm = p->_docview->getBookmark();
+            bm = p->_docview->getBookmark(false);
             if ( bm.isNull() ) {
                 CRLog::error("getPositionPropsInternal: Cannot get current position bookmark");
             }
@@ -1725,7 +1725,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
     CRStringField(v,"pageText").set(p->_docview->getPageText(false, -1));
 #else
 	p->_docview->getMutex().lock();
-	LVRef<ldomXRange> range = p->_docview->getPageDocumentRange(-1);
+	LVRef<ldomXRange> range = p->_docview->getPageDocumentRange(-1, false);
 	p->_docview->getMutex().unlock();
 	lString16 text;
 	if (!range.isNull())
