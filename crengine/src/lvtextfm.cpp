@@ -1409,7 +1409,7 @@ public:
                     if ( src->lang_cfg->hasLBCharSubFunc() ) {
                         // Lang specific function may want to substitute char (for
                         // libunibreak only) to tweak line breaking around it
-                        ch = src->lang_cfg->getLBCharSubFunc()(m_text, pos, len-1 - k);
+                        ch = src->lang_cfg->getLBCharSubFunc()(&lbCtx, m_text, pos, len-1 - k);
                     }
                     int brk = lb_process_next_char(&lbCtx, (utf32_t)ch);
                     if ( pos > 0 ) {

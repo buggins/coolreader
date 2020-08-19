@@ -169,3 +169,6 @@ void set_linebreaks(
         const char *lang,
         char *brks,
         get_next_char_t get_next_char);
+enum LineBreakClass lb_get_char_class(
+        struct LineBreakContext *lbpCtx,
+        utf32_t ch);
