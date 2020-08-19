@@ -242,18 +242,6 @@ public:
     }
 };
 
-void initHyph(const char * fname)
-{
-    HyphMan hyphman;
-    LVStreamRef stream = LVOpenFileStream( fname, LVOM_READ);
-    if (!stream)
-    {
-        printf("Cannot load hyphenation file %s\n", fname);
-        return;
-    }
-    HyphMan::activateDictionaryFromStream( stream );
-}
-
 int main( int argc, const char * argv[] )
 {
     CRLog::setStdoutLogger();
@@ -312,10 +300,9 @@ int main( int argc, const char * argv[] )
 #endif
 
     // init hyphenation manager
-    char hyphfn[1024];
-    sprintf(hyphfn, "%sRussian_EnUS_hyphen_(Alan).pdb", exedir );
-    initHyph( hyphfn );
-    
+    HyphMan::initDictionaries(Utf8ToUnicode(exedir));
+    HyphMan::activateDictionary(L"Russian_EnUS_hyphen_(Alan).pdb");
+
     //LVCHECKPOINT("WinMain start");
 
     LVDocView text_view;

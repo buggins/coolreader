@@ -81,7 +81,7 @@ void DrawBuf2Drawable(Display *display, Drawable d, GC gc, int x, int y, LVDrawB
 {
     int pixelsPerByte = (8 / buf->GetBitsPerPixel());
     int bytesPerRow = (buf->GetWidth() * buf->GetBitsPerPixel() + 7) / 8;
-    int mask = (1<<buf->GetBitsPerPixel()) - 1;
+    unsigned int mask = (unsigned int) ( (1UL<<buf->GetBitsPerPixel()) - 1 );
     int width = buf->GetWidth();
     int dwidth = buf->GetWidth()*scale;
 
