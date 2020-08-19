@@ -1512,6 +1512,37 @@ public class MainDB extends BaseDB {
 		return list;
 	}
 
+	/*
+	public ArrayList<FileInfo> findByFingerprint (int maxCount, String filename, int crc32)
+	{
+		// TODO: replace crc32 with sha512, remove filename as search criteria
+
+		beginReading();
+		ArrayList<FileInfo> list = new ArrayList<>();
+
+		String condition = " WHERE b.crc32=" + crc32;
+		String sql = READ_FILEINFO_SQL + condition;
+		Log.d("cr3", "sql: " + sql );
+		try (Cursor rs = mDB.rawQuery(sql, null)) {
+			if (rs.moveToFirst()) {
+				int count = 0;
+				do {
+					if (filename != null && filename.length() > 0)
+						if (!Utils.matchPattern(rs.getString(3), filename))
+							continue;
+					FileInfo fi = new FileInfo();
+					readFileInfoFromCursor(fi, rs);
+					list.add(fi);
+					fileInfoCache.put(fi);
+					count++;
+				} while (count < maxCount && rs.moveToNext());
+			}
+		}
+		endReading();
+		return list;
+	}
+	*/
+
 	public ArrayList<FileInfo> loadFileInfos(ArrayList<String> pathNames) {
 		ArrayList<FileInfo> list = new ArrayList<>();
 		if (!isOpened())

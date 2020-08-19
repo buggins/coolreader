@@ -31,6 +31,7 @@ public interface Settings {
     public static final String PROP_LOG_AUTOFLUSH           ="crengine.log.autoflush";
     public static final String PROP_FONT_SIZE               ="crengine.font.size";
     public static final String PROP_FALLBACK_FONT_FACE      ="crengine.font.fallback.face";
+	public static final String PROP_FALLBACK_FONT_FACES     ="crengine.font.fallback.faces";
     public static final String PROP_STATUS_FONT_COLOR       ="crengine.page.header.font.color";
     public static final String PROP_STATUS_FONT_COLOR_DAY   ="crengine.page.header.font.color.day";
     public static final String PROP_STATUS_FONT_COLOR_NIGHT ="crengine.page.header.font.color.night";
@@ -96,8 +97,11 @@ public interface Settings {
     public static final String PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE = "crengine.image.scaling.zoomin.block.scale";
     public static final String PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE = "crengine.image.scaling.zoomout.block.mode";
     public static final String PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE = "crengine.image.scaling.zoomout.block.scale";
-    
+
+    public static final String PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT = "crengine.style.space.width.scale.percent";
     public static final String PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT = "crengine.style.space.condensing.percent";
+    public static final String PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT = "crengine.style.unused.space.threshold.percent";
+    public static final String PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT = "crengine.style.max.added.letter.spacing.percent";
 
 	// default is 96 (1 css px = 1 screen px)
 	// use 0 for old crengine behaviour (no support for absolute units and 1css px = 1 screen px)
@@ -168,7 +172,11 @@ public interface Settings {
     public static final String PROP_APP_STARTUP_ACTION = "app.startup.action";
 
     public static final String PROP_APP_PLUGIN_ENABLED = "app.plugin.enabled.litres";
-    
+
+    String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED = "app.cloudsync.googledrive.enabled";
+    String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_SETTINGS = "app.cloudsync.googledrive.settings";
+    String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_BOOKMARKS = "app.cloudsync.googledrive.bookmarks";
+	String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK = "app.cloudsync.googledrive.currentbook";
 
     // available options for PROP_APP_SELECTION_ACTION setting
     public static final int SELECTION_ACTION_TOOLBAR = 0;

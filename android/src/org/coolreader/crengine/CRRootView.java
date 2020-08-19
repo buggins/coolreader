@@ -208,7 +208,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 					label.setText(s != null ? s : "");
 					label.setMaxWidth(coverWidth);
 				}
-				view.setOnClickListener(v -> mActivity.loadDocument(item));
+				view.setOnClickListener(v -> mActivity.loadDocument(item, true));
 				view.setOnLongClickListener(v -> {
 					mActivity.editBookInfo(Services.getScanner().createRecentRoot(), item);
 					return true;
@@ -489,7 +489,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 
 		mView.findViewById(R.id.current_book).setOnClickListener(v -> {
 			if (currentBook != null) {
-				mActivity.loadDocument(currentBook.getFileInfo());
+				mActivity.loadDocument(currentBook.getFileInfo(), true);
 			}
 
 		});

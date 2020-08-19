@@ -1,17 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
-          package="org.coolreader"
-          android:installLocation="auto">
+        xmlns:tools="http://schemas.android.com/tools"
+        package="org.coolreader"
+        android:installLocation="auto">
 
     <supports-screens
-        android:xlargeScreens="true"
-        android:largeScreens="true"
-        android:normalScreens="true"
-        android:resizeable="true"
-        android:smallScreens="true"
-        android:anyDensity="true"
-        />
+            android:xlargeScreens="true"
+            android:largeScreens="true"
+            android:normalScreens="true"
+            android:resizeable="true"
+            android:smallScreens="true"
+            android:anyDensity="true"
+            />
+
+    <uses-sdk tools:overrideLibrary="com.google.android.gms.auth.api,
+                                    com.google.android.gms.auth.api.phone,
+                                    com.google.android.gms.auth,
+                                    com.google.android.gms.base,
+                                    com.google.android.gms.tasks,
+                                    com.google.android.gms.common,
+                                    androidx.arch.core,
+                                    androidx.core,
+                                    androidx.fragment,
+                                    androidx.legacy.coreui,
+                                    androidx.legacy.coreutils,
+                                    androidx.loader,
+                                    androidx.viewpager,
+                                    androidx.coordinatorlayout,
+                                    androidx.drawerlayout,
+                                    androidx.slidingpanelayout,
+                                    androidx.customview,
+                                    androidx.swiperefreshlayout,
+                                    androidx.asynclayoutinflater,
+                                    androidx.versionedparcelable,
+                                    androidx.lifecycle,
+                                    androidx.lifecycle.viewmodel,
+                                    androidx.lifecycle.livedata,
+                                    androidx.lifecycle.livedata.core,
+                                    androidx.interpolator,
+                                    androidx.cursoradapter,
+                                    androidx.documentfile,
+                                    androidx.localbroadcastmanager,
+                                    androidx.print"
+            />
 
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -26,24 +57,24 @@
     <uses-permission android:name="com.android.vending.BILLING" />
 
     <application
-        android:allowBackup="true"
-        android:allowClearUserData="true"
-        android:icon="@mipmap/cr3_logo"
-        android:label="@string/app_name"
-        android:process="org.coolreader"
-        android:resizeableActivity="true"
-        android:usesCleartextTraffic="true" >
-<!--
-           android:configChanges="orientation|keyboardHidden|locale|screenSize"
--->
+            android:allowBackup="true"
+            android:allowClearUserData="true"
+            android:icon="@mipmap/cr3_logo"
+            android:label="@string/app_name"
+            android:process="org.coolreader"
+            android:resizeableActivity="true"
+            android:usesCleartextTraffic="true" >
+        <!--
+                   android:configChanges="orientation|keyboardHidden|locale|screenSize"
+        -->
         <meta-data android:name="android.max_aspect" android:value="2.1" />
         <activity android:name=".CoolReader"
-                  android:label="@string/app_name"
-                  android:configChanges="orientation|keyboardHidden|locale|screenSize|screenLayout|layoutDirection"
-                  android:theme="@android:style/Theme.NoTitleBar"
-                  android:launchMode="singleInstance"
-                  android:windowSoftInputMode="stateHidden"
-                  android:screenOrientation="sensor">
+                android:label="@string/app_name"
+                android:configChanges="orientation|keyboardHidden|locale|screenSize|screenLayout|layoutDirection"
+                android:theme="@android:style/Theme.NoTitleBar"
+                android:launchMode="singleInstance"
+                android:windowSoftInputMode="stateHidden"
+                android:screenOrientation="sensor">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

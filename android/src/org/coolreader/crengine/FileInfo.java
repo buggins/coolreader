@@ -1189,9 +1189,9 @@ public class FileInfo {
 		} else if (!pathname.equals(other.pathname))
 			return false;
 		if (series == null) {
-			if (other.series != null)
+			if (other.series != null && other.series.length() != 0)
 				return false;
-		} else if (!series.equals(other.series))
+		} else if (!series.equals(other.series) && !(series.length() == 0 && other.series == null))
 			return false;
 		if (seriesNumber != other.seriesNumber)
 			return false;

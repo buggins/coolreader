@@ -219,10 +219,11 @@ public class BackgroundThread extends Thread {
 			postBackground(task); // post
 	}
 
-	// assume there are only two threads: main GUI and background
+	// assume there are NOT only two threads: main GUI, this background and other thread (Synchronizer, etc)
 	public static boolean isGUIThread()
 	{
-		return !isBackgroundThread();
+		//return !isBackgroundThread();
+		return Thread.currentThread() == Looper.getMainLooper().getThread();
 	}
 
 	public static boolean isBackgroundThread()
