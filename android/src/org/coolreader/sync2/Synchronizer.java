@@ -1054,6 +1054,9 @@ public class Synchronizer {
 	public void startSyncToOnly(SyncTarget target, boolean quietly) {
 		if (m_isBusy)
 			return;
+		// check target
+		if (!hasTarget(target))
+			return;
 		// make "Sync To" operations chain and run it
 		m_askAbort = false;
 		setSyncStarted(SyncDirection.SyncTo);
@@ -1066,21 +1069,17 @@ public class Synchronizer {
 		addOperation(new CheckAppFolderSyncOperation());
 		switch (target) {
 			case SETTINGS:
-				if (hasTarget(SyncTarget.SETTINGS)) {
-					if (quietly) {
-						addOperation(new UploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
-					} else {
-						addOperation(new CheckUploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
-					}
+				if (quietly) {
+					addOperation(new UploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
+				} else {
+					addOperation(new CheckUploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
 				}
 				break;
 			case BOOKMARKS:
-				if (hasTarget(SyncTarget.BOOKMARKS))
-					addOperation(new UploadBookmarksSyncOperation());
+				addOperation(new UploadBookmarksSyncOperation());
 				break;
 			case CURRENTBOOKINFO:
-				if (hasTarget(SyncTarget.CURRENTBOOKINFO))
-					addOperation(new UploadCurrentBookInfoSyncOperation());
+				addOperation(new UploadCurrentBookInfoSyncOperation());
 				break;
 		}
 		addOperation(m_doneOp);

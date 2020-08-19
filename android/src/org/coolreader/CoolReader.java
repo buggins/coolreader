@@ -1108,7 +1108,7 @@ public class CoolReader extends BaseActivity {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				// Save last opened document on cloud
 				if (mSyncGoogleDriveEnabled && mSyncGoogleDriveEnabledCurrentBooks && null != mGoogleDriveSync && !mGoogleDriveSync.isBusy())
-					mGoogleDriveSync.startSyncTo(true, false, false);
+					mGoogleDriveSync.startSyncToOnly(Synchronizer.SyncTarget.CURRENTBOOKINFO, false);
 			}
 		} : doneCallback, errorCallback));
 	}
