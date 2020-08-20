@@ -2616,7 +2616,7 @@ void LVDocView::setHeaderIcons(LVRefVec<LVImageSource> icons) {
 }
 
 /// get page document range, -1 for current page
-LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex, bool precise) {
+LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex) {
     LVLock lock(getMutex());
     CHECK_RENDER("getPageDocRange()")
     // On some pages (eg: that ends with some padding between an
@@ -2636,13 +2636,6 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex, bool precise) {
         int fh = GetFullHeight();
         if (end_y >= fh)
             end_y = fh - 1;
-        if (!precise) {
-            ldomXPointer start = m_doc->createXPointer(lvPoint(0, start_y));
-            ldomXPointer end = m_doc->createXPointer(lvPoint(0, end_y));
-            if (start.isNull() || end.isNull())
-                return res;
-            res = LVRef<ldomXRange> (new ldomXRange(start, end));
-        }
     }
     else {
         // PAGES mode
@@ -2652,16 +2645,8 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex, bool precise) {
             LVRendPageInfo * page = m_pages[pageIndex];
             if (page->flags & RN_PAGE_TYPE_COVER)
                 return res;
-            if (!precise) {
-                ldomXPointer start = m_doc->createXPointer(lvPoint(0, page->start));
-                ldomXPointer end = m_doc->createXPointer(lvPoint(0, page->start + page->height), 1);
-                if (start.isNull() || end.isNull())
-                    return res;
-                res = LVRef<ldomXRange>(new ldomXRange(start, end));
-            } else {
-                start_y = page->start;
-                end_y = page->start + page->height;
-            }
+            start_y = page->start;
+            end_y = page->start + page->height;
         }
         else {
             return res;

@@ -897,7 +897,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				mCurrentPageInfo.recycle();
 				mCurrentPageInfo = null;
 			}
-			PositionProperties currpos = doc.getPositionProps(null);
+			PositionProperties currpos = doc.getPositionProps(null, false);
 			BitmapInfo bi = new BitmapInfo();
 			bi.imageInfo = new ImageInfo(img);
 			bi.bitmap = factory.get(internalDX, internalDY);
@@ -1331,7 +1331,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			public void work() {
 				BackgroundThread.ensureBackground();
 				toc = doc.getTOC();
-				pos = doc.getPositionProps(null);
+				pos = doc.getPositionProps(null, false);
 			}
 
 			public void done() {
@@ -1617,7 +1617,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			public void work() {
 				bm = doc.getCurrentPageBookmark();
 				if (bm != null) {
-					PositionProperties prop = doc.getPositionProps(bm.getStartPos());
+					PositionProperties prop = doc.getPositionProps(bm.getStartPos(), true);
 					if (prop.pageMode != 0) {
 						buf.append("" + (prop.pageNumber + 1) + " / " + prop.pageCount + "   ");
 					}
@@ -1824,7 +1824,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			public void work() {
 				bm = doc.getCurrentPageBookmark();
 				if (bm != null) {
-					PositionProperties prop = doc.getPositionProps(bm.getStartPos());
+					PositionProperties prop = doc.getPositionProps(bm.getStartPos(), true);
 					items.add("section=section.position");
 					if (prop.pageMode != 0) {
 						items.add("position.page=" + (prop.pageNumber + 1) + " / " + prop.pageCount);
@@ -2064,7 +2064,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.v("initPageTurn(startProgress = " + startProgress + ")");
 			pageTurnStart = Utils.timeStamp();
 			progress = startProgress;
-			currPos = doc.getPositionProps(null);
+			currPos = doc.getPositionProps(null, true);
 			charCount = currPos.charCount;
 			pageCount = currPos.pageMode;
 			if (charCount < 150)
@@ -2526,7 +2526,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (fileInfo == null)
 			return;
 		final Bookmark bmk = doc != null ? doc.getCurrentPageBookmark() : null;
-		final PositionProperties props = bmk != null ? doc.getPositionProps(bmk.getStartPos()) : null;
+		final PositionProperties props = bmk != null ? doc.getPositionProps(bmk.getStartPos(), false) : null;
 		if (props != null) BackgroundThread.instance().postGUI(() -> {
 			mActivity.updateCurrentPositionStatus(fileInfo, bmk, props);
 
@@ -3273,16 +3273,16 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (currentImageViewer != null)
 			return currentImageViewer.prepareImage();
 
-		PositionProperties currpos = doc.getPositionProps(null);
+		PositionProperties currpos = doc.getPositionProps(null, false);
 		if (null == currpos)
 			return null;
 
 		boolean isPageView = currpos.pageMode != 0;
 
 		BitmapInfo currposBitmap = null;
-		if (mCurrentPageInfo != null && mCurrentPageInfo.position.equals(currpos) && mCurrentPageInfo.imageInfo == null)
+		if (mCurrentPageInfo != null && mCurrentPageInfo.position != null && mCurrentPageInfo.position.equals(currpos) && mCurrentPageInfo.imageInfo == null)
 			currposBitmap = mCurrentPageInfo;
-		else if (mNextPageInfo != null && mNextPageInfo.position.equals(currpos) && mNextPageInfo.imageInfo == null)
+		else if (mNextPageInfo != null && mNextPageInfo.position != null && mNextPageInfo.position.equals(currpos) && mNextPageInfo.imageInfo == null)
 			currposBitmap = mNextPageInfo;
 		if (offset == 0) {
 			// Current page requested
@@ -3318,11 +3318,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				offset = -offset;
 			if (doc.doCommand(cmd1, offset)) {
 				// can move to next page
-				PositionProperties nextpos = doc.getPositionProps(null);
+				PositionProperties nextpos = doc.getPositionProps(null, false);
 				BitmapInfo nextposBitmap = null;
-				if (mCurrentPageInfo != null && mCurrentPageInfo.position.equals(nextpos))
+				if (mCurrentPageInfo != null && mCurrentPageInfo.position != null && mCurrentPageInfo.position.equals(nextpos))
 					nextposBitmap = mCurrentPageInfo;
-				else if (mNextPageInfo != null && mNextPageInfo.position.equals(nextpos))
+				else if (mNextPageInfo != null && mNextPageInfo.position != null && mNextPageInfo.position.equals(nextpos))
 					nextposBitmap = mNextPageInfo;
 				if (nextposBitmap == null) {
 					// existing image not found in cache, overriding mNextPageInfo
@@ -3349,11 +3349,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			// SCROLL next or prev page requested, with pixel offset specified
 			int y = currpos.y + offset;
 			if (doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, y)) {
-				PositionProperties nextpos = doc.getPositionProps(null);
+				PositionProperties nextpos = doc.getPositionProps(null, false);
 				BitmapInfo nextposBitmap = null;
-				if (mCurrentPageInfo != null && mCurrentPageInfo.position.equals(nextpos))
+				if (mCurrentPageInfo != null && mCurrentPageInfo.position != null && mCurrentPageInfo.position.equals(nextpos))
 					nextposBitmap = mCurrentPageInfo;
-				else if (mNextPageInfo != null && mNextPageInfo.position.equals(nextpos))
+				else if (mNextPageInfo != null && mNextPageInfo.position != null && mNextPageInfo.position.equals(nextpos))
 					nextposBitmap = mNextPageInfo;
 				if (nextposBitmap == null) {
 					// existing image not found in cache, overriding mNextPageInfo
@@ -3605,7 +3605,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		BackgroundThread.instance().executeBackground(() -> {
 			BackgroundThread.ensureBackground();
 			if (currentAnimation == null) {
-				PositionProperties currPos = doc.getPositionProps(null);
+				PositionProperties currPos = doc.getPositionProps(null, false);
 				if (currPos == null)
 					return;
 				if (mCurrentPageInfo == null)
@@ -3778,7 +3778,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		alog.d("startAnimation(" + startX + ", " + startY + ")");
 		BackgroundThread.instance().executeBackground(() -> {
 			BackgroundThread.ensureBackground();
-			PositionProperties currPos = doc.getPositionProps(null);
+			PositionProperties currPos = doc.getPositionProps(null, false);
 			if (currPos != null && currPos.pageMode != 0) {
 				//int dir = startX > maxX/2 ? currPos.pageMode : -currPos.pageMode;
 				//int dir = startX > maxX/2 ? 1 : -1;
@@ -4015,7 +4015,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			this.maxY = maxY;
 			long start = android.os.SystemClock.uptimeMillis();
 			log.v("ScrollViewAnimation -- creating: drawing two pages to buffer");
-			PositionProperties currPos = doc.getPositionProps(null);
+			PositionProperties currPos = doc.getPositionProps(null, false);
 			int pos = currPos.y;
 			int pos0 = pos - (maxY - startY);
 			if (pos0 < 0)
@@ -4210,7 +4210,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 			PositionProperties currPos = mCurrentPageInfo == null ? null : mCurrentPageInfo.position;
 			if (currPos == null)
-				currPos = doc.getPositionProps(null);
+				currPos = doc.getPositionProps(null, false);
 			page1 = currPos.pageNumber;
 			page2 = currPos.pageNumber + direction;
 			if (page2 < 0 || page2 >= currPos.pageCount) {
@@ -5213,7 +5213,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	public void getCurrentPositionProperties(final PositionPropertiesCallback callback) {
 		BackgroundThread.instance().postBackground(() -> {
 			final Bookmark bmk = (doc != null) ? doc.getCurrentPageBookmarkNoRender() : null;
-			final PositionProperties props = (bmk != null) ? doc.getPositionProps(bmk.getStartPos()) : null;
+			final PositionProperties props = (bmk != null) ? doc.getPositionProps(bmk.getStartPos(), true) : null;
 			BackgroundThread.instance().postBackground(() -> {
 				String posText = null;
 				if (props != null) {
@@ -5592,7 +5592,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (percent >= 0 && percent <= 100)
 			post(new Task() {
 				public void work() {
-					PositionProperties pos = doc.getPositionProps(null);
+					PositionProperties pos = doc.getPositionProps(null, true);
 					if (pos != null && pos.pageCount > 0) {
 						int pageNumber = pos.pageCount * percent / 100;
 						doCommandFromBackgroundThread(ReaderCommand.DCMD_GO_PAGE, pageNumber);

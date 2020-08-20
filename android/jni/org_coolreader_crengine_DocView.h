@@ -128,10 +128,10 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_goToPositionInte
 /*
  * Class:     org_coolreader_crengine_DocView
  * Method:    getPositionPropsInternal
- * Signature: (Ljava/lang/String;)Lorg/coolreader/crengine/PositionProperties;
+ * Signature: (Ljava/lang/String;Z)Lorg/coolreader/crengine/PositionProperties;
  */
 JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsInternal
-  (JNIEnv *, jobject, jstring);
+  (JNIEnv *, jobject, jstring, jboolean);
 
 /*
  * Class:     org_coolreader_crengine_DocView
