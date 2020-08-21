@@ -3989,13 +3989,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		}
 
 		public void draw(boolean isPartially) {
-			drawCallback(new DrawCanvasCallback() {
-				@Override
-				public void drawTo(Canvas c) {
-					//	long startTs = android.os.SystemClock.uptimeMillis();
-					draw(c);
-				}
-			}, null, isPartially);
+			//	long startTs = android.os.SystemClock.uptimeMillis();
+			drawCallback(this::draw, null, isPartially);
 		}
 	}
 
@@ -4653,12 +4648,45 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		}
 	}
 
-	private int drawAnimationPos = 0;
-	private Long[] drawAnimationStats = new Long[8];
-	private long avgDrawAnimationDuration = 200;
+	private static final class RingBuffer {
+		private long [] mArray;
+		private long mSum;
+		private long mAvg;
+		private int mPos;
+		private int mCount;
+		private int mSize;
+
+		public RingBuffer(int size, long initialAvg) {
+			mSize = size;
+			mArray = new long[size];
+			mPos = 0;
+			mCount = 0;
+			mAvg = initialAvg;
+			mSum = 0;
+		}
+
+		public long average() {
+			return mAvg;
+		}
+
+		public void add(long val) {
+			if (mCount < mSize)
+				mCount++;
+			else							// array is full
+				mSum -= mArray[mPos];		// subtract from sum the value to replace
+			mArray[mPos] = val;				// write new value
+			mSum += val;					// update sum
+			mAvg = mSum /mCount;			// calculate average value
+			mPos++;
+			if (mPos >= mSize)
+				mPos = 0;
+		}
+	}
+
+	RingBuffer mAvgDrawAnimationStats = new RingBuffer(16, 50);
 
 	private long getAvgAnimationDrawDuration() {
-		return avgDrawAnimationDuration;
+		return mAvgDrawAnimationStats.average();
 	}
 
 	private void updateAnimationDurationStats(long duration) {
@@ -4666,20 +4694,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			duration = 1;
 		else if (duration > 1000)
 			return;
-		int pos = drawAnimationPos + 1;
-		if (pos >= drawAnimationStats.length)
-			pos = 0;
-		drawAnimationStats[pos] = duration;
-		drawAnimationPos = pos;
-		long sum = 0;
-		int count = 0;
-		for (Long item : drawAnimationStats) {
-			if (item != null) {
-				sum += item;
-				count++;
-			}
-		}
-		avgDrawAnimationDuration = sum / count;
+		mAvgDrawAnimationStats.add(duration);
 	}
 
 	private void drawPage() {
