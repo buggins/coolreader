@@ -5676,8 +5676,8 @@ public:
         RenderRectAccessor fmt( node );
         int width = fmt.getWidth();
         int height = fmt.getHeight();
-        int x = fmt.getX();   // a floatBox has no margin and no padding, but these
-        int y = fmt.getY();   // x/y carries the container's padding left/top
+        int x = fmt.getX();   // a floatBox has no margin and no padding, but x carries the container's padding left
+        int y = fmt.getY();   // (but y must be =0, as padding_top has already been accounted in c_y
         // printf("  block addFloat w=%d h=%d x=%d y=%d\n", width, height, x, y);
         int shift_x = 0;
         int shift_y = 0;
@@ -6980,9 +6980,11 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                         // and if !DO_NOT_CLEAR_OWN_FLOATS, we'll fill the remaining
                         // height taken by floats if any.
                         LVRendPageContext alt_context( NULL, flow->getPageHeight(), false );
-                        // For floats too, the provided x/y must be the padding-left/top of the
+                        // For floats too, the provided x must be the padding-left of the
                         // parent container of the float (and width must exclude the parent's
-                        // padding-left/right) for the flow to correctly position inner floats:
+                        // padding-left/right) for the flow to correctly position inner floats
+                        // (but we don't provide padding_top, as if non-zero, we already
+                        // flow->addContentLine() it above, so the flow is already aware of it):
                         // flow->addFloat() will additionally shift its positionning by the
                         // child x/y set by this renderBlockElement().
                         // We provide 0,0 as the usable left/right overflows, so no glyph/hanging
@@ -6990,7 +6992,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                         // the initial float element's margins, which can then be used if it has
                         // no border (if borders, only the padding can be used).
                         renderBlockElement( alt_context, child, (is_rtl ? 0 : list_marker_padding) + padding_left,
-                                    padding_top, width - list_marker_padding - padding_left - padding_right, 0, 0, direction );
+                                    0, width - list_marker_padding - padding_left - padding_right, 0, 0, direction );
                         flow->addFloat(child, child_clear, is_right, flt_vertical_margin);
                         // Gather footnotes links accumulated by alt_context
                         lString16Collection * link_ids = alt_context.getLinkIds();
@@ -7528,6 +7530,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         // in a float, etc...)
         FlowState flow( context, width, usable_left_overflow, usable_right_overflow, rend_flags,
                                 direction, TextLangMan::getLangNodeIndex(enode) );
+        flow.moveDown(y);
         if (baseline != NULL) {
             flow.setRequestedBaselineType(*baseline);
         }
