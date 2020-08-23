@@ -5,7 +5,8 @@
 #include "../include/crlog.h"
 #include "xmlutil.h"
 
-#define ODT_TAGS ODT_TAG(body) ODT_TAG(text) ODT_TAG(h) ODT_TAG(p) ODT_TAG(span)
+#define ODT_TAGS ODT_TAG(body) ODT_TAG(text) ODT_TAG(h) ODT_TAG(p) ODT_TAG(span) \
+    ODT_TAG(image) ODT_TAG(frame) ODT_TAG(table) ODT_TAG(list)
 
 #define ODT_TAG_NAME(itm) docx_el_##itm##_name
 #define ODT_TAG_ID(itm) odt_el_##itm
@@ -16,6 +17,9 @@ enum {
 #define ODT_TAG(itm) 	ODT_TAG_ID(itm),
     odt_el_NULL = 0,
     odt_el_documentContent,
+    odt_el_tableRow,
+    odt_el_tableCell,
+    odt_el_listItem,
     ODT_TAGS
     odt_el_MAX_ID
 };
@@ -26,6 +30,9 @@ enum {
 
 const struct item_def_t odt_elements[] = {
     { odt_el_documentContent, L"document-content" },
+    { odt_el_tableRow, L"table-row"},
+    { odt_el_tableCell, L"table-cell"},
+    { odt_el_listItem, L"list-item"},
 #undef ODT_TAG
 #define ODT_TAG(itm) ODT_TAG_CHILD(itm),
     ODT_TAGS
@@ -61,15 +68,22 @@ bool DetectOpenDocumentFormat( LVStreamRef stream )
 class odt_documentHandler : public xml_ElementHandler
 {
     LVArray<int> m_levels;
+    LVArray<bool> m_listItems;
+    LVArray<css_list_style_type_t> m_ListLevels;
 protected:
     docx_titleHandler* m_titleHandler;
     int m_outlineLevel;
+    bool m_inTable;
+    bool m_inListItem;
+    bool m_listItemHadContent;
 protected:
     int parseTagName(const lChar16 *tagname);
 public:
     odt_documentHandler(docXMLreader * reader, ldomDocumentWriter *writer, docx_titleHandler* titleHandler) :
-        xml_ElementHandler(reader, writer, odt_el_NULL), m_titleHandler(titleHandler), m_outlineLevel(0) {
+        xml_ElementHandler(reader, writer, odt_el_NULL), m_titleHandler(titleHandler), m_outlineLevel(0),
+        m_inTable(false), m_inListItem(false), m_listItemHadContent(false) {
     }
+    inline bool isInList() { return m_ListLevels.length() != 0; }
     ldomNode *handleTagOpen(int tagId);
     void handleAttribute(const lChar16 *attrname, const lChar16 *attrValue);
     void handleTagBody();
@@ -183,12 +197,37 @@ ldomNode *odt_documentHandler::handleTagOpen(int tagId)
         m_outlineLevel = 0;
         break;
     case odt_el_p:
+        if(m_inListItem) {
+            m_listItemHadContent = true;
+            m_writer->OnTagOpenNoAttr(L"", L"li");
+        }
         m_writer->OnTagOpen(L"", L"p");
-        m_writer->OnTagBody();
         break;
     case odt_el_span:
         m_writer->OnTagOpen(L"", L"span");
-        m_writer->OnTagBody();
+        break;
+    case odt_el_list:
+        m_writer->OnTagOpen(L"", L"ol");
+        m_ListLevels.add(css_lst_decimal);
+        if (isInList())
+            m_listItems.add(m_listItemHadContent);
+        break;
+    case odt_el_listItem:
+        m_inListItem = true;
+        m_listItemHadContent = false;
+        break;
+    case odt_el_image:
+        m_writer->OnTagOpen(L"", L"img");
+        break;
+    case odt_el_table:
+        m_inTable = true;
+        m_writer->OnTagOpen(L"", L"table");
+        break;
+    case odt_el_tableRow:
+        m_writer->OnTagOpen(L"", L"tr");
+        break;
+    case odt_el_tableCell:
+        m_writer->OnTagOpen(L"", L"td");
         break;
     default:
         break;
@@ -200,21 +239,54 @@ ldomNode *odt_documentHandler::handleTagOpen(int tagId)
 
 void odt_documentHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrValue)
 {
-    if(m_state == odt_el_h && !lStr_cmp(attrname, "outline-level") ) {
-        lString16 value = attrValue;
-        int tmp;
+    switch (m_state) {
+    case odt_el_h:
+        if(!lStr_cmp(attrname, "outline-level") ) {
+            lString16 value = attrValue;
+            int tmp;
 
-        if(value.atoi(tmp))
-            m_outlineLevel = tmp - 1;
+            if(value.atoi(tmp))
+                m_outlineLevel = tmp - 1;
+        }
+        break;
+    case odt_el_tableCell:
+        if(!lStr_cmp(attrname, "number-columns-spanned"))
+            m_writer->OnAttribute(L"", L"colspan", attrValue);
+        else if(!lStr_cmp(attrname, "number-rows-spanned"))
+            m_writer->OnAttribute(L"", L"rowspan", attrValue);
+        break;
+    case odt_el_image:
+        if(!lStr_cmp(attrname, "href"))
+            m_writer->OnAttribute(L"", attrname, attrValue);
+        break;
+    default:
+        break;
     }
 }
 
 void odt_documentHandler::handleTagBody()
 {
-    if(m_state == odt_el_h) {
-        m_titleHandler->onTitleStart(m_outlineLevel + 1);
+    switch(m_state) {
+    case odt_el_h:
+        if(m_inListItem) {
+            m_listItemHadContent = true;
+            m_writer->OnTagOpenNoAttr(L"", L"li");
+        }
+        m_titleHandler->onTitleStart(m_outlineLevel + 1, m_inTable || m_inListItem);
+    case odt_el_p:
+    case odt_el_span:
+    case odt_el_image:
+    case odt_el_table:
+    case odt_el_tableCell:
+    case odt_el_tableRow:
+    case odt_el_list:
+    //case odt_el_listItem:
         m_writer->OnTagBody();
+        break;
+    default:
+        break;
     }
+
 }
 
 void odt_documentHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname)
@@ -230,6 +302,32 @@ void odt_documentHandler::handleTagClose(const lChar16 *nsname, const lChar16 *t
     case odt_el_p:
     case odt_el_span:
         m_writer->OnTagClose(nsname, tagname);
+        break;
+    case odt_el_image:
+        m_writer->OnTagClose(L"", L"img");
+        break;
+    case odt_el_table:
+        m_writer->OnTagClose(L"", L"table");
+        m_inTable = false;
+        break;
+    case odt_el_tableRow:
+        m_writer->OnTagClose(L"", L"tr");
+        break;
+    case odt_el_tableCell:
+        m_writer->OnTagClose(L"", L"td");
+        break;
+    case odt_el_list:
+        m_ListLevels.remove(m_ListLevels.length() - 1);
+        m_writer->OnTagClose(L"", L"ol");
+        break;
+    case odt_el_listItem:
+        if(m_listItemHadContent)
+            m_writer->OnTagClose(L"", L"li");
+        if(!m_listItems.empty()) {
+            m_listItemHadContent = m_listItems[m_listItems.length() - 1];
+            m_listItems.erase(m_listItems.length() - 1, 1);
+        }
+        m_inListItem = false;
         break;
     default:
         break;
@@ -259,4 +357,7 @@ void odt_documentHandler::reset()
     m_levels.clear();
     m_state = odt_el_NULL;
     m_outlineLevel = 0;
+    m_inTable = false;
+    m_inListItem = false;
+    m_listItemHadContent = false;
 }
