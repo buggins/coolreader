@@ -1378,6 +1378,21 @@ public:
                             else if ( c >= 0x2066 ) m_flags[pos] = LCHAR_IS_TO_IGNORE; // 2066>2069
                         }
                     }
+                    else if ( c <= 0x009F ) {
+                        // Also ignore some ASCII and Unicode control chars
+                        // in the ranges 00>1F and 7F>9F, except a few.
+                        // (Some of these can be found in old documents or
+                        // badly converted ones)
+                        if ( c <= 0x001F ) {
+                            // Let \t \n \r be (they might have already been
+                            // expanded to spaces, converted or skipped)
+                            if ( c != 0x000A && c!= 0x000D && c!= 0x0009 )
+                                m_flags[pos] = LCHAR_IS_TO_IGNORE; // 0000>001F except those above
+                        }
+                        else if ( c >= 0x007F ) {
+                            m_flags[pos] = LCHAR_IS_TO_IGNORE;     // 007F>009F
+                        }
+                    }
                     // We might want to add some others when we happen to meet them.
                     // todo: see harfbuzz hb-unicode.hh is_default_ignorable() for how
                     // to do this kind of check fast
