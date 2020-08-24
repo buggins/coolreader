@@ -4985,7 +4985,7 @@ bool IsEmptySpace( const lChar16 * text, int len )
 
 static bool IS_FIRST_BODY = false;
 
-ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent)
+ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent, bool insert_before_last_child)
     : _parent(parent), _document(document), _tocItem(NULL), _isBlock(true), _isSection(false),
       _stylesheetIsSet(false), _bodyEnterCalled(false), _pseudoElementAfterChildIndex(-1)
 {
@@ -5014,8 +5014,12 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
         }
     }
 
-    if (_parent)
-        _element = _parent->getElement()->insertChildElement( (lUInt32)-1, nsid, id );
+    if (_parent) {
+        lUInt32 index = _parent->getElement()->getChildCount();
+        if ( insert_before_last_child )
+            index--;
+        _element = _parent->getElement()->insertChildElement( index, nsid, id );
+    }
     else
         _element = _document->getRootNode(); //->insertChildElement( (lUInt32)-1, nsid, id );
     if ( IS_FIRST_BODY && id==el_body ) {
@@ -7209,7 +7213,7 @@ void ldomElementWriter::onBodyExit()
 #endif
 }
 
-void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
+void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32, bool insert_before_last_child )
 {
     //logfile << "{t";
     {
@@ -7217,7 +7221,7 @@ void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
         // add text node, if not first empty space string of block node
         if ( !_isBlock || _element->getChildCount()!=0 || !IsEmptySpace( text, len ) || (_flags&TXTFLG_PRE) ) {
             lString8 s8 = UnicodeToUtf8(text, len);
-            _element->insertChildText(s8);
+            _element->insertChildText(s8, insert_before_last_child);
         } else {
             //CRLog::trace("ldomElementWriter::onText: Ignoring first empty space of block item");
         }
@@ -7500,7 +7504,9 @@ ldomDocumentWriter::~ldomDocumentWriter()
         _document->dumpStatistics();
         if ( _document->_nodeStylesInvalidIfLoading ) {
             // Some pseudoclass like :last-child has been met which has set this flag
+            // (or, with the HTML parser, foster parenting of invalid element in tables)
             printf("CRE: document loaded, but styles re-init needed (cause: peculiar CSS pseudoclasses met)\n");
+            _document->_nodeStylesInvalidIfLoading = false; // show this message only once
             _document->forceReinitStyles();
         }
         if ( _document->hasRenderData() ) {
@@ -12919,12 +12925,17 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
 // Note that a lot of rules and checks in the algorithm are for
 // noticing "parser errors", with usually a fallback of ignoring
 // it and going on.
+// We ensure one tedious requirement: foster parenting of non-table
+// elements met while building a table, mostly to not have mis-nested
+// content simply ignored and not shown to the user.
+// Other tedious requirements not ensured might just have some impact
+// on the styling of the content, which should be a minor issue.
+//
 // It feels that we can simplify it to the following implementation,
 // with possibly some cases not handled related to:
 // - FORM and form elements (SELECT, INPUT, OPTION...)
 // - TEMPLATE, APPLET, OBJECT, MARQUEE
 // - Mis-nested HTML/BODY/HEAD
-// - Foster parenting of non-table elements inside a table
 // - Reconstructing the active formatting elements (B, I...) when
 //   mis-nested or "on hold" when entering block or table elements.
 // - The "adoption agency algorithm" for mis-nested formatting
@@ -12986,6 +12997,12 @@ lUInt16 ldomDocumentWriterFilter::popUpTo( ldomElementWriter * target, lUInt16 t
             }
             if ( target_id && tmpId == target_id )
                 break;
+            if ( _curFosteredNode && tmp == _curFosteredNode ) {
+                // If fostering and we're not closing the fostered node itself,
+                // don't go at closing stuff above the fostered node
+                tmp = NULL;
+                break;
+            }
             // Check scope stop tags
             bool stop = false;
             switch (scope) {
@@ -13117,9 +13134,19 @@ lUInt16 ldomDocumentWriterFilter::popUpTo( ldomElementWriter * target, lUInt16 t
             }
             if ( _lastP && _currNode == _lastP )
                 _lastP = NULL;
-            bool done = _currNode == target;
             ldomElementWriter * tmp = _currNode;
-            _currNode = _currNode->_parent;
+            bool done = _currNode == target;
+            if ( _curFosteredNode && _currNode == _curFosteredNode ) {
+                // If we meet the fostered node, have it closed but don't
+                // go at closing above it
+                done = true;
+                _currNode = _curNodeBeforeFostering;
+                _curNodeBeforeFostering = NULL;
+                _curFosteredNode = NULL;
+            }
+            else {
+                _currNode = _currNode->_parent;
+            }
             ElementCloseHandler( tmp->getElement() );
             delete tmp;
             if ( done )
@@ -13407,6 +13434,46 @@ bool ldomDocumentWriterFilter::AutoOpenClosePop( int step, lUInt16 tag_id )
 
     return true;
 }
+bool ldomDocumentWriterFilter::CheckAndEnsureFosterParenting(lUInt16 tag_id)
+{
+    if ( !_currNode )
+        return false;
+    lUInt16 curNodeId = _currNode->getElement()->getNodeId();
+    if ( curNodeId >= el_table && curNodeId <= el_tr && curNodeId != el_caption ) {
+        if ( tag_id < el_table || tag_id > el_td ) {
+            // Non table sub-element met as we expect only a table sub-element.
+            // Ensure foster parenting: this node (and its content) is to be
+            // inserted as a previous sibling of the table element we are in
+            _curNodeBeforeFostering = NULL;
+            // Look for the containing table element
+            ldomElementWriter * elem = _currNode;
+            while ( elem ) {
+                if ( elem->getElement()->getNodeId() == el_table ) {
+                    break;
+                }
+                elem = elem->_parent;
+            }
+            if ( elem ) { // found it
+                _curNodeBeforeFostering = _currNode;
+                _currNode = elem->_parent; // parent of table
+                return true; // Insert the new element in _currNode (the parent of this
+                             // table), before its last child (which is this table)
+            }
+        }
+        // We're in a table, and we see an expected sub-table element: all is fine
+        return false;
+    }
+    else if ( _curFosteredNode ) {
+        // We've been foster parenting: if we see a table sub-element,
+        // stop foster parenting and restore the original noce
+        if ( tag_id >= el_table && tag_id <= el_td ) {
+            popUpTo(_curFosteredNode);
+            // popUpTo() has restored _currNode to _curNodeBeforeFostering and
+            // reset _curFosteredNode and _curNodeBeforeFostering to NULL
+        }
+    }
+    return false;
+}
 
 ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
@@ -13512,10 +13579,29 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lC
     }
 
     bool tag_accepted = true;
+    bool insert_before_last_child = false;
     if (gDOMVersionRequested >= 20200824) { // A little bit more HTML5 conformance
         if ( id == el_image )
             id = el_img;
-        tag_accepted = AutoOpenClosePop( PARSER_STEP_TAG_OPENING, id );
+        // If non-sub-table element opening while we're still
+        // inside sub-table non-TD/TH elements, we should
+        // do foster parenting: insert the node as the previous
+        // sibling of the TABLE element we're dealing with
+        // https://html.spec.whatwg.org/multipage/parsing.html#foster-parent
+        if ( CheckAndEnsureFosterParenting(id) ) {
+            insert_before_last_child = true;
+            // As we'll be inserting a node before the TABLE, which
+            // already had its style applied, some CSS selectors matches
+            // might no more be valid (i.e. :first-child, DIV + TABLE),
+            // so styles could change on the next re-rendering.
+            // We don't check if we actually had such selectors as that
+            // is complicated from here: we just set styles to be invalid
+            // so they are re-computed once the DOM is fully built.
+            _document->setNodeStylesInvalidIfLoading();
+        }
+        else {
+            tag_accepted = AutoOpenClosePop( PARSER_STEP_TAG_OPENING, id );
+        }
     }
     else {
         AutoClose( id, true );
@@ -13541,8 +13627,13 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lC
         return _currNode ? _currNode->getElement() : NULL;
     }
 
-    _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
+    _currNode = new ldomElementWriter( _document, nsid, id, _currNode, insert_before_last_child );
     _flags = _currNode->getFlags();
+
+    if ( insert_before_last_child ) {
+        _curFosteredNode = _currNode;
+    }
+
     if (gDOMVersionRequested >= 20200824 && id == el_p) {
         // To avoid checking DOM ancestors with the numerous tags that close a P
         _lastP = _currNode;
@@ -13840,16 +13931,35 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
     //logfile << "lxmlDocumentWriter::OnText() fpos=" << fpos;
     if (_currNode)
     {
+        lUInt16 curNodeId = _currNode->getElement()->getNodeId();
         if (gDOMVersionRequested < 20200824) {
-            AutoClose( _currNode->_element->getNodeId(), false );
+            AutoClose( curNodeId, false );
         }
         if ( (_flags & XML_FLAG_NO_SPACE_TEXT)
              && IsEmptySpace(text, len) && !(flags & TXTFLG_PRE))
              return;
-        if ( !_currNode->_allowText )
-            return;
+        bool insert_before_last_child = false;
+        if (gDOMVersionRequested >= 20200824) {
+            // If we're inserting text while in table sub-elements that
+            // don't accept text, have it foster parented
+            if ( curNodeId >= el_table && curNodeId <= el_tr && curNodeId != el_caption ) {
+                if ( !IsEmptySpace(text, len) ) {
+                    if ( CheckAndEnsureFosterParenting(el_NULL) ) {
+                        insert_before_last_child = true;
+                    }
+                }
+            }
+        }
+        else {
+            // Previously, text in table sub-elements (only table elements and
+            // self-closing elements have _allowText=false) had any text in between
+            // table elements dropped (but not elements! with "<table>abc<div>def",
+            // "abc" was dropped, but not "def")
+            if ( !_currNode->_allowText )
+                return;
+        }
         if ( !_libRuDocumentDetected ) {
-            _currNode->onText( text, len, flags );
+            _currNode->onText( text, len, flags, insert_before_last_child );
         }
         else { // Lib.ru text cleanup
             if ( _libRuParagraphStart ) {
@@ -13910,10 +14020,17 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
                     OnTagOpen( NULL, paraTag );
                     OnTagBody();
                 }
-                _currNode->onText( text, len, flags );
+                _currNode->onText( text, len, flags, insert_before_last_child );
                 if ( autoPara )
                     OnTagClose( NULL, paraTag );
             }
+        }
+        if ( insert_before_last_child ) {
+            // We have no _curFosteredNode to pop, so just restore
+            // the previous table node
+            _currNode = _curNodeBeforeFostering;
+            _curNodeBeforeFostering = NULL;
+            _curFosteredNode = NULL;
         }
     }
     //logfile << " !t!\n";
@@ -13933,6 +14050,8 @@ ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool
 , _bodyTagSeen(false)
 , _curNodeIsSelfClosing(false)
 , _curTagIsIgnored(false)
+, _curNodeBeforeFostering(NULL)
+, _curFosteredNode(NULL)
 , _lastP(NULL)
 {
     if (gDOMVersionRequested >= 20200824) {
@@ -17604,7 +17723,7 @@ ldomNode * ldomNode::insertChildText( const lString16 & value )
 }
 
 /// inserts child text
-ldomNode * ldomNode::insertChildText(const lString8 & s8)
+ldomNode * ldomNode::insertChildText(const lString8 & s8, bool before_last_child)
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
@@ -17618,7 +17737,10 @@ ldomNode * ldomNode::insertChildText(const lString8 & s8)
         ldomNode * node = getDocument()->allocTinyNode( NT_PTEXT );
         node->_data._ptext_addr = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
 #endif
-        me->_children.insert( me->_children.length(), node->getDataIndex() );
+        int index = me->_children.length();
+        if ( before_last_child && index > 0 )
+            index--;
+        me->_children.insert( index, node->getDataIndex() );
         return node;
     }
     readOnlyError();

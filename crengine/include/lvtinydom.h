@@ -1053,7 +1053,7 @@ public:
     /// inserts child text
     ldomNode * insertChildText( const lString16 & value );
     /// inserts child text
-    ldomNode * insertChildText(const lString8 & value);
+    ldomNode * insertChildText(const lString8 & value, bool before_last_child=false);
     /// remove child
     ldomNode * removeChild( lUInt32 index );
 
@@ -2595,11 +2595,11 @@ class ldomElementWriter
         return _element;
     }
     lString16 getPath();
-    void onText( const lChar16 * text, int len, lUInt32 flags );
+    void onText( const lChar16 * text, int len, lUInt32 flags, bool insert_before_last_child=false );
     void addAttribute( lUInt16 nsid, lUInt16 id, const wchar_t * value );
     //lxmlElementWriter * pop( lUInt16 id );
 
-    ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent);
+    ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent, bool insert_before_last_child=false);
     ~ldomElementWriter();
 
     friend class ldomDocumentWriter;
@@ -2696,10 +2696,13 @@ protected:
     bool _bodyTagSeen;
     bool _curNodeIsSelfClosing;
     bool _curTagIsIgnored;
+    ldomElementWriter * _curNodeBeforeFostering;
+    ldomElementWriter * _curFosteredNode;
     ldomElementWriter * _lastP;
     virtual void AutoClose( lUInt16 tag_id, bool open );
     virtual bool AutoOpenClosePop( int step, lUInt16 tag_id );
     virtual lUInt16 popUpTo( ldomElementWriter * target, lUInt16 target_id=0, int scope=0 );
+    virtual bool CheckAndEnsureFosterParenting(lUInt16 tag_id);
     virtual void ElementCloseHandler( ldomNode * node ) { node->persist(); }
     virtual void appendStyle( const lChar16 * style );
     virtual void setClass( const lChar16 * className, bool overrideExisting=false );
