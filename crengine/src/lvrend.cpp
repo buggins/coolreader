@@ -4742,6 +4742,23 @@ public:
         }
         return false;
     }
+    void getFloatsCurrentShifts( int & dx_left, int & dx_right, int h=0 ) {
+        // Initial work in absolute coordinates
+        int left_x = 0;
+        int right_x = o_width;
+        for (int i=0; i<_floats.length(); i++) {
+            BlockFloat * flt = _floats[i];
+            if (flt->top < c_y+h && flt->bottom > c_y) {
+                if ( flt->is_right && flt->left < right_x )
+                    right_x = flt->left;
+                if ( !flt->is_right && flt->right > left_x )
+                    left_x = flt->right;
+            }
+        }
+        // And adjust to current container's width
+        dx_left = left_x - x_min;
+        dx_right = x_max - right_x;
+    }
 
     void addSpaceToContext( int starty, int endy, int line_h,
             bool split_avoid_before, bool split_avoid_inside, bool split_avoid_after ) {
@@ -6574,8 +6591,39 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     // is... margin_left
     int dx = margin_left;
 
+    // Strangely, when floats are involved, a HR behaves differently than
+    // a regular DIV (observed with Firefox): a DIV is sized as if there
+    // was no float, and only its text will adjust to be in-between floats,
+    // while a HR box does adjust to fit between the floats. Couldn't find
+    // any mention of that in the CSS specs...
+    // Let's try to handle that, even if it feels hackish and might not be right.
+    int adjusted_container_width = container_width;
+    int adjusted_forced_x_shift = 0;
+    if ( is_hr && flow->hasActiveFloats() ) {
+        // <HR> should not be drawn over floats (except if negative
+        // margins or larger specified width - its width in % is to
+        // stay computed as a % of its container width)
+        int dx_left;
+        int dx_right;
+        flow->getFloatsCurrentShifts(dx_left, dx_right);
+        if ( dx_right > 0 ) {
+            adjusted_container_width -= dx_right;
+        }
+        if ( dx_left > 0 ) {
+            adjusted_container_width -= dx_left;
+            adjusted_forced_x_shift = dx_left;
+        }
+        if ( style->width.type == css_val_unspecified ) {
+            // When no specified width, it is to become the constrained width
+            width = adjusted_container_width;
+        }
+        // And go again at adjusting this HR position
+        auto_width = false;
+    }
     if ( !auto_width ) { // We have a width that may not fill all available space
         // printf("fixed width: %d\n", width);
+        // For these initial overflow checks, we use the original container_width
+        // and not the adjusted one
         if ( width + margin_left + margin_right > container_width ) {
             if ( is_rtl ) {
                 margin_left = 0; // drop margin_left if RTL
@@ -6602,26 +6650,33 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 //
                 // (if margin_left_auto, we have until now: dx = margin_left = 0)
                 if ( margin_left_auto && margin_right_auto ) {
-                    dx = (container_width - width) / 2;
+                    dx = (adjusted_container_width - width) / 2;
                     margin_auto_ensured = true;
                 }
                 else if ( margin_left_auto ) {
-                    dx = container_width - width;
+                    dx = adjusted_container_width - width - margin_right;
                     margin_auto_ensured = true;
                 }
                 else if ( margin_right_auto ) {
                     // No dx tweak needed
                     margin_auto_ensured = true;
                 }
+                if ( is_hr && dx < 0 && margin_auto_ensured ) {
+                    // With Firefox, when any margin is auto and the HR width
+                    // doesn't fit, it is fitted left.
+                    dx = 0;
+                }
             }
             if ( !margin_auto_ensured ) {
                 // Nothing else needed for LTR: stay stuck to the left
                 // For RTL: stick it to the right
                 if (is_rtl) {
-                    dx = container_width - width;
+                    dx = adjusted_container_width - width;
                 }
             }
         }
+        // Add left shift imposed by left floats to HR
+        dx += adjusted_forced_x_shift;
     }
 
     // Prevent overflows if not allowed
