@@ -2682,14 +2682,16 @@ public:
 class ldomDocumentWriterFilter : public ldomDocumentWriter
 {
 protected:
+    bool _libRuDocumentToDetect;
     bool _libRuDocumentDetected;
     bool _libRuParagraphStart;
+    bool _libRuParseAsPre;
     lUInt16 _styleAttrId;
     lUInt16 _classAttrId;
     lUInt16 * _rules[MAX_ELEMENT_TYPE_ID];
     bool _tagBodyCalled;
     virtual void AutoClose( lUInt16 tag_id, bool open );
-    virtual void ElementCloseHandler( ldomNode * elem );
+    virtual void ElementCloseHandler( ldomNode * node ) { node->persist(); }
     virtual void appendStyle( const lChar16 * style );
     virtual void setClass( const lChar16 * className, bool overrideExisting=false );
 public:

@@ -12905,46 +12905,134 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
 
 ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
+    //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
+    //lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
     //CRLog::trace("OnTagOpen(%s, %s)", LCSTR(lString16(nsname)), LCSTR(lString16(tagname)));
+
+    // We expect from the parser to always have OnTagBody called
+    // after OnTagOpen before any other OnTagOpen
     if ( !_tagBodyCalled ) {
         CRLog::error("OnTagOpen w/o parent's OnTagBody : %s", LCSTR(lString16(tagname)));
         crFatalError();
     }
     _tagBodyCalled = false;
-    //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
-//    if ( nsname && nsname[0] )
-//        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
-//    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
 
     lUInt16 id = _document->getElementNameIndex(tagname);
     lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
+
+    // http://lib.ru/ books detection (a bit ugly to have this hacked
+    // into ldomDocumentWriterFilter, but well, it's been there for ages
+    // and it seems quite popular and expected to have crengine handle
+    // Lib.ru books without any conversion needed).
+    // Detection has been reworked to be done here (in OnTagOpen). It
+    // was previously done in ElementCloseHandler/OnTagClose when closing
+    // the elements, and as it removed the FORM node from the DOM, it
+    // caused a display hash mismatch which made the cache invalid.
+    // So, do it here and don't remove any node but make then hidden.
+    // Lib.ru books (in the 2 formats that are supported, "Lib.ru html"
+    // and "Fine HTML"), have this early in the document:
+    //   <div align=right><form action=/INPROZ/ASTURIAS/asturias1_1.txt><select name=format><OPTION...>
+    // Having a FORM child of a DIV with align=right is assumed to be
+    // quite rare, so check for that.
+    bool setDisplayNone = false;
+    bool setParseAsPre = false;
+    if ( _libRuDocumentToDetect && id == el_form ) {
+        // At this point _currNode is still the parent of the FORM that is opening
+        if ( _currNode && _currNode->_element->getNodeId() == el_div ) {
+            ldomNode * node = _currNode->_element;
+            lString16 style = node->getAttributeValue(attr_style);
+            // align=right would have been translated to style="text-align: right"
+            if ( !style.empty() && style.pos("text-align: right", 0) >= 0 ) {
+                _libRuDocumentDetected = true;
+                // We can't set this DIV to be display:none as the element
+                // has already had setNodeStyle() called and applied, so
+                // it would take effect only on re-renderings (and would
+                // cause a display hash mismatch).
+                // So, we'll set it on the FORM just after it's created below
+                setDisplayNone = true;
+            }
+        }
+        // If the first FORM met doesn't match, no need keep detecting
+        _libRuDocumentToDetect = false;
+    }
+    // Fixed 20180503: this was done previously in any case, but now only
+    // if _libRuDocumentDetected. We still allow the old behaviour if
+    // requested to keep previously recorded XPATHs valid.
+    if ( _libRuDocumentDetected || gDOMVersionRequested < 20180503) {
+        // Patch for bad LIB.RU books - BR delimited paragraphs
+        // in "Fine HTML" format, that appears as:
+        //   <br>&nbsp; &nbsp; &nbsp; Viento fuerte, 1950
+        //   <br>&nbsp; &nbsp; &nbsp; Spellcheck [..., with \n every 76 chars]
+        if ( id == el_br || id == el_dd ) {
+            // Replace such BR with P
+            id = el_p;
+            _libRuParagraphStart = true; // to trim leading &nbsp;
+        } else {
+            _libRuParagraphStart = false;
+        }
+        if ( _libRuDocumentDetected && id == el_pre ) {
+            // "Lib.ru html" format is actually minimal HTML with
+            // the text wrapped in <PRE>. We will parse this text
+            // to build proper HTML with each paragraph wrapped
+            // in a <P> (this is done by the XMLParser when we give
+            // it TXTFLG_PRE_PARA_SPLITTING).
+            // Once that is detected, we don't want it to be PRE
+            // anymore (so that on re-renderings, it's not handled
+            // as white-space: pre), so we're swapping this PRE with
+            // a DIV element. But we need to still parse the text
+            // when building the DOM as PRE.
+            id = el_div;
+            ldomNode * n = _currNode ? _currNode->getElement() : NULL;
+            if ( n && n->getNodeId() == el_pre ) {
+                // Also close any previous PRE that would have been
+                // auto-closed if we kept PRE as PRE (from now on,
+                // we'll convert PRE to DIV), as this unclosed PRE
+                // would apply to all the text.
+                _currNode = pop( _currNode, el_pre);
+            }
+            else if ( n && n->getNodeId() == el_div && n->hasAttribute( attr_ParserHint ) &&
+                        n->getAttributeValue( attr_ParserHint ) == L"ParseAsPre" ) {
+                // Also close any previous PRE we already masqueraded
+                // as <DIV ParserHint="ParseAsPre">
+                _currNode = pop( _currNode, el_div);
+            }
+            // Below, we'll then be inserting a DIV, which won't be TXTFLG_PRE.
+            // We'll need to re-set _flags to be TXTFLG_PRE in our OnTagBody(),
+            // after it has called the superclass's OnTagBody(),
+            // as ldomDocumentWriter::OnTagBody() will call onBodyEnter() which
+            // will have set default styles (so, not TXTFLG_PRE for DIV as its
+            // normal style is "white-space: normal").
+            // We'll add the attribute ParserHint="ParseAsPre" below so
+            // we know it was a PRE and do various tweaks.
+            setParseAsPre = true;
+        }
+    }
 
     // Set a flag for OnText to accumulate the content of any <HEAD><STYLE>
     if ( id == el_style && _currNode && _currNode->getElement()->getNodeId() == el_head ) {
         _inHeadStyle = true;
     }
 
-    // Fixed 20180503: this was done previously in any case, but now only
-    // if _libRuDocumentDetected. We still allow the old behaviour if
-    // requested to keep previously recorded XPATHs valid.
-    if ( _libRuDocumentDetected || gDOMVersionRequested < 20180503) {
-        // Patch for bad LIB.RU books - BR delimited paragraphs in "Fine HTML" format
-        if ( id == el_br || id == el_dd ) {
-            // substitute to P
-            id = el_p;
-            _libRuParagraphStart = true; // to trim leading &nbsp;
-        } else {
-            _libRuParagraphStart = false;
-        }
-    }
-
     AutoClose( id, true );
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
     _flags = _currNode->getFlags();
-    if ( _libRuDocumentDetected && (_flags & TXTFLG_PRE) )
-        _flags |= TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM; // convert preformatted text into paragraphs
+
+    // Some libRu tweaks:
+    if ( setParseAsPre ) {
+        // Set an attribute on the DIV we just added
+        _currNode->getElement()->setAttributeValue(LXML_NS_NONE, attr_ParserHint, L"ParseAsPre");
+        // And set this global flag as we'll need to re-enable PRE (as it
+        // will be reset by ldomDocumentWriter::OnTagBody() as we won't have
+        // proper CSS white-space:pre inheritance) and XMLParser flags.
+        _libRuParseAsPre = true;
+    }
+    if ( setDisplayNone ) {
+        // Hide the FORM that was used to detect libRu,
+        // now that currNode is the FORM element
+        appendStyle( L"display: none" );
+    }
+
     //logfile << " !o!\n";
-    //return _currNode->getElement();
     return _currNode->getElement();
 }
 
@@ -12958,63 +13046,20 @@ void ldomDocumentWriterFilter::OnTagBody()
     // Some specific handling for the <BODY> tag to deal with HEAD STYLE and
     // LINK is done in super class (ldomDocumentWriter)
     ldomDocumentWriter::OnTagBody();
-}
 
-bool isRightAligned(ldomNode * node) {
-    lString16 style = node->getAttributeValue(attr_style);
-    if (style.empty())
-        return false;
-    int p = style.pos("text-align: right", 0);
-    return (p >= 0);
-}
-
-void ldomDocumentWriterFilter::ElementCloseHandler( ldomNode * node )
-{
-    ldomNode * parent = node->getParentNode();
-    lUInt16 id = node->getNodeId();
-    if ( parent ) {
-        if ( parent->getLastChild() != node )
-            return;
-        if ( id==el_table ) {
-            if (isRightAligned(node) && node->getAttributeValue(attr_width) == "30%") {
-                // LIB.RU TOC detected: remove it
-                //parent = parent->modify();
-
-                //parent->removeLastChild();
-            }
-        } else if ( id==el_pre && _libRuDocumentDetected ) {
-            // for LIB.ru - replace PRE element with DIV (section?)
-            if ( node->getChildCount()==0 ) {
-                //parent = parent->modify();
-
-                //parent->removeLastChild(); // remove empty PRE element
-            }
-            //else if ( node->getLastChild()->getNodeId()==el_div && node->getLastChild()->getChildCount() &&
-            //          ((ldomElement*)node->getLastChild())->getLastChild()->getNodeId()==el_form )
-            //    parent->removeLastChild(); // remove lib.ru final section
-            else
-                node->setNodeId( el_div );
-        } else if ( id==el_div ) {
-//            CRLog::trace("DIV attr align = %s", LCSTR(node->getAttributeValue(attr_align)));
-//            CRLog::trace("DIV attr count = %d", node->getAttrCount());
-//            int alignId = node->getDocument()->getAttrNameIndex("align");
-//            CRLog::trace("align= %d %d", alignId, attr_align);
-//            for (int i = 0; i < node->getAttrCount(); i++)
-//                CRLog::trace("DIV attr %s", LCSTR(node->getAttributeName(i)));
-            if (isRightAligned(node)) {
-                ldomNode * child = node->getLastChild();
-                if ( child && child->getNodeId()==el_form )  {
-                    // LIB.RU form detected: remove it
-                    //parent = parent->modify();
-
-                    parent->removeLastChild();
-                    _libRuDocumentDetected = true;
-                }
-            }
+    if ( _libRuDocumentDetected ) {
+        if ( _libRuParseAsPre ) {
+            // The OnTagBody() above might have cancelled TXTFLG_PRE
+            // (that the ldomElementWriter inherited from its parent)
+            // when ensuring proper CSS white-space inheritance.
+            // Re-enable it
+            _currNode->_flags |= TXTFLG_PRE;
+            // Also set specific XMLParser flags so it spits out
+            // <P>... for each paragraph of plain text, so that
+            // we get some nice HTML instead
+            _flags = TXTFLG_PRE | TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM;
         }
     }
-    if (!_libRuDocumentDetected)
-        node->persist();
 }
 
 void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
@@ -13138,6 +13183,23 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * /*nsname*/, const lCh
     // below might handle. So, here below, we check that both id and curNodeId match
     // the element id we check for.
 
+    if ( _libRuDocumentToDetect && id == el_div ) {
+        // No need to try detecting after we see a closing </DIV>,
+        // as the FORM we look for is in the first DIV
+        _libRuDocumentToDetect = false;
+    }
+    if ( _libRuDocumentDetected && id == el_pre ) {
+        // Also, if we're about to close the original PRE that we masqueraded
+        // as DIV and that has enabled _libRuParseAsPre, reset it.
+        // (In Lib.ru books, it seems a PRE is never closed, or only at
+        // the end by another PRE where it doesn't matter if we keep that flag.)
+        ldomNode * n = _currNode->getElement();
+        if ( n->getNodeId() == el_div && n->hasAttribute( attr_ParserHint ) &&
+                    n->getAttributeValue( attr_ParserHint ) == L"ParseAsPre" ) {
+            _libRuParseAsPre = false;
+        }
+    }
+
     // Parse <link rel="stylesheet">, put the css file link in _stylesheetLinks,
     // they will be added to <body><stylesheet> when we meet <BODY>
     // (duplicated in ldomDocumentWriter::OnTagClose)
@@ -13177,14 +13239,11 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * /*nsname*/, const lCh
 
     if ( _currNode ) {
         _flags = _currNode->getFlags();
-        if ( _libRuDocumentDetected && (_flags & TXTFLG_PRE) )
-            _flags |= TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM; // convert preformatted text into paragraphs
+        if ( _libRuParseAsPre ) {
+            // Re-set specific parser flags
+            _flags |= TXTFLG_PRE | TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM;
+        }
     }
-
-    //=============================================================
-    // LIB.RU patch: remove table of contents
-    //ElementCloseHandler( closedElement );
-    //=============================================================
 
     if ( id==_stopTagId ) {
         //CRLog::trace("stop tag found, stopping...");
@@ -13210,12 +13269,15 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
         if ( (_flags & XML_FLAG_NO_SPACE_TEXT)
              && IsEmptySpace(text, len) && !(flags & TXTFLG_PRE))
              return;
-        bool autoPara = _libRuDocumentDetected && (flags & TXTFLG_PRE);
-        if (_currNode->_allowText) {
+        if ( !_currNode->_allowText )
+            return;
+        if ( !_libRuDocumentDetected ) {
+            _currNode->onText( text, len, flags );
+        }
+        else { // Lib.ru text cleanup
             if ( _libRuParagraphStart ) {
-                bool cleaned = false;
+                // Cleanup "Fine HTML": "<br>&nbsp; &nbsp; &nbsp; Viento fuerte, 1950"
                 while ( *text==160 && len > 0 ) {
-                    cleaned = true;
                     text++;
                     len--;
                     while ( *text==' ' && len > 0 ) {
@@ -13223,12 +13285,11 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
                         len--;
                     }
                 }
-                if ( cleaned ) {
-                    setClass(L"justindent");
-                    //appendStyle(L"text-indent: 1.3em; text-align: justify");
-                }
                 _libRuParagraphStart = false;
             }
+            // Handle "Lib.ru html" paragraph, parsed from the nearly plaintext
+            // by XMLParser with TXTFLG_PRE | TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM
+            bool autoPara = flags & TXTFLG_PRE;
             int leftSpace = 0;
             const lChar16 * paraTag = NULL;
             bool isHr = false;
@@ -13244,6 +13305,15 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
                 for ( int i=0; i<len; i++ ) {
                     if ( !ch )
                         ch = text[i];
+                    // We would need this to have HR work:
+                    //   else if ( i == len-1 && text[i] == ' ' ) {
+                    //      // Ignore a trailing space we may get
+                    //      // Note that some HR might be missed when the
+                    //      // "----" directly follows some indented text.
+                    //   }
+                    // but by fixing it, we'd remove a P and have XPointers
+                    // like /html/body/div/p[14]/text().113 reference the wrong P,
+                    // so keep doing bad to not mess past highlights...
                     else if ( ch != text[i] ) {
                         sameCh = false;
                         break;
@@ -13274,8 +13344,10 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
 
 ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool headerOnly, const char *** rules )
 : ldomDocumentWriter( document, headerOnly )
+, _libRuDocumentToDetect(true)
 , _libRuDocumentDetected(false)
 , _libRuParagraphStart(false)
+, _libRuParseAsPre(false)
 , _styleAttrId(0)
 , _classAttrId(0)
 , _tagBodyCalled(true)

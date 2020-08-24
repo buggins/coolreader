@@ -285,6 +285,7 @@ XS_ATTR( recindex ) // used with mobi images
 XS_ATTR( T )      // to flag subtype of boxing internal elements if needed
 XS_ATTR( Before ) // for pseudoElem internal element
 XS_ATTR( After )  // for pseudoElem internal element
+XS_ATTR( ParserHint )   // HTML parser hints (used for Lib.ru support)
 // Other classic attributes present in html5.css
 XS_ATTR2( accept_charset, "accept-charset" )
 XS_ATTR( alt )
