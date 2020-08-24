@@ -6236,7 +6236,10 @@ void ldomNode::initNodeRendMethod()
                             autoboxChildren( j, i, handleFloating );
                         i = j;
                     }
-                    else if ( i>0 ) {
+                    else if ( i>0 && node->getRendMethod() == erm_final ) {
+                        // (We skip the following if the current node is not erm_final, as
+                        // if it is erm_block, we would break the block layout by making
+                        // it all inline in an erm_final autoBoxing.)
                         // This node is not inline, but might be preceeded by a css_d_run_in node:
                         // https://css-tricks.com/run-in/
                         // https://developer.mozilla.org/en-US/docs/Web/CSS/display
