@@ -714,7 +714,7 @@ bTranslateImage(diagram_type *pDiag, FILE *pFile, BOOL bMinimalInformation,
             writer->OnBlob(name, pucJpeg, len);
             writer->OnTagOpen(LXML_NS_NONE, L"img");
             writer->OnAttribute(LXML_NS_NONE, L"src", name.c_str());
-            writer->OnTagClose(LXML_NS_NONE, L"img");
+            writer->OnTagClose(LXML_NS_NONE, L"img", true);
 
             free(pucJpeg);
             return TRUE;

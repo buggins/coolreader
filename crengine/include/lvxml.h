@@ -61,10 +61,10 @@ public:
     {
         OnTagOpen( nsname, tagname );
         OnTagBody();
-        OnTagClose( nsname, tagname );
+        OnTagClose( nsname, tagname, true );
     }
     /// called on tag close
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname ) = 0;
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false ) = 0;
     /// called on element attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue ) = 0;
     /// called on text

@@ -61,7 +61,7 @@ public:
 public:
     ldomNode *OnTagOpen(const lChar16 *nsname, const lChar16 *tagname);
     /// called on closing tag
-    void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false );
     void OnTagBody();
     void OnAttribute(const lChar16 *nsname, const lChar16 *attrname, const lChar16 *attrvalue);
 
@@ -166,7 +166,7 @@ void fb3DomWriter::writeDescription()
         m_parent->OnTagOpenNoAttr( NULL, L"coverpage" );
         m_parent->OnTagOpen(NULL, L"image");
         m_parent->OnAttribute(L"l", L"href", m_context->m_coverImage.c_str());
-        m_parent->OnTagClose( NULL, L"image" );
+        m_parent->OnTagClose( NULL, L"image", true );
         m_parent->OnTagClose( NULL, L"coverpage" );
     }
     m_parent->OnTagClose( NULL, L"title-info" );
@@ -194,7 +194,7 @@ ldomNode *fb3DomWriter::OnTagOpen(const lChar16 *nsname, const lChar16 *tagname)
     return m_parent->OnTagOpen(nsname, tagname);
 }
 
-void fb3DomWriter::OnTagClose(const lChar16 *nsname, const lChar16 *tagname)
+void fb3DomWriter::OnTagClose(const lChar16 *nsname, const lChar16 *tagname, bool self_closing_tag)
 {
     if ( !lStr_cmp(tagname, "fb3-body") ) {
         m_parent->OnTagClose(NULL, L"body");
@@ -206,7 +206,7 @@ void fb3DomWriter::OnTagClose(const lChar16 *nsname, const lChar16 *tagname)
     } else if ( !lStr_cmp(tagname, "notes" )) {
         tagname = L"body";
     }
-    m_parent->OnTagClose(nsname, tagname);
+    m_parent->OnTagClose(nsname, tagname, self_closing_tag);
 }
 
 void fb3DomWriter::OnTagBody()

@@ -7511,7 +7511,7 @@ ldomDocumentWriter::~ldomDocumentWriter()
 #endif
 }
 
-void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
+void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname, bool self_closing_tag )
 {
     //logfile << "ldomDocumentWriter::OnTagClose() [" << nsname << ":" << tagname << "]";
     if (!_currNode || !_currNode->getElement())
@@ -12784,7 +12784,7 @@ ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar16 * nsname, const 
 }
 
 /// called on closing tag
-void ldomDocumentFragmentWriter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+void ldomDocumentFragmentWriter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag )
 {
     styleDetectionState = headStyleState = 0;
     if ( insideTag && baseTag==tagname ) {
@@ -12797,7 +12797,7 @@ void ldomDocumentFragmentWriter::OnTagClose( const lChar16 * nsname, const lChar
         return;
     }
     if ( insideTag )
-        parent->OnTagClose(nsname, tagname);
+        parent->OnTagClose(nsname, tagname, self_closing_tag);
 }
 
 /// called after > of opening tag (when entering tag body) or just before /> closing tag for empty tags
@@ -13112,7 +13112,7 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar1
 }
 
 /// called on closing tag
-void ldomDocumentWriterFilter::OnTagClose( const lChar16 * /*nsname*/, const lChar16 * tagname )
+void ldomDocumentWriterFilter::OnTagClose( const lChar16 * /*nsname*/, const lChar16 * tagname, bool self_closing_tag )
 {
     if ( !_tagBodyCalled ) {
         CRLog::error("OnTagClose w/o parent's OnTagBody : %s", LCSTR(lString16(tagname)));

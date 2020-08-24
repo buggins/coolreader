@@ -1829,7 +1829,7 @@ public:
             callback->OnTagOpen(L"", L"img");
             callback->OnAttribute(L"", L"src", url.c_str());
             callback->OnTagBody();
-            callback->OnTagClose(L"", L"img");
+            callback->OnTagClose(L"", L"img", true);
         }
 
         void startParagraph() {
@@ -3053,8 +3053,8 @@ bool LVXMLParser::Parse()
                 {
                     m_callback->OnTagBody();
                     // end of tag
-                    if ( ch!='>' )
-                        m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
+                    if ( ch!='>' ) // '/' in '<hr/>' : self closing tag
+                        m_callback->OnTagClose(tagns.c_str(), tagname.c_str(), true);
                     if ( ch=='>' )
                         PeekNextCharFromBuffer();
                     else
@@ -6286,7 +6286,7 @@ public:
         return NULL;
     }
     /// called on closing
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false )
     {
         if ( lStr_cmp(nsname, "FictionBook")==0) {
             insideFictionBook = false;

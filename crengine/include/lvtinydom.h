@@ -2647,7 +2647,7 @@ public:
     /// called after > of opening tag (when entering tag body)
     virtual void OnTagBody();
     /// called on closing tag
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false );
     /// called on attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
     /// close tags
@@ -2700,7 +2700,7 @@ public:
     /// called after > of opening tag (when entering tag body)
     virtual void OnTagBody();
     /// called on closing tag
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false );
     /// called on text
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags );
     /// constructor
@@ -2788,7 +2788,7 @@ public:
     /// called after > of opening tag (when entering tag body)
     virtual void OnTagBody();
     /// called on closing tag
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false );
     /// called on attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
     /// called on text
