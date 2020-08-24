@@ -2690,7 +2690,16 @@ protected:
     lUInt16 _classAttrId;
     lUInt16 * _rules[MAX_ELEMENT_TYPE_ID];
     bool _tagBodyCalled;
+    // Some states used when gDOMVersionRequested >= 20200824
+    bool _htmlTagSeen;
+    bool _headTagSeen;
+    bool _bodyTagSeen;
+    bool _curNodeIsSelfClosing;
+    bool _curTagIsIgnored;
+    ldomElementWriter * _lastP;
     virtual void AutoClose( lUInt16 tag_id, bool open );
+    virtual bool AutoOpenClosePop( int step, lUInt16 tag_id );
+    virtual lUInt16 popUpTo( ldomElementWriter * target, lUInt16 target_id=0, int scope=0 );
     virtual void ElementCloseHandler( ldomNode * node ) { node->persist(); }
     virtual void appendStyle( const lChar16 * style );
     virtual void setClass( const lChar16 * className, bool overrideExisting=false );

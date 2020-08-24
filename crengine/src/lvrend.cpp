@@ -8839,28 +8839,36 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->white_space = type_ptr->white_space;
 
         // Account for backward incompatible changes in fb2def.h
-        if (gDOMVersionRequested < 20180528) { // revert what was changed 20180528
-            if (nodeElementId == el_form) {
-                pstyle->display = css_d_none; // otherwise shown as block, as it may have textual content
-            }
-            if (nodeElementId == el_code) {
-                pstyle->white_space = css_ws_pre; // otherwise white-space: normal, as browsers do
-            }
-            if (nodeElementId >= el_address && nodeElementId <= el_xmp) { // newly added block elements
+        if (gDOMVersionRequested < 20200824) { // revert what was changed 20200824
+            if (nodeElementId >= el_details && nodeElementId <= el_wbr) { // newly added block elements
                 pstyle->display = css_d_inline; // previously unknown and shown as inline
                 if (gDOMVersionRequested < 20180524) {
                     pstyle->display = css_d_inherit; // previously unknown and display: inherit
                 }
             }
-            if (gDOMVersionRequested < 20180524) { // revert what was fixed 20180524
-                if (nodeElementId == el_cite) {
-                    pstyle->display = css_d_block; // otherwise correctly set to css_d_inline
+            if (gDOMVersionRequested < 20180528) { // revert what was changed 20180528
+                if (nodeElementId == el_form) {
+                    pstyle->display = css_d_none; // otherwise shown as block, as it may have textual content
                 }
-                if (nodeElementId == el_li) {
-                    pstyle->display = css_d_list_item_legacy; // otherwise correctly set to css_d_list_item_block
+                if (nodeElementId == el_code) {
+                    pstyle->white_space = css_ws_pre; // otherwise white-space: normal, as browsers do
                 }
-                if (nodeElementId == el_style) {
-                    pstyle->display = css_d_inline; // otherwise correctly set to css_d_none (hidden)
+                if (nodeElementId >= el_address && nodeElementId <= el_xmp) { // newly added block elements
+                    pstyle->display = css_d_inline; // previously unknown and shown as inline
+                    if (gDOMVersionRequested < 20180524) {
+                        pstyle->display = css_d_inherit; // previously unknown and display: inherit
+                    }
+                }
+                if (gDOMVersionRequested < 20180524) { // revert what was fixed 20180524
+                    if (nodeElementId == el_cite) {
+                        pstyle->display = css_d_block; // otherwise correctly set to css_d_inline
+                    }
+                    if (nodeElementId == el_li) {
+                        pstyle->display = css_d_list_item_legacy; // otherwise correctly set to css_d_list_item_block
+                    }
+                    if (nodeElementId == el_style) {
+                        pstyle->display = css_d_inline; // otherwise correctly set to css_d_none (hidden)
+                    }
                 }
             }
         }
