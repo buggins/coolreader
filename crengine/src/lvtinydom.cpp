@@ -3991,6 +3991,11 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
         if ( ! toWrite )
             return;
 
+        // In case we're called (when debugging) while styles have been reset,
+        // avoid crash on stuff like isBoxingInlineBox()/isFloatingBox() that
+        // do check styles
+        bool has_styles_set = !node->getStyle().isNull();
+
         bool doNewLineBeforeStartTag = false;
         bool doNewLineAfterStartTag = false;
         bool doNewLineBeforeEndTag = false; // always stays false, newline done by child elements
@@ -4027,7 +4032,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                         rm = erm_final;
                 }
             }
-            if ( rm != erm_inline || node->isBoxingInlineBox()) {
+            if ( rm != erm_inline || (has_styles_set && node->isBoxingInlineBox()) ) {
                 doNewLineBeforeStartTag = true;
                 doNewLineAfterStartTag = true;
                 // doNewLineBeforeEndTag = false; // done by child elements
@@ -4040,7 +4045,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                     doNewLineAfterStartTag = false;
                     doIndentBeforeEndTag = false;
                 }
-                else if (node->isFloatingBox()) {
+                else if (has_styles_set && node->isFloatingBox()) {
                     lvdom_element_render_method prm = node->getParentNode()->getRendMethod();
                     if (prm == erm_final || prm == erm_inline) {
                         doNewlineBeforeIndentBeforeStartTag = true;
@@ -4066,7 +4071,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                         }
                     }
                 }
-                else if (node->isBoxingInlineBox()) {
+                else if (has_styles_set && node->isBoxingInlineBox()) {
                     doNewlineBeforeIndentBeforeStartTag = true;
                     doIndentAfterNewLineAfterEndTag = WNEFLAG(INDENT_NEWLINE);
                     // Same as above
@@ -4111,8 +4116,10 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
         if (doIndentBeforeStartTag)
             for ( int i=indentBaseLevel; i<level; i++ )
                 *stream << "  ";
-        if ( elemName.empty() ) // should not happen (except for the root node, that we hopefully skipped)
-            elemName = elemNsName + "???";
+        if ( elemName.empty() ) {
+            // should not happen (except for the root node, that we might have skipped)
+            elemName = node->isRoot() ? lString8("?RootNode?") : (elemNsName + "???");
+        }
         if ( !elemNsName.empty() )
             elemName = elemNsName + ":" + elemName;
         *stream << "<" << elemName;
@@ -4131,7 +4138,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                 lString8 attrName( UnicodeToUtf8(node->getDocument()->getAttrName(attr->id)) );
                 lString8 nsName( UnicodeToUtf8(node->getDocument()->getNsName(attr->nsid)) );
                 lString8 attrValue( UnicodeToUtf8(node->getDocument()->getAttrValue(attr->index)) );
-                if ( WNEFLAG(SHOW_MISC_INFO) ) {
+                if ( WNEFLAG(SHOW_MISC_INFO) && has_styles_set ) {
                     if ( node->getNodeId() == el_pseudoElem && (attr->id == attr_Before || attr->id == attr_After) ) {
                         // Show the rendered content as the otherwise empty Before/After attribute value
                         if ( WNEFLAG(TEXT_SHOW_UNICODE_CODEPOINT) ) {
@@ -4223,7 +4230,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
             if ( WNEFLAG(TEXT_HYPHENATE) ) {
                 // Additional minor formatting tweaks for when this is going to be fed
                 // to some other renderer, which is usually when we request HYPHENATE.
-                if ( node->getStyle()->display == css_d_run_in ) {
+                if ( has_styles_set && node->getStyle()->display == css_d_run_in ) {
                     // For FB2 footnotes, add a space between the number and text,
                     // as none might be present in the source. If there were some,
                     // the other renderer will probably collapse them.
