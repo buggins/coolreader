@@ -17,7 +17,15 @@ public class MainDB extends BaseDB {
 	public final int DB_VERSION = 29;
 	@Override
 	protected boolean upgradeSchema() {
-		if (mDB.needUpgrade(DB_VERSION)) {
+		// When the database is just created, its version is 0.
+		int currentVersion = mDB.getVersion();
+		// TODO: check database structure consistency regardless of its version.
+		if (currentVersion > DB_VERSION) {
+			// trying to update the structure of a database that has been modified by some kind of inconsistent fork of the program.
+			log.v("MainDB: incompatible database version found (" + currentVersion + "), forced setting to 26.");
+			currentVersion = 26;
+		}
+		if (mDB.needUpgrade(DB_VERSION) || currentVersion < DB_VERSION) {
 			execSQL("CREATE TABLE IF NOT EXISTS author (" +
 					"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 					"name VARCHAR NOT NULL COLLATE NOCASE" +
@@ -88,7 +96,6 @@ public class MainDB extends BaseDB {
 					")");
 			execSQL("CREATE INDEX IF NOT EXISTS " +
 			"bookmark_book_index ON bookmark (book_fk) ");
-			int currentVersion = mDB.getVersion();
 			// ====================================================================
 			if ( currentVersion<1 )
 				execSQLIgnoreErrors("ALTER TABLE bookmark ADD COLUMN shortcut INTEGER DEFAULT 0");
@@ -196,8 +203,7 @@ public class MainDB extends BaseDB {
 			// add more updates above this line
 				
 			// set current version
-			if (currentVersion < DB_VERSION)
-				mDB.setVersion(DB_VERSION);
+			mDB.setVersion(DB_VERSION);
 		}
 
 		dumpStatistics();
@@ -209,7 +215,7 @@ public class MainDB extends BaseDB {
 		log.i("mainDB: " + longQuery("SELECT count(*) FROM author") + " authors, "
 				 + longQuery("SELECT count(*) FROM series") + " series, "
 				 + longQuery("SELECT count(*) FROM book") + " books, "
-				 + longQuery("SELECT count(*) FROM bookmark") + " bookmarks"
+				 + longQuery("SELECT count(*) FROM bookmark") + " bookmarks, "
 				 + longQuery("SELECT count(*) FROM folder") + " folders"
 		);
 	}
