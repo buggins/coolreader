@@ -11476,7 +11476,7 @@ bool ldomXPointerEx::prevVisibleWordStartInSentence()
     for ( ;; ) {
         if ( !isText() || !isVisible() || _data->getOffset()==0 ) {
             // move to previous text
-            if ( !prevVisibleText(true) )
+            if ( !prevVisibleText(false) )
                 return false;
             node = getNode();
             text = node->getText();
@@ -11513,7 +11513,7 @@ bool ldomXPointerEx::nextVisibleWordStartInSentence()
     bool moved = false;
     for ( ;; ) {
         if ( !isText() || !isVisible() ) {
-            // move to previous text
+            // move to next text
             if ( !nextVisibleText(false) )
                 return false;
             node = getNode();
@@ -11558,6 +11558,37 @@ bool ldomXPointerEx::nextVisibleWordStartInSentence()
         if ( moved && _data->getOffset()<textLen )
             return true;
     }
+}
+
+/// move to end of current word
+bool ldomXPointerEx::thisVisibleWordEndInSentence()
+{
+    if ( isNull() )
+        return false;
+    ldomNode * node = NULL;
+    lString16 text;
+    int textLen = 0;
+    bool moved = false;
+    if ( !isText() || !isVisible() )
+        return false;
+    node = getNode();
+    text = node->getText();
+    textLen = text.length();
+    if ( _data->getOffset() >= textLen )
+        return false;
+    // skip spaces
+    while ( _data->getOffset()<textLen && IsUnicodeSpace(text[ _data->getOffset() ]) ) {
+        _data->addOffset(1);
+        //moved = true;
+    }
+    // skip non-spaces
+    while ( _data->getOffset()<textLen ) {
+        if ( IsUnicodeSpace(text[ _data->getOffset() ]) )
+            break;
+        moved = true;
+        _data->addOffset(1);
+    }
+    return moved;
 }
 
 /// move to next visible word end (in sentence)
@@ -11866,8 +11897,8 @@ bool ldomXPointerEx::isSentenceEnd()
     // word is not ended with . ! ?
     // check whether it's last word of block
     ldomXPointerEx pos(*this);
-    //return !pos.nextVisibleWordStart(true);
-    return !pos.thisVisibleWordEnd(true);
+    //return !pos.nextVisibleWordStartInSentence();
+    return !pos.thisVisibleWordEndInSentence();
 }
 
 /// move to beginning of current visible text sentence
@@ -11919,7 +11950,7 @@ bool ldomXPointerEx::prevSentenceStart()
     if ( !thisSentenceStart() )
         return false;
     for (;;) {
-        if ( !prevVisibleWordStart() )
+        if ( !prevVisibleWordStartInSentence() )
             return false;
         if ( isSentenceStart() )
             return true;

@@ -1746,6 +1746,8 @@ public:
     bool prevVisibleWordEndInSentence();
     /// move to next visible word beginning (in sentence)
     bool nextVisibleWordStartInSentence();
+    /// move to end of current word (in sentence)
+    bool thisVisibleWordEndInSentence();
     /// move to next visible word end (in sentence)
     bool nextVisibleWordEndInSentence();
 
