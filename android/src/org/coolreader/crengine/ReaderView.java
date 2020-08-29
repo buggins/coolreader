@@ -1716,7 +1716,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	public boolean isFormatWithEmbeddedStyles() {
 		if (mOpened && mBookInfo != null) {
 			DocumentFormat fmt = mBookInfo.getFileInfo().format;
-			return fmt == DocumentFormat.EPUB || fmt == DocumentFormat.HTML || fmt == DocumentFormat.FB2 || fmt == DocumentFormat.FB3;
+			return fmt == DocumentFormat.EPUB || fmt == DocumentFormat.HTML || fmt == DocumentFormat.CHM || fmt == DocumentFormat.FB2 || fmt == DocumentFormat.FB3;
 		}
 		return false;
 	}
@@ -1724,7 +1724,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	public boolean isHtmlFormat() {
 		if (mOpened && mBookInfo != null) {
 			DocumentFormat fmt = mBookInfo.getFileInfo().format;
-			return fmt == DocumentFormat.EPUB || fmt == DocumentFormat.HTML || fmt == DocumentFormat.PDB;
+			return fmt == DocumentFormat.EPUB || fmt == DocumentFormat.HTML || fmt == DocumentFormat.PDB || fmt == DocumentFormat.CHM;
 		}
 		return false;
 	}

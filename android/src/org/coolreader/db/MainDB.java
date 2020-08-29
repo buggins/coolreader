@@ -14,7 +14,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 29;
+	public final int DB_VERSION = 30;
 	@Override
 	protected boolean upgradeSchema() {
 		// When the database is just created, its version is 0.
@@ -197,6 +197,10 @@ public class MainDB extends BaseDB {
 						mDB.endTransaction();
 					}
 				}
+			}
+			if (currentVersion < 30) {
+				// Forced update DOM version from previous latest (20200223) to current (20200824).
+				execSQLIgnoreErrors("UPDATE book SET domVersion=20200824 WHERE domVersion=20200223");
 			}
 
 			//==============================================================
