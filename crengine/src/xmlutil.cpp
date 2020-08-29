@@ -112,9 +112,9 @@ void xml_ElementHandler::reset()
 {
 }
 
-void docx_titleHandler::onBodyStart()
+ldomNode *docx_titleHandler::onBodyStart()
 {
-    m_writer->OnTagOpen(L"", L"body");
+    return m_writer->OnTagOpen(L"", L"body");
 }
 
 void docx_titleHandler::onTitleStart(int level, bool noSection)
@@ -139,9 +139,10 @@ void docx_titleHandler::onTitleEnd()
         m_writer->OnTagClose(L"", L"p");
 }
 
-void docx_fb2TitleHandler::onBodyStart()
+ldomNode* docx_fb2TitleHandler::onBodyStart()
 {
     m_section = m_writer->OnTagOpen(L"", L"body");
+    return m_section;
 }
 
 void docx_fb2TitleHandler::onTitleStart(int level, bool noSection)

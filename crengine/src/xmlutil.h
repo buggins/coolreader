@@ -158,7 +158,7 @@ public:
     docx_titleHandler(ldomDocumentWriter *writer, bool useClassName=false) :
         m_writer(writer), m_titleLevel(), m_useClassName(useClassName) {}
     virtual ~docx_titleHandler() {}
-    virtual void onBodyStart();
+    virtual ldomNode* onBodyStart();
     virtual void onTitleStart(int level, bool noSection = false);
     virtual void onTitleEnd();
     virtual void onBodyEnd() {}
@@ -175,7 +175,7 @@ public:
     docx_fb2TitleHandler(ldomDocumentWriter *writer, bool useClassName) :
         docx_titleHandler(writer, useClassName)
     {}
-    void onBodyStart();
+    ldomNode* onBodyStart();
     void onTitleStart(int level, bool noSection = false);
     void onTitleEnd();
 private:

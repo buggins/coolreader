@@ -5,8 +5,9 @@
 #include "../include/crlog.h"
 #include "xmlutil.h"
 
-#define ODT_TAGS ODT_TAG(body) ODT_TAG(text) ODT_TAG(h) ODT_TAG(p) ODT_TAG(span) \
-    ODT_TAG(image) ODT_TAG(frame) ODT_TAG(table) ODT_TAG(list)
+#define ODT_TAGS ODT_TAG(a) ODT_TAG(bookmark) ODT_TAG(body) ODT_TAG(note) ODT_TAG(text) \
+    ODT_TAG(h) ODT_TAG(p) ODT_TAG(span) ODT_TAG(image) ODT_TAG(frame) ODT_TAG(table) \
+    ODT_TAG(list)
 
 #define ODT_TAG_NAME(itm) docx_el_##itm##_name
 #define ODT_TAG_ID(itm) odt_el_##itm
@@ -16,10 +17,15 @@
 enum {
 #define ODT_TAG(itm) 	ODT_TAG_ID(itm),
     odt_el_NULL = 0,
+    odt_el_bookmarkRef,
+    odt_el_bookmarkStart,
     odt_el_documentContent,
+    odt_el_noteBody,
+    odt_el_noteCitation,
     odt_el_tableRow,
     odt_el_tableCell,
     odt_el_listItem,
+    odt_el_noteRef,
     ODT_TAGS
     odt_el_MAX_ID
 };
@@ -29,10 +35,15 @@ enum {
     ODT_TAGS
 
 const struct item_def_t odt_elements[] = {
+    { odt_el_bookmarkRef, L"bookmark-ref" },
+    { odt_el_bookmarkStart, L"bookmark-start" },
     { odt_el_documentContent, L"document-content" },
+    { odt_el_noteBody, L"note-body" },
+    { odt_el_noteCitation, L"note-citation" },
     { odt_el_tableRow, L"table-row"},
     { odt_el_tableCell, L"table-cell"},
     { odt_el_listItem, L"list-item"},
+    { odt_el_noteRef, L"note-ref"},
 #undef ODT_TAG
 #define ODT_TAG(itm) ODT_TAG_CHILD(itm),
     ODT_TAGS
@@ -70,6 +81,30 @@ class odt_documentHandler : public xml_ElementHandler
     LVArray<int> m_levels;
     LVArray<bool> m_listItems;
     LVArray<css_list_style_type_t> m_ListLevels;
+    ldomDocumentWriter m_footNotesWriter;
+    ldomDocumentWriter m_endNotesWriter;
+    ldomDocumentWriter *m_saveWriter;
+    ldomNode *m_footNotes;
+    ldomNode *m_endNotes;
+    ldomNode *m_body;
+    lString16 m_noteId;
+    lString16 m_noteRefText;
+    bool m_isEndNote;
+private:
+    ldomNode* startNotes(const lChar16 * notesKind) {
+        m_writer->OnStart(NULL);
+        ldomNode* notes = m_writer->OnTagOpen(L"", L"body");
+        m_writer->OnAttribute(L"", L"name", notesKind);
+        m_writer->OnTagBody();
+        return notes;
+    }
+    void finishNotes(ldomNode* notes, ldomDocumentWriter& writer) {
+        ldomNode* parent = notes->getParentNode();
+        int index = notes->getNodeIndex();
+        writer.OnTagClose(L"", L"body");
+        writer.OnStop();
+        parent->moveItemsTo(m_body->getParentNode(), index, index);
+    }
 protected:
     docx_titleHandler* m_titleHandler;
     int m_outlineLevel;
@@ -79,9 +114,13 @@ protected:
 protected:
     int parseTagName(const lChar16 *tagname);
 public:
-    odt_documentHandler(docXMLreader * reader, ldomDocumentWriter *writer, docx_titleHandler* titleHandler) :
-        xml_ElementHandler(reader, writer, odt_el_NULL), m_titleHandler(titleHandler), m_outlineLevel(0),
-        m_inTable(false), m_inListItem(false), m_listItemHadContent(false) {
+    odt_documentHandler(ldomDocument * doc, docXMLreader * reader,
+                        ldomDocumentWriter * writer, docx_titleHandler* titleHandler) :
+        xml_ElementHandler(reader, writer, odt_el_NULL), m_footNotesWriter(doc),
+        m_endNotesWriter(doc), m_saveWriter(NULL), m_footNotes(NULL), m_endNotes(NULL),
+        m_body(NULL), m_isEndNote(false), m_titleHandler(titleHandler),
+        m_outlineLevel(0), m_inTable(false), m_inListItem(false),
+        m_listItemHadContent(false) {
     }
     inline bool isInList() { return m_ListLevels.length() != 0; }
     ldomNode *handleTagOpen(int tagId);
@@ -151,7 +190,7 @@ bool ImportOpenDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     docx_titleHandler titleHandler(&writer);  //<hx>..</hx>
 #endif
 
-    odt_documentHandler documentHandler(&docReader, &writer, &titleHandler);
+    odt_documentHandler documentHandler(doc, &docReader, &writer, &titleHandler);
     docReader.setHandler(&documentHandler);
 
     LVXMLParser parser(m_stream, &docReader);
@@ -159,7 +198,7 @@ bool ImportOpenDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     if ( !parser.Parse() )
         return false;
 
-    writer.OnTagClose(NULL, L"html");
+    writer.OnTagClose(NULL, L"FictionBook");
     writer.OnStop();
 
     if ( progressCallback ) {
@@ -189,8 +228,17 @@ int odt_documentHandler::parseTagName(const lChar16 *tagname)
 ldomNode *odt_documentHandler::handleTagOpen(int tagId)
 {
     switch(tagId) {
+    case odt_el_a:
+    case odt_el_bookmark:
+    case odt_el_bookmarkRef:
+    case odt_el_bookmarkStart:
+    case odt_el_note:
+    case odt_el_noteRef:
+        m_isEndNote = false;
+        m_writer->OnTagOpen(L"", L"a");
+        break;
     case odt_el_body:
-        m_titleHandler->onBodyStart();
+        m_body = m_titleHandler->onBodyStart();
         m_writer->OnTagBody();
         break;
     case odt_el_h:
@@ -229,6 +277,27 @@ ldomNode *odt_documentHandler::handleTagOpen(int tagId)
     case odt_el_tableCell:
         m_writer->OnTagOpen(L"", L"td");
         break;
+    case odt_el_noteBody:
+        m_saveWriter = m_writer;
+        if(m_isEndNote) {
+            m_writer = &m_endNotesWriter;
+            if(!m_endNotes)
+                m_endNotes = startNotes(L"comments");
+        } else {
+            m_writer = &m_footNotesWriter;
+            if(!m_footNotes)
+                m_footNotes = startNotes(L"notes");;
+        }
+        m_writer->OnTagOpen(L"", L"section");
+        m_writer->OnAttribute(L"", L"id", m_noteId.c_str());
+        m_writer->OnAttribute(L"", L"role", m_isEndNote ? L"doc-rearnote" : L"doc-footnote");
+        m_writer->OnTagBody();
+        m_writer->OnTagOpenNoAttr(L"", L"title");
+        m_writer->OnTagOpenNoAttr(L"", L"p");
+        m_writer->OnText(m_noteRefText.c_str(), m_noteRefText.length(), 0);
+        m_writer->OnTagClose(L"", L"p");
+        m_writer->OnTagClose(L"", L"title");
+        break;
     default:
         break;
     }
@@ -240,6 +309,19 @@ ldomNode *odt_documentHandler::handleTagOpen(int tagId)
 void odt_documentHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrValue)
 {
     switch (m_state) {
+    case odt_el_bookmark:
+    case odt_el_bookmarkStart:
+        if(!lStr_cmp(attrname, "name") ) {
+            m_writer->OnAttribute(L"", L"id", attrValue);
+        }
+        break;
+    case odt_el_bookmarkRef:
+    case odt_el_noteRef:
+        if(!lStr_cmp(attrname, "ref-name") ) {
+            lString16 target = cs16("#") + lString16(attrValue);
+            m_writer->OnAttribute(L"", L"href", target.c_str());
+        }
+        break;
     case odt_el_h:
         if(!lStr_cmp(attrname, "outline-level") ) {
             lString16 value = attrValue;
@@ -249,12 +331,28 @@ void odt_documentHandler::handleAttribute(const lChar16 *attrname, const lChar16
                 m_outlineLevel = tmp - 1;
         }
         break;
+    case odt_el_note:
+        if(!lStr_cmp(attrname, "note-class")) {
+            if(!lStr_cmp(attrValue, "endnote")) {
+                m_writer->OnAttribute(L"", L"type", L"comment");
+                m_isEndNote = true;
+            } else if(!lStr_cmp(attrValue, "footnote")) {
+                m_writer->OnAttribute(L"", L"type", L"note");
+            }
+            m_writer->OnAttribute(L"", L"role", L"doc-noteref");
+        } else if(!lStr_cmp(attrname, "id")) {
+            m_noteId = lString16(attrValue);
+            lString16 target = cs16("#") + m_noteId;
+            m_writer->OnAttribute(L"", L"href", target.c_str());
+        }
+        break;
     case odt_el_tableCell:
         if(!lStr_cmp(attrname, "number-columns-spanned"))
             m_writer->OnAttribute(L"", L"colspan", attrValue);
         else if(!lStr_cmp(attrname, "number-rows-spanned"))
             m_writer->OnAttribute(L"", L"rowspan", attrValue);
         break;
+    case odt_el_a:
     case odt_el_image:
         if(!lStr_cmp(attrname, "href"))
             m_writer->OnAttribute(L"", attrname, attrValue);
@@ -273,6 +371,11 @@ void odt_documentHandler::handleTagBody()
             m_writer->OnTagOpenNoAttr(L"", L"li");
         }
         m_titleHandler->onTitleStart(m_outlineLevel + 1, m_inTable || m_inListItem);
+    case odt_el_a:
+    case odt_el_bookmark:
+    case odt_el_bookmarkRef:
+    case odt_el_bookmarkStart:
+    case odt_el_note:
     case odt_el_p:
     case odt_el_span:
     case odt_el_image:
@@ -280,7 +383,7 @@ void odt_documentHandler::handleTagBody()
     case odt_el_tableCell:
     case odt_el_tableRow:
     case odt_el_list:
-    //case odt_el_listItem:
+    case odt_el_noteRef:
         m_writer->OnTagBody();
         break;
     default:
@@ -292,9 +395,20 @@ void odt_documentHandler::handleTagBody()
 void odt_documentHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname)
 {
     switch(m_state) {
+    case odt_el_bookmark:
+    case odt_el_bookmarkRef:
+    case odt_el_bookmarkStart:
+    case odt_el_noteRef:
+    case odt_el_a:
+        m_writer->OnTagClose(L"", L"a");
+        break;
     case odt_el_body:
         m_titleHandler->onBodyEnd();
         m_writer->OnTagClose(nsname, tagname);
+        if(m_footNotes)
+            finishNotes(m_footNotes, m_footNotesWriter);
+        if(m_endNotes)
+            finishNotes(m_endNotes, m_endNotesWriter);
         break;
     case odt_el_h:
         m_titleHandler->onTitleEnd();
@@ -329,6 +443,10 @@ void odt_documentHandler::handleTagClose(const lChar16 *nsname, const lChar16 *t
         }
         m_inListItem = false;
         break;
+    case odt_el_noteBody:
+        m_writer->OnTagClose(L"", L"section");
+        m_writer = m_saveWriter;
+        break;
     default:
         break;
     }
@@ -342,9 +460,13 @@ void odt_documentHandler::handleTagClose(const lChar16 *nsname, const lChar16 *t
 void odt_documentHandler::handleText(const lChar16 *text, int len, lUInt32 flags)
 {
     switch(m_state) {
+    case odt_el_noteCitation:
+        m_noteRefText = text;
     case odt_el_h:
     case odt_el_p:
     case odt_el_span:
+    case odt_el_bookmarkRef:
+    case odt_el_noteRef:
         m_writer->OnText(text, len, flags);
         break;
     default:
@@ -355,6 +477,8 @@ void odt_documentHandler::handleText(const lChar16 *text, int len, lUInt32 flags
 void odt_documentHandler::reset()
 {
     m_levels.clear();
+    m_ListLevels.clear();
+    m_listItems.clear();
     m_state = odt_el_NULL;
     m_outlineLevel = 0;
     m_inTable = false;
