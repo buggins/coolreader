@@ -3757,10 +3757,15 @@ public:
         while ( pos<m_length ) { // each loop makes a line
             // x is this line indent. We use it like a x coordinates below, but
             // we'll use it on the right in addLine() if para is RTL.
-            int x = m_indent_current;
-            if ( !m_indent_first_line_done ) {
-                m_indent_first_line_done = true;
-                m_indent_current = m_indent_after_first_line;
+            int x;
+            if (para->flags & LTEXT_LEGACY_RENDERING) {
+                x = para->indent > 0 ? (pos == 0 ? para->indent : 0 ) : (pos==0 ? 0 : -para->indent);
+            } else {
+                x = m_indent_current;
+                if ( !m_indent_first_line_done ) {
+                    m_indent_first_line_done = true;
+                    m_indent_current = m_indent_after_first_line;
+                }
             }
             int w0 = pos>0 ? m_widths[pos-1] : 0; // measured cumulative width at start of this line
             int lastNormalWrap = -1;

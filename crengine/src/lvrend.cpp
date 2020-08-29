@@ -2508,7 +2508,10 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         // - with block nodes (so, only with the first "final" node, and not
         //   when recursing its children which are inline), it will also set
         //   horitontal alignment flags.
-        bool is_block = rm == erm_final;
+        // In legacy rendering mode, we should get the same text formatting flags
+        // as in CoolReader 3.2.38 and earlier, i.e. set is_block to true for
+        // any block elements.
+        bool is_block = BLOCK_RENDERING_G(ENHANCED) ? rm == erm_final : style->display >= css_d_block;
         lUInt32 flags = styleToTextFmtFlags( is_block, style, baseflags, direction );
         // Note:
         // - baseflags (passed by reference) is shared and re-used by this node's siblings
@@ -2628,10 +2631,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
         }
 
-        if ((flags & LTEXT_FLAG_NEWLINE) && rm == erm_final) {
-            // Top and single 'final' node (unless in the degenarate case
+        if ( (flags & LTEXT_FLAG_NEWLINE) && ( rm == erm_final || ( !BLOCK_RENDERING_G(ENHANCED) && is_block ) ) ) {
+            // Top and single 'final' node (unless in the degenerate case
             // of obsolete css_d_list_item_legacy):
             // Get text-indent and line-height that will apply to the full final block
+            // There is also an exception: in legacy rendering mode, we must also indent any blocks.
 
             // text-indent should really not have to be handled here: it would be
             // better handled in ldomNode::renderFinalBlock(), grabbing it from the
@@ -2661,20 +2665,22 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // does not need that).
             }
 
-            // We set the LFormattedText strut_height and strut_baseline
-            // with the values from this "final" node. All lines made out from
-            // children will have a minimal height and baseline set to these.
-            // See https://www.w3.org/TR/CSS2/visudet.html#line-height
-            //   The minimum height consists of a minimum height above
-            //   the baseline and a minimum depth below it, exactly as if
-            //   each line box starts with a zero-width inline box with the
-            //   element's font and line height properties. We call that
-            //   imaginary box a "strut."
-            // and https://iamvdo.me/en/blog/css-font-metrics-line-height-and-vertical-align
-            int fh = enode->getFont()->getHeight();
-            int fb = enode->getFont()->getBaseline();
-            int f_half_leading = (line_h - fh) / 2;
-            txform->setStrut(line_h, fb + f_half_leading);
+            if (rm == erm_final) {
+                // We set the LFormattedText strut_height and strut_baseline
+                // with the values from this "final" node. All lines made out from
+                // children will have a minimal height and baseline set to these.
+                // See https://www.w3.org/TR/CSS2/visudet.html#line-height
+                //   The minimum height consists of a minimum height above
+                //   the baseline and a minimum depth below it, exactly as if
+                //   each line box starts with a zero-width inline box with the
+                //   element's font and line height properties. We call that
+                //   imaginary box a "strut."
+                // and https://iamvdo.me/en/blog/css-font-metrics-line-height-and-vertical-align
+                int fh = enode->getFont()->getHeight();
+                int fb = enode->getFont()->getBaseline();
+                int f_half_leading = (line_h - fh) / 2;
+                txform->setStrut(line_h, fb + f_half_leading);
+            }
         }
         else if ( STYLE_HAS_CR_HINT(style, STRUT_CONFINED) ) {
             // Previous branch for the top final node has set the strut.
@@ -3420,19 +3426,23 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             } else {
             }
             */
-            /* removal of leading spaces is now managed directly by lvtextfm
-            //int offs = 0;
-            if ( (txform->GetSrcCount()==0 || (tflags & LTEXT_IS_LINK)) && style->white_space!=css_ws_pre ) {
-                // clear leading spaces for first text of paragraph
-                int i=0;
-                for ( ;txt.length()>i && (txt[i]==' ' || txt[i]=='\t'); i++ )
-                    ;
-                if ( i>0 ) {
-                    txt.erase(0, i);
-                    //offs = i;
+            if ( !BLOCK_RENDERING_G(ENHANCED) ) {
+                // Removal of leading spaces is now managed directly by lvtextfm
+                // but in legacy render mode we don't add lines with only spaces.
+                //int offs = 0;
+                if ( (txform->GetSrcCount()==0 || (tflags & LTEXT_IS_LINK)) && style->white_space!=css_ws_pre ) {
+                    // clear leading spaces for first text of paragraph
+                    int i=0;
+                    for ( ;txt.length()>i && (txt[i]==' ' || txt[i]=='\t'); i++ )
+                        ;
+                    if ( i>0 ) {
+                        txt.erase(0, i);
+                        //offs = i;
+                    }
                 }
+                // legacy new line processing: set indentation for **each** new line
+                tflags |= LTEXT_LEGACY_RENDERING;
             }
-            */
             if ( txt.length()>0 ) {
                 txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font.get(), lang_cfg, baseflags | tflags,
                     line_h, valign_dy, indent, enode, 0, letter_spacing );
