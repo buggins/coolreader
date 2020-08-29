@@ -5904,7 +5904,7 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
 		break;
 	case DCMD_GO_POS: {
 		if (m_view_mode == DVM_SCROLL) {
-			return SetPos(param);
+			return SetPos(param, true, true);
 		} else {
 			return goToPage(m_pages.FindNearestPage(param, 0));
 		}

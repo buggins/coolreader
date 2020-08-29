@@ -3998,6 +3998,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	class ScrollViewAnimation extends ViewAnimationBase {
 		int startY;
 		int maxY;
+		int pageHeight;
+		int fullHeight;
 		int pointerStartPos;
 		int pointerDestPos;
 		int pointerCurrPos;
@@ -4018,6 +4020,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			pointerStartPos = pos;
 			pointerCurrPos = pos;
 			pointerDestPos = startY;
+			pageHeight = currPos.pageHeight;
+			fullHeight = currPos.fullHeight;
 			doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, pos0);
 			image1 = preparePageImage(0);
 			if (image1 == null) {
@@ -4044,6 +4048,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				int delta = startY - y;
 				pointerCurrPos = pointerStartPos + delta;
 			}
+			if (pointerCurrPos < 0)
+				pointerCurrPos = 0;
+			if (pointerCurrPos > fullHeight - pageHeight)
+				pointerCurrPos = fullHeight - pageHeight;
 			pointerDestPos = pointerCurrPos;
 			draw();
 			doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, pointerDestPos);
@@ -4063,6 +4071,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				for (int i = 1; i < steps; i++) {
 					int x = x0 + (x1 - x0) * i / steps;
 					pointerCurrPos = accelerated ? accelerate(x0, x1, x) : x;
+					if (pointerCurrPos < 0)
+						pointerCurrPos = 0;
+					if (pointerCurrPos > fullHeight - pageHeight)
+						pointerCurrPos = fullHeight - pageHeight;
 					draw();
 				}
 			}
@@ -4074,6 +4086,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		public void update(int x, int y) {
 			int delta = startY - y;
 			pointerDestPos = pointerStartPos + delta;
+			if (pointerDestPos < 0)
+				pointerDestPos = 0;
+			if (pointerDestPos > fullHeight - pageHeight)
+				pointerDestPos = fullHeight - pageHeight;
 		}
 
 		public void animate() {
