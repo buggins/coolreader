@@ -89,14 +89,16 @@ public class Utils {
 			Log.i("cr3", "File " + oldPlace.getAbsolutePath() + " does not exist!");
 			return false;
 		}
-		try (FileOutputStream os = new FileOutputStream(newPlace);
-			FileInputStream is = new FileInputStream(oldPlace)) {
+		try {
 			if (!newPlace.createNewFile())
 				return false; // cannot create file
-			copyStreamContent(os, is);
-			removeNewFile = false;
-			oldPlace.delete();
-			return true;
+			try (FileOutputStream os = new FileOutputStream(newPlace);
+				 FileInputStream is = new FileInputStream(oldPlace)) {
+				copyStreamContent(os, is);
+				removeNewFile = false;
+				oldPlace.delete();
+				return true;
+			}
 		} catch ( IOException e ) {
 			return false;
 		} finally {
