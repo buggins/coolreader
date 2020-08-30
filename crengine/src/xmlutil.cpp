@@ -210,3 +210,125 @@ void docx_fb2TitleHandler::closeSection(int level)
     }
     m_hasTitle = false;
 }
+
+odx_rPr::odx_rPr() : odx_StylePropertiesContainer(odx_character_style)
+{
+}
+
+lString16 odx_rPr::getCss()
+{
+    lString16 style;
+
+    if( isBold() )
+        style << " font-weight: bold;";
+    if( isItalic() )
+        style << " font-style: italic;";
+    if( isUnderline() )
+        style << " text-decoration: underline;";
+    if( isStrikeThrough() )
+        style << " text-decoration: line-through;";
+    return style;
+}
+
+odx_pPr::odx_pPr() : odx_StylePropertiesContainer(odx_paragraph_style)
+{
+}
+
+lString16 odx_pPr::getCss()
+{
+    lString16 style;
+
+    css_text_align_t align = getTextAlign();
+    if(align != css_ta_inherit)
+    {
+        style << "text-align: ";
+        switch(align)
+        {
+        case css_ta_left:
+            style << "left;";
+            break;
+        case css_ta_right:
+            style << "right;";
+            break;
+        case css_ta_center:
+            style << "center;";
+            break;
+        case css_ta_justify:
+        default:
+            style << "justify";
+            break;
+        }
+    }
+    if( isPageBreakBefore() )
+        style << "page-break-before: always;";
+    else if ( isKeepNext() )
+        style << "page-break-before: avoid;";
+    return style;
+}
+
+odx_Style::odx_Style() : m_type(odx_paragraph_style),
+    m_pPrMerged(false), m_rPrMerged(false)
+{
+}
+
+bool odx_Style::isValid() const
+{
+    return ( !(m_Name.empty() || m_Id.empty()) );
+}
+
+odx_Style *odx_Style::getBaseStyle(odx_StyleKeeper *context)
+{
+    lString16 basedOn = getBasedOn();
+    if ( !basedOn.empty() ) {
+        odx_Style *pStyle = context->getStyle(basedOn);
+        if( pStyle && pStyle->getStyleType() == getStyleType() )
+            return pStyle;
+    }
+    return NULL;
+}
+
+odx_pPr *odx_Style::get_pPr(odx_StyleKeeper *context)
+{
+    if( !m_pPrMerged ) {
+        odx_Style* pStyle = getBaseStyle(context);
+        if (pStyle ) {
+            m_pPr.combineWith(pStyle->get_pPr(context));
+        }
+        m_pPrMerged = true;
+    }
+    return &m_pPr;
+}
+
+odx_rPr *odx_Style::get_rPr(odx_StyleKeeper *context)
+{
+    if( !m_rPrMerged ) {
+        odx_Style* pStyle = getBaseStyle(context);
+        if (pStyle ) {
+            m_rPr.combineWith(pStyle->get_rPr(context));
+        }
+        m_rPrMerged = true;
+    }
+    return &m_rPr;
+}
+
+odx_StylePropertiesGetter *odx_Style::getStyleProperties(odx_StyleKeeper *context, odx_style_type styleType)
+{
+    switch(styleType) {
+    case odx_paragraph_style:
+        return get_pPr(context);
+    case odx_character_style:
+        return get_rPr(context);
+    default:
+        break;
+    }
+    return NULL;
+}
+
+void odx_StyleKeeper::addStyle(odx_StyleRef style)
+{
+    odx_Style *referenced = style.get();
+    if ( NULL != referenced)
+    {
+        m_styles.set(referenced->getId(), style);
+    }
+}
