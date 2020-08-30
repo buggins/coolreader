@@ -47,11 +47,11 @@ enum docx_lineRule_type {
     docx_lineRule_exact
 };
 
-enum docx_style_type {
-    docx_paragraph_style,
-    docx_character_style,
-    docx_table_style,
-    docx_numbering_style
+enum odx_style_type {
+    odx_paragraph_style,
+    odx_character_style,
+    odx_table_style,
+    odx_numbering_style
 };
 
 enum docx_multilevel_type {
@@ -268,10 +268,10 @@ const struct item_def_t lineRule_attr_values[] = {
 };
 
 const struct item_def_t styleType_attr_values[] = {
-    { docx_paragraph_style, L"paragraph" },
-    { docx_character_style, L"character"},
-    { docx_numbering_style, L"numbering"},
-    { docx_table_style, L"table"},
+    { odx_paragraph_style, L"paragraph" },
+    { odx_character_style, L"character"},
+    { odx_numbering_style, L"numbering"},
+    { odx_table_style, L"table"},
     DOCX_LAST_ITEM
 };
 
@@ -300,22 +300,44 @@ bool DetectDocXFormat( LVStreamRef stream )
     return package.partExist(package.getContentPartName(docx_DocumentContentType));
 }
 
-class docxImportContext;
-class docxStyle;
+class odx_Style;
+typedef LVFastRef< odx_Style > odx_StyleRef;
+
+class odx_StyleKeeper
+{
+    LVHashTable<lString16, odx_StyleRef> m_styles;
+public:
+    odx_StyleKeeper() : m_styles(64) {
+    }
+    virtual ~odx_StyleKeeper() {}
+    void addStyle( odx_StyleRef style );
+    odx_Style * getStyle( lString16 id ) {
+        return m_styles.get(id).get();
+    }
+};
+
+class odx_StylePropertiesGetter
+{
+public:
+    virtual css_length_t get(int index) const = 0;
+};
 
 template <int N>
-class docx_PropertiesContainer
+class odx_StylePropertiesContainer : public odx_StylePropertiesGetter
 {
+    odx_style_type m_styleType;
+    lString16 m_styleId;
 public:
     static const int PROP_COUNT = N;
 
     virtual void reset() {
         init();
+        m_styleId.clear();
     }
 
-    virtual ~docx_PropertiesContainer() {}
+    virtual ~odx_StylePropertiesContainer() {}
 
-    docx_PropertiesContainer() {
+    odx_StylePropertiesContainer(odx_style_type styleType) : m_styleType(styleType) {
         init();
     }
 
@@ -355,16 +377,32 @@ public:
         return defaultValue;
     }
 
-    void combineWith(const docx_PropertiesContainer* other)
+    void combineWith(const odx_StylePropertiesGetter* other)
     {
-        for(int i = 0; i < PROP_COUNT; i++) {
+        for(int i = 0; other && i < PROP_COUNT; i++) {
             css_length_t baseValue = other->get(i);
             if( get(i).type == css_val_unspecified &&
                 baseValue.type != css_val_unspecified)
                 set(i, baseValue);
         }
     }
+    void setStyleId(odx_StyleKeeper* keeper, const lChar16* styleId) {
+        m_styleId = styleId;
+        if ( !m_styleId.empty() ) {
+            odx_Style *style = keeper->getStyle(m_styleId);
+            if( style && (m_styleType == style->getStyleType()) ) {
+                combineWith(style->getStyleProperties(keeper, m_styleType));
+            }
+        }
+    }
+    odx_Style* getStyle(odx_StyleKeeper* keeper) {
+        odx_Style* ret = NULL;
 
+        if (!m_styleId.empty() ) {
+            ret = keeper->getStyle(m_styleId);
+        }
+        return ret;
+    }
 protected:
     css_length_t m_properties[N];
 private:
@@ -376,116 +414,106 @@ private:
     }
 };
 
-enum docx_run_properties
+enum odx_run_properties
 {
-    docx_run_italic_prop,
-    docx_run_bold_prop,
-    docx_run_underline_prop,
-    docx_run_strikethrough_prop,
-    docx_run_hidden_prop,
-    docx_run_halign_prop,
-    docx_run_valign_prop,
-    docx_run_font_size_prop,
-    docx_run_max_prop
+    odx_run_italic_prop,
+    odx_run_bold_prop,
+    odx_run_underline_prop,
+    odx_run_strikethrough_prop,
+    odx_run_hidden_prop,
+    odx_run_halign_prop,
+    odx_run_valign_prop,
+    odx_run_font_size_prop,
+    odx_run_max_prop
 };
 
-class docx_rPr : public docx_PropertiesContainer<docx_run_max_prop>
+class odx_rPr : public odx_StylePropertiesContainer<odx_run_max_prop>
 {
-    friend class docx_rPrHandler;
-private:
-    lString16 m_rStyle;
 public:
-    docx_rPr();
-    void reset() { m_rStyle.clear(); docx_PropertiesContainer::reset(); }
+    odx_rPr();
     ///properties
-    inline bool isBold() const { return getValue(docx_run_bold_prop, false); }
-    inline void setBold(bool value) { set(docx_run_bold_prop, value); }
-    inline bool isItalic() const { return getValue(docx_run_italic_prop, false); }
-    inline void setItalic(bool value) { set(docx_run_italic_prop, value); }
-    inline bool isUnderline() const { return getValue(docx_run_underline_prop, false); }
-    inline void setUnderline(bool value) { set(docx_run_underline_prop, value); }
-    inline bool isStrikeThrough() const { return getValue(docx_run_strikethrough_prop, false); }
-    inline void setStrikeThrough(bool value) { set(docx_run_strikethrough_prop, value); }
+    inline bool isBold() const { return getValue(odx_run_bold_prop, false); }
+    inline void setBold(bool value) { set(odx_run_bold_prop, value); }
+    inline bool isItalic() const { return getValue(odx_run_italic_prop, false); }
+    inline void setItalic(bool value) { set(odx_run_italic_prop, value); }
+    inline bool isUnderline() const { return getValue(odx_run_underline_prop, false); }
+    inline void setUnderline(bool value) { set(odx_run_underline_prop, value); }
+    inline bool isStrikeThrough() const { return getValue(odx_run_strikethrough_prop, false); }
+    inline void setStrikeThrough(bool value) { set(odx_run_strikethrough_prop, value); }
     inline bool isSubScript() const { return (getVertAlign() == css_va_sub);  }
     inline bool isSuperScript() const { return (getVertAlign() == css_va_super); }
-    inline bool isHidden() const { return getValue(docx_run_hidden_prop, false); }
-    inline void setHidden(bool value) { set(docx_run_hidden_prop, value); }
+    inline bool isHidden() const { return getValue(odx_run_hidden_prop, false); }
+    inline void setHidden(bool value) { set(odx_run_hidden_prop, value); }
     inline css_text_align_t getTextAlign() const {
-        return getValue(docx_run_halign_prop, css_ta_inherit);
+        return getValue(odx_run_halign_prop, css_ta_inherit);
     }
-    inline void setTextAlign( css_text_align_t value ) { set(docx_run_halign_prop, value); }
+    inline void setTextAlign( css_text_align_t value ) { set(odx_run_halign_prop, value); }
     inline css_vertical_align_t getVertAlign() const {
-        return getValue(docx_run_valign_prop, css_va_inherit);
+        return getValue(odx_run_valign_prop, css_va_inherit);
     }
-    inline void setVertAlign(css_vertical_align_t value) { set(docx_run_valign_prop,value); }
+    inline void setVertAlign(css_vertical_align_t value) { set(odx_run_valign_prop,value); }
     lString16 getCss();
 };
 
-enum docx_p_properties {
-    docx_p_page_break_before_prop,
-    docx_p_keep_next_prop,
-    docx_p_mirror_indents_prop,
-    docx_p_halign_prop,
-    docx_p_valign_prop,
-    docx_p_line_rule_prop,
-    docx_p_hyphenate_prop,
-    docx_p_before_spacing_prop,
-    docx_p_after_spacing_prop,
-    docx_p_before_auto_spacing_prop,
-    docx_p_after_auto_spacing_prop,
-    docx_p_line_spacing_prop,
-    docx_p_line_height_prop,
-    docx_p_left_margin_prop,
-    docx_p_right_margin_prop,
-    docx_p_indent_prop,
-    docx_p_hanging_prop,
-    docx_p_outline_level_prop,
-    docx_p_num_id_prop,
-    docx_p_ilvl_prop,
-    docx_p_max_prop
+enum odx_p_properties {
+    odx_p_page_break_before_prop,
+    odx_p_keep_next_prop,
+    odx_p_mirror_indents_prop,
+    odx_p_halign_prop,
+    odx_p_valign_prop,
+    odx_p_line_rule_prop,
+    odx_p_hyphenate_prop,
+    odx_p_before_spacing_prop,
+    odx_p_after_spacing_prop,
+    odx_p_before_auto_spacing_prop,
+    odx_p_after_auto_spacing_prop,
+    odx_p_line_spacing_prop,
+    odx_p_line_height_prop,
+    odx_p_left_margin_prop,
+    odx_p_right_margin_prop,
+    odx_p_indent_prop,
+    odx_p_hanging_prop,
+    odx_p_outline_level_prop,
+    odx_p_num_id_prop,
+    odx_p_ilvl_prop,
+    odx_p_max_prop
 };
 
-class docx_pPr : public docx_PropertiesContainer<docx_p_max_prop>
+class odx_pPr : public odx_StylePropertiesContainer<odx_p_max_prop>
 {
-    friend class docx_pPrHandler;
-private:
-    lString16 m_pStyleId;
 public:
-    docx_pPr();
+    odx_pPr();
 
-    void reset() {
-        m_pStyleId.clear();
-        docx_PropertiesContainer::reset();
-    }
     ///properties
     inline css_text_align_t getTextAlign() const {
-        return getValue(docx_p_halign_prop, css_ta_inherit);
+        return getValue(odx_p_halign_prop, css_ta_inherit);
     }
-    inline void setTextAlign( css_text_align_t value ) { set(docx_p_halign_prop, value); }
+    inline void setTextAlign( css_text_align_t value ) { set(odx_p_halign_prop, value); }
     inline css_vertical_align_t getVertAlign() const {
-        return getValue(docx_p_valign_prop, css_va_inherit);
+        return getValue(odx_p_valign_prop, css_va_inherit);
     }
-    inline void setVertAlign(css_vertical_align_t value) { set(docx_p_valign_prop, value); }
+    inline void setVertAlign(css_vertical_align_t value) { set(odx_p_valign_prop, value); }
     inline css_hyphenate_t getHyphenate() const {
-        return getValue(docx_p_hyphenate_prop, css_hyph_inherit);
+        return getValue(odx_p_hyphenate_prop, css_hyph_inherit);
     }
-    inline void setHyphenate( css_hyphenate_t value ) { set(docx_p_hyphenate_prop, value); }
+    inline void setHyphenate( css_hyphenate_t value ) { set(odx_p_hyphenate_prop, value); }
     // page-break-before:always
-    inline bool isPageBreakBefore() const { return getValue(docx_p_page_break_before_prop, false); }
-    inline void setPageBreakBefore(bool value) { set(docx_p_page_break_before_prop, value); }
+    inline bool isPageBreakBefore() const { return getValue(odx_p_page_break_before_prop, false); }
+    inline void setPageBreakBefore(bool value) { set(odx_p_page_break_before_prop, value); }
     // page-break-after:avoid
-    inline bool isKeepNext() const { return getValue(docx_p_keep_next_prop, false); }
-    inline void setKeepNext(bool value) { set(docx_p_keep_next_prop, value); }
-    inline bool isMirrorIndents() const { return getValue(docx_p_mirror_indents_prop, false); }
-    inline void setMirrorIndents(bool value) { set(docx_p_mirror_indents_prop, value); }
-    inline docx_lineRule_type getLineRule() const { return getValue(docx_p_line_rule_prop, docx_lineRule_auto); }
-    inline void setLineRule(docx_lineRule_type value) { set(docx_p_line_rule_prop, value); }
-    inline int getNumberingId() { return getValue(docx_p_num_id_prop, 0); }
-    css_length_t getOutlineLvl() { return get(docx_p_outline_level_prop); }
-    inline int getNumberingLevel() { return get(docx_p_ilvl_prop).value; }
-    docxStyle* getStyle(docxImportContext* context);
+    inline bool isKeepNext() const { return getValue(odx_p_keep_next_prop, false); }
+    inline void setKeepNext(bool value) { set(odx_p_keep_next_prop, value); }
+    inline bool isMirrorIndents() const { return getValue(odx_p_mirror_indents_prop, false); }
+    inline void setMirrorIndents(bool value) { set(odx_p_mirror_indents_prop, value); }
+    inline docx_lineRule_type getLineRule() const { return getValue(odx_p_line_rule_prop, docx_lineRule_auto); }
+    inline void setLineRule(docx_lineRule_type value) { set(odx_p_line_rule_prop, value); }
+    inline int getNumberingId() { return getValue(odx_p_num_id_prop, 0); }
+    css_length_t getOutlineLvl() { return get(odx_p_outline_level_prop); }
+    inline int getNumberingLevel() { return get(odx_p_ilvl_prop).value; }
     lString16 getCss();
 };
+
+class docxImportContext;
 
 class docxNumLevel : public LVRefCounter
 {
@@ -497,8 +525,8 @@ private:
     lString16 m_lvlText;
     bool m_lvlTextNull;
     docx_numFormat_type m_lvlNumFormat;
-    docx_pPr m_pPr;
-    docx_rPr m_rPr;
+    odx_pPr m_pPr;
+    odx_rPr m_rPr;
     lString16 m_pStyle;
     css_length_t m_lvlStart;
     docx_LevelSuffix_type m_suffix;
@@ -528,8 +556,8 @@ public:
     inline void setLevelStart(const css_length_t &value) { m_lvlStart = value; }
     inline docx_LevelSuffix_type getLevelSuffix() const { return m_suffix; }
     inline void setLevelSuffix(const docx_LevelSuffix_type value) { m_suffix = value; }
-    inline docx_rPr * get_rPr() { return &m_rPr; }
-    inline docx_pPr * get_pPr() { return &m_pPr; }
+    inline odx_rPr * get_rPr() { return &m_rPr; }
+    inline odx_pPr * get_pPr() { return &m_pPr; }
     css_list_style_type_t getListType() const;
 };
 
@@ -576,20 +604,20 @@ public:
 
 typedef LVFastRef< docxNum > docxNumRef;
 
-class docxStyle : public LVRefCounter
+class odx_Style : public LVRefCounter
 {
     friend class docx_styleHandler;
 private:
     lString16 m_Name;
     lString16 m_Id;
     lString16 m_basedOn;
-    docx_style_type m_type;
-    docx_pPr m_pPr;
-    docx_rPr m_rPr;
+    odx_style_type m_type;
+    odx_pPr m_pPr;
+    odx_rPr m_rPr;
     bool m_pPrMerged;
     bool m_rPrMerged;
 public:
-    docxStyle();
+    odx_Style();
 
     inline lString16 getName() const { return m_Name; }
     inline void setName(const lChar16 * value) { m_Name = value; }
@@ -601,24 +629,22 @@ public:
     inline void setBasedOn(const lChar16 * value) { m_basedOn = value; }
     bool isValid() const;
 
-    inline docx_style_type getStyleType() const { return m_type; }
-    inline void setStyleType(docx_style_type value) { m_type = value; }
-    docxStyle* getBaseStyle(docxImportContext* context);
-    inline docx_pPr * get_pPr(docxImportContext* context);
-    inline docx_rPr * get_rPr(docxImportContext* context);
+    inline odx_style_type getStyleType() const { return m_type; }
+    inline void setStyleType(odx_style_type value) { m_type = value; }
+    odx_Style* getBaseStyle(odx_StyleKeeper* context);
+    inline odx_pPr * get_pPr(odx_StyleKeeper* context);
+    inline odx_rPr * get_rPr(odx_StyleKeeper* context);
+    odx_StylePropertiesGetter* getStyleProperties(odx_StyleKeeper* context, odx_style_type styleType);
 };
 
-typedef LVFastRef< docxStyle > docxStyleRef;
-
-class docxImportContext
+class docxImportContext : public odx_StyleKeeper
 {
 private:
-    LVHashTable<lString16, docxStyleRef> m_styles;
     LVHashTable<lUInt32, docxAbstractNumRef> m_abstractNumbers;
     LVHashTable<lUInt32, docxNumRef> m_Numbers;
     LVArray<css_list_style_type_t> m_ListLevels;
-    docx_rPr m_rPrDefault;
-    docx_pPr m_pPrDefault;
+    odx_rPr m_rPrDefault;
+    odx_pPr m_pPrDefault;
     OpcPartRef m_docPart;
     OpcPartRef m_relatedPart;
     OpcPackage* m_package;
@@ -626,8 +652,6 @@ private:
 public:
     docxImportContext(OpcPackage *package, ldomDocument * doc);
     virtual ~docxImportContext();
-    docxStyle * getStyle( lString16 id );
-    void addStyle( docxStyleRef style );
     void addNum( docxNumRef num );
     void addAbstractNum(docxAbstractNumRef abstractNum );
     docxNumRef getNum(lUInt32 id) { return m_Numbers.get(id); }
@@ -648,8 +672,8 @@ public:
     void closeRelatedPart();
     void openList(int level, int numid, ldomDocumentWriter *writer);
     void closeList(int level, ldomDocumentWriter *writer);
-    inline docx_rPr * get_rPrDefault() { return &m_rPrDefault; }
-    inline docx_pPr * get_pPrDefault() { return &m_pPrDefault; }
+    inline odx_rPr * get_rPrDefault() { return &m_rPrDefault; }
+    inline odx_pPr * get_pPrDefault() { return &m_pPrDefault; }
     inline int getListLevel() { return m_ListLevels.length(); }
     inline bool isInList() { return m_ListLevels.length() != 0; }
     void setLanguage(const lChar16 *lang);
@@ -658,7 +682,7 @@ public:
     int m_endNoteCount;
     bool m_inField;
     ldomNode *m_linkNode;
-    docxStyle* m_pStyle;
+    odx_Style* m_pStyle;
 private:
     lString16 getListStyle(css_list_style_type_t listType);
 };
@@ -689,7 +713,7 @@ protected:
 class docx_rPrHandler : public docx_ElementHandler
 {
 private:
-    docx_rPr *m_rPr;
+    odx_rPr *m_rPr;
 public:
     docx_rPrHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context) :
         docx_ElementHandler(reader, writer, context, docx_el_rPr, rPr_elements), m_rPr(NULL)
@@ -697,7 +721,7 @@ public:
     }
     ldomNode * handleTagOpen(int tagId);
     void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
-    void start(docx_rPr *rPr);
+    void start(odx_rPr *rPr);
     void reset();
 };
 
@@ -720,7 +744,7 @@ class docx_pHandler;
 class docx_rHandler : public docx_ElementHandler
 {
 private:
-    docx_rPr m_rPr;
+    odx_rPr m_rPr;
     docx_pHandler* m_pHandler;
     docx_rPrHandler m_rPrHandler;
     lString16 m_footnoteId;
@@ -747,7 +771,7 @@ public:
 class docx_pPrHandler : public docx_ElementHandler
 {
 private:
-    docx_pPr *m_pPr;
+    odx_pPr *m_pPr;
 public:
     docx_pPrHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context) :
         docx_ElementHandler(reader, writer, context, docx_el_pPr, pPr_elements), m_pPr(NULL)
@@ -756,7 +780,7 @@ public:
     ldomNode * handleTagOpen(int tagId);
     void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
     void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
-    void start(docx_pPr *pPr);
+    void start(odx_pPr *pPr);
     void reset();
 };
 
@@ -783,7 +807,7 @@ class docx_pHandler : public docx_ElementHandler
 {
 private:
     docx_pPrHandler m_pPrHandler;
-    docx_pPr m_pPr;
+    odx_pPr m_pPr;
     docx_rHandler m_rHandler;
     docx_titleHandler* m_titleHandler;
     docx_hyperlinkHandler m_hyperlinkHandler;
@@ -814,8 +838,8 @@ public:
     void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
     void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
     void reset();
-    void openStyleTags(docx_rPr* runProps);
-    void closeStyleTags(docx_rPr* runProps);
+    void openStyleTags(odx_rPr* runProps);
+    void closeStyleTags(odx_rPr* runProps);
     void closeStyleTags();
 };
 
@@ -904,8 +928,8 @@ class docx_styleHandler : public docx_ElementHandler
 private:
     docx_pPrHandler m_pPrHandler;
     docx_rPrHandler m_rPrHandler;
-    docxStyleRef m_styleRef;
-    docxStyle *m_style;
+    odx_StyleRef m_styleRef;
+    odx_Style *m_style;
 public:
     /// constructor
     docx_styleHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context) :
@@ -1015,11 +1039,11 @@ public:
     void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
 };
 
-docx_rPr::docx_rPr()
+odx_rPr::odx_rPr() : odx_StylePropertiesContainer(odx_character_style)
 {
 }
 
-lString16 docx_rPr::getCss()
+lString16 odx_rPr::getCss()
 {
     lString16 style;
 
@@ -1034,21 +1058,11 @@ lString16 docx_rPr::getCss()
     return style;
 }
 
-docx_pPr::docx_pPr()
+odx_pPr::odx_pPr() : odx_StylePropertiesContainer(odx_paragraph_style)
 {
 }
 
-docxStyle *docx_pPr::getStyle(docxImportContext *context)
-{
-    docxStyle* ret = NULL;
-
-    if (!m_pStyleId.empty() ) {
-        ret = context->getStyle(m_pStyleId);
-    }
-    return ret;
-}
-
-lString16 docx_pPr::getCss()
+lString16 odx_pPr::getCss()
 {
     lString16 style;
 
@@ -1249,13 +1263,7 @@ void docx_rPrHandler::handleAttribute(const lChar16 * attrname, const lChar16 * 
         //todo
         break;
     case docx_el_rStyle:
-        m_rPr->m_rStyle = attrvalue;
-        if ( !m_rPr->m_rStyle.empty() ) {
-            docxStyle *style = m_importContext->getStyle(m_rPr->m_rStyle);
-            if( style && (docx_character_style == style->getStyleType()) ) {
-                m_rPr->combineWith(style->get_rPr(m_importContext));
-            }
-        }
+        m_rPr->setStyleId(m_importContext, attrvalue);
         break;
     case docx_el_strike:
         if( !lStr_cmp(attrname, "val") )
@@ -1287,7 +1295,7 @@ void docx_rPrHandler::reset()
         m_rPr->reset();
 }
 
-void docx_rPrHandler::start(docx_rPr * const rPr)
+void docx_rPrHandler::start(odx_rPr * const rPr)
 {
     m_rPr = rPr;
     docx_ElementHandler::start();
@@ -1479,13 +1487,7 @@ void docx_pPrHandler::handleAttribute(const lChar16 * attrname, const lChar16 * 
     switch(m_state) {
     case docx_el_pStyle:
         if( !lStr_cmp(attrname, "val") ) {
-             m_pPr->m_pStyleId = attrvalue;
-             if ( !m_pPr->m_pStyleId.empty() ) {
-                 docxStyle* style = m_importContext->getStyle(m_pPr->m_pStyleId);
-                 if( style && (docx_paragraph_style == style->getStyleType()) ) {
-                    m_pPr->combineWith(style->get_pPr(m_importContext));
-                 }
-             }
+             m_pPr->setStyleId(m_importContext, attrvalue);
         }
         break;
     case docx_el_jc:
@@ -1499,15 +1501,15 @@ void docx_pPrHandler::handleAttribute(const lChar16 * attrname, const lChar16 * 
         if( !lStr_cmp(attrname, "line") ) {
             css_length_t val;
             parse_int(attrvalue, val);
-            m_pPr->set(docx_p_line_spacing_prop, val);
+            m_pPr->set(odx_p_line_spacing_prop, val);
         } else if( !lStr_cmp(attrname, "lineRule") ) {
             int attr_value = parse_name(lineRule_attr_values, attrvalue);
             if( -1 != attr_value )
                 m_pPr->setLineRule((docx_lineRule_type)attr_value);
         } else if ( !lStr_cmp(attrname, "afterAutospacing") ) {
-            m_pPr->set(docx_p_after_auto_spacing_prop, parse_OnOff_attribute(attrvalue));
+            m_pPr->set(odx_p_after_auto_spacing_prop, parse_OnOff_attribute(attrvalue));
         } else if ( !lStr_cmp(attrname, "beforeAutospacing") ) {
-            m_pPr->set(docx_p_before_auto_spacing_prop, parse_OnOff_attribute(attrvalue));
+            m_pPr->set(odx_p_before_auto_spacing_prop, parse_OnOff_attribute(attrvalue));
         } else {
             //todo
         }
@@ -1526,21 +1528,21 @@ void docx_pPrHandler::handleAttribute(const lChar16 * attrname, const lChar16 * 
         if( !lStr_cmp(attrname, "val") ) {
             css_length_t val;
             parse_int(attrvalue, val);
-            m_pPr->set(docx_p_ilvl_prop, val.value);
+            m_pPr->set(odx_p_ilvl_prop, val.value);
         }
         break;
     case docx_el_numId:
         if( !lStr_cmp(attrname, "val") ) {
             css_length_t val;
             parse_int(attrvalue, val);
-            m_pPr->set(docx_p_num_id_prop, val);
+            m_pPr->set(odx_p_num_id_prop, val);
         }
         break;
     case docx_el_outlineLvl:
         if( !lStr_cmp(attrname, "val") ) {
             css_length_t val;
             parse_int(attrvalue, val);
-            m_pPr->set(docx_p_outline_level_prop, val);
+            m_pPr->set(odx_p_outline_level_prop, val);
         }
         break;
     case docx_el_pageBreakBefore:
@@ -1586,7 +1588,7 @@ void docx_pPrHandler::reset()
         m_pPr->reset();
 }
 
-void docx_pPrHandler::start(docx_pPr *pPr)
+void docx_pPrHandler::start(odx_pPr *pPr)
 {
     m_pPr = pPr;
     docx_ElementHandler::start();
@@ -1735,7 +1737,7 @@ void docx_pHandler::reset()
     m_runCount = 0;
 }
 
-void docx_pHandler::openStyleTags(docx_rPr *runProps)
+void docx_pHandler::openStyleTags(odx_rPr *runProps)
 {
     if(runProps->isBold())
         openStyleTag('b');
@@ -1751,7 +1753,7 @@ void docx_pHandler::openStyleTags(docx_rPr *runProps)
         openStyleTag('t');
 }
 
-void docx_pHandler::closeStyleTags(docx_rPr *runProps)
+void docx_pHandler::closeStyleTags(odx_rPr *runProps)
 {
     if(!runProps->isBold())
         closeStyleTag('b');
@@ -1843,7 +1845,7 @@ void docx_styleHandler::handleAttribute(const lChar16 * attrname, const lChar16 
         if ( !lStr_cmp(attrname, "type") ) {
             int attr_value = parse_name(styleType_attr_values, attrvalue);
             if( -1 != attr_value )
-                m_style->setStyleType((docx_style_type)attr_value);
+                m_style->setStyleType((odx_style_type)attr_value);
         } else if ( !lStr_cmp(attrname, "styleId") ) {
             m_style->setId(attrvalue);
         }
@@ -1882,7 +1884,7 @@ void docx_styleHandler::handleTagClose( const lChar16 * nsname, const lChar16 * 
 void docx_styleHandler::start()
 {
     docx_ElementHandler::start();
-    m_styleRef = docxStyleRef( new docxStyle );
+    m_styleRef = odx_StyleRef( new odx_Style );
     m_style = m_styleRef.get();
     m_state = docx_el_style;
 }
@@ -2099,31 +2101,31 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     return true;
 }
 
-docxStyle::docxStyle() : m_type(docx_paragraph_style),
+odx_Style::odx_Style() : m_type(odx_paragraph_style),
     m_pPrMerged(false), m_rPrMerged(false)
 {
 }
 
-bool docxStyle::isValid() const
+bool odx_Style::isValid() const
 {
     return ( !(m_Name.empty() || m_Id.empty()) );
 }
 
-docxStyle *docxStyle::getBaseStyle(docxImportContext *context)
+odx_Style *odx_Style::getBaseStyle(odx_StyleKeeper *context)
 {
     lString16 basedOn = getBasedOn();
     if ( !basedOn.empty() ) {
-        docxStyle *pStyle = context->getStyle(basedOn);
+        odx_Style *pStyle = context->getStyle(basedOn);
         if( pStyle && pStyle->getStyleType() == getStyleType() )
             return pStyle;
     }
     return NULL;
 }
 
-docx_pPr *docxStyle::get_pPr(docxImportContext *context)
+odx_pPr *odx_Style::get_pPr(odx_StyleKeeper *context)
 {
     if( !m_pPrMerged ) {
-        docxStyle* pStyle = getBaseStyle(context);
+        odx_Style* pStyle = getBaseStyle(context);
         if (pStyle ) {
             m_pPr.combineWith(pStyle->get_pPr(context));
         }
@@ -2132,10 +2134,10 @@ docx_pPr *docxStyle::get_pPr(docxImportContext *context)
     return &m_pPr;
 }
 
-docx_rPr *docxStyle::get_rPr(docxImportContext *context)
+odx_rPr *odx_Style::get_rPr(odx_StyleKeeper *context)
 {
     if( !m_rPrMerged ) {
-        docxStyle* pStyle = getBaseStyle(context);
+        odx_Style* pStyle = getBaseStyle(context);
         if (pStyle ) {
             m_rPr.combineWith(pStyle->get_rPr(context));
         }
@@ -2144,7 +2146,20 @@ docx_rPr *docxStyle::get_rPr(docxImportContext *context)
     return &m_rPr;
 }
 
-docxImportContext::docxImportContext(OpcPackage *package, ldomDocument *doc) : m_styles(64), m_abstractNumbers(16),
+odx_StylePropertiesGetter *odx_Style::getStyleProperties(odx_StyleKeeper *context, odx_style_type styleType)
+{
+    switch(styleType) {
+    case odx_paragraph_style:
+        return get_pPr(context);
+    case odx_character_style:
+        return get_rPr(context);
+    default:
+        break;
+    }
+    return NULL;
+}
+
+docxImportContext::docxImportContext(OpcPackage *package, ldomDocument *doc) : m_abstractNumbers(16),
     m_Numbers(16), m_footNoteCount(0), m_endNoteCount(0),
     m_inField(false), m_linkNode(NULL), m_pStyle(NULL),
     m_package(package), m_doc(doc)
@@ -2153,20 +2168,6 @@ docxImportContext::docxImportContext(OpcPackage *package, ldomDocument *doc) : m
 
 docxImportContext::~docxImportContext()
 {
-}
-
-docxStyle * docxImportContext::getStyle( lString16 id )
-{
-    return m_styles.get(id).get();
-}
-
-void docxImportContext::addStyle( docxStyleRef style )
-{
-    docxStyle *referenced = style.get();
-    if ( NULL != referenced)
-    {
-        m_styles.set(referenced->getId(), style);
-    }
 }
 
 void docxImportContext::addNum(docxNumRef num)
@@ -2834,4 +2835,13 @@ docxNumLevel *docxAbstractNum::getLevel(int level)
 void docxAbstractNum::reset()
 {
     m_levels.clear();
+}
+
+void odx_StyleKeeper::addStyle(odx_StyleRef style)
+{
+    odx_Style *referenced = style.get();
+    if ( NULL != referenced)
+    {
+        m_styles.set(referenced->getId(), style);
+    }
 }
