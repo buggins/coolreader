@@ -725,7 +725,7 @@ public:
     void OnTagBody();
 
     /// called on tag close
-    void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false );
 
     /// called on element attribute
     void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
@@ -1319,7 +1319,7 @@ void docXMLreader::OnTagBody()
         m_handler->handleTagBody();
 }
 
-void docXMLreader::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+void docXMLreader::OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag )
 {
     CR_UNUSED(nsname);
 
@@ -2777,7 +2777,7 @@ void docx_drawingHandler::handleAttribute(const lChar16 *attrname, const lChar16
             m_writer->OnTagOpen(L"", L"img");
             m_writer->OnAttribute(L"", L"src",  imgPath.c_str());
             m_writer->OnTagBody();
-            m_writer->OnTagClose(L"", L"img");
+            m_writer->OnTagClose(L"", L"img", true);
         }
     }
 }

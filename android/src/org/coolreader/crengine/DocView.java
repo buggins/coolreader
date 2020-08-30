@@ -308,9 +308,9 @@ public class DocView {
 	 * @param xPath
 	 * @return
 	 */
-	public PositionProperties getPositionProps(String xPath) {
+	public PositionProperties getPositionProps(String xPath, boolean precise) {
 		synchronized(mutex) {
-			return getPositionPropsInternal(xPath);
+			return getPositionPropsInternal(xPath, precise);
 		}
 	}
 
@@ -473,8 +473,8 @@ public class DocView {
 
 	private native boolean goToPositionInternal(String xPath, boolean saveToHistory);
 
-	private native PositionProperties getPositionPropsInternal(String xPath);
-	
+	private native PositionProperties getPositionPropsInternal(String xPath, boolean precise);
+
 	private native void updateBookInfoInternal(BookInfo info);
 
 	private native TOCItem getTOCInternal();

@@ -1674,7 +1674,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_goToPositionInte
  * Signature: (Ljava/lang/String;)Lorg/coolreader/crengine/DocView/PositionProperties;
  */
 JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsInternal
-    (JNIEnv * _env, jobject _this, jstring _path)
+    (JNIEnv * _env, jobject _this, jstring _path, jboolean precise)
 {
     CRJNIEnv env(_env);
     DocViewNative * p = getNative(_env, _this);
@@ -1701,7 +1701,9 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
     } else {
         useCurPos = p->_docview->getViewMode()==DVM_SCROLL;
         if ( !useCurPos ) {
-            bm = p->_docview->getBookmark(false);
+            // For page turn command 'precise' must be 'false' for maximum speed.
+            // For bookmarking 'precise' must be 'true' for more accurate result (y position).
+            bm = p->_docview->getBookmark(precise);
             if ( bm.isNull() ) {
                 CRLog::error("getPositionPropsInternal: Cannot get current position bookmark");
             }
@@ -1717,30 +1719,28 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
     CRIntField(v,"pageNumber").set(p->_docview->getCurPage());
     CRIntField(v,"pageCount").set(p->_docview->getPageCount());
     CRIntField(v,"pageMode").set(p->_docview->getViewMode()==DVM_PAGES ? p->_docview->getVisiblePageCount() : 0);
-#if 0
-    // Each functions bellow call p->_docview->getPageDocumentRange(-1) inside.
-    // To increase performance, it should be called only once.
-    CRIntField(v,"charCount").set(p->_docview->getCurrentPageCharCount());
-    CRIntField(v,"imageCount").set(p->_docview->getCurrentPageImageCount());
-    CRStringField(v,"pageText").set(p->_docview->getPageText(false, -1));
-#else
-	p->_docview->getMutex().lock();
-	LVRef<ldomXRange> range = p->_docview->getPageDocumentRange(-1, false);
-	p->_docview->getMutex().unlock();
-	lString16 text;
-	if (!range.isNull())
-		text = range->getRangeText();
-	int charCount = 0;
-	for (int i = 0; i < text.length(); i++) {
-		lChar16 ch = text[i];
-		if (ch>='0')
-			charCount++;
-	}
-	CRIntField(v,"charCount").set(charCount);
-	CRIntField(v,"imageCount").set(p->_docview->getPageImageCount(range));
-	CRStringField(v,"pageText").set(text);
-#endif
-	return obj;
+    if (precise) {
+        // In some cases, function LVDocView::getPageDocumentRange() is rather slow,
+        // so if we don't need these fields 'charCount', 'imageCount' and 'pageText'
+        // in the returned result, we just don't call it.
+        // In this case, 'precise' must be 'false'.
+        p->_docview->getMutex().lock();
+        LVRef<ldomXRange> range = p->_docview->getPageDocumentRange(-1);
+        p->_docview->getMutex().unlock();
+        lString16 text;
+        if (!range.isNull())
+            text = range->getRangeText();
+        int charCount = 0;
+        for (int i = 0; i < text.length(); i++) {
+            lChar16 ch = text[i];
+            if (ch >= '0')
+                charCount++;
+        }
+        CRIntField(v, "charCount").set(charCount);
+        CRIntField(v, "imageCount").set(p->_docview->getPageImageCount(range));
+        CRStringField(v, "pageText").set(text);
+    }
+    return obj;
 }
 
 /*

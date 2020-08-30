@@ -388,7 +388,7 @@ public:
         return NULL;
     }
     /// called on tag close
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname ) {
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false ) {
         CR_UNUSED(nsname);
         if (!lStr_cmp(tagname, "encryption"))
             insideEncryption = false;

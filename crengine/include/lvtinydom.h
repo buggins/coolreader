@@ -1053,7 +1053,7 @@ public:
     /// inserts child text
     ldomNode * insertChildText( const lString16 & value );
     /// inserts child text
-    ldomNode * insertChildText(const lString8 & value);
+    ldomNode * insertChildText(const lString8 & value, bool before_last_child=false);
     /// remove child
     ldomNode * removeChild( lUInt32 index );
 
@@ -1746,6 +1746,8 @@ public:
     bool prevVisibleWordEndInSentence();
     /// move to next visible word beginning (in sentence)
     bool nextVisibleWordStartInSentence();
+    /// move to end of current word (in sentence)
+    bool thisVisibleWordEndInSentence();
     /// move to next visible word end (in sentence)
     bool nextVisibleWordEndInSentence();
 
@@ -2595,11 +2597,11 @@ class ldomElementWriter
         return _element;
     }
     lString16 getPath();
-    void onText( const lChar16 * text, int len, lUInt32 flags );
+    void onText( const lChar16 * text, int len, lUInt32 flags, bool insert_before_last_child=false );
     void addAttribute( lUInt16 nsid, lUInt16 id, const wchar_t * value );
     //lxmlElementWriter * pop( lUInt16 id );
 
-    ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent);
+    ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent, bool insert_before_last_child=false);
     ~ldomElementWriter();
 
     friend class ldomDocumentWriter;
@@ -2647,7 +2649,7 @@ public:
     /// called after > of opening tag (when entering tag body)
     virtual void OnTagBody();
     /// called on closing tag
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false );
     /// called on attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
     /// close tags
@@ -2682,14 +2684,28 @@ public:
 class ldomDocumentWriterFilter : public ldomDocumentWriter
 {
 protected:
+    bool _libRuDocumentToDetect;
     bool _libRuDocumentDetected;
     bool _libRuParagraphStart;
+    bool _libRuParseAsPre;
     lUInt16 _styleAttrId;
     lUInt16 _classAttrId;
     lUInt16 * _rules[MAX_ELEMENT_TYPE_ID];
     bool _tagBodyCalled;
+    // Some states used when gDOMVersionRequested >= 20200824
+    bool _htmlTagSeen;
+    bool _headTagSeen;
+    bool _bodyTagSeen;
+    bool _curNodeIsSelfClosing;
+    bool _curTagIsIgnored;
+    ldomElementWriter * _curNodeBeforeFostering;
+    ldomElementWriter * _curFosteredNode;
+    ldomElementWriter * _lastP;
     virtual void AutoClose( lUInt16 tag_id, bool open );
-    virtual void ElementCloseHandler( ldomNode * elem );
+    virtual bool AutoOpenClosePop( int step, lUInt16 tag_id );
+    virtual lUInt16 popUpTo( ldomElementWriter * target, lUInt16 target_id=0, int scope=0 );
+    virtual bool CheckAndEnsureFosterParenting(lUInt16 tag_id);
+    virtual void ElementCloseHandler( ldomNode * node ) { node->persist(); }
     virtual void appendStyle( const lChar16 * style );
     virtual void setClass( const lChar16 * className, bool overrideExisting=false );
 public:
@@ -2700,7 +2716,7 @@ public:
     /// called after > of opening tag (when entering tag body)
     virtual void OnTagBody();
     /// called on closing tag
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false );
     /// called on text
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags );
     /// constructor
@@ -2788,7 +2804,7 @@ public:
     /// called after > of opening tag (when entering tag body)
     virtual void OnTagBody();
     /// called on closing tag
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false );
     /// called on attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
     /// called on text

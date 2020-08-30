@@ -169,7 +169,7 @@ public:
         len = s.length();
         if ( !len ) {
             m_callback->OnTagOpenNoAttr(NULL, L"empty-line");
-            m_callback->OnTagClose(NULL, L"empty-line");
+            m_callback->OnTagClose(NULL, L"empty-line", true);
             return;
         }
         bool intbl = m_stack.getInt( pi_intbl )>0;
@@ -370,7 +370,7 @@ public:
 #endif
         m_callback->OnTagOpen(LXML_NS_NONE, L"img");
         m_callback->OnAttribute(LXML_NS_NONE, L"src", name.c_str());
-        m_callback->OnTagClose(LXML_NS_NONE, L"img");
+        m_callback->OnTagClose(LXML_NS_NONE, L"img", true);
     }
 };
 

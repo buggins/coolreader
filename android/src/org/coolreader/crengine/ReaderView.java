@@ -897,7 +897,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				mCurrentPageInfo.recycle();
 				mCurrentPageInfo = null;
 			}
-			PositionProperties currpos = doc.getPositionProps(null);
+			PositionProperties currpos = doc.getPositionProps(null, false);
 			BitmapInfo bi = new BitmapInfo();
 			bi.imageInfo = new ImageInfo(img);
 			bi.bitmap = factory.get(internalDX, internalDY);
@@ -1331,7 +1331,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			public void work() {
 				BackgroundThread.ensureBackground();
 				toc = doc.getTOC();
-				pos = doc.getPositionProps(null);
+				pos = doc.getPositionProps(null, false);
 			}
 
 			public void done() {
@@ -1617,7 +1617,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			public void work() {
 				bm = doc.getCurrentPageBookmark();
 				if (bm != null) {
-					PositionProperties prop = doc.getPositionProps(bm.getStartPos());
+					PositionProperties prop = doc.getPositionProps(bm.getStartPos(), true);
 					if (prop.pageMode != 0) {
 						buf.append("" + (prop.pageNumber + 1) + " / " + prop.pageCount + "   ");
 					}
@@ -1716,7 +1716,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	public boolean isFormatWithEmbeddedStyles() {
 		if (mOpened && mBookInfo != null) {
 			DocumentFormat fmt = mBookInfo.getFileInfo().format;
-			return fmt == DocumentFormat.EPUB || fmt == DocumentFormat.HTML || fmt == DocumentFormat.FB2 || fmt == DocumentFormat.FB3;
+			return fmt == DocumentFormat.EPUB || fmt == DocumentFormat.HTML || fmt == DocumentFormat.CHM || fmt == DocumentFormat.FB2 || fmt == DocumentFormat.FB3;
 		}
 		return false;
 	}
@@ -1724,7 +1724,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	public boolean isHtmlFormat() {
 		if (mOpened && mBookInfo != null) {
 			DocumentFormat fmt = mBookInfo.getFileInfo().format;
-			return fmt == DocumentFormat.EPUB || fmt == DocumentFormat.HTML || fmt == DocumentFormat.PDB;
+			return fmt == DocumentFormat.EPUB || fmt == DocumentFormat.HTML || fmt == DocumentFormat.PDB || fmt == DocumentFormat.CHM;
 		}
 		return false;
 	}
@@ -1824,7 +1824,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			public void work() {
 				bm = doc.getCurrentPageBookmark();
 				if (bm != null) {
-					PositionProperties prop = doc.getPositionProps(bm.getStartPos());
+					PositionProperties prop = doc.getPositionProps(bm.getStartPos(), true);
 					items.add("section=section.position");
 					if (prop.pageMode != 0) {
 						items.add("position.page=" + (prop.pageNumber + 1) + " / " + prop.pageCount);
@@ -2064,7 +2064,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.v("initPageTurn(startProgress = " + startProgress + ")");
 			pageTurnStart = Utils.timeStamp();
 			progress = startProgress;
-			currPos = doc.getPositionProps(null);
+			currPos = doc.getPositionProps(null, true);
 			charCount = currPos.charCount;
 			pageCount = currPos.pageMode;
 			if (charCount < 150)
@@ -2526,7 +2526,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (fileInfo == null)
 			return;
 		final Bookmark bmk = doc != null ? doc.getCurrentPageBookmark() : null;
-		final PositionProperties props = bmk != null ? doc.getPositionProps(bmk.getStartPos()) : null;
+		final PositionProperties props = bmk != null ? doc.getPositionProps(bmk.getStartPos(), false) : null;
 		if (props != null) BackgroundThread.instance().postGUI(() -> {
 			mActivity.updateCurrentPositionStatus(fileInfo, bmk, props);
 
@@ -3273,16 +3273,16 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (currentImageViewer != null)
 			return currentImageViewer.prepareImage();
 
-		PositionProperties currpos = doc.getPositionProps(null);
+		PositionProperties currpos = doc.getPositionProps(null, false);
 		if (null == currpos)
 			return null;
 
 		boolean isPageView = currpos.pageMode != 0;
 
 		BitmapInfo currposBitmap = null;
-		if (mCurrentPageInfo != null && mCurrentPageInfo.position.equals(currpos) && mCurrentPageInfo.imageInfo == null)
+		if (mCurrentPageInfo != null && mCurrentPageInfo.position != null && mCurrentPageInfo.position.equals(currpos) && mCurrentPageInfo.imageInfo == null)
 			currposBitmap = mCurrentPageInfo;
-		else if (mNextPageInfo != null && mNextPageInfo.position.equals(currpos) && mNextPageInfo.imageInfo == null)
+		else if (mNextPageInfo != null && mNextPageInfo.position != null && mNextPageInfo.position.equals(currpos) && mNextPageInfo.imageInfo == null)
 			currposBitmap = mNextPageInfo;
 		if (offset == 0) {
 			// Current page requested
@@ -3318,11 +3318,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				offset = -offset;
 			if (doc.doCommand(cmd1, offset)) {
 				// can move to next page
-				PositionProperties nextpos = doc.getPositionProps(null);
+				PositionProperties nextpos = doc.getPositionProps(null, false);
 				BitmapInfo nextposBitmap = null;
-				if (mCurrentPageInfo != null && mCurrentPageInfo.position.equals(nextpos))
+				if (mCurrentPageInfo != null && mCurrentPageInfo.position != null && mCurrentPageInfo.position.equals(nextpos))
 					nextposBitmap = mCurrentPageInfo;
-				else if (mNextPageInfo != null && mNextPageInfo.position.equals(nextpos))
+				else if (mNextPageInfo != null && mNextPageInfo.position != null && mNextPageInfo.position.equals(nextpos))
 					nextposBitmap = mNextPageInfo;
 				if (nextposBitmap == null) {
 					// existing image not found in cache, overriding mNextPageInfo
@@ -3349,11 +3349,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			// SCROLL next or prev page requested, with pixel offset specified
 			int y = currpos.y + offset;
 			if (doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, y)) {
-				PositionProperties nextpos = doc.getPositionProps(null);
+				PositionProperties nextpos = doc.getPositionProps(null, false);
 				BitmapInfo nextposBitmap = null;
-				if (mCurrentPageInfo != null && mCurrentPageInfo.position.equals(nextpos))
+				if (mCurrentPageInfo != null && mCurrentPageInfo.position != null && mCurrentPageInfo.position.equals(nextpos))
 					nextposBitmap = mCurrentPageInfo;
-				else if (mNextPageInfo != null && mNextPageInfo.position.equals(nextpos))
+				else if (mNextPageInfo != null && mNextPageInfo.position != null && mNextPageInfo.position.equals(nextpos))
 					nextposBitmap = mNextPageInfo;
 				if (nextposBitmap == null) {
 					// existing image not found in cache, overriding mNextPageInfo
@@ -3605,7 +3605,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		BackgroundThread.instance().executeBackground(() -> {
 			BackgroundThread.ensureBackground();
 			if (currentAnimation == null) {
-				PositionProperties currPos = doc.getPositionProps(null);
+				PositionProperties currPos = doc.getPositionProps(null, false);
 				if (currPos == null)
 					return;
 				if (mCurrentPageInfo == null)
@@ -3778,7 +3778,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		alog.d("startAnimation(" + startX + ", " + startY + ")");
 		BackgroundThread.instance().executeBackground(() -> {
 			BackgroundThread.ensureBackground();
-			PositionProperties currPos = doc.getPositionProps(null);
+			PositionProperties currPos = doc.getPositionProps(null, false);
 			if (currPos != null && currPos.pageMode != 0) {
 				//int dir = startX > maxX/2 ? currPos.pageMode : -currPos.pageMode;
 				//int dir = startX > maxX/2 ? 1 : -1;
@@ -3989,13 +3989,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		}
 
 		public void draw(boolean isPartially) {
-			drawCallback(new DrawCanvasCallback() {
-				@Override
-				public void drawTo(Canvas c) {
-					//	long startTs = android.os.SystemClock.uptimeMillis();
-					draw(c);
-				}
-			}, null, isPartially);
+			//	long startTs = android.os.SystemClock.uptimeMillis();
+			drawCallback(this::draw, null, isPartially);
 		}
 	}
 
@@ -4003,6 +3998,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	class ScrollViewAnimation extends ViewAnimationBase {
 		int startY;
 		int maxY;
+		int pageHeight;
+		int fullHeight;
 		int pointerStartPos;
 		int pointerDestPos;
 		int pointerCurrPos;
@@ -4015,7 +4012,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			this.maxY = maxY;
 			long start = android.os.SystemClock.uptimeMillis();
 			log.v("ScrollViewAnimation -- creating: drawing two pages to buffer");
-			PositionProperties currPos = doc.getPositionProps(null);
+			PositionProperties currPos = doc.getPositionProps(null, false);
 			int pos = currPos.y;
 			int pos0 = pos - (maxY - startY);
 			if (pos0 < 0)
@@ -4023,6 +4020,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			pointerStartPos = pos;
 			pointerCurrPos = pos;
 			pointerDestPos = startY;
+			pageHeight = currPos.pageHeight;
+			fullHeight = currPos.fullHeight;
 			doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, pos0);
 			image1 = preparePageImage(0);
 			if (image1 == null) {
@@ -4049,6 +4048,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				int delta = startY - y;
 				pointerCurrPos = pointerStartPos + delta;
 			}
+			if (pointerCurrPos < 0)
+				pointerCurrPos = 0;
+			if (pointerCurrPos > fullHeight - pageHeight)
+				pointerCurrPos = fullHeight - pageHeight;
 			pointerDestPos = pointerCurrPos;
 			draw();
 			doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, pointerDestPos);
@@ -4068,6 +4071,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				for (int i = 1; i < steps; i++) {
 					int x = x0 + (x1 - x0) * i / steps;
 					pointerCurrPos = accelerated ? accelerate(x0, x1, x) : x;
+					if (pointerCurrPos < 0)
+						pointerCurrPos = 0;
+					if (pointerCurrPos > fullHeight - pageHeight)
+						pointerCurrPos = fullHeight - pageHeight;
 					draw();
 				}
 			}
@@ -4079,6 +4086,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		public void update(int x, int y) {
 			int delta = startY - y;
 			pointerDestPos = pointerStartPos + delta;
+			if (pointerDestPos < 0)
+				pointerDestPos = 0;
+			if (pointerDestPos > fullHeight - pageHeight)
+				pointerDestPos = fullHeight - pageHeight;
 		}
 
 		public void animate() {
@@ -4210,7 +4221,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 			PositionProperties currPos = mCurrentPageInfo == null ? null : mCurrentPageInfo.position;
 			if (currPos == null)
-				currPos = doc.getPositionProps(null);
+				currPos = doc.getPositionProps(null, false);
 			page1 = currPos.pageNumber;
 			page2 = currPos.pageNumber + direction;
 			if (page2 < 0 || page2 >= currPos.pageCount) {
@@ -4653,12 +4664,45 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		}
 	}
 
-	private int drawAnimationPos = 0;
-	private Long[] drawAnimationStats = new Long[8];
-	private long avgDrawAnimationDuration = 200;
+	private static final class RingBuffer {
+		private long [] mArray;
+		private long mSum;
+		private long mAvg;
+		private int mPos;
+		private int mCount;
+		private int mSize;
+
+		public RingBuffer(int size, long initialAvg) {
+			mSize = size;
+			mArray = new long[size];
+			mPos = 0;
+			mCount = 0;
+			mAvg = initialAvg;
+			mSum = 0;
+		}
+
+		public long average() {
+			return mAvg;
+		}
+
+		public void add(long val) {
+			if (mCount < mSize)
+				mCount++;
+			else							// array is full
+				mSum -= mArray[mPos];		// subtract from sum the value to replace
+			mArray[mPos] = val;				// write new value
+			mSum += val;					// update sum
+			mAvg = mSum /mCount;			// calculate average value
+			mPos++;
+			if (mPos >= mSize)
+				mPos = 0;
+		}
+	}
+
+	RingBuffer mAvgDrawAnimationStats = new RingBuffer(16, 50);
 
 	private long getAvgAnimationDrawDuration() {
-		return avgDrawAnimationDuration;
+		return mAvgDrawAnimationStats.average();
 	}
 
 	private void updateAnimationDurationStats(long duration) {
@@ -4666,20 +4710,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			duration = 1;
 		else if (duration > 1000)
 			return;
-		int pos = drawAnimationPos + 1;
-		if (pos >= drawAnimationStats.length)
-			pos = 0;
-		drawAnimationStats[pos] = duration;
-		drawAnimationPos = pos;
-		long sum = 0;
-		int count = 0;
-		for (Long item : drawAnimationStats) {
-			if (item != null) {
-				sum += item;
-				count++;
-			}
-		}
-		avgDrawAnimationDuration = sum / count;
+		mAvgDrawAnimationStats.add(duration);
 	}
 
 	private void drawPage() {
@@ -5213,7 +5244,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	public void getCurrentPositionProperties(final PositionPropertiesCallback callback) {
 		BackgroundThread.instance().postBackground(() -> {
 			final Bookmark bmk = (doc != null) ? doc.getCurrentPageBookmarkNoRender() : null;
-			final PositionProperties props = (bmk != null) ? doc.getPositionProps(bmk.getStartPos()) : null;
+			final PositionProperties props = (bmk != null) ? doc.getPositionProps(bmk.getStartPos(), true) : null;
 			BackgroundThread.instance().postBackground(() -> {
 				String posText = null;
 				if (props != null) {
@@ -5592,7 +5623,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (percent >= 0 && percent <= 100)
 			post(new Task() {
 				public void work() {
-					PositionProperties pos = doc.getPositionProps(null);
+					PositionProperties pos = doc.getPositionProps(null, true);
 					if (pos != null && pos.pageCount > 0) {
 						int pageNumber = pos.pageCount * percent / 100;
 						doCommandFromBackgroundThread(ReaderCommand.DCMD_GO_PAGE, pageNumber);

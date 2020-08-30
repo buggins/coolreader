@@ -105,6 +105,7 @@ body[name="comments"] section title {
     display: run-in;   /* technical trick to have the footnote number inline with the followup text */
     font-weight: bold;
     font-size: 100%; /* counteract default of 110% with regular title */
+    font-variant: tabular-nums; /* get fixed width digits for nicer text alignment */
     text-align: start; /* counteract default of center with regular title */
     page-break-before: auto; /* counteract default of always with regular title */
     page-break-inside: auto;
