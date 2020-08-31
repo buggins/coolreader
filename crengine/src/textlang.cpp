@@ -53,6 +53,7 @@ static struct {
     { "ru-GB", "Russian_EnGB",  "Russian_EnGB.pattern",  2, 2 },
     { "ru-US", "Russian_EnUS",  "Russian_EnUS.pattern",  2, 2 },
     { "ru",    "Russian",       "Russian.pattern",       2, 2 },
+    { "sr",    "Serbian",       "Serbian.pattern",       2, 2 },
     { "sk",    "Slovak",        "Slovak.pattern",        2, 2 },
     { "sl",    "Slovenian",     "Slovenian.pattern",     2, 2 },
     { "es",    "Spanish",       "Spanish.pattern",       2, 2 },
@@ -447,7 +448,7 @@ static quotes_spec _quotes_spec_table[] = {
     { "so",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "sq",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
     { "sr-latn",  L"\x201e", L"\x201c", L"\x2018", L"\x2018" }, /* „ “ ‘ ‘ */
-    { "sr",       L"\x201e", L"\x201c", L"\x2018", L"\x2018" }, /* „ “ ‘ ‘ */
+    { "sr",       L"\x201e", L"\x201d", L"\x2019", L"\x2019" }, /* „ ” ’ ’ */
     { "sv",       L"\x201d", L"\x201d", L"\x2019", L"\x2019" }, /* ” ” ’ ’ */
     { "sw",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "ta",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
@@ -805,7 +806,7 @@ TextLangCfg::TextLangCfg( lString16 lang_tag ) {
     else if ( LANG_STARTS_WITH(("cs") ("sk")) ) { // Czech, Slovak
         _lb_char_sub_func = &lb_char_sub_func_czech_slovak;
     }
-    else if ( LANG_STARTS_WITH(("pt")) ) { // Portuguese
+    else if ( LANG_STARTS_WITH(("pt") ("sr")) ) { // Portuguese, Serbian
         _duplicate_real_hyphen_on_next_line = true;
     }
 #endif

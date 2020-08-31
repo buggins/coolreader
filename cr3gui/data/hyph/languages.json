@@ -154,6 +154,14 @@
         "aliases": ["rus"]
     },
     {
+        "name": "Serbian",
+        "filename": "Serbian.pattern",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2,
+        "language": "sr",
+        "aliases": ["srp"]
+    },
+    {
         "name": "Slovak",
         "filename": "Slovak.pattern",
         "language": "sk",
