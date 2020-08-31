@@ -2502,6 +2502,10 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         int direction = RENDER_RECT_PTR_GET_DIRECTION(fmt);
         bool is_rtl = direction == REND_DIRECTION_RTL;
 
+        ldomNode * parent = enode->getParentNode(); // Needed for various checks below
+        if (parent && parent->isNull())
+            parent = NULL;
+
         // About styleToTextFmtFlags:
         // - with inline nodes, it only updates LTEXT_FLAG_PREFORMATTED flag
         //   when css_ws_pre and LTEXT_FLAG_NOWRAP when css_ws_nowrap.
@@ -2511,7 +2515,24 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         // In legacy rendering mode, we should get the same text formatting flags
         // as in CoolReader 3.2.38 and earlier, i.e. set is_block to true for
         // any block elements.
-        bool is_block = BLOCK_RENDERING_G(ENHANCED) ? rm == erm_final : style->display >= css_d_block;
+        bool is_block = rm == erm_final;
+        if (!BLOCK_RENDERING_G(ENHANCED) && !is_block) {
+            is_block = style->display >= css_d_block;
+            if (is_block) {
+                // Hack for "legacy" rendering mode:
+                // First node with "display: block" after node "display: run-in" in one section
+                // must be rendered as inline nodes.
+                if ( enode->getNodeIndex() == 1 && parent && parent->getChildCount() > 1 ) {
+                    ldomNode * first_sibling = parent->getChildNode(0);
+                    if (first_sibling && !first_sibling->isNull() && first_sibling->isElement()) {
+                        css_style_ref_t fs_style = first_sibling->getStyle();
+                        if (!fs_style.isNull() && fs_style->display == css_d_run_in) {
+                            is_block = false;
+                        }
+                    }
+                }
+            }
+        }
         lUInt32 flags = styleToTextFmtFlags( is_block, style, baseflags, direction );
         // Note:
         // - baseflags (passed by reference) is shared and re-used by this node's siblings
@@ -2523,9 +2544,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
 
         int width = fmt->getWidth();
         int em = enode->getFont()->getSize();
-        ldomNode * parent = enode->getParentNode(); // Needed for various checks below
-        if (parent && parent->isNull())
-            parent = NULL;
 
         // Nodes with "display: run-in" are inline nodes brought at start of the final node
         bool isRunIn = style->display == css_d_run_in;
