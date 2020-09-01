@@ -1884,28 +1884,36 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                             match = invert;
                         }
                         else if ( name == cr_only_if_legacy ) {
-                            match = ((bool)BLOCK_RENDERING_G(ENHANCED)) == invert;
+                            if (doc)
+                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), ENHANCED)) == invert;
                         }
                         else if ( name == cr_only_if_enhanced ) {
-                            match = ((bool)BLOCK_RENDERING_G(ENHANCED)) != invert;
+                            if (doc)
+                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), ENHANCED)) != invert;
                         }
                         else if ( name == cr_only_if_float_floatboxes ) {
-                            match = ((bool)BLOCK_RENDERING_G(FLOAT_FLOATBOXES)) != invert;
+                            if (doc)
+                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), FLOAT_FLOATBOXES)) != invert;
                         }
                         else if ( name == cr_only_if_box_inlineboxes ) {
-                            match = ((bool)BLOCK_RENDERING_G(BOX_INLINE_BLOCKS)) != invert;
+                            if (doc)
+                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), BOX_INLINE_BLOCKS)) != invert;
                         }
                         else if ( name == cr_only_if_ensure_style_width ) {
-                            match = ((bool)BLOCK_RENDERING_G(ENSURE_STYLE_WIDTH)) != invert;
+                            if (doc)
+                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), ENSURE_STYLE_WIDTH)) != invert;
                         }
                         else if ( name == cr_only_if_ensure_style_height ) {
-                            match = ((bool)BLOCK_RENDERING_G(ENSURE_STYLE_HEIGHT)) != invert;
+                            if (doc)
+                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), ENSURE_STYLE_HEIGHT)) != invert;
                         }
                         else if ( name == cr_only_if_allow_style_w_h_absolute_units ) {
-                            match = ((bool)BLOCK_RENDERING_G(ALLOW_STYLE_W_H_ABSOLUTE_UNITS)) != invert;
+                            if (doc)
+                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), ALLOW_STYLE_W_H_ABSOLUTE_UNITS)) != invert;
                         }
                         else if ( name == cr_only_if_full_featured ) {
-                            match = (gRenderBlockRenderingFlags == BLOCK_RENDERING_FULL_FEATURED) != invert;
+                            if (doc)
+                                match = (doc->getRenderBlockRenderingFlags() == BLOCK_RENDERING_FULL_FEATURED) != invert;
                         }
                         else if ( name == cr_only_if_epub_document ) {
                             // 'doc' is NULL when parsing elements style= attribute,

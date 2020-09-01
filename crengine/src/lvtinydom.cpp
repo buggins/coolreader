@@ -391,7 +391,6 @@ lUInt32 calcGlobalSettingsHash(int documentId, bool already_rendered)
         hash = hash * 75 + 2384761;
     hash = hash * 31 + fontMan->GetFallbackFontFaces().getHash();
     hash = hash * 31 + gRenderDPI;
-    hash = hash * 31 + gRenderBlockRenderingFlags;
     hash = hash * 31 + gRootFontSize;
     hash = hash * 31 + gInterlineScaleFactor;
     // If not yet rendered (initial loading with XML parsing), we can
@@ -2017,6 +2016,7 @@ tinyNodeCollection::tinyNodeCollection()
 ,_docFlags(DOC_FLAG_DEFAULTS)
 ,_fontMap(113)
 ,_hangingPunctuationEnabled(false)
+,_renderBlockRenderingFlags(BLOCK_RENDERING_FLAGS_DEFAULT)
 {
     memset( _textList, 0, sizeof(_textList) );
     memset( _elemList, 0, sizeof(_elemList) );
@@ -2058,6 +2058,7 @@ tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
 ,_stylesheet(v._stylesheet)
 ,_fontMap(113)
 ,_hangingPunctuationEnabled(v._hangingPunctuationEnabled)
+,_renderBlockRenderingFlags(v._renderBlockRenderingFlags)
 {
     memset( _textList, 0, sizeof(_textList) );
     memset( _elemList, 0, sizeof(_elemList) );
@@ -2067,6 +2068,21 @@ tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
 bool tinyNodeCollection::setHangingPunctiationEnabled(bool value) {
     if (_hangingPunctuationEnabled != value) {
         _hangingPunctuationEnabled = value;
+        return true;
+    }
+    return false;
+}
+
+bool tinyNodeCollection::setRenderBlockRenderingFlags(lUInt32 flags) {
+    if (_renderBlockRenderingFlags != flags) {
+        _renderBlockRenderingFlags = flags;
+        // Check coherency and ensure dependencies of flags
+        if (_renderBlockRenderingFlags & ~BLOCK_RENDERING_ENHANCED) // If any other flag is set,
+            _renderBlockRenderingFlags |= BLOCK_RENDERING_ENHANCED; // set ENHANGED
+        if (_renderBlockRenderingFlags & BLOCK_RENDERING_FLOAT_FLOATBOXES)
+            _renderBlockRenderingFlags |= BLOCK_RENDERING_PREPARE_FLOATBOXES;
+        if (_renderBlockRenderingFlags & BLOCK_RENDERING_PREPARE_FLOATBOXES)
+            _renderBlockRenderingFlags |= BLOCK_RENDERING_WRAP_FLOATS;
         return true;
     }
     return false;
@@ -5071,9 +5087,9 @@ static bool isFloatingNode( ldomNode * node )
 
 static bool isNotBoxWrappingNode( ldomNode * node )
 {
-    if ( BLOCK_RENDERING_G(PREPARE_FLOATBOXES) && node->getStyle()->float_ > css_f_none )
+    if ( BLOCK_RENDERING(node->getDocument()->getRenderBlockRenderingFlags(), PREPARE_FLOATBOXES) && node->getStyle()->float_ > css_f_none )
         return false; // floatBox
-    // isBoxingInlineBox() already checks for BLOCK_RENDERING_G(BOX_INLINE_BLOCKS)
+    // isBoxingInlineBox() already checks for BLOCK_RENDERING(rend_flags, BOX_INLINE_BLOCKS)
     return !node->isBoxingInlineBox();
 }
 
@@ -5391,7 +5407,7 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex, bool handleFloatin
         // remove starting empty
         removeChildren(startIndex, firstNonEmpty-1);
         abox->initNodeStyle();
-        if ( !BLOCK_RENDERING_G(FLOAT_FLOATBOXES) ) {
+        if ( !BLOCK_RENDERING(getDocument()->getRenderBlockRenderingFlags(), FLOAT_FLOATBOXES) ) {
             // If we don't want floatBoxes floating, reset them to be
             // rendered inline among inlines
             abox->recurseMatchingElements( resetRendMethodToInline, isNotBoxingInlineBoxNode );
@@ -5457,7 +5473,7 @@ bool ldomNode::hasNonEmptyInlineContent( bool ignoreFloats )
     if ( getRendMethod() == erm_invisible ) {
         return false;
     }
-    if ( ignoreFloats && BLOCK_RENDERING_G(FLOAT_FLOATBOXES) && getStyle()->float_ > css_f_none ) {
+    if ( ignoreFloats && BLOCK_RENDERING(getDocument()->getRenderBlockRenderingFlags(), FLOAT_FLOATBOXES) && getStyle()->float_ > css_f_none ) {
         return false;
     }
     // With some other bool param, we might want to also check for
@@ -5572,7 +5588,7 @@ ldomNode * ldomNode::boxWrapChildren( int startIndex, int endIndex, lUInt16 elem
 // init table element render methods
 // states: 0=table, 1=colgroup, 2=rowgroup, 3=row, 4=cell
 // returns table cell count
-// When BLOCK_RENDERING_G(COMPLETE_INCOMPLETE_TABLES), we follow rules
+// When BLOCK_RENDERING(rend_flags, COMPLETE_INCOMPLETE_TABLES), we follow rules
 // from the "Generate missing child wrappers" section in:
 //   https://www.w3.org/TR/CSS22/tables.html#anonymous-boxes
 //   https://www.w3.org/TR/css-tables-3/#fixup (clearer than previous one)
@@ -5725,7 +5741,8 @@ int initTableRendMethods( ldomNode * enode, int state )
         // Check and deal with unproper children
         if ( !is_proper ) { // Unproper child met
             // printf("initTableRendMethods(%d): child %d is unproper\n", state, i);
-            if ( BLOCK_RENDERING_G(COMPLETE_INCOMPLETE_TABLES) ) {
+            lUInt32 rend_flags = enode->getDocument()->getRenderBlockRenderingFlags();
+            if ( BLOCK_RENDERING(rend_flags, COMPLETE_INCOMPLETE_TABLES) ) {
                 // We can insert a tabularBox element to wrap unproper elements
                 last_unproper = i;
                 if (first_unproper < 0)
@@ -5734,7 +5751,7 @@ int initTableRendMethods( ldomNode * enode, int state )
             else {
                 // Asked to not complete incomplete tables, or we can't insert
                 // tabularBox elements anymore
-                if ( !BLOCK_RENDERING_G(ENHANCED) ) {
+                if ( !BLOCK_RENDERING(rend_flags, ENHANCED) ) {
                     // Legacy behaviour was to just make invisible internal-table
                     // elements that were not found in their proper internal-table
                     // container, but let other non-internal-table elements be
@@ -5822,10 +5839,10 @@ bool hasInvisibleParent( ldomNode * node )
 
 bool ldomNode::isFloatingBox() const
 {
-    // BLOCK_RENDERING_G(FLOAT_FLOATBOXES) is what triggers rendering
+    // BLOCK_RENDERING(rend_flags, FLOAT_FLOATBOXES) is what triggers rendering
     // the floats floating. They are wrapped in a floatBox, possibly
-    // not floating, when BLOCK_RENDERING_G(WRAP_FLOATS)).
-    if ( BLOCK_RENDERING_G(FLOAT_FLOATBOXES) && getNodeId() == el_floatBox
+    // not floating, when BLOCK_RENDERING(rend_flags, WRAP_FLOATS)).
+    if ( BLOCK_RENDERING(getDocument()->getRenderBlockRenderingFlags(), FLOAT_FLOATBOXES) && getNodeId() == el_floatBox
                 && getStyle()->float_ > css_f_none)
         return true;
     return false;
@@ -5835,11 +5852,11 @@ bool ldomNode::isFloatingBox() const
 /// its child no more inline-block/inline-table
 bool ldomNode::isBoxingInlineBox() const
 {
-    // BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) is what ensures inline-block
+    // BLOCK_RENDERING(rend_flags, BOX_INLINE_BLOCKS) is what ensures inline-block
     // are boxed and rendered as an inline block, but we may have them
     // wrapping a node that is no more inline-block (when some style
     // tweaks have changed the display: property).
-    if ( getNodeId() == el_inlineBox && BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) ) {
+    if ( getNodeId() == el_inlineBox && BLOCK_RENDERING(getDocument()->getRenderBlockRenderingFlags(), BOX_INLINE_BLOCKS) ) {
         if (getChildCount() == 1) {
             css_display_t d = getChildNode(0)->getStyle()->display;
             if (d == css_d_inline_block || d == css_d_inline_table) {
@@ -5863,7 +5880,7 @@ bool ldomNode::isBoxingInlineBox() const
 bool ldomNode::isEmbeddedBlockBoxingInlineBox(bool inline_box_checks_done) const
 {
     if ( !inline_box_checks_done ) {
-        if ( getNodeId() != el_inlineBox || !BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) )
+        if ( getNodeId() != el_inlineBox || !BLOCK_RENDERING(getDocument()->getRenderBlockRenderingFlags(), BOX_INLINE_BLOCKS) )
             return false;
         if (getChildCount() != 1)
             return false;
@@ -5927,6 +5944,7 @@ void ldomNode::initNodeRendMethod()
     bool hasInternalTableItems = false;
 
     int d = getStyle()->display;
+    lUInt32 rend_flags = getDocument()->getRenderBlockRenderingFlags();
 
     if ( hasInvisibleParent(this) ) { // (should be named isInvisibleOrHasInvisibleParent())
         // Note: we could avoid that up-to-root-node walk for each node
@@ -5958,7 +5976,7 @@ void ldomNode::initNodeRendMethod()
         //   https://github.com/w3c/csswg-drafts/issues/1477
         //   https://stackoverflow.com/questions/1371307/displayblock-inside-displayinline
         //
-        if ( !BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) ) {
+        if ( !BLOCK_RENDERING(rend_flags, BOX_INLINE_BLOCKS) ) {
             // No support for anything but inline elements, and possibly embedded floats
             recurseMatchingElements( resetRendMethodToInline, isNotBoxWrappingNode );
         }
@@ -6088,7 +6106,7 @@ void ldomNode::initNodeRendMethod()
         // call initTableRendMethods(this, 1/2/3) so that the "Generate missing
         // child wrappers" step is done before the "Generate missing parents" step
         // we might be doing below - to conform to the order of steps in the specs.
-    } else if ( d==css_d_inline_table && ( BLOCK_RENDERING_G(COMPLETE_INCOMPLETE_TABLES) || getNodeId()==el_table ) ) {
+    } else if ( d==css_d_inline_table && ( BLOCK_RENDERING(rend_flags, COMPLETE_INCOMPLETE_TABLES) || getNodeId()==el_table ) ) {
         // Only if we're able to complete incomplete tables, or if this
         // node is itself a <TABLE>. Otherwise, fallback to the following
         // catch-all 'else' and render its content as block.
@@ -6130,7 +6148,7 @@ void ldomNode::initNodeRendMethod()
         //   avoid having autoBoxing elements that would mess with a correct
         //   floating rendering.
         // Note that FLOAT_FLOATBOXES requires having PREPARE_FLOATBOXES.
-        bool handleFloating = BLOCK_RENDERING_G(PREPARE_FLOATBOXES);
+        bool handleFloating = BLOCK_RENDERING(rend_flags, PREPARE_FLOATBOXES);
 
         detectChildTypes( this, hasBlockItems, hasInline, hasInternalTableItems, hasFloating, handleFloating );
         const css_elem_def_props_t * ntype = getElementTypePtr();
@@ -6171,7 +6189,7 @@ void ldomNode::initNodeRendMethod()
                     setRendMethod( erm_block );
                 }
                 else {
-                    if ( !BLOCK_RENDERING_G(FLOAT_FLOATBOXES) ) {
+                    if ( !BLOCK_RENDERING(rend_flags, FLOAT_FLOATBOXES) ) {
                         // If we don't want floatBoxes floating, reset them to be
                         // rendered inline among inlines
                         recurseMatchingElements( resetRendMethodToInline, isNotBoxingInlineBoxNode );
@@ -6328,7 +6346,7 @@ void ldomNode::initNodeRendMethod()
         }
     }
 
-    if ( hasInternalTableItems && BLOCK_RENDERING_G(COMPLETE_INCOMPLETE_TABLES) && getRendMethod() == erm_block ) {
+    if ( hasInternalTableItems && BLOCK_RENDERING(rend_flags, COMPLETE_INCOMPLETE_TABLES) && getRendMethod() == erm_block ) {
         // We have only block items, whether the original ones or the
         // autoBoxing nodes we created to wrap inlines, and all empty
         // inlines have been removed.
@@ -6568,7 +6586,7 @@ void ldomNode::initNodeRendMethod()
         }
     }
 
-    if ( d == css_d_ruby && BLOCK_RENDERING_G(ENHANCED) ) {
+    if ( d == css_d_ruby && BLOCK_RENDERING(rend_flags, ENHANCED) ) {
         // Ruby input can be quite loose and have various tag strategies (mono/group,
         // interleaved/tabular, double sided). Moreover, the specs have evolved between
         // 2001 and 2020 (<rbc> tag no more mentionned in 2020; <rtc> being just another
@@ -6932,7 +6950,7 @@ void ldomNode::initNodeRendMethod()
     }
 
     bool handled_as_float = false;
-    if (BLOCK_RENDERING_G(WRAP_FLOATS)) {
+    if (BLOCK_RENDERING(rend_flags, WRAP_FLOATS)) {
         // While loading the document, we want to put any element with float:left/right
         // inside an internal floatBox element with no margin in its style: this
         // floatBox's RenderRectAccessor will have the position and width/height
@@ -7022,7 +7040,7 @@ void ldomNode::initNodeRendMethod()
                 
                 // If we have float:, this just-created floatBox should be erm_block,
                 // unless the child has been kept inline
-                if ( !BLOCK_RENDERING_G(PREPARE_FLOATBOXES) && getRendMethod() == erm_inline)
+                if ( !BLOCK_RENDERING(rend_flags, PREPARE_FLOATBOXES) && getRendMethod() == erm_inline)
                     fbox->setRendMethod( erm_inline );
                 else
                     fbox->setRendMethod( erm_block );
@@ -7071,7 +7089,7 @@ void ldomNode::initNodeRendMethod()
     }
 
     // (If a node is both inline-block and float: left/right, float wins.)
-    if (BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) && !handled_as_float) {
+    if (BLOCK_RENDERING(rend_flags, BOX_INLINE_BLOCKS) && !handled_as_float) {
         // (Similar to what we do above for floats, but simpler.)
         // While loading the document, we want to put any element with
         // display: inline-block or inline-table inside an internal inlineBox
@@ -14797,7 +14815,7 @@ lUInt32 tinyNodeCollection::calcStyleHash(bool already_rendered)
                         if (style.get()->white_space >= css_ws_pre_line)
                             _nodeDisplayStyleHash += 29;
                         // Also account for style->float_, as it should create/remove new floatBox
-                        // elements wrapping floats when toggling BLOCK_RENDERING_G(ENHANCED)
+                        // elements wrapping floats when toggling BLOCK_RENDERING(rend_flags, ENHANCED)
                         if (style.get()->float_ > css_f_none)
                             _nodeDisplayStyleHash += 123;
                     }
@@ -14834,6 +14852,8 @@ lUInt32 tinyNodeCollection::calcStyleHash(bool already_rendered)
     // We just need to _renderedBlockCache.clear() when it changes.
     //if ( gHangingPunctuationEnabled )
     // res = res * 75 + 1761;
+
+    res = res * 31 + _renderBlockRenderingFlags;
 
     res = (res * 31 + globalHash) * 31 + docFlags;
 //    CRLog::info("Calculated style hash = %08x", res);
@@ -16868,7 +16888,7 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
 
     RenderRectAccessor fmt( this );
 
-    if ( BLOCK_RENDERING_G(ENHANCED) ) {
+    if ( BLOCK_RENDERING(getDocument()->getRenderBlockRenderingFlags(), ENHANCED) ) {
         // In enhanced rendering mode, because of collpasing of vertical margins
         // and the fact that we did not update style margins to their computed
         // values, a children box with margins can overlap its parent box, if

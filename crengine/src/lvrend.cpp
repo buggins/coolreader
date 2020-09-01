@@ -65,19 +65,6 @@ int scaleForRenderDPI( int value ) {
     return value;
 }
 
-int gRenderBlockRenderingFlags = BLOCK_RENDERING_FLAGS_DEFAULT;
-
-int validateBlockRenderingFlags(int f) {
-    // Check coherency and ensure dependancies of flags
-    if (f & ~BLOCK_RENDERING_ENHANCED) // If any other flag is set,
-        f |= BLOCK_RENDERING_ENHANCED; // set ENHANGED
-    if (f & BLOCK_RENDERING_FLOAT_FLOATBOXES)
-        f |= BLOCK_RENDERING_PREPARE_FLOATBOXES;
-    if (f & BLOCK_RENDERING_PREPARE_FLOATBOXES)
-        f |= BLOCK_RENDERING_WRAP_FLOATS;
-    return f;
-}
-
 // Uncomment for debugging enhanced block rendering
 // #define DEBUG_BLOCK_RENDERING
 
@@ -1579,7 +1566,7 @@ public:
                         // Except when table is a single column, and we can just
                         // transfer lines to the upper context.
                         LVRendPageContext * cell_context;
-                        int rend_flags = gRenderBlockRenderingFlags; // global flags
+                        int rend_flags = elem->getDocument()->getRenderBlockRenderingFlags();
                         if ( is_single_column ) {
                             row->single_col_context = new LVRendPageContext(NULL, context.getPageHeight());
                             cell_context = row->single_col_context;
@@ -2463,6 +2450,7 @@ bool renderAsListStylePositionInside( const css_style_ref_t style, bool is_rtl=f
 // and to get paragraph direction (LTR/RTL/UNSET).
 void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAccessor * fmt, lUInt32 & baseflags, int indent, int line_h, TextLangCfg * lang_cfg, int valign_dy, bool * is_link_start )
 {
+    bool legacy_render = !BLOCK_RENDERING(enode->getDocument()->getRenderBlockRenderingFlags(), ENHANCED);
     if ( enode->isElement() ) {
         lvdom_element_render_method rm = enode->getRendMethod();
         if ( rm == erm_invisible )
@@ -2514,7 +2502,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         // as in CoolReader 3.2.38 and earlier, i.e. set is_block to true for
         // any block elements.
         bool is_block = rm == erm_final;
-        if (!BLOCK_RENDERING_G(ENHANCED) && !is_block) {
+        if (legacy_render && !is_block) {
             is_block = style->display >= css_d_block;
             if (is_block) {
                 // Hack for "legacy" rendering mode:
@@ -2647,7 +2635,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
         }
 
-        if ( (flags & LTEXT_FLAG_NEWLINE) && ( rm == erm_final || ( !BLOCK_RENDERING_G(ENHANCED) && is_block ) ) ) {
+        if ( (flags & LTEXT_FLAG_NEWLINE) && ( rm == erm_final || ( legacy_render && is_block ) ) ) {
             // Top and single 'final' node (unless in the degenerate case
             // of obsolete css_d_list_item_legacy):
             // Get text-indent and line-height that will apply to the full final block
@@ -3332,7 +3320,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 break;
             }
             // Among inline nodes, only <BR> can carry a "clear: left/right/both".
-            // (No need to check for BLOCK_RENDERING_G(FLOAT_FLOATBOXES), this
+            // (No need to check for BLOCK_RENDERING(rend_flags, FLOAT_FLOATBOXES), this
             // should have no effect when there is not a single float in the way)
             baseflags &= ~LTEXT_SRC_IS_CLEAR_BOTH; // clear previous one
             switch (style->clear) {
@@ -3442,7 +3430,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             } else {
             }
             */
-            if ( !BLOCK_RENDERING_G(ENHANCED) ) {
+            if ( legacy_render ) {
                 // Removal of leading spaces is now managed directly by lvtextfm
                 // but in legacy render mode we don't add lines with only spaces.
                 //int offs = 0;
@@ -3805,7 +3793,7 @@ int pagebreakhelper(ldomNode *enode,int width)
 
 // Prototypes of the 2 alternative block rendering recursive functions
 int  renderBlockElementLegacy(LVRendPageContext & context, ldomNode * enode, int x, int y, int width , int usable_right_overflow);
-void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int width, int flags );
+void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int width, lUInt32 flags );
 
 // Legacy/original CRE block rendering
 int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int usable_right_overflow )
@@ -6153,7 +6141,7 @@ int BlockFloatFootprint::getTopShiftX(int final_width, bool get_right_shift)
 }
 
 // Enhanced block rendering
-void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int container_width, int flags )
+void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int container_width, lUInt32 flags )
 {
     if (!enode)
         return;
@@ -7600,8 +7588,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 }
 
 // Entry points for rendering the root node, a table cell or a float
-int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width,
-            int usable_left_overflow, int usable_right_overflow, int direction, int * baseline, int rend_flags )
+int renderBlockElement(LVRendPageContext & context, ldomNode * enode, int x, int y, int width,
+            int usable_left_overflow, int usable_right_overflow, int direction, int * baseline, lUInt32 rend_flags )
 {
     if ( BLOCK_RENDERING(rend_flags, ENHANCED) ) {
         // Create a flow state (aka "block formatting context") for the rendering
@@ -7631,10 +7619,8 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
 int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width,
             int usable_left_overflow, int usable_right_overflow, int direction, int * baseline )
 {
-    // Use global rendering flags
-    // Note: we're not currently using it with other flags that the global ones.
     return renderBlockElement( context, enode, x, y, width, usable_left_overflow, usable_right_overflow,
-                                        direction, baseline, gRenderBlockRenderingFlags );
+                                        direction, baseline, enode->getDocument()->getRenderBlockRenderingFlags() );
 }
 
 //draw border lines,support color,width,all styles, not support border-collapse
@@ -8336,6 +8322,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
         doc_x += fmt.getX();
         doc_y += fmt.getY();
         lvdom_element_render_method rm = enode->getRendMethod();
+        lUInt32 rend_flags = enode->getDocument()->getRenderBlockRenderingFlags();
         // A few things differ when done for TR, THEAD, TBODY and TFOOT
         // (erm_table_row_group, erm_table_header_group, erm_table_footer_group, erm_table_row)
         bool isTableRowLike = rm >= erm_table_row_group && rm <= erm_table_row;
@@ -8353,7 +8340,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
             if ( !isTableRowLike ) {
                 return; // out of range
             }
-            if ( BLOCK_RENDERING_G(ENHANCED) ) {
+            if ( BLOCK_RENDERING(rend_flags, ENHANCED) ) {
                 // But in enhanced mode, we have set bottom overflow on
                 // TR and table row groups, so we can trust them.
                 return; // out of range
@@ -8503,7 +8490,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     // first final children would start being drawn further because
                     // some outer floats are involved (as Calibre and Firefox do).
                     int shift_x = 0;
-                    if ( BLOCK_RENDERING_G(ENHANCED) ) {
+                    if ( BLOCK_RENDERING(rend_flags, ENHANCED) ) {
                         ldomNode * tmpnode = enode;
                         // Just look at each first descendant for a final child (we may find
                         // none and would have to look at next children, but well...)
@@ -9031,7 +9018,8 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->display = css_d_none;
     }
 
-    if ( BLOCK_RENDERING_G(PREPARE_FLOATBOXES) ) {
+    lUInt32 rend_flags = enode->getDocument()->getRenderBlockRenderingFlags();
+    if ( BLOCK_RENDERING(rend_flags, PREPARE_FLOATBOXES) ) {
         // https://developer.mozilla.org/en-US/docs/Web/CSS/float
         //  As float implies the use of the block layout, it modifies the computed value
         //  of the display values, in some cases: [...]
@@ -9052,7 +9040,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
             }
         }
     }
-    if ( BLOCK_RENDERING_G(WRAP_FLOATS) ) {
+    if ( BLOCK_RENDERING(rend_flags, WRAP_FLOATS) ) {
         if ( nodeElementId == el_floatBox ) {
             // floatBox added, by initNodeRendMethod(), as a wrapper around
             // element with float:.
@@ -9098,7 +9086,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->float_ = css_f_none;
     }
 
-    if ( BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) ) {
+    if ( BLOCK_RENDERING(rend_flags, BOX_INLINE_BLOCKS) ) {
         // See above, same reasoning
         if ( nodeElementId == el_inlineBox ) {
             // el_inlineBox are "display: inline" by default (defined in fb2def.h)
@@ -9143,7 +9131,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         // node probably stayed with the default display: of the element when
         // no other lower specificity CSS set another).
         if ( pstyle->display == css_d_inline_block || pstyle->display == css_d_inline_table ) {
-            if ( !BLOCK_RENDERING_G(ENHANCED) && pstyle->display == css_d_inline_table ) {
+            if ( !BLOCK_RENDERING(rend_flags, ENHANCED) && pstyle->display == css_d_inline_table ) {
                 // In legacy mode, inline-table was handled like css_d_block (as all
                 // not specifically handled css_d_* are, so probably unwillingly).
                 pstyle->display = css_d_block;

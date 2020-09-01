@@ -4239,7 +4239,7 @@ public:
             LVRendPageContext context( NULL, m_pbuffer->page_height );
             // We don't know if the upper LVRendPageContext wants lines or not,
             // so assume it does (the main flow does).
-            int rend_flags = gRenderBlockRenderingFlags; // global flags
+            int rend_flags = node->getDocument()->getRenderBlockRenderingFlags();
             // We want to avoid negative margins (if allowed in global flags) and
             // going back the flow y, as the transfered lines would not reflect
             // that, and we could get some small mismatches and glitches.

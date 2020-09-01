@@ -498,6 +498,7 @@ protected:
     void dropStyles();
 #endif
     bool _hangingPunctuationEnabled;
+    lUInt32 _renderBlockRenderingFlags;
 
     ldomDataStorageManager _textStorage; // persistent text node data storage
     ldomDataStorageManager _elemStorage; // persistent element data storage
@@ -616,8 +617,12 @@ public:
     bool getHangingPunctiationEnabled() const {
         return _hangingPunctuationEnabled;
     }
-
     bool setHangingPunctiationEnabled(bool value);
+
+    lUInt32 getRenderBlockRenderingFlags() const {
+        return _renderBlockRenderingFlags;
+    }
+    bool setRenderBlockRenderingFlags(lUInt32 flags);
 
     inline bool getDocFlag( lUInt32 mask )
     {

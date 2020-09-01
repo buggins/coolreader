@@ -4646,6 +4646,7 @@ void LVDocView::createEmptyDocument() {
     m_doc->setUnusedSpaceThresholdPercent(m_props->getIntDef(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, DEF_UNUSED_SPACE_THRESHOLD_PERCENT));
     m_doc->setMaxAddedLetterSpacingPercent(m_props->getIntDef(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, DEF_MAX_ADDED_LETTER_SPACING_PERCENT));
     m_doc->setHangingPunctiationEnabled(m_props->getBoolDef(PROP_FLOATING_PUNCTUATION, true));
+    m_doc->setRenderBlockRenderingFlags(m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT));
 
     m_doc->setContainer(m_container);
     // This sets the element names default style (display, whitespace)
@@ -5830,7 +5831,7 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
     case DCMD_RENDER_BLOCK_RENDERING_FLAGS:
         CRLog::trace("DCMD_RENDER_BLOCK_RENDERING_FLAGS(%d)", param);
         m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, param);
-        gRenderBlockRenderingFlags = param;
+        getDocument()->setRenderBlockRenderingFlags(param);
         REQUEST_RENDER("doCommand-set block rendering flags")
         break;
     case DCMD_REQUEST_RENDER:
@@ -6699,13 +6700,10 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 needUpdateHyphenation = true;
             }
         } else if (name == PROP_RENDER_BLOCK_RENDERING_FLAGS) {
-            int value = props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
-            value = validateBlockRenderingFlags(value);
-            if ( gRenderBlockRenderingFlags != value ) {
-                gRenderBlockRenderingFlags = value;
-                REQUEST_RENDER("propsApply render block rendering flags")
-                needUpdateHyphenation = true;
-            }
+            lUInt32 value = (lUInt32)props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
+            if (m_doc) // not when noDefaultDocument=true
+                if (getDocument()->setRenderBlockRenderingFlags(value))
+                    REQUEST_RENDER("propsApply render block rendering flags")
         } else if (name == PROP_RENDER_DPI) {
             int value = props->getIntDef(PROP_RENDER_DPI, DEF_RENDER_DPI);
             if ( gRenderDPI != value ) {
