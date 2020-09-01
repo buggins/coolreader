@@ -51,8 +51,6 @@
 // crengine default used to be "width: 100%", but now that we
 // can shrink to fit, it is "width: auto".
 
-bool gHangingPunctuationEnabled = false;
-
 int gInterlineScaleFactor = INTERLINE_SCALE_FACTOR_NO_SCALE;
 
 int gRenderDPI = DEF_RENDER_DPI; // if 0: old crengine behaviour: 1px/pt=1px, 1in/cm/pc...=0px

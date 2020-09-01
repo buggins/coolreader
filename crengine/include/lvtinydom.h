@@ -497,6 +497,7 @@ protected:
     int calcFinalBlocks();
     void dropStyles();
 #endif
+    bool _hangingPunctuationEnabled;
 
     ldomDataStorageManager _textStorage; // persistent text node data storage
     ldomDataStorageManager _elemStorage; // persistent element data storage
@@ -585,9 +586,7 @@ public:
         _renderedBlockCache.clear();
         return true;
     }
-#endif
 
-#if BUILD_LITE!=1
     /// add named BLOB data to document
     bool addBlob(lString16 name, const lUInt8 * data, int size) { _cacheFileStale = true ; return _blobCache.addBlob(data, size, name); }
     /// get BLOB by name
@@ -613,6 +612,12 @@ public:
 
     bool createCacheFile();
 #endif
+
+    bool getHangingPunctiationEnabled() const {
+        return _hangingPunctuationEnabled;
+    }
+
+    bool setHangingPunctiationEnabled(bool value);
 
     inline bool getDocFlag( lUInt32 mask )
     {
