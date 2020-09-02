@@ -1051,11 +1051,61 @@ public class Synchronizer {
 		startOperations();
 	}
 
-	public void startSyncToOnly(SyncTarget target, boolean quietly) {
+	public void startSyncFromOnly(boolean quietly, SyncTarget... targets) {
 		if (m_isBusy)
 			return;
 		// check target
-		if (!hasTarget(target))
+		boolean all_disabled = true;
+		for (SyncTarget target : targets) {
+			if (hasTarget(target)) {
+				all_disabled = false;
+				break;
+			}
+		}
+		if (all_disabled)
+			return;
+		// make "Sync From" operations chain and run it
+		m_askAbort = false;
+		setSyncStarted(SyncDirection.SyncFrom);
+
+		clearOperation();
+		if (quietly)
+			addOperation(new SignInQuietlySyncOperation());
+		else
+			addOperation(new SignInSyncOperation());
+		addOperation(new CheckAppFolderSyncOperation());
+		for (SyncTarget target : targets) {
+			switch (target) {
+				case SETTINGS:
+					if (quietly)
+						addOperation(new DownloadSettingsSyncOperation(REMOTE_SETTINGS_FILE_PATH));
+					else
+						addOperation(new CheckDownloadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
+					break;
+				case BOOKMARKS:
+					addOperation(new DownloadAllBookmarksSyncOperation());
+					break;
+				case CURRENTBOOKINFO:
+					addOperation(new DownloadCurrentBookInfoSyncOperation());
+					break;
+			}
+		}
+		addOperation(m_doneOp);
+		startOperations();
+	}
+
+	public void startSyncToOnly(boolean quietly, SyncTarget... targets) {
+		if (m_isBusy)
+			return;
+		// check target
+		boolean all_disabled = true;
+		for (SyncTarget target : targets) {
+			if (hasTarget(target)) {
+				all_disabled = false;
+				break;
+			}
+		}
+		if (all_disabled)
 			return;
 		// make "Sync To" operations chain and run it
 		m_askAbort = false;
@@ -1067,20 +1117,21 @@ public class Synchronizer {
 		else
 			addOperation(new SignInSyncOperation());
 		addOperation(new CheckAppFolderSyncOperation());
-		switch (target) {
-			case SETTINGS:
-				if (quietly) {
-					addOperation(new UploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
-				} else {
-					addOperation(new CheckUploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
-				}
-				break;
-			case BOOKMARKS:
-				addOperation(new UploadBookmarksSyncOperation());
-				break;
-			case CURRENTBOOKINFO:
-				addOperation(new UploadCurrentBookInfoSyncOperation());
-				break;
+		for (SyncTarget target : targets) {
+			switch (target) {
+				case SETTINGS:
+					if (quietly)
+						addOperation(new UploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
+					else
+						addOperation(new CheckUploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
+					break;
+				case BOOKMARKS:
+					addOperation(new UploadBookmarksSyncOperation());
+					break;
+				case CURRENTBOOKINFO:
+					addOperation(new UploadCurrentBookInfoSyncOperation());
+					break;
+			}
 		}
 		addOperation(m_doneOp);
 		startOperations();
