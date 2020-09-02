@@ -56,7 +56,7 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
         src/docxfmt.cpp
         src/fb3fmt.cpp
         src/odtfmt.cpp
-        src/xmlutil.cpp
+        src/odxutil.cpp
         src/crconcurrent.cpp
         src/private/lvbasefont.cpp
         src/private/lvbitmapfont.cpp

@@ -1,6 +1,6 @@
 #include "../include/fb2def.h"
 #include "../include/crlog.h"
-#include "xmlutil.h"
+#include "odxutil.h"
 
 ldomNode * docXMLreader::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
 {
@@ -76,6 +76,31 @@ bool docXMLreader::OnBlob(lString16 name, const lUInt8 * data, int size)
     return false;
 }
 
+void xml_ElementHandler::setChildrenInfo(const struct item_def_t *tags)
+{
+    m_children = tags;
+}
+
+int xml_ElementHandler::parse_name(const struct item_def_t *tags, const lChar16 * nameValue)
+{
+    for (int i=0; tags[i].name; i++) {
+        if ( !lStr_cmp( tags[i].name, nameValue )) {
+            // found!
+            return tags[i].id;
+        }
+    }
+    return -1;
+}
+
+void xml_ElementHandler::parse_int(const lChar16 * attrValue, css_length_t & result)
+{
+    lString16 value = attrValue;
+
+    result.type = css_val_unspecified;
+    if ( value.atoi(result.value) )
+        result.type = css_val_pt; //just to distinguish with unspecified value
+}
+
 ldomNode *xml_ElementHandler::handleTagOpen(const lChar16 *nsname, const lChar16 *tagname)
 {
     int tag = parseTagName(tagname);
@@ -112,12 +137,12 @@ void xml_ElementHandler::reset()
 {
 }
 
-ldomNode *docx_titleHandler::onBodyStart()
+ldomNode *odx_titleHandler::onBodyStart()
 {
     return m_writer->OnTagOpen(L"", L"body");
 }
 
-void docx_titleHandler::onTitleStart(int level, bool noSection)
+void odx_titleHandler::onTitleStart(int level, bool noSection)
 {
     CR_UNUSED(noSection);
 
@@ -130,7 +155,7 @@ void docx_titleHandler::onTitleStart(int level, bool noSection)
         m_writer->OnTagOpen(L"", name.c_str());
 }
 
-void docx_titleHandler::onTitleEnd()
+void odx_titleHandler::onTitleEnd()
 {
     if( !m_useClassName ) {
         lString16 tagName = cs16("h") +  lString16::itoa(m_titleLevel);
@@ -139,16 +164,16 @@ void docx_titleHandler::onTitleEnd()
         m_writer->OnTagClose(L"", L"p");
 }
 
-ldomNode* docx_fb2TitleHandler::onBodyStart()
+ldomNode* odx_fb2TitleHandler::onBodyStart()
 {
     m_section = m_writer->OnTagOpen(L"", L"body");
     return m_section;
 }
 
-void docx_fb2TitleHandler::onTitleStart(int level, bool noSection)
+void odx_fb2TitleHandler::onTitleStart(int level, bool noSection)
 {
     if( noSection )
-        docx_titleHandler::onTitleStart(level, true);
+        odx_titleHandler::onTitleStart(level, true);
     else {
         if( m_titleLevel < level ) {
             int startIndex = m_hasTitle ? 1 : 0;
@@ -171,7 +196,7 @@ void docx_fb2TitleHandler::onTitleStart(int level, bool noSection)
     }
 }
 
-void docx_fb2TitleHandler::onTitleEnd()
+void odx_fb2TitleHandler::onTitleEnd()
 {
     if( !m_useClassName ) {
         lString16 headingName = cs16("h") +  lString16::itoa(m_titleLevel);
@@ -183,7 +208,7 @@ void docx_fb2TitleHandler::onTitleEnd()
     m_hasTitle = true;
 }
 
-void docx_fb2TitleHandler::makeSection(int startIndex)
+void odx_fb2TitleHandler::makeSection(int startIndex)
 {
     ldomNode *newSection = m_section->insertChildElement(startIndex, LXML_NS_NONE, el_section);
     newSection->initNodeStyle();
@@ -192,7 +217,7 @@ void docx_fb2TitleHandler::makeSection(int startIndex)
     m_section = newSection;
 }
 
-void docx_fb2TitleHandler::openSection(int level)
+void odx_fb2TitleHandler::openSection(int level)
 {
     for(int i = m_titleLevel; i < level; i++) {
         m_section = m_writer->OnTagOpen(L"", L"section");
@@ -202,7 +227,7 @@ void docx_fb2TitleHandler::openSection(int level)
     m_hasTitle = false;
 }
 
-void docx_fb2TitleHandler::closeSection(int level)
+void odx_fb2TitleHandler::closeSection(int level)
 {
     for(int i = 0; i < level; i++) {
         m_writer->OnTagClose(L"", L"section");
@@ -254,8 +279,16 @@ lString16 odx_pPr::getCss()
             style << "center;";
             break;
         case css_ta_justify:
+            style << "justify;";
+            break;
+        case css_ta_end:
+            style << "end;";
+            break;
+        case css_ta_start:
+            style << "start;";
+            break;
         default:
-            style << "justify";
+            style << "inherited;";
             break;
         }
     }
@@ -273,10 +306,10 @@ odx_Style::odx_Style() : m_type(odx_paragraph_style),
 
 bool odx_Style::isValid() const
 {
-    return ( !(m_Name.empty() || m_Id.empty()) );
+    return ( odx_invalid_style != m_type && !m_Id.empty() );
 }
 
-odx_Style *odx_Style::getBaseStyle(odx_StyleKeeper *context)
+odx_Style *odx_Style::getBaseStyle(odx_ImportContext *context)
 {
     lString16 basedOn = getBasedOn();
     if ( !basedOn.empty() ) {
@@ -287,7 +320,7 @@ odx_Style *odx_Style::getBaseStyle(odx_StyleKeeper *context)
     return NULL;
 }
 
-odx_pPr *odx_Style::get_pPr(odx_StyleKeeper *context)
+odx_pPr *odx_Style::get_pPr(odx_ImportContext *context)
 {
     if( !m_pPrMerged ) {
         odx_Style* pStyle = getBaseStyle(context);
@@ -299,7 +332,7 @@ odx_pPr *odx_Style::get_pPr(odx_StyleKeeper *context)
     return &m_pPr;
 }
 
-odx_rPr *odx_Style::get_rPr(odx_StyleKeeper *context)
+odx_rPr *odx_Style::get_rPr(odx_ImportContext *context)
 {
     if( !m_rPrMerged ) {
         odx_Style* pStyle = getBaseStyle(context);
@@ -311,7 +344,7 @@ odx_rPr *odx_Style::get_rPr(odx_StyleKeeper *context)
     return &m_rPr;
 }
 
-odx_StylePropertiesGetter *odx_Style::getStyleProperties(odx_StyleKeeper *context, odx_style_type styleType)
+odx_StylePropertiesGetter *odx_Style::getStyleProperties(odx_ImportContext *context, odx_style_type styleType)
 {
     switch(styleType) {
     case odx_paragraph_style:
@@ -324,11 +357,104 @@ odx_StylePropertiesGetter *odx_Style::getStyleProperties(odx_StyleKeeper *contex
     return NULL;
 }
 
-void odx_StyleKeeper::addStyle(odx_StyleRef style)
+void odx_ImportContext::addStyle(odx_StyleRef style)
 {
     odx_Style *referenced = style.get();
     if ( NULL != referenced)
     {
         m_styles.set(referenced->getId(), style);
     }
+}
+
+int odx_styleTagsHandler::styleTagPos(lChar16 ch)
+{
+    for (int i=0; i < m_styleTags.length(); i++)
+        if (m_styleTags[i] == ch)
+            return i;
+    return -1;
+}
+
+const lChar16 *odx_styleTagsHandler::getStyleTagName(lChar16 ch)
+{
+    switch ( ch ) {
+    case 'b':
+        return L"strong";
+    case 'i':
+        return L"em";
+    case 'u':
+        return L"u";
+    case 's':
+        return L"s";
+    case 't':
+        return L"sup";
+    case 'd':
+        return L"sub";
+    default:
+        return NULL;
+    }
+}
+
+void odx_styleTagsHandler::closeStyleTag(lChar16 ch)
+{
+    int pos = styleTagPos( ch );
+    if (pos >= 0) {
+        for (int i = m_styleTags.length() - 1; i >= pos; i--) {
+            const lChar16 * tag = getStyleTagName(m_styleTags[i]);
+            m_styleTags.erase(m_styleTags.length() - 1, 1);
+            if ( tag ) {
+                _writer->OnTagClose(L"", tag);
+            }
+        }
+    }
+}
+
+void odx_styleTagsHandler::openStyleTag(lChar16 ch)
+{
+    int pos = styleTagPos( ch );
+    if (pos < 0) {
+        const lChar16 * tag = getStyleTagName(ch);
+        if ( tag ) {
+            _writer->OnTagOpenNoAttr(L"", tag);
+            m_styleTags.append( 1,  ch );
+        }
+    }
+}
+
+void odx_styleTagsHandler::openStyleTags(odx_rPr *runProps)
+{
+    if(runProps->isBold())
+        openStyleTag('b');
+    if(runProps->isItalic())
+        openStyleTag('i');
+    if(runProps->isUnderline())
+        openStyleTag('u');
+    if(runProps->isStrikeThrough())
+        openStyleTag('s');
+    if(runProps->isSubScript())
+        openStyleTag('d');
+    if(runProps->isSuperScript())
+        openStyleTag('t');
+}
+
+void odx_styleTagsHandler::closeStyleTags(odx_rPr *runProps)
+{
+    if(!runProps->isBold())
+        closeStyleTag('b');
+    if(!runProps->isItalic())
+        closeStyleTag('i');
+    if(!runProps->isUnderline())
+        closeStyleTag('u');
+    if(!runProps->isStrikeThrough())
+        closeStyleTag('s');
+    if(!runProps->isSubScript())
+        closeStyleTag('d');
+    if(!runProps->isSuperScript())
+        closeStyleTag('t');
+}
+
+void odx_styleTagsHandler::closeStyleTags()
+{
+    for(int i = m_styleTags.length() - 1; i >= 0; i--)
+        closeStyleTag(m_styleTags[i]);
+    m_styleTags.clear();
 }

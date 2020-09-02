@@ -7,6 +7,7 @@
 #define DOCX_USE_CLASS_FOR_HEADING true
 
 enum odx_style_type {
+    odx_invalid_style,
     odx_paragraph_style,
     odx_character_style,
     odx_table_style,
@@ -19,27 +20,16 @@ enum odx_lineRule_type {
     odx_lineRule_exact
 };
 
-class odx_Style;
-typedef LVFastRef< odx_Style > odx_StyleRef;
-
-class odx_StyleKeeper
-{
-    LVHashTable<lString16, odx_StyleRef> m_styles;
-public:
-    odx_StyleKeeper() : m_styles(64) {
-    }
-    virtual ~odx_StyleKeeper() {}
-    void addStyle( odx_StyleRef style );
-    odx_Style * getStyle( lString16 id ) {
-        return m_styles.get(id).get();
-    }
-};
-
 class odx_StylePropertiesGetter
 {
 public:
     virtual css_length_t get(int index) const = 0;
 };
+
+class odx_Style;
+typedef LVFastRef< odx_Style > odx_StyleRef;
+
+class odx_ImportContext;
 
 template <int N>
 class odx_StylePropertiesContainer : public odx_StylePropertiesGetter
@@ -105,20 +95,20 @@ public:
                 set(i, baseValue);
         }
     }
-    void setStyleId(odx_StyleKeeper* keeper, const lChar16* styleId) {
+    void setStyleId(odx_ImportContext* context, const lChar16* styleId) {
         m_styleId = styleId;
         if ( !m_styleId.empty() ) {
-            odx_Style *style = keeper->getStyle(m_styleId);
+            odx_Style *style = context->getStyle(m_styleId);
             if( style && (m_styleType == style->getStyleType()) ) {
-                combineWith(style->getStyleProperties(keeper, m_styleType));
+                combineWith(style->getStyleProperties(context, m_styleType));
             }
         }
     }
-    odx_Style* getStyle(odx_StyleKeeper* keeper) {
+    odx_Style* getStyle(odx_ImportContext* context) {
         odx_Style* ret = NULL;
 
         if (!m_styleId.empty() ) {
-            ret = keeper->getStyle(m_styleId);
+            ret = context->getStyle(m_styleId);
         }
         return ret;
     }
@@ -232,6 +222,22 @@ public:
     lString16 getCss();
 };
 
+class odx_ImportContext
+{
+    LVHashTable<lString16, odx_StyleRef> m_styles;
+    odx_rPr m_rPrDefault;
+    odx_pPr m_pPrDefault;
+public:
+    odx_ImportContext() : m_styles(64) { }
+    virtual ~odx_ImportContext() {}
+    void addStyle( odx_StyleRef style );
+    odx_Style * getStyle( lString16 id ) {
+        return m_styles.get(id).get();
+    }
+    inline odx_rPr * get_rPrDefault() { return &m_rPrDefault; }
+    inline odx_pPr * get_pPrDefault() { return &m_pPrDefault; }
+};
+
 class odx_Style : public LVRefCounter
 {
     lString16 m_Name;
@@ -257,12 +263,13 @@ public:
 
     inline odx_style_type getStyleType() const { return m_type; }
     inline void setStyleType(odx_style_type value) { m_type = value; }
-    odx_Style* getBaseStyle(odx_StyleKeeper* context);
-    inline odx_pPr * get_pPr(odx_StyleKeeper* context);
-    inline odx_rPr * get_rPr(odx_StyleKeeper* context);
+    odx_Style* getBaseStyle(odx_ImportContext* context);
+    inline odx_pPr * get_pPr(odx_ImportContext* context);
+    inline odx_rPr * get_rPr(odx_ImportContext* context);
     inline odx_pPr * get_pPrPointer() { return &m_pPr; }
     inline odx_rPr * get_rPrPointer() { return &m_rPr; }
-    odx_StylePropertiesGetter* getStyleProperties(odx_StyleKeeper* context, odx_style_type styleType);
+    odx_StylePropertiesGetter* getStyleProperties(odx_ImportContext* context,
+                                                  odx_style_type styleType);
 };
 
 /// known docx items name and identifier
@@ -357,20 +364,26 @@ protected:
     docXMLreader * m_reader;
     ldomDocumentWriter *m_writer;
     xml_ElementHandler *m_savedHandler;
+    const item_def_t *m_children;
     int m_element;
     int m_state;
 protected:
     xml_ElementHandler(docXMLreader * reader, ldomDocumentWriter *writer,
-                       int element) :
-        m_reader(reader), m_writer(writer), m_element(element), m_state(element)
+                       int element, const struct item_def_t *children) :
+        m_reader(reader), m_writer(writer), m_children(children), m_element(element),
+        m_state(element)
     {
     }
     virtual ~xml_ElementHandler() {}
     virtual int parseTagName(const lChar16 *tagname) {
-        CR_UNUSED(tagname);
+        if(m_children)
+            return parse_name(m_children, tagname);
         return -1;
     }
 public:
+    static int parse_name(const struct item_def_t *tags, const lChar16 * nameValue);
+    static void parse_int(const lChar16 * attrValue, css_length_t & result);
+    void setChildrenInfo(const struct item_def_t *tags);
     ldomNode * handleTagOpen(const lChar16 * nsname, const lChar16 * tagname);
     virtual ldomNode * handleTagOpen(int tagId);
     void handleAttribute(const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue)
@@ -404,19 +417,35 @@ class xml_SkipElementHandler : public xml_ElementHandler
 {
 public:
     xml_SkipElementHandler(docXMLreader * reader, ldomDocumentWriter *writer,
-                            int element) : xml_ElementHandler(reader, writer, element) {}
+                           int element) : xml_ElementHandler(reader, writer, element, NULL) {}
     void skipElement(int element) {
         m_state = element;
         start();
     }
 };
 
-class docx_titleHandler
+class odx_styleTagsHandler
+{
+    ldomDocumentWriter *_writer;
+    lString16 m_styleTags;
+    int styleTagPos(lChar16 ch);
+protected:
+    const lChar16 * getStyleTagName( lChar16 ch );
+    void closeStyleTag( lChar16 ch);
+    void openStyleTag( lChar16 ch);
+public:
+    odx_styleTagsHandler(ldomDocumentWriter *writer) : _writer(writer) {}
+    void openStyleTags(odx_rPr* runProps);
+    void closeStyleTags(odx_rPr* runProps);
+    void closeStyleTags();
+};
+
+class odx_titleHandler
 {
 public:
-    docx_titleHandler(ldomDocumentWriter *writer, bool useClassName=false) :
+    odx_titleHandler(ldomDocumentWriter *writer, bool useClassName=false) :
         m_writer(writer), m_titleLevel(), m_useClassName(useClassName) {}
-    virtual ~docx_titleHandler() {}
+    virtual ~odx_titleHandler() {}
     virtual ldomNode* onBodyStart();
     virtual void onTitleStart(int level, bool noSection = false);
     virtual void onTitleEnd();
@@ -428,11 +457,11 @@ protected:
     bool m_useClassName;
 };
 
-class docx_fb2TitleHandler : public docx_titleHandler
+class odx_fb2TitleHandler : public odx_titleHandler
 {
 public:
-    docx_fb2TitleHandler(ldomDocumentWriter *writer, bool useClassName) :
-        docx_titleHandler(writer, useClassName)
+    odx_fb2TitleHandler(ldomDocumentWriter *writer, bool useClassName) :
+        odx_titleHandler(writer, useClassName)
     {}
     ldomNode* onBodyStart();
     void onTitleStart(int level, bool noSection = false);

@@ -3,50 +3,110 @@
 #include "../include/fb2def.h"
 #include "../include/lvopc.h"
 #include "../include/crlog.h"
-#include "xmlutil.h"
+#include "odxutil.h"
 
-#define ODT_TAGS ODT_TAG(a) ODT_TAG(bookmark) ODT_TAG(body) ODT_TAG(note) ODT_TAG(text) \
-    ODT_TAG(h) ODT_TAG(p) ODT_TAG(span) ODT_TAG(image) ODT_TAG(frame) ODT_TAG(table) \
-    ODT_TAG(list)
+#define ODT_TAGS \
+    ODT_TAG(a)\
+    ODT_TAG2(automaticStyles, "automatic-styles")\
+    ODT_TAG(body)\
+    ODT_TAG(bookmark)\
+    ODT_TAG2(bookmarkRef, "bookmark-ref")\
+    ODT_TAG2(bookmarkStart, "bookmark-start")\
+    ODT_TAG2(defaultStyle, "default-style")\
+    ODT_TAG2(documentContent, "document-content")\
+    ODT_TAG2(documentStyles, "document-styles")\
+    ODT_TAG(frame)\
+    ODT_TAG(h)\
+    ODT_TAG(image)\
+    ODT_TAG(list)\
+    ODT_TAG2(listItem, "list-item")\
+    ODT_TAG(note)\
+    ODT_TAG2(noteBody, "note-body")\
+    ODT_TAG2(noteCitation, "note-citation")\
+    ODT_TAG2(noteRef, "note-ref")\
+    ODT_TAG(p)\
+    ODT_TAG2(paragraphProperties, "paragraph-properties")\
+    ODT_TAG(s)\
+    ODT_TAG(span)\
+    ODT_TAG(style)\
+    ODT_TAG(styles)\
+    ODT_TAG(tab)\
+    ODT_TAG(table)\
+    ODT_TAG2(tableRow, "table-row")\
+    ODT_TAG2(tableCell, "table-cell")\
+    ODT_TAG(text)\
+    ODT_TAG2(textProperties, "text-properties")
 
-#define ODT_TAG_NAME(itm) docx_el_##itm##_name
+#define ODT_TAG_NAME(itm) odt_el_##itm##_name
 #define ODT_TAG_ID(itm) odt_el_##itm
 #define ODT_TAG_CHILD(itm) { ODT_TAG_ID(itm), ODT_TAG_NAME(itm) }
+#define ODT_TAG_CHILD2(itm, name) { ODT_TAG_ID(itm), L ## name }
 #define ODT_LAST_ITEM { -1, NULL }
 
 enum {
-#define ODT_TAG(itm) 	ODT_TAG_ID(itm),
+#define ODT_TAG(itm) ODT_TAG_ID(itm),
+#define ODT_TAG2(itm, name) ODT_TAG_ID(itm),
     odt_el_NULL = 0,
-    odt_el_bookmarkRef,
-    odt_el_bookmarkStart,
-    odt_el_documentContent,
-    odt_el_noteBody,
-    odt_el_noteCitation,
-    odt_el_tableRow,
-    odt_el_tableCell,
-    odt_el_listItem,
-    odt_el_noteRef,
     ODT_TAGS
     odt_el_MAX_ID
 };
 
 #undef ODT_TAG
+#undef ODT_TAG2
 #define ODT_TAG(itm) static const lChar16 * const ODT_TAG_NAME(itm) = L ## #itm;
+#define ODT_TAG2(itm, name) static const lChar16 * const ODT_TAG_NAME(itm) = L ## name;
     ODT_TAGS
 
-const struct item_def_t odt_elements[] = {
-    { odt_el_bookmarkRef, L"bookmark-ref" },
-    { odt_el_bookmarkStart, L"bookmark-start" },
-    { odt_el_documentContent, L"document-content" },
-    { odt_el_noteBody, L"note-body" },
-    { odt_el_noteCitation, L"note-citation" },
-    { odt_el_tableRow, L"table-row"},
-    { odt_el_tableCell, L"table-cell"},
-    { odt_el_listItem, L"list-item"},
-    { odt_el_noteRef, L"note-ref"},
 #undef ODT_TAG
+#undef ODT_TAG2
 #define ODT_TAG(itm) ODT_TAG_CHILD(itm),
+#define ODT_TAG2(itm, name) ODT_TAG_CHILD2(itm, name),
+
+const struct item_def_t odt_elements[] = {
     ODT_TAGS
+    ODT_LAST_ITEM
+};
+
+const struct item_def_t odt_style_elements[] = {
+    ODT_TAG_CHILD(automaticStyles),
+    ODT_TAG_CHILD(defaultStyle),
+    ODT_TAG_CHILD(documentStyles),
+    ODT_TAG_CHILD(paragraphProperties),
+    ODT_TAG_CHILD(style),
+    ODT_TAG_CHILD(styles),
+    ODT_TAG_CHILD(textProperties),
+    ODT_LAST_ITEM
+};
+
+static const struct item_def_t styleFamily_attr_values[] = {
+    { odx_paragraph_style, L"paragraph" },
+    { odx_character_style, L"text"},
+    ODT_LAST_ITEM
+};
+
+const struct item_def_t odt_fontWeigth_attr_values[] = {
+    { 400, L"normal" },
+    { 600, L"bold" },
+    { 100, L"100" },
+    { 200, L"200" },
+    { 300, L"300" },
+    { 400, L"400" },
+    { 500, L"500" },
+    { 600, L"600" },
+    { 700, L"700" },
+    { 800, L"800" },
+    { 900, L"900" },
+    ODT_LAST_ITEM
+};
+
+static const struct item_def_t odt_textAlign_attr_values[] =
+{
+    { css_ta_left, L"left" },
+    { css_ta_right, L"right" },
+    { css_ta_center, L"center" },
+    { css_ta_justify, L"justify" },
+    { css_ta_start, L"start" },
+    { css_ta_end, L"end" },
     ODT_LAST_ITEM
 };
 
@@ -76,7 +136,39 @@ bool DetectOpenDocumentFormat( LVStreamRef stream )
     return ( mimeType == L"application/vnd.oasis.opendocument.text" );
 }
 
-class odt_documentHandler : public xml_ElementHandler
+class odtImportContext : public odx_ImportContext
+{
+    LVContainerRef m_container;
+public:
+    odtImportContext(LVContainerRef container) : m_container(container) {
+    }
+    LVStreamRef openFile(const lChar16 * const fileName);
+};
+
+
+class odt_stylesHandler : public xml_ElementHandler
+{
+private:
+    LVArray<int> m_levels;
+    odx_StyleRef m_styleRef;
+    odx_Style *m_style;
+    odx_pPr* m_pPr;
+    odx_rPr* m_rPr;
+    odtImportContext *m_context;
+public:
+    /// constructor
+    odt_stylesHandler(docXMLreader * reader, ldomDocumentWriter *writer, int element,
+                      odtImportContext *context) :
+        xml_ElementHandler(reader, writer, element, odt_style_elements),
+            m_style(NULL), m_pPr(NULL), m_rPr(NULL), m_context(context)
+    {
+    }
+    ldomNode * handleTagOpen(int tagId);
+    void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
+    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+};
+
+class odt_documentHandler : public xml_ElementHandler, odx_styleTagsHandler
 {
     LVArray<int> m_levels;
     LVArray<bool> m_listItems;
@@ -84,12 +176,15 @@ class odt_documentHandler : public xml_ElementHandler
     ldomDocumentWriter m_footNotesWriter;
     ldomDocumentWriter m_endNotesWriter;
     ldomDocumentWriter *m_saveWriter;
+    odtImportContext * m_context;
     ldomNode *m_footNotes;
     ldomNode *m_endNotes;
     ldomNode *m_body;
     lString16 m_noteId;
     lString16 m_noteRefText;
+    lString16 m_StyleName;
     bool m_isEndNote;
+    odt_stylesHandler m_stylesHandler;
 private:
     ldomNode* startNotes(const lChar16 * notesKind) {
         m_writer->OnStart(NULL);
@@ -106,20 +201,21 @@ private:
         parent->moveItemsTo(m_body->getParentNode(), index, index);
     }
 protected:
-    docx_titleHandler* m_titleHandler;
+    odx_titleHandler* m_titleHandler;
     int m_outlineLevel;
     bool m_inTable;
     bool m_inListItem;
     bool m_listItemHadContent;
-protected:
-    int parseTagName(const lChar16 *tagname);
 public:
     odt_documentHandler(ldomDocument * doc, docXMLreader * reader,
-                        ldomDocumentWriter * writer, docx_titleHandler* titleHandler) :
-        xml_ElementHandler(reader, writer, odt_el_NULL), m_footNotesWriter(doc),
-        m_endNotesWriter(doc), m_saveWriter(NULL), m_footNotes(NULL), m_endNotes(NULL),
-        m_body(NULL), m_isEndNote(false), m_titleHandler(titleHandler),
+                        ldomDocumentWriter * writer, odx_titleHandler* titleHandler,
+                        odtImportContext * context) :
+        xml_ElementHandler(reader, writer, odt_el_NULL, odt_elements),
+        odx_styleTagsHandler(writer), m_footNotesWriter(doc),
+        m_endNotesWriter(doc), m_saveWriter(NULL), m_context(context), m_footNotes(NULL),
+        m_endNotes(NULL), m_body(NULL), m_isEndNote(false), m_titleHandler(titleHandler),
         m_outlineLevel(0), m_inTable(false), m_inListItem(false),
+        m_stylesHandler(reader, NULL, odt_el_automaticStyles, context),
         m_listItemHadContent(false) {
     }
     inline bool isInList() { return m_ListLevels.length() != 0; }
@@ -130,6 +226,23 @@ public:
     void handleText(const lChar16 *text, int len, lUInt32 flags);
     void reset();
 };
+
+static bool parseStyles(odtImportContext *context)
+{
+    LVStreamRef stream = context->openFile(L"styles.xml");
+    if ( stream.isNull() )
+        return false;
+
+    docXMLreader docReader(NULL);
+    odt_stylesHandler stylesHandler(&docReader, NULL, odt_el_documentStyles, context);
+    docReader.setHandler(&stylesHandler);
+
+    LVXMLParser parser(stream, &docReader);
+
+    if ( !parser.Parse() )
+        return false;
+    return true;
+}
 
 bool ImportOpenDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback )
 {
@@ -148,13 +261,17 @@ bool ImportOpenDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     }
 #endif
 
+    ldomDocumentWriter writer(doc);
+    docXMLreader docReader(&writer);
+
+    odtImportContext importContext(arc);
+    if( !parseStyles(&importContext) )
+        return false;
+
     //TODO: read manifest or whatever to get this file name
     LVStreamRef m_stream = arc->OpenStream(L"content.xml", LVOM_READ);
     if ( m_stream.isNull() )
         return false;
-
-    ldomDocumentWriter writer(doc);
-    docXMLreader docReader(&writer);
 
 #ifdef DOCX_FB2_DOM_STRUCTURE
     writer.OnStart(NULL);
@@ -185,12 +302,12 @@ bool ImportOpenDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
 
 #ifdef DOCX_FB2_DOM_STRUCTURE
     //Two options when dealing with titles: (FB2|HTML)
-    docx_fb2TitleHandler titleHandler(&writer, DOCX_USE_CLASS_FOR_HEADING); //<section><title>..</title></section>
+    odx_fb2TitleHandler titleHandler(&writer, DOCX_USE_CLASS_FOR_HEADING); //<section><title>..</title></section>
 #else
-    docx_titleHandler titleHandler(&writer);  //<hx>..</hx>
+    odx_titleHandler titleHandler(&writer);  //<hx>..</hx>
 #endif
 
-    odt_documentHandler documentHandler(doc, &docReader, &writer, &titleHandler);
+    odt_documentHandler documentHandler(doc, &docReader, &writer, &titleHandler, &importContext);
     docReader.setHandler(&documentHandler);
 
     LVXMLParser parser(m_stream, &docReader);
@@ -214,20 +331,15 @@ bool ImportOpenDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     return true;
 }
 
-int odt_documentHandler::parseTagName(const lChar16 *tagname)
-{
-    for (int i=0; odt_elements[i].name; i++) {
-        if ( !lStr_cmp( odt_elements[i].name, tagname )) {
-            // found!
-            return odt_elements[i].id;
-        }
-    }
-    return -1;
-}
-
 ldomNode *odt_documentHandler::handleTagOpen(int tagId)
 {
+    bool elementHandled = false;
+
     switch(tagId) {
+    case odt_el_automaticStyles:
+        m_stylesHandler.start();
+        elementHandled = true;
+        break;
     case odt_el_a:
     case odt_el_bookmark:
     case odt_el_bookmarkRef:
@@ -245,6 +357,7 @@ ldomNode *odt_documentHandler::handleTagOpen(int tagId)
         m_outlineLevel = 0;
         break;
     case odt_el_p:
+        m_StyleName.clear();
         if(m_inListItem) {
             m_listItemHadContent = true;
             m_writer->OnTagOpenNoAttr(L"", L"li");
@@ -252,7 +365,7 @@ ldomNode *odt_documentHandler::handleTagOpen(int tagId)
         m_writer->OnTagOpen(L"", L"p");
         break;
     case odt_el_span:
-        m_writer->OnTagOpen(L"", L"span");
+        m_StyleName.clear();
         break;
     case odt_el_list:
         m_writer->OnTagOpen(L"", L"ol");
@@ -276,6 +389,10 @@ ldomNode *odt_documentHandler::handleTagOpen(int tagId)
         break;
     case odt_el_tableCell:
         m_writer->OnTagOpen(L"", L"td");
+        break;
+    case odt_el_tab:
+    case odt_el_s:
+        m_writer->OnText(L" ", 1, TXTFLG_PRE);
         break;
     case odt_el_noteBody:
         m_saveWriter = m_writer;
@@ -301,8 +418,10 @@ ldomNode *odt_documentHandler::handleTagOpen(int tagId)
     default:
         break;
     }
-    m_state = tagId;
-    m_levels.add(tagId);
+    if( !elementHandled ) {
+        m_state = tagId;
+        m_levels.add(tagId);
+    }
     return NULL;
 }
 
@@ -354,8 +473,13 @@ void odt_documentHandler::handleAttribute(const lChar16 *attrname, const lChar16
         break;
     case odt_el_a:
     case odt_el_image:
-        if(!lStr_cmp(attrname, "href"))
+        if( !lStr_cmp(attrname, "href") )
             m_writer->OnAttribute(L"", attrname, attrValue);
+        break;
+    case odt_el_p:
+    case odt_el_span:
+        if( !lStr_cmp(attrname, "style-name") )
+            m_StyleName = attrValue;
         break;
     default:
         break;
@@ -365,6 +489,35 @@ void odt_documentHandler::handleAttribute(const lChar16 *attrname, const lChar16
 void odt_documentHandler::handleTagBody()
 {
     switch(m_state) {
+    case odt_el_span:
+        if( !m_StyleName.empty() ) {
+            odx_Style* style = m_context->getStyle(m_StyleName);
+            if(style) {
+                odx_rPr rPr;
+
+                rPr.combineWith(style->get_rPr(m_context));
+                rPr.combineWith(m_context->get_rPrDefault());
+                closeStyleTags(&rPr);
+                openStyleTags(&rPr);
+            }
+            /* FIXME: if no style specified we should look for paragraph style or some default style*/
+        }
+        break;
+    case odt_el_p:
+        if( !m_StyleName.empty() ) {
+            odx_Style* style = m_context->getStyle(m_StyleName);
+            if(style) {
+                odx_pPr pPr;
+
+                pPr.combineWith(style->get_pPr(m_context));
+                pPr.combineWith(m_context->get_pPrDefault());
+                lString16 style = pPr.getCss();
+                if( !style.empty() )
+                    m_writer->OnAttribute(L"", L"style", style.c_str());
+            }
+        }
+        m_writer->OnTagBody();
+        break;
     case odt_el_h:
         if(m_inListItem) {
             m_listItemHadContent = true;
@@ -376,8 +529,6 @@ void odt_documentHandler::handleTagBody()
     case odt_el_bookmarkRef:
     case odt_el_bookmarkStart:
     case odt_el_note:
-    case odt_el_p:
-    case odt_el_span:
     case odt_el_image:
     case odt_el_table:
     case odt_el_tableCell:
@@ -389,7 +540,6 @@ void odt_documentHandler::handleTagBody()
     default:
         break;
     }
-
 }
 
 void odt_documentHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname)
@@ -414,7 +564,7 @@ void odt_documentHandler::handleTagClose(const lChar16 *nsname, const lChar16 *t
         m_titleHandler->onTitleEnd();
         break;
     case odt_el_p:
-    case odt_el_span:
+        closeStyleTags();
         m_writer->OnTagClose(nsname, tagname);
         break;
     case odt_el_image:
@@ -484,4 +634,105 @@ void odt_documentHandler::reset()
     m_inTable = false;
     m_inListItem = false;
     m_listItemHadContent = false;
+}
+
+LVStreamRef odtImportContext::openFile(const lChar16 * const fileName)
+{
+    return m_container->OpenStream(fileName, LVOM_READ);
+}
+
+ldomNode *odt_stylesHandler::handleTagOpen(int tagId)
+{
+    switch(tagId) {
+    case odt_el_defaultStyle:
+        m_style = NULL;
+        break;
+    case odt_el_paragraphProperties:
+        m_pPr = m_style ? m_style->get_pPrPointer() : m_context->get_pPrDefault();
+        break;
+    case odt_el_textProperties:
+        m_rPr = m_style ? m_style->get_rPrPointer() : m_context->get_rPrDefault();
+        break;
+    case odt_el_style:
+        m_styleRef = odx_StyleRef( new odx_Style );
+        m_style = m_styleRef.get();
+    default:
+        break;
+    }
+    m_state = tagId;
+    m_levels.add(tagId);
+    return NULL;
+}
+
+void odt_stylesHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrvalue)
+{
+    switch(m_state) {
+    case odt_el_style:
+        if( !lStr_cmp(attrname, "name") ) {
+            m_style->setId(attrvalue);
+        } else if( !lStr_cmp(attrname, "display-name") ) {
+            m_style->setName(attrvalue);
+        } else if( !lStr_cmp(attrname, "family") ) {
+            int n = parse_name(styleFamily_attr_values, attrvalue);
+            if(n != -1)
+                m_style->setStyleType((odx_style_type)n);
+        } else if( !lStr_cmp(attrname, "parent-style-name") ) {
+            m_style->setBasedOn(attrvalue);
+        }
+        break;
+    case odt_el_paragraphProperties:
+        if( !lStr_cmp(attrname, "break-before") ) {
+            m_pPr->setPageBreakBefore( !lStr_cmp(attrvalue, "page") );
+        } else if( !lStr_cmp(attrname, "text-align") ) {
+            int n = parse_name(odt_textAlign_attr_values, attrvalue);
+            if(n != -1)
+                m_pPr->setTextAlign((css_text_align_t)n);
+        } else if( !lStr_cmp(attrname, "keep-with-next") ) {
+            m_pPr->setKeepNext( !lStr_cmp(attrvalue, "always") );
+        }
+        break;
+    case odt_el_textProperties:
+        if( !lStr_cmp(attrname, "font-style") ) {
+            m_rPr->setItalic( lStr_cmp(attrvalue, "normal") !=0 );
+        } else if( !lStr_cmp(attrname, "font-weight") ) {
+            int n = parse_name(odt_fontWeigth_attr_values, attrvalue);
+            if( n != -1 )
+                m_rPr->setBold( n >= 600 );
+        } else if( !lStr_cmp(attrname, "text-underline-type") ) {
+            m_rPr->setUnderline( lStr_cmp( attrvalue, "none") !=0 );
+        } else if( !lStr_cmp(attrname, "text-line-through-type") ) {
+            m_rPr->setStrikeThrough( lStr_cmp( attrvalue, "none") !=0 );
+        } else if( !lStr_cmp(attrname, "text-position") ) {
+            lString16 val = attrvalue;
+
+            if( val.startsWith(L"super") ) {
+                m_rPr->setVertAlign(css_va_super);
+            } else if( val.startsWith(L"sub") ) {
+                m_rPr->setVertAlign(css_va_sub);
+            }
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+void odt_stylesHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname)
+{
+    switch(m_state) {
+    case odt_el_style:
+        if(m_style && m_style->isValid()) {
+            m_context->addStyle(m_styleRef);
+        }
+    default:
+        break;
+    }
+    if( !m_levels.empty() ) {
+        m_levels.erase(m_levels.length() - 1, 1);
+        if(! m_levels.empty() )
+            m_state = m_levels[m_levels.length() - 1];
+        else
+            m_state = m_element;
+    } else
+        stop();
 }
