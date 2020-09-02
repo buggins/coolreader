@@ -261,7 +261,7 @@
     <string name="dlg_about_textures_dirs">Textures directories:</string>
     <string name="dlg_about_backgrounds_dirs">Backgrounds directories:</string>
     <string name="dlg_about_hyphenations_dirs">Hyphenation dictionaries directories:</string>
-    <string name="dlg_about_copyright">© Vadim Lopatin, 1998–2019</string>
+    <string name="dlg_about_copyright">© Vadim Lopatin, 1998–2020</string>
     <string name="dlg_about_contributors_">and contributors…</string>
     <string name="mi_book_browser_normal_mode">Normal mode</string>
     <string name="mi_book_browser_simple_mode">Simple file list</string>
