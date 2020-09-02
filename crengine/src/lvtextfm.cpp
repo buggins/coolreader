@@ -4294,6 +4294,7 @@ public:
             int height = fmt.getHeight();
             formatted_line_t * frmline = lvtextAddFormattedLine( m_pbuffer );
             frmline->x = block_x;
+            frmline->width = width; // single word width
             frmline->y = cur_y;
             frmline->height = height;
             frmline->flags = 0; // no flags needed once page split has been done
