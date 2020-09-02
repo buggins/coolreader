@@ -85,7 +85,7 @@ extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.12.70"
+#define CACHE_FILE_FORMAT_VERSION "3.12.71"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0025
@@ -5078,10 +5078,20 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
     }
     else
         _element = _document->getRootNode(); //->insertChildElement( (lUInt32)-1, nsid, id );
-    if ( IS_FIRST_BODY && id==el_body ) {
-        _tocItem = _document->getToc();
-        //_tocItem->clear();
-        IS_FIRST_BODY = false;
+    if ( id==el_body ) {
+        if ( IS_FIRST_BODY ) {
+            _tocItem = _document->getToc();
+            //_tocItem->clear();
+            IS_FIRST_BODY = false;
+        }
+        else {
+            int fmt = _document->getProps()->getIntDef(DOC_PROP_FILE_FORMAT_ID, doc_format_none);
+            if ( fmt == doc_format_fb2 || fmt == doc_format_fb3 ) {
+                // Add FB2 2nd++ BODYs' titles (footnotes and endnotes) in the TOC
+                // (but not their own children that are <section>)
+                _isSection = true; // this is just to have updateTocItem() called
+            }
+        }
     }
     //logfile << "}";
 }
@@ -5159,11 +5169,16 @@ void ldomElementWriter::updateTocItem()
 {
     if ( !_isSection )
         return;
-    // TODO: update item
-    if ( _parent && _parent->_tocItem ) {
+    if ( !_parent )
+        return;
+    if ( _parent->_tocItem ) { // <section> in the first <body>
         lString16 title = getSectionHeader( _element );
         //CRLog::trace("TOC ITEM: %s", LCSTR(title));
         _tocItem = _parent->_tocItem->addChild(title, ldomXPointer(_element,0), getPath() );
+    }
+    else if ( getElement()->getNodeId() == el_body ) { // 2nd, 3rd... <body>, in FB2 documents
+        lString16 title = getSectionHeader( _element );
+        _document->getToc()->addChild(title, ldomXPointer(_element,0), getPath() );
     }
     _isSection = false;
 }
