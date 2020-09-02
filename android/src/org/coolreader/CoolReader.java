@@ -89,7 +89,7 @@ public class CoolReader extends BaseActivity {
 
 	private String mOptionAppearance = "0";
 
-	private String fileToLoadOnStart = null;
+	private String mFileToOpenFromExt = null;
 
 	private boolean isFirstStart = true;
 	private boolean phoneStateChangeHandlerInstalled = false;
@@ -468,6 +468,7 @@ public class CoolReader extends BaseActivity {
 		if (intent == null)
 			return false;
 		String fileToOpen = null;
+		mFileToOpenFromExt = null;
 		Uri uri = null;
 		if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 			uri = intent.getData();
@@ -481,6 +482,7 @@ public class CoolReader extends BaseActivity {
 			fileToOpen = intent.getExtras().getString(OPEN_FILE_PARAM);
 		}
 		if (fileToOpen != null) {
+			mFileToOpenFromExt = fileToOpen;
 			log.d("FILE_TO_OPEN = " + fileToOpen);
 			final String finalFileToOpen = fileToOpen;
 			loadDocument(fileToOpen, null, () -> BackgroundThread.instance().postGUI(() -> {
@@ -493,6 +495,7 @@ public class CoolReader extends BaseActivity {
 		} else if (null != uri) {
 			log.d("URI_TO_OPEN = " + uri);
 			final String uriString = uri.toString();
+			mFileToOpenFromExt = uriString;
 			loadDocumentFromUri(uri, null, () -> BackgroundThread.instance().postGUI(() -> {
 				// if document not loaded show error & then root window
 				ErrorDialog errDialog = new ErrorDialog(CoolReader.this, CoolReader.this.getString(R.string.error), CoolReader.this.getString(R.string.cant_open_file, uriString));
@@ -626,7 +629,10 @@ public class CoolReader extends BaseActivity {
 
 	@Override
 	protected void onResume() {
-		log.i("CoolReader.onResume()");
+		if (null == mFileToOpenFromExt)
+			log.i("CoolReader.onResume()");
+		else
+			log.i("CoolReader.onResume(), mFileToOpenFromExt=" + mFileToOpenFromExt);
 		super.onResume();
 		//Properties props = SettingsManager.instance(this).get();
 
@@ -651,7 +657,11 @@ public class CoolReader extends BaseActivity {
 			if (mSyncGoogleDriveEnabled && mGoogleDriveSync != null && !mGoogleDriveSync.isBusy()) {
 				// when the program starts, the local settings file is already updated, so the local file is always newer than the remote one
 				// Therefore, the synchronization mode is quiet, i.e. without comparing modification times and without prompting the user for action.
-				mGoogleDriveSync.startSyncFrom(true, true, false);
+				// If the file is opened from an external file manager, we must disable the "currently reading book" sync operation with google drive.
+				if (null == mFileToOpenFromExt)
+					mGoogleDriveSync.startSyncFrom(true, true, false);
+				else
+					mGoogleDriveSync.startSyncFromOnly(true, Synchronizer.SyncTarget.SETTINGS, Synchronizer.SyncTarget.BOOKMARKS);
 			}
 		}
 	}
@@ -666,7 +676,7 @@ public class CoolReader extends BaseActivity {
 
 	@Override
 	protected void onStart() {
-		log.i("CoolReader.onStart() version=" + getVersion() + ", fileToLoadOnStart=" + fileToLoadOnStart);
+		log.i("CoolReader.onStart() version=" + getVersion());
 		super.onStart();
 
 		//		BackgroundThread.instance().postGUI(new Runnable() {
@@ -917,7 +927,7 @@ public class CoolReader extends BaseActivity {
 						} else if (!mGoogleDriveSync.isBusy()) {
 							// After setting changed in OptionsDialog
 							log.d("Some settings is changed, uploading to cloud...");
-							mGoogleDriveSync.startSyncToOnly(Synchronizer.SyncTarget.SETTINGS, false);
+							mGoogleDriveSync.startSyncToOnly(false, Synchronizer.SyncTarget.SETTINGS);
 						}
 					}
 				}
@@ -1108,7 +1118,7 @@ public class CoolReader extends BaseActivity {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				// Save last opened document on cloud
 				if (mSyncGoogleDriveEnabled && mSyncGoogleDriveEnabledCurrentBooks && null != mGoogleDriveSync && !mGoogleDriveSync.isBusy())
-					mGoogleDriveSync.startSyncToOnly(Synchronizer.SyncTarget.CURRENTBOOKINFO, false);
+					mGoogleDriveSync.startSyncToOnly(false, Synchronizer.SyncTarget.CURRENTBOOKINFO);
 			}
 		} : doneCallback, errorCallback));
 	}
