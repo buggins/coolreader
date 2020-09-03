@@ -1211,6 +1211,70 @@ public class FileInfo {
 		return true;
 	}
 
+	public boolean mainEquals(FileInfo other) {
+		if (this == other)
+			return true;
+		if (other == null)
+			return false;
+		if (arcname == null) {
+			if (other.arcname != null)
+				return false;
+		} else if (!arcname.equals(other.arcname))
+			return false;
+		if (arcsize != other.arcsize)
+			return false;
+		if (authors == null) {
+			if (other.authors != null)
+				return false;
+		} else if (!authors.equals(other.authors))
+			return false;
+		if (filename == null) {
+			if (other.filename != null)
+				return false;
+		} else if (!filename.equals(other.filename))
+			return false;
+		if (flags != other.flags)
+			return false;
+		if (format != other.format)
+			return false;
+		if (isArchive != other.isArchive)
+			return false;
+		if (isDirectory != other.isDirectory)
+			return false;
+		if (language == null) {
+			if (other.language != null)
+				return false;
+		} else if (!language.equals(other.language))
+			return false;
+		if (path == null) {
+			if (other.path != null)
+				return false;
+		} else if (!path.equals(other.path))
+			return false;
+		if (pathname == null) {
+			if (other.pathname != null)
+				return false;
+		} else if (!pathname.equals(other.pathname))
+			return false;
+		if (series == null) {
+			if (other.series != null && other.series.length() != 0)
+				return false;
+		} else if (!series.equals(other.series) && !(series.length() == 0 && other.series == null))
+			return false;
+		if (seriesNumber != other.seriesNumber)
+			return false;
+		if (size != other.size)
+			return false;
+		if (title == null) {
+			if (other.title != null)
+				return false;
+		} else if (!title.equals(other.title))
+			return false;
+		if (crc32 != other.crc32)
+			return false;
+		return true;
+	}
+
 	@Override
 	public String toString()
 	{
