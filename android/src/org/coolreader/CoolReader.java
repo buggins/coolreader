@@ -375,7 +375,7 @@ public class CoolReader extends BaseActivity {
 							if (null != currentBook) {
 								FileInfo currentFileInfo = currentBook.getFileInfo();
 								if (null != currentFileInfo) {
-									if (currentFileInfo.equals(bookInfo.getFileInfo())) {
+									if (currentFileInfo.mainEquals((bookInfo.getFileInfo()))) {
 										// if the book indicated by the bookInfo is currently open.
 										Bookmark lastPos = bookInfo.getLastPosition();
 										if (null != lastPos) {

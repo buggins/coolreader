@@ -43,9 +43,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -1591,11 +1593,39 @@ public class BaseActivity extends Activity implements Settings {
 			return changed;
 		}
 
+		private boolean applyDefaultFallbackFontList(Properties props, String propName, String defFontList) {
+			String currentValue = props.getProperty(propName);
+			boolean changed = false;
+			if (currentValue == null) {
+				currentValue = defFontList;
+				changed = true;
+			}
+			List<String> faces = Arrays.asList(currentValue.split(";"));
+			StringBuilder allowedFaces = new StringBuilder();
+			Iterator<String> it = faces.iterator();
+			while (it.hasNext()) {
+				String face = it.next().trim();
+				if (isValidFontFace(face)) {
+					allowedFaces.append(face);
+					if (it.hasNext())
+						allowedFaces.append("; ");
+				}
+			}
+			if (!changed)
+				changed = !allowedFaces.toString().equals(currentValue);
+			if (changed) {
+				currentValue = allowedFaces.toString();
+				props.setProperty(propName, currentValue);
+			}
+			return changed;
+		}
+
 		public boolean fixFontSettings(Properties props) {
 			boolean res = false;
 			res = applyDefaultFont(props, ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE) || res;
 			res = applyDefaultFont(props, ReaderView.PROP_STATUS_FONT_FACE, DeviceInfo.DEF_FONT_FACE) || res;
 			res = applyDefaultFont(props, ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Sans Fallback") || res;
+			res = applyDefaultFallbackFontList(props, ReaderView.PROP_FALLBACK_FONT_FACES, "Droid Sans Fallback; Noto Sans CJK SC; Noto Sans Arabic UI; Noto Sans Devanagari UI; Roboto; FreeSans; FreeSerif; Noto Serif; Noto Sans; Arial Unicode MS") || res;
 			return res;
 		}
 

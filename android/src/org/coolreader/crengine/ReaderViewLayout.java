@@ -1,9 +1,12 @@
 package org.coolreader.crengine;
 
 import android.graphics.Rect;
+import android.os.Build;
 import android.view.ViewGroup;
 
 import org.coolreader.CoolReader;
+
+import java.util.ArrayList;
 
 public class ReaderViewLayout extends ViewGroup implements Settings {
 
@@ -90,28 +93,30 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 			statusBackground = contentView.createToolbarBackgroundDrawable();
 			this.statusView.setBackgroundDrawable(statusBackground);
 			toolbarBackground = contentView.createToolbarBackgroundDrawable();
-			this.toolbarView = new CRToolBar(context, ReaderAction.createList(new ReaderAction[] {
-				ReaderAction.GO_BACK,
-				ReaderAction.TOC,
-				ReaderAction.SEARCH,
-				ReaderAction.OPTIONS,
-				ReaderAction.BOOKMARKS,
-				ReaderAction.FILE_BROWSER_ROOT,
-				ReaderAction.TOGGLE_DAY_NIGHT,
-				ReaderAction.TOGGLE_SELECTION_MODE,
-				ReaderAction.GO_PAGE,
-				ReaderAction.GO_PERCENT,
-				ReaderAction.FILE_BROWSER,
-				ReaderAction.TTS_PLAY,
-				ReaderAction.GO_FORWARD,
-				ReaderAction.RECENT_BOOKS,
-				ReaderAction.OPEN_PREVIOUS_BOOK,
-				ReaderAction.TOGGLE_AUTOSCROLL,
-				ReaderAction.GDRIVE_SYNCTO,
-				ReaderAction.GDRIVE_SYNCFROM,
-				ReaderAction.ABOUT,
-				ReaderAction.EXIT,
-			}), false);
+			ArrayList<ReaderAction> actionsList = ReaderAction.createList(
+					ReaderAction.GO_BACK,
+					ReaderAction.TOC,
+					ReaderAction.SEARCH,
+					ReaderAction.OPTIONS,
+					ReaderAction.BOOKMARKS,
+					ReaderAction.FILE_BROWSER_ROOT,
+					ReaderAction.TOGGLE_DAY_NIGHT,
+					ReaderAction.TOGGLE_SELECTION_MODE,
+					ReaderAction.GO_PAGE,
+					ReaderAction.GO_PERCENT,
+					ReaderAction.FILE_BROWSER,
+					ReaderAction.TTS_PLAY,
+					ReaderAction.GO_FORWARD,
+					ReaderAction.RECENT_BOOKS,
+					ReaderAction.OPEN_PREVIOUS_BOOK,
+					ReaderAction.TOGGLE_AUTOSCROLL);
+			if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+				actionsList.add(ReaderAction.GDRIVE_SYNCTO);
+				actionsList.add(ReaderAction.GDRIVE_SYNCFROM);
+			}
+			actionsList.add(ReaderAction.ABOUT);
+			actionsList.add(ReaderAction.EXIT);
+			this.toolbarView = new CRToolBar(context, actionsList, false);
 			this.toolbarView.setBackgroundDrawable(toolbarBackground);
 			this.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 			this.addView(toolbarView);
