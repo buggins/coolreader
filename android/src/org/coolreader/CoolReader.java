@@ -324,13 +324,13 @@ public class CoolReader extends BaseActivity {
 
 				@Override
 				public void OnSyncProgress(Synchronizer.SyncDirection direction, int current, int total) {
-					runInReader(() -> {
+					log.v("sync progress: current=" + current + "; total=" + total);
+					if (null != mReaderView) {
 						int total_ = total;
-						log.v("sync progress: current=" + current + "; total=" + total);
 						if (current > total_)
 							total_ = current;
 						mReaderView.showCloudSyncProgress(10000 * current / total_);
-					});
+					};
 				}
 
 				@Override
@@ -338,13 +338,15 @@ public class CoolReader extends BaseActivity {
 					log.d("Google Drive SyncTo successfully completed");
 					showToast(R.string.googledrive_sync_completed);
 					// Hide sync indicator
-					runInReader(() -> mReaderView.hideSyncProgress());
+					if (null != mReaderView)
+						mReaderView.hideSyncProgress();
 				}
 
 				@Override
 				public void onSyncError(Synchronizer.SyncDirection direction, String errorString) {
 					// Hide sync indicator
-					runInReader(() -> mReaderView.hideSyncProgress());
+					if (null != mReaderView)
+						mReaderView.hideSyncProgress();
 					if (null != errorString)
 						showToast(R.string.googledrive_sync_failed_with, errorString);
 					else
@@ -354,7 +356,8 @@ public class CoolReader extends BaseActivity {
 				@Override
 				public void onAborted(Synchronizer.SyncDirection direction) {
 					// Hide sync indicator
-					runInReader(() -> mReaderView.hideSyncProgress());
+					if (null != mReaderView)
+						mReaderView.hideSyncProgress();
 					showToast(R.string.googledrive_sync_aborted);
 				}
 
