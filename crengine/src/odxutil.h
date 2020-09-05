@@ -5,6 +5,8 @@
 #define DOCX_FB2_DOM_STRUCTURE 1
 //If true <title class="hx"><p>...</p></title> else <title><hx>..</hx></title>
 #define DOCX_USE_CLASS_FOR_HEADING true
+// comment this out to disable in-page footnotes
+#define ODX_CRENGINE_IN_PAGE_FOOTNOTES 1
 
 enum odx_style_type {
     odx_invalid_style,
@@ -227,8 +229,10 @@ class odx_ImportContext
     LVHashTable<lString16, odx_StyleRef> m_styles;
     odx_rPr m_rPrDefault;
     odx_pPr m_pPrDefault;
+protected:
+    ldomDocument* m_doc;
 public:
-    odx_ImportContext() : m_styles(64) { }
+    odx_ImportContext(ldomDocument* doc) : m_styles(64), m_doc(doc) { }
     virtual ~odx_ImportContext() {}
     void addStyle( odx_StyleRef style );
     odx_Style * getStyle( lString16 id ) {
@@ -236,6 +240,10 @@ public:
     }
     inline odx_rPr * get_rPrDefault() { return &m_rPrDefault; }
     inline odx_pPr * get_pPrDefault() { return &m_pPrDefault; }
+    void setLanguage(const lChar16 *lang);
+    lString16 getListStyleCss(css_list_style_type_t listType);
+    void startDocument(ldomDocumentWriter& writer);
+    void endDocument(ldomDocumentWriter& writer);
 };
 
 class odx_Style : public LVRefCounter
@@ -426,18 +434,17 @@ public:
 
 class odx_styleTagsHandler
 {
-    ldomDocumentWriter *_writer;
     lString16 m_styleTags;
     int styleTagPos(lChar16 ch);
 protected:
     const lChar16 * getStyleTagName( lChar16 ch );
-    void closeStyleTag( lChar16 ch);
-    void openStyleTag( lChar16 ch);
+    void closeStyleTag( lChar16 ch, ldomDocumentWriter *writer);
+    void openStyleTag(lChar16 ch, ldomDocumentWriter *writer);
 public:
-    odx_styleTagsHandler(ldomDocumentWriter *writer) : _writer(writer) {}
-    void openStyleTags(odx_rPr* runProps);
-    void closeStyleTags(odx_rPr* runProps);
-    void closeStyleTags();
+    odx_styleTagsHandler() {}
+    void openStyleTags(odx_rPr* runProps, ldomDocumentWriter *writer);
+    void closeStyleTags(odx_rPr* runProps, ldomDocumentWriter *writer);
+    void closeStyleTags(ldomDocumentWriter *writer);
 };
 
 class odx_titleHandler

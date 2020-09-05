@@ -366,6 +366,81 @@ void odx_ImportContext::addStyle(odx_StyleRef style)
     }
 }
 
+void odx_ImportContext::setLanguage(const lChar16 *lang)
+{
+    lString16 language(lang);
+
+    int p = language.pos(cs16("-"));
+    if ( p > 0  ) {
+        language = language.substr(0, p);
+    }
+    m_doc->getProps()->setString(DOC_PROP_LANGUAGE, language);
+}
+
+lString16 odx_ImportContext::getListStyleCss(css_list_style_type_t listType)
+{
+    switch(listType) {
+    case css_lst_disc:
+        return cs16("list-style-type: disc;");
+    case css_lst_circle:
+        return cs16("list-style-type: circle;");
+    case css_lst_square:
+        return cs16("list-style-type: square;");
+    case css_lst_decimal:
+        return cs16("list-style-type: decimal;");
+    case css_lst_lower_roman:
+        return cs16("list-style-type: lower-roman;");
+    case css_lst_upper_roman:
+        return cs16("list-style-type: upper-roman;");
+    case css_lst_lower_alpha:
+        return cs16("list-style-type: lower-alpha;");
+    case css_lst_upper_alpha:
+        return cs16("list-style-type: upper-alpha;");
+    default:
+        break;
+    }
+    return cs16("list-style-type: none;");
+}
+
+void odx_ImportContext::startDocument(ldomDocumentWriter &writer)
+{
+#ifdef DOCX_FB2_DOM_STRUCTURE
+    writer.OnStart(NULL);
+    writer.OnTagOpen(NULL, L"?xml");
+    writer.OnAttribute(NULL, L"version", L"1.0");
+    writer.OnAttribute(NULL, L"encoding", L"utf-8");
+    writer.OnEncoding(L"utf-8", NULL);
+    writer.OnTagBody();
+    writer.OnTagClose(NULL, L"?xml");
+    writer.OnTagOpenNoAttr(NULL, L"FictionBook");
+    // DESCRIPTION
+    writer.OnTagOpenNoAttr(NULL, L"description");
+    writer.OnTagOpenNoAttr(NULL, L"title-info");
+    writer.OnTagOpenNoAttr(NULL, L"book-title");
+    writer.OnTagClose(NULL, L"book-title");
+    writer.OnTagClose(NULL, L"title-info");
+    writer.OnTagClose(NULL, L"description");
+#else
+    writer.OnStart(NULL);
+    writer.OnTagOpen(NULL, L"?xml");
+    writer.OnAttribute(NULL, L"version", L"1.0");
+    writer.OnAttribute(NULL, L"encoding", L"utf-8");
+    writer.OnEncoding(L"utf-8", NULL);
+    writer.OnTagBody();
+    writer.OnTagClose(NULL, L"?xml");
+    writer.OnTagOpenNoAttr(NULL, L"html");
+#endif
+}
+
+void odx_ImportContext::endDocument(ldomDocumentWriter &writer)
+{
+#ifdef DOCX_FB2_DOM_STRUCTURE
+    writer.OnTagClose(NULL, L"FictionBook");
+#else
+    writer.OnTagClose(NULL, L"html");
+#endif
+}
+
 int odx_styleTagsHandler::styleTagPos(lChar16 ch)
 {
     for (int i=0; i < m_styleTags.length(); i++)
@@ -394,7 +469,7 @@ const lChar16 *odx_styleTagsHandler::getStyleTagName(lChar16 ch)
     }
 }
 
-void odx_styleTagsHandler::closeStyleTag(lChar16 ch)
+void odx_styleTagsHandler::closeStyleTag(lChar16 ch, ldomDocumentWriter *writer)
 {
     int pos = styleTagPos( ch );
     if (pos >= 0) {
@@ -402,59 +477,59 @@ void odx_styleTagsHandler::closeStyleTag(lChar16 ch)
             const lChar16 * tag = getStyleTagName(m_styleTags[i]);
             m_styleTags.erase(m_styleTags.length() - 1, 1);
             if ( tag ) {
-                _writer->OnTagClose(L"", tag);
+                writer->OnTagClose(L"", tag);
             }
         }
     }
 }
 
-void odx_styleTagsHandler::openStyleTag(lChar16 ch)
+void odx_styleTagsHandler::openStyleTag(lChar16 ch, ldomDocumentWriter *writer)
 {
     int pos = styleTagPos( ch );
     if (pos < 0) {
         const lChar16 * tag = getStyleTagName(ch);
         if ( tag ) {
-            _writer->OnTagOpenNoAttr(L"", tag);
+            writer->OnTagOpenNoAttr(L"", tag);
             m_styleTags.append( 1,  ch );
         }
     }
 }
 
-void odx_styleTagsHandler::openStyleTags(odx_rPr *runProps)
+void odx_styleTagsHandler::openStyleTags(odx_rPr *runProps, ldomDocumentWriter *writer)
 {
     if(runProps->isBold())
-        openStyleTag('b');
+        openStyleTag('b', writer);
     if(runProps->isItalic())
-        openStyleTag('i');
+        openStyleTag('i', writer);
     if(runProps->isUnderline())
-        openStyleTag('u');
+        openStyleTag('u', writer);
     if(runProps->isStrikeThrough())
-        openStyleTag('s');
+        openStyleTag('s', writer);
     if(runProps->isSubScript())
-        openStyleTag('d');
+        openStyleTag('d', writer);
     if(runProps->isSuperScript())
-        openStyleTag('t');
+        openStyleTag('t', writer);
 }
 
-void odx_styleTagsHandler::closeStyleTags(odx_rPr *runProps)
+void odx_styleTagsHandler::closeStyleTags(odx_rPr *runProps, ldomDocumentWriter *writer)
 {
     if(!runProps->isBold())
-        closeStyleTag('b');
+        closeStyleTag('b', writer);
     if(!runProps->isItalic())
-        closeStyleTag('i');
+        closeStyleTag('i', writer);
     if(!runProps->isUnderline())
-        closeStyleTag('u');
+        closeStyleTag('u', writer);
     if(!runProps->isStrikeThrough())
-        closeStyleTag('s');
+        closeStyleTag('s', writer);
     if(!runProps->isSubScript())
-        closeStyleTag('d');
+        closeStyleTag('d', writer);
     if(!runProps->isSuperScript())
-        closeStyleTag('t');
+        closeStyleTag('t', writer);
 }
 
-void odx_styleTagsHandler::closeStyleTags()
+void odx_styleTagsHandler::closeStyleTags(ldomDocumentWriter *writer)
 {
     for(int i = m_styleTags.length() - 1; i >= 0; i--)
-        closeStyleTag(m_styleTags[i]);
+        closeStyleTag(m_styleTags[i], writer);
     m_styleTags.clear();
 }

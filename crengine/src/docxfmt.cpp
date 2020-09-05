@@ -10,9 +10,6 @@
 #define DOCX_TAG_CHILD(itm) { DOCX_TAG_ID(itm), DOCX_TAG_NAME(itm) }
 #define DOCX_LAST_ITEM { -1, NULL }
 
-// comment this out to disable in-page footnotes
-#define DOCX_CRENGINE_IN_PAGE_FOOTNOTES 1
-
 static const lChar16* const docx_DocumentContentType   = L"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
 static const lChar16* const docx_NumberingContentType  = L"application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml";
 static const lChar16* const docx_StylesContentType     = L"application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml";
@@ -386,7 +383,6 @@ private:
     OpcPartRef m_docPart;
     OpcPartRef m_relatedPart;
     OpcPackage* m_package;
-    ldomDocument* m_doc;
 public:
     docxImportContext(OpcPackage *package, ldomDocument * doc);
     virtual ~docxImportContext();
@@ -412,15 +408,12 @@ public:
     void closeList(int level, ldomDocumentWriter *writer);
     inline int getListLevel() { return m_ListLevels.length(); }
     inline bool isInList() { return m_ListLevels.length() != 0; }
-    void setLanguage(const lChar16 *lang);
     lString16 m_footNoteId;
     int m_footNoteCount;
     int m_endNoteCount;
     bool m_inField;
     ldomNode *m_linkNode;
     odx_Style* m_pStyle;
-private:
-    lString16 getListStyle(css_list_style_type_t listType);
 };
 
 class docx_ElementHandler : public xml_ElementHandler
@@ -544,7 +537,6 @@ private:
 public:
     docx_pHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, odx_titleHandler* p_documentHandler) :
         docx_ElementHandler(reader, writer, context, docx_el_p, p_elements),
-        odx_styleTagsHandler(writer),
         m_pPrHandler(reader, writer, context),
         m_rHandler(reader, writer, context, this),
         m_titleHandler(p_documentHandler),
@@ -817,7 +809,7 @@ void docx_ElementHandler::generateLink(const lChar16 *target, const lChar16 *typ
     // Add classic role=doc-noteref attribute to allow popup/in-page footnotes
     m_writer->OnAttribute(L"", L"role", L"doc-noteref");
     m_writer->OnTagBody();
-#ifndef DOCX_CRENGINE_IN_PAGE_FOOTNOTES
+#ifndef ODX_CRENGINE_IN_PAGE_FOOTNOTES
     if( !lStr_cmp(type, "note") ) {
         // For footnotes (but not endnotes), wrap in <sup> (to get the
         // same effect as the following in docx.css:
@@ -828,7 +820,7 @@ void docx_ElementHandler::generateLink(const lChar16 *target, const lChar16 *typ
 #endif
     lString16 t(text);
     m_writer->OnText(t.c_str(), t.length(), 0);
-#ifndef DOCX_CRENGINE_IN_PAGE_FOOTNOTES
+#ifndef ODX_CRENGINE_IN_PAGE_FOOTNOTES
     if( !lStr_cmp(type, "note") ) {
         m_writer->OnTagClose(L"", L"sup");
     }
@@ -961,8 +953,8 @@ ldomNode *docx_rHandler::handleTagOpen(int tagId)
             if( m_importContext->m_pStyle )
                 m_rPr.combineWith(m_importContext->m_pStyle->get_rPr(m_importContext));
             m_rPr.combineWith(m_importContext->get_rPrDefault());
-            m_pHandler->closeStyleTags(&m_rPr);
-            m_pHandler->openStyleTags(&m_rPr);
+            m_pHandler->closeStyleTags(&m_rPr, m_writer);
+            m_pHandler->openStyleTags(&m_rPr, m_writer);
             m_content = true;
         }
         m_state = tagId;
@@ -1300,7 +1292,7 @@ void docx_pHandler::handleTagClose( const lChar16 * nsname, const lChar16 * tagn
 
     switch(m_state) {
     case docx_el_p:
-        closeStyleTags();
+        closeStyleTags(m_writer);
         if( m_pPr.getNumberingId() == 0 ) {
             if( !m_inTitle ) {
                 m_writer->OnTagClose(L"", L"p");
@@ -1539,7 +1531,7 @@ void parseFootnotes(ldomDocumentWriter& writer, docxImportContext& context, int 
         LVXMLParser parser(m_stream, &docReader);
 
         if(parser.Parse())
-#ifdef DOCX_CRENGINE_IN_PAGE_FOOTNOTES
+#ifdef ODX_CRENGINE_IN_PAGE_FOOTNOTES
             writer.OnTagClose(L"", docx_el_body_name);
 #else
             // We didn't add <body name=notes> to not trigger crengine auto-in-page-foonotes
@@ -1584,38 +1576,13 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     ldomDocumentWriter writer(doc);
     docXMLreader docReader(&writer);
 
-#ifdef DOCX_FB2_DOM_STRUCTURE
-    writer.OnStart(NULL);
-    writer.OnTagOpen(NULL, L"?xml");
-    writer.OnAttribute(NULL, L"version", L"1.0");
-    writer.OnAttribute(NULL, L"encoding", L"utf-8");
-    writer.OnEncoding(L"utf-8", NULL);
-    writer.OnTagBody();
-    writer.OnTagClose(NULL, L"?xml");
-    writer.OnTagOpenNoAttr(NULL, L"FictionBook");
-    // DESCRIPTION
-    writer.OnTagOpenNoAttr(NULL, L"description");
-    writer.OnTagOpenNoAttr(NULL, L"title-info");
-    writer.OnTagOpenNoAttr(NULL, L"book-title");
-    writer.OnTagClose(NULL, L"book-title");
-    writer.OnTagClose(NULL, L"title-info");
-    writer.OnTagClose(NULL, L"description");
-#else
-    writer.OnStart(NULL);
-    writer.OnTagOpen(NULL, L"?xml");
-    writer.OnAttribute(NULL, L"version", L"1.0");
-    writer.OnAttribute(NULL, L"encoding", L"utf-8");
-    writer.OnEncoding(L"utf-8", NULL);
-    writer.OnTagBody();
-    writer.OnTagClose(NULL, L"?xml");
-    writer.OnTagOpenNoAttr(NULL, L"html");
-#endif
+    importContext.startDocument(writer);
 
 #ifdef DOCX_FB2_DOM_STRUCTURE
     //Two options when dealing with titles: (FB2|HTML)
     odx_fb2TitleHandler titleHandler(&writer, DOCX_USE_CLASS_FOR_HEADING); //<section><title>..</title></section>
 #else
-    docx_titleHandler titleHandler(&writer);  //<hx>..</hx>
+    odx_titleHandler titleHandler(&writer);  //<hx>..</hx>
 #endif
     docx_documentHandler documentHandler(&docReader, &writer, &importContext, &titleHandler);
     docReader.setHandler(&documentHandler);
@@ -1631,11 +1598,8 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     if(importContext.m_endNoteCount > 0) {
         parseFootnotes(writer, importContext, docx_el_endnotes);
     }
-#ifdef DOCX_FB2_DOM_STRUCTURE
-    writer.OnTagClose(NULL, L"FictionBook");
-#else
-    writer.OnTagClose(NULL, L"html");
-#endif
+
+    importContext.endDocument(writer);
     writer.OnStop();
 
     if ( progressCallback ) {
@@ -1643,17 +1607,14 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
         doc->compact();
         doc->dumpStatistics();
     }
-#if 1
-    // save compound XML document, for testing:
-    doc->saveToStream(LVOpenFileStream("D:/Temp/docx_dump.xml", LVOM_WRITE), NULL, true);
-#endif
     return true;
 }
 
-docxImportContext::docxImportContext(OpcPackage *package, ldomDocument *doc) : m_abstractNumbers(16),
+docxImportContext::docxImportContext(OpcPackage *package, ldomDocument *doc) :
+    odx_ImportContext(doc), m_abstractNumbers(16),
     m_Numbers(16), m_footNoteCount(0), m_endNoteCount(0),
     m_inField(false), m_linkNode(NULL), m_pStyle(NULL),
-    m_package(package), m_doc(doc)
+    m_package(package)
 {
 }
 
@@ -1713,10 +1674,8 @@ void docxImportContext::openList(int level, int numid, ldomDocumentWriter *write
         if (listLevel)
             listType = listLevel->getListType();
         writer->OnTagOpen(L"", L"ol");
-        lString16 listStyle = getListStyle(listType);
-         m_ListLevels.add(listType);
-        if ( !listStyle.empty() )
-            writer->OnAttribute(L"", L"style", listStyle.c_str());
+        m_ListLevels.add(listType);
+        writer->OnAttribute(L"", L"style", getListStyleCss(listType).c_str());
         writer->OnTagBody();
         if ( i != level - 1 )
             writer->OnTagOpenNoAttr(L"", L"li");
@@ -1729,41 +1688,6 @@ void docxImportContext::closeList(int level, ldomDocumentWriter *writer)
         writer->OnTagClose(L"", L"li");
         writer->OnTagClose(L"", L"ol");
         m_ListLevels.remove(getListLevel() - 1);
-    }
-}
-
-void docxImportContext::setLanguage(const lChar16 *lang)
-{
-    lString16 language(lang);
-
-    int p = language.pos(cs16("-"));
-    if ( p > 0  ) {
-        language = language.substr(0, p);
-    }
-    m_doc->getProps()->setString(DOC_PROP_LANGUAGE, language);
-}
-
-lString16 docxImportContext::getListStyle(css_list_style_type_t listType)
-{
-    switch(listType) {
-    case css_lst_disc:
-        return lString16("list-style-type: disc;");
-    case css_lst_circle:
-        return lString16("list-style-type: circle;");
-    case css_lst_square:
-        return lString16("list-style-type: square;");
-    case css_lst_decimal:
-        return lString16("list-style-type: decimal;");
-    case css_lst_lower_roman:
-        return lString16("list-style-type: lower-roman;");
-    case css_lst_upper_roman:
-        return lString16("list-style-type: upper-roman;");
-    case css_lst_lower_alpha:
-        return lString16("list-style-type: lower-alpha;");
-    case css_lst_upper_alpha:
-        return lString16("list-style-type: upper-alpha;");
-    default:
-        return lString16();
     }
 }
 
@@ -1879,7 +1803,7 @@ ldomNode *docx_footnotesHandler::handleTagOpen(int tagId)
         break;
     case docx_el_footnotes:
     case docx_el_endnotes:
-#ifdef DOCX_CRENGINE_IN_PAGE_FOOTNOTES
+#ifdef ODX_CRENGINE_IN_PAGE_FOOTNOTES
         m_writer->OnTagOpen(L"", docx_el_body_name);
         if(isEndNote()) {
             m_writer->OnAttribute(L"", L"name", L"comments");
