@@ -97,23 +97,8 @@ public:
                 set(i, baseValue);
         }
     }
-    void setStyleId(odx_ImportContext* context, const lChar16* styleId) {
-        m_styleId = styleId;
-        if ( !m_styleId.empty() ) {
-            odx_Style *style = context->getStyle(m_styleId);
-            if( style && (m_styleType == style->getStyleType()) ) {
-                combineWith(style->getStyleProperties(context, m_styleType));
-            }
-        }
-    }
-    odx_Style* getStyle(odx_ImportContext* context) {
-        odx_Style* ret = NULL;
-
-        if (!m_styleId.empty() ) {
-            ret = context->getStyle(m_styleId);
-        }
-        return ret;
-    }
+    void setStyleId(odx_ImportContext* context, const lChar16* styleId);
+    odx_Style* getStyle(odx_ImportContext* context);
 protected:
     css_length_t m_properties[N];
 private:
@@ -124,6 +109,7 @@ private:
         }
     }
 };
+
 
 enum odx_run_properties
 {
@@ -272,13 +258,34 @@ public:
     inline odx_style_type getStyleType() const { return m_type; }
     inline void setStyleType(odx_style_type value) { m_type = value; }
     odx_Style* getBaseStyle(odx_ImportContext* context);
-    inline odx_pPr * get_pPr(odx_ImportContext* context);
-    inline odx_rPr * get_rPr(odx_ImportContext* context);
+    odx_pPr * get_pPr(odx_ImportContext* context);
+    odx_rPr * get_rPr(odx_ImportContext* context);
     inline odx_pPr * get_pPrPointer() { return &m_pPr; }
     inline odx_rPr * get_rPrPointer() { return &m_rPr; }
     odx_StylePropertiesGetter* getStyleProperties(odx_ImportContext* context,
                                                   odx_style_type styleType);
 };
+
+template<int N>
+void odx_StylePropertiesContainer<N>::setStyleId(odx_ImportContext *context, const lChar16 *styleId) {
+    m_styleId = styleId;
+    if ( !m_styleId.empty() ) {
+        odx_Style *style = context->getStyle(m_styleId);
+        if( style && (m_styleType == style->getStyleType()) ) {
+            combineWith(style->getStyleProperties(context, m_styleType));
+        }
+    }
+}
+
+template<int N>
+odx_Style *odx_StylePropertiesContainer<N>::getStyle(odx_ImportContext *context) {
+    odx_Style* ret = NULL;
+
+    if (!m_styleId.empty() ) {
+        ret = context->getStyle(m_styleId);
+    }
+    return ret;
+}
 
 /// known docx items name and identifier
 struct item_def_t {
@@ -468,7 +475,7 @@ class odx_fb2TitleHandler : public odx_titleHandler
 {
 public:
     odx_fb2TitleHandler(ldomDocumentWriter *writer, bool useClassName) :
-        odx_titleHandler(writer, useClassName)
+        odx_titleHandler(writer, useClassName), m_hasTitle(false)
     {}
     ldomNode* onBodyStart();
     void onTitleStart(int level, bool noSection = false);
