@@ -14,10 +14,18 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 29;
+	public final int DB_VERSION = 30;
 	@Override
 	protected boolean upgradeSchema() {
-		if (mDB.needUpgrade(DB_VERSION)) {
+		// When the database is just created, its version is 0.
+		int currentVersion = mDB.getVersion();
+		// TODO: check database structure consistency regardless of its version.
+		if (currentVersion > DB_VERSION) {
+			// trying to update the structure of a database that has been modified by some kind of inconsistent fork of the program.
+			log.v("MainDB: incompatible database version found (" + currentVersion + "), forced setting to 26.");
+			currentVersion = 26;
+		}
+		if (mDB.needUpgrade(DB_VERSION) || currentVersion < DB_VERSION) {
 			execSQL("CREATE TABLE IF NOT EXISTS author (" +
 					"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 					"name VARCHAR NOT NULL COLLATE NOCASE" +
@@ -88,7 +96,6 @@ public class MainDB extends BaseDB {
 					")");
 			execSQL("CREATE INDEX IF NOT EXISTS " +
 			"bookmark_book_index ON bookmark (book_fk) ");
-			int currentVersion = mDB.getVersion();
 			// ====================================================================
 			if ( currentVersion<1 )
 				execSQLIgnoreErrors("ALTER TABLE bookmark ADD COLUMN shortcut INTEGER DEFAULT 0");
@@ -191,13 +198,16 @@ public class MainDB extends BaseDB {
 					}
 				}
 			}
+			if (currentVersion < 30) {
+				// Forced update DOM version from previous latest (20200223) to current (20200824).
+				execSQLIgnoreErrors("UPDATE book SET domVersion=20200824 WHERE domVersion=20200223");
+			}
 
 			//==============================================================
 			// add more updates above this line
 				
 			// set current version
-			if (currentVersion < DB_VERSION)
-				mDB.setVersion(DB_VERSION);
+			mDB.setVersion(DB_VERSION);
 		}
 
 		dumpStatistics();
@@ -209,7 +219,7 @@ public class MainDB extends BaseDB {
 		log.i("mainDB: " + longQuery("SELECT count(*) FROM author") + " authors, "
 				 + longQuery("SELECT count(*) FROM series") + " series, "
 				 + longQuery("SELECT count(*) FROM book") + " books, "
-				 + longQuery("SELECT count(*) FROM bookmark") + " bookmarks"
+				 + longQuery("SELECT count(*) FROM bookmark") + " bookmarks, "
 				 + longQuery("SELECT count(*) FROM folder") + " folders"
 		);
 	}
@@ -1511,6 +1521,37 @@ public class MainDB extends BaseDB {
 		endReading();
 		return list;
 	}
+
+	/*
+	public ArrayList<FileInfo> findByFingerprint (int maxCount, String filename, int crc32)
+	{
+		// TODO: replace crc32 with sha512, remove filename as search criteria
+
+		beginReading();
+		ArrayList<FileInfo> list = new ArrayList<>();
+
+		String condition = " WHERE b.crc32=" + crc32;
+		String sql = READ_FILEINFO_SQL + condition;
+		Log.d("cr3", "sql: " + sql );
+		try (Cursor rs = mDB.rawQuery(sql, null)) {
+			if (rs.moveToFirst()) {
+				int count = 0;
+				do {
+					if (filename != null && filename.length() > 0)
+						if (!Utils.matchPattern(rs.getString(3), filename))
+							continue;
+					FileInfo fi = new FileInfo();
+					readFileInfoFromCursor(fi, rs);
+					list.add(fi);
+					fileInfoCache.put(fi);
+					count++;
+				} while (count < maxCount && rs.moveToNext());
+			}
+		}
+		endReading();
+		return list;
+	}
+	*/
 
 	public ArrayList<FileInfo> loadFileInfos(ArrayList<String> pathNames) {
 		ArrayList<FileInfo> list = new ArrayList<>();

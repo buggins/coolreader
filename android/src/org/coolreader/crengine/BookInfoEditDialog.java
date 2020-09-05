@@ -365,10 +365,10 @@ public class BookInfoEditDialog extends BaseDialog {
 	@Override
 	protected void onPositiveButtonClick() {
 		save();
-		mActivity.loadDocument(mBookInfo.getFileInfo(), () -> {
+		mActivity.loadDocument(mBookInfo.getFileInfo(), null, () -> {
 			// error occured
 			// ignoring
-		});
+		}, true);
 		super.onPositiveButtonClick();
 	}
 

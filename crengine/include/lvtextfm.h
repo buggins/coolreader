@@ -81,7 +81,8 @@ extern "C" {
 
 #define LTEXT_FIT_GLYPHS             0x08000000  // Avoid glyph overflows and override at line edges and between text nodes
 
-#define LTEXT__AVAILABLE_BIT_29__    0x10000000
+#define LTEXT_LEGACY_RENDERING       0x10000000  // Legacy rendering exceptions: new line processing: set indentation for **each** new line, etc.
+
 #define LTEXT__AVAILABLE_BIT_30__    0x20000000
 #define LTEXT__AVAILABLE_BIT_31__    0x40000000
 #define LTEXT__AVAILABLE_BIT_32__    0x80000000

@@ -1008,15 +1008,17 @@ LVStreamRef LVDocView::getCoverPageImageStream() {
     // FB2 coverpage
 	//CRLog::trace("LVDocView::getCoverPageImage()");
 	//m_doc->dumpStatistics();
-	lUInt16 path[] = { el_FictionBook, el_description, el_title_info,
-			el_coverpage, 0 };
+	lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, 0 };
 	//lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, el_image, 0 };
 	ldomNode * rootNode = m_doc->getRootNode();
 	ldomNode * cover_el = 0;
-	if (rootNode)
+	if (rootNode) {
 		cover_el = rootNode->findChildElement(path);
-	//ldomNode * cover_img_el = m_doc->getRootNode()->findChildElement( path );
-
+		if (!cover_el) { // might otherwise be found inside <src-title-info>
+			lUInt16 path2[] = { el_FictionBook, el_description, el_src_title_info, el_coverpage, 0 };
+			cover_el = rootNode->findChildElement(path2);
+		}
+	}
 	if (cover_el) {
 		ldomNode * cover_img_el = cover_el->findChildElement(LXML_NS_ANY,
 				el_image, 0);
@@ -1035,15 +1037,17 @@ LVImageSourceRef LVDocView::getCoverPageImage() {
 	//        CRLog::trace("Image stream size is %d", (int)stream->GetSize() );
 	//CRLog::trace("LVDocView::getCoverPageImage()");
 	//m_doc->dumpStatistics();
-	lUInt16 path[] = { el_FictionBook, el_description, el_title_info,
-			el_coverpage, 0 };
+	lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, 0 };
 	//lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, el_image, 0 };
 	ldomNode * cover_el = 0;
 	ldomNode * rootNode = m_doc->getRootNode();
-	if (rootNode)
+	if (rootNode) {
 		cover_el = rootNode->findChildElement(path);
-	//ldomNode * cover_img_el = m_doc->getRootNode()->findChildElement( path );
-
+		if (!cover_el) { // might otherwise be found inside <src-title-info>
+			lUInt16 path2[] = { el_FictionBook, el_description, el_src_title_info, el_coverpage, 0 };
+			cover_el = rootNode->findChildElement(path2);
+		}
+	}
 	if (cover_el) {
 		ldomNode * cover_img_el = cover_el->findChildElement(LXML_NS_ANY,
 				el_image, 0);
@@ -1126,7 +1130,9 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
         if (dst_dy > rc.height() * 6 / 8)
 			dst_dy = imgrc.height();
 		//CRLog::trace("drawCoverTo() - drawing image");
-        LVColorDrawBuf buf2(src_dx, src_dy, 32);
+        // It's best to use a 16bpp LVColorDrawBuf as the intermediate buffer,
+        // as using 32bpp would mess colors up when drawBuf is itself 32bpp.
+        LVColorDrawBuf buf2(src_dx, src_dy, 16);
         buf2.Draw(imgsrc, 0, 0, src_dx, src_dy, true);
         drawBuf->DrawRescaled(&buf2, imgrc.left + (imgrc.width() - dst_dx) / 2,
                 imgrc.top + (imgrc.height() - dst_dy) / 2, dst_dx, dst_dy, 0);
@@ -2619,19 +2625,21 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex) {
     // be some area which is rendered "final" without any content,
     // thus holding no node. We could then get a null 'start' or
     // 'end' below by looking only at start_y or end_y.
-    // So, in all cases, loop while increasing or decrasing y
+    // So, in all cases, loop while increasing or decreasing y
     // to get more chances of finding a valid XPointer.
     LVRef < ldomXRange > res(NULL);
     int start_y;
     int end_y;
-    if (isScrollMode()) { // SCROLL mode
+    if (isScrollMode()) {
+        // SCROLL mode
         start_y = _pos;
         end_y = _pos + m_dy;
         int fh = GetFullHeight();
         if (end_y >= fh)
             end_y = fh - 1;
     }
-    else { // PAGES mode
+    else {
+        // PAGES mode
         if (pageIndex < 0 || pageIndex >= m_pages.length())
             pageIndex = getCurPage();
         if (pageIndex >= 0 && pageIndex < m_pages.length()) {
@@ -2645,6 +2653,8 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex) {
             return res;
         }
     }
+    if (!res.isNull())
+        return res;
     int height = end_y - start_y;
     if (height < 0)
         return res;
@@ -4723,6 +4733,13 @@ bool LVDocView::ParseDocument() {
         ldomDocumentWriter writer(m_doc);
         ldomDocumentWriterFilter writerFilter(m_doc, false, HTML_AUTOCLOSE_TABLE);
         lString16 txt_autodet_lang;
+        // Note: creating these 2 writers here, and using only one,
+        // will still have both their destructors called when
+        // leaving this scope. Each destructor call will have
+        // ldomDocumentWriter::~ldomDocumentWriter() called, and
+        // both will do the same work on m_doc. So, beware there
+        // that this causes no issue.
+        // We might want to refactor this section to avoid any issue.
 
         LVFileFormatParser * parser = NULL;
         if (m_stream->GetSize() >= 5) {
@@ -5017,7 +5034,7 @@ ldomXPointer LVDocView::getCurrentPageMiddleParagraph() {
 }
 
 /// returns bookmark
-ldomXPointer LVDocView::getBookmark() {
+ldomXPointer LVDocView::getBookmark( bool precise ) {
 	LVLock lock(getMutex());
 	checkPos();
 	ldomXPointer ptr;
@@ -5031,18 +5048,24 @@ ldomXPointer LVDocView::getBookmark() {
 				LVRendPageInfo * page = m_pages[_page];
 				bool found = false;
 				ldomXPointer fallback_ptr;
-				for (int y = page->start; y < page->start + page->height; y++) {
-					ptr = m_doc->createXPointer(lvPoint(0, y), PT_DIR_SCAN_FORWARD_LOGICAL_FIRST);
-					lvPoint pt = ptr.toPoint();
-					if (pt.y >= page->start) {
-						if (!fallback_ptr)
-							fallback_ptr = ptr;
-						if ( pt.y < page->start + page->height ) {
-							// valid, resolves back to same page
-							found = true;
-							break;
+				if (precise) {
+					for (int y = page->start; y < page->start + page->height; y++) {
+						ptr = m_doc->createXPointer(lvPoint(0, y),
+													PT_DIR_SCAN_FORWARD_LOGICAL_FIRST);
+						lvPoint pt = ptr.toPoint();
+						if (pt.y >= page->start) {
+							if (!fallback_ptr)
+								fallback_ptr = ptr;
+							if (pt.y < page->start + page->height) {
+								// valid, resolves back to same page
+								found = true;
+								break;
+							}
 						}
 					}
+				} else {
+					ptr = m_doc->createXPointer(lvPoint(0, page->start));
+					found = true;
 				}
 				if (!found) {
 					// None looking forward resolved to that same page, we
@@ -5065,7 +5088,6 @@ ldomXPointer LVDocView::getBookmark() {
 				}
 			}
 		} else {
-			// ptr = m_doc->createXPointer(lvPoint(0, _pos));
 			// In scroll mode, the y position may not resolve to any xpointer
 			// (because of margins, empty elements...)
 			// When inside an image (top of page being the middle of an image),
@@ -5074,10 +5096,14 @@ ldomXPointer LVDocView::getBookmark() {
 			// scrolling a bit up.
 			// Let's do the same in that case: get the previous text node
 			// position
-			for (int y = _pos; y >= 0; y--) {
-				ptr = m_doc->createXPointer(lvPoint(0, y), PT_DIR_SCAN_BACKWARD_LOGICAL_FIRST);
-				if (!ptr.isNull())
-					break;
+			if (precise) {
+				for (int y = _pos; y >= 0; y--) {
+					ptr = m_doc->createXPointer(lvPoint(0, y), PT_DIR_SCAN_BACKWARD_LOGICAL_FIRST);
+					if (!ptr.isNull())
+						break;
+				}
+			} else {
+				ptr = m_doc->createXPointer(lvPoint(0, _pos));
 			}
 		}
 	}
@@ -5913,7 +5939,7 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
 		break;
 	case DCMD_GO_POS: {
 		if (m_view_mode == DVM_SCROLL) {
-			return SetPos(param);
+			return SetPos(param, true, true);
 		} else {
 			return goToPage(m_pages.FindNearestPage(param, 0));
 		}

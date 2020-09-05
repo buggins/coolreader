@@ -27,9 +27,9 @@ void docXMLreader::OnTagBody()
         m_handler->handleTagBody();
 }
 
-void docXMLreader::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+void docXMLreader::OnTagClose(const lChar16 * nsname, const lChar16 * tagname , bool self_closing_tag)
 {
-    CR_UNUSED(nsname);
+    CR_UNUSED2(nsname, self_closing_tag);
 
     switch(m_state) {
     case xml_doc_in_xml_declaration:

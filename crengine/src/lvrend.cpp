@@ -2502,13 +2502,37 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         int direction = RENDER_RECT_PTR_GET_DIRECTION(fmt);
         bool is_rtl = direction == REND_DIRECTION_RTL;
 
+        ldomNode * parent = enode->getParentNode(); // Needed for various checks below
+        if (parent && parent->isNull())
+            parent = NULL;
+
         // About styleToTextFmtFlags:
         // - with inline nodes, it only updates LTEXT_FLAG_PREFORMATTED flag
         //   when css_ws_pre and LTEXT_FLAG_NOWRAP when css_ws_nowrap.
         // - with block nodes (so, only with the first "final" node, and not
         //   when recursing its children which are inline), it will also set
         //   horitontal alignment flags.
+        // In legacy rendering mode, we should get the same text formatting flags
+        // as in CoolReader 3.2.38 and earlier, i.e. set is_block to true for
+        // any block elements.
         bool is_block = rm == erm_final;
+        if (!BLOCK_RENDERING_G(ENHANCED) && !is_block) {
+            is_block = style->display >= css_d_block;
+            if (is_block) {
+                // Hack for "legacy" rendering mode:
+                // First node with "display: block" after node "display: run-in" in one section
+                // must be rendered as inline nodes.
+                if ( enode->getNodeIndex() == 1 && parent && parent->getChildCount() > 1 ) {
+                    ldomNode * first_sibling = parent->getChildNode(0);
+                    if (first_sibling && !first_sibling->isNull() && first_sibling->isElement()) {
+                        css_style_ref_t fs_style = first_sibling->getStyle();
+                        if (!fs_style.isNull() && fs_style->display == css_d_run_in) {
+                            is_block = false;
+                        }
+                    }
+                }
+            }
+        }
         lUInt32 flags = styleToTextFmtFlags( is_block, style, baseflags, direction );
         // Note:
         // - baseflags (passed by reference) is shared and re-used by this node's siblings
@@ -2520,9 +2544,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
 
         int width = fmt->getWidth();
         int em = enode->getFont()->getSize();
-        ldomNode * parent = enode->getParentNode(); // Needed for various checks below
-        if (parent && parent->isNull())
-            parent = NULL;
 
         // Nodes with "display: run-in" are inline nodes brought at start of the final node
         bool isRunIn = style->display == css_d_run_in;
@@ -2628,10 +2649,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
         }
 
-        if ((flags & LTEXT_FLAG_NEWLINE) && rm == erm_final) {
-            // Top and single 'final' node (unless in the degenarate case
+        if ( (flags & LTEXT_FLAG_NEWLINE) && ( rm == erm_final || ( !BLOCK_RENDERING_G(ENHANCED) && is_block ) ) ) {
+            // Top and single 'final' node (unless in the degenerate case
             // of obsolete css_d_list_item_legacy):
             // Get text-indent and line-height that will apply to the full final block
+            // There is also an exception: in legacy rendering mode, we must also indent any blocks.
 
             // text-indent should really not have to be handled here: it would be
             // better handled in ldomNode::renderFinalBlock(), grabbing it from the
@@ -2661,20 +2683,22 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // does not need that).
             }
 
-            // We set the LFormattedText strut_height and strut_baseline
-            // with the values from this "final" node. All lines made out from
-            // children will have a minimal height and baseline set to these.
-            // See https://www.w3.org/TR/CSS2/visudet.html#line-height
-            //   The minimum height consists of a minimum height above
-            //   the baseline and a minimum depth below it, exactly as if
-            //   each line box starts with a zero-width inline box with the
-            //   element's font and line height properties. We call that
-            //   imaginary box a "strut."
-            // and https://iamvdo.me/en/blog/css-font-metrics-line-height-and-vertical-align
-            int fh = enode->getFont()->getHeight();
-            int fb = enode->getFont()->getBaseline();
-            int f_half_leading = (line_h - fh) / 2;
-            txform->setStrut(line_h, fb + f_half_leading);
+            if (rm == erm_final) {
+                // We set the LFormattedText strut_height and strut_baseline
+                // with the values from this "final" node. All lines made out from
+                // children will have a minimal height and baseline set to these.
+                // See https://www.w3.org/TR/CSS2/visudet.html#line-height
+                //   The minimum height consists of a minimum height above
+                //   the baseline and a minimum depth below it, exactly as if
+                //   each line box starts with a zero-width inline box with the
+                //   element's font and line height properties. We call that
+                //   imaginary box a "strut."
+                // and https://iamvdo.me/en/blog/css-font-metrics-line-height-and-vertical-align
+                int fh = enode->getFont()->getHeight();
+                int fb = enode->getFont()->getBaseline();
+                int f_half_leading = (line_h - fh) / 2;
+                txform->setStrut(line_h, fb + f_half_leading);
+            }
         }
         else if ( STYLE_HAS_CR_HINT(style, STRUT_CONFINED) ) {
             // Previous branch for the top final node has set the strut.
@@ -3420,19 +3444,23 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             } else {
             }
             */
-            /* removal of leading spaces is now managed directly by lvtextfm
-            //int offs = 0;
-            if ( (txform->GetSrcCount()==0 || (tflags & LTEXT_IS_LINK)) && style->white_space!=css_ws_pre ) {
-                // clear leading spaces for first text of paragraph
-                int i=0;
-                for ( ;txt.length()>i && (txt[i]==' ' || txt[i]=='\t'); i++ )
-                    ;
-                if ( i>0 ) {
-                    txt.erase(0, i);
-                    //offs = i;
+            if ( !BLOCK_RENDERING_G(ENHANCED) ) {
+                // Removal of leading spaces is now managed directly by lvtextfm
+                // but in legacy render mode we don't add lines with only spaces.
+                //int offs = 0;
+                if ( (txform->GetSrcCount()==0 || (tflags & LTEXT_IS_LINK)) && style->white_space!=css_ws_pre ) {
+                    // clear leading spaces for first text of paragraph
+                    int i=0;
+                    for ( ;txt.length()>i && (txt[i]==' ' || txt[i]=='\t'); i++ )
+                        ;
+                    if ( i>0 ) {
+                        txt.erase(0, i);
+                        //offs = i;
+                    }
                 }
+                // legacy new line processing: set indentation for **each** new line
+                tflags |= LTEXT_LEGACY_RENDERING;
             }
-            */
             if ( txt.length()>0 ) {
                 txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font.get(), lang_cfg, baseflags | tflags,
                     line_h, valign_dy, indent, enode, 0, letter_spacing );
@@ -4742,6 +4770,23 @@ public:
         }
         return false;
     }
+    void getFloatsCurrentShifts( int & dx_left, int & dx_right, int h=0 ) {
+        // Initial work in absolute coordinates
+        int left_x = 0;
+        int right_x = o_width;
+        for (int i=0; i<_floats.length(); i++) {
+            BlockFloat * flt = _floats[i];
+            if (flt->top < c_y+h && flt->bottom > c_y) {
+                if ( flt->is_right && flt->left < right_x )
+                    right_x = flt->left;
+                if ( !flt->is_right && flt->right > left_x )
+                    left_x = flt->right;
+            }
+        }
+        // And adjust to current container's width
+        dx_left = left_x - x_min;
+        dx_right = x_max - right_x;
+    }
 
     void addSpaceToContext( int starty, int endy, int line_h,
             bool split_avoid_before, bool split_avoid_inside, bool split_avoid_after ) {
@@ -5676,8 +5721,8 @@ public:
         RenderRectAccessor fmt( node );
         int width = fmt.getWidth();
         int height = fmt.getHeight();
-        int x = fmt.getX();   // a floatBox has no margin and no padding, but these
-        int y = fmt.getY();   // x/y carries the container's padding left/top
+        int x = fmt.getX();   // a floatBox has no margin and no padding, but x carries the container's padding left
+        int y = fmt.getY();   // (but y must be =0, as padding_top has already been accounted in c_y
         // printf("  block addFloat w=%d h=%d x=%d y=%d\n", width, height, x, y);
         int shift_x = 0;
         int shift_y = 0;
@@ -6574,8 +6619,39 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     // is... margin_left
     int dx = margin_left;
 
+    // Strangely, when floats are involved, a HR behaves differently than
+    // a regular DIV (observed with Firefox): a DIV is sized as if there
+    // was no float, and only its text will adjust to be in-between floats,
+    // while a HR box does adjust to fit between the floats. Couldn't find
+    // any mention of that in the CSS specs...
+    // Let's try to handle that, even if it feels hackish and might not be right.
+    int adjusted_container_width = container_width;
+    int adjusted_forced_x_shift = 0;
+    if ( is_hr && flow->hasActiveFloats() ) {
+        // <HR> should not be drawn over floats (except if negative
+        // margins or larger specified width - its width in % is to
+        // stay computed as a % of its container width)
+        int dx_left;
+        int dx_right;
+        flow->getFloatsCurrentShifts(dx_left, dx_right);
+        if ( dx_right > 0 ) {
+            adjusted_container_width -= dx_right;
+        }
+        if ( dx_left > 0 ) {
+            adjusted_container_width -= dx_left;
+            adjusted_forced_x_shift = dx_left;
+        }
+        if ( style->width.type == css_val_unspecified ) {
+            // When no specified width, it is to become the constrained width
+            width = adjusted_container_width;
+        }
+        // And go again at adjusting this HR position
+        auto_width = false;
+    }
     if ( !auto_width ) { // We have a width that may not fill all available space
         // printf("fixed width: %d\n", width);
+        // For these initial overflow checks, we use the original container_width
+        // and not the adjusted one
         if ( width + margin_left + margin_right > container_width ) {
             if ( is_rtl ) {
                 margin_left = 0; // drop margin_left if RTL
@@ -6602,26 +6678,33 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 //
                 // (if margin_left_auto, we have until now: dx = margin_left = 0)
                 if ( margin_left_auto && margin_right_auto ) {
-                    dx = (container_width - width) / 2;
+                    dx = (adjusted_container_width - width) / 2;
                     margin_auto_ensured = true;
                 }
                 else if ( margin_left_auto ) {
-                    dx = container_width - width;
+                    dx = adjusted_container_width - width - margin_right;
                     margin_auto_ensured = true;
                 }
                 else if ( margin_right_auto ) {
                     // No dx tweak needed
                     margin_auto_ensured = true;
                 }
+                if ( is_hr && dx < 0 && margin_auto_ensured ) {
+                    // With Firefox, when any margin is auto and the HR width
+                    // doesn't fit, it is fitted left.
+                    dx = 0;
+                }
             }
             if ( !margin_auto_ensured ) {
                 // Nothing else needed for LTR: stay stuck to the left
                 // For RTL: stick it to the right
                 if (is_rtl) {
-                    dx = container_width - width;
+                    dx = adjusted_container_width - width;
                 }
             }
         }
+        // Add left shift imposed by left floats to HR
+        dx += adjusted_forced_x_shift;
     }
 
     // Prevent overflows if not allowed
@@ -6980,9 +7063,11 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                         // and if !DO_NOT_CLEAR_OWN_FLOATS, we'll fill the remaining
                         // height taken by floats if any.
                         LVRendPageContext alt_context( NULL, flow->getPageHeight(), false );
-                        // For floats too, the provided x/y must be the padding-left/top of the
+                        // For floats too, the provided x must be the padding-left of the
                         // parent container of the float (and width must exclude the parent's
-                        // padding-left/right) for the flow to correctly position inner floats:
+                        // padding-left/right) for the flow to correctly position inner floats
+                        // (but we don't provide padding_top, as if non-zero, we already
+                        // flow->addContentLine() it above, so the flow is already aware of it):
                         // flow->addFloat() will additionally shift its positionning by the
                         // child x/y set by this renderBlockElement().
                         // We provide 0,0 as the usable left/right overflows, so no glyph/hanging
@@ -6990,7 +7075,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                         // the initial float element's margins, which can then be used if it has
                         // no border (if borders, only the padding can be used).
                         renderBlockElement( alt_context, child, (is_rtl ? 0 : list_marker_padding) + padding_left,
-                                    padding_top, width - list_marker_padding - padding_left - padding_right, 0, 0, direction );
+                                    0, width - list_marker_padding - padding_left - padding_right, 0, 0, direction );
                         flow->addFloat(child, child_clear, is_right, flt_vertical_margin);
                         // Gather footnotes links accumulated by alt_context
                         lString16Collection * link_ids = alt_context.getLinkIds();
@@ -7528,6 +7613,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         // in a float, etc...)
         FlowState flow( context, width, usable_left_overflow, usable_right_overflow, rend_flags,
                                 direction, TextLangMan::getLangNodeIndex(enode) );
+        flow.moveDown(y);
         if (baseline != NULL) {
             flow.setRequestedBaselineType(*baseline);
         }
@@ -8781,28 +8867,36 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->white_space = type_ptr->white_space;
 
         // Account for backward incompatible changes in fb2def.h
-        if (gDOMVersionRequested < 20180528) { // revert what was changed 20180528
-            if (nodeElementId == el_form) {
-                pstyle->display = css_d_none; // otherwise shown as block, as it may have textual content
-            }
-            if (nodeElementId == el_code) {
-                pstyle->white_space = css_ws_pre; // otherwise white-space: normal, as browsers do
-            }
-            if (nodeElementId >= el_address && nodeElementId <= el_xmp) { // newly added block elements
+        if (gDOMVersionRequested < 20200824) { // revert what was changed 20200824
+            if (nodeElementId >= el_details && nodeElementId <= el_wbr) { // newly added block elements
                 pstyle->display = css_d_inline; // previously unknown and shown as inline
                 if (gDOMVersionRequested < 20180524) {
                     pstyle->display = css_d_inherit; // previously unknown and display: inherit
                 }
             }
-            if (gDOMVersionRequested < 20180524) { // revert what was fixed 20180524
-                if (nodeElementId == el_cite) {
-                    pstyle->display = css_d_block; // otherwise correctly set to css_d_inline
+            if (gDOMVersionRequested < 20180528) { // revert what was changed 20180528
+                if (nodeElementId == el_form) {
+                    pstyle->display = css_d_none; // otherwise shown as block, as it may have textual content
                 }
-                if (nodeElementId == el_li) {
-                    pstyle->display = css_d_list_item_legacy; // otherwise correctly set to css_d_list_item_block
+                if (nodeElementId == el_code) {
+                    pstyle->white_space = css_ws_pre; // otherwise white-space: normal, as browsers do
                 }
-                if (nodeElementId == el_style) {
-                    pstyle->display = css_d_inline; // otherwise correctly set to css_d_none (hidden)
+                if (nodeElementId >= el_address && nodeElementId <= el_xmp) { // newly added block elements
+                    pstyle->display = css_d_inline; // previously unknown and shown as inline
+                    if (gDOMVersionRequested < 20180524) {
+                        pstyle->display = css_d_inherit; // previously unknown and display: inherit
+                    }
+                }
+                if (gDOMVersionRequested < 20180524) { // revert what was fixed 20180524
+                    if (nodeElementId == el_cite) {
+                        pstyle->display = css_d_block; // otherwise correctly set to css_d_inline
+                    }
+                    if (nodeElementId == el_li) {
+                        pstyle->display = css_d_list_item_legacy; // otherwise correctly set to css_d_list_item_block
+                    }
+                    if (nodeElementId == el_style) {
+                        pstyle->display = css_d_inline; // otherwise correctly set to css_d_none (hidden)
+                    }
                 }
             }
         }
@@ -10095,7 +10189,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 lChar16 c = *(txt + start + i);
                 lChar16 next_c = *(txt + start + i + 1); // might be 0 at end of string
                 if ( lang_cfg->hasLBCharSubFunc() ) {
-                    next_c = lang_cfg->getLBCharSubFunc()(txt+start, i+1, len-1 - (i+1));
+                    next_c = lang_cfg->getLBCharSubFunc()(&lbCtx, txt+start, i+1, len-1 - (i+1));
                 }
                 int brk = lb_process_next_char(&lbCtx, (utf32_t)next_c);
                     // We don't really need to bother with consecutive spaces (that

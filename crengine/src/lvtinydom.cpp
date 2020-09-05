@@ -19,7 +19,7 @@
 // Users of this library can request the old behaviour by setting
 // gDOMVersionRequested to an older version to request the old (possibly
 // buggy) behaviour.
-#define DOM_VERSION_CURRENT 20200223
+#define DOM_VERSION_CURRENT 20200824
 
 // Also defined in include/lvtinydom.h
 #define DOM_VERSION_WITH_NORMALIZED_XPOINTERS 20200223
@@ -77,14 +77,16 @@
 // and toStringV1() to have non-normalized XPointers still working.)
 // (20200223: added toggable auto completion of incomplete tables by
 // wrapping some elements in a new <tabularBox>.)
+//
+// 20200824: added more HTML5 elements, and HTML parser changes
+// to be (only a little bit) more HTML5 conformant
 
 extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 int gDOMVersionRequested     = DOM_VERSION_CURRENT;
 
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-// increment to force complete reload/reparsing of old file
-#define CACHE_FILE_FORMAT_VERSION "3.12.68"
+#define CACHE_FILE_FORMAT_VERSION "3.12.70"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0025
@@ -3991,6 +3993,11 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
         if ( ! toWrite )
             return;
 
+        // In case we're called (when debugging) while styles have been reset,
+        // avoid crash on stuff like isBoxingInlineBox()/isFloatingBox() that
+        // do check styles
+        bool has_styles_set = !node->getStyle().isNull();
+
         bool doNewLineBeforeStartTag = false;
         bool doNewLineAfterStartTag = false;
         bool doNewLineBeforeEndTag = false; // always stays false, newline done by child elements
@@ -4027,7 +4034,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                         rm = erm_final;
                 }
             }
-            if ( rm != erm_inline || node->isBoxingInlineBox()) {
+            if ( rm != erm_inline || (has_styles_set && node->isBoxingInlineBox()) ) {
                 doNewLineBeforeStartTag = true;
                 doNewLineAfterStartTag = true;
                 // doNewLineBeforeEndTag = false; // done by child elements
@@ -4040,7 +4047,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                     doNewLineAfterStartTag = false;
                     doIndentBeforeEndTag = false;
                 }
-                else if (node->isFloatingBox()) {
+                else if (has_styles_set && node->isFloatingBox()) {
                     lvdom_element_render_method prm = node->getParentNode()->getRendMethod();
                     if (prm == erm_final || prm == erm_inline) {
                         doNewlineBeforeIndentBeforeStartTag = true;
@@ -4066,7 +4073,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                         }
                     }
                 }
-                else if (node->isBoxingInlineBox()) {
+                else if (has_styles_set && node->isBoxingInlineBox()) {
                     doNewlineBeforeIndentBeforeStartTag = true;
                     doIndentAfterNewLineAfterEndTag = WNEFLAG(INDENT_NEWLINE);
                     // Same as above
@@ -4111,8 +4118,10 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
         if (doIndentBeforeStartTag)
             for ( int i=indentBaseLevel; i<level; i++ )
                 *stream << "  ";
-        if ( elemName.empty() ) // should not happen (except for the root node, that we hopefully skipped)
-            elemName = elemNsName + "???";
+        if ( elemName.empty() ) {
+            // should not happen (except for the root node, that we might have skipped)
+            elemName = node->isRoot() ? lString8("RootNode") : (elemNsName + "???");
+        }
         if ( !elemNsName.empty() )
             elemName = elemNsName + ":" + elemName;
         *stream << "<" << elemName;
@@ -4131,7 +4140,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                 lString8 attrName( UnicodeToUtf8(node->getDocument()->getAttrName(attr->id)) );
                 lString8 nsName( UnicodeToUtf8(node->getDocument()->getNsName(attr->nsid)) );
                 lString8 attrValue( UnicodeToUtf8(node->getDocument()->getAttrValue(attr->index)) );
-                if ( WNEFLAG(SHOW_MISC_INFO) ) {
+                if ( WNEFLAG(SHOW_MISC_INFO) && has_styles_set ) {
                     if ( node->getNodeId() == el_pseudoElem && (attr->id == attr_Before || attr->id == attr_After) ) {
                         // Show the rendered content as the otherwise empty Before/After attribute value
                         if ( WNEFLAG(TEXT_SHOW_UNICODE_CODEPOINT) ) {
@@ -4223,7 +4232,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
             if ( WNEFLAG(TEXT_HYPHENATE) ) {
                 // Additional minor formatting tweaks for when this is going to be fed
                 // to some other renderer, which is usually when we request HYPHENATE.
-                if ( node->getStyle()->display == css_d_run_in ) {
+                if ( has_styles_set && node->getStyle()->display == css_d_run_in ) {
                     // For FB2 footnotes, add a space between the number and text,
                     // as none might be present in the source. If there were some,
                     // the other renderer will probably collapse them.
@@ -4975,7 +4984,7 @@ bool IsEmptySpace( const lChar16 * text, int len )
 
 static bool IS_FIRST_BODY = false;
 
-ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent)
+ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent, bool insert_before_last_child)
     : _parent(parent), _document(document), _tocItem(NULL), _isBlock(true), _isSection(false),
       _stylesheetIsSet(false), _bodyEnterCalled(false), _pseudoElementAfterChildIndex(-1)
 {
@@ -5004,8 +5013,12 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
         }
     }
 
-    if (_parent)
-        _element = _parent->getElement()->insertChildElement( (lUInt32)-1, nsid, id );
+    if (_parent) {
+        lUInt32 index = _parent->getElement()->getChildCount();
+        if ( insert_before_last_child )
+            index--;
+        _element = _parent->getElement()->insertChildElement( index, nsid, id );
+    }
     else
         _element = _document->getRootNode(); //->insertChildElement( (lUInt32)-1, nsid, id );
     if ( IS_FIRST_BODY && id==el_body ) {
@@ -5103,7 +5116,7 @@ void ldomElementWriter::onBodyEnter()
     _bodyEnterCalled = true;
 #if BUILD_LITE!=1
     //CRLog::trace("onBodyEnter() for node %04x %s", _element->getDataIndex(), LCSTR(_element->getNodeName()));
-    if ( _document->isDefStyleSet() ) {
+    if ( _document->isDefStyleSet() && _element ) {
         _element->initNodeStyle();
 //        if ( _element->getStyle().isNull() ) {
 //            CRLog::error("error while style initialization of element %x %s", _element->getNodeIndex(), LCSTR(_element->getNodeName()) );
@@ -6236,7 +6249,10 @@ void ldomNode::initNodeRendMethod()
                             autoboxChildren( j, i, handleFloating );
                         i = j;
                     }
-                    else if ( i>0 ) {
+                    else if ( i>0 && node->getRendMethod() == erm_final ) {
+                        // (We skip the following if the current node is not erm_final, as
+                        // if it is erm_block, we would break the block layout by making
+                        // it all inline in an erm_final autoBoxing.)
                         // This node is not inline, but might be preceeded by a css_d_run_in node:
                         // https://css-tricks.com/run-in/
                         // https://developer.mozilla.org/en-US/docs/Web/CSS/display
@@ -7196,7 +7212,7 @@ void ldomElementWriter::onBodyExit()
 #endif
 }
 
-void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
+void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32, bool insert_before_last_child )
 {
     //logfile << "{t";
     {
@@ -7204,7 +7220,7 @@ void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
         // add text node, if not first empty space string of block node
         if ( !_isBlock || _element->getChildCount()!=0 || !IsEmptySpace( text, len ) || (_flags&TXTFLG_PRE) ) {
             lString8 s8 = UnicodeToUtf8(text, len);
-            _element->insertChildText(s8);
+            _element->insertChildText(s8, insert_before_last_child);
         } else {
             //CRLog::trace("ldomElementWriter::onText: Ignoring first empty space of block item");
         }
@@ -7287,6 +7303,7 @@ void ldomElementWriter::addAttribute( lUInt16 nsid, lUInt16 id, const wchar_t * 
 
 ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id )
 {
+    // First check if there's an element with provided id in the stack
     //logfile << "{p";
     ldomElementWriter * tmp = obj;
     for ( ; tmp; tmp = tmp->_parent )
@@ -7298,6 +7315,7 @@ ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id
     //logfile << "1";
     if (!tmp)
     {
+        // No element in the stack with provided id: nothing to close, stay at current element
         //logfile << "-err}";
         return obj; // error!!!
     }
@@ -7485,7 +7503,9 @@ ldomDocumentWriter::~ldomDocumentWriter()
         _document->dumpStatistics();
         if ( _document->_nodeStylesInvalidIfLoading ) {
             // Some pseudoclass like :last-child has been met which has set this flag
+            // (or, with the HTML parser, foster parenting of invalid element in tables)
             printf("CRE: document loaded, but styles re-init needed (cause: peculiar CSS pseudoclasses met)\n");
+            _document->_nodeStylesInvalidIfLoading = false; // show this message only once
             _document->forceReinitStyles();
         }
         if ( _document->hasRenderData() ) {
@@ -7501,7 +7521,7 @@ ldomDocumentWriter::~ldomDocumentWriter()
 #endif
 }
 
-void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
+void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname, bool self_closing_tag )
 {
     //logfile << "ldomDocumentWriter::OnTagClose() [" << nsname << ":" << tagname << "]";
     if (!_currNode || !_currNode->getElement())
@@ -11456,7 +11476,7 @@ bool ldomXPointerEx::prevVisibleWordStartInSentence()
     for ( ;; ) {
         if ( !isText() || !isVisible() || _data->getOffset()==0 ) {
             // move to previous text
-            if ( !prevVisibleText(true) )
+            if ( !prevVisibleText(false) )
                 return false;
             node = getNode();
             text = node->getText();
@@ -11493,7 +11513,7 @@ bool ldomXPointerEx::nextVisibleWordStartInSentence()
     bool moved = false;
     for ( ;; ) {
         if ( !isText() || !isVisible() ) {
-            // move to previous text
+            // move to next text
             if ( !nextVisibleText(false) )
                 return false;
             node = getNode();
@@ -11538,6 +11558,37 @@ bool ldomXPointerEx::nextVisibleWordStartInSentence()
         if ( moved && _data->getOffset()<textLen )
             return true;
     }
+}
+
+/// move to end of current word
+bool ldomXPointerEx::thisVisibleWordEndInSentence()
+{
+    if ( isNull() )
+        return false;
+    ldomNode * node = NULL;
+    lString16 text;
+    int textLen = 0;
+    bool moved = false;
+    if ( !isText() || !isVisible() )
+        return false;
+    node = getNode();
+    text = node->getText();
+    textLen = text.length();
+    if ( _data->getOffset() >= textLen )
+        return false;
+    // skip spaces
+    while ( _data->getOffset()<textLen && IsUnicodeSpace(text[ _data->getOffset() ]) ) {
+        _data->addOffset(1);
+        //moved = true;
+    }
+    // skip non-spaces
+    while ( _data->getOffset()<textLen ) {
+        if ( IsUnicodeSpace(text[ _data->getOffset() ]) )
+            break;
+        moved = true;
+        _data->addOffset(1);
+    }
+    return moved;
 }
 
 /// move to next visible word end (in sentence)
@@ -11846,8 +11897,8 @@ bool ldomXPointerEx::isSentenceEnd()
     // word is not ended with . ! ?
     // check whether it's last word of block
     ldomXPointerEx pos(*this);
-    //return !pos.nextVisibleWordStart(true);
-    return !pos.thisVisibleWordEnd(true);
+    //return !pos.nextVisibleWordStartInSentence();
+    return !pos.thisVisibleWordEndInSentence();
 }
 
 /// move to beginning of current visible text sentence
@@ -11899,7 +11950,7 @@ bool ldomXPointerEx::prevSentenceStart()
     if ( !thisSentenceStart() )
         return false;
     for (;;) {
-        if ( !prevVisibleWordStart() )
+        if ( !prevVisibleWordStartInSentence() )
             return false;
         if ( isSentenceStart() )
             return true;
@@ -12774,7 +12825,7 @@ ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar16 * nsname, const 
 }
 
 /// called on closing tag
-void ldomDocumentFragmentWriter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+void ldomDocumentFragmentWriter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag )
 {
     styleDetectionState = headStyleState = 0;
     if ( insideTag && baseTag==tagname ) {
@@ -12787,7 +12838,7 @@ void ldomDocumentFragmentWriter::OnTagClose( const lChar16 * nsname, const lChar
         return;
     }
     if ( insideTag )
-        parent->OnTagClose(nsname, tagname);
+        parent->OnTagClose(nsname, tagname, self_closing_tag);
 }
 
 /// called after > of opening tag (when entering tag body) or just before /> closing tag for empty tags
@@ -12858,6 +12909,7 @@ void ldomDocumentWriterFilter::appendStyle( const lChar16 * style )
     node->setAttributeValue(LXML_NS_NONE, _styleAttrId, oldStyle.c_str());
 }
 
+// Legacy auto close handler (gDOMVersionRequested < 20200824)
 void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
 {
     lUInt16 * rule = _rules[tag_id];
@@ -12893,48 +12945,752 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
     }
 }
 
+// With gDOMVersionRequested >= 20200824, we use hardcoded rules
+// for opening and closing tags, trying to follow what's relevant
+// in the HTML Living Standard (=HTML5):
+//   https://html.spec.whatwg.org/multipage/parsing.html
+// A less frightening introduction is available at:
+//   https://htmlparser.info/parser/
+//
+// Note that a lot of rules and checks in the algorithm are for
+// noticing "parser errors", with usually a fallback of ignoring
+// it and going on.
+// We ensure one tedious requirement: foster parenting of non-table
+// elements met while building a table, mostly to not have mis-nested
+// content simply ignored and not shown to the user.
+// Other tedious requirements not ensured might just have some impact
+// on the styling of the content, which should be a minor issue.
+//
+// It feels that we can simplify it to the following implementation,
+// with possibly some cases not handled related to:
+// - FORM and form elements (SELECT, INPUT, OPTION...)
+// - TEMPLATE, APPLET, OBJECT, MARQUEE
+// - Mis-nested HTML/BODY/HEAD
+// - Reconstructing the active formatting elements (B, I...) when
+//   mis-nested or "on hold" when entering block or table elements.
+// - The "adoption agency algorithm" for mis-nested formatting
+//   elements (and nested <A>)
+// - We may not ignore some opening tag that we normally should
+//   (like HEAD or FRAME when in BODY) (but we ignore a standalone
+//   sub-table element when not inside a TABLE) as this would
+//   complicate the internal parser state.
+//
+// Of interest:
+// https://html.spec.whatwg.org/multipage/parsing.html#parse-state
+//   List of "special" elements
+//   List of elements for rules "have a particular element in X scope"
+// https://html.spec.whatwg.org/multipage/parsing.html#tree-construction
+//   Specific rules when start or end tag of specific elements is met
+
+// Scope are for limiting ancestor search when looking for a previous
+// element to close (a closing tag may be ignored if no opening tag is
+// found in the specified scope)
+enum ScopeType {
+HTML_SCOPE_NONE = 0,       // no stop tag
+HTML_SCOPE_MAIN,           // HTML, TABLE, TD, TH, CAPTION, APPLET, MARQUEE, OBJECT, TEMPLATE
+HTML_SCOPE_LIST_ITEM,      // = SCOPE_MAIN + OL, UL
+HTML_SCOPE_BUTTON,         // = SCOPE_MAIN + BUTTON (not used, only used with P that we handle specifically)
+HTML_SCOPE_TABLE,          // HTML, TABLE, TEMPLATE
+HTML_SCOPE_SELECT,         // All elements stop, except OPTGROUP, OPTION
+HTML_SCOPE_SPECIALS,       // All specials elements (inline don't close across block/specials elements)
+// Next ones are scopes with specific behaviours that may ignore target_id
+HTML_SCOPE_OPENING_LI,     // = SCOPE_SPECIALS, minus ADDRESS, DIV, P: close any LI
+HTML_SCOPE_OPENING_DT_DD,  // = SCOPE_SPECIALS, minus ADDRESS, DIV, P: close any DT/DD
+HTML_SCOPE_OPENING_H1_H6,  // = close current node if H1, H2, H3, H4, H5, H6
+HTML_SCOPE_CLOSING_H1_H6,  // = SCOPE_MAIN: close any of H1..H6
+HTML_SCOPE_TABLE_TO_TOP,   // = SCOPE_TABLE: close all table sub-elements to end up being TABLE
+HTML_SCOPE_TABLE_OPENING_TD_TH, // = SCOPE_TABLE: close any TD/TH
+};
+// Note: as many elements close a P, we don't handle checking and closing them
+// via popUpTo(NULL, el_p, HTML_SCOPE_BUTTON), but we keep the last P as _lastP
+// so we can just popUpTo(_lastP) if set when meeting a "close a P" element.
+
+// Boxing elements (id < el_DocFragment) (and DocFragment itself,
+// not used with the HTMLParser) are normally added by crengine
+// after "delete ldomElementWriter" (which calls onBodyExit()
+// which calls initNodeRendMethod()), so after we have closed
+// and pass by the element.
+// So, we shouldn't meet any in popUpTo() and don't have to wonder
+// if we should stop at them, or pass by them.
+
+lUInt16 ldomDocumentWriterFilter::popUpTo( ldomElementWriter * target, lUInt16 target_id, int scope )
+{
+    if ( !target ) {
+        // Check if there's an element with provided target_id in the stack inside this scope
+        ldomElementWriter * tmp = _currNode;
+        while ( tmp ) {
+            lUInt16 tmpId = tmp->getElement()->getNodeId();
+            if ( tmpId < el_DocFragment && tmpId > el_NULL) {
+                // We shouldn't meet any (see comment above)
+                // (but we can meet the root node when poping </html>)
+                crFatalError( 127, "Unexpected boxing element met in ldomDocumentWriterFilter::popUpTo()" );
+            }
+            if ( target_id && tmpId == target_id )
+                break;
+            if ( _curFosteredNode && tmp == _curFosteredNode ) {
+                // If fostering and we're not closing the fostered node itself,
+                // don't go at closing stuff above the fostered node
+                tmp = NULL;
+                break;
+            }
+            // Check scope stop tags
+            bool stop = false;
+            switch (scope) {
+                case HTML_SCOPE_MAIN: // stop at HTML/TABLE/TD...
+                    if ( tmpId == el_html || tmpId == el_table || tmpId == el_td || tmpId == el_th || tmpId == el_caption ||
+                         tmpId == el_applet || tmpId == el_marquee || tmpId == el_object || tmpId == el_template ) {
+                        tmp = NULL;
+                        stop = true;
+                    }
+                    break;
+                case HTML_SCOPE_LIST_ITEM: // stop at SCOPE_MAIN + OL, UL
+                    if ( tmpId == el_html || tmpId == el_table || tmpId == el_td || tmpId == el_th || tmpId == el_caption ||
+                         tmpId == el_applet || tmpId == el_marquee || tmpId == el_object || tmpId == el_template ||
+                         tmpId == el_ol || tmpId == el_ul ) {
+                        tmp = NULL;
+                        stop = true;
+                    }
+                    break;
+                case HTML_SCOPE_BUTTON: // stop at SCOPE_MAIN + BUTTON
+                    if ( tmpId == el_html || tmpId == el_table || tmpId == el_td || tmpId == el_th || tmpId == el_caption ||
+                         tmpId == el_applet || tmpId == el_marquee || tmpId == el_object || tmpId == el_template ||
+                         tmpId == el_button ) {
+                        tmp = NULL;
+                        stop = true;
+                    }
+                    break;
+                case HTML_SCOPE_TABLE: // stop at HTML and TABLE
+                    if ( tmpId == el_html || tmpId == el_table || tmpId == el_template ) {
+                        tmp = NULL;
+                        stop = true;
+                    }
+                    break;
+                case HTML_SCOPE_SELECT:
+                    // This one is different: all elements stop it, except optgroup and option
+                    if ( tmpId != el_optgroup && tmpId != el_option ) {
+                        tmp = NULL;
+                        stop = true;
+                    }
+                    break;
+                case HTML_SCOPE_SPECIALS: // stop at any "special" element
+                    if ( tmpId >= EL_SPECIAL_START && tmpId <= EL_SPECIAL_END ) {
+                        tmp = NULL;
+                        stop = true;
+                    }
+                    break;
+                case HTML_SCOPE_OPENING_LI:
+                    if ( tmpId == el_li ) {
+                        stop = true;
+                    }
+                    else if ( tmpId >= EL_SPECIAL_START && tmpId <= EL_SPECIAL_END &&
+                         tmpId != el_div && tmpId != el_p && tmpId != el_address ) {
+                        tmp = NULL;
+                        stop = true;
+                    }
+                    break;
+                case HTML_SCOPE_OPENING_DT_DD:
+                    if ( tmpId == el_dt || tmpId == el_dd ) {
+                        stop = true;
+                    }
+                    else if ( tmpId >= EL_SPECIAL_START && tmpId <= EL_SPECIAL_END &&
+                         tmpId != el_div && tmpId != el_p && tmpId != el_address ) {
+                        tmp = NULL;
+                        stop = true;
+                    }
+                    break;
+                case HTML_SCOPE_OPENING_H1_H6:
+                    // Close immediate parent H1...H6, but don't walk up
+                    // <H3> ... <H4> : H4 will close H3
+                    // <H3> ... <B> ... <H4> : H4 will not close H3
+                    if ( tmpId < el_h1 || tmpId > el_h6 ) {
+                        tmp = NULL; // Nothing to close
+                    }
+                    stop = true; // Don't check upper
+                    break;
+                case HTML_SCOPE_CLOSING_H1_H6:
+                    if ( tmpId >= el_h1 && tmpId <= el_h6 ) {
+                        stop = true;
+                    }
+                    else if ( tmpId == el_html || tmpId == el_table || tmpId == el_td || tmpId == el_th || tmpId == el_caption ||
+                         tmpId == el_applet || tmpId == el_marquee || tmpId == el_object || tmpId == el_template ) {
+                        tmp = NULL;
+                        stop = true;
+                    }
+                    break;
+                case HTML_SCOPE_TABLE_TO_TOP:
+                    if ( tmp->_parent && tmp->_parent->getElement()->getNodeId() == el_table ) {
+                        stop = true;
+                    }
+                    else if ( tmpId == el_html || tmpId == el_table || tmpId == el_template ) {
+                        tmp = NULL;
+                        stop = true;
+                    }
+                    break;
+                case HTML_SCOPE_TABLE_OPENING_TD_TH:
+                    if ( tmpId == el_td || tmpId == el_th ) {
+                        stop = true;
+                    }
+                    else if ( tmpId == el_html || tmpId == el_table || tmpId == el_template ) {
+                        tmp = NULL;
+                        stop = true;
+                    }
+                    break;
+                case HTML_SCOPE_NONE:
+                default:
+                    // Never stop, continue up to root node
+                    break;
+            }
+            if ( stop )
+                break;
+            tmp = tmp->_parent;
+        }
+        target = tmp; // (NULL if not found, NULL or not if stopped)
+    }
+    if ( target ) {
+        // Assume target is valid and will be found
+        while ( _currNode ) {
+            // Update state for after this node is closed
+            lUInt16 curNodeId = _currNode->getElement()->getNodeId();
+            // Reset these flags if we see again these tags (so to
+            // at least reconstruct </html><html><body><hr> when
+            // meeting </html><hr> and have el_html as the catch all
+            // element in SCOPEs working.
+            if ( curNodeId == el_body ) {
+                _bodyTagSeen = false;
+            }
+            else if ( curNodeId == el_html ) {
+                _headTagSeen = false;
+                _htmlTagSeen = false;
+            }
+            if ( _lastP && _currNode == _lastP )
+                _lastP = NULL;
+            ldomElementWriter * tmp = _currNode;
+            bool done = _currNode == target;
+            if ( _curFosteredNode && _currNode == _curFosteredNode ) {
+                // If we meet the fostered node, have it closed but don't
+                // go at closing above it
+                done = true;
+                _currNode = _curNodeBeforeFostering;
+                _curNodeBeforeFostering = NULL;
+                _curFosteredNode = NULL;
+            }
+            else {
+                _currNode = _currNode->_parent;
+            }
+            ElementCloseHandler( tmp->getElement() );
+            delete tmp;
+            if ( done )
+                break;
+        }
+    }
+    return _currNode ? _currNode->getElement()->getNodeId() : el_NULL;
+}
+
+// To give as first parameter to AutoOpenClosePop()
+enum ParserStepType {
+    PARSER_STEP_TAG_OPENING = 1,
+    PARSER_STEP_TAG_CLOSING,
+    PARSER_STEP_TAG_SELF_CLOSING,
+    PARSER_STEP_TEXT
+};
+
+// More HTML5 conforming auto close handler (gDOMVersionRequested >= 20200824)
+bool ldomDocumentWriterFilter::AutoOpenClosePop( int step, lUInt16 tag_id )
+{
+    lUInt16 curNodeId = _currNode ? _currNode->getElement()->getNodeId() : el_NULL;
+    if ( !_bodyTagSeen && ( step == PARSER_STEP_TAG_OPENING || step == PARSER_STEP_TEXT) ) {
+        // Create some expected containing elements if not yet seen
+        if ( !_headTagSeen ) {
+            if ( !_htmlTagSeen ) {
+                _htmlTagSeen = true;
+                if ( tag_id != el_html ) {
+                    OnTagOpen(L"", L"html");
+                    OnTagBody();
+                }
+            }
+            if ( (tag_id >= EL_IN_HEAD_START && tag_id <= EL_IN_HEAD_END) || tag_id == el_noscript ) {
+                if ( tag_id != el_head ) {
+                    OnTagOpen(L"", L"head");
+                    OnTagBody();
+                }
+                _headTagSeen = true;
+            }
+            curNodeId = _currNode ? _currNode->getElement()->getNodeId() : el_NULL;
+        }
+        if ( tag_id >= EL_IN_BODY_START || (step == PARSER_STEP_TEXT && (curNodeId == el_html || curNodeId == el_head)) ) {
+            // Tag usually found inside <body>, or text while being <HTML> or <HEAD>
+            // (text while being in <HTML><HEAD><TITLE> should not trigger this):
+            // end of <head> and start of <body>
+            if ( _headTagSeen )
+                OnTagClose(L"", L"head");
+            if ( tag_id != el_body ) {
+                OnTagOpen(L"", L"body");
+                OnTagBody();
+            }
+            curNodeId = _currNode ? _currNode->getElement()->getNodeId() : el_NULL;
+            _bodyTagSeen = true;
+            _headTagSeen = true; // We won't open any <head> anymore
+        }
+    }
+    if ( step == PARSER_STEP_TEXT ) // new text: nothing more to do
+        return true;
+
+    bool is_self_closing_tag = false;
+    switch (tag_id) {
+        // These are scaterred among different ranges, so we sadly
+        // can't use any range comparisons
+        case el_area:
+        case el_base:
+        case el_br:
+        case el_col:
+        case el_embed:
+        case el_hr:
+        case el_img:
+        case el_input:
+        case el_link:
+        case el_meta:
+        case el_param:
+        case el_source:
+        case el_track:
+        case el_wbr:
+            is_self_closing_tag = true;
+            break;
+        default:
+            break;
+    }
+
+    if ( step == PARSER_STEP_TAG_OPENING ) {
+        // A new element with tag_id will be created after we return
+        // We should
+        // - create implicit parent elements for tag_id if not present (partially
+        //   done for HTML/HEAD/BODY elements above)
+        // - close elements that should be closed by this tag_id (some with optional
+        //   end tags and others that the spec says so)
+        // - keep a note if it's self-closing so we can close it when appropriate
+        // - ignore this opening tag in some cases
+
+        // Table elements can be ignored, create missing elements
+        // and/or close some others
+        if ( tag_id == el_th || tag_id == el_td ) {
+            // Close any previous TD/TH in table scope if any
+            curNodeId = popUpTo(NULL, 0, HTML_SCOPE_TABLE_OPENING_TD_TH);
+            // We should be in a table or sub-table element
+            // (a standalone TD is ignored)
+            if ( curNodeId < el_table || curNodeId > el_tr )
+                return false; // Not in a table context: ignore this TD/TH
+            // We must be in a TR. If we're not, have missing elements created
+            if ( curNodeId != el_tr ) {
+                // This will create all the other missing elements if needed
+                OnTagOpen(L"", L"tr");
+                OnTagBody();
+            }
+        }
+        else if ( tag_id == el_tr ) {
+            // Close any previous TR in table scope if any
+            curNodeId = popUpTo(NULL, tag_id, HTML_SCOPE_TABLE);
+            // We should be in a table or sub-table element
+            // (a standalone TR is ignored)
+            if ( curNodeId < el_table || curNodeId > el_tfoot )
+                return false; // Not in a table context: ignore this TR
+            // We must be in a THEAD/TBODY/TFOOT. If we're not, have missing elements created
+            if ( curNodeId < el_thead || curNodeId > el_tfoot ) {
+                // This will create all the other missing elements if needed
+                OnTagOpen(L"", L"tbody");
+                OnTagBody();
+            }
+        }
+        else if ( tag_id == el_col ) {
+            // Close any previous COL in table scope if any
+            curNodeId = popUpTo(NULL, tag_id, HTML_SCOPE_TABLE);
+            // We should be in a table or sub-table element
+            if ( curNodeId < el_table || curNodeId > el_td )
+                return false; // Not in a table context: ignore this TR
+            // We must be in a COLGROUP. If we're not, have missing elements created
+            if ( curNodeId != el_colgroup ) {
+                // This will create all the other missing elements if needed
+                OnTagOpen(L"", L"colgroup");
+                OnTagBody();
+            }
+        }
+        else if ( (tag_id >= el_thead && tag_id <= el_tfoot) ||
+                   tag_id == el_caption ||
+                   tag_id == el_colgroup ) {
+            // Close any previous THEAD/TBODY/TFOOT/CAPTION/COLGROUP/COL in table scope if any
+            curNodeId = popUpTo(NULL, 0, HTML_SCOPE_TABLE_TO_TOP);
+            // We should be in a table element
+            if ( curNodeId != el_table )
+                return false; // Not in a table context
+        }
+
+        if ( tag_id == el_li ) {
+            // A LI should close any previous LI, but should stop at specials
+            // except ADDRESS, DIV and P (they will so stop at UL/OL and won't
+            // close any upper LI that had another level of list opened).
+            // Once that LI close, they should also close any P, which will
+            // be taken care by followup check.
+            curNodeId = popUpTo(NULL, tag_id, HTML_SCOPE_OPENING_LI);
+        }
+        else if ( tag_id == el_dt || tag_id == el_dd ) {
+            curNodeId = popUpTo(NULL, 0, HTML_SCOPE_OPENING_DT_DD);
+        }
+        else if ( tag_id == el_select ) {
+            curNodeId = popUpTo(NULL, tag_id, HTML_SCOPE_SELECT);
+        }
+        if ( _lastP && tag_id >= EL_SPECIAL_CLOSING_P_START && tag_id <= EL_SPECIAL_CLOSING_P_END ) {
+            // All these should close a P "in button scope", meaning until a parent
+            // with these tag names is met:
+            //   html, table, td, th, caption, applet, marquee, object, template
+            // These should all have closed any previous P when opened, except
+            // applet, marquee, object, template - but to simplify things, we
+            // made them close a P too. So, _lastP is always "in button scope".
+            curNodeId = popUpTo(_lastP); // will set _lastP = NULL
+            // Note: in "quirks mode", a TABLE should not close a P (should
+            // we force this behaviour on old CHM files ? Having the table
+            // close a P when it shouldn't will make the following text out
+            // of P and possibly not styled as P).
+        }
+        if ( tag_id >= el_h1 && tag_id <= el_h6 ) {
+            // After possibly closing a P, H1...H6 close any H1...H6 direct ancestor
+            curNodeId = popUpTo(NULL, 0, HTML_SCOPE_OPENING_H1_H6);
+        }
+        else if ( curNodeId == el_option && (tag_id == el_optgroup || tag_id == el_option) ) {
+            // Close previous option
+            curNodeId = popUpTo(_currNode);
+        }
+        else if ( tag_id >= el_rbc && tag_id <= el_rp ) { // ruby sub-elements
+            // The HTML5 specs says that:
+            // - we should do that only if there is a RUBY in scope (but we don't check that)
+            // - RB and RTC should close implied end tags, meaning: RB RP RT RTC
+            // - RP and RT should close implied end tags except RTC, meaning: RB RP RT
+            // But they don't mention the old <RBC> that we want to support
+            // If we do, we end up with these rules (x for HTML specs, o for our added RBC support)
+            //               tags to close
+            //     tag_id   RBC RB RTC RT RP
+            //     RBC       o  o   o  o  o
+            //     RB           x   x  x  x
+            //     RTC       o  x   x  x  x
+            //     RT        o  x      x  x
+            //     RP        o  x      x  x
+            if ( tag_id == el_rbc || tag_id == el_rtc ) {
+                while ( curNodeId >= el_rbc && curNodeId <= el_rp ) {
+                    curNodeId = popUpTo(_currNode);
+                }
+            }
+            else if ( tag_id == el_rb ) {
+                while ( curNodeId >= el_rb && curNodeId <= el_rp ) {
+                    curNodeId = popUpTo(_currNode);
+                }
+            }
+            else { // el_rt || el_rp
+                while ( curNodeId >= el_rbc && curNodeId <= el_rp && curNodeId != el_rtc) {
+                    curNodeId = popUpTo(_currNode);
+                }
+            }
+        }
+
+        // Self closing will be handled in OnTagBody
+        _curNodeIsSelfClosing = is_self_closing_tag;
+    }
+    else if ( step == PARSER_STEP_TAG_CLOSING || step == PARSER_STEP_TAG_SELF_CLOSING ) { // Closing, </tag_id> or <tag_id/>
+        // We are responsible for poping up to and closing the provided tag_id,
+        // or ignoring it if stopped or not found.
+        if ( is_self_closing_tag ) {
+            // We can ignore this closing tag, except in one case:
+            // a standalone closing </BR> (so, not self closing)
+            // Specs say we should insert a new/another one
+            if ( tag_id == el_br && step == PARSER_STEP_TAG_CLOSING ) {
+                OnTagOpen(L"", L"br");
+                OnTagBody();
+                OnTagClose(L"", L"br", true);
+                return true;
+            }
+            return false; // ignored
+        }
+        if ( tag_id == curNodeId ) {
+            // If closing current node, no need for more checks
+            popUpTo(_currNode);
+            return true;
+        }
+        if ( tag_id == el_p && !_lastP ) {
+            // </P> without any previous <P> should emit <P></P>
+            // Insert new one and pop it
+            OnTagOpen(L"", L"p");
+            OnTagBody();
+            popUpTo(_currNode);
+            return true;
+        }
+        if ( tag_id > EL_SPECIAL_END ) {
+            // Inline elements don't close across specials
+            curNodeId = popUpTo(NULL, tag_id, HTML_SCOPE_SPECIALS);
+        }
+        else if ( tag_id >= el_h1 && tag_id <= el_h6 ) {
+            // A closing Hn closes any other Hp
+            curNodeId = popUpTo(NULL, tag_id, HTML_SCOPE_CLOSING_H1_H6);
+        }
+        else if ( tag_id == el_li ) {
+            // </li> shouldn't close across OL/UL
+            curNodeId = popUpTo(NULL, tag_id, HTML_SCOPE_LIST_ITEM);
+            // Note: dt/dd (which have the same kind of auto-close previous
+            // as LI for the opening tag) do not have any restriction, and
+            // will use HTML_SCOPE_MAIN below
+        }
+        else if ( tag_id >= el_table && tag_id <= el_td ) {
+            // Table sub-element: don't cross TABLE
+            curNodeId = popUpTo(NULL, tag_id, HTML_SCOPE_TABLE);
+        }
+        else if ( tag_id >= EL_SPECIAL_START ) {
+            // All other "specials" close across nearly everything
+            // except TABLE/TH/TD/CAPTION
+            curNodeId = popUpTo(NULL, tag_id, HTML_SCOPE_MAIN);
+        }
+        else {
+            // Boxing elements are normally added by crengine after
+            // "delete ldomElementWriter" (which calls onBodyExit()
+            // which calls initNodeRendMethod()), so after we have
+            // closed and pass by the element.
+            // So, we shouldn't meet any.
+            // But logically, they shouldn't have any limitation
+            curNodeId = popUpTo(NULL, tag_id, HTML_SCOPE_NONE);
+        }
+        // SELECT should close any previous SELECT in HTML_SCOPE_SELECT,
+        // which should contain only OPTGROUP and OPTION, but we don't
+        // ensure that. So, we don't ensure this closing restriction.
+    }
+
+    // (Silences clang warning about 'curNodeId' is never read, if we
+    // happen to not had the need to re-check it - but better to keep
+    // updating it if we later add stuff that does use it)
+    (void)curNodeId;
+
+    return true;
+}
+bool ldomDocumentWriterFilter::CheckAndEnsureFosterParenting(lUInt16 tag_id)
+{
+    if ( !_currNode )
+        return false;
+    lUInt16 curNodeId = _currNode->getElement()->getNodeId();
+    if ( curNodeId >= el_table && curNodeId <= el_tr && curNodeId != el_caption ) {
+        if ( tag_id < el_table || tag_id > el_td ) {
+            // Non table sub-element met as we expect only a table sub-element.
+            // Ensure foster parenting: this node (and its content) is to be
+            // inserted as a previous sibling of the table element we are in
+            _curNodeBeforeFostering = NULL;
+            // Look for the containing table element
+            ldomElementWriter * elem = _currNode;
+            while ( elem ) {
+                if ( elem->getElement()->getNodeId() == el_table ) {
+                    break;
+                }
+                elem = elem->_parent;
+            }
+            if ( elem ) { // found it
+                _curNodeBeforeFostering = _currNode;
+                _currNode = elem->_parent; // parent of table
+                return true; // Insert the new element in _currNode (the parent of this
+                             // table), before its last child (which is this table)
+            }
+        }
+        // We're in a table, and we see an expected sub-table element: all is fine
+        return false;
+    }
+    else if ( _curFosteredNode ) {
+        // We've been foster parenting: if we see a table sub-element,
+        // stop foster parenting and restore the original noce
+        if ( tag_id >= el_table && tag_id <= el_td ) {
+            popUpTo(_curFosteredNode);
+            // popUpTo() has restored _currNode to _curNodeBeforeFostering and
+            // reset _curFosteredNode and _curNodeBeforeFostering to NULL
+        }
+    }
+    return false;
+}
+
 ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
-    //CRLog::trace("OnTagOpen(%s, %s)", LCSTR(lString16(nsname)), LCSTR(lString16(tagname)));
+    // We expect from the parser to always have OnTagBody called
+    // after OnTagOpen before any other OnTagOpen
     if ( !_tagBodyCalled ) {
         CRLog::error("OnTagOpen w/o parent's OnTagBody : %s", LCSTR(lString16(tagname)));
         crFatalError();
     }
-    _tagBodyCalled = false;
-    //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
-//    if ( nsname && nsname[0] )
-//        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
-//    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
+    // _tagBodyCalled = false;
+    // We delay setting _tagBodyCalled=false to below as we may create
+    // additional wrappers before inserting this new element
 
     lUInt16 id = _document->getElementNameIndex(tagname);
     lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
 
-    // Set a flag for OnText to accumulate the content of any <HEAD><STYLE>
-    if ( id == el_style && _currNode && _currNode->getElement()->getNodeId() == el_head ) {
-        _inHeadStyle = true;
+    // http://lib.ru/ books detection (a bit ugly to have this hacked
+    // into ldomDocumentWriterFilter, but well, it's been there for ages
+    // and it seems quite popular and expected to have crengine handle
+    // Lib.ru books without any conversion needed).
+    // Detection has been reworked to be done here (in OnTagOpen). It
+    // was previously done in ElementCloseHandler/OnTagClose when closing
+    // the elements, and as it removed the FORM node from the DOM, it
+    // caused a display hash mismatch which made the cache invalid.
+    // So, do it here and don't remove any node but make then hidden.
+    // Lib.ru books (in the 2 formats that are supported, "Lib.ru html"
+    // and "Fine HTML"), have this early in the document:
+    //   <div align=right><form action=/INPROZ/ASTURIAS/asturias1_1.txt><select name=format><OPTION...>
+    // Having a FORM child of a DIV with align=right is assumed to be
+    // quite rare, so check for that.
+    bool setDisplayNone = false;
+    bool setParseAsPre = false;
+    if ( _libRuDocumentToDetect && id == el_form ) {
+        // At this point _currNode is still the parent of the FORM that is opening
+        if ( _currNode && _currNode->_element->getNodeId() == el_div ) {
+            ldomNode * node = _currNode->_element;
+            lString16 style = node->getAttributeValue(attr_style);
+            // align=right would have been translated to style="text-align: right"
+            if ( !style.empty() && style.pos("text-align: right", 0) >= 0 ) {
+                _libRuDocumentDetected = true;
+                // We can't set this DIV to be display:none as the element
+                // has already had setNodeStyle() called and applied, so
+                // it would take effect only on re-renderings (and would
+                // cause a display hash mismatch).
+                // So, we'll set it on the FORM just after it's created below
+                setDisplayNone = true;
+            }
+        }
+        // If the first FORM met doesn't match, no need keep detecting
+        _libRuDocumentToDetect = false;
     }
-
     // Fixed 20180503: this was done previously in any case, but now only
     // if _libRuDocumentDetected. We still allow the old behaviour if
     // requested to keep previously recorded XPATHs valid.
     if ( _libRuDocumentDetected || gDOMVersionRequested < 20180503) {
-        // Patch for bad LIB.RU books - BR delimited paragraphs in "Fine HTML" format
+        // Patch for bad LIB.RU books - BR delimited paragraphs
+        // in "Fine HTML" format, that appears as:
+        //   <br>&nbsp; &nbsp; &nbsp; Viento fuerte, 1950
+        //   <br>&nbsp; &nbsp; &nbsp; Spellcheck [..., with \n every 76 chars]
         if ( id == el_br || id == el_dd ) {
-            // substitute to P
+            // Replace such BR with P
             id = el_p;
             _libRuParagraphStart = true; // to trim leading &nbsp;
         } else {
             _libRuParagraphStart = false;
         }
+        if ( _libRuDocumentDetected && id == el_pre ) {
+            // "Lib.ru html" format is actually minimal HTML with
+            // the text wrapped in <PRE>. We will parse this text
+            // to build proper HTML with each paragraph wrapped
+            // in a <P> (this is done by the XMLParser when we give
+            // it TXTFLG_PRE_PARA_SPLITTING).
+            // Once that is detected, we don't want it to be PRE
+            // anymore (so that on re-renderings, it's not handled
+            // as white-space: pre), so we're swapping this PRE with
+            // a DIV element. But we need to still parse the text
+            // when building the DOM as PRE.
+            id = el_div;
+            ldomNode * n = _currNode ? _currNode->getElement() : NULL;
+            if ( n && n->getNodeId() == el_pre ) {
+                // Also close any previous PRE that would have been
+                // auto-closed if we kept PRE as PRE (from now on,
+                // we'll convert PRE to DIV), as this unclosed PRE
+                // would apply to all the text.
+                _currNode = pop( _currNode, el_pre);
+            }
+            else if ( n && n->getNodeId() == el_div && n->hasAttribute( attr_ParserHint ) &&
+                        n->getAttributeValue( attr_ParserHint ) == L"ParseAsPre" ) {
+                // Also close any previous PRE we already masqueraded
+                // as <DIV ParserHint="ParseAsPre">
+                _currNode = pop( _currNode, el_div);
+            }
+            // Below, we'll then be inserting a DIV, which won't be TXTFLG_PRE.
+            // We'll need to re-set _flags to be TXTFLG_PRE in our OnTagBody(),
+            // after it has called the superclass's OnTagBody(),
+            // as ldomDocumentWriter::OnTagBody() will call onBodyEnter() which
+            // will have set default styles (so, not TXTFLG_PRE for DIV as its
+            // normal style is "white-space: normal").
+            // We'll add the attribute ParserHint="ParseAsPre" below so
+            // we know it was a PRE and do various tweaks.
+            setParseAsPre = true;
+        }
     }
 
-    AutoClose( id, true );
-    _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
+    bool tag_accepted = true;
+    bool insert_before_last_child = false;
+    if (gDOMVersionRequested >= 20200824) { // A little bit more HTML5 conformance
+        if ( id == el_image )
+            id = el_img;
+        if ( tagname && tagname[0] == '?' ) {
+            // The XML parser feeds us XML processing instructions like '<?xml ... ?>'
+            // Firefox wraps them in a comment <!--?xml ... ?-->.
+            // As we ignore comments, ignore them too.
+            tag_accepted = false;
+        }
+        else if ( CheckAndEnsureFosterParenting(id) ) {
+            // https://html.spec.whatwg.org/multipage/parsing.html#foster-parent
+            // If non-sub-table element opening while we're still
+            // inside sub-table non-TD/TH elements, we should
+            // do foster parenting: insert the node as the previous
+            // sibling of the TABLE element we're dealing with
+            insert_before_last_child = true;
+            // As we'll be inserting a node before the TABLE, which
+            // already had its style applied, some CSS selectors matches
+            // might no more be valid (i.e. :first-child, DIV + TABLE),
+            // so styles could change on the next re-rendering.
+            // We don't check if we actually had such selectors as that
+            // is complicated from here: we just set styles to be invalid
+            // so they are re-computed once the DOM is fully built.
+            _document->setNodeStylesInvalidIfLoading();
+        }
+        else {
+            tag_accepted = AutoOpenClosePop( PARSER_STEP_TAG_OPENING, id );
+        }
+    }
+    else {
+        AutoClose( id, true );
+    }
+
+    // Set a flag for OnText to accumulate the content of any <HEAD><STYLE>
+    // (We do that after the autoclose above, so that with <HEAD><META><STYLE>,
+    // the META is properly closed and we find HEAD as the current node.)
+    if ( id == el_style && _currNode && _currNode->getElement()->getNodeId() == el_head ) {
+        _inHeadStyle = true;
+    }
+
+    // From now on, we don't create/close any elements, so expect
+    // the next event to be OnTagBody (except OnTagAttribute)
+    _tagBodyCalled = false;
+
+    if ( !tag_accepted ) {
+        // Don't create the element
+        // If not accepted, the HTML parser will still call OnTagBody, and might
+        // call OnTagAttribute before that. We should ignore them until OnTagBody.
+        // No issue with OnTagClose, that can usually ignore stuff.
+        _curTagIsIgnored = true;
+        return _currNode ? _currNode->getElement() : NULL;
+    }
+
+    _currNode = new ldomElementWriter( _document, nsid, id, _currNode, insert_before_last_child );
     _flags = _currNode->getFlags();
-    if ( _libRuDocumentDetected && (_flags & TXTFLG_PRE) )
-        _flags |= TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM; // convert preformatted text into paragraphs
+
+    if ( insert_before_last_child ) {
+        _curFosteredNode = _currNode;
+    }
+
+    if (gDOMVersionRequested >= 20200824 && id == el_p) {
+        // To avoid checking DOM ancestors with the numerous tags that close a P
+        _lastP = _currNode;
+    }
+
+    // Some libRu tweaks:
+    if ( setParseAsPre ) {
+        // Set an attribute on the DIV we just added
+        _currNode->getElement()->setAttributeValue(LXML_NS_NONE, attr_ParserHint, L"ParseAsPre");
+        // And set this global flag as we'll need to re-enable PRE (as it
+        // will be reset by ldomDocumentWriter::OnTagBody() as we won't have
+        // proper CSS white-space:pre inheritance) and XMLParser flags.
+        _libRuParseAsPre = true;
+    }
+    if ( setDisplayNone ) {
+        // Hide the FORM that was used to detect libRu,
+        // now that currNode is the FORM element
+        appendStyle( L"display: none" );
+    }
+
     //logfile << " !o!\n";
-    //return _currNode->getElement();
     return _currNode->getElement();
 }
 
@@ -12944,67 +13700,40 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lC
 void ldomDocumentWriterFilter::OnTagBody()
 {
     _tagBodyCalled = true;
+    if ( _curTagIsIgnored ) {
+        _curTagIsIgnored = false; // Done with this ignored tag
+        // We don't want ldomDocumentWriter::OnTagBody() to re-init
+        // the current node styles (as we ignored this element,
+        // _currNode is the previous node, already initNodeStyle()'d)
+        return;
+    }
 
-    // Some specific handling for the <BODY> tag to deal with HEAD STYLE and
-    // LINK is done in super class (ldomDocumentWriter)
+    // This superclass OnTagBody() will initNodeStyle() on this node.
+    // Some specific handling for the <BODY> tag to deal with HEAD STYLE
+    // and LINK is also done there.
     ldomDocumentWriter::OnTagBody();
-}
 
-bool isRightAligned(ldomNode * node) {
-    lString16 style = node->getAttributeValue(attr_style);
-    if (style.empty())
-        return false;
-    int p = style.pos("text-align: right", 0);
-    return (p >= 0);
-}
+    if ( _curNodeIsSelfClosing ) {
+        // Now that styles are set, we can close the element
+        // Let's have it closed properly with flags correctly re set, and so
+        // that specific handling in OnTagClose() is done (ex. for <LINK>)
+        OnTagClose(NULL, NULL, true);
+        return;
+    }
 
-void ldomDocumentWriterFilter::ElementCloseHandler( ldomNode * node )
-{
-    ldomNode * parent = node->getParentNode();
-    lUInt16 id = node->getNodeId();
-    if ( parent ) {
-        if ( parent->getLastChild() != node )
-            return;
-        if ( id==el_table ) {
-            if (isRightAligned(node) && node->getAttributeValue(attr_width) == "30%") {
-                // LIB.RU TOC detected: remove it
-                //parent = parent->modify();
-
-                //parent->removeLastChild();
-            }
-        } else if ( id==el_pre && _libRuDocumentDetected ) {
-            // for LIB.ru - replace PRE element with DIV (section?)
-            if ( node->getChildCount()==0 ) {
-                //parent = parent->modify();
-
-                //parent->removeLastChild(); // remove empty PRE element
-            }
-            //else if ( node->getLastChild()->getNodeId()==el_div && node->getLastChild()->getChildCount() &&
-            //          ((ldomElement*)node->getLastChild())->getLastChild()->getNodeId()==el_form )
-            //    parent->removeLastChild(); // remove lib.ru final section
-            else
-                node->setNodeId( el_div );
-        } else if ( id==el_div ) {
-//            CRLog::trace("DIV attr align = %s", LCSTR(node->getAttributeValue(attr_align)));
-//            CRLog::trace("DIV attr count = %d", node->getAttrCount());
-//            int alignId = node->getDocument()->getAttrNameIndex("align");
-//            CRLog::trace("align= %d %d", alignId, attr_align);
-//            for (int i = 0; i < node->getAttrCount(); i++)
-//                CRLog::trace("DIV attr %s", LCSTR(node->getAttributeName(i)));
-            if (isRightAligned(node)) {
-                ldomNode * child = node->getLastChild();
-                if ( child && child->getNodeId()==el_form )  {
-                    // LIB.RU form detected: remove it
-                    //parent = parent->modify();
-
-                    parent->removeLastChild();
-                    _libRuDocumentDetected = true;
-                }
-            }
+    if ( _libRuDocumentDetected ) {
+        if ( _libRuParseAsPre ) {
+            // The OnTagBody() above might have cancelled TXTFLG_PRE
+            // (that the ldomElementWriter inherited from its parent)
+            // when ensuring proper CSS white-space inheritance.
+            // Re-enable it
+            _currNode->_flags |= TXTFLG_PRE;
+            // Also set specific XMLParser flags so it spits out
+            // <P>... for each paragraph of plain text, so that
+            // we get some nice HTML instead
+            _flags = TXTFLG_PRE | TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM;
         }
     }
-    if (!_libRuDocumentDetected)
-        node->persist();
 }
 
 void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
@@ -13015,6 +13744,10 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar1
     //lStr_lowercase( const_cast<lChar16 *>(attrname), lStr_len(attrname) );
 
     //CRLog::trace("OnAttribute(%s, %s)", LCSTR(lString16(attrname)), LCSTR(lString16(attrvalue)));
+
+    if ( _curTagIsIgnored ) { // Ignore attributes if tag was ignored
+        return;
+    }
 
     // ldomDocumentWriterFilter is used for HTML/CHM/PDB (not with EPUBs).
     // We translate some attributes (now possibly deprecated) to their
@@ -13102,31 +13835,42 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar1
 }
 
 /// called on closing tag
-void ldomDocumentWriterFilter::OnTagClose( const lChar16 * /*nsname*/, const lChar16 * tagname )
+void ldomDocumentWriterFilter::OnTagClose( const lChar16 * /*nsname*/, const lChar16 * tagname, bool self_closing_tag )
 {
     if ( !_tagBodyCalled ) {
         CRLog::error("OnTagClose w/o parent's OnTagBody : %s", LCSTR(lString16(tagname)));
         crFatalError();
     }
-    //logfile << "ldomDocumentWriter::OnTagClose() [" << nsname << ":" << tagname << "]";
-//    if ( nsname && nsname[0] )
-//        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
-//    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
-    if (!_currNode || !_currNode->getElement())
-    {
+    if ( !_currNode || !_currNode->getElement() ) {
         _errFlag = true;
-        //logfile << " !c-err!\n";
         return;
     }
 
     //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
     lUInt16 curNodeId = _currNode->getElement()->getNodeId();
-    lUInt16 id = _document->getElementNameIndex(tagname);
+    lUInt16 id = tagname ? _document->getElementNameIndex(tagname) : curNodeId;
     _errFlag |= (id != curNodeId); // (we seem to not do anything with _errFlag)
     // We should expect the tagname we got to be the same as curNode's element name,
     // but it looks like we may get an upper closing tag, that pop() or AutoClose()
     // below might handle. So, here below, we check that both id and curNodeId match
     // the element id we check for.
+
+    if ( _libRuDocumentToDetect && id == el_div ) {
+        // No need to try detecting after we see a closing </DIV>,
+        // as the FORM we look for is in the first DIV
+        _libRuDocumentToDetect = false;
+    }
+    if ( _libRuDocumentDetected && id == el_pre ) {
+        // Also, if we're about to close the original PRE that we masqueraded
+        // as DIV and that has enabled _libRuParseAsPre, reset it.
+        // (In Lib.ru books, it seems a PRE is never closed, or only at
+        // the end by another PRE where it doesn't matter if we keep that flag.)
+        ldomNode * n = _currNode->getElement();
+        if ( n->getNodeId() == el_div && n->hasAttribute( attr_ParserHint ) &&
+                    n->getAttributeValue( attr_ParserHint ) == L"ParseAsPre" ) {
+            _libRuParseAsPre = false;
+        }
+    }
 
     // Parse <link rel="stylesheet">, put the css file link in _stylesheetLinks,
     // they will be added to <body><stylesheet> when we meet <BODY>
@@ -13156,25 +13900,35 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * /*nsname*/, const lCh
             _document->getProps()->setString( DOC_PROP_TITLE, s );
         }
     }
-    //======== START FILTER CODE ============
-    AutoClose( curNodeId, false );
-    //======== END FILTER CODE ==============
-    // save closed element
-    // ldomNode * closedElement = _currNode->getElement();
 
-    _currNode = pop( _currNode, id );
-        // _currNode is now the parent
+    if (gDOMVersionRequested >= 20200824) { // A little bit more HTML5 conformance
+        if ( _curNodeIsSelfClosing ) { // Internal call (not from XMLParser)
+            _currNode = pop( _currNode, id );
+            _curNodeIsSelfClosing = false;
+        }
+        else {
+            if ( id == el_image )
+                id = el_img;
+            AutoOpenClosePop( self_closing_tag ? PARSER_STEP_TAG_SELF_CLOSING : PARSER_STEP_TAG_CLOSING, id );
+        }
+    }
+    else {
+        //======== START FILTER CODE ============
+        AutoClose( curNodeId, false );
+        //======== END FILTER CODE ==============
+        // save closed element
+        // ldomNode * closedElement = _currNode->getElement();
+        _currNode = pop( _currNode, id );
+            // _currNode is now the parent
+    }
 
     if ( _currNode ) {
         _flags = _currNode->getFlags();
-        if ( _libRuDocumentDetected && (_flags & TXTFLG_PRE) )
-            _flags |= TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM; // convert preformatted text into paragraphs
+        if ( _libRuParseAsPre ) {
+            // Re-set specific parser flags
+            _flags |= TXTFLG_PRE | TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM;
+        }
     }
-
-    //=============================================================
-    // LIB.RU patch: remove table of contents
-    //ElementCloseHandler( closedElement );
-    //=============================================================
 
     if ( id==_stopTagId ) {
         //CRLog::trace("stop tag found, stopping...");
@@ -13193,19 +13947,60 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
         return;
     }
 
+    if (gDOMVersionRequested >= 20200824) { // A little bit more HTML5 conformance
+        // We can get text before any node (it should then have <html><body> emited before it),
+        // but we might get spaces between " <html> <head> <title>The title <br>The content".
+        // Try to handle that correctly.
+        if ( !_bodyTagSeen ) {
+            // While not yet in BODY, when in HTML or HEAD, ignore empty
+            // text (as non empty text will create BODY)
+            if ( !_currNode || _currNode->getElement()->isRoot() ||
+                               _currNode->getElement()->getNodeId() == el_html ||
+                               _currNode->getElement()->getNodeId() == el_head ) {
+                if ( !IsEmptySpace(text, len) ) {
+                    // Non-empty text: have implicit HTML or BODY tags created and HEAD closed
+                    AutoOpenClosePop( PARSER_STEP_TEXT, 0 );
+                }
+            }
+        }
+    }
     //logfile << "lxmlDocumentWriter::OnText() fpos=" << fpos;
     if (_currNode)
     {
-        AutoClose( _currNode->_element->getNodeId(), false );
+        lUInt16 curNodeId = _currNode->getElement()->getNodeId();
+        if (gDOMVersionRequested < 20200824) {
+            AutoClose( curNodeId, false );
+        }
         if ( (_flags & XML_FLAG_NO_SPACE_TEXT)
              && IsEmptySpace(text, len) && !(flags & TXTFLG_PRE))
              return;
-        bool autoPara = _libRuDocumentDetected && (flags & TXTFLG_PRE);
-        if (_currNode->_allowText) {
+        bool insert_before_last_child = false;
+        if (gDOMVersionRequested >= 20200824) {
+            // If we're inserting text while in table sub-elements that
+            // don't accept text, have it foster parented
+            if ( curNodeId >= el_table && curNodeId <= el_tr && curNodeId != el_caption ) {
+                if ( !IsEmptySpace(text, len) ) {
+                    if ( CheckAndEnsureFosterParenting(el_NULL) ) {
+                        insert_before_last_child = true;
+                    }
+                }
+            }
+        }
+        else {
+            // Previously, text in table sub-elements (only table elements and
+            // self-closing elements have _allowText=false) had any text in between
+            // table elements dropped (but not elements! with "<table>abc<div>def",
+            // "abc" was dropped, but not "def")
+            if ( !_currNode->_allowText )
+                return;
+        }
+        if ( !_libRuDocumentDetected ) {
+            _currNode->onText( text, len, flags, insert_before_last_child );
+        }
+        else { // Lib.ru text cleanup
             if ( _libRuParagraphStart ) {
-                bool cleaned = false;
+                // Cleanup "Fine HTML": "<br>&nbsp; &nbsp; &nbsp; Viento fuerte, 1950"
                 while ( *text==160 && len > 0 ) {
-                    cleaned = true;
                     text++;
                     len--;
                     while ( *text==' ' && len > 0 ) {
@@ -13213,12 +14008,11 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
                         len--;
                     }
                 }
-                if ( cleaned ) {
-                    setClass(L"justindent");
-                    //appendStyle(L"text-indent: 1.3em; text-align: justify");
-                }
                 _libRuParagraphStart = false;
             }
+            // Handle "Lib.ru html" paragraph, parsed from the nearly plaintext
+            // by XMLParser with TXTFLG_PRE | TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM
+            bool autoPara = flags & TXTFLG_PRE;
             int leftSpace = 0;
             const lChar16 * paraTag = NULL;
             bool isHr = false;
@@ -13234,6 +14028,15 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
                 for ( int i=0; i<len; i++ ) {
                     if ( !ch )
                         ch = text[i];
+                    // We would need this to have HR work:
+                    //   else if ( i == len-1 && text[i] == ' ' ) {
+                    //      // Ignore a trailing space we may get
+                    //      // Note that some HR might be missed when the
+                    //      // "----" directly follows some indented text.
+                    //   }
+                    // but by fixing it, we'd remove a P and have XPointers
+                    // like /html/body/div/p[14]/text().113 reference the wrong P,
+                    // so keep doing bad to not mess past highlights...
                     else if ( ch != text[i] ) {
                         sameCh = false;
                         break;
@@ -13253,10 +14056,17 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
                     OnTagOpen( NULL, paraTag );
                     OnTagBody();
                 }
-                _currNode->onText( text, len, flags );
+                _currNode->onText( text, len, flags, insert_before_last_child );
                 if ( autoPara )
                     OnTagClose( NULL, paraTag );
             }
+        }
+        if ( insert_before_last_child ) {
+            // We have no _curFosteredNode to pop, so just restore
+            // the previous table node
+            _currNode = _curNodeBeforeFostering;
+            _curNodeBeforeFostering = NULL;
+            _curFosteredNode = NULL;
         }
     }
     //logfile << " !t!\n";
@@ -13264,12 +14074,26 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
 
 ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool headerOnly, const char *** rules )
 : ldomDocumentWriter( document, headerOnly )
+, _libRuDocumentToDetect(true)
 , _libRuDocumentDetected(false)
 , _libRuParagraphStart(false)
+, _libRuParseAsPre(false)
 , _styleAttrId(0)
 , _classAttrId(0)
 , _tagBodyCalled(true)
+, _htmlTagSeen(false)
+, _headTagSeen(false)
+, _bodyTagSeen(false)
+, _curNodeIsSelfClosing(false)
+, _curTagIsIgnored(false)
+, _curNodeBeforeFostering(NULL)
+, _curFosteredNode(NULL)
+, _lastP(NULL)
 {
+    if (gDOMVersionRequested >= 20200824) {
+        // We're not using the provided rules, but hardcoded ones in AutoOpenClosePop()
+        return;
+    }
     lUInt16 i;
     for ( i=0; i<MAX_ELEMENT_TYPE_ID; i++ )
         _rules[i] = NULL;
@@ -13294,6 +14118,9 @@ ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool
 ldomDocumentWriterFilter::~ldomDocumentWriterFilter()
 {
 
+    if (gDOMVersionRequested >= 20200824) {
+        return;
+    }
     for ( int i=0; i<MAX_ELEMENT_TYPE_ID; i++ ) {
         if ( _rules[i] )
             delete[] _rules[i];
@@ -16932,7 +17759,7 @@ ldomNode * ldomNode::insertChildText( const lString16 & value )
 }
 
 /// inserts child text
-ldomNode * ldomNode::insertChildText(const lString8 & s8)
+ldomNode * ldomNode::insertChildText(const lString8 & s8, bool before_last_child)
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
@@ -16946,7 +17773,10 @@ ldomNode * ldomNode::insertChildText(const lString8 & s8)
         ldomNode * node = getDocument()->allocTinyNode( NT_PTEXT );
         node->_data._ptext_addr = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
 #endif
-        me->_children.insert( me->_children.length(), node->getDataIndex() );
+        int index = me->_children.length();
+        if ( before_last_child && index > 0 )
+            index--;
+        me->_children.insert( index, node->getDataIndex() );
         return node;
     }
     readOnlyError();

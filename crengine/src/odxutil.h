@@ -339,7 +339,7 @@ public:
     void OnTagBody();
 
     /// called on tag close
-    void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false );
 
     /// called on element attribute
     void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );

@@ -76,7 +76,24 @@ public class History extends FileInfoChangeSource {
 			db.deleteRecentPosition(fileInfo);
 		updateRecentDir();
 	}
-	
+
+	public void updateBookInfo(BookInfo bookInfo)
+	{
+		Log.v("cr3", "History.updateBookInfo() for " + bookInfo.getFileInfo().getPathName());
+		bookInfo.updateAccess();
+		int index = findBookInfo(bookInfo.getFileInfo());
+		if ( index>=0 ) {
+			BookInfo info = mBooks.get(index);
+			if ( index>0 ) {
+				mBooks.remove(index);
+				mBooks.add(0, info);
+			}
+			info.setBookmarks(bookInfo.getAllBookmarks());
+		} else {
+			mBooks.add(0, bookInfo);
+		}
+	}
+
 	public void updateBookAccess(BookInfo bookInfo, long timeElapsed)
 	{
 		Log.v("cr3", "History.updateBookAccess() for " + bookInfo.getFileInfo().getPathName());

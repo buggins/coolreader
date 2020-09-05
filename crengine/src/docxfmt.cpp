@@ -414,6 +414,8 @@ public:
     bool m_inField;
     ldomNode *m_linkNode;
     odx_Style* m_pStyle;
+private:
+    lString16 getListStyle(css_list_style_type_t listType);
 };
 
 class docx_ElementHandler : public xml_ElementHandler
@@ -1920,7 +1922,7 @@ void docx_drawingHandler::handleAttribute(const lChar16 *attrname, const lChar16
             m_writer->OnTagOpen(L"", L"img");
             m_writer->OnAttribute(L"", L"src",  imgPath.c_str());
             m_writer->OnTagBody();
-            m_writer->OnTagClose(L"", L"img");
+            m_writer->OnTagClose(L"", L"img", true);
         }
     }
 }

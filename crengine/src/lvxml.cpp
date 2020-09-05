@@ -1829,7 +1829,7 @@ public:
             callback->OnTagOpen(L"", L"img");
             callback->OnAttribute(L"", L"src", url.c_str());
             callback->OnTagBody();
-            callback->OnTagClose(L"", L"img");
+            callback->OnTagClose(L"", L"img", true);
         }
 
         void startParagraph() {
@@ -3053,8 +3053,8 @@ bool LVXMLParser::Parse()
                 {
                     m_callback->OnTagBody();
                     // end of tag
-                    if ( ch!='>' )
-                        m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
+                    if ( ch!='>' ) // '/' in '<hr/>' : self closing tag
+                        m_callback->OnTagClose(tagns.c_str(), tagname.c_str(), true);
                     if ( ch=='>' )
                         PeekNextCharFromBuffer();
                     else
@@ -5843,16 +5843,24 @@ bool LVHTMLParser::CheckFormat()
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
         s.lowercase();
-        if ( s.pos("<html") >=0 && ( s.pos("<head") >= 0 || s.pos("<body") >=0 ) ) //&& s.pos("<FictionBook") >= 0
+        if ( s.pos("<html") >=0 && ( s.pos("<head") >= 0 || s.pos("<body") >=0 ) ) {
             res = true;
-        lString16 name=m_stream->GetName();
-        name.lowercase();
-        bool html_ext = name.endsWith(".htm") || name.endsWith(".html")
-                        || name.endsWith(".hhc")
-                        || name.endsWith(".xhtml");
-        if ( html_ext && (s.pos("<!--")>=0 || s.pos("UL")>=0
-                           || s.pos("<p>")>=0 || s.pos("ul")>=0) )
-            res = true;
+        }
+        if ( !res ) { // check <!doctype html> (and others) which may have no/implicit <html/head/body>
+            int doctype_pos = s.pos("<!doctype ");
+            if ( doctype_pos >= 0 ) {
+                int html_pos = s.pos("html", doctype_pos);
+                if ( html_pos >= 0 && html_pos < 32 )
+                    res = true;
+            }
+        }
+        if ( !res ) { // check filename extension and present of common HTML tags
+            lString16 name=m_stream->GetName();
+            name.lowercase();
+            bool html_ext = name.endsWith(".htm") || name.endsWith(".html") || name.endsWith(".hhc") || name.endsWith(".xhtml");
+            if ( html_ext && (s.pos("<!--")>=0 || s.pos("ul")>=0 || s.pos("<p>")>=0) )
+                res = true;
+        }
         lString16 enc = htmlCharset( s );
         if ( !enc.empty() )
             SetCharset( enc.c_str() );
@@ -6286,7 +6294,7 @@ public:
         return NULL;
     }
     /// called on closing
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false )
     {
         if ( lStr_cmp(nsname, "FictionBook")==0) {
             insideFictionBook = false;

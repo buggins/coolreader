@@ -62,6 +62,7 @@
     <string name="tab_options_app">App</string>
     <string name="tab_options_controls">Controls</string>
     <string name="tab_options_css">CSS</string>
+    <string name="tab_options_clouds">Clouds</string>
     <string name="options_font_size">Font size</string>
     <string name="options_font_face">Font face</string>
     <string name="options_font_embolden">Embolden font</string>
@@ -260,7 +261,7 @@
     <string name="dlg_about_textures_dirs">Textures directories:</string>
     <string name="dlg_about_backgrounds_dirs">Backgrounds directories:</string>
     <string name="dlg_about_hyphenations_dirs">Hyphenation dictionaries directories:</string>
-    <string name="dlg_about_copyright">© Vadim Lopatin, 1998–2019</string>
+    <string name="dlg_about_copyright">© Vadim Lopatin, 1998–2020</string>
     <string name="dlg_about_contributors_">and contributors…</string>
     <string name="mi_book_browser_normal_mode">Normal mode</string>
     <string name="mi_book_browser_simple_mode">Simple file list</string>
@@ -639,4 +640,21 @@
     <string name="options_requested_dom_level_newest">Newest</string>
     <string name="options_style_multilang">Support for multilingual documents</string>
     <string name="options_style_enable_hyphenation">Enable hyphenation</string>
+    <string name="options_app_googledrive_sync_auto">Auto synchronization with Google Drive</string>
+    <string name="options_app_googledrive_sync_settings">Settings on Drive</string>
+    <string name="options_app_googledrive_sync_bookmarks">Bookmarks and reading position on Drive</string>
+    <string name="options_app_googledrive_sync_currentbook">Current reading book info on Drive</string>
+    <string name="googledrive_disabled_cleanup_question">You have disabled automatic syncing with Google Drive, delete all application files on Google Drive?"</string>
+    <string name="googledrive_sync_completed">Synchronization with Google Drive successfully completed.</string>
+    <string name="googledrive_sync_failed_with">Synchronization with Google Drive failed with error: %s</string>
+    <string name="googledrive_sync_failed">Synchronization with Google Drive failed!</string>
+    <string name="googledrive_sync_aborted">Synchronization with Google Drive aborted!</string>
+    <string name="googledrive_localfile_is_newer_confirm">Local file \"%s\" is newer that remote on Google Drive, whatever load remote file or upload local to Drive?</string>
+    <string name="googledrive_load_remote">Load remote</string>
+    <string name="googledrive_upload_local">Upload local to Drive</string>
+    <string name="googledrive_remotefile_is_newer_confirm">Remote file \"%s\" on Google Drive is newer that local file, whatever save local to Drive or load remote?</string>
+    <string name="cloud_synchronization_">Cloud synchronizing…</string>
+    <string name="googledrive_sync_to">Sync to Drive</string>
+    <string name="googledrive_sync_from">Sync from Drive</string>
+    <string name="confirmation_title">Confirmation</string>
 </resources>

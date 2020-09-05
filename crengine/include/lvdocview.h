@@ -803,7 +803,7 @@ public:
     LVStreamRef getCoverPageImageStream();
 
     /// returns bookmark
-    ldomXPointer getBookmark();
+    ldomXPointer getBookmark( bool precise = true );
     /// returns bookmark for specified page
     ldomXPointer getPageBookmark( int page );
     /// sets current bookmark

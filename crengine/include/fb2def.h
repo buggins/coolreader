@@ -63,10 +63,20 @@ XS_TAG1D( title, true, css_d_block, css_ws_inherit )
 XS_TAG1D( style, true, css_d_none, css_ws_inherit )
 XS_TAG1D( script, true, css_d_none, css_ws_inherit )
 XS_TAG1D( base, false, css_d_none, css_ws_inherit ) // among crengine autoclose elements
+XS_TAG1D( basefont, false, css_d_none, css_ws_inherit )
+XS_TAG1D( bgsound, false, css_d_none, css_ws_inherit )
+XS_TAG1D( meta, false, css_d_none, css_ws_inherit )
 XS_TAG1D( link, false, css_d_none, css_ws_inherit )
 XS_TAG1T( body )
-XS_TAG1( param ) /* quite obsolete, child of <object>... was there, let's keep it */
 
+// Limits for head handling by our HTML Parser (ldomDocumentWriterFilter)
+// (if met before any HEAD or BODY, HTML/HEAD might be auto-inserted)
+#define EL_IN_HEAD_START el_head
+#define EL_IN_HEAD_END   el_link
+#define EL_IN_BODY_START el_body
+
+                // HTML5: start of special tags, closing all
+                // the way, and closing any <P>
 // Block elements
 XS_TAG1T( hr )
 XS_TAG1T( svg )
@@ -84,6 +94,29 @@ XS_TAG1T( p )
 XS_TAG1T( output )
 XS_TAG1T( section )
 
+// Lists
+XS_TAG1T( ol )
+XS_TAG1T( ul )
+XS_TAG1D( li, true, css_d_list_item_block, css_ws_inherit )
+
+// Definitions
+XS_TAG1T( dl )
+XS_TAG1T( dt )
+XS_TAG1T( dd )
+
+// Tables
+XS_TAG1D( table, false, css_d_table, css_ws_inherit )
+XS_TAG1D( caption, true, css_d_table_caption, css_ws_inherit )
+XS_TAG1D( colgroup, false, css_d_table_column_group, css_ws_inherit )
+XS_TAG1D( col, false, css_d_table_column, css_ws_inherit )
+XS_TAG1D( thead, false, css_d_table_header_group, css_ws_inherit )
+XS_TAG1D( tbody, false, css_d_table_row_group, css_ws_inherit )
+XS_TAG1D( tfoot, false, css_d_table_footer_group, css_ws_inherit )
+XS_TAG1D( tr, false, css_d_table_row, css_ws_inherit )
+XS_TAG1D( th, true, css_d_table_cell, css_ws_inherit )
+XS_TAG1D( td, true, css_d_table_cell, css_ws_inherit )
+
+// Added 20180528
 // Keep this block starting with "address" and ending with "xmp" as we
 // are using: if (id >= el_address && id <= el_xmp) in lvrend.cpp
 // Additional semantic block elements
@@ -113,66 +146,101 @@ XS_TAG1D( textarea, true, css_d_block, css_ws_pre ) // similar to "pre"
 XS_TAG1D( plaintext, true, css_d_block, css_ws_pre ) // start of raw text (no end tag), not supported
 XS_TAG1D( xmp, true, css_d_block, css_ws_pre ) // similar to "pre"
 
-// Lists
-XS_TAG1T( ol )
-XS_TAG1T( ul )
-XS_TAG1D( li, true, css_d_list_item_block, css_ws_inherit )
+// Added 20200824
+// Keep this block starting with "details" and ending with "wbr" as we
+// are using: if (id >= el_details && id <= el_wbr) in lvrend.cpp
+// Additional semantic block elements
+XS_TAG1T( details )
+XS_TAG1T( dialog )
+XS_TAG1T( summary )
+// Additional "special" elements mentionned in the HTML standard,
+// not supposed to close any P, but let's consider them similarly,
+// and be block elements, so their content is shown.
+XS_TAG1T( frame )
+XS_TAG1T( frameset )
+XS_TAG1T( iframe )
+XS_TAG1T( noembed )
+XS_TAG1T( template )
+XS_TAG1T( select )
+// BUTTON should not close a P, so we could have P > BUTTON > P,
+// and other elements close a P "in button scope" - but we want to
+// avoid nested Ps - so for our HTML parser, a BUTTON closes a P)
+XS_TAG1T( button )
+// HTML5: these 3 are special tags, that should not close any <P>,
+// but they start a new "scope" that should not be crossed when
+// other special tags are closing a P. As they are rare, we make
+// them close a P too, just so that we'll never have nested Ps.
+XS_TAG1T( marquee )
+XS_TAG1( applet )
+XS_TAG1( object )
+                // HTML5: end of special tags, closing all
+                // the way, and closing any <P>
+// Other HTML elements with usually no content or no usable content
+XS_TAG1T( optgroup ) // shown as block
+XS_TAG1I( option )   // shown as inline
+XS_TAG1T( map )
+XS_TAG1( area )
+XS_TAG1( track )
+XS_TAG1( embed )
+XS_TAG1( input )
+XS_TAG1( keygen )
+XS_TAG1( param )
+XS_TAG1( audio )
+XS_TAG1( source )
+XS_TAG1I( picture ) // may contain one <img>, and multiple <source>
+XS_TAG1I( wbr )
 
-// Definitions
-XS_TAG1T( dl )
-XS_TAG1T( dt )
-XS_TAG1T( dd )
-
-// Tables
-XS_TAG1D( table, false, css_d_table, css_ws_inherit )
-XS_TAG1D( caption, true, css_d_table_caption, css_ws_inherit )
-XS_TAG1D( col, false, css_d_table_column, css_ws_inherit )
-XS_TAG1D( colgroup, false, css_d_table_column_group, css_ws_inherit )
-XS_TAG1D( tr, false, css_d_table_row, css_ws_inherit )
-XS_TAG1D( tbody, false, css_d_table_row_group, css_ws_inherit )
-XS_TAG1D( thead, false, css_d_table_header_group, css_ws_inherit )
-XS_TAG1D( tfoot, false, css_d_table_footer_group, css_ws_inherit )
-XS_TAG1D( th, true, css_d_table_cell, css_ws_inherit )
-XS_TAG1D( td, true, css_d_table_cell, css_ws_inherit )
+// Limits for special handling by our HTML Parser (ldomDocumentWriterFilter)
+#define EL_SPECIAL_START           el_html
+#define EL_SPECIAL_END             el_wbr
+#define EL_SPECIAL_CLOSING_P_START el_hr
+#define EL_SPECIAL_CLOSING_P_END   el_object
 
 // Inline elements
 XS_TAG1OBJ( img ) /* inline and specific handling as 'object' */
+
+                // HTML5: start of "active formatting elements"
 XS_TAG1I( a )
-XS_TAG1I( acronym )
 XS_TAG1I( b )
-XS_TAG1I( bdi )
-XS_TAG1I( bdo )
 XS_TAG1I( big )
-XS_TAG1I( br )
-XS_TAG1I( cite ) // conflict between HTML (inline) and FB2 (block): default here to inline (fb2.css puts it back to block)
 XS_TAG1I( code ) // should not be css_ws_pre according to specs
-XS_TAG1I( del )
-XS_TAG1I( dfn )
 XS_TAG1I( em )
-XS_TAG1I( emphasis )
 XS_TAG1I( font )
 XS_TAG1I( i )
-XS_TAG1I( ins )
-XS_TAG1I( kbd )
 XS_TAG1I( nobr )
-XS_TAG1I( q )
-XS_TAG1I( samp )
-XS_TAG1I( small )
-XS_TAG1I( span )
 XS_TAG1I( s )
+XS_TAG1I( small )
 XS_TAG1I( strike )
 XS_TAG1I( strong )
-XS_TAG1I( sub )
-XS_TAG1I( sup )
 XS_TAG1I( tt )
 XS_TAG1I( u )
+                // HTML5: end of "active formatting elements"
+                // This is just for refence: we don't handle them specifically
+                // (in HTML5, when mis-nested tags would close one of these,
+                // they are re-opened when leaving the mis-nested tag container)
+
+XS_TAG1I( acronym )
+XS_TAG1I( bdi )
+XS_TAG1I( bdo )
+XS_TAG1I( br )
+XS_TAG1I( cite ) // conflict between HTML (inline) and FB2 (block): default here to inline (fb2.css puts it back to block)
+XS_TAG1I( del )
+XS_TAG1I( dfn )
+XS_TAG1I( emphasis )
+XS_TAG1I( ins )
+XS_TAG1I( kbd )
+XS_TAG1I( q )
+XS_TAG1I( samp )
+XS_TAG1I( span )
+XS_TAG1I( sub )
+XS_TAG1I( sup )
 XS_TAG1I( var )
 
 // Ruby elements (defaults to inline)
 XS_TAG1D( ruby, true, css_d_ruby, css_ws_inherit )
 XS_TAG1I( rbc ) // no more in HTML5, but in 2001's https://www.w3.org/TR/ruby/
-XS_TAG1I( rtc )
 XS_TAG1I( rb )
+XS_TAG1I( rtc )
 XS_TAG1I( rt )
 XS_TAG1I( rp )
 
@@ -285,6 +353,7 @@ XS_ATTR( recindex ) // used with mobi images
 XS_ATTR( T )      // to flag subtype of boxing internal elements if needed
 XS_ATTR( Before ) // for pseudoElem internal element
 XS_ATTR( After )  // for pseudoElem internal element
+XS_ATTR( ParserHint )   // HTML parser hints (used for Lib.ru support)
 // Other classic attributes present in html5.css
 XS_ATTR2( accept_charset, "accept-charset" )
 XS_ATTR( alt )

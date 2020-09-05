@@ -1378,6 +1378,21 @@ public:
                             else if ( c >= 0x2066 ) m_flags[pos] = LCHAR_IS_TO_IGNORE; // 2066>2069
                         }
                     }
+                    else if ( c <= 0x009F ) {
+                        // Also ignore some ASCII and Unicode control chars
+                        // in the ranges 00>1F and 7F>9F, except a few.
+                        // (Some of these can be found in old documents or
+                        // badly converted ones)
+                        if ( c <= 0x001F ) {
+                            // Let \t \n \r be (they might have already been
+                            // expanded to spaces, converted or skipped)
+                            if ( c != 0x000A && c!= 0x000D && c!= 0x0009 )
+                                m_flags[pos] = LCHAR_IS_TO_IGNORE; // 0000>001F except those above
+                        }
+                        else if ( c >= 0x007F ) {
+                            m_flags[pos] = LCHAR_IS_TO_IGNORE;     // 007F>009F
+                        }
+                    }
                     // We might want to add some others when we happen to meet them.
                     // todo: see harfbuzz hb-unicode.hh is_default_ignorable() for how
                     // to do this kind of check fast
@@ -1409,7 +1424,7 @@ public:
                     if ( src->lang_cfg->hasLBCharSubFunc() ) {
                         // Lang specific function may want to substitute char (for
                         // libunibreak only) to tweak line breaking around it
-                        ch = src->lang_cfg->getLBCharSubFunc()(m_text, pos, len-1 - k);
+                        ch = src->lang_cfg->getLBCharSubFunc()(&lbCtx, m_text, pos, len-1 - k);
                     }
                     int brk = lb_process_next_char(&lbCtx, (utf32_t)ch);
                     if ( pos > 0 ) {
@@ -3742,10 +3757,15 @@ public:
         while ( pos<m_length ) { // each loop makes a line
             // x is this line indent. We use it like a x coordinates below, but
             // we'll use it on the right in addLine() if para is RTL.
-            int x = m_indent_current;
-            if ( !m_indent_first_line_done ) {
-                m_indent_first_line_done = true;
-                m_indent_current = m_indent_after_first_line;
+            int x;
+            if (para->flags & LTEXT_LEGACY_RENDERING) {
+                x = para->indent > 0 ? (pos == 0 ? para->indent : 0 ) : (pos==0 ? 0 : -para->indent);
+            } else {
+                x = m_indent_current;
+                if ( !m_indent_first_line_done ) {
+                    m_indent_first_line_done = true;
+                    m_indent_current = m_indent_after_first_line;
+                }
             }
             int w0 = pos>0 ? m_widths[pos-1] : 0; // measured cumulative width at start of this line
             int lastNormalWrap = -1;

@@ -32,7 +32,7 @@
             android:layout_height="wrap_content"
             android:singleLine="false"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:maxLines="2" 
+            android:maxLines="3"
             />
         <!--android:ellipsize="marquee"
             android:fadingEdge="horizontal"
