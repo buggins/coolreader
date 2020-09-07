@@ -46,6 +46,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	SeekBar sbSpeed;
 	SeekBar sbVolume;
 	private HandlerThread mMotionWatchdog;
+	private boolean changedPageMode;
 
 	BroadcastReceiver mTTSControlButtonReceiver = new BroadcastReceiver() {
 		@Override
@@ -122,22 +123,19 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 			mReaderView.save();
 		});
 	}
-	
-	private boolean changedPageMode;
-	private void setReaderMode()
-	{
+
+	private void setReaderMode() {
 		String oldViewSetting = mReaderView.getSetting( ReaderView.PROP_PAGE_VIEW_MODE );
 		if ( "1".equals(oldViewSetting) ) {
 			changedPageMode = true;
-			mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "0");
+			mReaderView.setViewModeNonPermanent(ViewMode.SCROLL);
 		}
 		moveSelection( ReaderCommand.DCMD_SELECT_FIRST_SENTENCE );
 	}
 	
-	private void restoreReaderMode()
-	{
+	private void restoreReaderMode() {
 		if ( changedPageMode ) {
-			mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "1");
+			mReaderView.setViewModeNonPermanent(ViewMode.PAGES);
 		}
 	}
 	
