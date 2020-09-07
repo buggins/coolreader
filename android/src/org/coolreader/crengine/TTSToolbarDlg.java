@@ -30,6 +30,7 @@ import org.coolreader.tts.TTSControlService;
 import org.coolreader.tts.TTSControlServiceAccessor;
 
 import java.util.HashMap;
+import java.util.Locale;
 
 public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	public static final Logger log = L.create("ttssrv");
@@ -426,8 +427,16 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		BookInfo bookInfo = mReaderView.getBookInfo();
 		if (null != bookInfo) {
 			FileInfo fileInfo = bookInfo.getFileInfo();
-			if (null != fileInfo)
+			if (null != fileInfo) {
 				mBookTitle = fileInfo.title;
+				// set language for TTS based on book's language
+				log.d("book language is \"" + fileInfo.language + "\"");
+				if (null != fileInfo.language && fileInfo.language.length() > 0) {
+					Locale locale = new Locale(fileInfo.language);
+					log.d("trying to set TTS language to \"" + locale.getDisplayLanguage() + "\"");
+					mTTS.setLanguage(locale);
+				}
+			}
 		}
 
 		// Start the foreground service to make this app also foreground,
