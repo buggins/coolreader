@@ -1,6 +1,12 @@
 package org.coolreader.crengine;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -18,20 +24,62 @@ import com.s_trace.motion_watchdog.MotionWatchdogHandler;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.tts.TTS;
+import org.coolreader.tts.TTSControlBinder;
+import org.coolreader.tts.TTSControlService;
+import org.coolreader.tts.TTSControlServiceAccessor;
 
 import java.util.HashMap;
 
 public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
+	public static final Logger log = L.create("ttssrv");
+
 	PopupWindow mWindow;
 	View mAnchor;
 	CoolReader mCoolReader;
 	ReaderView mReaderView;
+	String mBookTitle;
 	View mPanel;
 	TTS mTTS;
-	ImageButton playPauseButton; 
+	TTSControlServiceAccessor mTTSControl;
+	ImageButton playPauseButton;
 	SeekBar sbSpeed;
 	SeekBar sbVolume;
 	private HandlerThread mMotionWatchdog;
+
+	BroadcastReceiver mTTSControlButtonReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			log.d("received action: " + action);
+			if (null != action) {
+				switch (action) {
+					case TTSControlService.TTS_CONTROL_ACTION_PLAY_PAUSE:
+						toggleStartStop();
+						break;
+					case TTSControlService.TTS_CONTROL_ACTION_NEXT:
+						if ( isSpeaking ) {
+							isSpeaking = false;
+							mTTS.stop();
+							isSpeaking = true;
+						}
+						moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
+						break;
+					case TTSControlService.TTS_CONTROL_ACTION_PREV:
+						if ( isSpeaking ) {
+							isSpeaking = false;
+							mTTS.stop();
+							isSpeaking = true;
+						}
+						moveSelection( ReaderCommand.DCMD_SELECT_PREV_SENTENCE );
+						break;
+					case TTSControlService.TTS_CONTROL_ACTION_DONE:
+						stopAndClose();
+						break;
+				}
+			}
+		}
+	};
 
 	static public TTSToolbarDlg showDialog( CoolReader coolReader, ReaderView readerView, TTS tts)
 	{
@@ -58,6 +106,11 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		closed = true;
 		BackgroundThread.instance().executeGUI(() -> {
 			stop();
+			mCoolReader.unregisterReceiver(mTTSControlButtonReceiver);
+			if (null != mTTSControl)
+				mTTSControl.unbind();
+			Intent intent = new Intent(mCoolReader, TTSControlService.class);
+			mCoolReader.stopService(intent);
 			restoreReaderMode();
 			mReaderView.clearSelection();
 			if (onCloseListener != null)
@@ -113,6 +166,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put(TTS.KEY_PARAM_UTTERANCE_ID, "cr3UtteranceId");
 		mTTS.speak(selection.text, TTS.QUEUE_ADD, params);
+		runInTTSControlService(tts -> tts.notifyPlay(mBookTitle, currentSelection.text));
 	}
 	
 	private void start() {
@@ -160,9 +214,11 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	private void toggleStartStop() {
 		if ( isSpeaking ) {
 			playPauseButton.setImageResource(R.drawable.ic_media_play);
+			runInTTSControlService(tts -> tts.notifyPause(mBookTitle));
 			stop();
 		} else {
 			playPauseButton.setImageResource(R.drawable.ic_media_pause);
+			runInTTSControlService(tts -> tts.notifyPlay(mBookTitle, currentSelection.text));
 			start();
 		}
 	}
@@ -172,6 +228,13 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		Log.d("cr3", "onUtteranceCompleted " + utteranceId);
 		if ( isSpeaking )
 			moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
+	}
+
+	private void runInTTSControlService(TTSControlBinder.Callback callback) {
+		if (null == mTTSControl) {
+			mTTSControl = new TTSControlServiceAccessor(mCoolReader);
+		}
+		mTTSControl.bind(callback);
 	}
 
 	public TTSToolbarDlg( CoolReader coolReader, ReaderView readerView, TTS tts )
@@ -344,8 +407,33 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 			public void onStopTrackingTouch(SeekBar seekBar) {
 			}
 		});
-		
+
 		mPanel.requestFocus();
+
+		BookInfo bookInfo = mReaderView.getBookInfo();
+		if (null != bookInfo) {
+			FileInfo fileInfo = bookInfo.getFileInfo();
+			if (null != fileInfo)
+				mBookTitle = fileInfo.title;
+		}
+
+		// Start the foreground service to make this app also foreground,
+		// even if the main activity is in the background.
+		// https://developer.android.com/about/versions/oreo/background#services
+		Intent intent = new Intent(coolReader, TTSControlService.class);
+		Bundle data = new Bundle();
+		data.putString("bookTitle", mBookTitle);
+		intent.putExtras(data);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+			coolReader.startForegroundService(intent);
+		else
+			coolReader.startService(intent);
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(TTSControlService.TTS_CONTROL_ACTION_PLAY_PAUSE);
+		filter.addAction(TTSControlService.TTS_CONTROL_ACTION_NEXT);
+		filter.addAction(TTSControlService.TTS_CONTROL_ACTION_PREV);
+		filter.addAction(TTSControlService.TTS_CONTROL_ACTION_DONE);
+		mCoolReader.registerReceiver(mTTSControlButtonReceiver, filter);
 	}
-	
+
 }

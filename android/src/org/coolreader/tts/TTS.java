@@ -1,4 +1,4 @@
-package org.coolreader.crengine;
+package org.coolreader.tts;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
@@ -9,6 +9,9 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import android.content.Context;
+
+import org.coolreader.crengine.L;
+import org.coolreader.crengine.Logger;
 
 /**
  * Wrapper for android.speech.tts.TextToSpeech

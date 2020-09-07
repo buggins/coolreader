@@ -2307,7 +2307,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, tts);
 					ttsToolbar.setOnCloseListener(() -> ttsToolbar = null);
 				})) {
-					log.e("Cannot initilize TTS");
+					log.e("Cannot initialize TTS");
 				}
 			}
 			break;
@@ -5379,6 +5379,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				}
 			});
 			//engine.waitTasksCompletion();
+			if (null != ttsToolbar)
+				ttsToolbar.stopAndClose();
 		}
 	}
 
