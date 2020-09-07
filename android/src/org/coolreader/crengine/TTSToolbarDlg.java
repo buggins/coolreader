@@ -59,19 +59,21 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 						break;
 					case TTSControlService.TTS_CONTROL_ACTION_NEXT:
 						if ( isSpeaking ) {
-							isSpeaking = false;
-							mTTS.stop();
-							isSpeaking = true;
-						}
-						moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
+							stop(() -> {
+								isSpeaking = true;
+								moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
+							});
+						} else
+							moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
 						break;
 					case TTSControlService.TTS_CONTROL_ACTION_PREV:
 						if ( isSpeaking ) {
-							isSpeaking = false;
-							mTTS.stop();
-							isSpeaking = true;
-						}
-						moveSelection( ReaderCommand.DCMD_SELECT_PREV_SENTENCE );
+							stop(() -> {
+								isSpeaking = true;
+								moveSelection( ReaderCommand.DCMD_SELECT_PREV_SENTENCE );
+							});
+						} else
+							moveSelection( ReaderCommand.DCMD_SELECT_PREV_SENTENCE );
 						break;
 					case TTSControlService.TTS_CONTROL_ACTION_DONE:
 						stopAndClose();
@@ -85,7 +87,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	{
 		TTSToolbarDlg dlg = new TTSToolbarDlg(coolReader, readerView, tts);
 		//dlg.mWindow.update(dlg.mAnchor, width, height)
-		Log.d("cr3", "popup: " + dlg.mWindow.getWidth() + "x" + dlg.mWindow.getHeight());
+		log.d("popup: " + dlg.mWindow.getWidth() + "x" + dlg.mWindow.getHeight());
 		//dlg.update();
 		//dlg.showAtLocation(readerView, Gravity.LEFT|Gravity.TOP, readerView.getLeft()+50, readerView.getTop()+50);
 		//dlg.showAsDropDown(readerView);
@@ -147,7 +149,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 			
 			@Override
 			public void onNewSelection(Selection selection) {
-				Log.d("cr3", "onNewSelection: " + selection.text);
+				log.d("onNewSelection: " + selection.text);
 				currentSelection = selection;
 				if ( isSpeaking )
 					say( currentSelection );
@@ -155,7 +157,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 			
 			@Override
 			public void onFail() {
-				Log.d("cr3", "fail()");
+				log.e("fail()");
 				stop();
 				//currentSelection = null;
 			}
@@ -179,7 +181,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 
 	private void startMotionWatchdog(){
 		String TAG = "MotionWatchdog";
-		Log.d(TAG, "startMotionWatchdog() enter");
+		log.d("startMotionWatchdog() enter");
 
 		Properties settings = mReaderView.getSettings();
 		int timeout = settings.getInt(ReaderView.PROP_APP_MOTION_TIMEOUT, 0);
@@ -195,9 +197,16 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		Log.d(TAG, "startMotionWatchdog() exit");
 	}
 	
-	private boolean isSpeaking; 
+	private boolean isSpeaking;
+	private Runnable mOnStopRunnable;
+
 	private void stop() {
+		stop(null);
+	}
+
+	private void stop(Runnable runnable) {
 		isSpeaking = false;
+		mOnStopRunnable = runnable;
 		if ( mTTS.isSpeaking() ) {
 			mTTS.stop();
 		}
@@ -225,9 +234,13 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	
 	@Override
 	public void onUtteranceCompleted(String utteranceId) {
-		Log.d("cr3", "onUtteranceCompleted " + utteranceId);
-		if ( isSpeaking )
-			moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
+		if (null != mOnStopRunnable) {
+			mOnStopRunnable.run();
+			mOnStopRunnable = null;
+		} else {
+			if ( isSpeaking )
+				moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
+		}
 	}
 
 	private void runInTTSControlService(TTSControlBinder.Callback callback) {
@@ -273,19 +286,21 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		mPanel.findViewById(R.id.tts_play_pause).setOnClickListener(v -> toggleStartStop());
 		mPanel.findViewById(R.id.tts_back).setOnClickListener(v -> {
 			if ( isSpeaking ) {
-				isSpeaking = false;
-				mTTS.stop();
-				isSpeaking = true;
-			}
-			moveSelection( ReaderCommand.DCMD_SELECT_PREV_SENTENCE );
+				stop(() -> {
+					isSpeaking = true;
+					moveSelection( ReaderCommand.DCMD_SELECT_PREV_SENTENCE );
+				});
+			} else
+				moveSelection( ReaderCommand.DCMD_SELECT_PREV_SENTENCE );
 		});
 		mPanel.findViewById(R.id.tts_forward).setOnClickListener(v -> {
 			if ( isSpeaking ) {
-				isSpeaking = false;
-				mTTS.stop();
-				isSpeaking = true;
-			}
-			moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
+				stop(() -> {
+					isSpeaking = true;
+					moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
+				});
+			} else
+				moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
 		});
 		mPanel.findViewById(R.id.tts_stop).setOnClickListener(v -> stopAndClose());
 		mPanel.setFocusable(true);
