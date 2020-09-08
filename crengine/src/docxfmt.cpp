@@ -3,24 +3,12 @@
 #include "../include/fb2def.h"
 #include "../include/lvopc.h"
 #include "../include/crlog.h"
+#include "odxutil.h"
 
 #define DOCX_TAG_NAME(itm) docx_el_##itm##_name
 #define DOCX_TAG_ID(itm) docx_el_##itm
 #define DOCX_TAG_CHILD(itm) { DOCX_TAG_ID(itm), DOCX_TAG_NAME(itm) }
 #define DOCX_LAST_ITEM { -1, NULL }
-
-// comment this out to disable in-page footnotes
-#define DOCX_CRENGINE_IN_PAGE_FOOTNOTES 1
-// build FB2 DOM, comment out to build HTML DOM
-#define DOCX_FB2_DOM_STRUCTURE 1
-//If true <title class="hx"><p>...</p></title> else <title><hx>..</hx></title>
-#define DOCX_USE_CLASS_FOR_HEADING true
-
-/// known docx items name and identifier
-struct item_def_t {
-    int      id;
-    const lChar16 * name;
-};
 
 static const lChar16* const docx_DocumentContentType   = L"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
 static const lChar16* const docx_NumberingContentType  = L"application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml";
@@ -47,20 +35,6 @@ const struct item_def_t styles_elements[] = {
     DOCX_TAG_CHILD(style),
     DOCX_TAG_CHILD(docDefaults),
     DOCX_LAST_ITEM
-};
-
-
-enum docx_lineRule_type {
-    docx_lineRule_atLeast,
-    docx_lineRule_auto,
-    docx_lineRule_exact
-};
-
-enum docx_style_type {
-    docx_paragraph_style,
-    docx_character_style,
-    docx_table_style,
-    docx_numbering_style
 };
 
 enum docx_multilevel_type {
@@ -270,17 +244,17 @@ const struct item_def_t textAlignment_attr_values[] = {
 };
 
 const struct item_def_t lineRule_attr_values[] = {
-    { docx_lineRule_atLeast, L"atLeast" },
-    { docx_lineRule_auto, L"auto"},
-    { docx_lineRule_exact, L"exact"},
+    { odx_lineRule_atLeast, L"atLeast" },
+    { odx_lineRule_auto, L"auto"},
+    { odx_lineRule_exact, L"exact"},
     DOCX_LAST_ITEM
 };
 
 const struct item_def_t styleType_attr_values[] = {
-    { docx_paragraph_style, L"paragraph" },
-    { docx_character_style, L"character"},
-    { docx_numbering_style, L"numbering"},
-    { docx_table_style, L"table"},
+    { odx_paragraph_style, L"paragraph" },
+    { odx_character_style, L"character"},
+    { odx_numbering_style, L"numbering"},
+    { odx_table_style, L"table"},
     DOCX_LAST_ITEM
 };
 
@@ -310,191 +284,6 @@ bool DetectDocXFormat( LVStreamRef stream )
 }
 
 class docxImportContext;
-class docxStyle;
-
-template <int N>
-class docx_PropertiesContainer
-{
-public:
-    static const int PROP_COUNT = N;
-
-    virtual void reset() {
-        init();
-    }
-
-    virtual ~docx_PropertiesContainer() {}
-
-    docx_PropertiesContainer() {
-        init();
-    }
-
-    css_length_t get(int index) const {
-        if( index < N ) {
-            return m_properties[index];
-        }
-        return css_length_t(css_val_unspecified, 0);
-    }
-
-    void set(int index, int value) {
-        if ( index < N ) {
-            m_properties[index].type = css_val_pt;
-            m_properties[index].value = value;
-        }
-    }
-
-    void set(int index, css_length_t& value) {
-        if ( index < N ) {
-            m_properties[index] = value;
-        }
-    }
-
-    template<class T, typename U = void>
-    T getValue(int index, T defaultValue) const {
-        css_length_t property = get(index);
-        if(property.type != css_val_unspecified)
-            return (T)property.value;
-        return defaultValue;
-    }
-
-    template<typename U>
-    bool getValue(int index, bool defaultValue) const {
-        css_length_t property = get(index);
-        if(property.type != css_val_unspecified)
-            return (property.value != 0);
-        return defaultValue;
-    }
-
-    void combineWith(const docx_PropertiesContainer* other)
-    {
-        for(int i = 0; i < PROP_COUNT; i++) {
-            css_length_t baseValue = other->get(i);
-            if( get(i).type == css_val_unspecified &&
-                baseValue.type != css_val_unspecified)
-                set(i, baseValue);
-        }
-    }
-
-protected:
-    css_length_t m_properties[N];
-private:
-    void init() {
-        for(int i = 0; i < N; i++) {
-            m_properties[i].type = css_val_unspecified;
-            m_properties[i].value = 0;
-        }
-    }
-};
-
-enum docx_run_properties
-{
-    docx_run_italic_prop,
-    docx_run_bold_prop,
-    docx_run_underline_prop,
-    docx_run_strikethrough_prop,
-    docx_run_hidden_prop,
-    docx_run_halign_prop,
-    docx_run_valign_prop,
-    docx_run_font_size_prop,
-    docx_run_max_prop
-};
-
-class docx_rPr : public docx_PropertiesContainer<docx_run_max_prop>
-{
-    friend class docx_rPrHandler;
-private:
-    lString16 m_rStyle;
-public:
-    docx_rPr();
-    void reset() { m_rStyle.clear(); docx_PropertiesContainer::reset(); }
-    ///properties
-    inline bool isBold() const { return getValue(docx_run_bold_prop, false); }
-    inline void setBold(bool value) { set(docx_run_bold_prop, value); }
-    inline bool isItalic() const { return getValue(docx_run_italic_prop, false); }
-    inline void setItalic(bool value) { set(docx_run_italic_prop, value); }
-    inline bool isUnderline() const { return getValue(docx_run_underline_prop, false); }
-    inline void setUnderline(bool value) { set(docx_run_underline_prop, value); }
-    inline bool isStrikeThrough() const { return getValue(docx_run_strikethrough_prop, false); }
-    inline void setStrikeThrough(bool value) { set(docx_run_strikethrough_prop, value); }
-    inline bool isSubScript() const { return (getVertAlign() == css_va_sub);  }
-    inline bool isSuperScript() const { return (getVertAlign() == css_va_super); }
-    inline bool isHidden() const { return getValue(docx_run_hidden_prop, false); }
-    inline void setHidden(bool value) { set(docx_run_hidden_prop, value); }
-    inline css_text_align_t getTextAlign() const {
-        return getValue(docx_run_halign_prop, css_ta_inherit);
-    }
-    inline void setTextAlign( css_text_align_t value ) { set(docx_run_halign_prop, value); }
-    inline css_vertical_align_t getVertAlign() const {
-        return getValue(docx_run_valign_prop, css_va_inherit);
-    }
-    inline void setVertAlign(css_vertical_align_t value) { set(docx_run_valign_prop,value); }
-    lString16 getCss();
-};
-
-enum docx_p_properties {
-    docx_p_page_break_before_prop,
-    docx_p_keep_next_prop,
-    docx_p_mirror_indents_prop,
-    docx_p_halign_prop,
-    docx_p_valign_prop,
-    docx_p_line_rule_prop,
-    docx_p_hyphenate_prop,
-    docx_p_before_spacing_prop,
-    docx_p_after_spacing_prop,
-    docx_p_before_auto_spacing_prop,
-    docx_p_after_auto_spacing_prop,
-    docx_p_line_spacing_prop,
-    docx_p_line_height_prop,
-    docx_p_left_margin_prop,
-    docx_p_right_margin_prop,
-    docx_p_indent_prop,
-    docx_p_hanging_prop,
-    docx_p_outline_level_prop,
-    docx_p_num_id_prop,
-    docx_p_ilvl_prop,
-    docx_p_max_prop
-};
-
-class docx_pPr : public docx_PropertiesContainer<docx_p_max_prop>
-{
-    friend class docx_pPrHandler;
-private:
-    lString16 m_pStyleId;
-public:
-    docx_pPr();
-
-    void reset() {
-        m_pStyleId.clear();
-        docx_PropertiesContainer::reset();
-    }
-    ///properties
-    inline css_text_align_t getTextAlign() const {
-        return getValue(docx_p_halign_prop, css_ta_inherit);
-    }
-    inline void setTextAlign( css_text_align_t value ) { set(docx_p_halign_prop, value); }
-    inline css_vertical_align_t getVertAlign() const {
-        return getValue(docx_p_valign_prop, css_va_inherit);
-    }
-    inline void setVertAlign(css_vertical_align_t value) { set(docx_p_valign_prop, value); }
-    inline css_hyphenate_t getHyphenate() const {
-        return getValue(docx_p_hyphenate_prop, css_hyph_inherit);
-    }
-    inline void setHyphenate( css_hyphenate_t value ) { set(docx_p_hyphenate_prop, value); }
-    // page-break-before:always
-    inline bool isPageBreakBefore() const { return getValue(docx_p_page_break_before_prop, false); }
-    inline void setPageBreakBefore(bool value) { set(docx_p_page_break_before_prop, value); }
-    // page-break-after:avoid
-    inline bool isKeepNext() const { return getValue(docx_p_keep_next_prop, false); }
-    inline void setKeepNext(bool value) { set(docx_p_keep_next_prop, value); }
-    inline bool isMirrorIndents() const { return getValue(docx_p_mirror_indents_prop, false); }
-    inline void setMirrorIndents(bool value) { set(docx_p_mirror_indents_prop, value); }
-    inline docx_lineRule_type getLineRule() const { return getValue(docx_p_line_rule_prop, docx_lineRule_auto); }
-    inline void setLineRule(docx_lineRule_type value) { set(docx_p_line_rule_prop, value); }
-    inline int getNumberingId() { return getValue(docx_p_num_id_prop, 0); }
-    css_length_t getOutlineLvl() { return get(docx_p_outline_level_prop); }
-    inline int getNumberingLevel() { return get(docx_p_ilvl_prop).value; }
-    docxStyle* getStyle(docxImportContext* context);
-    lString16 getCss();
-};
 
 class docxNumLevel : public LVRefCounter
 {
@@ -506,8 +295,8 @@ private:
     lString16 m_lvlText;
     bool m_lvlTextNull;
     docx_numFormat_type m_lvlNumFormat;
-    docx_pPr m_pPr;
-    docx_rPr m_rPr;
+    odx_pPr m_pPr;
+    odx_rPr m_rPr;
     lString16 m_pStyle;
     css_length_t m_lvlStart;
     docx_LevelSuffix_type m_suffix;
@@ -537,8 +326,8 @@ public:
     inline void setLevelStart(const css_length_t &value) { m_lvlStart = value; }
     inline docx_LevelSuffix_type getLevelSuffix() const { return m_suffix; }
     inline void setLevelSuffix(const docx_LevelSuffix_type value) { m_suffix = value; }
-    inline docx_rPr * get_rPr() { return &m_rPr; }
-    inline docx_pPr * get_pPr() { return &m_pPr; }
+    inline odx_rPr * get_rPr() { return &m_rPr; }
+    inline odx_pPr * get_pPr() { return &m_pPr; }
     css_list_style_type_t getListType() const;
 };
 
@@ -585,58 +374,18 @@ public:
 
 typedef LVFastRef< docxNum > docxNumRef;
 
-class docxStyle : public LVRefCounter
-{
-    friend class docx_styleHandler;
-private:
-    lString16 m_Name;
-    lString16 m_Id;
-    lString16 m_basedOn;
-    docx_style_type m_type;
-    docx_pPr m_pPr;
-    docx_rPr m_rPr;
-    bool m_pPrMerged;
-    bool m_rPrMerged;
-public:
-    docxStyle();
-
-    inline lString16 getName() const { return m_Name; }
-    inline void setName(const lChar16 * value) { m_Name = value; }
-
-    inline lString16 getId() const { return m_Id; }
-    inline void setId(const lChar16 * value) { m_Id = value; }
-
-    inline lString16 getBasedOn() const { return m_basedOn; }
-    inline void setBasedOn(const lChar16 * value) { m_basedOn = value; }
-    bool isValid() const;
-
-    inline docx_style_type getStyleType() const { return m_type; }
-    inline void setStyleType(docx_style_type value) { m_type = value; }
-    docxStyle* getBaseStyle(docxImportContext* context);
-    inline docx_pPr * get_pPr(docxImportContext* context);
-    inline docx_rPr * get_rPr(docxImportContext* context);
-};
-
-typedef LVFastRef< docxStyle > docxStyleRef;
-
-class docxImportContext
+class docxImportContext : public odx_ImportContext
 {
 private:
-    LVHashTable<lString16, docxStyleRef> m_styles;
     LVHashTable<lUInt32, docxAbstractNumRef> m_abstractNumbers;
     LVHashTable<lUInt32, docxNumRef> m_Numbers;
     LVArray<css_list_style_type_t> m_ListLevels;
-    docx_rPr m_rPrDefault;
-    docx_pPr m_pPrDefault;
     OpcPartRef m_docPart;
     OpcPartRef m_relatedPart;
     OpcPackage* m_package;
-    ldomDocument* m_doc;
 public:
     docxImportContext(OpcPackage *package, ldomDocument * doc);
     virtual ~docxImportContext();
-    docxStyle * getStyle( lString16 id );
-    void addStyle( docxStyleRef style );
     void addNum( docxNumRef num );
     void addAbstractNum(docxAbstractNumRef abstractNum );
     docxNumRef getNum(lUInt32 id) { return m_Numbers.get(id); }
@@ -657,169 +406,37 @@ public:
     void closeRelatedPart();
     void openList(int level, int numid, ldomDocumentWriter *writer);
     void closeList(int level, ldomDocumentWriter *writer);
-    inline docx_rPr * get_rPrDefault() { return &m_rPrDefault; }
-    inline docx_pPr * get_pPrDefault() { return &m_pPrDefault; }
     inline int getListLevel() { return m_ListLevels.length(); }
     inline bool isInList() { return m_ListLevels.length() != 0; }
-    void setLanguage(const lChar16 *lang);
     lString16 m_footNoteId;
     int m_footNoteCount;
     int m_endNoteCount;
     bool m_inField;
     ldomNode *m_linkNode;
-    docxStyle* m_pStyle;
+    odx_Style* m_pStyle;
 private:
     lString16 getListStyle(css_list_style_type_t listType);
 };
 
-class docx_ElementHandler;
-
-class docXMLreader : public LVXMLParserCallback
-{
-private:
-    enum docx_reader_state {
-        docx_in_start,
-        docx_in_xml_declaration,
-        docx_in_body,
-        docx_in_document
-    };
-    int m_skipTag;
-    docx_reader_state m_state;
-protected:
-    docx_ElementHandler *m_handler;
-    ldomDocumentWriter *m_writer;
-
-    inline bool isSkipping()
-    {
-        return (m_skipTag != 0);
-    }
-
-    inline void skipped()
-    {
-        m_skipTag--;
-    }
-
-public:
-    /// constructor
-    docXMLreader(ldomDocumentWriter *writer) : m_skipTag(0), m_state(docx_in_start),
-        m_handler(NULL), m_writer(writer)
-    {
-    }
-
-    /// destructor
-    virtual ~docXMLreader() { }
-    /// called on parsing start
-    virtual void OnStart(LVFileFormatParser *);
-    /// called on parsing end
-    virtual void OnStop() {  }
-
-    inline void skip()
-    {
-        m_skipTag++;
-    }
-
-    /// called on opening tag <
-    ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname);
-
-    /// called after > of opening tag (when entering tag body)
-    void OnTagBody();
-
-    /// called on tag close
-    void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false );
-
-    /// called on element attribute
-    void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
-
-    /// called on text
-    void OnText( const lChar16 * text, int len, lUInt32 flags );
-
-    /// add named BLOB data to document
-    bool OnBlob(lString16 name, const lUInt8 * data, int size);
-
-    docx_ElementHandler * getHandler()
-    {
-        return m_handler;
-    }
-
-    void setHandler(docx_ElementHandler *a_handler)
-    {
-        m_handler = a_handler;
-    }
-
-    void setWriter(ldomDocumentWriter *writer)
-    {
-        m_writer = writer;
-    }
-};
-
-class docx_ElementHandler
+class docx_ElementHandler : public xml_ElementHandler
 {
 protected:
-    docXMLreader * m_reader;
-    ldomDocumentWriter *m_writer;
-    docx_ElementHandler *m_savedHandler;
     docxImportContext *m_importContext;
-    const item_def_t *m_children;
-    int m_element;
-    int m_state;
 protected:
     static bool parse_OnOff_attribute(const lChar16 * attrValue);
-    static int parse_name(const struct item_def_t *tags, const lChar16 * nameValue);
-    static void parse_int(const lChar16 * attrValue, css_length_t & result);
     void generateLink(const lChar16 * target, const lChar16 * type, const lChar16 *text);
-    void setChildrenInfo(const struct item_def_t *tags);
     docx_ElementHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context,
-                        int element, const struct item_def_t *children) :
-        m_reader(reader), m_writer(writer), m_importContext(context), m_children(children),
-        m_element(element), m_state(element)
+                        int element, const struct item_def_t *children) : xml_ElementHandler(reader, writer, element, children),
+        m_importContext(context)
     {
     }
     virtual ~docx_ElementHandler() {}
-public:
-    ldomNode * handleTagOpen(const lChar16 * nsname, const lChar16 * tagname);
-    virtual ldomNode * handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue)
-    {
-        CR_UNUSED(nsname);
-
-        handleAttribute(attrname, attrvalue);
-    }
-    virtual void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue) {
-        CR_UNUSED2(attrname, attrvalue);
-    }
-    virtual void handleTagBody() {}
-    virtual void handleText( const lChar16 * text, int len, lUInt32 flags ) {
-        CR_UNUSED3(text,len,flags);
-    }
-    virtual void handleTagClose( const lChar16 * nsname, const lChar16 * tagname )
-    {
-        CR_UNUSED2(nsname, tagname);
-
-        if(m_state == m_element)
-            stop();
-        else
-            m_state = m_element;
-    }
-    virtual void start();
-    virtual void stop();
-    virtual void reset();
-};
-
-class docx_SkipElementHandler : public docx_ElementHandler
-{
-public:
-    docx_SkipElementHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context,
-                            int element) : docx_ElementHandler(reader, writer, context, element, no_elements) {}
-    void skipElement(int element) {
-        m_state = element;
-        start();
-    }
 };
 
 class docx_rPrHandler : public docx_ElementHandler
 {
 private:
-    docx_rPr *m_rPr;
+    odx_rPr *m_rPr;
 public:
     docx_rPrHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context) :
         docx_ElementHandler(reader, writer, context, docx_el_rPr, rPr_elements), m_rPr(NULL)
@@ -827,7 +444,7 @@ public:
     }
     ldomNode * handleTagOpen(int tagId);
     void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
-    void start(docx_rPr *rPr);
+    void start(odx_rPr *rPr);
     void reset();
 };
 
@@ -850,7 +467,7 @@ class docx_pHandler;
 class docx_rHandler : public docx_ElementHandler
 {
 private:
-    docx_rPr m_rPr;
+    odx_rPr m_rPr;
     docx_pHandler* m_pHandler;
     docx_rPrHandler m_rPrHandler;
     lString16 m_footnoteId;
@@ -877,7 +494,7 @@ public:
 class docx_pPrHandler : public docx_ElementHandler
 {
 private:
-    docx_pPr *m_pPr;
+    odx_pPr *m_pPr;
 public:
     docx_pPrHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context) :
         docx_ElementHandler(reader, writer, context, docx_el_pPr, pPr_elements), m_pPr(NULL)
@@ -886,44 +503,8 @@ public:
     ldomNode * handleTagOpen(int tagId);
     void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
     void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
-    void start(docx_pPr *pPr);
+    void start(odx_pPr *pPr);
     void reset();
-};
-
-class docx_titleHandler
-{
-public:
-    docx_titleHandler(ldomDocumentWriter *writer, docxImportContext *context, bool useClassName=false) :
-        m_writer(writer), m_importContext(context), m_titleLevel(), m_useClassName(useClassName) {}
-    virtual ~docx_titleHandler() {}
-    virtual void onBodyStart();
-    virtual void onTitleStart(int level, bool noSection = false);
-    virtual void onTitleEnd();
-    virtual void onBodyEnd() {}
-    bool useClassForTitle() { return m_useClassName; }
-protected:
-    ldomDocumentWriter *m_writer;
-    docxImportContext *m_importContext;
-    int m_titleLevel;
-    bool m_useClassName;
-};
-
-class docx_fb2TitleHandler : public docx_titleHandler
-{
-public:
-    docx_fb2TitleHandler(ldomDocumentWriter *writer, docxImportContext *context, bool useClassName) :
-        docx_titleHandler(writer, context, useClassName)
-    {}
-    void onBodyStart();
-    void onTitleStart(int level, bool noSection = false);
-    void onTitleEnd();
-private:
-    void makeSection(int startIndex);
-    void openSection(int level);
-    void closeSection(int level);
-private:
-    ldomNode *m_section;
-    bool m_hasTitle;
 };
 
 class docx_hyperlinkHandler  : public docx_ElementHandler
@@ -945,30 +526,18 @@ public:
 
 class docx_documentHandler;
 
-class docx_pHandler : public docx_ElementHandler
+class docx_pHandler : public docx_ElementHandler, public odx_styleTagsHandler
 {
 private:
     docx_pPrHandler m_pPrHandler;
-    docx_pPr m_pPr;
+    odx_pPr m_pPr;
     docx_rHandler m_rHandler;
-    docx_titleHandler* m_titleHandler;
+    odx_titleHandler* m_titleHandler;
     docx_hyperlinkHandler m_hyperlinkHandler;
     int m_runCount;
-    lString16 m_styleTags;
     bool m_inTitle;
-private:
-    int styleTagPos(lChar16 ch)
-    {
-        for (int i=0; i < m_styleTags.length(); i++)
-            if (m_styleTags[i] == ch)
-                return i;
-        return -1;
-    }
-    const lChar16 * getStyleTagName( lChar16 ch );
-    void closeStyleTag( lChar16 ch);
-    void openStyleTag( lChar16 ch);
 public:
-    docx_pHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, docx_titleHandler* p_documentHandler) :
+    docx_pHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, odx_titleHandler* p_documentHandler) :
         docx_ElementHandler(reader, writer, context, docx_el_p, p_elements),
         m_pPrHandler(reader, writer, context),
         m_rHandler(reader, writer, context, this),
@@ -980,9 +549,6 @@ public:
     void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
     void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
     void reset();
-    void openStyleTags(docx_rPr* runProps);
-    void closeStyleTags(docx_rPr* runProps);
-    void closeStyleTags();
 };
 
 struct docx_row_span_info {
@@ -998,10 +564,10 @@ private:
     LVArray<int> m_levels;
     LVArray<docx_row_span_info> m_rowSpaninfo;
     int m_rowCount;
-    docx_titleHandler m_titleHandler;
+    odx_titleHandler m_titleHandler;
     docx_pHandler m_pHandler;
-    docx_SkipElementHandler m_skipHandler;
-    docx_ElementHandler* m_pHandler_;
+    xml_SkipElementHandler m_skipHandler;
+    xml_ElementHandler* m_pHandler_;
     int m_colSpan;
     int m_column;
     int m_columnCount;
@@ -1013,11 +579,11 @@ private:
     int m_vMergeState;
     void endRowSpan(int column);
 public:
-    docx_tblHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, docx_titleHandler* titleHandler) :
+    docx_tblHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, odx_titleHandler* titleHandler) :
         docx_ElementHandler(reader, writer, context, docx_el_tbl, tbl_elements),
-        m_rowCount(0), m_titleHandler(writer, context, titleHandler->useClassForTitle()),
+        m_rowCount(0), m_titleHandler(writer, titleHandler->useClassForTitle()),
         m_pHandler(reader, writer, context, &m_titleHandler),
-        m_skipHandler(reader, writer, context, docx_el_p), m_colSpan(1),
+        m_skipHandler(reader, writer, docx_el_p), m_colSpan(1),
         m_column(0), m_columnCount(0), m_vMergeState(VMERGE_NONE)
     {
     }
@@ -1052,9 +618,9 @@ private:
     docx_pHandler paragraphHandler;
     docx_tblHandler m_tableHandler;
 protected:
-    docx_titleHandler* m_titleHandler;
+    odx_titleHandler* m_titleHandler;
 public:
-    docx_documentHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, docx_titleHandler* titleHandler) :
+    docx_documentHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, odx_titleHandler* titleHandler) :
         docx_ElementHandler(reader, writer, context, docx_el_document, document_elements),
         paragraphHandler(reader, writer, context, titleHandler),
         m_tableHandler(reader, writer, context, titleHandler), m_titleHandler(titleHandler)
@@ -1070,8 +636,8 @@ class docx_styleHandler : public docx_ElementHandler
 private:
     docx_pPrHandler m_pPrHandler;
     docx_rPrHandler m_rPrHandler;
-    docxStyleRef m_styleRef;
-    docxStyle *m_style;
+    odx_StyleRef m_styleRef;
+    odx_Style *m_style;
 public:
     /// constructor
     docx_styleHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context) :
@@ -1181,70 +747,6 @@ public:
     void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
 };
 
-docx_rPr::docx_rPr()
-{
-}
-
-lString16 docx_rPr::getCss()
-{
-    lString16 style;
-
-    if( isBold() )
-        style << " font-weight: bold;";
-    if( isItalic() )
-        style << " font-style: italic;";
-    if( isUnderline() )
-        style << " text-decoration: underline;";
-    if( isStrikeThrough() )
-        style << " text-decoration: line-through;";
-    return style;
-}
-
-docx_pPr::docx_pPr()
-{
-}
-
-docxStyle *docx_pPr::getStyle(docxImportContext *context)
-{
-    docxStyle* ret = NULL;
-
-    if (!m_pStyleId.empty() ) {
-        ret = context->getStyle(m_pStyleId);
-    }
-    return ret;
-}
-
-lString16 docx_pPr::getCss()
-{
-    lString16 style;
-
-    css_text_align_t align = getTextAlign();
-    if(align != css_ta_inherit)
-    {
-        style << "text-align: ";
-        switch(align)
-        {
-        case css_ta_left:
-            style << "left;";
-            break;
-        case css_ta_right:
-            style << "right";
-            break;
-        case css_ta_center:
-            style << "center;";
-            break;
-        case css_ta_justify:
-        default:
-            style << "justify";
-            break;
-        }
-    }
-    if( isPageBreakBefore() )
-        style << "page-break-before: always;";
-    else if ( isKeepNext() )
-        style << "page-break-before: avoid;";
-    return style;
-}
 
 docxNumLevel::docxNumLevel() :
     m_isLgl(false), m_lvlJc(css_ta_inherit), m_ilvl(css_val_unspecified, 0),
@@ -1293,123 +795,11 @@ css_list_style_type_t docxNumLevel::getListType() const
     }
 }
 
-
-ldomNode * docXMLreader::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
-{
-    if ( m_state == docx_in_start && !lStr_cmp(tagname, "?xml") )
-        m_state = docx_in_xml_declaration;
-    else if( !isSkipping() ) {
-        if ( m_handler )
-            return m_handler->handleTagOpen(nsname, tagname);
-    } else
-        // skip nested tag
-        skip();
-    return NULL;
-}
-
-void docXMLreader::OnStart(LVFileFormatParser *)
-{
-    m_skipTag = 0;
-    m_state = docx_in_start;
-}
-
-void docXMLreader::OnTagBody()
-{
-    if( m_state != docx_in_xml_declaration && !isSkipping() && m_handler )
-        m_handler->handleTagBody();
-}
-
-void docXMLreader::OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag )
-{
-    CR_UNUSED(nsname);
-
-    switch(m_state) {
-    case docx_in_xml_declaration:
-        m_state = docx_in_document;
-        break;
-    case docx_in_document:
-        if( isSkipping() )
-            skipped();
-        else if ( m_handler )
-            m_handler->handleTagClose(L"", tagname);
-        break;
-    default:
-        CRLog::error("Unexpected state");
-        break;
-    }
-}
-
-void docXMLreader::OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
-{
-    switch(m_state) {
-    case docx_in_xml_declaration:
-        if ( m_writer )
-            m_writer->OnAttribute(nsname, attrname, attrvalue);
-        break;
-    case docx_in_document:
-        if ( !isSkipping() && m_handler )
-            m_handler->handleAttribute(nsname, attrname, attrvalue);
-        break;
-    default:
-        CRLog::error("Unexpected state");
-    }
-}
-
-void docXMLreader::OnText( const lChar16 * text, int len, lUInt32 flags )
-{
-    if( !isSkipping() && m_handler )
-        m_handler->handleText(text, len, flags);
-}
-
-bool docXMLreader::OnBlob(lString16 name, const lUInt8 * data, int size)
-{
-    if ( !isSkipping() && m_writer )
-        return m_writer->OnBlob(name, data, size);
-    return false;
-}
-
-void docx_ElementHandler::start()
-{
-    m_savedHandler = m_reader->getHandler();
-    reset();
-    m_reader->setHandler(this);
-}
-
-void docx_ElementHandler::reset()
-{
-}
-
-void docx_ElementHandler::stop()
-{
-    m_reader->setHandler(m_savedHandler);
-    m_savedHandler = NULL;
-}
-
 bool docx_ElementHandler::parse_OnOff_attribute(const lChar16 * attrValue)
 {
     if ( !lStr_cmp(attrValue, "1") || !lStr_cmp(attrValue, "on") || !lStr_cmp(attrValue, "true") )
         return true;
     return false;
-}
-
-int docx_ElementHandler::parse_name(const struct item_def_t *tags, const lChar16 * nameValue)
-{
-    for (int i=0; tags[i].name; i++) {
-        if ( !lStr_cmp( tags[i].name, nameValue )) {
-            // found!
-            return tags[i].id;
-        }
-    }
-    return -1;
-}
-
-void docx_ElementHandler::parse_int(const lChar16 * attrValue, css_length_t & result)
-{
-    lString16 value = attrValue;
-
-    result.type = css_val_unspecified;
-    if ( value.atoi(result.value) )
-        result.type = css_val_pt; //just to distinguish with unspecified value
 }
 
 void docx_ElementHandler::generateLink(const lChar16 *target, const lChar16 *type, const lChar16 *text)
@@ -1421,7 +811,7 @@ void docx_ElementHandler::generateLink(const lChar16 *target, const lChar16 *typ
     // Add classic role=doc-noteref attribute to allow popup/in-page footnotes
     m_writer->OnAttribute(L"", L"role", L"doc-noteref");
     m_writer->OnTagBody();
-#ifndef DOCX_CRENGINE_IN_PAGE_FOOTNOTES
+#ifndef ODX_CRENGINE_IN_PAGE_FOOTNOTES
     if( !lStr_cmp(type, "note") ) {
         // For footnotes (but not endnotes), wrap in <sup> (to get the
         // same effect as the following in docx.css:
@@ -1432,36 +822,12 @@ void docx_ElementHandler::generateLink(const lChar16 *target, const lChar16 *typ
 #endif
     lString16 t(text);
     m_writer->OnText(t.c_str(), t.length(), 0);
-#ifndef DOCX_CRENGINE_IN_PAGE_FOOTNOTES
+#ifndef ODX_CRENGINE_IN_PAGE_FOOTNOTES
     if( !lStr_cmp(type, "note") ) {
         m_writer->OnTagClose(L"", L"sup");
     }
 #endif
     m_writer->OnTagClose(L"", L"a");
-}
-
-void docx_ElementHandler::setChildrenInfo(const struct item_def_t *tags)
-{
-    m_children = tags;
-}
-
-ldomNode * docx_ElementHandler::handleTagOpen(int tagId)
-{
-    m_state = tagId;
-    return NULL;
-}
-
-ldomNode * docx_ElementHandler::handleTagOpen(const lChar16 * nsname, const lChar16 * tagname)
-{
-    int tag = parse_name(m_children, tagname);
-
-    CR_UNUSED(nsname);
-    if( -1 == tag) {
-        // skip the tag we are not interested in
-        m_reader->skip();
-        return NULL;
-    }
-    return handleTagOpen(tag);
 }
 
 ldomNode * docx_rPrHandler::handleTagOpen(int tagId)
@@ -1526,13 +892,7 @@ void docx_rPrHandler::handleAttribute(const lChar16 * attrname, const lChar16 * 
         //todo
         break;
     case docx_el_rStyle:
-        m_rPr->m_rStyle = attrvalue;
-        if ( !m_rPr->m_rStyle.empty() ) {
-            docxStyle *style = m_importContext->getStyle(m_rPr->m_rStyle);
-            if( style && (docx_character_style == style->getStyleType()) ) {
-                m_rPr->combineWith(style->get_rPr(m_importContext));
-            }
-        }
+        m_rPr->setStyleId(m_importContext, attrvalue);
         break;
     case docx_el_strike:
         if( !lStr_cmp(attrname, "val") )
@@ -1564,7 +924,7 @@ void docx_rPrHandler::reset()
         m_rPr->reset();
 }
 
-void docx_rPrHandler::start(docx_rPr * const rPr)
+void docx_rPrHandler::start(odx_rPr * const rPr)
 {
     m_rPr = rPr;
     docx_ElementHandler::start();
@@ -1595,8 +955,8 @@ ldomNode *docx_rHandler::handleTagOpen(int tagId)
             if( m_importContext->m_pStyle )
                 m_rPr.combineWith(m_importContext->m_pStyle->get_rPr(m_importContext));
             m_rPr.combineWith(m_importContext->get_rPrDefault());
-            m_pHandler->closeStyleTags(&m_rPr);
-            m_pHandler->openStyleTags(&m_rPr);
+            m_pHandler->closeStyleTags(&m_rPr, m_writer);
+            m_pHandler->openStyleTags(&m_rPr, m_writer);
             m_content = true;
         }
         m_state = tagId;
@@ -1756,13 +1116,7 @@ void docx_pPrHandler::handleAttribute(const lChar16 * attrname, const lChar16 * 
     switch(m_state) {
     case docx_el_pStyle:
         if( !lStr_cmp(attrname, "val") ) {
-             m_pPr->m_pStyleId = attrvalue;
-             if ( !m_pPr->m_pStyleId.empty() ) {
-                 docxStyle* style = m_importContext->getStyle(m_pPr->m_pStyleId);
-                 if( style && (docx_paragraph_style == style->getStyleType()) ) {
-                    m_pPr->combineWith(style->get_pPr(m_importContext));
-                 }
-             }
+             m_pPr->setStyleId(m_importContext, attrvalue);
         }
         break;
     case docx_el_jc:
@@ -1776,15 +1130,15 @@ void docx_pPrHandler::handleAttribute(const lChar16 * attrname, const lChar16 * 
         if( !lStr_cmp(attrname, "line") ) {
             css_length_t val;
             parse_int(attrvalue, val);
-            m_pPr->set(docx_p_line_spacing_prop, val);
+            m_pPr->set(odx_p_line_spacing_prop, val);
         } else if( !lStr_cmp(attrname, "lineRule") ) {
             int attr_value = parse_name(lineRule_attr_values, attrvalue);
             if( -1 != attr_value )
-                m_pPr->setLineRule((docx_lineRule_type)attr_value);
+                m_pPr->setLineRule((odx_lineRule_type)attr_value);
         } else if ( !lStr_cmp(attrname, "afterAutospacing") ) {
-            m_pPr->set(docx_p_after_auto_spacing_prop, parse_OnOff_attribute(attrvalue));
+            m_pPr->set(odx_p_after_auto_spacing_prop, parse_OnOff_attribute(attrvalue));
         } else if ( !lStr_cmp(attrname, "beforeAutospacing") ) {
-            m_pPr->set(docx_p_before_auto_spacing_prop, parse_OnOff_attribute(attrvalue));
+            m_pPr->set(odx_p_before_auto_spacing_prop, parse_OnOff_attribute(attrvalue));
         } else {
             //todo
         }
@@ -1803,21 +1157,21 @@ void docx_pPrHandler::handleAttribute(const lChar16 * attrname, const lChar16 * 
         if( !lStr_cmp(attrname, "val") ) {
             css_length_t val;
             parse_int(attrvalue, val);
-            m_pPr->set(docx_p_ilvl_prop, val.value);
+            m_pPr->set(odx_p_ilvl_prop, val.value);
         }
         break;
     case docx_el_numId:
         if( !lStr_cmp(attrname, "val") ) {
             css_length_t val;
             parse_int(attrvalue, val);
-            m_pPr->set(docx_p_num_id_prop, val);
+            m_pPr->set(odx_p_num_id_prop, val);
         }
         break;
     case docx_el_outlineLvl:
         if( !lStr_cmp(attrname, "val") ) {
             css_length_t val;
             parse_int(attrvalue, val);
-            m_pPr->set(docx_p_outline_level_prop, val);
+            m_pPr->set(odx_p_outline_level_prop, val);
         }
         break;
     case docx_el_pageBreakBefore:
@@ -1863,56 +1217,10 @@ void docx_pPrHandler::reset()
         m_pPr->reset();
 }
 
-void docx_pPrHandler::start(docx_pPr *pPr)
+void docx_pPrHandler::start(odx_pPr *pPr)
 {
     m_pPr = pPr;
     docx_ElementHandler::start();
-}
-
-const lChar16 *docx_pHandler::getStyleTagName(lChar16 ch)
-{
-    switch ( ch ) {
-    case 'b':
-        return L"strong";
-    case 'i':
-        return L"em";
-    case 'u':
-        return L"u";
-    case 's':
-        return L"s";
-    case 't':
-        return L"sup";
-    case 'd':
-        return L"sub";
-    default:
-        return NULL;
-    }
-}
-
-void docx_pHandler::closeStyleTag(lChar16 ch)
-{
-    int pos = styleTagPos( ch );
-    if (pos >= 0) {
-        for (int i = m_styleTags.length() - 1; i >= pos; i--) {
-            const lChar16 * tag = getStyleTagName(m_styleTags[i]);
-            m_styleTags.erase(m_styleTags.length() - 1, 1);
-            if ( tag ) {
-                m_writer->OnTagClose(L"", tag);
-            }
-        }
-    }
-}
-
-void docx_pHandler::openStyleTag(lChar16 ch)
-{
-    int pos = styleTagPos( ch );
-    if (pos < 0) {
-        const lChar16 * tag = getStyleTagName(ch);
-        if ( tag ) {
-            m_writer->OnTagOpenNoAttr(L"", tag);
-            m_styleTags.append( 1,  ch );
-        }
-    }
 }
 
 ldomNode * docx_pHandler::handleTagOpen(int tagId)
@@ -1986,7 +1294,7 @@ void docx_pHandler::handleTagClose( const lChar16 * nsname, const lChar16 * tagn
 
     switch(m_state) {
     case docx_el_p:
-        closeStyleTags();
+        closeStyleTags(m_writer);
         if( m_pPr.getNumberingId() == 0 ) {
             if( !m_inTitle ) {
                 m_writer->OnTagClose(L"", L"p");
@@ -2010,46 +1318,6 @@ void docx_pHandler::reset()
     m_rHandler.reset();
     m_state = docx_el_p;
     m_runCount = 0;
-}
-
-void docx_pHandler::openStyleTags(docx_rPr *runProps)
-{
-    if(runProps->isBold())
-        openStyleTag('b');
-    if(runProps->isItalic())
-        openStyleTag('i');
-    if(runProps->isUnderline())
-        openStyleTag('u');
-    if(runProps->isStrikeThrough())
-        openStyleTag('s');
-    if(runProps->isSubScript())
-        openStyleTag('d');
-    if(runProps->isSuperScript())
-        openStyleTag('t');
-}
-
-void docx_pHandler::closeStyleTags(docx_rPr *runProps)
-{
-    if(!runProps->isBold())
-        closeStyleTag('b');
-    if(!runProps->isItalic())
-        closeStyleTag('i');
-    if(!runProps->isUnderline())
-        closeStyleTag('u');
-    if(!runProps->isStrikeThrough())
-        closeStyleTag('s');
-    if(!runProps->isSubScript())
-        closeStyleTag('d');
-    if(!runProps->isSuperScript())
-        closeStyleTag('t');
-
-}
-
-void docx_pHandler::closeStyleTags()
-{
-    for(int i = m_styleTags.length() - 1; i >= 0; i--)
-        closeStyleTag(m_styleTags[i]);
-    m_styleTags.clear();
 }
 
 ldomNode * docx_documentHandler::handleTagOpen(int tagId)
@@ -2096,10 +1364,10 @@ ldomNode * docx_styleHandler::handleTagOpen(int tagId)
 {
     switch(tagId) {
     case docx_el_pPr:
-        m_pPrHandler.start(&m_style->m_pPr);
+        m_pPrHandler.start(m_style->get_pPrPointer());
         break;
     case docx_el_rPr:
-        m_rPrHandler.start(&m_style->m_rPr);
+        m_rPrHandler.start(m_style->get_rPrPointer());
         break;
     case docx_el_tblPr:
     case docx_el_trPr:
@@ -2120,7 +1388,7 @@ void docx_styleHandler::handleAttribute(const lChar16 * attrname, const lChar16 
         if ( !lStr_cmp(attrname, "type") ) {
             int attr_value = parse_name(styleType_attr_values, attrvalue);
             if( -1 != attr_value )
-                m_style->setStyleType((docx_style_type)attr_value);
+                m_style->setStyleType((odx_style_type)attr_value);
         } else if ( !lStr_cmp(attrname, "styleId") ) {
             m_style->setId(attrvalue);
         }
@@ -2159,7 +1427,7 @@ void docx_styleHandler::handleTagClose( const lChar16 * nsname, const lChar16 * 
 void docx_styleHandler::start()
 {
     docx_ElementHandler::start();
-    m_styleRef = docxStyleRef( new docxStyle );
+    m_styleRef = odx_StyleRef( new odx_Style );
     m_style = m_styleRef.get();
     m_state = docx_el_style;
 }
@@ -2265,7 +1533,7 @@ void parseFootnotes(ldomDocumentWriter& writer, docxImportContext& context, int 
         LVXMLParser parser(m_stream, &docReader);
 
         if(parser.Parse())
-#ifdef DOCX_CRENGINE_IN_PAGE_FOOTNOTES
+#ifdef ODX_CRENGINE_IN_PAGE_FOOTNOTES
             writer.OnTagClose(L"", docx_el_body_name);
 #else
             // We didn't add <body name=notes> to not trigger crengine auto-in-page-foonotes
@@ -2310,38 +1578,13 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     ldomDocumentWriter writer(doc);
     docXMLreader docReader(&writer);
 
-#ifdef DOCX_FB2_DOM_STRUCTURE
-    writer.OnStart(NULL);
-    writer.OnTagOpen(NULL, L"?xml");
-    writer.OnAttribute(NULL, L"version", L"1.0");
-    writer.OnAttribute(NULL, L"encoding", L"utf-8");
-    writer.OnEncoding(L"utf-8", NULL);
-    writer.OnTagBody();
-    writer.OnTagClose(NULL, L"?xml");
-    writer.OnTagOpenNoAttr(NULL, L"FictionBook");
-    // DESCRIPTION
-    writer.OnTagOpenNoAttr(NULL, L"description");
-    writer.OnTagOpenNoAttr(NULL, L"title-info");
-    writer.OnTagOpenNoAttr(NULL, L"book-title");
-    writer.OnTagClose(NULL, L"book-title");
-    writer.OnTagClose(NULL, L"title-info");
-    writer.OnTagClose(NULL, L"description");
-#else
-    writer.OnStart(NULL);
-    writer.OnTagOpen(NULL, L"?xml");
-    writer.OnAttribute(NULL, L"version", L"1.0");
-    writer.OnAttribute(NULL, L"encoding", L"utf-8");
-    writer.OnEncoding(L"utf-8", NULL);
-    writer.OnTagBody();
-    writer.OnTagClose(NULL, L"?xml");
-    writer.OnTagOpenNoAttr(NULL, L"html");
-#endif
+    importContext.startDocument(writer);
 
 #ifdef DOCX_FB2_DOM_STRUCTURE
     //Two options when dealing with titles: (FB2|HTML)
-    docx_fb2TitleHandler titleHandler(&writer, &importContext, DOCX_USE_CLASS_FOR_HEADING); //<section><title>..</title></section>
+    odx_fb2TitleHandler titleHandler(&writer, DOCX_USE_CLASS_FOR_HEADING); //<section><title>..</title></section>
 #else
-    docx_titleHandler titleHandler(&writer, &importContext);  //<hx>..</hx>
+    odx_titleHandler titleHandler(&writer);  //<hx>..</hx>
 #endif
     docx_documentHandler documentHandler(&docReader, &writer, &importContext, &titleHandler);
     docReader.setHandler(&documentHandler);
@@ -2357,11 +1600,8 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     if(importContext.m_endNoteCount > 0) {
         parseFootnotes(writer, importContext, docx_el_endnotes);
     }
-#ifdef DOCX_FB2_DOM_STRUCTURE
-    writer.OnTagClose(NULL, L"FictionBook");
-#else
-    writer.OnTagClose(NULL, L"html");
-#endif
+
+    importContext.endDocument(writer);
     writer.OnStop();
 
     if ( progressCallback ) {
@@ -2372,74 +1612,16 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     return true;
 }
 
-docxStyle::docxStyle() : m_type(docx_paragraph_style),
-    m_pPrMerged(false), m_rPrMerged(false)
-{
-}
-
-bool docxStyle::isValid() const
-{
-    return ( !(m_Name.empty() || m_Id.empty()) );
-}
-
-docxStyle *docxStyle::getBaseStyle(docxImportContext *context)
-{
-    lString16 basedOn = getBasedOn();
-    if ( !basedOn.empty() ) {
-        docxStyle *pStyle = context->getStyle(basedOn);
-        if( pStyle && pStyle->getStyleType() == getStyleType() )
-            return pStyle;
-    }
-    return NULL;
-}
-
-docx_pPr *docxStyle::get_pPr(docxImportContext *context)
-{
-    if( !m_pPrMerged ) {
-        docxStyle* pStyle = getBaseStyle(context);
-        if (pStyle ) {
-            m_pPr.combineWith(pStyle->get_pPr(context));
-        }
-        m_pPrMerged = true;
-    }
-    return &m_pPr;
-}
-
-docx_rPr *docxStyle::get_rPr(docxImportContext *context)
-{
-    if( !m_rPrMerged ) {
-        docxStyle* pStyle = getBaseStyle(context);
-        if (pStyle ) {
-            m_rPr.combineWith(pStyle->get_rPr(context));
-        }
-        m_rPrMerged = true;
-    }
-    return &m_rPr;
-}
-
-docxImportContext::docxImportContext(OpcPackage *package, ldomDocument *doc) : m_styles(64), m_abstractNumbers(16),
+docxImportContext::docxImportContext(OpcPackage *package, ldomDocument *doc) :
+    odx_ImportContext(doc), m_abstractNumbers(16),
     m_Numbers(16), m_footNoteCount(0), m_endNoteCount(0),
     m_inField(false), m_linkNode(NULL), m_pStyle(NULL),
-    m_package(package), m_doc(doc)
+    m_package(package)
 {
 }
 
 docxImportContext::~docxImportContext()
 {
-}
-
-docxStyle * docxImportContext::getStyle( lString16 id )
-{
-    return m_styles.get(id).get();
-}
-
-void docxImportContext::addStyle( docxStyleRef style )
-{
-    docxStyle *referenced = style.get();
-    if ( NULL != referenced)
-    {
-        m_styles.set(referenced->getId(), style);
-    }
 }
 
 void docxImportContext::addNum(docxNumRef num)
@@ -2494,10 +1676,8 @@ void docxImportContext::openList(int level, int numid, ldomDocumentWriter *write
         if (listLevel)
             listType = listLevel->getListType();
         writer->OnTagOpen(L"", L"ol");
-        lString16 listStyle = getListStyle(listType);
-         m_ListLevels.add(listType);
-        if ( !listStyle.empty() )
-            writer->OnAttribute(L"", L"style", listStyle.c_str());
+        m_ListLevels.add(listType);
+        writer->OnAttribute(L"", L"style", getListStyleCss(listType).c_str());
         writer->OnTagBody();
         if ( i != level - 1 )
             writer->OnTagOpenNoAttr(L"", L"li");
@@ -2510,41 +1690,6 @@ void docxImportContext::closeList(int level, ldomDocumentWriter *writer)
         writer->OnTagClose(L"", L"li");
         writer->OnTagClose(L"", L"ol");
         m_ListLevels.remove(getListLevel() - 1);
-    }
-}
-
-void docxImportContext::setLanguage(const lChar16 *lang)
-{
-    lString16 language(lang);
-
-    int p = language.pos(cs16("-"));
-    if ( p > 0  ) {
-        language = language.substr(0, p);
-    }
-    m_doc->getProps()->setString(DOC_PROP_LANGUAGE, language);
-}
-
-lString16 docxImportContext::getListStyle(css_list_style_type_t listType)
-{
-    switch(listType) {
-    case css_lst_disc:
-        return lString16("list-style-type: disc;");
-    case css_lst_circle:
-        return lString16("list-style-type: circle;");
-    case css_lst_square:
-        return lString16("list-style-type: square;");
-    case css_lst_decimal:
-        return lString16("list-style-type: decimal;");
-    case css_lst_lower_roman:
-        return lString16("list-style-type: lower-roman;");
-    case css_lst_upper_roman:
-        return lString16("list-style-type: upper-roman;");
-    case css_lst_lower_alpha:
-        return lString16("list-style-type: lower-alpha;");
-    case css_lst_upper_alpha:
-        return lString16("list-style-type: upper-alpha;");
-    default:
-        return lString16();
     }
 }
 
@@ -2660,7 +1805,7 @@ ldomNode *docx_footnotesHandler::handleTagOpen(int tagId)
         break;
     case docx_el_footnotes:
     case docx_el_endnotes:
-#ifdef DOCX_CRENGINE_IN_PAGE_FOOTNOTES
+#ifdef ODX_CRENGINE_IN_PAGE_FOOTNOTES
         m_writer->OnTagOpen(L"", docx_el_body_name);
         if(isEndNote()) {
             m_writer->OnAttribute(L"", L"name", L"comments");
@@ -3107,102 +2252,4 @@ docxNumLevel *docxAbstractNum::getLevel(int level)
 void docxAbstractNum::reset()
 {
     m_levels.clear();
-}
-
-void docx_titleHandler::onBodyStart()
-{
-    m_writer->OnTagOpen(L"", docx_el_body_name);
-}
-
-void docx_titleHandler::onTitleStart(int level, bool noSection)
-{
-    CR_UNUSED(noSection);
-
-    m_titleLevel = level;
-    lString16 name = cs16("h") +  lString16::itoa(m_titleLevel);
-    if( m_useClassName ) {
-        m_writer->OnTagOpen(L"", L"p");
-        m_writer->OnAttribute(L"", L"class", name.c_str());
-    } else
-        m_writer->OnTagOpen(L"", name.c_str());
-}
-
-void docx_titleHandler::onTitleEnd()
-{
-    if( !m_useClassName ) {
-        lString16 tagName = cs16("h") +  lString16::itoa(m_titleLevel);
-        m_writer->OnTagClose(L"", tagName.c_str());
-    } else
-        m_writer->OnTagClose(L"", L"p");
-}
-
-void docx_fb2TitleHandler::onBodyStart()
-{
-    m_section = m_writer->OnTagOpen(L"", docx_el_body_name);
-}
-
-void docx_fb2TitleHandler::onTitleStart(int level, bool noSection)
-{
-    if( noSection )
-        docx_titleHandler::onTitleStart(level, true);
-    else {
-        if( m_titleLevel < level ) {
-            int startIndex = m_hasTitle ? 1 : 0;
-            int contentCount = m_section->getChildCount();
-            if(contentCount > startIndex)
-                makeSection(startIndex);
-        } else
-            closeSection(m_titleLevel - level + 1);
-        openSection(level);
-        m_writer->OnTagOpen(L"", L"title");
-        lString16 headingName = cs16("h") +  lString16::itoa(level);
-        if( m_useClassName ) {
-            m_writer->OnTagBody();
-            m_writer->OnTagOpen(L"", L"p");
-            m_writer->OnAttribute(L"", L"class", headingName.c_str());
-        } else {
-            m_writer->OnTagBody();
-            m_writer->OnTagOpen(L"", headingName.c_str());
-        }
-    }
-}
-
-void docx_fb2TitleHandler::onTitleEnd()
-{
-    if( !m_useClassName ) {
-        lString16 headingName = cs16("h") +  lString16::itoa(m_titleLevel);
-        m_writer->OnTagClose(L"", headingName.c_str());
-    } else
-        m_writer->OnTagClose(L"", L"p");
-
-    m_writer->OnTagClose(L"", L"title");
-    m_hasTitle = true;
-}
-
-void docx_fb2TitleHandler::makeSection(int startIndex)
-{
-    ldomNode *newSection = m_section->insertChildElement(startIndex, LXML_NS_NONE, el_section);
-    newSection->initNodeStyle();
-    m_section->moveItemsTo(newSection, startIndex + 1, m_section->getChildCount() - 1);
-    newSection->initNodeRendMethod( );
-    m_section = newSection;
-}
-
-void docx_fb2TitleHandler::openSection(int level)
-{
-    for(int i = m_titleLevel; i < level; i++) {
-        m_section = m_writer->OnTagOpen(L"", L"section");
-        m_writer->OnTagBody();
-    }
-    m_titleLevel = level;
-    m_hasTitle = false;
-}
-
-void docx_fb2TitleHandler::closeSection(int level)
-{
-    for(int i = 0; i < level; i++) {
-        m_writer->OnTagClose(L"", L"section");
-        m_titleLevel--;
-    }
-    m_hasTitle = false;
 }

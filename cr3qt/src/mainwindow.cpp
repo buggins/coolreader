@@ -231,12 +231,13 @@ void MainWindow::on_actionOpen_triggered()
     }
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open book file"),
          lastPath,
-         QString(tr("All supported formats")) + QString(" (*.fb2 *.fb3 *.txt *.tcr *.rtf *.doc *.docx *.epub *.html *.shtml *.htm *.chm *.zip *.pdb *.pml *.prc *.pml *.mobi);;")
+         QString(tr("All supported formats")) + QString(" (*.fb2 *.fb3 *.txt *.tcr *.rtf *.odt *.doc *.docx *.epub *.html *.shtml *.htm *.chm *.zip *.pdb *.pml *.prc *.pml *.mobi);;")
                 + QString(tr("FB2 books")) + QString(" (*.fb2 *.fb2.zip);;")
                 + QString(tr("FB3 books")) + QString(" (*.fb3);;")
                 + QString(tr("Text files")) + QString(" (*.txt);;")
                 + QString(tr("Rich text")) + QString(" (*.rtf);;")
                 + QString(tr("MS Word document")) + QString(" (*.doc *.docx);;")
+                + QString(tr("Open Document files")) + QString(" (*.odt);;")
                 + QString(tr("HTML files")) + QString(" (*.shtml *.htm *.html);;")
                 + QString(tr("EPUB files")) + QString(" (*.epub);;")
                 + QString(tr("CHM files")) + QString(" (*.chm);;")
