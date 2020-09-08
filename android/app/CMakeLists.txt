@@ -73,6 +73,8 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/lvopc.cpp
     ${CR3_ROOT}/crengine/src/docxfmt.cpp
     ${CR3_ROOT}/crengine/src/fb3fmt.cpp
+    ${CR3_ROOT}/crengine/src/odtfmt.cpp
+    ${CR3_ROOT}/crengine/src/odxutil.cpp
     ${CR3_ROOT}/crengine/src/lvstsheet.cpp
     ${CR3_ROOT}/crengine/src/txtselector.cpp
     ${CR3_ROOT}/crengine/src/crtest.cpp

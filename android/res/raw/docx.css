@@ -50,19 +50,23 @@ ol { display: block; list-style-type: decimal; margin-left: 1em }
 .h4 { font-size: 120% }
 .h5 { font-size: 110% }
 
-table { font-size: 80% }
+table { font-size: 80%; width: 100%; }
 td, th { text-indent: 0px; padding: 3px }
-th {  font-weight: bold; text-align: center; background-color: #DDD  }
+/* table borders */
+table, th, td { border-width: 2px; border-style: ridge; border-color: #888; border-collapse: collapse; }
+th {  font-weight: bold; text-align: center; background-color: #ddd; }
 /* #808080; */
 table caption { text-indent: 0px; padding: 4px; background-color: #EEE }
 
 body[name="notes"] { $footnote.all }
 body[name="notes"] section title { display: run-in; text-align: left; $footnote-title.all page-break-before: auto; page-break-inside: auto; page-break-after: auto; }
 body[name="notes"] section title p { display: inline }
+body[name="notes"] section { -cr-hint: footnote-inpage; }
 
 body[name="comments"] { $footnote.all }
 body[name="comments"] section title { display: run-in; text-align: left; $footnote-title.all page-break-before: auto; page-break-inside: auto; page-break-after: auto; }
 body[name="comments"] section title p { display: inline }
+body[name="comments"] section { -cr-hint: footnote-inpage; }
 
 description { display: block; }
 title-info { display: block; }

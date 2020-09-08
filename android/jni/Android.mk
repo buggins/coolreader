@@ -69,6 +69,8 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvopc.cpp \
     ../../crengine/src/docxfmt.cpp \
     ../../crengine/src/fb3fmt.cpp \
+    ../../crengine/src/odtfmt.cpp \
+    ../../crengine/src/odxutil.cpp \
     ../../crengine/src/lvstsheet.cpp \
     ../../crengine/src/txtselector.cpp \
     ../../crengine/src/crtest.cpp \
