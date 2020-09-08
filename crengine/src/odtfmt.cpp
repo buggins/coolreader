@@ -767,6 +767,9 @@ void odt_documentHandler::handleTagClose(const lChar16 *nsname, const lChar16 *t
         m_writer->OnTagClose(L"", L"section");
         m_writer = m_saveWriter;
         break;
+    case odt_el_noteCitation:
+        m_writer->OnTagClose(L"", L"a");
+        break;
     case odt_el_table:
         m_inTable = false;
     default:
@@ -806,6 +809,7 @@ void odt_documentHandler::handleText(const lChar16 *text, int len, lUInt32 flags
         break;
     case odt_el_noteCitation:
         m_noteRefText = text;
+        m_writer->OnTagBody();
     case odt_el_bookmarkRef:
     case odt_el_noteRef:
     case odt_el_referenceRef:
