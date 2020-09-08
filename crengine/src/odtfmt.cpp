@@ -642,6 +642,10 @@ void odt_documentHandler::handleAttribute(const lChar16 *attrname, const lChar16
 
             if(value.atoi(tmp))
                 m_outlineLevel = tmp - 1;
+            break;
+        }
+        if( !lStr_cmp(attrname, "style-name") ) {
+            m_StyleName = attrValue;
         }
         break;
     case odt_el_note:
@@ -963,7 +967,7 @@ void odt_stylesHandler::handleAttribute(const lChar16 *attrname, const lChar16 *
             int n = parse_name(odt_fontWeigth_attr_values, attrvalue);
             if( n != -1 )
                 m_rPr->setBold( n >= 600 );
-        } else if( !lStr_cmp(attrname, "text-underline-type") ) {
+        } else if( !lStr_cmp(attrname, "text-underline-style") ) {
             m_rPr->setUnderline( lStr_cmp( attrvalue, "none") !=0 );
         } else if( !lStr_cmp(attrname, "text-line-through-type") ) {
             m_rPr->setStrikeThrough( lStr_cmp( attrvalue, "none") !=0 );
