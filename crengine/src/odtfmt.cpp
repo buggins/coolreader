@@ -36,7 +36,6 @@
     ODT_TAG2(referenceMarkStart, "reference-mark-start")\
     ODT_TAG2(referenceRef, "reference-ref")\
     ODT_TAG(s)\
-    ODT_TAG2(softPageBreak, "soft-page-break")\
     ODT_TAG(span)\
     ODT_TAG(style)\
     ODT_TAG(styles)\
@@ -105,7 +104,6 @@ const struct item_def_t odt_elements_mapping[] = {
     { odt_el_referenceMarkStart, L"a" },
     { odt_el_referenceRef, L"a" },
     { odt_el_s, NULL },
-    { odt_el_softPageBreak, NULL },
     { odt_el_span, NULL },
     { odt_el_style, NULL },
     { odt_el_styles, NULL },
@@ -143,7 +141,6 @@ const struct item_def_t odt_elements[] = {
     ODT_TAG_CHILD(referenceMarkStart),
     ODT_TAG_CHILD(referenceRef),
     ODT_TAG_CHILD(s),
-    ODT_TAG_CHILD(softPageBreak),
     ODT_TAG_CHILD(span),
     ODT_TAG_CHILD(tab),
     ODT_TAG_CHILD(table),
@@ -559,14 +556,6 @@ ldomNode *odt_documentHandler::handleTagOpen(int tagId)
     case odt_el_listItem:
         m_inListItem = true;
         m_listItemHadContent = false;
-        break;
-    case odt_el_softPageBreak:
-        if( odt_el_p == m_state)
-            checkParagraphStart();
-        m_writer->OnTagOpen(L"", L"div");
-        m_writer->OnAttribute(L"", L"style", L"page-break-before: always");
-        m_writer->OnTagBody();
-        m_writer->OnTagClose(L"", L"div");
         break;
     case odt_el_tab:
     case odt_el_s:
