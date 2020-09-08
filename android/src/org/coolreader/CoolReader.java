@@ -1134,7 +1134,7 @@ public class CoolReader extends BaseActivity {
 				inputStream = contentResolver.openInputStream(uri);
 				// Don't save the last opened document from the stream in the cloud, since we still cannot open it later in this program.
 				mReaderView.loadDocumentFromStream(inputStream, uri.getPath(), doneCallback, errorCallback);
-			} catch (FileNotFoundException e) {
+			} catch (Exception e) {
 				errorCallback.run();
 			}
 		});
