@@ -127,6 +127,10 @@
                 <data android:pathPattern=".*\\.pdb"/>
                 <data android:pathPattern=".*\\.doc"/>
                 <data android:pathPattern=".*\\.docx"/>
+                <data android:pathPattern=".*\\.odt"/>
+                <data android:pathPattern=".*\\..*\\.odt"/>
+                <data android:pathPattern=".*\\..*\\..*\\.odt"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.odt"/>
                 <data android:pathPattern=".*\\.prc"/>
                 <data android:pathPattern=".*\\.pml"/>
                 <data android:pathPattern=".*\\.mobi"/>
@@ -174,6 +178,7 @@
                 <data android:mimeType="application/x-msw6"/>
                 <data android:mimeType="application/x-msword"/>
                 <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
+                <data android:mimeType="application/vnd.oasis.opendocument.text"/>
             </intent-filter>
         </activity>
 
