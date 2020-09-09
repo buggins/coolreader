@@ -8831,8 +8831,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     css_style_rec_t * pstyle = style.get();
 
     lUInt16 nodeElementId = enode->getNodeId();
+    lUInt32 domVersionRequested = enode->getDocument() ? enode->getDocument()->getDOMVersionRequested() : 0;
 
-    if (gDOMVersionRequested < 20180524) {
+    if (domVersionRequested < 20180524) {
         // The display property initial value has been changed from css_d_inherit
         // to css_d_inline (as per spec, and so that an unknown element does not
         // become block when contained in a P, and inline when contained in a SPAN)
@@ -8852,14 +8853,14 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->white_space = type_ptr->white_space;
 
         // Account for backward incompatible changes in fb2def.h
-        if (gDOMVersionRequested < 20200824) { // revert what was changed 20200824
+        if (domVersionRequested < 20200824) { // revert what was changed 20200824
             if (nodeElementId >= el_details && nodeElementId <= el_wbr) { // newly added block elements
                 pstyle->display = css_d_inline; // previously unknown and shown as inline
-                if (gDOMVersionRequested < 20180524) {
+                if (domVersionRequested < 20180524) {
                     pstyle->display = css_d_inherit; // previously unknown and display: inherit
                 }
             }
-            if (gDOMVersionRequested < 20180528) { // revert what was changed 20180528
+            if (domVersionRequested < 20180528) { // revert what was changed 20180528
                 if (nodeElementId == el_form) {
                     pstyle->display = css_d_none; // otherwise shown as block, as it may have textual content
                 }
@@ -8868,11 +8869,11 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
                 }
                 if (nodeElementId >= el_address && nodeElementId <= el_xmp) { // newly added block elements
                     pstyle->display = css_d_inline; // previously unknown and shown as inline
-                    if (gDOMVersionRequested < 20180524) {
+                    if (domVersionRequested < 20180524) {
                         pstyle->display = css_d_inherit; // previously unknown and display: inherit
                     }
                 }
-                if (gDOMVersionRequested < 20180524) { // revert what was fixed 20180524
+                if (domVersionRequested < 20180524) { // revert what was fixed 20180524
                     if (nodeElementId == el_cite) {
                         pstyle->display = css_d_block; // otherwise correctly set to css_d_inline
                     }
@@ -8945,7 +8946,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
             // We can't get the codeBase of this node anymore at this point, which
             // would be needed to resolve "background-image: url(...)" relative
             // file path... So these won't work when defined in a style= attribute.
-            if ( decl.parse( s ) ) {
+            if ( decl.parse( s, domVersionRequested ) ) {
                 decl.apply( pstyle );
             }
         }
@@ -9143,7 +9144,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     }
 
     // Avoid some new features when migration to normalized xpointers has not yet been done
-    if ( gDOMVersionRequested < DOM_VERSION_WITH_NORMALIZED_XPOINTERS ) {
+    if ( domVersionRequested < DOM_VERSION_WITH_NORMALIZED_XPOINTERS ) {
         // display: ruby may wrap the element content in many inlineBox/rubyBox.
         // Avoid that until migrated to normalized xpointers by handling
         // them as css_d_inline like before ruby support.
@@ -9191,7 +9192,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         //parent_style->text_align = css_ta_center;
     //}
 
-    if (gDOMVersionRequested < 20180524) { // display should not be inherited
+    if (domVersionRequested < 20180524) { // display should not be inherited
         UPDATE_STYLE_FIELD( display, css_d_inherit );
     }
     UPDATE_STYLE_FIELD( white_space, css_ws_inherit );

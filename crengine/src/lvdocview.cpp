@@ -3814,11 +3814,11 @@ static void FileToArcProps(CRPropRef props) {
 	props->setHex(DOC_PROP_FILE_CRC32, 0);
 }
 
-static bool needToConvertBookmarks(CRFileHistRecord* historyRecord)
+static bool needToConvertBookmarks(CRFileHistRecord* historyRecord, lUInt32 domVersionRequested)
 {
     bool convertBookmarks = false;
     if (historyRecord && historyRecord->getBookmarks().length() > 1
-        && gDOMVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS
+        && domVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS
         && historyRecord->getDOMversion() < DOM_VERSION_WITH_NORMALIZED_XPOINTERS) {
             convertBookmarks = true;
     }
@@ -3878,21 +3878,21 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 		m_doc_props->setString(DOC_PROP_FILE_NAME, arcItemPathName);
 		m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
 		CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
-		int newDOMVersion;
-		bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
+		lUInt32 newDOMVersion;
+		lUInt32 domVersionRequested = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
+		bool convertBookmarks = needToConvertBookmarks(record, domVersionRequested) && !metadataOnly;
 		if(convertBookmarks) {
-			newDOMVersion = gDOMVersionRequested;
-			gDOMVersionRequested = record->getDOMversion();
+			newDOMVersion = domVersionRequested;
+			m_props->setInt(PROP_REQUESTED_DOM_VERSION, record->getDOMversion());
 			m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
 		}
-
 		// loading document
 		if (loadDocumentInt(stream, metadataOnly)) {
 			m_filename = lString16(fname);
 			m_stream.Clear();
 			if(convertBookmarks) {
 				record->convertBookmarks(m_doc, newDOMVersion);
-				gDOMVersionRequested = newDOMVersion;
+				m_props->setInt(PROP_REQUESTED_DOM_VERSION, newDOMVersion);
 				m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
 				//FIXME: need to reload file after this
 			}
@@ -3941,23 +3941,21 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 
 	CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
 	int newDOMVersion;
-	bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
+	lUInt32 domVersionRequested = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
+	bool convertBookmarks = needToConvertBookmarks(record, domVersionRequested) && !metadataOnly;
 	if(convertBookmarks) {
-		newDOMVersion = gDOMVersionRequested;
-		gDOMVersionRequested = record->getDOMversion();
+		newDOMVersion = domVersionRequested;
+		m_props->setInt(PROP_REQUESTED_DOM_VERSION, record->getDOMversion());
 		m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
 	}
-	if (record)
-		gDOMVersionRequested = record->getDOMversion();
 
 	if (loadDocumentInt(stream, metadataOnly)) {
 		m_filename = lString16(fname);
 		m_stream.Clear();
-
 		if(convertBookmarks) {
 			record->convertBookmarks(m_doc, newDOMVersion);
-			gDOMVersionRequested = newDOMVersion;
-			m_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
+			m_props->setInt(PROP_REQUESTED_DOM_VERSION, newDOMVersion);
+			m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
 			//FIXME: need to reload file after this
 		}
 #define DUMP_OPENED_DOCUMENT_SENTENCES 0 // debug XPointer navigation
@@ -4034,21 +4032,21 @@ bool LVDocView::LoadDocument( LVStreamRef stream, const lChar16 * contentPath, b
 
 	CRFileHistRecord* record = m_hist.getRecord( contentPath16, stream->GetSize() );
 	int newDOMVersion;
+	lUInt32 domVersionRequested = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
 	int savedRenderFlags = m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
-	bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
+	bool convertBookmarks = needToConvertBookmarks(record, domVersionRequested) && !metadataOnly;
 	if(convertBookmarks) {
-		newDOMVersion = gDOMVersionRequested;
-		gDOMVersionRequested = record->getDOMversion();
+		newDOMVersion = domVersionRequested;
+		m_props->setInt(PROP_REQUESTED_DOM_VERSION, record->getDOMversion());
 		m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
 	}
 
 	if (loadDocumentInt(stream, metadataOnly)) {
 		m_filename = lString16(contentPath);
-
 		if(convertBookmarks) {
 			record->convertBookmarks(m_doc, newDOMVersion);
-			gDOMVersionRequested = newDOMVersion;
-			m_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
+			m_props->setInt(PROP_REQUESTED_DOM_VERSION, newDOMVersion);
+			m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
 			//FIXME: need to reload file after this
 		}
 		return true;
@@ -4647,6 +4645,7 @@ void LVDocView::createEmptyDocument() {
     m_doc->setMaxAddedLetterSpacingPercent(m_props->getIntDef(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, DEF_MAX_ADDED_LETTER_SPACING_PERCENT));
     m_doc->setHangingPunctiationEnabled(m_props->getBoolDef(PROP_FLOATING_PUNCTUATION, true));
     m_doc->setRenderBlockRenderingFlags(m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT));
+    m_doc->setDOMVersionRequested(m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent));
 
     m_doc->setContainer(m_container);
     // This sets the element names default style (display, whitespace)
@@ -5825,7 +5824,7 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
     case DCMD_SET_REQUESTED_DOM_VERSION:
         CRLog::trace("DCMD_SET_REQUESTED_DOM_VERSION(%d)", param);
         m_props->setInt(PROP_REQUESTED_DOM_VERSION, param);
-        gDOMVersionRequested = param;
+        getDocument()->setDOMVersionRequested(param);
         REQUEST_RENDER("doCommand-set requested dom version")
         break;
     case DCMD_RENDER_BLOCK_RENDERING_FLAGS:
@@ -6694,11 +6693,11 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 }
         } else if (name == PROP_REQUESTED_DOM_VERSION) {
             int value = props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
-            if (gDOMVersionRequested != value) {
-                gDOMVersionRequested = value;
-                REQUEST_RENDER("propsApply requested dom version")
-                needUpdateHyphenation = true;
-            }
+            if (m_doc) // not when noDefaultDocument=true
+                if (getDocument()->setDOMVersionRequested(value)) {
+                    needUpdateHyphenation = true;
+                    REQUEST_RENDER("propsApply requested dom version")
+                }
         } else if (name == PROP_RENDER_BLOCK_RENDERING_FLAGS) {
             lUInt32 value = (lUInt32)props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
             if (m_doc) // not when noDefaultDocument=true

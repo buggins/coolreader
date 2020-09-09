@@ -45,7 +45,6 @@
 
 // Allows for requesting older DOM building code (including bugs NOT fixed)
 extern const int gDOMVersionCurrent;
-extern int gDOMVersionRequested;
 
 // Also defined in src/lvtinydom.cpp
 #define DOM_VERSION_WITH_NORMALIZED_XPOINTERS 20200223
@@ -499,6 +498,7 @@ protected:
 #endif
     bool _hangingPunctuationEnabled;
     lUInt32 _renderBlockRenderingFlags;
+    lUInt32 _DOMVersionRequested;
 
     ldomDataStorageManager _textStorage; // persistent text node data storage
     ldomDataStorageManager _elemStorage; // persistent element data storage
@@ -623,6 +623,11 @@ public:
         return _renderBlockRenderingFlags;
     }
     bool setRenderBlockRenderingFlags(lUInt32 flags);
+
+    lUInt32 getDOMVersionRequested() const {
+        return _DOMVersionRequested;
+    }
+    bool setDOMVersionRequested(lUInt32 version);
 
     inline bool getDocFlag( lUInt32 mask )
     {
@@ -1579,7 +1584,8 @@ public:
     /// converts to string
     lString16 toString( XPointerMode mode = XPATH_USE_NAMES) {
         if( XPATH_USE_NAMES==mode ) {
-            if( gDOMVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS)
+            tinyNodeCollection* doc = (tinyNodeCollection*)_data->getDocument();
+            if ( doc != NULL && doc->getDOMVersionRequested() >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS )
                 return toStringV2();
             return toStringV1();
         }
@@ -2564,7 +2570,7 @@ public:
     /// create xpointer from relative pointer string
     ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr )
     {
-        if( gDOMVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS)
+        if( _DOMVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS)
             return createXPointerV2(baseNode, xPointerStr);
         return createXPointerV1(baseNode, xPointerStr);
     }

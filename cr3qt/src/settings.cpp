@@ -1166,8 +1166,7 @@ void SettingsDlg::on_cbRendFlags_currentIndexChanged(int index)
         m_ui->label_48->setVisible(embedded_lang);
         m_ui->cbEnableHyph->setVisible(embedded_lang);
     }
-    // don't update preview to not change global variable gRenderBlockRenderingFlags too early!
-    //updateStyleSample();
+    updateStyleSample();
 }
 
 void SettingsDlg::on_cbDOMLevel_currentIndexChanged(int index)
@@ -1191,6 +1190,7 @@ void SettingsDlg::on_cbDOMLevel_currentIndexChanged(int index)
         m_ui->cbEnableHyph->setVisible(embedded_lang);
     }
     m_props->setInt(PROP_REQUESTED_DOM_VERSION, DOM_versions[index]);
+    updateStyleSample();
 }
 
 void SettingsDlg::on_cbMultiLang_stateChanged(int state)

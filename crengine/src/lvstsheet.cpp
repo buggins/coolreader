@@ -1821,7 +1821,7 @@ enum cr_only_if_t {
     cr_only_if_fb2_document, // fb2 or fb3
 };
 
-bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDocBase * doc, lString16 codeBase )
+bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, bool higher_importance, lxmlDocBase * doc, lString16 codeBase )
 {
     if ( !decl )
         return false;
@@ -1854,7 +1854,7 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                 {
                     int dom_version;
                     if ( parse_integer( decl, dom_version ) ) {
-                        if ( gDOMVersionRequested >= dom_version ) {
+                        if ( domVersionRequested >= dom_version ) {
                             return false; // ignore the whole declaration
                         }
                     }
@@ -1999,7 +1999,7 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                 break;
             case cssd_display:
                 n = parse_name( decl, css_d_names, -1 );
-                if (gDOMVersionRequested < 20180524 && n == css_d_list_item_block) {
+                if (domVersionRequested < 20180524 && n == css_d_list_item_block) {
                     n = css_d_list_item_legacy; // legacy rendering of list-item
                 }
                 break;
@@ -4405,6 +4405,7 @@ bool LVStyleSheet::parse( const char * str, bool higher_importance, lString16 co
     LVCssSelector * prev_selector;
     int err_count = 0;
     int rule_count = 0;
+    lUInt32 domVersionRequested = (_doc != NULL) ? _doc->getDOMVersionRequested() : 0;
     for (;*str;)
     {
         // new rule
@@ -4435,7 +4436,7 @@ bool LVStyleSheet::parse( const char * str, bool higher_importance, lString16 co
             }
             // parse declaration
             LVCssDeclRef decl( new LVCssDeclaration );
-            if ( !decl->parse( str, higher_importance, _doc, codeBase ) )
+            if ( !decl->parse( str, domVersionRequested, higher_importance, _doc, codeBase ) )
             {
                 err = true;
                 err_count++;
