@@ -46,6 +46,7 @@
     ODT_TAG2(tableRow, "table-row")\
     ODT_TAG2(tableCell, "table-cell")\
     ODT_TAG(text)\
+    ODT_TAG2(textBox, "text-box")\
     ODT_TAG2(textProperties, "text-properties")
 
 #define ODT_TAG_NAME(itm) odt_el_##itm##_name
@@ -114,6 +115,7 @@ const struct item_def_t odt_elements_mapping[] = {
     { odt_el_tableRow, L"tr" },
     { odt_el_tableCell, L"td" },
     { odt_el_text, NULL },
+    { odt_el_textBox, NULL },
     { odt_el_textProperties, NULL }
 };
 
@@ -149,6 +151,7 @@ const struct item_def_t odt_elements[] = {
     ODT_TAG_CHILD(tableRow),
     ODT_TAG_CHILD(tableCell),
     ODT_TAG_CHILD(text),
+    ODT_TAG_CHILD(textBox),
     ODT_LAST_ITEM
 };
 
