@@ -102,6 +102,8 @@
     <string name="dlg_search_hint">Введите строку для поиска</string>
     <string name="dlg_button_ok">Ok</string>
     <string name="dlg_button_cancel">Отмена</string>
+    <string name="dlg_button_yes">Да</string>
+    <string name="dlg_button_no">Нет</string>
     <string name="dlg_button_find">Найти</string>
     <string name="options_page_animation">Анимация листания</string>
     <string name="options_controls_enable_volume_keys">Листание кнопками громкости</string>
@@ -606,6 +608,7 @@
     <string name="options_style_multilang">Поддержка мультиязычных документов</string>
     <string name="options_style_enable_hyphenation">Разрешить переносы</string>
     <string name="options_app_googledrive_sync_auto">Автоматическая синхронизация с Google Диском</string>
+    <string name="options_app_cloudsync_confirmations">Запрашивать подтверждение перед обновлением</string>
     <string name="options_app_googledrive_sync_settings">Настройки на Диске</string>
     <string name="options_app_googledrive_sync_bookmarks">Закладки и текущая позиция чтения на Диске</string>
     <string name="options_app_googledrive_sync_currentbook">Информация о читаемой в данный момент книге на Диске</string>
@@ -622,4 +625,17 @@
     <string name="googledrive_sync_to">Синх. на Диск</string>
     <string name="googledrive_sync_from">Синх. с Диска</string>
     <string name="confirmation_title">Подтверждение</string>
+    <string name="sync_confirmation_other_book">На другом устройстве была открыта другая книга (%s), переключиться на неё?</string>
+    <string name="sync_confirmation_new_reading_position">Для этой книги найдена новая позиция чтения, обновить?</string>
+    <string name="autosave_period">Период автосохранения</string>
+    <string name="autosave_period_off">"Отключено"</string>
+    <string name="autosave_period_1min">"1 минута"</string>
+    <string name="autosave_period_2min">"2 минуты"</string>
+    <string name="autosave_period_3min">"3 минуты"</string>
+    <string name="autosave_period_4min">"4 минуты"</string>
+    <string name="autosave_period_5min">"5 минут"</string>
+    <string name="autosave_period_10min">"10 минут"</string>
+    <string name="autosave_period_15min">"15 минут"</string>
+    <string name="autosave_period_20min">"20 минут"</string>
+    <string name="autosave_period_30min">"30 минут"</string>
 </resources>

@@ -157,7 +157,14 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		m_activity = activity;
 		m_executor = Executors.newSingleThreadExecutor();
 		//m_executor = Executors.newFixedThreadPool(1);
-		m_folderListCache = new FolderListCache(15);    // 15 s.
+		m_folderListCache = new FolderListCache();
+	}
+
+	public GoogleDriveRemoteAccess(Activity activity, int keepAlive) {
+		m_activity = activity;
+		m_executor = Executors.newSingleThreadExecutor();
+		//m_executor = Executors.newFixedThreadPool(1);
+		m_folderListCache = new FolderListCache(keepAlive);
 	}
 
 	public GoogleSignInAccount getGoogleAccount() {
