@@ -51,6 +51,8 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Stop TTS on incoming call -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <!-- foreground TTS control service, for API >= 28 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <!-- Hide Android3 soft buttons on Archos -->
     <!--uses-permission android:name="archos.permission.FULLSCREEN.FULL"/-->
     <!-- Required permission to use in-app billing. -->
@@ -182,20 +184,19 @@
             </intent-filter>
         </activity>
 
-
         <!-- Database service -->
-        <service android:name=".db.CRDBService" />
+        <service
+                android:name=".db.CRDBService"
+                android:enabled="true"
+                android:exported="false" />
 
-        <!-- Donations support -->
-        <service android:name=".donations.BillingService" />
+        <!-- TTS control service -->
+        <service
+                android:name=".tts.TTSControlService"
+                android:enabled="true"
+                android:exported="false"
+                android:foregroundServiceType="mediaPlayback" />
 
-        <receiver android:name="org.coolreader.donations.BillingReceiver">
-            <intent-filter>
-                <action android:name="com.android.vending.billing.IN_APP_NOTIFY" />
-                <action android:name="com.android.vending.billing.RESPONSE_CODE" />
-                <action android:name="com.android.vending.billing.PURCHASE_STATE_CHANGED" />
-            </intent-filter>
-        </receiver>
         <!-- Stop TTS on incoming call -->
         <receiver android:name="org.coolreader.PhoneStateReceiver">
             <intent-filter>

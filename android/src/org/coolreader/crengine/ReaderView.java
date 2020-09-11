@@ -1595,6 +1595,20 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		setSetting(name, value, true, false, true);
 	}
 
+	public void setViewModeNonPermanent(ViewMode mode) {
+		if (mode != viewMode) {
+			if (mode == ViewMode.SCROLL) {
+				doc.doCommand(ReaderCommand.DCMD_TOGGLE_PAGE_SCROLL_VIEW.nativeId, 0);
+				viewMode = mode;
+				mIsPageMode = false;
+			} else {
+				doc.doCommand(ReaderCommand.DCMD_TOGGLE_PAGE_SCROLL_VIEW.nativeId, 0);
+				viewMode = mode;
+				mIsPageMode = true;
+			}
+		}
+	}
+
 	public void saveSetting(String name, String value) {
 		setSetting(name, value, true, true, true);
 	}
@@ -2319,7 +2333,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, tts);
 					ttsToolbar.setOnCloseListener(() -> ttsToolbar = null);
 				})) {
-					log.e("Cannot initilize TTS");
+					log.e("Cannot initialize TTS");
 				}
 			}
 			break;
@@ -5442,6 +5456,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				}
 			});
 			//engine.waitTasksCompletion();
+			if (null != ttsToolbar)
+				ttsToolbar.stopAndClose();
 		}
 	}
 

@@ -46,8 +46,7 @@ import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
-import org.coolreader.crengine.TTS;
-import org.coolreader.crengine.TTS.OnTTSCreatedListener;
+import org.coolreader.tts.TTS;
 import org.coolreader.donations.CRDonationService;
 import org.coolreader.sync2.OnSyncStatusListener;
 import org.coolreader.sync2.Synchronizer;
@@ -1424,7 +1423,7 @@ public class CoolReader extends BaseActivity {
 	boolean ttsInitialized;
 	boolean ttsError;
 
-	public boolean initTTS(final OnTTSCreatedListener listener) {
+	public boolean initTTS(final TTS.OnTTSCreatedListener listener) {
 		if (ttsError || !TTS.isFound()) {
 			if (!ttsError) {
 				ttsError = true;
