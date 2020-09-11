@@ -394,7 +394,7 @@ public class Synchronizer {
 
 				@Override
 				public void onFailed(Exception e) {
-					log.e("CheckAppFolderSyncOperation: mkdir() failed" + e.toString());
+					log.e("CheckAppFolderSyncOperation: mkdir() failed: " + e.toString());
 					doneFailed(e.toString());
 				}
 			});
@@ -1000,7 +1000,7 @@ public class Synchronizer {
 		setSyncStarted(SyncDirection.SyncFrom);
 
 		clearOperation();
-		if (showSignIn)
+		if (showSignIn || m_remoteAccess.needSignInRepeat())
 			addOperation(new SignInSyncOperation());
 		else
 			addOperation(new SignInQuietlySyncOperation());
@@ -1034,7 +1034,7 @@ public class Synchronizer {
 		setSyncStarted(SyncDirection.SyncTo);
 
 		clearOperation();
-		if (showSignIn)
+		if (showSignIn || m_remoteAccess.needSignInRepeat())
 			addOperation(new SignInSyncOperation());
 		else
 			addOperation(new SignInQuietlySyncOperation());
@@ -1072,10 +1072,10 @@ public class Synchronizer {
 		setSyncStarted(SyncDirection.SyncFrom);
 
 		clearOperation();
-		if (quietly)
-			addOperation(new SignInQuietlySyncOperation());
-		else
+		if (!quietly || m_remoteAccess.needSignInRepeat())
 			addOperation(new SignInSyncOperation());
+		else
+			addOperation(new SignInQuietlySyncOperation());
 		addOperation(new CheckAppFolderSyncOperation());
 		for (SyncTarget target : targets) {
 			switch (target) {
@@ -1115,10 +1115,10 @@ public class Synchronizer {
 		setSyncStarted(SyncDirection.SyncTo);
 
 		clearOperation();
-		if (quietly)
-			addOperation(new SignInQuietlySyncOperation());
-		else
+		if (!quietly || m_remoteAccess.needSignInRepeat())
 			addOperation(new SignInSyncOperation());
+		else
+			addOperation(new SignInQuietlySyncOperation());
 		addOperation(new CheckAppFolderSyncOperation());
 		for (SyncTarget target : targets) {
 			switch (target) {

@@ -131,4 +131,9 @@ public interface RemoteAccess {
 	 */
 	void onActivityResultHandler(int requestCode, int resultCode, Intent data);
 
+	/**
+	 *
+	 * @return
+	 */
+	boolean needSignInRepeat();
 }
