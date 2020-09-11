@@ -500,18 +500,27 @@ public class CoolReader extends BaseActivity {
 					log.d("Google Drive sync is disabled.");
 					// ask user: cleanup & sign out
 					askConfirmation(R.string.googledrive_disabled_cleanup_question,
-							() -> mGoogleDriveSync.abort( () -> {
-								if (null != mGoogleDriveSync) {
-									mGoogleDriveSync.cleanupAndSignOut();
-									mGoogleDriveSync = null;
+							() -> {
+									if (null != mGoogleDriveSync) {
+										mGoogleDriveSync.abort(() -> {
+											if (null != mGoogleDriveSync) {
+												mGoogleDriveSync.cleanupAndSignOut();
+												mGoogleDriveSync = null;
+											}
+										});
+									}
+								},
+							() -> {
+									if (null != mGoogleDriveSync) {
+										mGoogleDriveSync.abort(() -> {
+											if (null != mGoogleDriveSync) {
+												mGoogleDriveSync.signOut();
+												mGoogleDriveSync = null;
+											}
+										});
+									}
 								}
-							} ),
-							() -> mGoogleDriveSync.abort( () -> {
-								if (null != mGoogleDriveSync) {
-									mGoogleDriveSync.signOut();
-									mGoogleDriveSync = null;
-								}
-							} ));
+					);
 				}
 			}
 		}
