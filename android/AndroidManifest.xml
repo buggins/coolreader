@@ -151,14 +151,13 @@
                 <data android:mimeType="application/vnd.oasis.opendocument.text"/>
             </intent-filter>
         </activity>
-       
-        
+
         <!-- Database service -->
-        <service android:name=".db.CRDBService" />
-        
-        <!-- Donations support -->
-        <service android:name=".donations.BillingService" />
-        
+        <service
+                android:name=".db.CRDBService"
+                android:enabled="true"
+                android:exported="false" />
+
         <!-- TTS control service -->
         <service
                 android:name=".tts.TTSControlService"
@@ -166,18 +165,11 @@
                 android:exported="false"
                 android:foregroundServiceType="mediaPlayback" />
 
-        <receiver android:name="org.coolreader.donations.BillingReceiver">
+        <!-- Stop TTS on incoming call -->
+        <receiver android:name="org.coolreader.PhoneStateReceiver">
             <intent-filter>
-                <action android:name="com.android.vending.billing.IN_APP_NOTIFY" />
-                <action android:name="com.android.vending.billing.RESPONSE_CODE" />
-                <action android:name="com.android.vending.billing.PURCHASE_STATE_CHANGED" />
+                <action android:name="android.intent.action.PHONE_STATE" />
             </intent-filter>
         </receiver>
-        <!-- Stop TTS on incoming call -->
-  		<receiver android:name="org.coolreader.PhoneStateReceiver">
-	        <intent-filter>
-                <action android:name="android.intent.action.PHONE_STATE" />     
-	        </intent-filter>
-		</receiver>
     </application>
 </manifest> 
