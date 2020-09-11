@@ -19,6 +19,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -462,6 +463,53 @@ public class Utils {
 		res.setStyle(Paint.Style.FILL);
 		res.setColor(color);
 		return res;
+	}
+
+	public static float colorLuminance(int color) {
+		float r = ((float)Color.red(color))/255f;
+		float g = ((float)Color.green(color))/255f;
+		float b = ((float)Color.blue(color))/255f;
+		float res = 0.2126f*r + 0.7152f*g + 0.0722f*b;
+		if (res > 1.f)		// for case of rounding error
+			res = 1.f;
+		return res;
+	}
+
+	/**
+	 * Returns a darker (or lighter) color.
+	 * If the factor is greater than 100, this functions returns a darker color.
+	 * Setting factor to 300 returns a color that has one-third the brightness.
+	 * If the factor is less than 100, the return color is lighter, but we recommend using the lighter() function for this purpose.
+	 * If the factor is 0 or negative, the return value is unspecified.
+	 * @param color input color value.
+	 * @param factor color change factor, 100 - no change.
+	 * @return new color value.
+	 */
+	public static int darkerColor(int color, int factor) {
+		float[] hsv = new float[3];
+		Color.colorToHSV(color, hsv);
+		if (factor != 0)
+			hsv[2] /= ((float)factor)/100f;
+		return Color.HSVToColor(hsv);
+	}
+
+	/**
+	 * Returns a lighter (or darker) color, but does not change this object.
+	 * If the factor is greater than 100, this functions returns a lighter color.
+	 * Setting factor to 150 returns a color that is 50% brighter.
+	 * If the factor is less than 100, the return color is darker, but we recommend using the darker() function for this purpose.
+	 * If the factor is 0 or negative, the return value is unspecified.
+	 * @param color input color value.
+	 * @param factor color change factor, 100 - no change.
+	 * @return new color value.
+	 */
+	public static int lighterColor(int color, int factor) {
+		float[] hsv = new float[3];
+		Color.colorToHSV(color, hsv);
+		if (hsv[2] < 0.001f)		// 0
+			hsv[2] = 0.1f;
+		hsv[2] *= ((float)factor)/100f;
+		return Color.HSVToColor(hsv);
 	}
 
 	/**

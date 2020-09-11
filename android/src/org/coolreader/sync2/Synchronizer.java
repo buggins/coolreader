@@ -87,6 +87,7 @@ public class Synchronizer {
 	private OnSyncStatusListener m_onStatusListener;
 	private Runnable m_onAbortedListener;
 	private HashMap<SyncTarget, Boolean> m_syncTargets;
+	private boolean m_forcedOperations;			// forced all sync operations regardless of specified sync targets
 
 	private static final String[] ALLOWED_OPTIONS_PROP_NAMES = {
 			Settings.PROP_FALLBACK_FONT_FACE,
@@ -203,7 +204,7 @@ public class Synchronizer {
 
 	protected void doneSuccessfully() {
 		if (null != m_onStatusListener)
-			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSyncCompleted(m_syncDirection));
+			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSyncCompleted(m_syncDirection, m_forcedOperations));
 		m_isBusy = false;
 	}
 
@@ -223,13 +224,13 @@ public class Synchronizer {
 		m_isBusy = true;
 		m_syncDirection = dir;
 		if (null != m_onStatusListener) {
-			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSyncStarted(m_syncDirection));
+			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSyncStarted(m_syncDirection, m_forcedOperations));
 		}
 	}
 
 	protected void setSyncProgress(int current, int total) {
 		if (null != m_onStatusListener) {
-			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.OnSyncProgress(m_syncDirection, current, total));
+			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.OnSyncProgress(m_syncDirection, current, total, m_forcedOperations));
 		}
 	}
 
@@ -393,7 +394,7 @@ public class Synchronizer {
 
 				@Override
 				public void onFailed(Exception e) {
-					log.e("CheckAppFolderSyncOperation: mkdir() failed" + e.toString());
+					log.e("CheckAppFolderSyncOperation: mkdir() failed: " + e.toString());
 					doneFailed(e.toString());
 				}
 			});
@@ -648,7 +649,7 @@ public class Synchronizer {
 									props.put(key, allProps.get(key));
 							}
 							if (null != m_onStatusListener) {
-								BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSettingsLoaded(props));
+								BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSettingsLoaded(props, m_forcedOperations));
 							}
 							log.d(" ... done.");
 						} catch (Exception e) {
@@ -995,10 +996,11 @@ public class Synchronizer {
 			return;
 		// make "Sync From" operations chain and run it
 		m_askAbort = false;
+		m_forcedOperations = force;
 		setSyncStarted(SyncDirection.SyncFrom);
 
 		clearOperation();
-		if (showSignIn)
+		if (showSignIn || m_remoteAccess.needSignInRepeat())
 			addOperation(new SignInSyncOperation());
 		else
 			addOperation(new SignInQuietlySyncOperation());
@@ -1028,10 +1030,11 @@ public class Synchronizer {
 			return;
 		// make "Sync To" operations chain and run it
 		m_askAbort = false;
+		m_forcedOperations = force;
 		setSyncStarted(SyncDirection.SyncTo);
 
 		clearOperation();
-		if (showSignIn)
+		if (showSignIn || m_remoteAccess.needSignInRepeat())
 			addOperation(new SignInSyncOperation());
 		else
 			addOperation(new SignInQuietlySyncOperation());
@@ -1069,10 +1072,10 @@ public class Synchronizer {
 		setSyncStarted(SyncDirection.SyncFrom);
 
 		clearOperation();
-		if (quietly)
-			addOperation(new SignInQuietlySyncOperation());
-		else
+		if (!quietly || m_remoteAccess.needSignInRepeat())
 			addOperation(new SignInSyncOperation());
+		else
+			addOperation(new SignInQuietlySyncOperation());
 		addOperation(new CheckAppFolderSyncOperation());
 		for (SyncTarget target : targets) {
 			switch (target) {
@@ -1112,10 +1115,10 @@ public class Synchronizer {
 		setSyncStarted(SyncDirection.SyncTo);
 
 		clearOperation();
-		if (quietly)
-			addOperation(new SignInQuietlySyncOperation());
-		else
+		if (!quietly || m_remoteAccess.needSignInRepeat())
 			addOperation(new SignInSyncOperation());
+		else
+			addOperation(new SignInQuietlySyncOperation());
 		addOperation(new CheckAppFolderSyncOperation());
 		for (SyncTarget target : targets) {
 			switch (target) {
@@ -1321,7 +1324,7 @@ public class Synchronizer {
 								}
 								log.d("Book \"" + dbFileInfo + "\" found, syncing...");
 								if (null != m_onStatusListener)
-									m_onStatusListener.onBookmarksLoaded(bookInfo);
+									m_onStatusListener.onBookmarksLoaded(bookInfo, m_forcedOperations);
 							}
 						});
 
@@ -1349,7 +1352,7 @@ public class Synchronizer {
 							FileInfo dbFileInfo = fileList.get(0);
 							if (null != m_onStatusListener) {
 								log.d("Book \"" + dbFileInfo + "\" found, call listener to load this book...");
-								m_onStatusListener.onCurrentBookInfoLoaded(fileList.get(0));
+								m_onStatusListener.onCurrentBookInfoLoaded(fileList.get(0), m_forcedOperations);
 							}
 						}
 					});

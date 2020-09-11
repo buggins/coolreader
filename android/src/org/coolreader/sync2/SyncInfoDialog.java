@@ -16,6 +16,7 @@ public class SyncInfoDialog extends BaseDialog {
 	private Button m_negativeButton;
 	private View.OnClickListener m_onPositiveClickListener;
 	private View.OnClickListener m_onNegativeClickListener;
+	private OnCancelListener m_onCancelListener;
 
 	public SyncInfoDialog(BaseActivity activity, final String title, final String message) {
 		super(activity, title, false, true);
@@ -54,6 +55,25 @@ public class SyncInfoDialog extends BaseDialog {
 
 	void setOnNegativeClickListener(View.OnClickListener listener) {
 		m_onNegativeClickListener = listener;
+	}
+
+	public void setOnCancelListener(OnCancelListener listener) {
+		super.setOnCancelListener(listener);
+		m_onCancelListener = listener;
+	}
+
+	protected void onPositiveButtonClick()
+	{
+		if (null != m_onCancelListener)
+			m_onCancelListener.onCancel(this);
+		dismiss();
+	}
+
+	protected void onNegativeButtonClick()
+	{
+		if (null != m_onCancelListener)
+			m_onCancelListener.onCancel(this);
+		dismiss();
 	}
 
 }

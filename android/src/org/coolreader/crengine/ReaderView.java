@@ -179,9 +179,17 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					if (dst.width() != canvas.getWidth() || dst.height() != canvas.getHeight())
 						canvas.drawColor(Color.rgb(32, 32, 32));
 					drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, src, dst);
+					if (isCloudSyncProgressActive()) {
+						// draw progressbar on top
+						doDrawProgress(canvas, currentCloudSyncProgressPosition, currentCloudSyncProgressTitle, true);
+					}
 				} else {
 					log.d("onDraw() -- drawing empty screen");
 					drawPageBackground(canvas);
+					if (isCloudSyncProgressActive()) {
+						// draw progressbar on top
+						doDrawProgress(canvas, currentCloudSyncProgressPosition, currentCloudSyncProgressTitle, true);
+					}
 				}
 			} catch (Exception e) {
 				log.e("exception while drawing", e);
@@ -1192,6 +1200,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			if (state == STATE_INITIAL && event.getAction() != MotionEvent.ACTION_DOWN)
 				return unexpectedEvent(); // ignore unexpected event
 
+			// Uncomment to disable user interaction during cloud sync
+			//if (isCloudSyncProgressActive())
+			//	return unexpectedEvent();
+
 			if (event.getAction() == MotionEvent.ACTION_UP) {
 				long duration = Utils.timeInterval(firstDown);
 				switch (state) {
@@ -1581,6 +1593,20 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	public void setSetting(String name, String value) {
 		setSetting(name, value, true, false, true);
+	}
+
+	public void setViewModeNonPermanent(ViewMode mode) {
+		if (mode != viewMode) {
+			if (mode == ViewMode.SCROLL) {
+				doc.doCommand(ReaderCommand.DCMD_TOGGLE_PAGE_SCROLL_VIEW.nativeId, 0);
+				viewMode = mode;
+				mIsPageMode = false;
+			} else {
+				doc.doCommand(ReaderCommand.DCMD_TOGGLE_PAGE_SCROLL_VIEW.nativeId, 0);
+				viewMode = mode;
+				mIsPageMode = true;
+			}
+		}
 	}
 
 	public void saveSetting(String name, String value) {
@@ -2307,7 +2333,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, tts);
 					ttsToolbar.setOnCloseListener(() -> ttsToolbar = null);
 				})) {
-					log.e("Cannot initilize TTS");
+					log.e("Cannot initialize TTS");
 				}
 			}
 			break;
@@ -3099,14 +3125,37 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		return mBookInfo;
 	}
 
+	private int currentCloudSyncProgressPosition = -1;
+	private String currentCloudSyncProgressTitle;
+
 	public void showCloudSyncProgress(int progress) {
-		showProgress(progress, R.string.cloud_synchronization_);
+		log.v("showClodSyncProgress(" + progress + ")");
+		boolean update = false;
+		if (null == currentCloudSyncProgressTitle) {
+			currentCloudSyncProgressTitle = mActivity.getString(R.string.cloud_synchronization_);
+			update = true;
+		}
+		if (currentCloudSyncProgressPosition != progress) {
+			currentCloudSyncProgressPosition = progress;
+			update = true;
+		}
+		if (update)
+			bookView.draw(true);
 	}
 
 	public void hideSyncProgress() {
-		hideProgress();
+		//hideProgress();
+		log.v("hideSyncProgress()");
+		if (currentCloudSyncProgressTitle != null || currentCloudSyncProgressPosition != -1) {
+			currentCloudSyncProgressPosition = -1;
+			currentCloudSyncProgressTitle = null;
+			bookView.draw(false);
+		}
 	}
 
+	private boolean isCloudSyncProgressActive() {
+		return currentCloudSyncProgressPosition > 0;
+	}
 
 	private int mBatteryState = 100;
 
@@ -4745,23 +4794,32 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	private int currentProgressPosition = 1;
-	private int currentProgressTitle = R.string.progress_loading;
+	private int currentProgressTitleId = R.string.progress_loading;
+	private String currentProgressTitle = null;
 
 	private void showProgress(int position, int titleResource) {
 		log.v("showProgress(" + position + ")");
-		boolean first = currentProgressTitle == 0;
-		if (currentProgressPosition != position || currentProgressTitle != titleResource) {
-			currentProgressPosition = position;
-			currentProgressTitle = titleResource;
-			bookView.draw(!first);
+		boolean first = currentProgressTitleId == 0;
+		boolean update = false;
+		if (null == currentProgressTitle || currentProgressTitleId != titleResource) {
+			currentProgressTitleId = titleResource;
+			currentProgressTitle = mActivity.getString(currentProgressTitleId);
+			update = true;
 		}
+		if (currentProgressPosition != position || currentProgressTitleId != titleResource) {
+			currentProgressPosition = position;
+			update = true;
+		}
+		if (update)
+			bookView.draw(!first);
 	}
 
 	private void hideProgress() {
 		log.v("hideProgress()");
-		if (currentProgressTitle != 0) {
+		if (currentProgressTitleId != 0) {
 			currentProgressPosition = -1;
-			currentProgressTitle = 0;
+			currentProgressTitleId = 0;
+			currentProgressTitle = null;
 			bookView.draw(false);
 		}
 	}
@@ -5090,17 +5148,36 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		return new ToolbarBackgroundDrawable();
 	}
 
-	protected void doDrawProgress(Canvas canvas, int position, int titleResource) {
+	protected void doDrawProgress(Canvas canvas, int position, String title) {
+		doDrawProgress(canvas, position, title, false);
+	}
+
+	protected void doDrawProgress(Canvas canvas, int position, String title, boolean transparentFrame) {
 		log.v("doDrawProgress(" + position + ")");
-		if (titleResource == 0)
+		if (null == title)
 			return;
 		int w = canvas.getWidth();
 		int h = canvas.getHeight();
 		int mins = Math.min(w, h) * 7 / 10;
 		int ph = mins / 20;
 		int textColor = mSettings.getColor(PROP_FONT_COLOR, 0x000000);
+		int fontSize = 12;			// 12pt
 		float factor = mActivity.getDensityFactor();
 		Rect rc = new Rect(w / 2 - mins / 2, h / 2 - ph / 2, w / 2 + mins / 2, h / 2 + ph / 2);
+		if (transparentFrame) {
+			int frameColor = mSettings.getColor(PROP_BACKGROUND_COLOR, 0xFFFFFF);
+			float lumi = Utils.colorLuminance(frameColor);
+			if (Utils.colorLuminance(frameColor) >= 0.5f)
+				frameColor = Utils.darkerColor(frameColor, 150);
+			else
+				frameColor = Utils.lighterColor(frameColor, 200);
+			Rect frameRc = new Rect(rc);
+			frameRc.left -= ph/2;
+			frameRc.right += ph/2;
+			frameRc.top -= 2*fontSize*factor + ph/2;
+			frameRc.bottom += ph/2;
+			canvas.drawRect(frameRc, Utils.createSolidPaint(0xE0000000 | (frameColor & 0x00FFFFFF)));
+		}
 
 		Utils.drawFrame(canvas, rc, Utils.createSolidPaint(0xC0000000 | textColor));
 		//canvas.drawRect(rc, createSolidPaint(0xFFC0C0A0));
@@ -5116,7 +5193,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		textPaint.setTextAlign(Paint.Align.CENTER);
 		textPaint.setTextSize(15f * factor);
 		textPaint.setSubpixelText(true);
-		canvas.drawText(String.valueOf(mActivity.getText(titleResource)), (rc.left + rc.right) / 2, rc1.top - 12f * factor, textPaint);
+		canvas.drawText(title, (rc.left + rc.right) / 2, rc1.top - fontSize * factor, textPaint);
 		//canvas.drawText(String.valueOf(position * 100 / 10000) + "%", rc.left + 4, rc1.bottom - 4, textPaint);
 //		Rect rc2 = new Rect(rc);
 //		rc.left = x;
@@ -5379,6 +5456,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				}
 			});
 			//engine.waitTasksCompletion();
+			if (null != ttsToolbar)
+				ttsToolbar.stopAndClose();
 		}
 	}
 

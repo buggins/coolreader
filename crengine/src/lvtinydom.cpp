@@ -16697,7 +16697,7 @@ static void updateStyleDataRecursive( ldomNode * node, LVDocViewCallback * progr
     int n = node->getChildCount();
     for ( int i=0; i<n; i++ ) {
         ldomNode * child = node->getChildNode(i);
-        if ( child->isElement() )
+        if ( child && child->isElement() )
             updateStyleDataRecursive( child, progressCallback, lastProgressPercent );
     }
     if ( styleSheetChanged )

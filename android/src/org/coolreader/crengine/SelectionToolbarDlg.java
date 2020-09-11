@@ -36,7 +36,7 @@ public class SelectionToolbarDlg {
 		//dlg.update();
 	}
 
-	private boolean pageModeSet;
+	private boolean pageModeSet = false;
 	private boolean changedPageMode;
 	private void setReaderMode()
 	{
@@ -47,7 +47,7 @@ public class SelectionToolbarDlg {
 		String oldViewSetting = mReaderView.getSetting( ReaderView.PROP_PAGE_VIEW_MODE );
 		if ( "1".equals(oldViewSetting) ) {
 			changedPageMode = true;
-			mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "0");
+			mReaderView.setViewModeNonPermanent(ViewMode.SCROLL);
 		}
 		pageModeSet = true;
 	}
@@ -55,7 +55,7 @@ public class SelectionToolbarDlg {
 	private void restoreReaderMode()
 	{
 		if ( changedPageMode ) {
-			mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "1");
+			mReaderView.setViewModeNonPermanent(ViewMode.PAGES);
 		}
 	}
 	
