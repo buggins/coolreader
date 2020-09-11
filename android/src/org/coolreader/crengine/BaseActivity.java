@@ -1273,12 +1273,44 @@ public class BaseActivity extends Activity implements Settings {
 	}
 
 	public void askConfirmation(int questionResourceId, final Runnable action, final Runnable cancelAction) {
+		String question = getString(questionResourceId);
+		askConfirmation(null, question, action, cancelAction);
+	}
+
+	public void askConfirmation(int titleResourceId, int questionResourceId, final Runnable action, final Runnable cancelAction) {
+		String title = getString(titleResourceId);
+		String question = getString(questionResourceId);
+		askConfirmation(title, question, action, cancelAction);
+	}
+
+	public void askQuestion(int titleResourceId, int questionResourceId, final Runnable yesAction, final Runnable noAction) {
+		String title = getString(titleResourceId);
+		String question = getString(questionResourceId);
+		askQuestion(title, question, yesAction, noAction);
+	}
+
+	public void askConfirmation(String title, String question, final Runnable action, final Runnable cancelAction) {
 		AlertDialog.Builder dlg = new AlertDialog.Builder(this);
-		dlg.setMessage(questionResourceId);
+		if (null != title)
+			dlg.setTitle(title);
+		dlg.setMessage(question);
 		dlg.setPositiveButton(R.string.dlg_button_ok, (arg0, arg1) -> action.run());
 		dlg.setNegativeButton(R.string.dlg_button_cancel, (arg0, arg1) -> {
 			if (cancelAction != null)
 				cancelAction.run();
+		});
+		dlg.show();
+	}
+
+	public void askQuestion(String title, String question, final Runnable yesAction, final Runnable noAction) {
+		AlertDialog.Builder dlg = new AlertDialog.Builder(this);
+		if (null != title)
+			dlg.setTitle(title);
+		dlg.setMessage(question);
+		dlg.setPositiveButton(R.string.dlg_button_yes, (arg0, arg1) -> yesAction.run());
+		dlg.setNegativeButton(R.string.dlg_button_no, (arg0, arg1) -> {
+			if (noAction != null)
+				noAction.run();
 		});
 		dlg.show();
 	}
@@ -1826,6 +1858,12 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, Settings.VIEWER_TOOLBAR_NONE);
 			props.applyDefault(ReaderView.PROP_TOOLBAR_HIDE_IN_FULLSCREEN, "0");
 
+			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, "0");
+			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_SETTINGS, "0");
+			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_BOOKMARKS, "0");
+			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK, "0");
+			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD, "5");		// 5 min.
+			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_CONFIRMATIONS, "1");
 
 			if (!DeviceInfo.EINK_SCREEN) {
 				props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "1");

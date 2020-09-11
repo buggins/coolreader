@@ -275,6 +275,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mDOMVersionPresetTitles = new int[] {
 			R.string.options_requested_dom_level_legacy, R.string.options_requested_dom_level_newest
 	};
+	int [] mGoogleDriveAutoSavePeriod = new int[] {
+			0, 1, 2, 3, 4, 5, 10, 15, 20, 30
+	};
+	int [] mGoogleDriveAutoSavePeriodTitles = new int[] {
+			R.string.autosave_period_off,
+			R.string.autosave_period_1min,
+			R.string.autosave_period_2min,
+			R.string.autosave_period_3min,
+			R.string.autosave_period_4min,
+			R.string.autosave_period_5min,
+			R.string.autosave_period_10min,
+			R.string.autosave_period_15min,
+			R.string.autosave_period_20min,
+			R.string.autosave_period_30min
+	};
 	ViewGroup mContentView;
 	TabHost mTabs;
 	LayoutInflater mInflater;
@@ -296,6 +311,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionBase mGoogleDriveEnableSettingsOption;
 	OptionBase mGoogleDriveEnableBookmarksOption;
 	OptionBase mGoogleDriveEnableCurrentBookOption;
+	OptionBase mCloudSyncAskConfirmationsOption;
+	OptionBase mGoogleDriveAutoSavePeriodOption;
 
 	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
 	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
@@ -2100,19 +2117,27 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsCloudSync.add(new BoolOption(this, getString(R.string.options_app_googledrive_sync_auto), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED).setDefaultValue("0").noIcon()
 				.setOnChangeHandler(() -> {
 					boolean syncEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, false);
+					mCloudSyncAskConfirmationsOption.setEnabled(syncEnabled);
 					mGoogleDriveEnableSettingsOption.setEnabled(syncEnabled);
 					mGoogleDriveEnableBookmarksOption.setEnabled(syncEnabled);
 					mGoogleDriveEnableCurrentBookOption.setEnabled(syncEnabled);
+					mGoogleDriveAutoSavePeriodOption.setEnabled(syncEnabled);
 				}));
+			mCloudSyncAskConfirmationsOption = new BoolOption(this, getString(R.string.options_app_cloudsync_confirmations), PROP_APP_CLOUDSYNC_CONFIRMATIONS).setDefaultValue("1").noIcon();
+			mCloudSyncAskConfirmationsOption.enabled = gdriveSyncEnabled;
 			mGoogleDriveEnableSettingsOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_settings), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_SETTINGS).setDefaultValue("0").noIcon();
 			mGoogleDriveEnableSettingsOption.enabled = gdriveSyncEnabled;
 			mGoogleDriveEnableBookmarksOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_bookmarks), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_BOOKMARKS).setDefaultValue("0").noIcon();
 			mGoogleDriveEnableBookmarksOption.enabled = gdriveSyncEnabled;
 			mGoogleDriveEnableCurrentBookOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_currentbook), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK).setDefaultValue("0").noIcon();
 			mGoogleDriveEnableCurrentBookOption.enabled = gdriveSyncEnabled;
+			mGoogleDriveAutoSavePeriodOption = new ListOption(this, getString(R.string.autosave_period), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD).add(mGoogleDriveAutoSavePeriod, mGoogleDriveAutoSavePeriodTitles).setDefaultValue(Integer.valueOf(5).toString()).noIcon();
+			mGoogleDriveAutoSavePeriodOption.enabled = gdriveSyncEnabled;
+			mOptionsCloudSync.add(mCloudSyncAskConfirmationsOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableSettingsOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableBookmarksOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableCurrentBookOption);
+			mOptionsCloudSync.add(mGoogleDriveAutoSavePeriodOption);
 		}
 
 		fillStyleEditorOptions();

@@ -24,19 +24,19 @@ import org.coolreader.crengine.Properties;
 
 // Synchronization status listener interface
 public interface OnSyncStatusListener {
-	void onSyncStarted(Synchronizer.SyncDirection direction);
+	void onSyncStarted(Synchronizer.SyncDirection direction, boolean forced);
 
-	void OnSyncProgress(Synchronizer.SyncDirection direction, int current, int total);
+	void OnSyncProgress(Synchronizer.SyncDirection direction, int current, int total, boolean forced);
 
-	void onSyncCompleted(Synchronizer.SyncDirection direction);
+	void onSyncCompleted(Synchronizer.SyncDirection direction, boolean forced);
 
 	void onSyncError(Synchronizer.SyncDirection direction, String errorString);
 
 	void onAborted(Synchronizer.SyncDirection direction);
 
-	void onSettingsLoaded(Properties settings);
+	void onSettingsLoaded(Properties settings, boolean forced);
 
-	void onBookmarksLoaded(BookInfo bookInfo);
+	void onBookmarksLoaded(BookInfo bookInfo, boolean forced);
 
-	void onCurrentBookInfoLoaded(FileInfo fileInfo);
+	void onCurrentBookInfoLoaded(FileInfo fileInfo, boolean forced);
 }

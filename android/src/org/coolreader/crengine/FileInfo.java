@@ -1211,7 +1211,7 @@ public class FileInfo {
 		return true;
 	}
 
-	public boolean mainEquals(FileInfo other) {
+	public boolean baseEquals(FileInfo other) {
 		if (this == other)
 			return true;
 		if (other == null)

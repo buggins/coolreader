@@ -108,6 +108,8 @@
     <string name="dlg_search_hint">Type text here</string>
     <string name="dlg_button_ok">OK</string>
     <string name="dlg_button_cancel">Cancel</string>
+    <string name="dlg_button_yes">Yes</string>
+    <string name="dlg_button_no">No</string>
     <string name="dlg_button_find">Find</string>
     <string name="options_page_animation">Page animation</string>
     <string name="options_controls_enable_volume_keys">Use volume keys for navigation</string>
@@ -641,6 +643,7 @@
     <string name="options_style_multilang">Support for multilingual documents</string>
     <string name="options_style_enable_hyphenation">Enable hyphenation</string>
     <string name="options_app_googledrive_sync_auto">Auto synchronization with Google Drive</string>
+    <string name="options_app_cloudsync_confirmations">Ask for confirmation before updating</string>
     <string name="options_app_googledrive_sync_settings">Settings on Drive</string>
     <string name="options_app_googledrive_sync_bookmarks">Bookmarks and reading position on Drive</string>
     <string name="options_app_googledrive_sync_currentbook">Current reading book info on Drive</string>
@@ -657,4 +660,17 @@
     <string name="googledrive_sync_to">Sync to Drive</string>
     <string name="googledrive_sync_from">Sync from Drive</string>
     <string name="confirmation_title">Confirmation</string>
+    <string name="sync_confirmation_other_book">Another book (%s) was opened on another device, switch to it?</string>
+    <string name="sync_confirmation_new_reading_position">New reading position found for this book, update?</string>
+    <string name="autosave_period">Autosave period</string>
+    <string name="autosave_period_off">"Off"</string>
+    <string name="autosave_period_1min">"1 minute"</string>
+    <string name="autosave_period_2min">"2 minutes"</string>
+    <string name="autosave_period_3min">"3 minutes"</string>
+    <string name="autosave_period_4min">"4 minutes"</string>
+    <string name="autosave_period_5min">"5 minutes"</string>
+    <string name="autosave_period_10min">"10 minutes"</string>
+    <string name="autosave_period_15min">"15 minutes"</string>
+    <string name="autosave_period_20min">"20 minutes"</string>
+    <string name="autosave_period_30min">"30 minutes"</string>
 </resources>

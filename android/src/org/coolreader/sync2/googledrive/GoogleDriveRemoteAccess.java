@@ -25,7 +25,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -37,13 +36,13 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.RuntimeExecutionException;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
@@ -148,6 +147,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 	private Drive m_googleDriveService;
 	private Executor m_executor;
 	private FolderListCache m_folderListCache;
+	private boolean m_needSignInRepeat = false;
 	private final Object m_cacheLocker = new Object();
 
 	private static final char EMULATED_PATH_SEPARATOR = '/';
@@ -157,7 +157,18 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		m_activity = activity;
 		m_executor = Executors.newSingleThreadExecutor();
 		//m_executor = Executors.newFixedThreadPool(1);
-		m_folderListCache = new FolderListCache(15);    // 15 s.
+		m_folderListCache = new FolderListCache();
+		if (!isServicesAvailable())
+			Log.e(TAG, "Google Play Services NOT available!");
+	}
+
+	public GoogleDriveRemoteAccess(Activity activity, int keepAlive) {
+		m_activity = activity;
+		m_executor = Executors.newSingleThreadExecutor();
+		//m_executor = Executors.newFixedThreadPool(1);
+		m_folderListCache = new FolderListCache(keepAlive);
+		if (!isServicesAvailable())
+			Log.e(TAG, "Google Play Services NOT available!");
 	}
 
 	public GoogleSignInAccount getGoogleAccount() {
@@ -220,12 +231,22 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		if (ConnectionResult.SUCCESS != m_isServiceAvailabilityRetCode)
 			Log.d(TAG, "Google Play Services are not available!");
 		// check if already signed
-		m_account = GoogleSignIn.getLastSignedInAccount(m_activity);
+		if (m_needSignInRepeat)
+			m_account = null;		// forced skip getLastSignedInAccount
+		else
+			m_account = GoogleSignIn.getLastSignedInAccount(m_activity);
+		if (null != m_account) {
+			// check required permissions
+			if (!GoogleSignIn.hasPermissions(m_account, new Scope(DriveScopes.DRIVE_FILE))) {
+				Log.v(TAG, "User already signed in, but the permission is gone ...");
+				m_account = null;
+			}
+		}
 		if (null != m_account) {
 			GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(m_activity, Collections.singleton(DriveScopes.DRIVE_FILE));
 			credential.setSelectedAccount(m_account.getAccount());
 			Drive.Builder driveBuilder = new Drive.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), credential);
-			m_googleDriveService = driveBuilder.setApplicationName(m_savedAppName).build();
+			m_googleDriveService = driveBuilder.setApplicationName(appName).build();
 			if (null != completedListener) {
 				completedListener.onSignInCompleted(m_account, CommonStatusCodes.SUCCESS);
 			}
@@ -413,6 +434,11 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		*/
 	}
 
+	@Override
+	public boolean needSignInRepeat() {
+		return m_needSignInRepeat;
+	}
+
 	// private helper functions
 
 	private void buildGoogleSignInClient() {
@@ -555,6 +581,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			return m_googleDriveService.files().create(metadata).execute();
 		}).addOnSuccessListener(file -> {
 			Log.d(TAG, "mkdir_impl() ok");
+			m_needSignInRepeat = false;
 			FileMetadata meta = null;
 			if (null != file) {
 				Log.d(TAG, "dir " + file.getName() + " created!");
@@ -572,6 +599,8 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			if (null != completeListener) {
 				completeListener.onCompleted(null);
 				completeListener.onFailed(e);
+				if (e instanceof UserRecoverableAuthIOException)
+					m_needSignInRepeat = true;
 			}
 		});
 	}
@@ -704,16 +733,16 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 					.setFields("*");
 			return list.execute();
 		}).addOnSuccessListener(fileList -> {
+			m_needSignInRepeat = false;
 			FileMetadataList metalist = getFileMetadataList(fileList);
 			if (null != completeListener)
 				completeListener.onCompleted(metalist);
-		}).addOnFailureListener(new OnFailureListener() {
-			@Override
-			public void onFailure(@NonNull Exception e) {
-				if (null != completeListener) {
-					completeListener.onCompleted(null);
-					completeListener.onFailed(e);
-				}
+		}).addOnFailureListener(e -> {
+			if (null != completeListener) {
+				completeListener.onCompleted(null);
+				completeListener.onFailed(e);
+				if (e instanceof UserRecoverableAuthIOException)
+					m_needSignInRepeat = true;
 			}
 		});
 	}
@@ -811,6 +840,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 				throw new IOException("Null result when requesting file creation.");
 			return googleFile;
 		}).addOnSuccessListener(file -> {
+			m_needSignInRepeat = false;
 			boolean result = null != file;
 			if (null != completeListener)
 				completeListener.onCompleted(result);
@@ -821,6 +851,8 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			if (null != completeListener) {
 				completeListener.onCompleted(false);
 				completeListener.onFailed(e);
+				if (e instanceof UserRecoverableAuthIOException)
+					m_needSignInRepeat = true;
 			}
 		});
 	}
@@ -834,6 +866,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 				throw new IOException("Null result when requesting file creation.");
 			return googleFile;
 		}).addOnSuccessListener(file -> {
+			m_needSignInRepeat = false;
 			boolean result = null != file;
 			if (null != completeListener)
 				completeListener.onCompleted(result);
@@ -844,6 +877,8 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			if (null != completeListener) {
 				completeListener.onCompleted(false);
 				completeListener.onFailed(e);
+				if (e instanceof UserRecoverableAuthIOException)
+					m_needSignInRepeat = true;
 			}
 		});
 	}
@@ -941,6 +976,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 				throw new IOException("Null result when requesting file creation.");
 			return googleFile;
 		}).addOnSuccessListener(file -> {
+			m_needSignInRepeat = false;
 			boolean result = null != file;
 			synchronized (m_cacheLocker) {
 				m_folderListCache.update(parentPath, null);
@@ -951,6 +987,8 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			if (null != completeListener) {
 				completeListener.onCompleted(false);
 				completeListener.onFailed(e);
+				if (e instanceof UserRecoverableAuthIOException)
+					m_needSignInRepeat = true;
 			}
 		});
 	}
@@ -984,6 +1022,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		Tasks.call(m_executor, () -> m_googleDriveService.files().delete(meta.id).execute()).addOnSuccessListener(new OnSuccessListener<Void>() {
 			@Override
 			public void onSuccess(Void res) {
+				m_needSignInRepeat = false;
 				synchronized (m_cacheLocker) {
 					m_folderListCache.update(parentPath, null);
 				}
@@ -993,6 +1032,8 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			if (null != completeListener) {
 				completeListener.onCompleted(false);
 				completeListener.onFailed(e);
+				if (e instanceof UserRecoverableAuthIOException)
+					m_needSignInRepeat = true;
 			}
 		});
 	}
