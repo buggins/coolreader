@@ -9639,7 +9639,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 int _maxw = 0;
                 int _minw = 0;
                 getRenderedWidths(node, _maxw, _minw, direction, false, rendFlags);
-                maxWidth += _maxw;
+                curMaxWidth += _maxw;
                 if (_minw > minWidth)
                     minWidth = _minw;
                 return;
@@ -9843,6 +9843,10 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                                     // we might find some text nodes here.
                                     continue;
                                 }
+                                if ( child->getRendMethod() == erm_invisible ) {
+                                    // Ignore invisible nodes (like "<rp>(</rp>" inside <ruby>)
+                                    continue;
+                                }
                                 int _maxw = 0;
                                 int _minw = 0;
                                 int _curMaxWidth = 0;
@@ -9940,6 +9944,13 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                  _maxWidth = columns_max_width;
             if ( _maxWidth < cumulative_max_width )
                  _maxWidth = cumulative_max_width;
+            // add horizontal border_spacing if "border-collapse: separate"
+            if ( style->border_collapse != css_border_collapse ) {
+                int em = node->getFont()->getSize();
+                int extra_width = lengthToPx(style->border_spacing[0], 0, em) * (nb_columns+1);
+                _minWidth += extra_width;
+                _maxWidth += extra_width;
+            }
             #ifdef DEBUG_GETRENDEREDWIDTHS
                 printf("GRW table: min %d %d > %d    max %d %d > %d\n", columns_min_width, cumulative_min_width,
                          _minWidth, columns_max_width, cumulative_max_width, _maxWidth);
