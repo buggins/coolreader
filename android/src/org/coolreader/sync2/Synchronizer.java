@@ -379,7 +379,9 @@ public class Synchronizer {
 
 			m_remoteAccess.mkdir(REMOTE_FOLDER_PATH, new OnOperationCompleteListener<FileMetadata>() {
 				@Override
-				public void onCompleted(FileMetadata meta) {
+				public void onCompleted(FileMetadata meta, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -418,7 +420,9 @@ public class Synchronizer {
 			// 1. Check remote file modification file
 			m_remoteAccess.stat(remoteFilePath, new OnOperationCompleteListener<FileMetadata>() {
 				@Override
-				public void onCompleted(FileMetadata meta) {
+				public void onCompleted(FileMetadata meta, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -506,7 +510,9 @@ public class Synchronizer {
 				outputStream.close();
 				m_remoteAccess.writeFile(remoteFilePath, outputStream.toByteArray(), new OnOperationCompleteListener<Boolean>() {
 					@Override
-					public void onCompleted(Boolean result) {
+					public void onCompleted(Boolean result, boolean ok) {
+						if (!ok)
+							return;		// onFailed() will be called
 						if (checkAbort())
 							return;
 						m_currentOperationIndex++;
@@ -550,7 +556,9 @@ public class Synchronizer {
 			// 1. Check remote file modification file
 			m_remoteAccess.stat(remoteFilePath, new OnOperationCompleteListener<FileMetadata>() {
 				@Override
-				public void onCompleted(FileMetadata meta) {
+				public void onCompleted(FileMetadata meta, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -621,7 +629,9 @@ public class Synchronizer {
 
 			m_remoteAccess.readFile(remoteFilePath, new OnOperationCompleteListener<InputStream>() {
 				@Override
-				public void onCompleted(InputStream inputStream) {
+				public void onCompleted(InputStream inputStream, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -699,7 +709,9 @@ public class Synchronizer {
 						String fileName = fileInfo.filename + "_" + fileInfo.crc32 + ".bmk.xml.gz";
 						m_remoteAccess.writeFile(REMOTE_FOLDER_PATH + "/" + fileName, data, new OnOperationCompleteListener<Boolean>() {
 							@Override
-							public void onCompleted(Boolean result) {
+							public void onCompleted(Boolean result, boolean ok) {
+								if (!ok)
+									return;		// onFailed() will be called
 								if (checkAbort())
 									return;
 								m_currentOperationIndex++;
@@ -757,7 +769,9 @@ public class Synchronizer {
 
 			m_remoteAccess.readFile(fileName, new OnOperationCompleteListener<InputStream>() {
 				@Override
-				public void onCompleted(InputStream inputStream) {
+				public void onCompleted(InputStream inputStream, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -787,7 +801,9 @@ public class Synchronizer {
 
 			m_remoteAccess.list(REMOTE_FOLDER_PATH, new OnOperationCompleteListener<FileMetadataList>() {
 				@Override
-				public void onCompleted(FileMetadataList metalist) {
+				public void onCompleted(FileMetadataList metalist, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -853,7 +869,9 @@ public class Synchronizer {
 						outputStream.close();
 						m_remoteAccess.writeFile(REMOTE_FOLDER_PATH + "/current.xml.gz", outputStream.toByteArray(), new OnOperationCompleteListener<Boolean>() {
 							@Override
-							public void onCompleted(Boolean result) {
+							public void onCompleted(Boolean result, boolean ok) {
+								if (!ok)
+									return;		// onFailed() will be called
 								if (checkAbort())
 									return;
 								m_currentOperationIndex++;
@@ -901,7 +919,9 @@ public class Synchronizer {
 
 			m_remoteAccess.readFile(REMOTE_FOLDER_PATH + "/current.xml.gz", new OnOperationCompleteListener<InputStream>() {
 				@Override
-				public void onCompleted(InputStream inputStream) {
+				public void onCompleted(InputStream inputStream, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -953,7 +973,9 @@ public class Synchronizer {
 			// use trash() instead of delete() so that the user can recover the data later.
 			m_remoteAccess.trash(REMOTE_FOLDER_PATH, new OnOperationCompleteListener<Boolean>() {
 				@Override
-				public void onCompleted(Boolean result) {
+				public void onCompleted(Boolean result, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;

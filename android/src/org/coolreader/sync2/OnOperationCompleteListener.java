@@ -23,8 +23,9 @@ public interface OnOperationCompleteListener<TResult> {
 	 * Called after the task completes, regardless of the result.
 	 *
 	 * @param result Result of task, may be null.
+	 * @param ok mark of the successful completion of the operation, i.e. without any I/O errors.
 	 */
-	void onCompleted(TResult result);
+	void onCompleted(TResult result, boolean ok);
 
 	/**
 	 * Called when the task has failed.
