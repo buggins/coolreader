@@ -638,4 +638,18 @@
     <string name="autosave_period_15min">"15 минут"</string>
     <string name="autosave_period_20min">"20 минут"</string>
     <string name="autosave_period_30min">"30 минут"</string>
+    <string name="bookmarks_keepalive_">Удалять копии закладок старее чем…</string>
+    <string name="bookmarks_keepalive_off">Отключено</string>
+    <string name="bookmarks_keepalive_1day">1 день</string>
+    <string name="bookmarks_keepalive_2days">2 дня</string>
+    <string name="bookmarks_keepalive_3days">3 дня</string>
+    <string name="bookmarks_keepalive_4days">4 дня</string>
+    <string name="bookmarks_keepalive_5days">5 дней</string>
+    <string name="bookmarks_keepalive_6days">6 дней</string>
+    <string name="bookmarks_keepalive_1week">1 неделя</string>
+    <string name="bookmarks_keepalive_2weeks">2 недели</string>
+    <string name="bookmarks_keepalive_1month">1 месяц</string>
+    <string name="bookmarks_keepalive_1quarter">1 квартал</string>
+    <string name="bookmarks_keepalive_half_a_year">полгода</string>
+    <string name="bookmarks_keepalive_1year">1 год</string>
 </resources>
