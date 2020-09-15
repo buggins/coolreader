@@ -22,7 +22,7 @@ import org.coolreader.crengine.Logger;
 
 /**
  * This service does not implement TTS!
- * This service was created to keep the application in the foreground (for the target API >= 28),
+ * This service was created to keep the application in the foreground (for the target API >= 26),
  * even if the main activity is in the background, so that the system understands that the application
  * does not need to be unloaded from memory while TTS is running.
  * It also adds TTS control buttons to the notification area and lock screen.
