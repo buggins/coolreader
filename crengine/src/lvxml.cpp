@@ -5580,9 +5580,25 @@ bool LVXMLParser::ReadText()
         if ( m_read_buffer_pos + 1 >= m_read_buffer_len ) {
             if ( !fillCharBuffer() ) {
                 m_eof = true;
-                return false;
+                bool done = true;
+                if ( tlen > 0 ) {
+                    // We still have some text in m_txt_buf to handle.
+                    // But ignore it if empty space
+                    done = true;
+                    for (int i=0; i<m_txt_buf.length(); i++) {
+                        lChar16 ch = m_txt_buf[i];
+                        if ( ch!=' ' && ch!='\r' && ch!='\n' && ch!='\t') {
+                            done = false;
+                            flgBreak = true;
+                            break;
+                        }
+                    }
+                }
+                if ( done )
+                    return false;
             }
         }
+      if ( !m_eof ) { // just skip the following if m_eof but still some text in buffer to handle
         for ( ; m_read_buffer_pos+i<m_read_buffer_len; i++ ) {
             lChar16 ch = m_read_buffer[m_read_buffer_pos + i];
             lChar16 nextch = m_read_buffer_pos + i + 1 < m_read_buffer_len ? m_read_buffer[m_read_buffer_pos + i + 1] : 0;
@@ -5616,6 +5632,7 @@ bool LVXMLParser::ReadText()
             m_txt_buf.append( m_read_buffer + m_read_buffer_pos, i );
             m_read_buffer_pos += i;
         }
+      }
         if ( tlen > TEXT_SPLIT_SIZE || flgBreak || splitParas)
         {
             //=====================================================
