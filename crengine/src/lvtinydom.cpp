@@ -13284,11 +13284,11 @@ bool ldomDocumentWriterFilter::AutoOpenClosePop( int step, lUInt16 tag_id )
                 }
             }
             if ( (tag_id >= EL_IN_HEAD_START && tag_id <= EL_IN_HEAD_END) || tag_id == el_noscript ) {
+                _headTagSeen = true;
                 if ( tag_id != el_head ) {
                     OnTagOpen(L"", L"head");
                     OnTagBody();
                 }
-                _headTagSeen = true;
             }
             curNodeId = _currNode ? _currNode->getElement()->getNodeId() : el_NULL;
         }
@@ -13298,13 +13298,14 @@ bool ldomDocumentWriterFilter::AutoOpenClosePop( int step, lUInt16 tag_id )
             // end of <head> and start of <body>
             if ( _headTagSeen )
                 OnTagClose(L"", L"head");
+            else
+                _headTagSeen = true; // We won't open any <head> anymore
+            _bodyTagSeen = true;
             if ( tag_id != el_body ) {
                 OnTagOpen(L"", L"body");
                 OnTagBody();
             }
             curNodeId = _currNode ? _currNode->getElement()->getNodeId() : el_NULL;
-            _bodyTagSeen = true;
-            _headTagSeen = true; // We won't open any <head> anymore
         }
     }
     if ( step == PARSER_STEP_TEXT ) // new text: nothing more to do
