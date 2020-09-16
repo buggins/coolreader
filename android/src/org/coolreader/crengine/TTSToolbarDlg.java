@@ -167,7 +167,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put(TTS.KEY_PARAM_UTTERANCE_ID, "cr3UtteranceId");
 		mTTS.speak(selection.text, TTS.QUEUE_ADD, params);
-		runInTTSControlService(tts -> tts.notifyPlay(mBookTitle, currentSelection.text));
+		runInTTSControlService(tts -> tts.notifyPlay(mBookTitle, selection.text));
 	}
 	
 	private void start() {
@@ -225,9 +225,11 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 			runInTTSControlService(tts -> tts.notifyPause(mBookTitle));
 			stop();
 		} else {
-			playPauseButton.setImageResource(R.drawable.ic_media_pause);
-			runInTTSControlService(tts -> tts.notifyPlay(mBookTitle, currentSelection.text));
-			start();
+			if (null != currentSelection) {
+				playPauseButton.setImageResource(R.drawable.ic_media_pause);
+				runInTTSControlService(tts -> tts.notifyPlay(mBookTitle, currentSelection.text));
+				start();
+			}
 		}
 	}
 	

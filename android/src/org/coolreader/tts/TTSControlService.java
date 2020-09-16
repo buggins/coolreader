@@ -65,8 +65,10 @@ public class TTSControlService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		log.d("Received start id " + startId + ": " + intent);
 
+		String title = "";
 		Bundle data = intent.getExtras();
-		String title = data.getString("bookTitle");
+		if (null != data)
+			title = data.getString("bookTitle");
 
 		// switch this service to foreground
 		Notification notification = buildNotification(title, null, TTSStatus.PAUSED);
