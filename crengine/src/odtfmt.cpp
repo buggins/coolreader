@@ -277,7 +277,7 @@ class odtImportContext : public odx_ImportContext
 {
     LVHashTable<lString16, odt_ListStyleRef> m_ListStyles;
 public:
-    odtImportContext(ldomDocument* doc) : odx_ImportContext(doc), m_ListStyles(64) { }
+    explicit odtImportContext(ldomDocument* doc) : odx_ImportContext(doc), m_ListStyles(64) { }
     void addListStyle(odt_ListStyleRef listStyle);
     odt_ListStyle* getListStyle(lString16 id) {
         if( !id.empty() )
@@ -305,7 +305,7 @@ public:
     odt_stylesHandler(docXMLreader * reader, ldomDocumentWriter *writer, int element,
                       odtImportContext *context) :
         xml_ElementHandler(reader, writer, element, odt_style_elements),
-            m_style(NULL), m_pPr(NULL), m_rPr(NULL), m_context(context)
+            m_style(NULL), m_ListStyle(NULL), m_pPr(NULL), m_rPr(NULL), m_context(context)
     {
     }
     ldomNode * handleTagOpen(int tagId);

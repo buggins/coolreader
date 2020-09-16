@@ -542,7 +542,7 @@ public:
         m_pPrHandler(reader, writer, context),
         m_rHandler(reader, writer, context, this),
         m_titleHandler(p_documentHandler),
-        m_hyperlinkHandler(reader, writer, context, this), m_inTitle(false)
+        m_hyperlinkHandler(reader, writer, context, this), m_runCount(0), m_inTitle(false)
     {
     }
     ldomNode * handleTagOpen(int tagId);
@@ -583,7 +583,7 @@ public:
         docx_ElementHandler(reader, writer, context, docx_el_tbl, tbl_elements),
         m_rowCount(0), m_titleHandler(writer, titleHandler->useClassForTitle()),
         m_pHandler(reader, writer, context, &m_titleHandler),
-        m_skipHandler(reader, writer, docx_el_p), m_colSpan(1),
+        m_skipHandler(reader, writer, docx_el_p), m_pHandler_(NULL), m_colSpan(1),
         m_column(0), m_columnCount(0), m_vMergeState(VMERGE_NONE)
     {
     }
