@@ -16,6 +16,13 @@
         "language": "-"
     },
     {
+        "name": "Basque",
+        "filename": "Basque.pattern",
+        "language": "eu",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2
+    },
+    {
         "name": "Bulgarian",
         "filename": "Bulgarian.pattern",
         "language": "bg",

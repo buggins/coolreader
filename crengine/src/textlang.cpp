@@ -30,6 +30,7 @@ static struct {
     int left_hyphen_min;
     int right_hyphen_min;
 } _hyph_dict_table[] = {
+    { "eu",    "Basque",        "Basque.pattern",        2, 2 },
     { "bg",    "Bulgarian",     "Bulgarian.pattern",     2, 2 },
     { "ca",    "Catalan",       "Catalan.pattern",       2, 2 },
     { "cs",    "Czech",         "Czech.pattern",         2, 2 },
@@ -342,7 +343,7 @@ static quotes_spec _quotes_spec_table[] = {
     { "en",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "es",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
     { "et",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
-    { "eu",       L"\x201c", L"\x201d", L"\x201c", L"\x201d" }, /* “ ” “ ” */
+    { "eu",       L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
     { "ewo",      L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
     { "fa",       L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
     { "ff",       L"\x201e", L"\x201d", L"\x201a", L"\x2019" }, /* „ ” ‚ ’ */
