@@ -43,6 +43,7 @@ static struct {
     { "gl",    "Galician",      "Galician.pattern",      2, 2 },
     { "de",    "German",        "German.pattern",        2, 2 },
     { "el",    "Greek",         "Greek.pattern",         2, 2 },
+    { "hr",    "Croatian",      "Croatian.pattern",      2, 2 },
     { "hu",    "Hungarian",     "Hungarian.pattern",     2, 2 },
     { "is",    "Icelandic",     "Icelandic.pattern",     2, 2 },
     { "ga",    "Irish",         "Irish.pattern",         2, 2 },

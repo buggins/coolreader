@@ -35,6 +35,13 @@
         "aliases": ["cat"]
     },
     {
+        "name": "Croatian",
+        "filename": "Croatian.pattern",
+        "language": "hr",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2
+    },
+    {
         "name": "Czech",
         "filename": "Czech.pattern",
         "language": "cs",
