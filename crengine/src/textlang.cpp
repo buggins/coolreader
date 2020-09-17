@@ -39,6 +39,7 @@ static struct {
     { "en-GB", "English_GB",    "English_GB.pattern",    2, 2 },
     { "en",    "English_US",    "English_US.pattern",    2, 2 },
     { "eo",    "Esperanto",     "Esperanto.pattern",     2, 2 },
+    { "et",    "Estonian",      "Estonian.pattern",      2, 3 },
     { "fi",    "Finnish",       "Finnish.pattern",       2, 2 },
     { "fr",    "French",        "French.pattern",        2, 1 },
     { "gl",    "Galician",      "Galician.pattern",      2, 2 },
@@ -345,7 +346,7 @@ static quotes_spec _quotes_spec_table[] = {
     { "en",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "eo",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "es",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
-    { "et",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "et",       L"\x201e", L"\x201c", L"\x00ab", L"\x00bb" }, /* „ “ « » */
     { "eu",       L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
     { "ewo",      L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
     { "fa",       L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
