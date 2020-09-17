@@ -71,6 +71,14 @@
         "aliases": ["en", "eng"]
     },
     {
+        "name": "Esperanto",
+        "filename": "Esperanto.pattern",
+        "language": "eo",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2,
+        "aliases": ["epo"]
+    },
+    {
         "name": "Finnish",
         "filename": "Finnish.pattern",
         "language": "fi",
