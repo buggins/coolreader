@@ -49,7 +49,7 @@ static struct {
     { "hr",    "Croatian",      "Croatian.pattern",      2, 2 },
     { "hu",    "Hungarian",     "Hungarian.pattern",     2, 2 },
     { "is",    "Icelandic",     "Icelandic.pattern",     2, 2 },
-    { "ga",    "Irish",         "Irish.pattern",         2, 2 },
+    { "ga",    "Irish",         "Irish.pattern",         2, 3 },
     { "it",    "Italian",       "Italian.pattern",       2, 2 },
     { "lv",    "Latvian",       "Latvian.pattern",       2, 2 },
     { "lt",    "Lithuanian",    "Lithuanian.pattern",    2, 2 },

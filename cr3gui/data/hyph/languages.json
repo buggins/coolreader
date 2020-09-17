@@ -141,6 +141,8 @@
         "name": "Irish",
         "filename": "Irish.pattern",
         "language": "ga",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3,
         "aliases": ["gle"]
     },
     {
