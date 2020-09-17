@@ -53,6 +53,7 @@ static struct {
     { "it",    "Italian",       "Italian.pattern",       2, 2 },
     { "lv",    "Latvian",       "Latvian.pattern",       2, 2 },
     { "lt",    "Lithuanian",    "Lithuanian.pattern",    2, 2 },
+    { "mk",    "Macedonian",    "Macedonian.pattern",    2, 2 },
     { "no",    "Norwegian",     "Norwegian.pattern",     2, 2 },
     { "pl",    "Polish",        "Polish.pattern",        2, 2 },
     { "pt",    "Portuguese",    "Portuguese.pattern",    2, 2 },
@@ -412,7 +413,7 @@ static quotes_spec _quotes_spec_table[] = {
     { "mfe",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "mgo",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "mg",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
-    { "mk",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "mk",       L"\x201e", L"\x201c", L"\x2019", L"\x2018" }, /* „ “ ’ ‘ */
     { "ml",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "mn",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "mr",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */

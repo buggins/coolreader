@@ -166,6 +166,13 @@
         "aliases": ["lit"]
     },
     {
+        "name": "Macedonian",
+        "filename": "Macedonian.pattern",
+        "language": "mk",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2
+    },
+    {
         "name": "Norwegian",
         "filename": "Norwegian.pattern",
         "language": "no",
