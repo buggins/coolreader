@@ -45,6 +45,8 @@
         "name": "Czech",
         "filename": "Czech.pattern",
         "language": "cs",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3,
         "aliases": ["ces"]
     },
     {
@@ -62,12 +64,16 @@
     {
         "name": "English (UK)",
         "filename": "English_GB.pattern",
-        "language": "en-GB"
+        "language": "en-GB",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3
     },
     {
         "name": "English (US)",
         "filename": "English_US.pattern",
         "language": "en-US",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3,
         "aliases": ["en", "eng"]
     },
     {
@@ -96,7 +102,7 @@
         "name": "French",
         "filename": "French.pattern",
         "left_hyphen_min": 2,
-        "right_hyphen_min":1,
+        "right_hyphen_min": 1,
         "language": "fr",
         "aliases": ["fra", "fre"]
     },
@@ -123,6 +129,8 @@
         "name": "Greek",
         "filename": "Greek.pattern",
         "language": "el",
+        "left_hyphen_min": 1,
+        "right_hyphen_min": 1,
         "aliases": ["ell"]
     },
     {
