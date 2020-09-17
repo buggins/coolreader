@@ -150,6 +150,14 @@
         "aliases": ["ita"]
     },
     {
+        "name": "Latvian",
+        "filename": "Latvian.pattern",
+        "language": "lv",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2,
+        "aliases": ["lav"]
+    },
+    {
         "name": "Norwegian",
         "filename": "Norwegian.pattern",
         "language": "no",
