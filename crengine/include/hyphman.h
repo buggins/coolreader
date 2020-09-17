@@ -53,6 +53,8 @@ public:
     virtual ~HyphMethod() { }
     virtual lUInt32 getCount() { return 0; }
     virtual lUInt32 getSize() { return 0; }
+    virtual int getLeftHyphenMin() { return _left_hyphen_min; }
+    virtual int getRightHyphenMin() { return _right_hyphen_min; }
 };
 
 
