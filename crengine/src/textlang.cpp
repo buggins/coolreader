@@ -63,7 +63,7 @@ static struct {
     { "ru-US", "Russian_EnUS",  "Russian_EnUS.pattern",  2, 2 },
     { "ru",    "Russian",       "Russian.pattern",       2, 2 },
     { "sr",    "Serbian",       "Serbian.pattern",       2, 2 },
-    { "sk",    "Slovak",        "Slovak.pattern",        2, 2 },
+    { "sk",    "Slovak",        "Slovak.pattern",        2, 3 },
     { "sl",    "Slovenian",     "Slovenian.pattern",     2, 2 },
     { "es",    "Spanish",       "Spanish.pattern",       2, 2 },
     { "sv",    "Swedish",       "Swedish.pattern",       2, 2 },
