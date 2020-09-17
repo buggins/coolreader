@@ -158,6 +158,14 @@
         "aliases": ["lav"]
     },
     {
+        "name": "Lithuanian",
+        "filename": "Lithuanian.pattern",
+        "language": "lt",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2,
+        "aliases": ["lit"]
+    },
+    {
         "name": "Norwegian",
         "filename": "Norwegian.pattern",
         "language": "no",
