@@ -179,6 +179,14 @@
         "aliases": ["nor"]
     },
     {
+        "name": "Occitan",
+        "filename": "Occitan.pattern",
+        "language": "oc",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2,
+        "aliases": ["oci"]
+    },
+    {
         "name": "Polish",
         "filename": "Polish.pattern",
         "language": "pl",
