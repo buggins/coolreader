@@ -263,5 +263,13 @@
         "filename": "Ukrain.pattern",
         "language": "uk",
         "aliases": ["ukr"]
+    },
+    {
+        "name": "Welsh",
+        "filename": "Welsh.pattern",
+        "language": "cy",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3,
+        "aliases": ["cym"]
     }
 ]
