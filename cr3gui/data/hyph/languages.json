@@ -212,7 +212,7 @@
     },
     {
         "name": "Romanian",
-        "filename": "Roman.pattern",
+        "filename": "Romanian.pattern",
         "language": "ro",
         "aliases": ["ron"]
     },
@@ -274,7 +274,7 @@
     },
     {
         "name": "Ukrainian",
-        "filename": "Ukrain.pattern",
+        "filename": "Ukrainian.pattern",
         "language": "uk",
         "aliases": ["ukr"]
     },

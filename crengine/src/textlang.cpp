@@ -23,6 +23,8 @@
 
 // (hyph_filename_prefix added because CoolReader may still have both
 // current "Italian.pattern" and old "Italian_hyphen_(Alan).pdb".)
+// (Romanian and Ukrainian have the prefix truncated because previous
+// pattern files, still in CoolReader, had these truncated names.)
 static struct {
     const char * lang_tag;
     const char * hyph_filename_prefix;
@@ -58,7 +60,7 @@ static struct {
     { "oc",    "Occitan",       "Occitan.pattern",       2, 2 },
     { "pl",    "Polish",        "Polish.pattern",        2, 2 },
     { "pt",    "Portuguese",    "Portuguese.pattern",    2, 3 },
-    { "ro",    "Roman",         "Roman.pattern",         2, 2 },
+    { "ro",    "Roman",         "Romanian.pattern",      2, 2 }, // truncated prefix (see above)
     { "ru-GB", "Russian_EnGB",  "Russian_EnGB.pattern",  2, 2 },
     { "ru-US", "Russian_EnUS",  "Russian_EnUS.pattern",  2, 2 },
     { "ru",    "Russian",       "Russian.pattern",       2, 2 },
@@ -68,7 +70,7 @@ static struct {
     { "es",    "Spanish",       "Spanish.pattern",       2, 2 },
     { "sv",    "Swedish",       "Swedish.pattern",       2, 2 },
     { "tr",    "Turkish",       "Turkish.pattern",       2, 2 },
-    { "uk",    "Ukrainian",     "Ukrain.pattern",        2, 2 },
+    { "uk",    "Ukrain",        "Ukrainian.pattern",     2, 2 }, // truncated prefix (see above)
     { "cy",    "Welsh",         "Welsh.pattern",         2, 3 },
     // No-lang hyph methods, for legacy HyphMan methods: other lang properties will be from English
     { "en#@none",        "@none",        "@none",        2, 2 },
