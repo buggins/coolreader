@@ -198,6 +198,8 @@
         "name": "Portuguese",
         "filename": "Portuguese.pattern",
         "language": "pt",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3,
         "aliases": ["por"]
     },
     {

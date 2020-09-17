@@ -57,7 +57,7 @@ static struct {
     { "no",    "Norwegian",     "Norwegian.pattern",     2, 2 },
     { "oc",    "Occitan",       "Occitan.pattern",       2, 2 },
     { "pl",    "Polish",        "Polish.pattern",        2, 2 },
-    { "pt",    "Portuguese",    "Portuguese.pattern",    2, 2 },
+    { "pt",    "Portuguese",    "Portuguese.pattern",    2, 3 },
     { "ro",    "Roman",         "Roman.pattern",         2, 2 },
     { "ru-GB", "Russian_EnGB",  "Russian_EnGB.pattern",  2, 2 },
     { "ru-US", "Russian_EnUS",  "Russian_EnUS.pattern",  2, 2 },
