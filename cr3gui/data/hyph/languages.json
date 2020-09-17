@@ -106,7 +106,13 @@
         "language": "gl",
         "aliases": ["glg"]
     },
-
+    {
+        "name": "Georgian",
+        "filename": "Georgian.pattern",
+        "language": "ka",
+        "left_hyphen_min": 1,
+        "right_hyphen_min": 2
+    },
     {
         "name": "German",
         "filename": "German.pattern",
