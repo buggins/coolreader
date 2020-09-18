@@ -10236,11 +10236,31 @@ bool ldomDocument::findText( lString16 pattern, bool caseInsensitive, bool rever
         if (!start.isNull())
             break;
     }
+    if (start.isNull()) {
+        // If none found (can happen when minY=0 and blank content at start
+        // of document like a <br/>), scan forward from document start
+        for (int y = 0; y <= fh; y++) {
+            start = createXPointer( lvPoint(0, y), reverse ? PT_DIR_SCAN_BACKWARD_LOGICAL_FIRST
+                                                           : PT_DIR_SCAN_FORWARD_LOGICAL_FIRST );
+            if (!start.isNull())
+                break;
+        }
+    }
     for (int y = maxY; y <= fh; y++) {
         end = createXPointer( lvPoint(10000, y), reverse ? PT_DIR_SCAN_BACKWARD_LOGICAL_LAST
                                                          : PT_DIR_SCAN_FORWARD_LOGICAL_LAST );
         if (!end.isNull())
             break;
+    }
+    if (end.isNull()) {
+        // If none found (can happen when maxY=fh and blank content at end
+        // of book like a <br/>), scan backward from document end
+        for (int y = fh; y >= 0; y--) {
+            end = createXPointer( lvPoint(10000, y), reverse ? PT_DIR_SCAN_BACKWARD_LOGICAL_LAST
+                                                             : PT_DIR_SCAN_FORWARD_LOGICAL_LAST );
+            if (!end.isNull())
+                break;
+        }
     }
 
     if ( start.isNull() || end.isNull() )
