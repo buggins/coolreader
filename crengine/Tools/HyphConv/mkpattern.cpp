@@ -78,7 +78,8 @@ int main(int argc, char* argv[])
         return -2;
     }
     FILE * out = fopen(argv[2], "wb");
-    if (!src) {
+    if (!out) {
+        fclose(src);
         printf("Cannot create file %s\n", argv[2]);
         return -2;
     }
