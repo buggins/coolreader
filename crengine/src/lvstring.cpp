@@ -2505,23 +2505,34 @@ int Wtf8CharCount( const lChar8 * str )
 {
     int count = 0;
     lUInt8 ch;
+    lUInt32 p;
     while ( (ch=*str++) ) {
         if ( (ch & 0x80) == 0 ) {
         } else if ( (ch & 0xE0) == 0xC0 ) {
             if ( !(*str++) )
                 break;
         } else if ( (ch & 0xF0) == 0xE0 ) {
-            if ( !(*str++) )
+            p = (ch & 0x0F) << 12;
+            if ( !(ch=*str++) )
                 break;
-            if ( !(*str++) )
+            p |= (ch & 0x3F) << 6;
+            if ( !(ch=*str++) )
                 break;
-            if ( (ch & 0xF0) == 0xE0 ) {
-                if ( !(*str++) )
-                    break;
-                if ( !(*str++) )
-                    break;
-                if ( !(*str++) )
-                    break;
+            p |= ch & 0x3F;
+            if (p >= 0xD800 && p <= 0xDBFF) {           // high surrogate
+                ch = *str;
+                if ((ch & 0xF0) == 0xE0) {
+                    p = (ch & 0x0F) << 12;
+                    if ( !(ch=*(str+1)) )
+                        break;
+                    p |= (ch & 0x3F) << 6;
+                    if ( !(ch=*(str+2)) )
+                        break;
+                    p |= ch & 0x3F;
+                    if (p >= 0xDC00 && p <= 0xDFFF) {   // low surrogate
+                        str += 3;
+                    }
+                }
             }
         } else if ( (ch & 0xF8) == 0xF0 ) {
             // Mostly unused

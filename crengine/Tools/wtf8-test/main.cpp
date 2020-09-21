@@ -4,6 +4,7 @@
 
 lUInt32 uni_chars[] = {
     0x10000,        // LINEAR B SYLLABLE B008 A
+    0x2026,
     0x10123,        // AEGEAN NUMBER TWO THOUSAND
     0x10081,        // LINEAR B IDEOGRAM B102 WOMAN
     0x1F600,        // GRINNING FACE
