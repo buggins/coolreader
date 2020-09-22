@@ -388,6 +388,14 @@ HyphDictionary * HyphDictionaryList::find( const lString16& id )
 	return NULL;
 }
 
+static int HyphDictionary_comparator(const HyphDictionary ** item1, const HyphDictionary ** item2)
+{
+    if ( ( (*item1)->getType() == HDT_DICT_ALAN || (*item1)->getType() == HDT_DICT_TEX) &&
+         ( (*item2)->getType() == HDT_DICT_ALAN || (*item2)->getType() == HDT_DICT_TEX) )
+        return (*item1)->getTitle().compare((*item2)->getTitle());
+    return (int)((*item1)->getType() - (*item2)->getType());
+}
+
 bool HyphDictionaryList::open(lString16 hyphDirectory, bool clear)
 {
     CRLog::info("HyphDictionaryList::open(%s)", LCSTR(hyphDirectory) );
@@ -416,9 +424,11 @@ bool HyphDictionaryList::open(lString16 hyphDirectory, bool clear)
 			const LVContainerItemInfo * item = container->GetObjectInfo( i );
 			lString16 name = item->GetName();
             lString16 suffix;
+            lString16 suffix2add;
             HyphDictType t = HDT_NONE;
             if ( name.endsWith("_hyphen_(Alan).pdb") ) {
                 suffix = "_hyphen_(Alan).pdb";
+                suffix2add = " (Alan)";
                 t = HDT_DICT_ALAN;
             } else if ( name.endsWith(".pattern") ) {
                 suffix = ".pattern";
@@ -433,9 +443,12 @@ bool HyphDictionaryList::open(lString16 hyphDirectory, bool clear)
 			lString16 title = name;
 			if ( title.endsWith( suffix ) )
 				title.erase( title.length() - suffix.length(), suffix.length() );
+			if (!suffix2add.empty())
+				title.append(suffix2add);
 			_list.add( new HyphDictionary( t, title, id, filename ) );
             count++;
 		}
+        _list.sort(HyphDictionary_comparator);
 		CRLog::info("%d dictionaries added to list", _list.length());
 		return true;
 	} else {
