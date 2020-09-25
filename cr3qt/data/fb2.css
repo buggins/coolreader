@@ -95,7 +95,8 @@ body[name="comments"] section { -cr-hint: footnote-inpage; }
 description { display: block; }
 title-info { display: block; }
 annotation { $annotation.all }
-date { display: block; font-size: 80%; font-style: italic; text-align: center }
+date { font-style: italic; margin-left: 5% }
+description date { font-size: 80%; text-align: center }
 genre { display: none; }
 author { display: none; }
 book-title { display: none; }
