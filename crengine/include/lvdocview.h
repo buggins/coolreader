@@ -781,6 +781,10 @@ public:
             return number.atoi();
         return 0;
     }
+    /// returns book content CRC32
+    lUInt32 getFileCRC32() {
+        return (lUInt32)m_doc_props->getIntDef(DOC_PROP_FILE_CRC32, 0);
+    }
 
     /// export to WOL format
     bool exportWolFile( const char * fname, bool flgGray, int levels );

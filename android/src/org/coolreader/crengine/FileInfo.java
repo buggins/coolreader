@@ -57,7 +57,7 @@ public class FileInfo {
 	public boolean isDirectory;
 	public boolean isListed;
 	public boolean isScanned;
-	public int crc32;
+	public long crc32;
 	public int domVersion;
 	public int blockRenderingFlags;
 	public FileInfo parent; // parent item

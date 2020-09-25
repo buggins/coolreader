@@ -104,6 +104,7 @@ public:
     lString16 filedate;
     int seriesNumber;
     lString16 language;
+    lUInt32 crc32;
 };
 
 static bool GetEPUBBookProperties(const char *name, LVStreamRef stream, BookProperties * pBookProps)
@@ -157,6 +158,7 @@ static bool GetEPUBBookProperties(const char *name, LVStreamRef stream, BookProp
     pBookProps->filesize = (long)stream->GetSize();
     pBookProps->filename = lString16(name);
     pBookProps->filedate = getDateTimeString( t );
+    pBookProps->crc32 = stream->getcrc32();
 
     delete doc;
 
@@ -247,6 +249,7 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
     pBookProps->filename = lString16(name);
     pBookProps->filedate = getDateTimeString( t );
     pBookProps->language = language;
+    pBookProps->crc32 = stream->getcrc32();
     return true;
 }
 
@@ -285,12 +288,61 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertie
 	    jfieldID fid = env->GetFieldID(objclass, fldname, "I"); \
 	    env->SetIntField(_fileInfo,fid,src); \
 	}
+	#define SET_LONG_FLD(fldname,src) \
+	{ \
+	    jfieldID fid = env->GetFieldID(objclass, fldname, "J"); \
+	    env->SetLongField(_fileInfo,fid,src); \
+	}
 	SET_STR_FLD("title",props.title);
 	SET_STR_FLD("authors",props.author);
 	SET_STR_FLD("series",props.series);
 	SET_INT_FLD("seriesNumber",props.seriesNumber);
 	SET_STR_FLD("language",props.language);
-	
+	SET_LONG_FLD("crc32",props.crc32);
+
+	return JNI_TRUE;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    updateFileCRC32Internal
+ * Signature: (Lorg/coolreader/crengine/FileInfo;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_updateFileCRC32Internal
+		(JNIEnv * _env, jclass _engine, jobject _fileInfo)
+{
+	CRJNIEnv env(_env);
+	jclass objclass = env->GetObjectClass(_fileInfo);
+	jfieldID fid = env->GetFieldID(objclass, "pathname", "Ljava/lang/String;");
+	lString16 filename = env.fromJavaString( (jstring)env->GetObjectField(_fileInfo, fid) );
+	fid = env->GetFieldID(objclass, "arcname", "Ljava/lang/String;");
+	lString16 arcname = env.fromJavaString( (jstring)env->GetObjectField(_fileInfo, fid) );
+	if ( filename.empty() )
+		return JNI_FALSE;
+	bool isArchiveFile = !arcname.empty();
+	// open stream
+	LVStreamRef stream = LVOpenFileStream( (isArchiveFile ? arcname : filename).c_str() , LVOM_READ );
+	if (!stream.isNull()) {
+		if (isArchiveFile) {
+			LVContainerRef container = LVOpenArchieve(stream);
+			if (!container.isNull()) {
+				stream = container->OpenStream(filename.c_str(), LVOM_READ);
+				if (stream.isNull()) {
+					CRLog::error("Cannot open archive file item stream %s", LCSTR(filename));
+				}
+			} else {
+				CRLog::error("Cannot read archive contents from %s", LCSTR(arcname));
+				stream = LVStreamRef();
+			}
+		}
+	}
+	if (!stream.isNull()) {
+		fid = env->GetFieldID(objclass, "crc32", "J");
+	    env->SetLongField(_fileInfo, fid, stream->getcrc32());
+	} else {
+		CRLog::error("cannot open file %s", LCSTR(isArchiveFile ? arcname : filename));
+		return JNI_FALSE;
+	}
 	return JNI_TRUE;
 }
 
@@ -779,7 +831,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInte
 	CRJNIEnv env(penv);
 	if (NULL == jdir)
 		return NULL;
-	jclass pjcFile = env->FindClass("java/io/File");
+	jclass pjcFile = env->GetObjectClass(jdir);
 	if (NULL == pjcFile)
 		return NULL;
 	jmethodID pjmFile_GetAbsolutePath = env->GetMethodID(pjcFile, "getAbsolutePath", "()Ljava/lang/String;");
@@ -908,6 +960,7 @@ static JNINativeMethod sEngineMethods[] = {
   {"getFontFaceListInternal", "()[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getFontFaceListInternal},
   {"setCacheDirectoryInternal", "(Ljava/lang/String;I)Z", (void*)Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal},
   {"scanBookPropertiesInternal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal},
+  {"updateFileCRC32Internal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_updateFileCRC32Internal},
   {"getArchiveItemsInternal", "(Ljava/lang/String;)[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getArchiveItemsInternal},
   {"isLink", "(Ljava/lang/String;)Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_isLink},
   {"suspendLongOperationInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_suspendLongOperationInternal},

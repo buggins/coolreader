@@ -60,7 +60,8 @@ public class Scanner extends FileInfoChangeSource {
 				//item.createTime = entry.getTime();
 				item.createTime = zf.lastModified();
 				item.arcname = zip.pathname;
-				item.arcsize = (int)entry.getCompressedSize();
+				//item.arcsize = (int)entry.getCompressedSize();
+				item.arcsize = zip.size;
 				item.isArchive = true;
 				items.add(item);
 			}
@@ -259,14 +260,26 @@ public class Scanner extends FileInfoChangeSource {
 			for (int i=0; i<baseDir.fileCount(); i++) {
 				FileInfo item = baseDir.getFile(i);
 				FileInfo fromDB = mapOfFilesFoundInDb.get(item.getPathName());
+				// check the relevance of data in the database
+				if (fromDB != null) {
+					if (fromDB.crc32 == 0 || fromDB.size != item.size || fromDB.arcsize != item.arcsize ) {
+						// to force rescan and update data in DB
+						fromDB = null;
+					}
+				} else {
+					// not found in DB
+					// for new files set latest DOM level and max block rendering flags
+					item.domVersion = Engine.DOM_VERSION_CURRENT;
+					item.blockRenderingFlags = Engine.BLOCK_RENDERING_FLAGS_WEB;
+				}
 				if (fromDB != null) {
 					// use DB value
 					baseDir.setFile(i, fromDB);
 				} else {
-					// not found in DB
 					if (item.format.canParseProperties()) {
 						filesForParsing.add(new FileInfo(item));
 					} else {
+						Engine.updateFileCRC32(item);
 						filesForSave.add(new FileInfo(item));
 					}
 				}
