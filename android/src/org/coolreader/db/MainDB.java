@@ -14,7 +14,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 30;
+	public final int DB_VERSION = 31;
 	@Override
 	protected boolean upgradeSchema() {
 		// When the database is just created, its version is 0.
@@ -59,7 +59,11 @@ public class MainDB extends BaseDB {
 					"create_time INTEGER," +
 					"last_access_time INTEGER, " +
 					"flags INTEGER DEFAULT 0, " +
-					"language VARCHAR DEFAULT NULL" +
+					"language VARCHAR DEFAULT NULL, " +
+					"description TEXT DEFAULT NULL, " +
+					"crc32 INTEGER DEFAULT NULL, " +
+					"domVersion INTEGER DEFAULT 0, " +
+					"rendFlags INTEGER DEFAULT 0" +
 					")");
 			execSQL("CREATE INDEX IF NOT EXISTS " +
 					"book_folder_index ON book (folder_fk) ");
@@ -201,6 +205,9 @@ public class MainDB extends BaseDB {
 			if (currentVersion < 30) {
 				// Forced update DOM version from previous latest (20200223) to current (20200824).
 				execSQLIgnoreErrors("UPDATE book SET domVersion=20200824 WHERE domVersion=20200223");
+			}
+			if (currentVersion < 31) {
+				execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN description TEXT DEFAULT NULL");
 			}
 
 			//==============================================================
@@ -1356,6 +1363,7 @@ public class MainDB extends BaseDB {
 			add("create_time", (long)newValue.createTime, (long)oldValue.createTime);
 			add("flags", (long)newValue.flags, (long)oldValue.flags);
 			add("language", newValue.language, oldValue.language);
+			add("description", newValue.description, oldValue.description);
 			add("crc32", newValue.crc32, oldValue.crc32);
 			add("domVersion", newValue.domVersion, oldValue.domVersion);
 			add("rendFlags", newValue.blockRenderingFlags, oldValue.blockRenderingFlags);
@@ -1387,7 +1395,7 @@ public class MainDB extends BaseDB {
 		"s.name as series_name, " +
 		"series_number, " +
 		"format, filesize, arcsize, " +
-		"create_time, last_access_time, flags, language, crc32, domVersion, rendFlags ";
+		"create_time, last_access_time, flags, language, description, crc32, domVersion, rendFlags ";
 	
 	private static final String READ_FILEINFO_SQL = 
 		"SELECT " +
@@ -1416,6 +1424,7 @@ public class MainDB extends BaseDB {
 		fileInfo.lastAccessTime = rs.getInt(i++);
 		fileInfo.flags = rs.getInt(i++);
 		fileInfo.language = rs.getString(i++);
+		fileInfo.description = rs.getString(i++);
 		fileInfo.crc32 = rs.getInt(i++);
 		fileInfo.domVersion = rs.getInt(i++);
 		fileInfo.blockRenderingFlags = rs.getInt(i++);

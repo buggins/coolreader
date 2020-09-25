@@ -225,6 +225,7 @@ public class BookInfoEditDialog extends BaseDialog {
     EditText edTitle;
     EditText edSeriesName;
     EditText edSeriesNumber;
+    EditText edDescription;
 	AuthorList authors;
 	RatingBar rbBookRating;
 	RadioGroup rgState;
@@ -249,6 +250,8 @@ public class BookInfoEditDialog extends BaseDialog {
         edTitle = view.findViewById(R.id.book_title);
         edSeriesName = view.findViewById(R.id.book_series_name);
         edSeriesNumber = view.findViewById(R.id.book_series_number);
+        edDescription = view.findViewById(R.id.book_description);
+
         rbBookRating = view.findViewById(R.id.book_rating);
         rgState = view.findViewById(R.id.book_state);
         int state = file.getReadingState();
@@ -295,10 +298,11 @@ public class BookInfoEditDialog extends BaseDialog {
         edSeriesName.setText(file.series);
         if (file.series != null && file.series.trim().length() > 0 && file.seriesNumber > 0)
         	edSeriesNumber.setText(String.valueOf(file.seriesNumber));
+        edDescription.setText(file.description);
         LinearLayout llBookAuthorsList = view.findViewById(R.id.book_authors_list);
         authors = new AuthorList(llBookAuthorsList, file.authors);
         rbBookRating.setRating(file.getRate());
-        
+
     	ImageButton btnRemoveRecent = view.findViewById(R.id.book_recent_delete);
     	ImageButton btnOpenFolder = view.findViewById(R.id.book_folder_open);
         if (mIsRecentBooksItem) {

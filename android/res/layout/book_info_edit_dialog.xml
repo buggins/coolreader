@@ -236,5 +236,14 @@
 			    />
 			</TableRow>
 	    </TableLayout>
+
+		<EditText
+				android:id="@+id/book_description"
+				style="@style/TextAppearance.Widget.EditText"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:editable="false"
+				android:inputType="none"
+				android:singleLine="false" />
 	</LinearLayout>
 </ScrollView>
