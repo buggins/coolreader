@@ -9,6 +9,7 @@ qtbuild
 qt-build
 qtcreator-build
 CMakeLists.txt.user
+CMakeLists.txt.user.*
 *~
 *.a
 *.so
@@ -21,3 +22,6 @@ cr3gui/data/dict/
 cr3gui/data/dict_ext
 cr3gui/data/tessdata/
 .directory
+*.orig
+*.rej
+/clang-analyzer-reports/
