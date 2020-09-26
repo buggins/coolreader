@@ -12,6 +12,7 @@ my %ic_bigicons_sizes = (ldpi=>36, mdpi=>48, hdpi=>72, xhdpi=>96, xxhdpi=>144, x
 my %ic_actions_list=(
 	'cr3_option_text_ligatures-48x48-src.svg' => 'cr3_option_text_ligatures.png',
 	'cr3_option_text_multilang-48x48-src.svg' => 'cr3_option_text_multilang.png',
+	'cr3_button_info-48x48-src.svg' => 'cr3_button_info.png',
 	'google-drive-logo/drive-icon-48x48.svg' => 'google_drive.png',
 	'google-drive-logo/drive-icon-mono-48x48.svg' => 'google_drive_mono.png',
 
@@ -75,7 +76,8 @@ my %ic_actions_list=(
 	'cr3_button_ok_hc-48x48-src.svg' => 'cr3_button_ok_hc.png',
 	'cr3_button_cancel_hc-48x48-src.svg' => 'cr3_button_cancel_hc.png',
 	'cr3_button_more_hc-48x48-src.svg' => 'cr3_button_more_hc.png',
-	'cr3_browser_book_hc-48x48-src.svg' => 'cr3_browser_book_hc.png'
+	'cr3_browser_book_hc-48x48-src.svg' => 'cr3_browser_book_hc.png',
+	'cr3_button_info_hc-48x48-src.svg' => 'cr3_button_info_hc.png'
 );
 
 my %ic_tabs_list=(

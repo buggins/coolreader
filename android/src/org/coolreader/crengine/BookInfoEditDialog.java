@@ -14,6 +14,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -298,7 +299,12 @@ public class BookInfoEditDialog extends BaseDialog {
         edSeriesName.setText(file.series);
         if (file.series != null && file.series.trim().length() > 0 && file.seriesNumber > 0)
         	edSeriesNumber.setText(String.valueOf(file.seriesNumber));
-        edDescription.setText(file.description);
+        else
+            edSeriesNumber.setText("");
+        if (file.description != null && file.description.length() > 0)
+            edDescription.setText(file.description);
+        else
+            edDescription.setVisibility(View.INVISIBLE);
         LinearLayout llBookAuthorsList = view.findViewById(R.id.book_authors_list);
         authors = new AuthorList(llBookAuthorsList, file.authors);
         rbBookRating.setRating(file.getRate());
