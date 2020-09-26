@@ -3519,10 +3519,12 @@ void LVDocView::setDefaultInterlineSpace(int percent) {
     LVLock lock(getMutex());
     REQUEST_RENDER("setDefaultInterlineSpace")
     m_def_interline_space = percent; // not used
-    if (percent == 100) // (avoid any rounding issue)
-        gInterlineScaleFactor = INTERLINE_SCALE_FACTOR_NO_SCALE;
-    else
-        gInterlineScaleFactor = INTERLINE_SCALE_FACTOR_NO_SCALE * percent / 100;
+    if (m_doc) {
+        if (percent == 100) // (avoid any rounding issue)
+            m_doc->setInterlineScaleFactor(INTERLINE_SCALE_FACTOR_NO_SCALE);
+        else
+            m_doc->setInterlineScaleFactor(INTERLINE_SCALE_FACTOR_NO_SCALE * percent / 100);
+    }
     _posIsSet = false;
 //	goToBookmark( _posBookmark);
 //        updateBookMarksRanges();
@@ -4646,6 +4648,10 @@ void LVDocView::createEmptyDocument() {
     m_doc->setHangingPunctiationEnabled(m_props->getBoolDef(PROP_FLOATING_PUNCTUATION, true));
     m_doc->setRenderBlockRenderingFlags(m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT));
     m_doc->setDOMVersionRequested(m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent));
+    if (m_def_interline_space == 100) // (avoid any rounding issue)
+        m_doc->setInterlineScaleFactor(INTERLINE_SCALE_FACTOR_NO_SCALE);
+    else
+        m_doc->setInterlineScaleFactor(INTERLINE_SCALE_FACTOR_NO_SCALE * m_def_interline_space / 100);
 
     m_doc->setContainer(m_container);
     // This sets the element names default style (display, whitespace)

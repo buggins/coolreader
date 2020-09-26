@@ -177,7 +177,6 @@ extern int gRootFontSize;
 
 #define INTERLINE_SCALE_FACTOR_NO_SCALE 1024
 #define INTERLINE_SCALE_FACTOR_SHIFT 10
-extern int gInterlineScaleFactor;
 
 // Enhanced rendering flags
 #define BLOCK_RENDERING_ENHANCED                           0x00000001

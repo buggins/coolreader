@@ -499,6 +499,7 @@ protected:
     bool _hangingPunctuationEnabled;
     lUInt32 _renderBlockRenderingFlags;
     lUInt32 _DOMVersionRequested;
+    int _interlineScaleFactor;
 
     ldomDataStorageManager _textStorage; // persistent text node data storage
     ldomDataStorageManager _elemStorage; // persistent element data storage
@@ -628,6 +629,11 @@ public:
         return _DOMVersionRequested;
     }
     bool setDOMVersionRequested(lUInt32 version);
+
+    int getInterlineScaleFactor() const {
+        return _interlineScaleFactor;
+    }
+    bool setInterlineScaleFactor(int value);
 
     inline bool getDocFlag( lUInt32 mask )
     {
