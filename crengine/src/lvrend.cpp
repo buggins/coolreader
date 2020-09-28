@@ -202,6 +202,7 @@ public:
 class CCRTableRowGroup {
 public:
     int index;
+    int kind; // erm_table_header_group, erm_table_row_group or erm_table_footer_group
     int height;
     int y;
     ldomNode * elem;
@@ -312,6 +313,7 @@ public:
     bool avoid_pb_inside;
     bool enhanced_rendering;
     bool is_ruby_table;
+    bool rows_rendering_reordered;
     ldomNode * elem;
     ldomNode * caption;
     int caption_h;
@@ -392,6 +394,7 @@ public:
                         currentRowGroup = new CCRTableRowGroup();
                         currentRowGroup->elem = item;
                         currentRowGroup->index = rowgroups.length();
+                        currentRowGroup->kind = rendMethod;
                         rowgroups.add( currentRowGroup );
                         LookupElem( item, item_direction, 0 );
                         currentRowGroup = NULL;
@@ -572,6 +575,104 @@ public:
             }
         }
         return 0;
+    }
+
+    void FixRowGroupsOrder() {
+        if ( !enhanced_rendering )
+            return;
+        if ( rowgroups.length() == 0 )
+            return;
+
+        // THEAD TBODY/TR TFOOT usually comes in this logical order,
+        // but with CSS, "display:table-header-group" might be used
+        // to render some element above others even if it is after
+        // them in the DOM.
+        // (This is done by the MathML CSS profile, for example with
+        // <msup>, to render the superscript in a top table row).
+        //
+        // Note that Firefox only moves the *first* table-header-group and
+        // the *first* table-footer-group met.
+        // https://www.w3.org/TR/CSS2/tables.html#table-display says the same:
+        //   "If a table contains multiple elements with 'display: table-header-group',
+        //    only the first is rendered as a header; the others are treated as if they
+        //    had 'display: table-row-group'. "
+        // So, we will handle only the first ones met.
+        //
+        // (At this point, row->index have not yet been set, so
+        // we have just 'rowgroups' and 'rows' arrays, that we
+        // can just re-order without any other fix.)
+        //
+        // This might cause some issues if the reordered things contain
+        // some rowspan/colspan crossing row groups... Firefox limits
+        // the rowspan effect to inside each table group, but we don't
+        // do that. Hopefully, this kind of HTML error must be rare.
+
+        // Look for the first erm_table_header_group
+        for ( int i=0; i < rowgroups.length(); i++ ) {
+            if ( rowgroups[i]->kind == erm_table_header_group ) {
+                CCRTableRowGroup * first_header_group = rowgroups[i];
+                if ( i > 0 ) {
+                    // It is not first in rowgroups: move it at start
+                    rowgroups.move(0, i); // move(indexTo, indexFrom)
+                    rows_rendering_reordered = true;
+                }
+                // Even if this group was first among groups, we may have
+                // before its rows other table-rows not part of any group:
+                // we need to move the rows part of this rowgroup before
+                // all other rows.
+                bool group_met = false;
+                int dest_idx = 0;
+                for ( int j=0; j < rows.length(); j++ ) {
+                    if ( rows[j]->rowgroup == first_header_group ) {
+                        if ( j != dest_idx ) {
+                            rows.move(dest_idx, j); // move(indexTo, indexFrom)
+                            rows_rendering_reordered = true;
+                            dest_idx++;
+                        }
+                        group_met = true;
+                    }
+                    else if ( group_met ) {
+                        // Not a row part of first_header_group: we moved
+                        // all its rows, we're done.
+                        break;
+                    }
+                }
+                break; // Only deal with the first one met
+            }
+        }
+        // Look for the first erm_table_footer_group
+        for ( int i=0; i < rowgroups.length(); i++ ) {
+            if ( rowgroups[i]->kind == erm_table_footer_group ) {
+                CCRTableRowGroup * first_footer_group = rowgroups[i];
+                if ( i < rowgroups.length()-1 ) {
+                    // It is not last in rowgroups: move it at end
+                    rowgroups.move(rowgroups.length()-1, i); // move(indexTo, indexFrom)
+                    rows_rendering_reordered = true;
+                }
+                // Even if this group was last among groups, we may have
+                // after its rows other table-rows not part of any group:
+                // we need to move the rows part of this rowgroup after
+                // all other rows.
+                bool group_met = false;
+                int dest_idx = rows.length()-1;
+                for ( int j=rows.length()-1; j >= 0; j-- ) {
+                    if ( rows[j]->rowgroup == first_footer_group ) {
+                        if ( j != dest_idx ) {
+                            rows.move(dest_idx, j); // move(indexTo, indexFrom)
+                            rows_rendering_reordered = true;
+                        }
+                        dest_idx--;
+                        group_met = true;
+                    }
+                    else if ( group_met ) {
+                        // Not a row part of first_footer_group: we moved
+                        // all its rows, we're done.
+                        break;
+                    }
+                }
+                break; // Only deal with the first one met
+            }
+        }
     }
 
     // More or less complex algorithms to calculate column widths are described at:
@@ -2028,17 +2129,28 @@ public:
         avoid_pb_inside = tbl_avoid_pb_inside;
         enhanced_rendering = tbl_enhanced_rendering;
         is_ruby_table = tbl_is_ruby_table;
+        rows_rendering_reordered = false;
         #ifdef DEBUG_TABLE_RENDERING
             printf("TABLE: ============ parsing new table %s\n",
                 UnicodeToLocal(ldomXPointer(elem, 0).toString()).c_str());
         #endif
         LookupElem( tbl_elem, direction, 0 );
+        FixRowGroupsOrder();
         if ( is_ruby_table && rows.length() >= 2 ) {
             // Move 2nd row (first ruby annotation) to 1st position,
             // so base ruby text (initially 1st row) becomes 2nd
             rows.move(0, 1);
+            rows_rendering_reordered = true;
         }
         PlaceCells();
+        if ( enhanced_rendering && rows_rendering_reordered ) {
+            // printf("table rows re-ordered: %s\n", UnicodeToLocal(ldomXPointer(elem, 0).toString()).c_str());
+            RenderRectAccessor fmt( elem );
+            RENDER_RECT_SET_FLAG(fmt, CHILDREN_RENDERING_REORDERED);
+            if ( !is_ruby_table ) { // don't show this warning as it's expected with ruby
+                elem->getDocument()->printWarning("table rows/thead/tfoot re-ordered", 2);
+            }
+        }
     }
 };
 
@@ -6867,6 +6979,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 // like it does not really need to.
                 int h = renderTable( *(flow->getPageContext()), enode, 0, flow->getCurrentRelativeY(),
                             table_width, table_shrink_to_fit, fitted_width, direction, avoid_pb_inside, true, is_ruby_table );
+                // Reload fmt, as renderTable() may have set some flags
+                fmt = RenderRectAccessor( enode );
                 // (It feels like we don't need to ensure a table specified height.)
                 fmt.setHeight( h );
                 // Update table width if it was fitted/shrunk
@@ -9639,7 +9753,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 int _maxw = 0;
                 int _minw = 0;
                 getRenderedWidths(node, _maxw, _minw, direction, false, rendFlags);
-                maxWidth += _maxw;
+                curMaxWidth += _maxw;
                 if (_minw > minWidth)
                     minWidth = _minw;
                 return;
@@ -9843,6 +9957,10 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                                     // we might find some text nodes here.
                                     continue;
                                 }
+                                if ( child->getRendMethod() == erm_invisible ) {
+                                    // Ignore invisible nodes (like "<rp>(</rp>" inside <ruby>)
+                                    continue;
+                                }
                                 int _maxw = 0;
                                 int _minw = 0;
                                 int _curMaxWidth = 0;
@@ -9940,6 +10058,13 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                  _maxWidth = columns_max_width;
             if ( _maxWidth < cumulative_max_width )
                  _maxWidth = cumulative_max_width;
+            // add horizontal border_spacing if "border-collapse: separate"
+            if ( style->border_collapse != css_border_collapse ) {
+                int em = node->getFont()->getSize();
+                int extra_width = lengthToPx(style->border_spacing[0], 0, em) * (nb_columns+1);
+                _minWidth += extra_width;
+                _maxWidth += extra_width;
+            }
             #ifdef DEBUG_GETRENDEREDWIDTHS
                 printf("GRW table: min %d %d > %d    max %d %d > %d\n", columns_min_width, cumulative_min_width,
                          _minWidth, columns_max_width, cumulative_max_width, _maxWidth);

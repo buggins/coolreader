@@ -85,7 +85,7 @@ extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.12.70"
+#define CACHE_FILE_FORMAT_VERSION "3.12.72"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0025
@@ -5078,10 +5078,20 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
     }
     else
         _element = _document->getRootNode(); //->insertChildElement( (lUInt32)-1, nsid, id );
-    if ( IS_FIRST_BODY && id==el_body ) {
-        _tocItem = _document->getToc();
-        //_tocItem->clear();
-        IS_FIRST_BODY = false;
+    if ( id==el_body ) {
+        if ( IS_FIRST_BODY ) {
+            _tocItem = _document->getToc();
+            //_tocItem->clear();
+            IS_FIRST_BODY = false;
+        }
+        else {
+            int fmt = _document->getProps()->getIntDef(DOC_PROP_FILE_FORMAT_ID, doc_format_none);
+            if ( fmt == doc_format_fb2 || fmt == doc_format_fb3 ) {
+                // Add FB2 2nd++ BODYs' titles (footnotes and endnotes) in the TOC
+                // (but not their own children that are <section>)
+                _isSection = true; // this is just to have updateTocItem() called
+            }
+        }
     }
     //logfile << "}";
 }
@@ -5159,11 +5169,16 @@ void ldomElementWriter::updateTocItem()
 {
     if ( !_isSection )
         return;
-    // TODO: update item
-    if ( _parent && _parent->_tocItem ) {
+    if ( !_parent )
+        return;
+    if ( _parent->_tocItem ) { // <section> in the first <body>
         lString16 title = getSectionHeader( _element );
         //CRLog::trace("TOC ITEM: %s", LCSTR(title));
         _tocItem = _parent->_tocItem->addChild(title, ldomXPointer(_element,0), getPath() );
+    }
+    else if ( getElement()->getNodeId() == el_body ) { // 2nd, 3rd... <body>, in FB2 documents
+        lString16 title = getSectionHeader( _element );
+        _document->getToc()->addChild(title, ldomXPointer(_element,0), getPath() );
     }
     _isSection = false;
 }
@@ -10221,11 +10236,31 @@ bool ldomDocument::findText( lString16 pattern, bool caseInsensitive, bool rever
         if (!start.isNull())
             break;
     }
+    if (start.isNull()) {
+        // If none found (can happen when minY=0 and blank content at start
+        // of document like a <br/>), scan forward from document start
+        for (int y = 0; y <= fh; y++) {
+            start = createXPointer( lvPoint(0, y), reverse ? PT_DIR_SCAN_BACKWARD_LOGICAL_FIRST
+                                                           : PT_DIR_SCAN_FORWARD_LOGICAL_FIRST );
+            if (!start.isNull())
+                break;
+        }
+    }
     for (int y = maxY; y <= fh; y++) {
         end = createXPointer( lvPoint(10000, y), reverse ? PT_DIR_SCAN_BACKWARD_LOGICAL_LAST
                                                          : PT_DIR_SCAN_FORWARD_LOGICAL_LAST );
         if (!end.isNull())
             break;
+    }
+    if (end.isNull()) {
+        // If none found (can happen when maxY=fh and blank content at end
+        // of book like a <br/>), scan backward from document end
+        for (int y = fh; y >= 0; y--) {
+            end = createXPointer( lvPoint(10000, y), reverse ? PT_DIR_SCAN_BACKWARD_LOGICAL_LAST
+                                                             : PT_DIR_SCAN_FORWARD_LOGICAL_LAST );
+            if (!end.isNull())
+                break;
+        }
     }
 
     if ( start.isNull() || end.isNull() )
@@ -13269,11 +13304,11 @@ bool ldomDocumentWriterFilter::AutoOpenClosePop( int step, lUInt16 tag_id )
                 }
             }
             if ( (tag_id >= EL_IN_HEAD_START && tag_id <= EL_IN_HEAD_END) || tag_id == el_noscript ) {
+                _headTagSeen = true;
                 if ( tag_id != el_head ) {
                     OnTagOpen(L"", L"head");
                     OnTagBody();
                 }
-                _headTagSeen = true;
             }
             curNodeId = _currNode ? _currNode->getElement()->getNodeId() : el_NULL;
         }
@@ -13283,13 +13318,14 @@ bool ldomDocumentWriterFilter::AutoOpenClosePop( int step, lUInt16 tag_id )
             // end of <head> and start of <body>
             if ( _headTagSeen )
                 OnTagClose(L"", L"head");
+            else
+                _headTagSeen = true; // We won't open any <head> anymore
+            _bodyTagSeen = true;
             if ( tag_id != el_body ) {
                 OnTagOpen(L"", L"body");
                 OnTagBody();
             }
             curNodeId = _currNode ? _currNode->getElement()->getNodeId() : el_NULL;
-            _bodyTagSeen = true;
-            _headTagSeen = true; // We won't open any <head> anymore
         }
     }
     if ( step == PARSER_STEP_TEXT ) // new text: nothing more to do
@@ -16889,7 +16925,7 @@ ldomNode * ldomNode::getLastTextChild()
 
 #if BUILD_LITE!=1
 /// find node by coordinates of point in formatted document
-ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
+ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction, bool strict_bounds_checking )
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -16927,7 +16963,7 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
     RenderRectAccessor fmt( this );
 
     if ( BLOCK_RENDERING(getDocument()->getRenderBlockRenderingFlags(), ENHANCED) ) {
-        // In enhanced rendering mode, because of collpasing of vertical margins
+        // In enhanced rendering mode, because of collapsing of vertical margins
         // and the fact that we did not update style margins to their computed
         // values, a children box with margins can overlap its parent box, if
         // the child bigger margin collapsed with the parent smaller margin.
@@ -16991,6 +17027,19 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
                 // Float starts after pt.y: next non-float siblings may contain pt.y
                 return NULL;
             }
+            // When children of the parent node have been re-ordered, we can't
+            // trust the ordering, and if pt.y is before fmt.getY(), we might
+            // still find it in a next node that have been re-ordered before
+            // this one for rendering.
+            // Note: for now, happens only with re-ordered table rows, so
+            // we're only ensuring it here for y. This check might have to
+            // also be done elsewhere in this function when we use it for
+            // other things.
+            if ( strict_bounds_checking && pt.y < fmt.getY() ) {
+                // Box fully after pt.y: not a candidate, next one
+                // (if reordered) may be
+                return NULL;
+            }
             // pt.y is inside the box (without overflows), go on with it.
             // Note: we don't check for next elements which may have a top
             // overflow and have pt.y inside it, because it would be a bit
@@ -17000,7 +17049,12 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
         else { // PT_DIR_SCAN_BACKWARD*
             // We get the parent node's children in descending order
             if ( pt.y < fmt.getY() ) {
-                // Box fully before pt.y: not a candidate, next one may be
+                // Box fully after pt.y: not a candidate, next one may be
+                return NULL;
+            }
+            if ( strict_bounds_checking && pt.y >= fmt.getY() + fmt.getHeight() ) {
+                // Box fully before pt.y: not a candidate, next one
+                // (if reordered) may be
                 return NULL;
             }
         }
@@ -17070,17 +17124,18 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
     // Not a final node, but a block container node that must contain
     // the final node we look for: check its children.
     int count = getChildCount();
+    strict_bounds_checking = RENDER_RECT_HAS_FLAG(fmt, CHILDREN_RENDERING_REORDERED);
     if ( direction >= PT_DIR_EXACT ) { // PT_DIR_EXACT or PT_DIR_SCAN_FORWARD*
         for ( int i=0; i<count; i++ ) {
             ldomNode * p = getChildNode( i );
-            ldomNode * e = p->elementFromPoint( lvPoint(pt.x-fmt.getX(), pt.y-fmt.getY()), direction );
+            ldomNode * e = p->elementFromPoint( lvPoint(pt.x-fmt.getX(), pt.y-fmt.getY()), direction, strict_bounds_checking );
             if ( e )
                 return e;
         }
     } else {
         for ( int i=count-1; i>=0; i-- ) {
             ldomNode * p = getChildNode( i );
-            ldomNode * e = p->elementFromPoint( lvPoint(pt.x-fmt.getX(), pt.y-fmt.getY()), direction );
+            ldomNode * e = p->elementFromPoint( lvPoint(pt.x-fmt.getX(), pt.y-fmt.getY()), direction, strict_bounds_checking );
             if ( e )
                 return e;
         }

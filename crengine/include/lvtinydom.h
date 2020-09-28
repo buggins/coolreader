@@ -1033,7 +1033,7 @@ public:
 
 #if BUILD_LITE!=1
     /// find node by coordinates of point in formatted document
-    ldomNode * elementFromPoint( lvPoint pt, int direction );
+    ldomNode * elementFromPoint( lvPoint pt, int direction, bool strict_bounds_checking=false );
     /// find final node by coordinates of point in formatted document
     ldomNode * finalBlockFromPoint( lvPoint pt );
 #endif

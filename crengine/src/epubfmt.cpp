@@ -1375,6 +1375,8 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         }
     }
 
+    // Clear any toc items possibly added while parsing the HTML
+    m_doc->getToc()->clear();
     bool has_toc = false;
     bool has_pagemap = false;
 

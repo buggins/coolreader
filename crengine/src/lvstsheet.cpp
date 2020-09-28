@@ -1072,8 +1072,8 @@ bool parse_content_property( const char * & str, lString16 & parsed_content)
     // declaration, but, as we don't support all those from the
     // specs, we'll just ignore the tokens we don't support.
     // We parse the original content into a "parsed content" string,
-    // consisting of a first letter, indicating its type, and if
-    // some data: its length and that data.
+    // consisting of a first letter, indicating its type, and if some
+    // data: its length (+1 to avoid NULLs in strings) and that data.
     // parsed_content may contain multiple values, in the format
     //   'X' for 'none' (or 'normal', = none with pseudo elements)
     //   's' + <len> + string16 (string content) for ""
@@ -1139,7 +1139,7 @@ bool parse_content_property( const char * & str, lString16 & parsed_content)
                     lString16 attr = Utf8ToUnicode(attr8);
                     attr.trim();
                     parsed_content << L'a';
-                    parsed_content << lChar16(attr.length());
+                    parsed_content << lChar16(attr.length() + 1); // (+1 to avoid storing \x00)
                     parsed_content << attr;
                     continue;
                 }
@@ -1228,7 +1228,7 @@ bool parse_content_property( const char * & str, lString16 & parsed_content)
             if ( *str == quote_ch ) {
                 lString16 str16 = Utf8ToUnicode(str8);
                 parsed_content << L's';
-                parsed_content << lChar16(str16.length());
+                parsed_content << lChar16(str16.length() + 1); // (+1 to avoid storing \x00)
                 parsed_content << str16;
                 str++;
                 continue;
@@ -1317,12 +1317,12 @@ void update_style_content_property( css_style_rec_t * style, ldomNode * node ) {
     while ( i < parsed_content_len ) {
         lChar16 ctype = parsed_content[i];
         if ( ctype == 's' ) { // literal string: copy as-is
-            lChar16 len = parsed_content[i];
+            lChar16 len = parsed_content[i] - 1; // (remove added +1)
             res.append(parsed_content, i, len+2);
             i += len+2;
         }
         else if ( ctype == 'a' ) { // attribute value: copy as-is
-            lChar16 len = parsed_content[i];
+            lChar16 len = parsed_content[i] - 1; // (remove added +1)
             res.append(parsed_content, i, len+2);
             i += len+2;
         }
@@ -1368,12 +1368,12 @@ lString16 get_applied_content_property( ldomNode * node ) {
     while ( i < parsed_content_len ) {
         lChar16 ctype = parsed_content[i++];
         if ( ctype == 's' ) { // literal string
-            lChar16 len = parsed_content[i++];
+            lChar16 len = parsed_content[i++] - 1; // (remove added +1)
             res << parsed_content.substr(i, len);
             i += len;
         }
         else if ( ctype == 'a' ) { // attribute value
-            lChar16 len = parsed_content[i++];
+            lChar16 len = parsed_content[i++] - 1; // (remove added +1)
             lString16 attr_name = parsed_content.substr(i, len);
             i += len;
             ldomNode * attrNode = node;
@@ -3197,9 +3197,11 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             {
                 int l = *p++;
                 lString16 content;
-                content.reserve(l);
-                for (int i=0; i<l; i++)
-                    content << (lChar16)(*p++);
+                if ( l > 0 ) {
+                    content.reserve(l);
+                    for (int i=0; i<l; i++)
+                        content << (lChar16)(*p++);
+                }
                 style->Apply( content, &style->content, imp_bit_content, is_important );
             }
             break;
