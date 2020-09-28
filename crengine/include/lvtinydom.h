@@ -45,7 +45,6 @@
 
 // Allows for requesting older DOM building code (including bugs NOT fixed)
 extern const int gDOMVersionCurrent;
-extern int gDOMVersionRequested;
 
 // Also defined in src/lvtinydom.cpp
 #define DOM_VERSION_WITH_NORMALIZED_XPOINTERS 20200223
@@ -497,6 +496,10 @@ protected:
     int calcFinalBlocks();
     void dropStyles();
 #endif
+    bool _hangingPunctuationEnabled;
+    lUInt32 _renderBlockRenderingFlags;
+    lUInt32 _DOMVersionRequested;
+    int _interlineScaleFactor;
 
     ldomDataStorageManager _textStorage; // persistent text node data storage
     ldomDataStorageManager _elemStorage; // persistent element data storage
@@ -585,9 +588,7 @@ public:
         _renderedBlockCache.clear();
         return true;
     }
-#endif
 
-#if BUILD_LITE!=1
     /// add named BLOB data to document
     bool addBlob(lString16 name, const lUInt8 * data, int size) { _cacheFileStale = true ; return _blobCache.addBlob(data, size, name); }
     /// get BLOB by name
@@ -613,6 +614,26 @@ public:
 
     bool createCacheFile();
 #endif
+
+    bool getHangingPunctiationEnabled() const {
+        return _hangingPunctuationEnabled;
+    }
+    bool setHangingPunctiationEnabled(bool value);
+
+    lUInt32 getRenderBlockRenderingFlags() const {
+        return _renderBlockRenderingFlags;
+    }
+    bool setRenderBlockRenderingFlags(lUInt32 flags);
+
+    lUInt32 getDOMVersionRequested() const {
+        return _DOMVersionRequested;
+    }
+    bool setDOMVersionRequested(lUInt32 version);
+
+    int getInterlineScaleFactor() const {
+        return _interlineScaleFactor;
+    }
+    bool setInterlineScaleFactor(int value);
 
     inline bool getDocFlag( lUInt32 mask )
     {
@@ -1569,7 +1590,8 @@ public:
     /// converts to string
     lString16 toString( XPointerMode mode = XPATH_USE_NAMES) {
         if( XPATH_USE_NAMES==mode ) {
-            if( gDOMVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS)
+            tinyNodeCollection* doc = (tinyNodeCollection*)_data->getDocument();
+            if ( doc != NULL && doc->getDOMVersionRequested() >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS )
                 return toStringV2();
             return toStringV1();
         }
@@ -2554,7 +2576,7 @@ public:
     /// create xpointer from relative pointer string
     ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr )
     {
-        if( gDOMVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS)
+        if( _DOMVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS)
             return createXPointerV2(baseNode, xPointerStr);
         return createXPointerV1(baseNode, xPointerStr);
     }

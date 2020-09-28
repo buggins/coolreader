@@ -81,7 +81,7 @@ private:
 public:
     void apply( css_style_rec_t * style );
     bool empty() { return _data==NULL; }
-    bool parse( const char * & decl, bool higher_importance=false, lxmlDocBase * doc=NULL, lString16 codeBase=lString16::empty_str );
+    bool parse( const char * & decl, lUInt32 domVersionRequested, bool higher_importance=false, lxmlDocBase * doc=NULL, lString16 codeBase=lString16::empty_str );
     lUInt32 getHash();
     LVCssDeclaration() : _data(NULL) { }
     ~LVCssDeclaration() { if (_data) delete[] _data; }

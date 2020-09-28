@@ -3519,10 +3519,12 @@ void LVDocView::setDefaultInterlineSpace(int percent) {
     LVLock lock(getMutex());
     REQUEST_RENDER("setDefaultInterlineSpace")
     m_def_interline_space = percent; // not used
-    if (percent == 100) // (avoid any rounding issue)
-        gInterlineScaleFactor = INTERLINE_SCALE_FACTOR_NO_SCALE;
-    else
-        gInterlineScaleFactor = INTERLINE_SCALE_FACTOR_NO_SCALE * percent / 100;
+    if (m_doc) {
+        if (percent == 100) // (avoid any rounding issue)
+            m_doc->setInterlineScaleFactor(INTERLINE_SCALE_FACTOR_NO_SCALE);
+        else
+            m_doc->setInterlineScaleFactor(INTERLINE_SCALE_FACTOR_NO_SCALE * percent / 100);
+    }
     _posIsSet = false;
 //	goToBookmark( _posBookmark);
 //        updateBookMarksRanges();
@@ -3814,11 +3816,11 @@ static void FileToArcProps(CRPropRef props) {
 	props->setHex(DOC_PROP_FILE_CRC32, 0);
 }
 
-static bool needToConvertBookmarks(CRFileHistRecord* historyRecord)
+static bool needToConvertBookmarks(CRFileHistRecord* historyRecord, lUInt32 domVersionRequested)
 {
     bool convertBookmarks = false;
     if (historyRecord && historyRecord->getBookmarks().length() > 1
-        && gDOMVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS
+        && domVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS
         && historyRecord->getDOMversion() < DOM_VERSION_WITH_NORMALIZED_XPOINTERS) {
             convertBookmarks = true;
     }
@@ -3878,21 +3880,21 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 		m_doc_props->setString(DOC_PROP_FILE_NAME, arcItemPathName);
 		m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
 		CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
-		int newDOMVersion;
-		bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
+		lUInt32 newDOMVersion;
+		lUInt32 domVersionRequested = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
+		bool convertBookmarks = needToConvertBookmarks(record, domVersionRequested) && !metadataOnly;
 		if(convertBookmarks) {
-			newDOMVersion = gDOMVersionRequested;
-			gDOMVersionRequested = record->getDOMversion();
+			newDOMVersion = domVersionRequested;
+			m_props->setInt(PROP_REQUESTED_DOM_VERSION, record->getDOMversion());
 			m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
 		}
-
 		// loading document
 		if (loadDocumentInt(stream, metadataOnly)) {
 			m_filename = lString16(fname);
 			m_stream.Clear();
 			if(convertBookmarks) {
 				record->convertBookmarks(m_doc, newDOMVersion);
-				gDOMVersionRequested = newDOMVersion;
+				m_props->setInt(PROP_REQUESTED_DOM_VERSION, newDOMVersion);
 				m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
 				//FIXME: need to reload file after this
 			}
@@ -3941,23 +3943,21 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 
 	CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
 	int newDOMVersion;
-	bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
+	lUInt32 domVersionRequested = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
+	bool convertBookmarks = needToConvertBookmarks(record, domVersionRequested) && !metadataOnly;
 	if(convertBookmarks) {
-		newDOMVersion = gDOMVersionRequested;
-		gDOMVersionRequested = record->getDOMversion();
+		newDOMVersion = domVersionRequested;
+		m_props->setInt(PROP_REQUESTED_DOM_VERSION, record->getDOMversion());
 		m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
 	}
-	if (record)
-		gDOMVersionRequested = record->getDOMversion();
 
 	if (loadDocumentInt(stream, metadataOnly)) {
 		m_filename = lString16(fname);
 		m_stream.Clear();
-
 		if(convertBookmarks) {
 			record->convertBookmarks(m_doc, newDOMVersion);
-			gDOMVersionRequested = newDOMVersion;
-			m_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
+			m_props->setInt(PROP_REQUESTED_DOM_VERSION, newDOMVersion);
+			m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
 			//FIXME: need to reload file after this
 		}
 #define DUMP_OPENED_DOCUMENT_SENTENCES 0 // debug XPointer navigation
@@ -4034,21 +4034,21 @@ bool LVDocView::LoadDocument( LVStreamRef stream, const lChar16 * contentPath, b
 
 	CRFileHistRecord* record = m_hist.getRecord( contentPath16, stream->GetSize() );
 	int newDOMVersion;
+	lUInt32 domVersionRequested = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
 	int savedRenderFlags = m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
-	bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
+	bool convertBookmarks = needToConvertBookmarks(record, domVersionRequested) && !metadataOnly;
 	if(convertBookmarks) {
-		newDOMVersion = gDOMVersionRequested;
-		gDOMVersionRequested = record->getDOMversion();
+		newDOMVersion = domVersionRequested;
+		m_props->setInt(PROP_REQUESTED_DOM_VERSION, record->getDOMversion());
 		m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
 	}
 
 	if (loadDocumentInt(stream, metadataOnly)) {
 		m_filename = lString16(contentPath);
-
 		if(convertBookmarks) {
 			record->convertBookmarks(m_doc, newDOMVersion);
-			gDOMVersionRequested = newDOMVersion;
-			m_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
+			m_props->setInt(PROP_REQUESTED_DOM_VERSION, newDOMVersion);
+			m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
 			//FIXME: need to reload file after this
 		}
 		return true;
@@ -4645,6 +4645,13 @@ void LVDocView::createEmptyDocument() {
     m_doc->setMinSpaceCondensingPercent(m_props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, DEF_MIN_SPACE_CONDENSING_PERCENT));
     m_doc->setUnusedSpaceThresholdPercent(m_props->getIntDef(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, DEF_UNUSED_SPACE_THRESHOLD_PERCENT));
     m_doc->setMaxAddedLetterSpacingPercent(m_props->getIntDef(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, DEF_MAX_ADDED_LETTER_SPACING_PERCENT));
+    m_doc->setHangingPunctiationEnabled(m_props->getBoolDef(PROP_FLOATING_PUNCTUATION, true));
+    m_doc->setRenderBlockRenderingFlags(m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT));
+    m_doc->setDOMVersionRequested(m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent));
+    if (m_def_interline_space == 100) // (avoid any rounding issue)
+        m_doc->setInterlineScaleFactor(INTERLINE_SCALE_FACTOR_NO_SCALE);
+    else
+        m_doc->setInterlineScaleFactor(INTERLINE_SCALE_FACTOR_NO_SCALE * m_def_interline_space / 100);
 
     m_doc->setContainer(m_container);
     // This sets the element names default style (display, whitespace)
@@ -5823,13 +5830,13 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
     case DCMD_SET_REQUESTED_DOM_VERSION:
         CRLog::trace("DCMD_SET_REQUESTED_DOM_VERSION(%d)", param);
         m_props->setInt(PROP_REQUESTED_DOM_VERSION, param);
-        gDOMVersionRequested = param;
+        getDocument()->setDOMVersionRequested(param);
         REQUEST_RENDER("doCommand-set requested dom version")
         break;
     case DCMD_RENDER_BLOCK_RENDERING_FLAGS:
         CRLog::trace("DCMD_RENDER_BLOCK_RENDERING_FLAGS(%d)", param);
         m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, param);
-        gRenderBlockRenderingFlags = param;
+        getDocument()->setRenderBlockRenderingFlags(param);
         REQUEST_RENDER("doCommand-set block rendering flags")
         break;
     case DCMD_REQUEST_RENDER:
@@ -6684,27 +6691,24 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             REQUEST_RENDER("propsApply footnotes")
         } else if (name == PROP_FLOATING_PUNCTUATION) {
             bool value = props->getBoolDef(PROP_FLOATING_PUNCTUATION, true);
-            if ( gHangingPunctuationEnabled != value ) {
-                gHangingPunctuationEnabled = value;
-                REQUEST_RENDER("propsApply - hanging punctuation")
-                // requestRender() does m_doc->clearRendBlockCache(), which is needed
-                // on hanging punctuation change
-            }
+            if (m_doc) // not when noDefaultDocument=true
+                if (getDocument()->setHangingPunctiationEnabled(value)) {
+                    REQUEST_RENDER("propsApply - hanging punctuation")
+                    // requestRender() does m_doc->clearRendBlockCache(), which is needed
+                    // on hanging punctuation change
+                }
         } else if (name == PROP_REQUESTED_DOM_VERSION) {
             int value = props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
-            if (gDOMVersionRequested != value) {
-                gDOMVersionRequested = value;
-                REQUEST_RENDER("propsApply requested dom version")
-                needUpdateHyphenation = true;
-            }
+            if (m_doc) // not when noDefaultDocument=true
+                if (getDocument()->setDOMVersionRequested(value)) {
+                    needUpdateHyphenation = true;
+                    REQUEST_RENDER("propsApply requested dom version")
+                }
         } else if (name == PROP_RENDER_BLOCK_RENDERING_FLAGS) {
-            int value = props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
-            value = validateBlockRenderingFlags(value);
-            if ( gRenderBlockRenderingFlags != value ) {
-                gRenderBlockRenderingFlags = value;
-                REQUEST_RENDER("propsApply render block rendering flags")
-                needUpdateHyphenation = true;
-            }
+            lUInt32 value = (lUInt32)props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
+            if (m_doc) // not when noDefaultDocument=true
+                if (getDocument()->setRenderBlockRenderingFlags(value))
+                    REQUEST_RENDER("propsApply render block rendering flags")
         } else if (name == PROP_RENDER_DPI) {
             int value = props->getIntDef(PROP_RENDER_DPI, DEF_RENDER_DPI);
             if ( gRenderDPI != value ) {

@@ -461,23 +461,25 @@ void CRFileHistRecord::setLastPos( CRBookmark * bmk )
 
 void CRFileHistRecord::convertBookmarks(ldomDocument *doc, int newDOMversion)
 {
+    // TODO: Don't call tinyNodeCollection::setDOMVersionRequested()
+    // but directly use functions ldomDocument::createXPointerV1() & ldomDocument::createXPointerV2().
     for ( int i=0; i< getBookmarks().length(); i++) {
         CRBookmark * bmk = getBookmarks()[i];
 
         if( bmk->isValid() ) {
             if (bmk->getType() != bmkt_lastpos) {
-                gDOMVersionRequested = getDOMversion();
+                doc->setDOMVersionRequested(getDOMversion());
                 ldomXPointer p = doc->createXPointer(bmk->getStartPos());
                 if ( !p.isNull() ) {
-                    gDOMVersionRequested = newDOMversion;
+                    doc->setDOMVersionRequested(newDOMversion);
                     bmk->setStartPos(p.toString());
                 }
                 lString16 endPos = bmk->getEndPos();
                 if( !endPos.empty() ) {
-                    gDOMVersionRequested = getDOMversion();
+                    doc->setDOMVersionRequested(getDOMversion());
                     p = doc->createXPointer(endPos);
                     if( !p.isNull() ) {
-                        gDOMVersionRequested = newDOMversion;
+                        doc->setDOMVersionRequested(newDOMversion);
                         bmk->setEndPos(p.toString());
                     }
                 }
