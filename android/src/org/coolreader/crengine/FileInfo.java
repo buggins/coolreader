@@ -45,6 +45,7 @@ public class FileInfo {
 	public String pathname; // full path+arcname+filename
 	public String arcname; // archive file name w/o path
 	public String language; // document language
+	public String description;	// book description
 	public String username; // username for online catalogs
 	public String password; // password for online catalogs
 	public DocumentFormat format;
@@ -57,7 +58,7 @@ public class FileInfo {
 	public boolean isDirectory;
 	public boolean isListed;
 	public boolean isScanned;
-	public int crc32;
+	public long crc32;
 	public int domVersion;
 	public int blockRenderingFlags;
 	public FileInfo parent; // parent item
@@ -316,6 +317,7 @@ public class FileInfo {
 		createTime = v.createTime;
 		lastAccessTime = v.lastAccessTime;
 		language = v.language;
+		description = v.description;
 		username = v.username;
 		password = v.password;
 		crc32 = v.crc32;
@@ -1171,6 +1173,11 @@ public class FileInfo {
 				return false;
 		} else if (!language.equals(other.language))
 			return false;
+		if (description == null) {
+			if (other.description != null)
+				return false;
+		} else if (!description.equals(other.description))
+			return false;
 		if (lastAccessTime != other.lastAccessTime)
 			return false;
 		if (parent == null) {
@@ -1245,6 +1252,11 @@ public class FileInfo {
 			if (other.language != null)
 				return false;
 		} else if (!language.equals(other.language))
+			return false;
+		if (description == null) {
+			if (other.description != null)
+				return false;
+		} else if (!description.equals(other.description))
 			return false;
 		if (path == null) {
 			if (other.path != null)

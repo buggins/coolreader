@@ -77,9 +77,9 @@ public:
     /// set int property by name, if it's not set already
     virtual void setIntDef( const char * propName, int value );
     /// set int property as hex
-    virtual void setHex( const char * propName, int value );
+    virtual void setHex( const char * propName, lUInt32 value );
     /// set int property as hex, if not exist
-    virtual void setHexDef( const char * propName, int value )
+    virtual void setHexDef( const char * propName, lUInt32 value )
     {
         if ( !hasProperty( propName ) )
             setHex( propName, value );

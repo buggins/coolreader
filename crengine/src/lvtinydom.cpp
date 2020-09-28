@@ -2135,7 +2135,7 @@ bool tinyNodeCollection::openCacheFile()
 
     lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
     //lUInt32 sz = (lUInt32)getProps()->getInt64Def(DOC_PROP_FILE_SIZE, 0);
-    lUInt32 crc = getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
+    lUInt32 crc = (lUInt32)getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
 
     if ( !ldomDocCache::enabled() ) {
         CRLog::error("Cannot open cached document: cache dir is not initialized");
@@ -2185,7 +2185,7 @@ bool tinyNodeCollection::createCacheFile()
 
     lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
     lUInt32 sz = (lUInt32)getProps()->getInt64Def(DOC_PROP_FILE_SIZE, 0);
-    lUInt32 crc = getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
+    lUInt32 crc = (lUInt32)getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
 
     if ( !ldomDocCache::enabled() ) {
         CRLog::error("Cannot swap: cache dir is not initialized");

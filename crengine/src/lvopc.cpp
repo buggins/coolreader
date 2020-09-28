@@ -115,8 +115,12 @@ void OpcPackage::readCoreProperties(CRPropRef doc_props)
         if ( propertiesDoc ) {
             lString16 author = propertiesDoc->textFromXPath( cs16("coreProperties/creator") );
             lString16 title = propertiesDoc->textFromXPath( cs16("coreProperties/title") );
+            lString16 language = propertiesDoc->textFromXPath( cs16("coreProperties/language") );
+            lString16 description = propertiesDoc->textFromXPath( cs16("coreProperties/description") );
             doc_props->setString(DOC_PROP_TITLE, title);
             doc_props->setString(DOC_PROP_AUTHORS, author );
+            doc_props->setString(DOC_PROP_LANGUAGE, language );
+            doc_props->setString(DOC_PROP_DESCRIPTION, description );
             delete propertiesDoc;
         } else {
             CRLog::error("Couldn't parse core properties");

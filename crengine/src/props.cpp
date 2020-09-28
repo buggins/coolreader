@@ -298,7 +298,7 @@ int CRPropAccessor::getIntDef( const char * propName, int defValue ) const
 }
 
 /// set int property as hex
-void CRPropAccessor::setHex( const char * propName, int value )
+void CRPropAccessor::setHex( const char * propName, lUInt32 value )
 {
     char s[16];
     sprintf(s, "0x%08X", value);

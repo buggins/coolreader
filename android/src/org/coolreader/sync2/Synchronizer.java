@@ -871,7 +871,7 @@ public class Synchronizer {
 						props.setProperty("series", fileInfo.series);
 						props.setInt("seriesNumber", fileInfo.seriesNumber);
 						props.setInt("size", fileInfo.size);
-						props.setInt("crc32", fileInfo.crc32);
+						props.setLong("crc32", fileInfo.crc32);
 						props.storeToXML(gzipOutputStream, "CoolReader current document info");
 						gzipOutputStream.close();
 						outputStream.close();
@@ -948,7 +948,7 @@ public class Synchronizer {
 								fileInfo.series = props.getProperty("series");
 								fileInfo.seriesNumber = props.getInt("seriesNumber", 0);
 								fileInfo.size = props.getInt("size", 0);
-								fileInfo.crc32 = props.getInt("crc32", 0);
+								fileInfo.crc32 = props.getLong("crc32", 0);
 								syncSetCurrentBook(fileInfo);
 								onContinue.run();
 							} else {
@@ -1313,7 +1313,7 @@ public class Synchronizer {
 				serializer.endTag("", "size");
 				// File CRC32
 				serializer.startTag("", "crc32");
-				serializer.text(Integer.toString(fileInfo.crc32, 10));
+				serializer.text(Long.toString(fileInfo.crc32, 10));
 				serializer.endTag("", "crc32");
 				serializer.endTag("", "fileinfo");
 				// Write bookmarks

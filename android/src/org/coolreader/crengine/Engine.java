@@ -592,6 +592,8 @@ public class Engine {
 
 	private native static boolean scanBookPropertiesInternal(FileInfo info);
 
+	private native static boolean updateFileCRC32Internal(FileInfo info);
+
 	private native static byte[] scanBookCoverInternal(String path);
 
 	private native static void drawBookCoverInternal(Bitmap bmp, byte[] data, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp);
@@ -992,6 +994,12 @@ public class Engine {
 			long duration = Utils.timeInterval(start);
 			L.v("scanBookCover took " + duration + " ms for " + path);
 			return res;
+		}
+	}
+
+	public static boolean updateFileCRC32(FileInfo info) {
+		synchronized (lock) {
+			return updateFileCRC32Internal(info);
 		}
 	}
 

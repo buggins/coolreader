@@ -977,6 +977,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         m_doc_props->setString(DOC_PROP_TITLE, title);
         m_doc_props->setString(DOC_PROP_LANGUAGE, language);
         m_doc_props->setString(DOC_PROP_DESCRIPTION, description);
+        m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
 
         // Return possibly multiple <dc:creator> (authors) and <dc:subject> (keywords)
         // as a single doc_props string with values separated by \n.

@@ -1,36 +1,12 @@
 #include "../include/fb3fmt.h"
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
-#include "../include/lvopc.h"
 #include "../include/crlog.h"
 
 static const lChar16 * const fb3_BodyContentType = L"application/fb3-body+xml";
 static const lChar16 * const fb3_DescriptionContentType = L"application/fb3-description+xml";
 static const lChar16 * const fb3_CoverRelationship = L"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail";
 static const lChar16 * const fb3_ImageRelationship = L"http://www.fictionbook.org/FictionBook3/relationships/image";
-
-class fb3ImportContext
-{
-private:
-    OpcPackage *m_package;
-    OpcPartRef m_bookPart;
-    ldomDocument *m_descDoc;
-public:
-    fb3ImportContext(OpcPackage *package);
-    virtual ~fb3ImportContext();
-
-    lString16 geImageTarget(const lString16 relationId) {
-        return m_bookPart->getRelatedPartName(fb3_ImageRelationship, relationId);
-    }
-    LVStreamRef openBook() {
-        m_bookPart = m_package->getContentPart(fb3_BodyContentType);
-        m_coverImage = m_package->getRelatedPartName(fb3_CoverRelationship);
-        return m_bookPart->open();
-    }
-    ldomDocument *getDescription();
-public:
-    lString16 m_coverImage;
-};
 
 bool DetectFb3Format( LVStreamRef stream )
 {
@@ -141,6 +117,16 @@ fb3ImportContext::~fb3ImportContext()
 {
     if(m_descDoc)
         delete  m_descDoc;
+}
+
+lString16 fb3ImportContext::geImageTarget(const lString16 relationId) {
+    return m_bookPart->getRelatedPartName(fb3_ImageRelationship, relationId);
+}
+
+LVStreamRef fb3ImportContext::openBook() {
+    m_bookPart = m_package->getContentPart(fb3_BodyContentType);
+    m_coverImage = m_package->getRelatedPartName(fb3_CoverRelationship);
+    return m_bookPart->open();
 }
 
 ldomDocument *fb3ImportContext::getDescription()

@@ -4931,7 +4931,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				}
 				CoolReader.dumpHeapAllocation();
 			} else {
-				log.e("Error occured while trying to load document " + filename);
+				log.e("Error occurred while trying to load document " + filename);
 				throw new IOException("Cannot read document");
 			}
 		}
@@ -4942,18 +4942,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
 			if (Services.getHistory() != null) {
 				Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
-				java.util.Properties props = doc.getDocProps();
-				if (null != props) {
-					String crc32Str = props.getProperty(DOC_PROP_FILE_CRC32, "0");
-					if (crc32Str.startsWith("0x"))
-						crc32Str = crc32Str.substring(2);
-					try {
-						mBookInfo.getFileInfo().crc32 = Integer.valueOf(crc32Str, 16);
-					} catch (NumberFormatException e) {
-						mBookInfo.getFileInfo().crc32 = 0;
-					}
-				} else
-					mBookInfo.getFileInfo().crc32 = 0;
 				mActivity.waitForCRDBService(() -> mActivity.getDB().saveBookInfo(mBookInfo));
 				if (coverPageBytes != null && mBookInfo != null && mBookInfo.getFileInfo() != null) {
 					// TODO: fix it

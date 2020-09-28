@@ -101,6 +101,14 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertie
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    updateFileCRC32Internal
+ * Signature: (Lorg/coolreader/crengine/FileInfo;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_updateFileCRC32Internal
+  (JNIEnv *, jclass, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    scanBookCoverInternal
  * Signature: (Ljava/lang/String;)[B
  */
