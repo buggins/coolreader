@@ -161,6 +161,10 @@ rt, rubyBox[T=rt] {
     -cr-hint: text-selection-skip;
 }
 
+/* No support for the "quotes:" property, these will use default quote chars */
+q::before               { content: open-quote; }
+q::after                { content: close-quote; }
+
 code {
    $code.all
 }

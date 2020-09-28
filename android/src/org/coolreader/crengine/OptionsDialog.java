@@ -290,6 +290,25 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.autosave_period_20min,
 			R.string.autosave_period_30min
 	};
+	int [] mCloudBookmarksKeepAlive = new int [] {
+			0, 1, 2, 3, 4, 5, 6,
+			7, 14, 30, 91, 182, 365
+	};
+	int [] mCloudBookmarksKeepAliveTitles = new int [] {
+			R.string.bookmarks_keepalive_off,
+			R.string.bookmarks_keepalive_1day,
+			R.string.bookmarks_keepalive_2days,
+			R.string.bookmarks_keepalive_3days,
+			R.string.bookmarks_keepalive_4days,
+			R.string.bookmarks_keepalive_5days,
+			R.string.bookmarks_keepalive_6days,
+			R.string.bookmarks_keepalive_1week,
+			R.string.bookmarks_keepalive_2weeks,
+			R.string.bookmarks_keepalive_1month,
+			R.string.bookmarks_keepalive_1quarter,
+			R.string.bookmarks_keepalive_half_a_year,
+			R.string.bookmarks_keepalive_1year
+	};
 	ViewGroup mContentView;
 	TabHost mTabs;
 	LayoutInflater mInflater;
@@ -313,6 +332,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionBase mGoogleDriveEnableCurrentBookOption;
 	OptionBase mCloudSyncAskConfirmationsOption;
 	OptionBase mGoogleDriveAutoSavePeriodOption;
+	OptionBase mCloudSyncBookmarksKeepAliveOptions;
 
 	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
 	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
@@ -2122,6 +2142,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 					mGoogleDriveEnableBookmarksOption.setEnabled(syncEnabled);
 					mGoogleDriveEnableCurrentBookOption.setEnabled(syncEnabled);
 					mGoogleDriveAutoSavePeriodOption.setEnabled(syncEnabled);
+					// mCloudSyncBookmarksKeepAliveOptions should be enabled regardless of PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED
 				}));
 			mCloudSyncAskConfirmationsOption = new BoolOption(this, getString(R.string.options_app_cloudsync_confirmations), PROP_APP_CLOUDSYNC_CONFIRMATIONS).setDefaultValue("1").noIcon();
 			mCloudSyncAskConfirmationsOption.enabled = gdriveSyncEnabled;
@@ -2133,11 +2154,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mGoogleDriveEnableCurrentBookOption.enabled = gdriveSyncEnabled;
 			mGoogleDriveAutoSavePeriodOption = new ListOption(this, getString(R.string.autosave_period), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD).add(mGoogleDriveAutoSavePeriod, mGoogleDriveAutoSavePeriodTitles).setDefaultValue(Integer.valueOf(5).toString()).noIcon();
 			mGoogleDriveAutoSavePeriodOption.enabled = gdriveSyncEnabled;
+			mCloudSyncBookmarksKeepAliveOptions = new ListOption(this, getString(R.string.bookmarks_keepalive_), PROP_APP_CLOUDSYNC_BOOKMARKS_KEEPALIVE).add(mCloudBookmarksKeepAlive, mCloudBookmarksKeepAliveTitles).setDefaultValue(Integer.valueOf(14).toString()).noIcon();
+			// mCloudSyncBookmarksKeepAliveOptions should be enabled regardless of PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED
 			mOptionsCloudSync.add(mCloudSyncAskConfirmationsOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableSettingsOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableBookmarksOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableCurrentBookOption);
 			mOptionsCloudSync.add(mGoogleDriveAutoSavePeriodOption);
+			mOptionsCloudSync.add(mCloudSyncBookmarksKeepAliveOptions);
 		}
 
 		fillStyleEditorOptions();

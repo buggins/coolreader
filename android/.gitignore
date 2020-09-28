@@ -12,4 +12,10 @@ obj
 .DS_Store
 /build
 /captures
-.externalNativeBuild
+/.externalNativeBuild
+/.idea/assetWizardSettings.xml
+/.idea/encodings.xml
+/.idea/jarRepositories.xml
+/.idea/modules.xml
+/.idea/caches/
+/.idea/dictionaries/
