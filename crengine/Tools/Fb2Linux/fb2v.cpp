@@ -301,7 +301,7 @@ int main( int argc, const char * argv[] )
 
     // init hyphenation manager
     HyphMan::initDictionaries(Utf8ToUnicode(exedir));
-    HyphMan::activateDictionary(L"Russian_EnUS_hyphen_(Alan).pdb");
+    HyphMan::activateDictionary(L"Russian_EnUS.pattern");
 
     //LVCHECKPOINT("WinMain start");
 

@@ -17,9 +17,7 @@ IF (UNIX)
   INSTALL( TARGETS cr3 RUNTIME DESTINATION bin )
   INSTALL( DIRECTORY ../cr3qt/data DESTINATION share/cr3 
   FILES_MATCHING PATTERN "*.css" )
-  INSTALL( DIRECTORY ../cr3qt/data/hyph DESTINATION share/cr3 
-  FILES_MATCHING PATTERN "*.pdb" )
-  INSTALL( DIRECTORY ../cr3qt/data/hyph DESTINATION share/cr3 
+  INSTALL( DIRECTORY ../cr3gui/data/hyph DESTINATION share/cr3 
   FILES_MATCHING PATTERN "*.pattern" )
   INSTALL( DIRECTORY ../cr3qt/data/skins DESTINATION share/cr3/skins )
   INSTALL( FILES ../cr3qt/src/desktop/cr3.desktop DESTINATION share/applications )
@@ -29,9 +27,7 @@ ELSE()
   INSTALL( TARGETS cr3 RUNTIME DESTINATION . )
   INSTALL( DIRECTORY ../cr3qt/data/ DESTINATION . 
   FILES_MATCHING PATTERN "*.css" )
-  INSTALL( DIRECTORY ../cr3qt/data/hyph DESTINATION . 
-  FILES_MATCHING PATTERN "*.pdb" )
-  INSTALL( DIRECTORY ../cr3qt/data/hyph DESTINATION . 
+  INSTALL( DIRECTORY ../cr3gui/data/hyph DESTINATION . 
   FILES_MATCHING PATTERN "*.pattern" )
   INSTALL( DIRECTORY ../cr3qt/data/skins DESTINATION . )
 ENDIF(UNIX)

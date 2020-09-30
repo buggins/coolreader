@@ -814,7 +814,7 @@ jboolean initDictionaries(JNIEnv *penv, jclass clazz, jobjectArray dictArray) {
 				dict_type = HDT_ALGORITHM;
 				break;
 			case 2:         // org/coolreader/crengine/Engine$HYPH_DICT
-				dict_type = HDT_DICT_ALAN;
+				dict_type = HDT_DICT_TEX;
 				break;
 			default:
 				dict_type = HDT_NONE;

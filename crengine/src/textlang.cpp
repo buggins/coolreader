@@ -23,6 +23,8 @@
 
 // (hyph_filename_prefix added because CoolReader may still have both
 // current "Italian.pattern" and old "Italian_hyphen_(Alan).pdb".)
+// (Romanian and Ukrainian have the prefix truncated because previous
+// pattern files, still in CoolReader, had these truncated names.)
 static struct {
     const char * lang_tag;
     const char * hyph_filename_prefix;
@@ -30,35 +32,46 @@ static struct {
     int left_hyphen_min;
     int right_hyphen_min;
 } _hyph_dict_table[] = {
+    { "eu",    "Basque",        "Basque.pattern",        2, 2 },
     { "bg",    "Bulgarian",     "Bulgarian.pattern",     2, 2 },
     { "ca",    "Catalan",       "Catalan.pattern",       2, 2 },
-    { "cs",    "Czech",         "Czech.pattern",         2, 2 },
+    { "cs",    "Czech",         "Czech.pattern",         2, 3 },
     { "da",    "Danish",        "Danish.pattern",        2, 2 },
     { "nl",    "Dutch",         "Dutch.pattern",         2, 2 },
-    { "en-GB", "English_GB",    "English_GB.pattern",    2, 2 },
-    { "en",    "English_US",    "English_US.pattern",    2, 2 },
+    { "en-GB", "English_GB",    "English_GB.pattern",    2, 3 },
+    { "en",    "English_US",    "English_US.pattern",    2, 3 },
+    { "eo",    "Esperanto",     "Esperanto.pattern",     2, 2 },
+    { "et",    "Estonian",      "Estonian.pattern",      2, 3 },
     { "fi",    "Finnish",       "Finnish.pattern",       2, 2 },
-    { "fr",    "French",        "French.pattern",        2, 1 },
+    { "fr",    "French",        "French.pattern",        2, 1 }, // see French.pattern file for why right_hyphen_min=1
     { "gl",    "Galician",      "Galician.pattern",      2, 2 },
+    { "ka",    "Georgian",      "Georgian.pattern",      1, 2 },
     { "de",    "German",        "German.pattern",        2, 2 },
-    { "el",    "Greek",         "Greek.pattern",         2, 2 },
+    { "el",    "Greek",         "Greek.pattern",         1, 1 },
+    { "hr",    "Croatian",      "Croatian.pattern",      2, 2 },
     { "hu",    "Hungarian",     "Hungarian.pattern",     2, 2 },
     { "is",    "Icelandic",     "Icelandic.pattern",     2, 2 },
-    { "ga",    "Irish",         "Irish.pattern",         2, 2 },
+    { "ga",    "Irish",         "Irish.pattern",         2, 3 },
     { "it",    "Italian",       "Italian.pattern",       2, 2 },
+    { "lv",    "Latvian",       "Latvian.pattern",       2, 2 },
+    { "lt",    "Lithuanian",    "Lithuanian.pattern",    2, 2 },
+    { "mk",    "Macedonian",    "Macedonian.pattern",    2, 2 },
     { "no",    "Norwegian",     "Norwegian.pattern",     2, 2 },
+    { "oc",    "Occitan",       "Occitan.pattern",       2, 2 },
     { "pl",    "Polish",        "Polish.pattern",        2, 2 },
-    { "pt",    "Portuguese",    "Portuguese.pattern",    2, 2 },
-    { "ro",    "Roman",         "Roman.pattern",         2, 2 },
+    { "pt",    "Portuguese",    "Portuguese.pattern",    2, 3 },
+    { "ro",    "Roman",         "Romanian.pattern",      2, 2 }, // truncated prefix (see above)
     { "ru-GB", "Russian_EnGB",  "Russian_EnGB.pattern",  2, 2 },
     { "ru-US", "Russian_EnUS",  "Russian_EnUS.pattern",  2, 2 },
     { "ru",    "Russian",       "Russian.pattern",       2, 2 },
-    { "sk",    "Slovak",        "Slovak.pattern",        2, 2 },
+    { "sr",    "Serbian",       "Serbian.pattern",       2, 2 },
+    { "sk",    "Slovak",        "Slovak.pattern",        2, 3 },
     { "sl",    "Slovenian",     "Slovenian.pattern",     2, 2 },
     { "es",    "Spanish",       "Spanish.pattern",       2, 2 },
     { "sv",    "Swedish",       "Swedish.pattern",       2, 2 },
     { "tr",    "Turkish",       "Turkish.pattern",       2, 2 },
-    { "uk",    "Ukrainian",     "Ukrain.pattern",        2, 2 },
+    { "uk",    "Ukrain",        "Ukrainian.pattern",     2, 2 }, // truncated prefix (see above)
+    { "cy",    "Welsh",         "Welsh.pattern",         2, 3 },
     // No-lang hyph methods, for legacy HyphMan methods: other lang properties will be from English
     { "en#@none",        "@none",        "@none",        2, 2 },
     { "en#@softhyphens", "@softhyphens", "@softhyphens", 2, 2 },
@@ -315,7 +328,7 @@ static quotes_spec _quotes_spec_table[] = {
     { "bem",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "bez",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "be",       L"\x00ab", L"\x00bb", L"\x201e", L"\x201c" }, /* « » „ “ */
-    { "bg",       L"\x201e", L"\x201c", L"\x201e", L"\x201c" }, /* „ “ „ “ */
+    { "bg",       L"\x201e", L"\x201c", L"\x2018", L"\x2019" }, /* „ “ ‘ ’ */
     { "bm",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
     { "bn",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "brx",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
@@ -326,7 +339,7 @@ static quotes_spec _quotes_spec_table[] = {
     { "cgg",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "chr",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "cs",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
-    { "cy",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "cy",       L"\x2018", L"\x2019", L"\x201c", L"\x201d" }, /* ‘ ’ “ ” */
     { "dav",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "da",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "de",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
@@ -339,9 +352,10 @@ static quotes_spec _quotes_spec_table[] = {
     { "ee",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "el",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
     { "en",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "eo",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "es",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
-    { "et",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
-    { "eu",       L"\x201c", L"\x201d", L"\x201c", L"\x201d" }, /* “ ” “ ” */
+    { "et",       L"\x201e", L"\x201c", L"\x00ab", L"\x00bb" }, /* „ “ « » */
+    { "eu",       L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
     { "ewo",      L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
     { "fa",       L"\x00ab", L"\x00bb", L"\x2039", L"\x203a" }, /* « » ‹ › */
     { "ff",       L"\x201e", L"\x201d", L"\x201a", L"\x2019" }, /* „ ” ‚ ’ */
@@ -373,7 +387,7 @@ static quotes_spec _quotes_spec_table[] = {
     { "jmc",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "kab",      L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
     { "kam",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
-    { "ka",       L"\x201e", L"\x201c", L"\x00ab", L"\x00bb" }, /* „ “ « » */
+    { "ka",       L"\x201e", L"\x201c", L"\x2018", L"\x2019" }, /* „ “ “ ” */
     { "kde",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "kea",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "khq",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
@@ -393,17 +407,17 @@ static quotes_spec _quotes_spec_table[] = {
     { "ln",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "lo",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "lrc",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
-    { "lt",       L"\x201e", L"\x201c", L"\x201e", L"\x201c" }, /* „ “ „ “ */
+    { "lt",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
     { "luo",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "luy",      L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
     { "lu",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
-    { "lv",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "lv",       L"\x201c", L"\x201d", L"\x201e", L"\x201d" }, /* “ ” „ ” */
     { "mas",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "mer",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "mfe",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "mgo",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "mg",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
-    { "mk",       L"\x201e", L"\x201c", L"\x201a", L"\x2018" }, /* „ “ ‚ ‘ */
+    { "mk",       L"\x201e", L"\x201c", L"\x2019", L"\x2018" }, /* „ “ ’ ‘ */
     { "ml",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "mn",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "mr",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
@@ -422,6 +436,7 @@ static quotes_spec _quotes_spec_table[] = {
     { "nn",       L"\x00ab", L"\x00bb", L"\x2018", L"\x2019" }, /* « » ‘ ’ */
     { "nus",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "nyn",      L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
+    { "oc",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
     { "pa",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "pl",       L"\x201e", L"\x201d", L"\x00ab", L"\x00bb" }, /* „ ” « » */
     { "pt-pt",    L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
@@ -447,7 +462,7 @@ static quotes_spec _quotes_spec_table[] = {
     { "so",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "sq",       L"\x00ab", L"\x00bb", L"\x201c", L"\x201d" }, /* « » “ ” */
     { "sr-latn",  L"\x201e", L"\x201c", L"\x2018", L"\x2018" }, /* „ “ ‘ ‘ */
-    { "sr",       L"\x201e", L"\x201c", L"\x2018", L"\x2018" }, /* „ “ ‘ ‘ */
+    { "sr",       L"\x201e", L"\x201d", L"\x2019", L"\x2019" }, /* „ ” ’ ’ */
     { "sv",       L"\x201d", L"\x201d", L"\x2019", L"\x2019" }, /* ” ” ’ ’ */
     { "sw",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
     { "ta",       L"\x201c", L"\x201d", L"\x2018", L"\x2019" }, /* “ ” ‘ ’ */
@@ -805,7 +820,7 @@ TextLangCfg::TextLangCfg( lString16 lang_tag ) {
     else if ( LANG_STARTS_WITH(("cs") ("sk")) ) { // Czech, Slovak
         _lb_char_sub_func = &lb_char_sub_func_czech_slovak;
     }
-    else if ( LANG_STARTS_WITH(("pt")) ) { // Portuguese
+    else if ( LANG_STARTS_WITH(("pt") ("sr")) ) { // Portuguese, Serbian
         _duplicate_real_hyphen_on_next_line = true;
     }
 #endif

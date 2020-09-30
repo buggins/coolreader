@@ -1661,6 +1661,25 @@ public class BaseActivity extends Activity implements Settings {
 			return res;
 		}
 
+		private void upgradeSettings(Properties props) {
+			String oldHyphenCode = props.getProperty("crengine.hyphenation.dictionary.code");
+			if (null != oldHyphenCode && oldHyphenCode.length() > 1) {
+				String newHyphenValue = props.getProperty(ReaderView.PROP_HYPHENATION_DICT);
+				if (null == newHyphenValue || newHyphenValue.length() == 0) {
+					if ("RUSSIAN".equals(oldHyphenCode)) {
+						newHyphenValue = "Russian_EnUS";
+					} else if ("ENGLISH".equals(oldHyphenCode)) {
+						newHyphenValue = "English_US";
+					} else {
+						newHyphenValue = oldHyphenCode.substring(0, 1);
+						newHyphenValue = newHyphenValue + oldHyphenCode.substring(1).toLowerCase();
+					}
+					props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, newHyphenValue);
+					props.remove("crengine.hyphenation.dictionary.code");
+				}
+			}
+		}
+
 		public Properties loadSettings(BaseActivity activity, File file) {
 			Properties props = new Properties();
 
@@ -1773,6 +1792,7 @@ public class BaseActivity extends Activity implements Settings {
 
 
 			fixFontSettings(props);
+			upgradeSettings(props);
 			props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
 			props.applyDefault(ReaderView.PROP_FONT_HINTING, "2");
 			props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : String.valueOf(statusFontSize));
@@ -1845,7 +1865,7 @@ public class BaseActivity extends Activity implements Settings {
 
 			props.setProperty(ReaderView.PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
 			props.setProperty(ReaderView.PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
-			props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.name);
+			props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, "0");
 
 			props.applyDefault(ReaderView.PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, "0");

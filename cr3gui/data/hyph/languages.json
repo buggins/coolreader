@@ -16,6 +16,13 @@
         "language": "-"
     },
     {
+        "name": "Basque",
+        "filename": "Basque.pattern",
+        "language": "eu",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2
+    },
+    {
         "name": "Bulgarian",
         "filename": "Bulgarian.pattern",
         "language": "bg",
@@ -28,9 +35,18 @@
         "aliases": ["cat"]
     },
     {
+        "name": "Croatian",
+        "filename": "Croatian.pattern",
+        "language": "hr",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2
+    },
+    {
         "name": "Czech",
         "filename": "Czech.pattern",
         "language": "cs",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3,
         "aliases": ["ces"]
     },
     {
@@ -48,13 +64,33 @@
     {
         "name": "English (UK)",
         "filename": "English_GB.pattern",
-        "language": "en-GB"
+        "language": "en-GB",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3
     },
     {
         "name": "English (US)",
         "filename": "English_US.pattern",
         "language": "en-US",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3,
         "aliases": ["en", "eng"]
+    },
+    {
+        "name": "Esperanto",
+        "filename": "Esperanto.pattern",
+        "language": "eo",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2,
+        "aliases": ["epo"]
+    },
+    {
+        "name": "Estonian",
+        "filename": "Estonian.pattern",
+        "language": "et",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3,
+        "aliases": ["est"]
     },
     {
         "name": "Finnish",
@@ -66,7 +102,7 @@
         "name": "French",
         "filename": "French.pattern",
         "left_hyphen_min": 2,
-        "right_hyphen_min":1,
+        "right_hyphen_min": 1,
         "language": "fr",
         "aliases": ["fra", "fre"]
     },
@@ -76,7 +112,13 @@
         "language": "gl",
         "aliases": ["glg"]
     },
-
+    {
+        "name": "Georgian",
+        "filename": "Georgian.pattern",
+        "language": "ka",
+        "left_hyphen_min": 1,
+        "right_hyphen_min": 2
+    },
     {
         "name": "German",
         "filename": "German.pattern",
@@ -87,6 +129,8 @@
         "name": "Greek",
         "filename": "Greek.pattern",
         "language": "el",
+        "left_hyphen_min": 1,
+        "right_hyphen_min": 1,
         "aliases": ["ell"]
     },
     {
@@ -105,6 +149,8 @@
         "name": "Irish",
         "filename": "Irish.pattern",
         "language": "ga",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3,
         "aliases": ["gle"]
     },
     {
@@ -114,10 +160,41 @@
         "aliases": ["ita"]
     },
     {
+        "name": "Latvian",
+        "filename": "Latvian.pattern",
+        "language": "lv",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2,
+        "aliases": ["lav"]
+    },
+    {
+        "name": "Lithuanian",
+        "filename": "Lithuanian.pattern",
+        "language": "lt",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2,
+        "aliases": ["lit"]
+    },
+    {
+        "name": "Macedonian",
+        "filename": "Macedonian.pattern",
+        "language": "mk",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2
+    },
+    {
         "name": "Norwegian",
         "filename": "Norwegian.pattern",
         "language": "no",
         "aliases": ["nor"]
+    },
+    {
+        "name": "Occitan",
+        "filename": "Occitan.pattern",
+        "language": "oc",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2,
+        "aliases": ["oci"]
     },
     {
         "name": "Polish",
@@ -129,11 +206,13 @@
         "name": "Portuguese",
         "filename": "Portuguese.pattern",
         "language": "pt",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3,
         "aliases": ["por"]
     },
     {
         "name": "Romanian",
-        "filename": "Roman.pattern",
+        "filename": "Romanian.pattern",
         "language": "ro",
         "aliases": ["ron"]
     },
@@ -154,9 +233,19 @@
         "aliases": ["rus"]
     },
     {
+        "name": "Serbian",
+        "filename": "Serbian.pattern",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2,
+        "language": "sr",
+        "aliases": ["srp"]
+    },
+    {
         "name": "Slovak",
         "filename": "Slovak.pattern",
         "language": "sk",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3,
         "aliases": ["slk"]
     },
     {
@@ -185,8 +274,16 @@
     },
     {
         "name": "Ukrainian",
-        "filename": "Ukrain.pattern",
+        "filename": "Ukrainian.pattern",
         "language": "uk",
         "aliases": ["ukr"]
+    },
+    {
+        "name": "Welsh",
+        "filename": "Welsh.pattern",
+        "language": "cy",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3,
+        "aliases": ["cym"]
     }
 ]
