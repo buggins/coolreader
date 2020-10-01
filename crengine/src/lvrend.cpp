@@ -2484,7 +2484,7 @@ lString32 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
                 int em = font->getSize();
                 line_h = lengthToPx(style->line_height, em, em, true);
             }
-            // Scale it according to gInterlineScaleFactor
+            // Scale line_h according to document's _interlineScaleFactor
             if (style->line_height.type != css_val_screen_px && doc->getInterlineScaleFactor() != INTERLINE_SCALE_FACTOR_NO_SCALE)
                 line_h = (line_h * doc->getInterlineScaleFactor()) >> INTERLINE_SCALE_FACTOR_SHIFT;
             if ( STYLE_HAS_CR_HINT(style, STRUT_CONFINED) )
@@ -2561,7 +2561,7 @@ bool renderAsListStylePositionInside( const css_style_ref_t style, bool is_rtl=f
 // and to get paragraph direction (LTR/RTL/UNSET).
 void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAccessor * fmt, lUInt32 & baseflags, int indent, int line_h, TextLangCfg * lang_cfg, int valign_dy, bool * is_link_start )
 {
-    bool legacy_render = !BLOCK_RENDERING(enode->getDocument()->getRenderBlockRenderingFlags(), ENHANCED);
+    bool legacy_render = !BLOCK_RENDERING_N(enode, ENHANCED);
     if ( enode->isElement() ) {
         lvdom_element_render_method rm = enode->getRendMethod();
         if ( rm == erm_invisible )
@@ -2732,17 +2732,17 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         }
         // having line_h=0 is ugly, but it's allowed and it works
 
-        // Scale line_h according to gInterlineScaleFactor, but not if
-        // it was already in screen_px, which means it has already been
-        // scaled (in setNodeStyle() when inherited).
-        if ( style->line_height.type != css_val_screen_px && enode->getDocument()->getInterlineScaleFactor() != INTERLINE_SCALE_FACTOR_NO_SCALE ) {
-            if ( RENDER_RECT_PTR_HAS_FLAG(fmt, NO_INTERLINE_SCALE_UP)
-                    && enode->getDocument()->getInterlineScaleFactor() > INTERLINE_SCALE_FACTOR_NO_SCALE ) {
+        // Scale line_h according to document's _interlineScaleFactor, but
+        // not if it was already in screen_px, which means it has already
+        // been scaled (in setNodeStyle() when inherited).
+        int interline_scale_factor = enode->getDocument()->getInterlineScaleFactor();
+        if ( style->line_height.type != css_val_screen_px && interline_scale_factor != INTERLINE_SCALE_FACTOR_NO_SCALE ) {
+            if ( RENDER_RECT_PTR_HAS_FLAG(fmt, NO_INTERLINE_SCALE_UP) && interline_scale_factor > INTERLINE_SCALE_FACTOR_NO_SCALE ) {
                 // Don't scale up (for <ruby> content, so we can increase interline to make
                 // the text breath without spreading ruby annotations on the space gained)
             }
             else {
-                line_h = (line_h * enode->getDocument()->getInterlineScaleFactor()) >> INTERLINE_SCALE_FACTOR_SHIFT;
+                line_h = (line_h * interline_scale_factor) >> INTERLINE_SCALE_FACTOR_SHIFT;
             }
         }
 
@@ -3431,7 +3431,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 break;
             }
             // Among inline nodes, only <BR> can carry a "clear: left/right/both".
-            // (No need to check for BLOCK_RENDERING(rend_flags, FLOAT_FLOATBOXES), this
+            // (No need to check for BLOCK_RENDERING_FLOAT_FLOATBOXES, this
             // should have no effect when there is not a single float in the way)
             baseflags &= ~LTEXT_SRC_IS_CLEAR_BOTH; // clear previous one
             switch (style->clear) {
@@ -6443,11 +6443,12 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 // values and 'rem' (related to root element font size).
                 line_h = lengthToPx(style->line_height, em, em, true);
             }
-            // Scale line_h according to gInterlineScaleFactor, but not if
-            // it was already in screen_px, which means it has already been
-            // scaled (in setNodeStyle() when inherited).
-            if (style->line_height.type != css_val_screen_px && enode->getDocument()->getInterlineScaleFactor() != INTERLINE_SCALE_FACTOR_NO_SCALE)
-                line_h = (line_h * enode->getDocument()->getInterlineScaleFactor()) >> INTERLINE_SCALE_FACTOR_SHIFT;
+            // Scale line_h according to document's _interlineScaleFactor, but
+            // not if it was already in screen_px, which means it has already
+            // been scaled (in setNodeStyle() when inherited).
+            int interline_scale_factor = enode->getDocument()->getInterlineScaleFactor();
+            if (style->line_height.type != css_val_screen_px && interline_scale_factor != INTERLINE_SCALE_FACTOR_NO_SCALE)
+                line_h = (line_h * interline_scale_factor) >> INTERLINE_SCALE_FACTOR_SHIFT;
             style_height.value = line_h;
             style_height.type = css_val_screen_px;
         }
@@ -9473,9 +9474,10 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
                 {
                 int pem = parent_font->getSize(); // value in screen px
                 int line_h = lengthToPx(parent_style->line_height, pem, pem);
-                // Scale it according to gInterlineScaleFactor
-                if (enode->getDocument()->getInterlineScaleFactor() != INTERLINE_SCALE_FACTOR_NO_SCALE)
-                    line_h = (line_h * enode->getDocument()->getInterlineScaleFactor()) >> INTERLINE_SCALE_FACTOR_SHIFT;
+                // Scale it according to document's _interlineScaleFactor
+                int interline_scale_factor = enode->getDocument()->getInterlineScaleFactor();
+                if (interline_scale_factor != INTERLINE_SCALE_FACTOR_NO_SCALE)
+                    line_h = (line_h * interline_scale_factor) >> INTERLINE_SCALE_FACTOR_SHIFT;
                 pstyle->line_height.value = line_h;
                 pstyle->line_height.type = css_val_screen_px;
                 }

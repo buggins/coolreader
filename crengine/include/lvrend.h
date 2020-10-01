@@ -127,7 +127,7 @@ lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt
 /// renders block as single text formatter object
 void renderFinalBlock( ldomNode * node, LFormattedText * txform, RenderRectAccessor * fmt, lUInt32 & flags,
                        int indent, int line_h, TextLangCfg * lang_cfg=NULL, int valign_dy=0, bool * is_link_start=NULL );
-/// renders block which contains subblocks (with enode document's getRenderBlockRenderingFlags() as flags)
+/// renders block which contains subblocks (with enode document's rendering flags)
 int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width,
         int usable_left_overflow=0, int usable_right_overflow=0, int direction=REND_DIRECTION_UNSET, int * baseline=NULL );
 /// renders block which contains subblocks
@@ -219,7 +219,10 @@ extern int gRootFontSize;
 // Enable everything
 #define BLOCK_RENDERING_FULL_FEATURED                      0x7FFFFFFF
 
-#define BLOCK_RENDERING(v, f) ( v & BLOCK_RENDERING_##f )
+// Some macros (for shorter lines of code)
+#define BLOCK_RENDERING(v, f) ((bool)( v & BLOCK_RENDERING_##f ))
+#define BLOCK_RENDERING_D(d, f) ((bool)( d->getRenderBlockRenderingFlags() & BLOCK_RENDERING_##f ))
+#define BLOCK_RENDERING_N(n, f) ((bool)( n->getDocument()->getRenderBlockRenderingFlags() & BLOCK_RENDERING_##f ))
 
 // rendering flags presets
 #define BLOCK_RENDERING_FLAGS_LEGACY     0
