@@ -1,3 +1,5 @@
+COOLREADER 3
+
 CoolReader 3 - cross platform open source e-book reader
 =======================================================
 
