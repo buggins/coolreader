@@ -4645,7 +4645,7 @@ void LVDocView::createEmptyDocument() {
     m_doc->setMinSpaceCondensingPercent(m_props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, DEF_MIN_SPACE_CONDENSING_PERCENT));
     m_doc->setUnusedSpaceThresholdPercent(m_props->getIntDef(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, DEF_UNUSED_SPACE_THRESHOLD_PERCENT));
     m_doc->setMaxAddedLetterSpacingPercent(m_props->getIntDef(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, DEF_MAX_ADDED_LETTER_SPACING_PERCENT));
-    m_doc->setHangingPunctiationEnabled(m_props->getBoolDef(PROP_FLOATING_PUNCTUATION, true));
+    m_doc->setHangingPunctiationEnabled(m_props->getBoolDef(PROP_FLOATING_PUNCTUATION, false));
     m_doc->setRenderBlockRenderingFlags(m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT));
     m_doc->setDOMVersionRequested(m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent));
     if (m_def_interline_space == 100) // (avoid any rounding issue)
@@ -6480,7 +6480,6 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
     for (int i = 0; i < props->getCount(); i++) {
         lString8 name(props->getName(i));
         lString32 value = props->getValue(i);
-        //bool isUnknown = false;
         if (name == PROP_FONT_ANTIALIASING) {
             int antialiasingMode = props->getIntDef(PROP_FONT_ANTIALIASING, 2);
             fontMan->SetAntialiasMode(antialiasingMode);
@@ -6760,12 +6759,13 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 
             // unknown property, adding to list of unknown properties
             unknown->setString(name.c_str(), value);
-            //isUnknown = true;
         }
-        //if ( !isUnknown ) {
-        // update current value in properties
+        // Update current value in properties
+        // Even if not used above to set anything if no m_doc, this saves
+        // the value in m_props so it might be used by createEmptyDocument()
+        // when creating the coming up document (and further documents
+        // if the value is not re-set).
         m_props->setString(name.c_str(), value);
-        //}
     }
     if (needUpdateMargins)
         updatePageMargins();

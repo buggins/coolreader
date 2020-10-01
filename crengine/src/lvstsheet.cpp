@@ -4407,7 +4407,7 @@ bool LVStyleSheet::parse( const char * str, bool higher_importance, lString32 co
     LVCssSelector * prev_selector;
     int err_count = 0;
     int rule_count = 0;
-    lUInt32 domVersionRequested = (_doc != NULL) ? _doc->getDOMVersionRequested() : 0;
+    lUInt32 domVersionRequested = (_doc != NULL) ? _doc->getDOMVersionRequested() : gDOMVersionCurrent;
     for (;*str;)
     {
         // new rule

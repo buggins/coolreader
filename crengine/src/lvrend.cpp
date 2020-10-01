@@ -8944,7 +8944,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     css_style_rec_t * pstyle = style.get();
 
     lUInt16 nodeElementId = enode->getNodeId();
-    lUInt32 domVersionRequested = enode->getDocument() ? enode->getDocument()->getDOMVersionRequested() : 0;
+    lUInt32 domVersionRequested = enode->getDocument() ? enode->getDocument()->getDOMVersionRequested() : gDOMVersionCurrent;
 
     if (domVersionRequested < 20180524) {
         // The display property initial value has been changed from css_d_inherit
