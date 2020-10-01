@@ -2561,7 +2561,7 @@ bool renderAsListStylePositionInside( const css_style_ref_t style, bool is_rtl=f
 // and to get paragraph direction (LTR/RTL/UNSET).
 void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAccessor * fmt, lUInt32 & baseflags, int indent, int line_h, TextLangCfg * lang_cfg, int valign_dy, bool * is_link_start )
 {
-    bool legacy_render = !BLOCK_RENDERING_N(enode, ENHANCED);
+    bool legacy_rendering = !BLOCK_RENDERING_N(enode, ENHANCED);
     if ( enode->isElement() ) {
         lvdom_element_render_method rm = enode->getRendMethod();
         if ( rm == erm_invisible )
@@ -2609,23 +2609,35 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         // - with block nodes (so, only with the first "final" node, and not
         //   when recursing its children which are inline), it will also set
         //   horitontal alignment flags.
-        // In legacy rendering mode, we should get the same text formatting flags
-        // as in CoolReader 3.2.38 and earlier, i.e. set is_block to true for
-        // any block elements.
         bool is_block = rm == erm_final;
-        if (legacy_render && !is_block) {
+        if (legacy_rendering && !is_block) {
+            // In legacy rendering mode, we should get the same text formatting flags
+            // as in CoolReader 3.2.38 and earlier, i.e. set is_block to true for
+            // any block-like elements as set by CSS.
             is_block = style->display >= css_d_block;
             if (is_block) {
-                // Hack for "legacy" rendering mode:
+                // With a specific tweak for display:run-in (FB2 footnotes):
                 // First node with "display: block" after node "display: run-in" in one section
-                // must be rendered as inline nodes.
-                if ( enode->getNodeIndex() == 1 && parent && parent->getChildCount() > 1 ) {
+                // must be rendered as an inline node.
+                if ( enode->getNodeIndex() == 1 ) { // we're the 2nd child of parent
                     ldomNode * first_sibling = parent->getChildNode(0);
                     if (first_sibling && !first_sibling->isNull() && first_sibling->isElement()) {
                         css_style_ref_t fs_style = first_sibling->getStyle();
                         if (!fs_style.isNull() && fs_style->display == css_d_run_in) {
                             is_block = false;
                         }
+                    }
+                }
+                if ( is_block ) {
+                    // If still block, also check this block is not contained
+                    // in a run-in, in which case we should keep it inline
+                    ldomNode * n = enode;
+                    while ( n && n->getRendMethod() != erm_final ) {
+                        if ( n->getStyle()->display == css_d_run_in ) {
+                            is_block = false;
+                            break;
+                        }
+                        n = n->getParentNode();
                     }
                 }
             }
@@ -2746,7 +2758,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
         }
 
-        if ( (flags & LTEXT_FLAG_NEWLINE) && ( rm == erm_final || ( legacy_render && is_block ) ) ) {
+        if ( (flags & LTEXT_FLAG_NEWLINE) && ( rm == erm_final || ( legacy_rendering && is_block ) ) ) {
             // Top and single 'final' node (unless in the degenerate case
             // of obsolete css_d_list_item_legacy):
             // Get text-indent and line-height that will apply to the full final block
@@ -3541,7 +3553,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             } else {
             }
             */
-            if ( legacy_render ) {
+            if ( legacy_rendering ) {
                 // Removal of leading spaces is now managed directly by lvtextfm
                 // but in legacy render mode we don't add lines with only spaces.
                 //int offs = 0;
