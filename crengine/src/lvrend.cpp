@@ -8957,7 +8957,8 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     css_style_rec_t * pstyle = style.get();
 
     lUInt16 nodeElementId = enode->getNodeId();
-    lUInt32 domVersionRequested = enode->getDocument() ? enode->getDocument()->getDOMVersionRequested() : gDOMVersionCurrent;
+    ldomDocument * doc = enode->getDocument();
+    lUInt32 domVersionRequested = doc->getDOMVersionRequested();
 
     if (domVersionRequested < 20180524) {
         // The display property initial value has been changed from css_d_inherit
@@ -9057,12 +9058,12 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     //////////////////////////////////////////////////////
     // apply style sheet
     //////////////////////////////////////////////////////
-    enode->getDocument()->applyStyle( enode, pstyle );
+    doc->applyStyle( enode, pstyle );
 
     //////////////////////////////////////////////////////
     // apply node style= attribute
     //////////////////////////////////////////////////////
-    if ( enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) && enode->hasAttribute( LXML_NS_ANY, attr_style ) ) {
+    if ( doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) && enode->hasAttribute( LXML_NS_ANY, attr_style ) ) {
         lString32 nodeStyle = enode->getAttributeValue( LXML_NS_ANY, attr_style );
         if ( !nodeStyle.empty() ) {
             nodeStyle = cs32("{") + nodeStyle + "}";
@@ -9072,7 +9073,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
             // We can't get the codeBase of this node anymore at this point, which
             // would be needed to resolve "background-image: url(...)" relative
             // file path... So these won't work when defined in a style= attribute.
-            if ( decl.parse( s, domVersionRequested ) ) {
+            if ( decl.parse( s, domVersionRequested, false, doc ) ) {
                 decl.apply( pstyle );
             }
         }
@@ -9145,7 +9146,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->display = css_d_none;
     }
 
-    lUInt32 rend_flags = enode->getDocument()->getRenderBlockRenderingFlags();
+    lUInt32 rend_flags = doc->getRenderBlockRenderingFlags();
     if ( BLOCK_RENDERING(rend_flags, PREPARE_FLOATBOXES) ) {
         // https://developer.mozilla.org/en-US/docs/Web/CSS/float
         //  As float implies the use of the block layout, it modifies the computed value
@@ -9487,7 +9488,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
                 int pem = parent_font->getSize(); // value in screen px
                 int line_h = lengthToPx(parent_style->line_height, pem, pem);
                 // Scale it according to document's _interlineScaleFactor
-                int interline_scale_factor = enode->getDocument()->getInterlineScaleFactor();
+                int interline_scale_factor = doc->getInterlineScaleFactor();
                 if (interline_scale_factor != INTERLINE_SCALE_FACTOR_NO_SCALE)
                     line_h = (line_h * interline_scale_factor) >> INTERLINE_SCALE_FACTOR_SHIFT;
                 pstyle->line_height.value = line_h;
