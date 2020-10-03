@@ -239,6 +239,14 @@
         "aliases": ["ron"]
     },
     {
+        "name": "Romansh",
+        "filename": "Romansh.pattern",
+        "language": "rm",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2,
+        "aliases": ["roh"]
+    },
+    {
         "name": "Russian + English (UK)",
         "filename": "Russian_EnGB.pattern",
         "language": "ru,en-GB"
