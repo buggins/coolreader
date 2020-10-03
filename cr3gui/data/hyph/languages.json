@@ -212,6 +212,13 @@
         "aliases": ["oci"]
     },
     {
+        "name": "Piedmontese",
+        "filename": "Piedmontese.pattern",
+        "language": "pms",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2
+    },
+    {
         "name": "Polish",
         "filename": "Polish.pattern",
         "language": "pl",
