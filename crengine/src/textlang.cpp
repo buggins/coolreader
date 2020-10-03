@@ -32,6 +32,7 @@ static struct {
     int left_hyphen_min;
     int right_hyphen_min;
 } _hyph_dict_table[] = {
+    { "hy",    "Armenian",      "Armenian.pattern",      1, 2 },
     { "eu",    "Basque",        "Basque.pattern",        2, 2 },
     { "bg",    "Bulgarian",     "Bulgarian.pattern",     2, 2 },
     { "ca",    "Catalan",       "Catalan.pattern",       2, 2 },
