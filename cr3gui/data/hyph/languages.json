@@ -225,7 +225,14 @@
         "aliases": ["pol"]
     },
     {
-        "name": "Portuguese",
+        "name": "Portuguese (BR)",
+        "filename": "Portuguese_BR.pattern",
+        "language": "pt-BR",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 3
+    },
+    {
+        "name": "Portuguese (PT)",
         "filename": "Portuguese.pattern",
         "language": "pt",
         "left_hyphen_min": 2,
