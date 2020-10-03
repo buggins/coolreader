@@ -76,6 +76,7 @@ static struct {
     { "tr",    "Turkish",       "Turkish.pattern",       2, 2 },
     { "uk",    "Ukrain",        "Ukrainian.pattern",     2, 2 }, // truncated prefix (see above)
     { "cy",    "Welsh",         "Welsh.pattern",         2, 3 },
+    { "zu",    "Zulu",          "Zulu.pattern",          2, 1 }, // defaulting to 2,1, left hyphenmin might need tweaking
     // No-lang hyph methods, for legacy HyphMan methods: other lang properties will be from English
     { "en#@none",        "@none",        "@none",        2, 2 },
     { "en#@softhyphens", "@softhyphens", "@softhyphens", 2, 2 },
