@@ -45,6 +45,7 @@ static struct {
     { "et",    "Estonian",      "Estonian.pattern",      2, 3 },
     { "fi",    "Finnish",       "Finnish.pattern",       2, 2 },
     { "fr",    "French",        "French.pattern",        2, 1 }, // see French.pattern file for why right_hyphen_min=1
+    { "fur",   "Friulian",      "Friulian.pattern",      2, 2 },
     { "gl",    "Galician",      "Galician.pattern",      2, 2 },
     { "ka",    "Georgian",      "Georgian.pattern",      1, 2 },
     { "de",    "German",        "German.pattern",        2, 2 },
@@ -366,6 +367,7 @@ static quotes_spec _quotes_spec_table[] = {
     { "fr-ch",    U"\x00ab", U"\x00bb", U"\x2039", U"\x203a" }, /* « » ‹ › */
     // { "fr",    U"\x00ab", U"\x00bb", U"\x00ab", U"\x00bb" }, /* « » « » */  /* Same pair for both level, bit sad... */
     { "fr",       U"\x00ab", U"\x00bb", U"\x201c", U"\x201d" }, /* « » “ ” */  /* Better to have "fr" just as "it" */
+    { "fur",      U"\x00ab", U"\x00bb", U"\x201c", U"\x201d" }, /* « » “ ” */  /* Defaulting to "it", needs verification */
     { "ga",       U"\x201c", U"\x201d", U"\x2018", U"\x2019" }, /* “ ” ‘ ’ */
     { "gd",       U"\x201c", U"\x201d", U"\x2018", U"\x2019" }, /* “ ” ‘ ’ */
     { "gl",       U"\x201c", U"\x201d", U"\x2018", U"\x2019" }, /* “ ” ‘ ’ */

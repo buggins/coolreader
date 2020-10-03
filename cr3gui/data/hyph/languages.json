@@ -115,6 +115,13 @@
         "aliases": ["fra", "fre"]
     },
     {
+        "name": "Friulian",
+        "filename": "Friulian.pattern",
+        "language": "fur",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2
+    },
+    {
         "name": "Galician",
         "filename": "Galician.pattern",
         "language": "gl",
