@@ -85,7 +85,7 @@ extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.12.72"
+#define CACHE_FILE_FORMAT_VERSION "3.12.73"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0025

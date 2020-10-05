@@ -23,72 +23,80 @@
 
 class SerialBuf;
 
-/* bit position (in 'lUInt64 important' and 'lUInt64 importance' bitmaps) of
- * each css_style_rec_tag properties to flag its '!important' status */
-// enum css_style_rec_important_bit : lUInt64 {  <= disliked by clang
+/* bit position (in 'lUInt32[] important' and 'lUInt32[] importance' bitmaps)
+ * of each css_style_rec_tag properties to flag its '!important' status */
 enum css_style_rec_important_bit {
-    imp_bit_display               = 1ULL << 0,
-    imp_bit_white_space           = 1ULL << 1,
-    imp_bit_text_align            = 1ULL << 2,
-    imp_bit_text_align_last       = 1ULL << 3,
-    imp_bit_text_decoration       = 1ULL << 4,
-    imp_bit_text_transform        = 1ULL << 5,
-    imp_bit_vertical_align        = 1ULL << 6,
-    imp_bit_font_family           = 1ULL << 7,
-    imp_bit_font_name             = 1ULL << 8,
-    imp_bit_font_size             = 1ULL << 9,
-    imp_bit_font_style            = 1ULL << 10,
-    imp_bit_font_weight           = 1ULL << 11,
-    imp_bit_font_features         = 1ULL << 12,
-    imp_bit_text_indent           = 1ULL << 13,
-    imp_bit_line_height           = 1ULL << 14,
-    imp_bit_width                 = 1ULL << 15,
-    imp_bit_height                = 1ULL << 16,
-    imp_bit_margin_left           = 1ULL << 17,
-    imp_bit_margin_right          = 1ULL << 18,
-    imp_bit_margin_top            = 1ULL << 19,
-    imp_bit_margin_bottom         = 1ULL << 20,
-    imp_bit_padding_left          = 1ULL << 21,
-    imp_bit_padding_right         = 1ULL << 22,
-    imp_bit_padding_top           = 1ULL << 23,
-    imp_bit_padding_bottom        = 1ULL << 24,
-    imp_bit_color                 = 1ULL << 25,
-    imp_bit_background_color      = 1ULL << 26,
-    imp_bit_letter_spacing        = 1ULL << 27,
-    imp_bit_page_break_before     = 1ULL << 28,
-    imp_bit_page_break_after      = 1ULL << 29,
-    imp_bit_page_break_inside     = 1ULL << 30,
-    imp_bit_hyphenate             = 1ULL << 31,
-    imp_bit_list_style_type       = 1ULL << 32,
-    imp_bit_list_style_position   = 1ULL << 33,
-    imp_bit_border_style_top      = 1ULL << 34,
-    imp_bit_border_style_bottom   = 1ULL << 35,
-    imp_bit_border_style_right    = 1ULL << 36,
-    imp_bit_border_style_left     = 1ULL << 37,
-    imp_bit_border_width_top      = 1ULL << 38,
-    imp_bit_border_width_right    = 1ULL << 39,
-    imp_bit_border_width_bottom   = 1ULL << 40,
-    imp_bit_border_width_left     = 1ULL << 41,
-    imp_bit_border_color_top      = 1ULL << 42,
-    imp_bit_border_color_right    = 1ULL << 43,
-    imp_bit_border_color_bottom   = 1ULL << 44,
-    imp_bit_border_color_left     = 1ULL << 45,
-    imp_bit_background_image      = 1ULL << 46,
-    imp_bit_background_repeat     = 1ULL << 47,
-    imp_bit_background_position   = 1ULL << 48,
-    imp_bit_background_size_h     = 1ULL << 49,
-    imp_bit_background_size_v     = 1ULL << 50,
-    imp_bit_border_collapse       = 1ULL << 51,
-    imp_bit_border_spacing_h      = 1ULL << 52,
-    imp_bit_border_spacing_v      = 1ULL << 53,
-    imp_bit_orphans               = 1ULL << 54,
-    imp_bit_widows                = 1ULL << 55,
-    imp_bit_float                 = 1ULL << 56,
-    imp_bit_clear                 = 1ULL << 57,
-    imp_bit_direction             = 1ULL << 58,
-    imp_bit_content               = 1ULL << 59,
-    imp_bit_cr_hint               = 1ULL << 60
+    imp_bit_display = 0,
+    imp_bit_white_space,
+    imp_bit_text_align,
+    imp_bit_text_align_last,
+    imp_bit_text_decoration,
+    imp_bit_text_transform,
+    imp_bit_vertical_align,
+    imp_bit_font_family,
+    imp_bit_font_name,
+    imp_bit_font_size,
+    imp_bit_font_style,
+    imp_bit_font_weight,
+    imp_bit_font_features,
+    imp_bit_text_indent,
+    imp_bit_line_height,
+    imp_bit_width,
+    imp_bit_height,
+    imp_bit_margin_left,
+    imp_bit_margin_right,
+    imp_bit_margin_top,
+    imp_bit_margin_bottom,
+    imp_bit_padding_left,
+    imp_bit_padding_right,
+    imp_bit_padding_top,
+    imp_bit_padding_bottom,
+    imp_bit_color,
+    imp_bit_background_color,
+    imp_bit_letter_spacing,
+    imp_bit_page_break_before,
+    imp_bit_page_break_after,
+    imp_bit_page_break_inside,
+    imp_bit_hyphenate,
+    imp_bit_list_style_type,
+    imp_bit_list_style_position,
+    imp_bit_border_style_top,
+    imp_bit_border_style_bottom,
+    imp_bit_border_style_right,
+    imp_bit_border_style_left,
+    imp_bit_border_width_top,
+    imp_bit_border_width_right,
+    imp_bit_border_width_bottom,
+    imp_bit_border_width_left,
+    imp_bit_border_color_top,
+    imp_bit_border_color_right,
+    imp_bit_border_color_bottom,
+    imp_bit_border_color_left,
+    imp_bit_background_image,
+    imp_bit_background_repeat,
+    imp_bit_background_position,
+    imp_bit_background_size_h,
+    imp_bit_background_size_v,
+    imp_bit_border_collapse,
+    imp_bit_border_spacing_h,
+    imp_bit_border_spacing_v,
+    imp_bit_orphans,
+    imp_bit_widows,
+    imp_bit_float,
+    imp_bit_clear,
+    imp_bit_direction,
+    imp_bit_content,
+    imp_bit_cr_hint
 };
+#define NB_IMP_BITS 61 // The number of lines in the enum above: KEEP IT UPDATED.
+
+#define NB_IMP_SLOTS    ((NB_IMP_BITS-1)>>5)+1
+// In lvstyles.cpp, we have hardcoded important[0] ... importance[1]
+// So once NB_IMP_SLOTS becomes 3 when IMP_BIT_MAX > 64, add in lvstyles.cpp
+// the needed important[2] and importance[2]. Let us know if we forget that:
+#if (NB_IMP_SLOTS != 2)
+    #error "NB_IMP_SLOTS != 2, some updates in lvstyles.cpp (and then here) are needed"
+#endif
 
 // Style handling flags
 #define STYLE_REC_FLAG_MATCHED  0x01 // This style has had some stylesheet declaration matched and applied.
@@ -104,12 +112,9 @@ typedef struct css_style_rec_tag css_style_rec_t;
 struct css_style_rec_tag {
     int                  refCount; // for reference counting
     lUInt32              hash; // cache calculated hash value here
-    lUInt64              important;  // bitmap for !important (used only by LVCssDeclaration)
-                                     // we have currently below 61 css properties
-                                     // lvstsheet knows about 83, which are mapped to these 61
-                                     // update bits above if you add new properties below
-    lUInt64              importance; // bitmap for important bit's importance/origin
-                                     // (allows for 2 level of !important importance)
+    lUInt32              important[NB_IMP_SLOTS];  // bitmap for !important (used only by LVCssDeclaration)
+    lUInt32              importance[NB_IMP_SLOTS]; // bitmap for important bit's importance/origin
+                                                   // (allows for 2 level of !important importance)
     css_display_t        display;
     css_white_space_t    white_space;
     css_text_align_t     text_align;
@@ -166,8 +171,8 @@ struct css_style_rec_tag {
     css_style_rec_tag()
     : refCount(0)
     , hash(0)
-    , important(0)
-    , importance(0)
+    , important{} // zero-initialization of all array slots
+    , importance{}
     , display( css_d_inline )
     , white_space(css_ws_inherit)
     , text_align(css_ta_inherit)
@@ -227,32 +232,36 @@ struct css_style_rec_tag {
     bool serialize( SerialBuf & buf );
     bool deserialize( SerialBuf & buf );
     //  important bitmap management
-    bool isImportant( css_style_rec_important_bit bit ) { return important & bit; }
-    void setImportant( css_style_rec_important_bit bit ) { important |= bit; }
+    bool isImportant( css_style_rec_important_bit bit ) { return important[bit>>5] & (1<<(bit&0x1f)); }
+    void setImportant( css_style_rec_important_bit bit ) { important[bit>>5] |= (1<<(bit&0x1f)); }
     // apply value to field if important bit not yet set, then set it if is_important
     template <typename T> inline void Apply( T value, T *field, css_style_rec_important_bit bit, lUInt8 is_important ) {
+        int slot = bit>>5;        // 32 bits per LUint32 slot
+        int sbit = 1<<(bit&0x1f); // bitmask for this single bit in its slot
         // is_important is 2 bits: (high_importance, is_important) (see lvstsheet.cpp)
-        if (     !(important & bit)     // important flag not previously set
+        if (     !(important[slot] & sbit)     // important flag not previously set
               || (is_important == 0x3)  // coming value has '!important' and comes from some CSS parsed with higher_importance=true
-              || (is_important == 0x1 && !(importance & bit) ) // coming value has '!important' and comes from some CSS parsed
+              || (is_important == 0x1 && !(importance[slot] & sbit) ) // coming value has '!important' and comes from some CSS parsed
                                                                // with higher_importance=false, but previous value was not set from
                                                                // a !important that came from CSS parsed with higher_importance=true
            ) {
             *field = value; // apply
-            if (is_important & 0x1) important |= bit;   // update important flag
-            if (is_important == 0x3) importance |= bit; // update importance flag (!important comes from higher_importance CSS)
+            if (is_important & 0x1) important[slot] |= sbit;   // update important flag
+            if (is_important == 0x3) importance[slot] |= sbit; // update importance flag (!important comes from higher_importance CSS)
         }
     }
     // Similar to previous one, but logical-OR'ing values, for bitmaps (currently, only style->font_features and style->cr_hint)
     inline void ApplyAsBitmapOr( css_length_t value, css_length_t *field, css_style_rec_important_bit bit, lUInt8 is_important ) {
-        if (     !(important & bit)
+        int slot = bit>>5;        // 32 bits per LUint32 slot
+        int sbit = 1<<(bit&0x1f); // bitmask for this bit in its slot
+        if (     !(important[slot] & sbit)
               || (is_important == 0x3)
-              || (is_important == 0x1 && !(importance & bit) )
+              || (is_important == 0x1 && !(importance[slot] & sbit) )
            ) {
             field->value |= value.value; // logical-or values
             field->type = value.type;    // use the one from value (always css_val_unspecified for font_features)
-            if (is_important & 0x1) important |= bit;
-            if (is_important == 0x3) importance |= bit;
+            if (is_important & 0x1) important[slot] |= sbit;
+            if (is_important == 0x3) importance[slot] |= sbit;
         }
     }
 };
