@@ -9973,14 +9973,18 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             typedef struct CellWidths {
                 int min_w;
                 int max_w;
-                bool colspan_involved;
-                CellWidths() : min_w(0), max_w(0), colspan_involved(false) {};
-                CellWidths(int min, int max, bool csi=false)
-                    : min_w(min), max_w(max), colspan_involved(csi) {};
+                int colspan;
+                int rowspan;
+                int last_row_idx; // when used as column: index of last row occupied by previous rowspans
+                CellWidths() : min_w(0), max_w(0), colspan(1), rowspan(1), last_row_idx(-1) {};
+                CellWidths(int min, int max, int cspan=1, int rspan=1)
+                    : min_w(min), max_w(max), colspan(cspan), rowspan(rspan), last_row_idx(-1) {};
             } CellWidths;
             typedef LVArray<CellWidths> RowCells;
             LVArray<RowCells> table;
             int seen_nb_cells = 2; // for RowCells() initial allocation, to avoid realloc
+            int caption_min_width = 0;
+            int caption_max_width = 0;
 
             // Non-recursive sub tree walker, to find erm_table_row nodes
             ldomNode * n = node;
@@ -9997,7 +10001,6 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                             // Measures cells in that row
                             RowCells row;
                             row.reserve(seen_nb_cells);
-                            bool colspan_involved = false;
                             for (int i = 0; i < n->getChildCount(); i++) {
                                 ldomNode * child = n->getChildNode(i);
                                 if ( child->isText() ) {
@@ -10019,18 +10022,19 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                                 int _lastSpaceWidth = 0;
                                 getRenderedWidths(child, _maxw, _minw, direction, false, rendFlags,
                                     _curMaxWidth, _curWordWidth, _collapseNextSpace, _lastSpaceWidth, indent, lang_cfg);
-                                int cs = StrToIntPercent( child->getAttributeValue(attr_colspan).c_str() );
-                                if ( cs > 1 ) { // 0 if no attribute
-                                    // Keep flagging next cells, as their mapping to columns is now messed up
-                                    colspan_involved = true;
-                                }
-                                else { // also check obsolete rbspan attribute for <ruby> tables
-                                    cs = StrToIntPercent( child->getAttributeValue(attr_rbspan).c_str() );
-                                    if ( cs > 1 ) {
-                                        colspan_involved = true;
+                                int cspan = StrToIntPercent( child->getAttributeValue(attr_colspan).c_str() );
+                                if ( !cspan ) { // 0 if no attribute
+                                    // also check obsolete rbspan attribute for <ruby> tables
+                                    cspan = StrToIntPercent( child->getAttributeValue(attr_rbspan).c_str() );
+                                    if ( !cspan ) {
+                                        cspan = 1;
                                     }
                                 }
-                                row.add( CellWidths(_minw, _maxw, colspan_involved) );
+                                int rspan = StrToIntPercent( child->getAttributeValue(attr_rowspan).c_str() );
+                                if ( !rspan ) { // 0 if no attribute
+                                    rspan = 1;
+                                }
+                                row.add( CellWidths(_minw, _maxw, cspan, rspan) );
                             }
                             if ( row.length() > seen_nb_cells )
                                 seen_nb_cells = row.length();
@@ -10038,6 +10042,21 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                             //
                             // Non-recursive sub tree walker (continued)
                             index = n->getChildCount(); // Skip walking/entering that row
+                        }
+                        else if ( n->isElement() && n->getStyle()->display == css_d_table_caption && n->getRendMethod() != erm_invisible ) {
+                            // Also measure caption(s)
+                            int _maxw = 0;
+                            int _minw = 0;
+                            int _curMaxWidth = 0;
+                            int _curWordWidth = 0;
+                            bool _collapseNextSpace = true;
+                            int _lastSpaceWidth = 0;
+                            getRenderedWidths(n, _maxw, _minw, direction, false, rendFlags,
+                                _curMaxWidth, _curWordWidth, _collapseNextSpace, _lastSpaceWidth, indent, lang_cfg);
+                            if ( _minw > caption_min_width )
+                                caption_min_width = _minw;
+                            if ( _maxw > caption_max_width )
+                                caption_max_width = _maxw;
                         }
                     }
                     // Process next child
@@ -10054,34 +10073,72 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 }
             } // Done with non-recursive sub tree walker
 
-            // nb_columns is the largest nb of cells in a row
+            // nb_columns is the largest nb of cells+colspan in a row (helps avoiding reallocs)
             int nb_columns = 0;
+            int last_cell_start_column_idx = 0; // to correct nb_columns
             for (int r=0; r<table.length(); r++) {
-                int row_len = table[r].length();
+                int row_len = 0;
+                for (int c=0; c<table[r].length(); c++) {
+                    row_len += table[r][c].colspan;
+                }
                 if ( row_len > nb_columns ) {
                     nb_columns = row_len;
                 }
             }
             // We still compute cumulative cells widths (might be right when colspan involved)
+            // Note: this feels like no longer needed now that we handle colspan and rowspan,
+            // so we won't use them, but let's keep computing them for debugging
             int cumulative_min_width = 0;
             int cumulative_max_width = 0;
             //
             RowCells columns(nb_columns, CellWidths()); // Columns widths
+            // Fill columns accounting for colspan and rowspan, similarly to
+            // how it's done in the first step of PlaceCells()
             for (int r=0; r<table.length(); r++) {
-                bool giveup_columns = false;
                 int row_cumul_min_w = 0;
                 int row_cumul_max_w = 0;
                 int row_len = table[r].length();
+                int x = 0; // index of column the current cell will be in
                 for (int c=0; c<row_len; c++) {
-                    if ( table[r][c].colspan_involved ) {
-                        // cells from now on do not map to columns anymore
-                        giveup_columns = true;
+                    // Find a column that has nothing row-spanning current row
+                    while ( x < nb_columns && r <= columns[x].last_row_idx ) {
+                        x++;
                     }
-                    if ( !giveup_columns ) {
-                        if ( columns[c].min_w < table[r][c].min_w )
-                             columns[c].min_w = table[r][c].min_w;
-                        if ( columns[c].max_w < table[r][c].max_w )
-                             columns[c].max_w = table[r][c].max_w;
+                    if ( last_cell_start_column_idx < x )
+                        last_cell_start_column_idx = x;
+                    // Add columns if necessary, if colspan/rowspan combinations
+                    // exceed what we estimated previously
+                    int cs = table[r][c].colspan;
+                    while ( x + cs-1 > nb_columns-1 ) {
+                        columns.add( CellWidths() );
+                        nb_columns++;
+                    }
+                    // Update columns this cell will colspan with the number
+                    // of rows rowspanned by this cell
+                    int rs = table[r][c].rowspan;
+                    for (int xx=0; xx<cs; xx++) {
+                        if ( columns[x+xx].last_row_idx < r + rs-1 )
+                            columns[x+xx].last_row_idx = r + rs-1;
+                    }
+                    // Update columns this cell will colspan with
+                    // the distributed cell min_w and max_w
+                    int all_min_w = table[r][c].min_w / cs;
+                    int extra_min_w = table[r][c].min_w - all_min_w*cs;
+                    int all_max_w = table[r][c].max_w / cs;
+                    int extra_max_w = table[r][c].max_w - all_max_w*cs;
+                    for (int xx=0; xx<cs; xx++) {
+                        int min_w = all_min_w;
+                        if (extra_min_w > 0) {
+                            min_w++; extra_min_w--;
+                        }
+                        int max_w = all_max_w;
+                        if (extra_max_w > 0) {
+                            max_w++; extra_max_w--;
+                        }
+                        if ( columns[x+xx].min_w < min_w )
+                             columns[x+xx].min_w = min_w;
+                        if ( columns[x+xx].max_w < max_w )
+                             columns[x+xx].max_w = max_w;
                     }
                     row_cumul_min_w += table[r][c].min_w;
                     row_cumul_max_w += table[r][c].max_w;
@@ -10098,20 +10155,31 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 columns_min_width += columns[c].min_w;
                 columns_max_width += columns[c].max_w;
             }
-            // _minWidth is the max of columns_min_width and cumulative_min_width
+            // _minWidth is the max of columns_min_width and caption_min_width (and cumulative_min_width previously)
             if ( _minWidth < columns_min_width )
                  _minWidth = columns_min_width;
+            if ( _minWidth < caption_min_width )
+                 _minWidth = caption_min_width;
+            /* This feels like no longer needed, so let's not use them
             if ( _minWidth < cumulative_min_width )
                  _minWidth = cumulative_min_width;
-            // _maxWidth is the max of columns_max_width and cumulative_max_width
+            */
+            // _maxWidth is the max of columns_max_width and caption_max_width (and cumulative_max_width previously)
             if ( _maxWidth < columns_max_width )
                  _maxWidth = columns_max_width;
+            if ( _maxWidth < caption_max_width )
+                 _maxWidth = caption_max_width;
+            /* This feels like no longer needed, so let's not use them
             if ( _maxWidth < cumulative_max_width )
                  _maxWidth = cumulative_max_width;
+            */
             // add horizontal border_spacing if "border-collapse: separate"
             if ( style->border_collapse != css_border_collapse ) {
+                int final_nb_cols = nb_columns;
+                if ( last_cell_start_column_idx < nb_columns-1 )
+                    final_nb_cols = last_cell_start_column_idx + 1;
                 int em = node->getFont()->getSize();
-                int extra_width = lengthToPx(style->border_spacing[0], 0, em) * (nb_columns+1);
+                int extra_width = lengthToPx(style->border_spacing[0], 0, em) * (final_nb_cols+1);
                 _minWidth += extra_width;
                 _maxWidth += extra_width;
             }
