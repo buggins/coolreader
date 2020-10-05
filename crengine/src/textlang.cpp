@@ -765,10 +765,18 @@ TextLangCfg::TextLangCfg( lString32 lang_tag ) {
         has_left_single_quotation_mark_closing = true;
         has_right_single_quotation_mark_glue = true;
         has_left_double_quotation_mark_closing = true;
+        /* Next ones commented out, as non-inverted usage of these
+         * quotation marks can be found in pure "de" text - and
+         * generally, these quotations marks are stuck to their
+         * quoted first or last word and have only a space on the
+         * other side, and so should be fine with just being "QU"
+         * for libunibreak.
+         * See https://github.com/koreader/koreader/issues/6717
         has_left_single_angle_quotation_mark_closing = true;
         has_right_single_angle_quotation_mark_opening = true;
         has_left_double_angle_quotation_mark_closing = true;
         has_right_double_angle_quotation_mark_opening = true;
+        */
     }
     else if ( LANG_STARTS_WITH(("ru")) ) { // Russian
         has_left_double_quotation_mark_closing = true;
