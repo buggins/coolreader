@@ -706,21 +706,22 @@ public:
             for (j=0; j<rows[i]->cells.length(); j++) {
                 CCRTableCell * cell = rows[i]->cells[j];
                 int cs = cell->colspan;
-                //int rs = cell->rowspan;
+                // Find col (in cols) that does not have something rowspan'ing
+                // current row and can accept this cell. Extend nb of cols until
+                // we find one
                 while (x<cols.length() && cols[x]->nrows>i) { // find free cell position
                     x++;
                     ExtendCols(x); // update col count
                 }
                 ExtendCols( x + cs ); // update col count
                 cell->col = cols[x];
+                // Update nrows (used rows last index) for columns this cell will
+                // colspan with the number of rows it will rowspan
                 for (int xx=0; xx<cs; xx++) {
                     // place cell
                     ExtendCols(x+xx+1); // update col count
                     if ( cols[x+xx]->nrows < i+cell->rowspan )
                         cols[x+xx]->nrows = i+cell->rowspan;
-                    if (cell->rowspan>1) {
-                        //int flg =1;
-                    }
                 }
                 // update col width (for regular cells with colspan=1 only)
                 if (cell->colspan==1) {
@@ -731,7 +732,34 @@ public:
                     }
                 }
                 x += cs;
+                // Note: we don't handle rowspan/colspan conflicts like with:
+                //   <table>
+                //     <tr><td rowspan=3>col1</td> <td>col2 </td> <td rowspan=3>col3</td></tr>
+                //     <tr><td colspan=2>col2</td></tr>
+                //     <tr><td>col3b</td></tr>
+                //   </table>
+                // Firefox seems to kill the colspan=2 and make it =1
             }
+            /* The following code (now commented out) looks wrong:
+             * it's supposed to look at each col passed by our last
+             * cell (but not the cols on its right), and find out
+             * the one with the min number of rows occupied.
+             * If that min nb of rows is larger than our current
+             * row number, it would insert empty rows to fill it.
+             * By doing so, it was inserting rows in between
+             * existing ones, and messing with rowspans.
+             * For example, with:
+             *   <table>
+             *     <tr><td rowspan=3>col1</td> <td rowspan=3>col2</td></tr>
+             *     <tr><td>col3a</td></tr>
+             *     <tr><td>col3b</td></tr>
+             *   </table>
+             * col3a abd col3b were pushed below col1+col2, instead
+             * of creating and being in a 3rd column on their right.
+             *
+             * I can't guess which other case this was supposed to solve...
+             * So let's disable it until we find why it was needed.
+             *
             // update min row count
             for (j=0; j<x; j++) {
                 if (miny==-1 || miny>cols[j]->nrows)
@@ -745,6 +773,7 @@ public:
                 nrow->index = i;
                 rows.insert(i, nrow);
             }
+            */
         }
         int maxy = 0; // check highest column
         for (j=0; j<cols.length(); j++)
@@ -1765,9 +1794,10 @@ public:
                         // we store in it the shift-down frop top for this cell,
                         // that we'll use below when handling cell->valign==0.
                         int shift_down = row->baseline - cell->baseline;
-                        if ( row->height < cell->height + shift_down )
-                            row->height = cell->height + shift_down;
                         cell->baseline = shift_down;
+                        // And update row height from this cell height if it is rowspan=1
+                        if ( cell->rowspan == 1 && row->height < cell->height + shift_down )
+                            row->height = cell->height + shift_down;
                     }
                     // else cell->baseline = 0; // (not needed, as not used)
                 }
