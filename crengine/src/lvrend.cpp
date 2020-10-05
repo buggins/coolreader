@@ -4828,8 +4828,11 @@ public:
                             break; // found the first row
                         }
                     }
-                    // Process next child
-                    if ( nextChildIndex < n->getChildCount() ) {
+                    // Process next child, but don't go look into erm_final nodes
+                    // (they may contain other inline-tables with rows which have
+                    // already contributed to set the final node baseline that
+                    // was accounted in baseline_y when it did addContentLine()).
+                    if ( n->getRendMethod() != erm_final && nextChildIndex < n->getChildCount() ) {
                         n = n->getChildNode(nextChildIndex);
                         nextChildIndex = 0;
                         continue;
