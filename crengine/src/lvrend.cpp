@@ -146,6 +146,7 @@ public:
     int width;
     int height;
     int baseline;
+    int adjusted_baseline;
     int percent;
     int max_content_width;
     int min_content_width;
@@ -159,6 +160,7 @@ public:
     , width(0)
     , height(0)
     , baseline(0)
+    , adjusted_baseline(0)
     , percent(0)
     , max_content_width(0)
     , min_content_width(0)
@@ -1600,21 +1602,23 @@ public:
                         fmt.push();
                         int h = cell->elem->renderFinalBlock( txform, &fmt, cell->width - padding_left - padding_right);
                         cell->height = padding_top + h + padding_bottom;
-
                         // A cell baseline is the baseline of its first line of text (or
                         // the bottom of content edge of the cell if no line)
+                        if ( txform->GetLineCount() > 0 ) // we have a line
+                            cell->baseline = padding_top + txform->GetLineInfo(0)->baseline;
+                        else // no line, no image: bottom of content edge is at padding_top
+                            cell->baseline = padding_top;
+
                         if ( cell->valign == 0 ) { // vertical-align: baseline
-                            if ( txform->GetLineCount() > 0 ) // we have a line
-                                cell->baseline = padding_top + txform->GetLineInfo(0)->baseline;
-                            else // no line, no image: bottom of content edge is at padding_top
-                                cell->baseline = padding_top;
+                            // We'll use that baseline
+                            cell->adjusted_baseline = cell->baseline;
                         }
                         else { // all other vertical-align: values
                             // "If a row has no cell box aligned to its baseline,
                             // the baseline of that row is the bottom content edge
                             // of the lowest cell in the row."
-                            // So, store that bottom content edge in cell->baseline
-                            cell->baseline += h;
+                            // We'll position that bottom content edge
+                            cell->adjusted_baseline = padding_top + h;
                         }
 
                         // Gather footnotes links, as done in renderBlockElement() when erm_final/flgSplit
@@ -1706,26 +1710,27 @@ public:
                         else {
                             cell_context = new LVRendPageContext( NULL, context.getPageHeight(), false );
                         }
-                        // See above about what we'll store in cell->baseline
-                        int baseline = REQ_BASELINE_NOT_NEEDED;
-                        if ( cell->valign == 0 ) { // vertical-align: baseline
-                            baseline = REQ_BASELINE_FOR_TABLE;
-                        }
+                        // We request renderBlockElement() to give us back the baseline
+                        // of the block as expected for tables
+                        cell->baseline = REQ_BASELINE_FOR_TABLE;
                         int h = renderBlockElement( *cell_context, cell->elem, 0, 0, cell->width,
                                                     0, 0, // no usable left/right overflow outside cell
-                                                    cell->direction, &baseline, rend_flags);
+                                                    cell->direction, &cell->baseline, rend_flags);
                         cell->height = h;
+                        // See above about what we store in cell->adjusted_baseline
                         if ( cell->valign == 0 ) { // vertical-align: baseline
-                            cell->baseline = baseline;
+                            // We'll use that baseline
+                            cell->adjusted_baseline = cell->baseline;
                         }
                         else {
-                            // We'd need the bottom content edge of what's been rendered.
+                            // We need the bottom content edge of what's been rendered.
                             // We just need to remove this cell bottom padding (we should
                             // not remove the inner content bottom margins or paddings).
                             int em = cell->elem->getFont()->getSize();
                             css_style_ref_t elem_style = cell->elem->getStyle();
                             int padding_bottom = lengthToPx( elem_style->padding[3], cell->width, em ) + measureBorder(cell->elem,2);
-                            cell->baseline = h - padding_bottom;
+                            // We'll position that bottom content edge
+                            cell->adjusted_baseline = h - padding_bottom;
                         }
                         if ( !is_single_column ) {
                             // Gather footnotes links accumulated by cell_context
@@ -1766,8 +1771,9 @@ public:
                     //   This will establish the baseline of the row"
                     if ( cell->valign == 0 ) { // only cells with vertical-align: baseline
                         row_has_baseline_aligned_cells = true;
-                        if ( row->baseline < cell->baseline )
-                            row->baseline = cell->baseline;
+                        if ( row->baseline < cell->adjusted_baseline )
+                            row->baseline = cell->adjusted_baseline;
+                                // (cell->adjusted_baseline is cell->baseline)
                     }
                 }
             }
@@ -1780,26 +1786,22 @@ public:
                         // "If a row has no cell box aligned to its baseline,
                         // the baseline of that row is the bottom content edge
                         // of the lowest cell in the row."
-                        // We have computed cell->baseline that way
-                        // when cell->valign != 0, so just use it:
-                        if ( row->baseline < cell->baseline )
-                            row->baseline = cell->baseline;
-                        // cell->baseline = 0; // (not needed, as not used)
+                        // We have stored in cell->adjusted_baseline the
+                        // cells bottom content edges.
+                        if ( row->baseline < cell->adjusted_baseline )
+                            row->baseline = cell->adjusted_baseline;
                     }
                     else if ( cell->valign == 0 ) {
                         // Cells with vertical-align: baseline must align with
                         // the row baseline: this can increase the height of
                         // a cell, and so the height of the row.
-                        // As we don't need the real cell->baseline after this,
-                        // we store in it the shift-down frop top for this cell,
-                        // that we'll use below when handling cell->valign==0.
-                        int shift_down = row->baseline - cell->baseline;
-                        cell->baseline = shift_down;
+                        int shift_down = row->baseline - cell->adjusted_baseline;
+                        cell->adjusted_baseline = row->baseline;
                         // And update row height from this cell height if it is rowspan=1
                         if ( cell->rowspan == 1 && row->height < cell->height + shift_down )
                             row->height = cell->height + shift_down;
                     }
-                    // else cell->baseline = 0; // (not needed, as not used)
+                    // else cell->adjusted_baseline won't be used
                 }
             }
         }
@@ -2051,7 +2053,7 @@ public:
                     if ( cell_h < row_h ) {
                         int pad = 0; // default when cell->valign=1 / top
                         if (cell->valign == 0) // baseline
-                            pad = cell->baseline; // contains the shift-down to align cell and row baselines
+                            pad = cell->adjusted_baseline - cell->baseline; // shift-down to align cell and row baselines
                         else if (cell->valign == 2) // center
                             pad = (row_h - cell_h)/2;
                         else if (cell->valign == 3) // bottom
