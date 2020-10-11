@@ -280,6 +280,9 @@ public class FileInfo {
 			pathname = f.getAbsolutePath();
 			isDirectory = true;
 		}
+		File parent_ = f.getParentFile();
+		if (null != parent_)
+			parent = new FileInfo(parent_);
 	}
 	
 	public FileInfo( File f )

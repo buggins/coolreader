@@ -100,7 +100,6 @@ public class CoolReader extends BaseActivity {
 
 	private String mFileToOpenFromExt = null;
 
-	private Uri mSDCardUri = null;
 	private FileInfo mFileToDelete = null;
 
 	private boolean isFirstStart = true;
@@ -1374,12 +1373,17 @@ public class CoolReader extends BaseActivity {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 				if (resultCode == Activity.RESULT_OK) {
 					if (mFileToDelete != null && !mFileToDelete.isDirectory) {
-						DocumentFile documentFile = Utils.getDocumentFile(mFileToDelete, this, intent.getData());
+						Uri sdCardUri = intent.getData();
+						DocumentFile documentFile = null;
+						if (null != sdCardUri)
+							documentFile = Utils.getDocumentFile(mFileToDelete, this, sdCardUri);
 						if (null != documentFile) {
 							if (documentFile.delete()) {
-								mSDCardUri = intent.getData();
 								Services.getHistory().removeBookInfo(getDB(), mFileToDelete, true, true);
-								BackgroundThread.instance().postGUI(() -> directoryUpdated(mFileToDelete.parent), 700);
+								final FileInfo dirToUpdate = mFileToDelete.parent;
+								if (null != dirToUpdate)
+									BackgroundThread.instance().postGUI(() -> directoryUpdated(dirToUpdate), 700);
+								updateExtSDURI(mFileToDelete, sdCardUri);
 							} else {
 								showToast(R.string.could_not_delete_file, mFileToDelete);
 							}
@@ -1387,6 +1391,7 @@ public class CoolReader extends BaseActivity {
 							showToast(R.string.could_not_delete_on_sd);
 						}
 					}
+					mFileToDelete = null;
 				}
 			}
 		} //if (requestCode == REQUEST_CODE_OPEN_DOCUMENT_TREE)
@@ -1632,18 +1637,19 @@ public class CoolReader extends BaseActivity {
 			if (file.deleteFile()) {
 				waitForCRDBService(() -> {
 					Services.getHistory().removeBookInfo(getDB(), finalFile, true, true);
-					BackgroundThread.instance().postGUI(() -> directoryUpdated(item.parent, null), 700);
+					BackgroundThread.instance().postGUI(() -> directoryUpdated(finalFile.parent, null), 700);
 				});
 			} else {
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 					DocumentFile documentFile = null;
-					if (mSDCardUri != null)
-						documentFile = Utils.getDocumentFile(file, this, mSDCardUri);
+					Uri sdCardUri = getExtSDURIByFileInfo(file);
+					if (sdCardUri != null)
+						documentFile = Utils.getDocumentFile(file, this, sdCardUri);
 					if (null != documentFile) {
 						if (documentFile.delete()) {
 							waitForCRDBService(() -> {
 								Services.getHistory().removeBookInfo(getDB(), finalFile, true, true);
-								BackgroundThread.instance().postGUI(() -> directoryUpdated(item.parent), 700);
+								BackgroundThread.instance().postGUI(() -> directoryUpdated(finalFile.parent), 700);
 							});
 						} else {
 							showToast(R.string.could_not_delete_file, file);
@@ -1861,6 +1867,62 @@ public class CoolReader extends BaseActivity {
 		long res = getPrefs().getLong(PREF_EXT_DATADIR_CREATETIME, 0);
 		log.i("getExtDataDirCreateTime() = " + res);
 		return res;
+	}
+
+	private boolean updateExtSDURI(FileInfo fi, Uri extSDUri) {
+		String prefKey = null;
+		String filePath = null;
+		if (!fi.isDirectory) {
+			if (fi.isArchive && fi.arcname != null) {
+				filePath = fi.arcname;
+			} else
+				filePath = fi.pathname;
+		}
+		if (null != filePath) {
+			File f = new File(filePath);
+			filePath = f.getAbsolutePath();
+			String[] parts = filePath.split("\\/");
+			if (parts.length >= 3) {
+				// For example,
+				// parts[0] = ""
+				// parts[1] = "storage"
+				// parts[2] = "1501-3F19"
+				// then prefKey = "/storage/1501-3F19"
+				prefKey = "uri_for_/" + parts[1] + "/" + parts[2];
+			}
+		}
+		if (null != prefKey) {
+			SharedPreferences prefs = getPrefs();
+			return prefs.edit().putString(prefKey, extSDUri.toString()).commit();
+		}
+		return false;
+	}
+
+	private Uri getExtSDURIByFileInfo(FileInfo fi) {
+		Uri uri = null;
+		String prefKey = null;
+		String filePath = null;
+		if (!fi.isDirectory) {
+			if (fi.isArchive && fi.arcname != null) {
+				filePath = fi.arcname;
+			} else
+				filePath = fi.pathname;
+		}
+		if (null != filePath) {
+			File f = new File(filePath);
+			filePath = f.getAbsolutePath();
+			String[] parts = filePath.split("\\/");
+			if (parts.length >= 3) {
+				prefKey = "uri_for_/" + parts[1] + "/" + parts[2];
+			}
+		}
+		if (null != prefKey) {
+			SharedPreferences prefs = getPrefs();
+			String strUri = prefs.getString(prefKey, null);
+			if (null != strUri)
+				uri = Uri.parse(strUri);
+		}
+		return uri;
 	}
 
 	public void showCurrentBook() {
