@@ -675,7 +675,7 @@
     <string name="autosave_period_30min">30 minutes</string>
     <string name="choose_root_sd">Could not delete file, if the file is on External SD, choose ExtSD root in the dialog</string>
     <string name="could_not_delete_on_sd">Could not find file, make sure the root of ExtSD was selected</string>
-    <string name="could_not_delete_file">Could not delete file</string>
+    <string name="could_not_delete_file">Could not delete file \"%s\"</string>
     <string name="bookmarks_keepalive_">Delete copies of bookmarks older than…</string>
     <string name="bookmarks_keepalive_off">Off</string>
     <string name="bookmarks_keepalive_1day">1 day</string>

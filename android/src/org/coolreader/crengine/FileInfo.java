@@ -1,10 +1,6 @@
 package org.coolreader.crengine;
 
-import android.content.Context;
-import android.net.Uri;
 import android.util.Log;
-
-import androidx.documentfile.provider.DocumentFile;
 
 import org.coolreader.R;
 import org.coolreader.plugins.OnlineStoreBook;
@@ -685,18 +681,6 @@ public class FileInfo {
 		throw new IndexOutOfBoundsException();
 	}
 
-	public File getFile()
-	{
-		if (isDirectory)
-			return null;
-		if ( isArchive ) {
-			if ( arcname!=null )
-				return new File(arcname);
-			return null;
-		}
-		return new File(pathname);
-	}
-
 	public boolean setFileProperties(FileInfo file)
 	{
 		boolean modified = false;
@@ -819,25 +803,6 @@ public class FileInfo {
 		return false;
 	}
 
-	public int deleteFileDocTree(Context context, Uri sdCardUri) {
-		File file = this.getFile();
-		if (file!=null) {
-			DocumentFile documentFile = DocumentFile.fromTreeUri(context, sdCardUri);
-			String[] parts = file.getPath().split("\\/");
-			for (int i = 3; i < parts.length; i++) {
-				if (documentFile != null) {
-					documentFile = documentFile.findFile(parts[i]);
-				}
-			}
-			if (documentFile != null) {
-				if (documentFile.delete()) return 1;
-			} else {
-				return -1;
-			}
-		}
-		return 0;
-	}
-	
 	public boolean fileExists()
 	{
 		if (isDirectory)

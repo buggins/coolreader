@@ -640,7 +640,7 @@
     <string name="autosave_period_30min">"30 минут"</string>
     <string name="choose_root_sd">Невозможно удалить файл, если файл находится на внешней SD карте, выберите корень внешней SD карты в диалоге</string>
     <string name="could_not_delete_on_sd">Невозможно найти файл, убедитесь, что был выбран корень внешней SD карты</string>
-    <string name="could_not_delete_file">Невозможно удалить файл</string>
+    <string name="could_not_delete_file">Невозможно удалить файл \"%s\"</string>
     <string name="bookmarks_keepalive_">Удалять копии закладок старее чем…</string>
     <string name="bookmarks_keepalive_off">Отключено</string>
     <string name="bookmarks_keepalive_1day">1 день</string>

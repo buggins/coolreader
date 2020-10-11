@@ -49,6 +49,7 @@ import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
+import org.coolreader.crengine.Utils;
 import org.coolreader.tts.TTS;
 import org.coolreader.donations.CRDonationService;
 import org.coolreader.sync2.OnSyncStatusListener;
@@ -67,9 +68,6 @@ import java.util.TimerTask;
 
 public class CoolReader extends BaseActivity {
 	public static final Logger log = L.create("cr");
-
-	public Uri sdCardUri = null;
-	private FileInfo fileToDelete = null;
 
 	private ReaderView mReaderView;
 	private ReaderViewLayout mReaderFrame;
@@ -102,6 +100,9 @@ public class CoolReader extends BaseActivity {
 
 	private String mFileToOpenFromExt = null;
 
+	private Uri mSDCardUri = null;
+	private FileInfo mFileToDelete = null;
+
 	private boolean isFirstStart = true;
 	private boolean phoneStateChangeHandlerInstalled = false;
 	private int initialBatteryState = -1;
@@ -115,7 +116,7 @@ public class CoolReader extends BaseActivity {
 	private static final int REQUEST_CODE_STORAGE_PERM = 1;
 	private static final int REQUEST_CODE_READ_PHONE_STATE_PERM = 2;
 	private static final int REQUEST_CODE_GOOGLE_DRIVE_SIGN_IN = 3;
-	private static final int REQUEST_CODE_OPEN_DOCUMENT_TREE = 200001;
+	private static final int REQUEST_CODE_OPEN_DOCUMENT_TREE = 11;
 
 	/**
 	 * Called when the activity is first created.
@@ -1363,31 +1364,29 @@ public class CoolReader extends BaseActivity {
 		if (mDonationService != null) {
 			mDonationService.onActivityResult(requestCode, resultCode, intent);
 		}
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			if (null != mGoogleDriveSync) {
-				mGoogleDriveSync.onActivityResultHandler(requestCode, resultCode, intent);
+		if (requestCode == REQUEST_CODE_GOOGLE_DRIVE_SIGN_IN) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+				if (null != mGoogleDriveSync) {
+					mGoogleDriveSync.onActivityResultHandler(requestCode, resultCode, intent);
+				}
 			}
-		}
-
-		if (requestCode == REQUEST_CODE_OPEN_DOCUMENT_TREE) {
-			if (resultCode == Activity.RESULT_OK) {
-				if (fileToDelete!=null) {
-					File file = fileToDelete.getFile();
-					if (file!=null) {
-						DocumentFile documentFile = DocumentFile.fromTreeUri(this, intent.getData());
-						int res = fileToDelete.deleteFileDocTree(this,intent.getData());
-						if (res == -1) {
+		} else if (requestCode == REQUEST_CODE_OPEN_DOCUMENT_TREE) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+				if (resultCode == Activity.RESULT_OK) {
+					if (mFileToDelete != null && !mFileToDelete.isDirectory) {
+						DocumentFile documentFile = Utils.getDocumentFile(mFileToDelete, this, intent.getData());
+						if (null != documentFile) {
+							if (documentFile.delete()) {
+								mSDCardUri = intent.getData();
+								Services.getHistory().removeBookInfo(getDB(), mFileToDelete, true, true);
+								BackgroundThread.instance().postGUI(() -> directoryUpdated(mFileToDelete.parent), 700);
+							} else {
+								showToast(R.string.could_not_delete_file, mFileToDelete);
+							}
+						} else {
 							showToast(R.string.could_not_delete_on_sd);
-							return;
 						}
-						if (res == 0) {
-							showToast(R.string.could_not_delete_file);
-							return;
-						}
-						sdCardUri = intent.getData();
-						Services.getHistory().removeBookInfo(getDB(), fileToDelete, true, true);
-						BackgroundThread.instance().postGUI(() -> directoryUpdated(fileToDelete.parent, null), 700);
-					} // if (file!=null)
+					}
 				}
 			}
 		} //if (requestCode == REQUEST_CODE_OPEN_DOCUMENT_TREE)
@@ -1636,25 +1635,27 @@ public class CoolReader extends BaseActivity {
 					BackgroundThread.instance().postGUI(() -> directoryUpdated(item.parent, null), 700);
 				});
 			} else {
-				boolean bSucceed = false;
-				int res = 0;
-				if (sdCardUri!=null) {
-					res = file.deleteFileDocTree(CoolReader.this, sdCardUri);
-					bSucceed = res == 1;
-				}
-				if (!bSucceed) {
-					fileToDelete = null;
-					showToast(R.string.choose_root_sd);
-					if (file.getFile() != null) {
-						fileToDelete = file;
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+					DocumentFile documentFile = null;
+					if (mSDCardUri != null)
+						documentFile = Utils.getDocumentFile(file, this, mSDCardUri);
+					if (null != documentFile) {
+						if (documentFile.delete()) {
+							waitForCRDBService(() -> {
+								Services.getHistory().removeBookInfo(getDB(), finalFile, true, true);
+								BackgroundThread.instance().postGUI(() -> directoryUpdated(item.parent), 700);
+							});
+						} else {
+							showToast(R.string.could_not_delete_file, file);
+						}
+					} else {
+						showToast(R.string.choose_root_sd);
+						mFileToDelete = file;
 						Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
 						startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE);
 					}
 				} else {
-					waitForCRDBService(() -> {
-						Services.getHistory().removeBookInfo(getDB(), finalFile, true, true);
-						BackgroundThread.instance().postGUI(() -> directoryUpdated(item.parent, null), 700);
-					});
+					showToast(R.string.could_not_delete_file, file);
 				}
 			}
 		});
