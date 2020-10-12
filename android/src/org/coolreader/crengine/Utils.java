@@ -24,9 +24,14 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
+import android.os.Build;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
+
+import androidx.annotation.RequiresApi;
+import androidx.documentfile.provider.DocumentFile;
 
 public class Utils {
 	public static long timeStamp() {
@@ -157,6 +162,30 @@ public class Utils {
 			if (!f2.delete())
 				Log.e("cr3", "Cannot remove DB file " + f2);
 		return f2;
+	}
+
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+	public static DocumentFile getDocumentFile(FileInfo fi, Context context, Uri sdCardUri) {
+		DocumentFile docFile = null;
+		String filePath = null;
+		if (!fi.isDirectory) {
+			if (fi.isArchive && fi.arcname != null) {
+				filePath = fi.arcname;
+			} else
+				filePath = fi.pathname;
+		}
+		if (null != filePath) {
+			File f = new File(filePath);
+			filePath = f.getAbsolutePath();
+			docFile = DocumentFile.fromTreeUri(context, sdCardUri);
+			String[] parts = filePath.split("\\/");
+			for (int i = 3; i < parts.length; i++) {
+				if (docFile != null) {
+					docFile = docFile.findFile(parts[i]);
+				}
+			}
+		}
+		return docFile;
 	}
 
 	private final static String LATIN_C0 =

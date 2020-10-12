@@ -414,7 +414,7 @@
     <string name="options_font_fallback_face">Резервный шрифт</string>
     <string name="win_title_confirm_catalog_delete">Вы действительно хотите удалить этот каталог?</string>
     <string name="win_title_confirm_history_record_delete">Вы действительно хотите удалить эту книгу из списка последних книг?</string>
-    <string name="win_title_confirm_book_delete">Вы действительно хотите удалить эту книгу?</string>
+    <string name="win_title_confirm_book_delete">Вы действительно хотите удалить эту книгу / архив ?</string>
     <string name="folder_name_books_by_series">Серии</string>
     <string name="folder_name_books_by_title">Названия</string>
     <string name="dlg_about_donation_platinum">$30: купить Платиновую монету Cool Reader</string>
@@ -638,6 +638,9 @@
     <string name="autosave_period_15min">"15 минут"</string>
     <string name="autosave_period_20min">"20 минут"</string>
     <string name="autosave_period_30min">"30 минут"</string>
+    <string name="choose_root_sd">Невозможно удалить файл, если файл находится на внешней SD карте, выберите корень внешней SD карты в диалоге</string>
+    <string name="could_not_delete_on_sd">Невозможно найти файл, убедитесь, что был выбран корень внешней SD карты</string>
+    <string name="could_not_delete_file">Невозможно удалить файл \"%s\"</string>
     <string name="bookmarks_keepalive_">Удалять копии закладок старее чем…</string>
     <string name="bookmarks_keepalive_off">Отключено</string>
     <string name="bookmarks_keepalive_1day">1 день</string>

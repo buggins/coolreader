@@ -425,7 +425,7 @@
     <string name="options_font_fallback_face">Fallback font</string>
     <string name="win_title_confirm_catalog_delete">Do you really want to delete this catalog?</string>
     <string name="win_title_confirm_history_record_delete">Do you really want to remove this book from recent list?</string>
-    <string name="win_title_confirm_book_delete">Do you really want to delete this book?</string>
+    <string name="win_title_confirm_book_delete">Do you really want to delete this book / archive ?</string>
     <string name="book_info_book_language">Language</string>
     <string name="folder_name_books_by_series">Series</string>
     <string name="folder_name_books_by_title">Titles</string>
@@ -673,6 +673,9 @@
     <string name="autosave_period_15min">15 minutes</string>
     <string name="autosave_period_20min">20 minutes</string>
     <string name="autosave_period_30min">30 minutes</string>
+    <string name="choose_root_sd">Could not delete file, if the file is on External SD, choose ExtSD root in the dialog</string>
+    <string name="could_not_delete_on_sd">Could not find file, make sure the root of ExtSD was selected</string>
+    <string name="could_not_delete_file">Could not delete file \"%s\"</string>
     <string name="bookmarks_keepalive_">Delete copies of bookmarks older than…</string>
     <string name="bookmarks_keepalive_off">Off</string>
     <string name="bookmarks_keepalive_1day">1 day</string>

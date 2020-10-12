@@ -1,6 +1,7 @@
 package org.coolreader.crengine;
 
 import android.util.Log;
+
 import org.coolreader.R;
 import org.coolreader.plugins.OnlineStoreBook;
 
@@ -279,6 +280,9 @@ public class FileInfo {
 			pathname = f.getAbsolutePath();
 			isDirectory = true;
 		}
+		File parent_ = f.getParentFile();
+		if (null != parent_)
+			parent = new FileInfo(parent_);
 	}
 	
 	public FileInfo( File f )
@@ -801,7 +805,7 @@ public class FileInfo {
 		}
 		return false;
 	}
-	
+
 	public boolean fileExists()
 	{
 		if (isDirectory)
