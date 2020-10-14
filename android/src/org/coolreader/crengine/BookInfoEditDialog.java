@@ -225,7 +225,8 @@ public class BookInfoEditDialog extends BaseDialog {
 		}
 	}
 
-    ScrollView scrollView;
+    LinearLayout mainView;
+	ScrollView scrollView;
     EditText edTitle;
     EditText edSeriesName;
     EditText edSeriesNumber;
@@ -239,30 +240,31 @@ public class BookInfoEditDialog extends BaseDialog {
 
         mInflater = LayoutInflater.from(getContext());
         FileInfo file = mBookInfo.getFileInfo();
-        scrollView = (ScrollView)mInflater.inflate(R.layout.book_info_edit_dialog, null);
+        mainView = (LinearLayout) mInflater.inflate(R.layout.book_info_edit_dialog, null);
 
-        ImageButton btnBack = scrollView.findViewById(R.id.base_dlg_btn_back);
+        ImageButton btnBack = mainView.findViewById(R.id.base_dlg_btn_back);
         btnBack.setOnClickListener(v -> onNegativeButtonClick());
-        ImageButton btnOpenBook = scrollView.findViewById(R.id.btn_open_book);
+        ImageButton btnOpenBook = mainView.findViewById(R.id.btn_open_book);
         btnOpenBook.setOnClickListener(v -> onPositiveButtonClick());
-        ImageButton btnDeleteBook = scrollView.findViewById(R.id.book_delete);
+        ImageButton btnDeleteBook = mainView.findViewById(R.id.book_delete);
         btnDeleteBook.setOnClickListener(v -> {
 			mActivity.askDeleteBook(mBookInfo.getFileInfo());
 			dismiss();
 		});
 
-        edTitle = scrollView.findViewById(R.id.book_title);
-        edSeriesName = scrollView.findViewById(R.id.book_series_name);
-        edSeriesNumber = scrollView.findViewById(R.id.book_series_number);
-        edDescription = scrollView.findViewById(R.id.book_description);
+        scrollView = mainView.findViewById(R.id.book_scrollview);
+        edTitle = mainView.findViewById(R.id.book_title);
+        edSeriesName = mainView.findViewById(R.id.book_series_name);
+        edSeriesNumber = mainView.findViewById(R.id.book_series_number);
+        edDescription = mainView.findViewById(R.id.book_description);
 
-        rbBookRating = scrollView.findViewById(R.id.book_rating);
-        rgState = scrollView.findViewById(R.id.book_state);
+        rbBookRating = mainView.findViewById(R.id.book_rating);
+        rgState = mainView.findViewById(R.id.book_state);
         int state = file.getReadingState();
         int[] stateButtons = new int[] {R.id.book_state_new, R.id.book_state_toread, R.id.book_state_reading, R.id.book_state_finished};
         rgState.check(state >= 0 && state < stateButtons.length ? stateButtons[state] : R.id.book_state_new);
 
-        final ImageView image = scrollView.findViewById(R.id.book_cover);
+        final ImageView image = mainView.findViewById(R.id.book_cover);
         image.setOnClickListener(v -> {
 			// open book
 			onPositiveButtonClick();
@@ -279,7 +281,7 @@ public class BookInfoEditDialog extends BaseDialog {
 			image.setImageDrawable(drawable);
 		});
 
-        final ImageView progress = scrollView.findViewById(R.id.book_progress);
+        final ImageView progress = mainView.findViewById(R.id.book_progress);
         int percent = -1;
         Bookmark bmk = mBookInfo.getLastPosition();
         if (bmk != null)
@@ -308,12 +310,12 @@ public class BookInfoEditDialog extends BaseDialog {
             edDescription.setText(file.description);
         else
             edDescription.setVisibility(View.INVISIBLE);
-        LinearLayout llBookAuthorsList = scrollView.findViewById(R.id.book_authors_list);
+        LinearLayout llBookAuthorsList = mainView.findViewById(R.id.book_authors_list);
         authors = new AuthorList(llBookAuthorsList, file.authors);
         rbBookRating.setRating(file.getRate());
 
-    	ImageButton btnRemoveRecent = scrollView.findViewById(R.id.book_recent_delete);
-    	ImageButton btnOpenFolder = scrollView.findViewById(R.id.book_folder_open);
+    	ImageButton btnRemoveRecent = mainView.findViewById(R.id.book_recent_delete);
+    	ImageButton btnOpenFolder = mainView.findViewById(R.id.book_folder_open);
         if (mIsRecentBooksItem) {
         	btnRemoveRecent.setOnClickListener(v -> {
 				mActivity.askDeleteRecent(mBookInfo.getFileInfo());
@@ -329,7 +331,7 @@ public class BookInfoEditDialog extends BaseDialog {
         	parent.removeView(btnOpenFolder);
         }
 
-        setView(scrollView);
+        setView(mainView);
 	}
 
 	private void save() {
