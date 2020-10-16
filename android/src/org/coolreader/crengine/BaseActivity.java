@@ -186,7 +186,7 @@ public class BaseActivity extends Activity implements Settings {
 			orientation = 5;
 		setScreenOrientation(orientation);
 		int backlight = props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1);
-		if (backlight < -1 || backlight > 100)
+		if (backlight < -1 || backlight > DeviceInfo.MAX_SCREEN_BRIGHTNESS_VALUE)
 			backlight = -1;
 		setScreenBacklightLevel(backlight);
 
@@ -400,6 +400,7 @@ public class BaseActivity extends Activity implements Settings {
 			minFontSize = 9;
 	}
 
+	@SuppressLint("ResourceType")
 	public void updateActionsIcons() {
 		int[] attrs = {R.attr.cr3_button_prev_drawable, R.attr.cr3_button_next_drawable, R.attr.cr3_viewer_toc_drawable,
 				R.attr.cr3_viewer_find_drawable, R.attr.cr3_viewer_settings_drawable, R.attr.cr3_button_bookmarks_drawable,
@@ -777,13 +778,20 @@ public class BaseActivity extends Activity implements Settings {
 		onUserActivity();
 	}
 
-	public void setScreenBacklightLevel(int percent) {
-		if (percent < -1)
-			percent = -1;
-		else if (percent > 100)
-			percent = -1;
-		screenBacklightBrightness = percent;
-		onUserActivity();
+	public int getScreenBacklightLevel() {
+		return screenBacklightBrightness;
+	}
+
+	public void setScreenBacklightLevel(int value) {
+		if (value < -1)
+			value = -1;
+		else if (value > DeviceInfo.MAX_SCREEN_BRIGHTNESS_VALUE)
+			value = -1;
+		screenBacklightBrightness = value;
+		if (!DeviceInfo.EINK_SCREEN)
+			onUserActivity();
+		else if (DeviceInfo.EINK_HAVE_FRONTLIGHT)
+			EinkScreen.setFrontLightValue(this, value);
 	}
 
 	private int screenBacklightBrightness = -1; // use default
@@ -892,7 +900,7 @@ public class BaseActivity extends Activity implements Settings {
 		}
 	}
 
-	private final static int MIN_BACKLIGHT_LEVEL_PERCENT = DeviceInfo.MIN_SCREEN_BRIGHTNESS_PERCENT;
+	private final static int MIN_BACKLIGHT_LEVEL_PERCENT = DeviceInfo.MIN_SCREEN_BRIGHTNESS_VALUE;
 
 	protected void setDimmingAlpha(int alpha) {
 		// override it
@@ -1247,7 +1255,7 @@ public class BaseActivity extends Activity implements Settings {
 				// ignore
 			}
 			setScreenOrientation(orientation);
-		} else if (!DeviceInfo.EINK_SCREEN && PROP_APP_SCREEN_BACKLIGHT.equals(key)) {
+		} else if ((!DeviceInfo.EINK_SCREEN || DeviceInfo.EINK_HAVE_FRONTLIGHT) && PROP_APP_SCREEN_BACKLIGHT.equals(key)) {
 			try {
 				final int n = Integer.valueOf(value);
 				// delay before setting brightness

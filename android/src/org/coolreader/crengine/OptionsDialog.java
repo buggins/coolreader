@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 public class OptionsDialog extends BaseDialog implements TabContentFactory, OptionOwner, Settings {
 
@@ -76,11 +77,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		return bestIndex;
 	}
 	public static final int[] mBacklightLevels = new int[] {
-		-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100
+			-1,  1,  2,  3,  4,  5,  6,  7,  8,  9,
+			10, 12, 15, 20, 25, 30, 35, 40, 45, 50,
+			55, 60, 65, 70, 75, 80, 85, 90, 95, 100
 	};
 	public static final String[] mBacklightLevelsTitles = new String[] {
 			"Default", "1%", "2%", "3%", "4%", "5%", "6%", "7%", "8%", "9%", 
-			"10%", "12%", "15%", "20%", "25%", "30%", "35%", "40%", "45%", "50%", "55%", "60%", "65%", "70%", "75%", "80%", "85%", "90%", "95%", "100%",
+			"10%", "12%", "15%", "20%", "25%", "30%", "35%", "40%", "45%", "50%",
+			"55%", "60%", "65%", "70%", "75%", "80%", "85%", "90%", "95%", "100%",
 	};
 	public static int[] mMotionTimeouts;
 	public static String[] mMotionTimeoutsTitles;
@@ -1062,6 +1066,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			for ( int i=0; i<values.length; i++ ) {
 				String value = String.valueOf(values[i]); 
 				String label = labels[i]; 
+				add(value, label);
+			}
+			return this;
+		}
+		public ListOption add(List<?> values, List<String> labels) {
+			for ( int i=0; i < values.size(); i++ ) {
+				String value = String.valueOf(values.get(i));
+				String label = labels.get(i);
 				add(value, label);
 			}
 			return this;
@@ -2104,7 +2116,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_touch_drawable, R.drawable.cr3_option_touch));
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
-		if ( !DeviceInfo.EINK_SCREEN )
+		if ( !DeviceInfo.EINK_SCREEN || DeviceInfo.EINK_HAVE_FRONTLIGHT )
 			mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.option_controls_gesture_page_flipping_enabled), PROP_APP_GESTURE_PAGE_FLIPPING).add(mPagesPerFullSwipe, mPagesPerFullSwipeTitles).setDefaultValue("1"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_selection_action), PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
@@ -2120,6 +2132,23 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_timeout), PROP_APP_SCREEN_BACKLIGHT_LOCK).add(mBacklightTimeout, mBacklightTimeoutTitles).setDefaultValue("3").noIcon());
 			mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1").noIcon());
+		} else if ( DeviceInfo.EINK_HAVE_FRONTLIGHT ) {
+			List<Integer> frontLightLevels = EinkScreen.getFrontLightLevels(mActivity);
+			if (null != frontLightLevels && frontLightLevels.size() > 0) {
+				ArrayList<String> levelsTitles = new ArrayList<>();
+				ArrayList<Integer> levels = new ArrayList<>();
+				levels.add(-1);
+				levelsTitles.add(getString(R.string.options_app_backlight_screen_default));
+				for (Integer level : frontLightLevels) {
+					float percentLevel = 100 * level / (float)DeviceInfo.MAX_SCREEN_BRIGHTNESS_VALUE;
+					if (percentLevel < 10)
+						levelsTitles.add(String.format("%1$.1f%%", percentLevel));
+					else
+						levelsTitles.add(String.format("%1$.0f%%", percentLevel));
+					levels.add(level);
+				}
+				mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(levels, levelsTitles).setDefaultValue("-1").noIcon());
+			}
 		}
 		mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_tts_stop_motion_timeout), PROP_APP_MOTION_TIMEOUT).add(mMotionTimeouts, mMotionTimeoutsTitles).setDefaultValue(Integer.toString(mMotionTimeouts[0])).noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_key_backlight_off), PROP_APP_KEY_BACKLIGHT_OFF).setDefaultValue("1").noIcon());
