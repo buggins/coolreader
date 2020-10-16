@@ -1,20 +1,5 @@
 package org.coolreader.crengine;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import org.coolreader.CoolReader;
-import org.coolreader.R;
-import org.coolreader.crengine.InputDialog.InputHandler;
-import org.koekak.android.ebookdownloader.SonyBookSelector;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -38,6 +23,21 @@ import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
+import org.coolreader.crengine.InputDialog.InputHandler;
+import org.koekak.android.ebookdownloader.SonyBookSelector;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 public class ReaderView implements android.view.SurfaceHolder.Callback, Settings, DocProperties, OnKeyListener, OnTouchListener, OnFocusChangeListener {
 
@@ -3781,25 +3781,35 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	int currentBrightnessValueIndex = -1;
+	int currentBrightnessValue = -1;
+	int currentBrightnessPrevYPos = -1;
 
 	private void startBrightnessControl(final int startX, final int startY) {
-		currentBrightnessValueIndex = -1;
+		currentBrightnessValue = mActivity.getScreenBacklightLevel();
+		currentBrightnessValueIndex = OptionsDialog.findBacklightSettingIndex(currentBrightnessValue);
+		currentBrightnessPrevYPos = startY;
 		updateBrightnessControl(startX, startY);
 	}
 
 	private void updateBrightnessControl(final int x, final int y) {
-		int n = OptionsDialog.mBacklightLevels.length;
-		int index = n - 1 - y * n / surface.getHeight();
+		int count = OptionsDialog.mBacklightLevels.length;
+		int diff = count*(currentBrightnessPrevYPos - y)/surface.getHeight();
+		int index = currentBrightnessValueIndex + diff;
 		if (index < 0)
 			index = 0;
-		else if (index >= n)
-			index = n - 1;
+		else if (index >= count)
+			index = count - 1;
+		if (index == 0) {
+			// ignore system brightness level
+			currentBrightnessPrevYPos = y;
+			return;
+		}
 		if (index != currentBrightnessValueIndex) {
 			currentBrightnessValueIndex = index;
-			int newValue = OptionsDialog.mBacklightLevels[currentBrightnessValueIndex];
-			mActivity.setScreenBacklightLevel(newValue);
+			currentBrightnessValue = OptionsDialog.mBacklightLevels[currentBrightnessValueIndex];
+			mActivity.setScreenBacklightLevel(currentBrightnessValue);
+			currentBrightnessPrevYPos = y;
 		}
-
 	}
 
 	private void stopBrightnessControl(final int x, final int y) {
@@ -3807,14 +3817,16 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			if (x >= 0 && y >= 0) {
 				updateBrightnessControl(x, y);
 			}
-			mSettings.setInt(PROP_APP_SCREEN_BACKLIGHT, OptionsDialog.mBacklightLevels[currentBrightnessValueIndex]);
-			OptionsDialog.mBacklightLevelsTitles[0] = mActivity.getString(R.string.options_app_backlight_screen_default);
+			mSettings.setInt(PROP_APP_SCREEN_BACKLIGHT, currentBrightnessValue);
 			if (showBrightnessFlickToast) {
+				OptionsDialog.mBacklightLevelsTitles[0] = mActivity.getString(R.string.options_app_backlight_screen_default);
 				String s = OptionsDialog.mBacklightLevelsTitles[currentBrightnessValueIndex];
 				mActivity.showToast(s);
 			}
 			saveSettings(mSettings);
+			currentBrightnessValue = -1;
 			currentBrightnessValueIndex = -1;
+			currentBrightnessPrevYPos = -1;
 		}
 	}
 

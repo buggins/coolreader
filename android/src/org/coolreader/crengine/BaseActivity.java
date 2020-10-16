@@ -400,6 +400,7 @@ public class BaseActivity extends Activity implements Settings {
 			minFontSize = 9;
 	}
 
+	@SuppressLint("ResourceType")
 	public void updateActionsIcons() {
 		int[] attrs = {R.attr.cr3_button_prev_drawable, R.attr.cr3_button_next_drawable, R.attr.cr3_viewer_toc_drawable,
 				R.attr.cr3_viewer_find_drawable, R.attr.cr3_viewer_settings_drawable, R.attr.cr3_button_bookmarks_drawable,
@@ -775,6 +776,10 @@ public class BaseActivity extends Activity implements Settings {
 	public void setKeyBacklightDisabled(boolean disabled) {
 		keyBacklightOff = disabled;
 		onUserActivity();
+	}
+
+	public int getScreenBacklightLevel() {
+		return screenBacklightBrightness;
 	}
 
 	public void setScreenBacklightLevel(int percent) {
