@@ -1,12 +1,16 @@
 package org.coolreader.crengine;
 
+import android.content.Context;
 import android.util.Log;
 import android.view.View;
 
 import com.onyx.android.sdk.api.device.epd.EpdController;
 import com.onyx.android.sdk.api.device.epd.UpdateMode;
+import com.onyx.android.sdk.device.Device;
 
 import org.coolreader.CoolReader;
+
+import java.util.List;
 
 public class EinkScreen {
 	private static final String TAG = "EinkScreen";
@@ -25,6 +29,8 @@ public class EinkScreen {
 	public final static int CMODE_CLEAR = 0;
 	public final static int CMODE_ONESHOT = 1;
 	public final static int CMODE_ACTIVE = 2;
+	// Front light levels
+	private static List<Integer> mFrontLineLevels = null;
 
 	public static void Refresh() {
 		mRefreshNumber = -1;
@@ -253,5 +259,35 @@ public class EinkScreen {
 
 	public static int getUpdateInterval() {
 		return mUpdateInterval;
+	}
+
+	public static boolean setFrontLightValue(Context context, int value) {
+		boolean res = false;
+		if (DeviceInfo.EINK_ONYX) {
+			if (DeviceInfo.ONYX_HAVE_FRONTLIGHT) {
+				if (value >= 0) {
+					Integer alignedValue = Utils.findNearestValue(getFrontLightLevels(context), value);
+					if (null != alignedValue) {
+						if (Device.currentDevice().setFrontLightDeviceValue(context, alignedValue))
+							res = Device.currentDevice().setFrontLightConfigValue(context, alignedValue);
+					}
+				} else {
+					// system default, just ignore
+				}
+			}
+		}
+		return res;
+	}
+
+	public static List<Integer> getFrontLightLevels(Context context) {
+		if (null == mFrontLineLevels) {
+			if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
+				if (DeviceInfo.ONYX_HAVE_FRONTLIGHT) {
+					mFrontLineLevels = Device.currentDevice().getFrontLightValueList(context);
+				}
+				// TODO: other e-ink devices with front light support...
+			}
+		}
+		return mFrontLineLevels;
 	}
 }

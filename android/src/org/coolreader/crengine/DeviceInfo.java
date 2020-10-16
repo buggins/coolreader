@@ -1,10 +1,16 @@
 package org.coolreader.crengine;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.List;
 
+import android.app.Application;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.util.Log;
+
+import com.onyx.android.sdk.device.Device;
+import com.onyx.android.sdk.utils.ReflectUtil;
 
 public class DeviceInfo {
 
@@ -13,9 +19,11 @@ public class DeviceInfo {
 	public final static String DEVICE;
 	public final static String PRODUCT;
 	public final static String BRAND;
-	public final static int MIN_SCREEN_BRIGHTNESS_PERCENT;
+	public final static int MIN_SCREEN_BRIGHTNESS_VALUE;
+	public final static int MAX_SCREEN_BRIGHTNESS_VALUE;
 	public final static boolean SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 	public final static boolean EINK_SCREEN;
+	public final static boolean EINK_HAVE_FRONTLIGHT;
 	public final static boolean EINK_SCREEN_UPDATE_MODES_SUPPORTED;
 	public final static boolean NOOK_NAVIGATION_KEYS;
 	public final static boolean EINK_NOOK;
@@ -31,6 +39,7 @@ public class DeviceInfo {
 	public final static boolean AMOLED_SCREEN;
 	public final static boolean POCKETBOOK;
 	public final static boolean ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE;
+	public final static boolean ONYX_HAVE_FRONTLIGHT;
 	public final static boolean NOFLIBUSTA;
 	public final static boolean NAVIGATE_LEFTRIGHT; // map left/right keys to single page flip
 	public final static boolean REVERT_LANDSCAPE_VOLUME_KEYS; // revert volume keys in landscape mode
@@ -130,6 +139,25 @@ public class DeviceInfo {
 		// On Onyx Boox Monte Cristo 3 (and possible Monte Cristo, Monte Cristo 2) long press action on buttons are catch by system and not available for application
 		// TODO: check this on other ONYX BOOX Readers
 		ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE = EINK_ONYX && MODEL.toLowerCase().startsWith("mc_kepler");
+		boolean onyx_have_frontlight = false;
+		int max_screen_brightness_value = 100;
+		if (EINK_ONYX) {
+			Class<?> clazz = ReflectUtil.classForName("android.app.ActivityThread");
+			Method method = ReflectUtil.getMethodSafely(clazz, "currentApplication");
+			Application app = (Application) ReflectUtil.invokeMethodSafely(method, null);
+			if (null != app) {
+				onyx_have_frontlight = Device.currentDevice().hasFrontLight(app);
+				if (!onyx_have_frontlight) {
+					List<Integer> list = Device.currentDevice().getFrontLightValueList(app);
+					onyx_have_frontlight = list != null;
+				}
+				max_screen_brightness_value = Device.currentDevice().getFrontLightBrightnessMaximum(app);
+			}
+		}
+		ONYX_HAVE_FRONTLIGHT = onyx_have_frontlight;
+		MAX_SCREEN_BRIGHTNESS_VALUE = max_screen_brightness_value;
+
+		EINK_HAVE_FRONTLIGHT = ONYX_HAVE_FRONTLIGHT; // TODO: add other e-ink devices with frontlight support
 
 		POCKETBOOK = MODEL.toLowerCase().startsWith("pocketbook") || MODEL.toLowerCase().startsWith("obreey");
 		
@@ -141,7 +169,7 @@ public class DeviceInfo {
 		NOFLIBUSTA = POCKETBOOK;
 		NAVIGATE_LEFTRIGHT = POCKETBOOK && DEVICE.startsWith("EP10");
 		REVERT_LANDSCAPE_VOLUME_KEYS = POCKETBOOK && DEVICE.startsWith("EP5A");
-		MIN_SCREEN_BRIGHTNESS_PERCENT = getMinBrightness(AMOLED_SCREEN ? 2 : (getSDKLevel() >= ICE_CREAM_SANDWICH ? 8 : 16));
+		MIN_SCREEN_BRIGHTNESS_VALUE = getMinBrightness(AMOLED_SCREEN ? 2 : (getSDKLevel() >= ICE_CREAM_SANDWICH ? 8 : 16));
 		//BUFFER_COLOR_FORMAT = getSDKLevel() >= HONEYCOMB ? android.graphics.Bitmap.Config.ARGB_8888 : android.graphics.Bitmap.Config.RGB_565;
 		//BUFFER_COLOR_FORMAT = android.graphics.Bitmap.Config.ARGB_8888;
 		BUFFER_COLOR_FORMAT = EINK_SCREEN || USE_OPENGL ? android.graphics.Bitmap.Config.ARGB_8888 : android.graphics.Bitmap.Config.RGB_565;
@@ -167,7 +195,7 @@ public class DeviceInfo {
 	
 	static {
 		Log.i("cr3", "DeviceInfo: MANUFACTURER=" + MANUFACTURER + ", MODEL=" + MODEL + ", DEVICE=" + DEVICE + ", PRODUCT=" + PRODUCT + ", BRAND=" + BRAND);
-		Log.i("cr3", "DeviceInfo: MIN_SCREEN_BRIGHTNESS_PERCENT=" + MIN_SCREEN_BRIGHTNESS_PERCENT + ", EINK_SCREEN=" + EINK_SCREEN + ", AMOLED_SCREEN=" + AMOLED_SCREEN + ", POCKETBOOK=" + POCKETBOOK);
+		Log.i("cr3", "DeviceInfo: MIN_SCREEN_BRIGHTNESS_VALUE=" + MIN_SCREEN_BRIGHTNESS_VALUE + "; MAX_SCREEN_BRIGHTNESS_VALUE=" + MAX_SCREEN_BRIGHTNESS_VALUE + "; EINK_SCREEN=" + EINK_SCREEN + ", AMOLED_SCREEN=" + AMOLED_SCREEN + ", POCKETBOOK=" + POCKETBOOK);
 	}
 
 	// multiple patterns divided by |, * wildcard can be placed at beginning and/or end of pattern

@@ -1,5 +1,22 @@
 package org.coolreader.crengine;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.Callable;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
+import org.coolreader.crengine.InputDialog.InputHandler;
+import org.koekak.android.ebookdownloader.SonyBookSelector;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -23,21 +40,6 @@ import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
-
-import org.coolreader.CoolReader;
-import org.coolreader.R;
-import org.coolreader.crengine.InputDialog.InputHandler;
-import org.koekak.android.ebookdownloader.SonyBookSelector;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.Callable;
 
 public class ReaderView implements android.view.SurfaceHolder.Callback, Settings, DocProperties, OnKeyListener, OnTouchListener, OnFocusChangeListener {
 
@@ -1284,7 +1286,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					case STATE_DOWN_1:
 						if (distance < dragThreshold)
 							return true;
-						if (!DeviceInfo.EINK_SCREEN && isBacklightControlFlick != BACKLIGHT_CONTROL_FLICK_NONE && ady > adx) {
+						if ((!DeviceInfo.EINK_SCREEN || DeviceInfo.EINK_HAVE_FRONTLIGHT) && isBacklightControlFlick != BACKLIGHT_CONTROL_FLICK_NONE && ady > adx) {
 							// backlight control enabled
 							if (start_x < dragThreshold * 170 / 100 && isBacklightControlFlick == 1
 									|| start_x > width - dragThreshold * 170 / 100 && isBacklightControlFlick == 2) {
@@ -3786,27 +3788,49 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	private void startBrightnessControl(final int startX, final int startY) {
 		currentBrightnessValue = mActivity.getScreenBacklightLevel();
-		currentBrightnessValueIndex = OptionsDialog.findBacklightSettingIndex(currentBrightnessValue);
+		if (!DeviceInfo.EINK_SCREEN)
+			currentBrightnessValueIndex = OptionsDialog.findBacklightSettingIndex(currentBrightnessValue);
+		else if (DeviceInfo.EINK_HAVE_FRONTLIGHT)
+			currentBrightnessValueIndex = Utils.findNearestIndex(EinkScreen.getFrontLightLevels(mActivity), currentBrightnessValue);
 		currentBrightnessPrevYPos = startY;
 		updateBrightnessControl(startX, startY);
 	}
 
 	private void updateBrightnessControl(final int x, final int y) {
-		int count = OptionsDialog.mBacklightLevels.length;
+		List<Integer> levelList = null;
+		int count = 0;
+		if (!DeviceInfo.EINK_SCREEN)
+			count = OptionsDialog.mBacklightLevels.length;
+		else if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
+			levelList = EinkScreen.getFrontLightLevels(mActivity);
+			if (null != levelList)
+				count = levelList.size();
+			else
+				return;
+		}
+		if (0 == count)
+			return;
 		int diff = count*(currentBrightnessPrevYPos - y)/surface.getHeight();
 		int index = currentBrightnessValueIndex + diff;
 		if (index < 0)
 			index = 0;
 		else if (index >= count)
 			index = count - 1;
-		if (index == 0) {
-			// ignore system brightness level
-			currentBrightnessPrevYPos = y;
-			return;
+		if (!DeviceInfo.EINK_SCREEN) {
+			if (index == 0) {
+				// ignore system brightness level on non eink devices
+				currentBrightnessPrevYPos = y;
+				return;
+			}
 		}
 		if (index != currentBrightnessValueIndex) {
 			currentBrightnessValueIndex = index;
-			currentBrightnessValue = OptionsDialog.mBacklightLevels[currentBrightnessValueIndex];
+			if (!DeviceInfo.EINK_SCREEN)
+				currentBrightnessValue = OptionsDialog.mBacklightLevels[currentBrightnessValueIndex];
+			else {
+				// Here levelList already != null
+				currentBrightnessValue = levelList.get(currentBrightnessValueIndex);
+			}
 			mActivity.setScreenBacklightLevel(currentBrightnessValue);
 			currentBrightnessPrevYPos = y;
 		}
