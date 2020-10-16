@@ -1425,7 +1425,7 @@ public class MainDB extends BaseDB {
 		fileInfo.flags = rs.getInt(i++);
 		fileInfo.language = rs.getString(i++);
 		fileInfo.description = rs.getString(i++);
-		fileInfo.crc32 = rs.getInt(i++);
+		fileInfo.crc32 = rs.getLong(i++);
 		fileInfo.domVersion = rs.getInt(i++);
 		fileInfo.blockRenderingFlags = rs.getInt(i++);
 		fileInfo.isArchive = fileInfo.arcname != null;
