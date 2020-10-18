@@ -52,9 +52,9 @@ static lChar8 empty_str_8[] = {0};
 static lstring8_chunk_t empty_chunk_8(empty_str_8);
 lstring8_chunk_t * lString8::EMPTY_STR_8 = &empty_chunk_8;
 
-static lChar16 empty_str_16[] = {0};
-static lstring16_chunk_t empty_chunk_16(empty_str_16);
-lstring16_chunk_t * lString16::EMPTY_STR_16 = &empty_chunk_16;
+static lChar32 empty_str_32[] = {0};
+static lstring32_chunk_t empty_chunk_32(empty_str_32);
+lstring32_chunk_t * lString32::EMPTY_STR_32 = &empty_chunk_32;
 
 //================================================================================
 // atomic string storages for string literals
@@ -89,58 +89,58 @@ const lString8 & cs8(const char * str) {
     return lString8::empty_str;
 }
 
-static const void * const_ptrs_16[CONST_STRING_BUFFER_SIZE] = {NULL};
-static lString16 values_16[CONST_STRING_BUFFER_SIZE];
-static int size_16 = 0;
+static const void * const_ptrs_32[CONST_STRING_BUFFER_SIZE] = {NULL};
+static lString32 values_32[CONST_STRING_BUFFER_SIZE];
+static int size_32 = 0;
 
-/// get reference to atomic constant wide string for string literal e.g. cs16("abc") -- fast and memory effective
-const lString16 & cs16(const char * str) {
+/// get reference to atomic constant wide string for string literal e.g. cs32("abc") -- fast and memory effective
+const lString32 & cs32(const char * str) {
     int index =  (int)(((ptrdiff_t)str * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK);
     for (;;) {
-        const void * p = const_ptrs_16[index];
+        const void * p = const_ptrs_32[index];
         if (p == str) {
-            return values_16[index];
+            return values_32[index];
         } else if (p == NULL) {
 #if DEBUG_STATIC_STRING_ALLOC == 1
             CRLog::trace("allocating static string16 %s", str);
 #endif
-            const_ptrs_16[index] = str;
-            size_16++;
-            values_16[index] = lString16(str);
-            values_16[index].addref();
-            return values_16[index];
+            const_ptrs_32[index] = str;
+            size_32++;
+            values_32[index] = lString32(str);
+            values_32[index].addref();
+            return values_32[index];
         }
-        if (size_16 > CONST_STRING_BUFFER_SIZE / 4) {
+        if (size_32 > CONST_STRING_BUFFER_SIZE / 4) {
             crFatalError(-1, "out of memory for const string8");
         }
         index = (index + 1) & CONST_STRING_BUFFER_MASK;
     }
-    return lString16::empty_str;
+    return lString32::empty_str;
 }
 
-/// get reference to atomic constant wide string for string literal e.g. cs16(L"abc") -- fast and memory effective
-const lString16 & cs16(const lChar16 * str) {
+/// get reference to atomic constant wide string for string literal e.g. cs32(L"abc") -- fast and memory effective
+const lString32 & cs32(const lChar32 * str) {
     int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
     for (;;) {
-        const void * p = const_ptrs_16[index];
+        const void * p = const_ptrs_32[index];
         if (p == str) {
-            return values_16[index];
+            return values_32[index];
         } else if (p == NULL) {
 #if DEBUG_STATIC_STRING_ALLOC == 1
             CRLog::trace("allocating static string16 %s", LCSTR(str));
 #endif
-            const_ptrs_16[index] = str;
-            size_16++;
-            values_16[index] = lString16(str);
-            values_16[index].addref();
-            return values_16[index];
+            const_ptrs_32[index] = str;
+            size_32++;
+            values_32[index] = lString32(str);
+            values_32[index].addref();
+            return values_32[index];
         }
-        if (size_16 > CONST_STRING_BUFFER_SIZE / 4) {
+        if (size_32 > CONST_STRING_BUFFER_SIZE / 4) {
             crFatalError(-1, "out of memory for const string8");
         }
         index = (index + 1) & CONST_STRING_BUFFER_MASK;
     }
-    return lString16::empty_str;
+    return lString32::empty_str;
 }
 
 
@@ -175,10 +175,10 @@ struct lstring_chunk_slice_t {
         pFree = (lstring8_chunk_t *)res->buf8;
         return res;
     }
-    inline lstring16_chunk_t * alloc_chunk16()
+    inline lstring32_chunk_t * alloc_chunk32()
     {
-        lstring16_chunk_t * res = (lstring16_chunk_t *)pFree;
-        pFree = (lstring8_chunk_t *)res->buf16;
+        lstring32_chunk_t * res = (lstring32_chunk_t *)pFree;
+        pFree = (lstring8_chunk_t *)res->buf32;
         return res;
     }
     inline bool free_chunk( lstring8_chunk_t * pChunk )
@@ -198,7 +198,7 @@ struct lstring_chunk_slice_t {
         pFree = pChunk;
         return true;
     }
-    inline bool free_chunk16(lstring16_chunk_t * pChunk)
+    inline bool free_chunk32(lstring32_chunk_t * pChunk)
     {
         if ((lstring8_chunk_t *)pChunk < pChunks || (lstring8_chunk_t *)pChunk >= pEnd)
             return false; // chunk does not belong to this slice
@@ -211,7 +211,7 @@ struct lstring_chunk_slice_t {
         pChunk->size = 0;
 #endif
 */
-        pChunk->buf16 = (lChar16 *)pFree;
+        pChunk->buf32 = (lChar32 *)pFree;
         pFree = (lstring8_chunk_t *)pChunk;
         return true;
     }
@@ -273,7 +273,7 @@ void lstring8_chunk_t::free( lstring8_chunk_t * pChunk )
     crFatalError(); // wrong pointer!!!
 }
 
-lstring16_chunk_t * lstring16_chunk_t::alloc()
+lstring32_chunk_t * lstring32_chunk_t::alloc()
 {
     if (!slices_initialized)
         init_ls_storage();
@@ -281,32 +281,32 @@ lstring16_chunk_t * lstring16_chunk_t::alloc()
     for (int i=slices_count-1; i>=0; --i)
     {
         if (slices[i]->pFree != NULL)
-            return slices[i]->alloc_chunk16();
+            return slices[i]->alloc_chunk32();
     }
     // alloc new slice
     if (slices_count >= MAX_SLICE_COUNT)
         crFatalError();
     lstring_chunk_slice_t * new_slice = new lstring_chunk_slice_t( FIRST_SLICE_SIZE << (slices_count+1) );
     slices[slices_count++] = new_slice;
-    return slices[slices_count-1]->alloc_chunk16();
+    return slices[slices_count-1]->alloc_chunk32();
 }
 
-void lstring16_chunk_t::free( lstring16_chunk_t * pChunk )
+void lstring32_chunk_t::free( lstring32_chunk_t * pChunk )
 {
     for (int i=slices_count-1; i>=0; --i)
     {
-        if (slices[i]->free_chunk16(pChunk))
+        if (slices[i]->free_chunk32(pChunk))
             return;
     }
     crFatalError(); // wrong pointer!!!
 }
-#endif
+#endif  // (LDOM_USE_OWN_MEM_MAN == 1)
 
 ////////////////////////////////////////////////////////////////////////////
 // Utility functions
 ////////////////////////////////////////////////////////////////////////////
 
-inline int _lStr_len(const lChar16 * str)
+inline int _lStr_len(const lChar32 * str)
 {
     int len;
     for (len=0; *str; str++)
@@ -322,7 +322,7 @@ inline int _lStr_len(const lChar8 * str)
     return len;
 }
 
-inline int _lStr_nlen(const lChar16 * str, int maxcount)
+inline int _lStr_nlen(const lChar32 * str, int maxcount)
 {
     int len;
     for (len=0; len<maxcount && *str; str++)
@@ -338,7 +338,7 @@ inline int _lStr_nlen(const lChar8 * str, int maxcount)
     return len;
 }
 
-inline int _lStr_cpy(lChar16 * dst, const lChar16 * src)
+inline int _lStr_cpy(lChar32 * dst, const lChar32 * src)
 {
     int count;
     for ( count=0; (*dst++ = *src++); count++ )
@@ -354,7 +354,7 @@ inline int _lStr_cpy(lChar8 * dst, const lChar8 * src)
     return count;
 }
 
-inline int _lStr_cpy(lChar16 * dst, const lChar8 * src)
+inline int _lStr_cpy(lChar32 * dst, const lChar8 * src)
 {
     int count;
     for ( count=0; (*dst++ = *src++); count++ )
@@ -362,7 +362,7 @@ inline int _lStr_cpy(lChar16 * dst, const lChar8 * src)
     return count;
 }
 
-inline int _lStr_cpy(lChar8 * dst, const lChar16 * src)
+inline int _lStr_cpy(lChar8 * dst, const lChar32 * src)
 {
     int count;
     for ( count=0; (*dst++ = (lChar8)*src++); count++ )
@@ -370,7 +370,7 @@ inline int _lStr_cpy(lChar8 * dst, const lChar16 * src)
     return count;
 }
 
-inline int _lStr_ncpy(lChar16 * dst, const lChar16 * src, int maxcount)
+inline int _lStr_ncpy(lChar32 * dst, const lChar32 * src, int maxcount)
 {
     int count = 0;
     do
@@ -384,7 +384,7 @@ inline int _lStr_ncpy(lChar16 * dst, const lChar16 * src, int maxcount)
     return count;
 }
 
-inline int _lStr_ncpy(lChar16 * dst, const lChar8 * src, int maxcount)
+inline int _lStr_ncpy(lChar32 * dst, const lChar8 * src, int maxcount)
 {
     int count = 0;
     do
@@ -412,7 +412,7 @@ inline int _lStr_ncpy(lChar8 * dst, const lChar8 * src, int maxcount)
     return count;
 }
 
-inline void _lStr_memcpy(lChar16 * dst, const lChar16 * src, int count)
+inline void _lStr_memcpy(lChar32 * dst, const lChar32 * src, int count)
 {
     while ( count-- > 0)
         (*dst++ = *src++);
@@ -423,7 +423,7 @@ inline void _lStr_memcpy(lChar8 * dst, const lChar8 * src, int count)
     memcpy(dst, (const lChar8 *) src, count);
 }
 
-inline void _lStr_memset(lChar16 * dst, lChar16 value, int count)
+inline void _lStr_memset(lChar32 * dst, lChar32 value, int count)
 {
     while ( count-- > 0)
         *dst++ = value;
@@ -434,7 +434,7 @@ inline void _lStr_memset(lChar8 * dst, lChar8 value, int count)
     memset(dst, (lChar8) value, count);
 }
 
-int lStr_len(const lChar16 * str)
+int lStr_len(const lChar32 * str)
 {
     return _lStr_len(str);
 }
@@ -444,7 +444,7 @@ int lStr_len(const lChar8 * str)
     return _lStr_len(str);
 }
 
-int lStr_nlen(const lChar16 * str, int maxcount)
+int lStr_nlen(const lChar32 * str, int maxcount)
 {
     return _lStr_nlen(str, maxcount);
 }
@@ -454,7 +454,7 @@ int lStr_nlen(const lChar8 * str, int maxcount)
     return _lStr_nlen(str, maxcount);
 }
 
-int lStr_cpy(lChar16 * dst, const lChar16 * src)
+int lStr_cpy(lChar32 * dst, const lChar32 * src)
 {
     return _lStr_cpy(dst, src);
 }
@@ -464,12 +464,12 @@ int lStr_cpy(lChar8 * dst, const lChar8 * src)
     return _lStr_cpy(dst, src);
 }
 
-int lStr_cpy(lChar16 * dst, const lChar8 * src)
+int lStr_cpy(lChar32 * dst, const lChar8 * src)
 {
     return _lStr_cpy(dst, src);
 }
 
-int lStr_ncpy(lChar16 * dst, const lChar16 * src, int maxcount)
+int lStr_ncpy(lChar32 * dst, const lChar32 * src, int maxcount)
 {
     return _lStr_ncpy(dst, src, maxcount);
 }
@@ -479,7 +479,7 @@ int lStr_ncpy(lChar8 * dst, const lChar8 * src, int maxcount)
     return _lStr_ncpy(dst, src, maxcount);
 }
 
-void lStr_memcpy(lChar16 * dst, const lChar16 * src, int count)
+void lStr_memcpy(lChar32 * dst, const lChar32 * src, int count)
 {
     _lStr_memcpy(dst, src, count);
 }
@@ -489,7 +489,7 @@ void lStr_memcpy(lChar8 * dst, const lChar8 * src, int count)
     _lStr_memcpy(dst, src, count);
 }
 
-void lStr_memset(lChar16 * dst, lChar16 value, int count)
+void lStr_memset(lChar32 * dst, lChar32 value, int count)
 {
     _lStr_memset(dst, value, count);
 }
@@ -499,7 +499,7 @@ void lStr_memset(lChar8 * dst, lChar8 value, int count)
     _lStr_memset(dst, value, count);
 }
 
-int lStr_cmp(const lChar16 * dst, const lChar16 * src)
+int lStr_cmp(const lChar32 * dst, const lChar32 * src)
 {
     if (dst == src)
         return 0;
@@ -541,7 +541,7 @@ int lStr_cmp(const lChar8 * dst, const lChar8 * src)
         return -1;
 }
 
-int lStr_cmp(const lChar16 * dst, const lChar8 * src)
+int lStr_cmp(const lChar32 * dst, const lChar8 * src)
 {
     if (!dst && !src)
         return 0;
@@ -549,20 +549,20 @@ int lStr_cmp(const lChar16 * dst, const lChar8 * src)
         return -1;
     else if (!src)
         return 1;
-    while ( *dst == (lChar16)*src)
+    while ( *dst == (lChar32)*src)
     {
         if (! *dst )
             return 0;
         ++dst;
         ++src;
     }
-    if ( *dst > (lChar16)*src )
+    if ( *dst > (lChar32)*src )
         return 1;
     else
         return -1;
 }
 
-int lStr_cmp(const lChar8 * dst, const lChar16 * src)
+int lStr_cmp(const lChar8 * dst, const lChar32 * src)
 {
     if (!dst && !src)
         return 0;
@@ -570,33 +570,33 @@ int lStr_cmp(const lChar8 * dst, const lChar16 * src)
         return -1;
     else if (!src)
         return 1;
-    while ( (lChar16)*dst == *src)
+    while ( (lChar32)*dst == *src)
     {
         if (! *dst )
             return 0;
         ++dst;
         ++src;
     }
-    if ( (lChar16)*dst > *src )
+    if ( (lChar32)*dst > *src )
         return 1;
     else
         return -1;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-// lString16
+// lString32
 ////////////////////////////////////////////////////////////////////////////
 
-void lString16::free()
+void lString32::free()
 {
-    if ( pchunk==EMPTY_STR_16 )
+    if ( pchunk==EMPTY_STR_32 )
         return;
     //assert(pchunk->buf16[pchunk->len]==0);
-    ::free(pchunk->buf16);
+    ::free(pchunk->buf32);
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     for (int i=slices_count-1; i>=0; --i)
     {
-        if (slices[i]->free_chunk16(pchunk))
+        if (slices[i]->free_chunk32(pchunk))
             return;
     }
     crFatalError(); // wrong pointer!!!
@@ -605,94 +605,94 @@ void lString16::free()
 #endif
 }
 
-void lString16::alloc(int sz)
+void lString32::alloc(int sz)
 {
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     pchunk = lstring_chunk_t::alloc();
 #else
     pchunk = (lstring_chunk_t*)::malloc(sizeof(lstring_chunk_t));
 #endif
-    pchunk->buf16 = (lChar16*) ::malloc( sizeof(lChar16) * (sz+1) );
-    assert( pchunk->buf16!=NULL );
+    pchunk->buf32 = (lChar32*) ::malloc( sizeof(lChar32) * (sz+1) );
+    assert( pchunk->buf32!=NULL );
     pchunk->size = sz;
     pchunk->refCount = 1;
 }
 
-lString16::lString16(const lChar16 * str)
+lString32::lString32(const lChar32 * str)
 {
     if (!str || !(*str))
     {
-        pchunk = EMPTY_STR_16;
+        pchunk = EMPTY_STR_32;
         addref();
         return;
     }
     size_type len = _lStr_len(str);
     alloc( len );
     pchunk->len = len;
-    _lStr_cpy( pchunk->buf16, str );
+    _lStr_cpy( pchunk->buf32, str );
 }
 
-lString16::lString16(const lChar8 * str)
+lString32::lString32(const lChar8 * str)
 {
     if (!str || !(*str))
     {
-        pchunk = EMPTY_STR_16;
+        pchunk = EMPTY_STR_32;
         addref();
         return;
     }
-    pchunk = EMPTY_STR_16;
+    pchunk = EMPTY_STR_32;
     addref();
     *this = Utf8ToUnicode( str );
 }
 
 /// constructor from utf8 character array fragment
-lString16::lString16(const lChar8 * str, size_type count)
+lString32::lString32(const lChar8 * str, size_type count)
 {
     if (!str || !(*str))
     {
-        pchunk = EMPTY_STR_16;
+        pchunk = EMPTY_STR_32;
         addref();
         return;
     }
-    pchunk = EMPTY_STR_16;
+    pchunk = EMPTY_STR_32;
     addref();
     *this = Utf8ToUnicode( str, count );
 }
 
 
-lString16::lString16(const value_type * str, size_type count)
+lString32::lString32(const value_type * str, size_type count)
 {
     if ( !str || !(*str) || count<=0 )
     {
-        pchunk = EMPTY_STR_16; addref();
+        pchunk = EMPTY_STR_32; addref();
     }
     else
     {
         size_type len = _lStr_nlen(str, count);
         alloc(len);
-        _lStr_ncpy( pchunk->buf16, str, len );
+        _lStr_ncpy( pchunk->buf32, str, len );
         pchunk->len = len;
     }
 }
 
-lString16::lString16(const lString16 & str, size_type offset, size_type count)
+lString32::lString32(const lString32 & str, size_type offset, size_type count)
 {
     if ( count > str.length() - offset )
         count = str.length() - offset;
     if (count<=0)
     {
-        pchunk = EMPTY_STR_16; addref();
+        pchunk = EMPTY_STR_32; addref();
     }
     else
     {
         alloc(count);
-        _lStr_memcpy( pchunk->buf16, str.pchunk->buf16+offset, count );
-        pchunk->buf16[count]=0;
+        _lStr_memcpy( pchunk->buf32, str.pchunk->buf32+offset, count );
+        pchunk->buf32[count]=0;
         pchunk->len = count;
     }
 }
 
-lString16 & lString16::assign(const lChar16 * str)
+lString32 & lString32::assign(const lChar32 * str)
 {
     if (!str || !(*str))
     {
@@ -706,7 +706,7 @@ lString16 & lString16::assign(const lChar16 * str)
             if (pchunk->size<=len)
             {
                 // resize is necessary
-                pchunk->buf16 = (lChar16*) ::realloc( pchunk->buf16, sizeof(lChar16)*(len+1) );
+                pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(len+1) );
                 pchunk->size = len+1;
             }
         }
@@ -715,13 +715,13 @@ lString16 & lString16::assign(const lChar16 * str)
             release();
             alloc(len);
         }
-        _lStr_cpy( pchunk->buf16, str );
+        _lStr_cpy( pchunk->buf32, str );
         pchunk->len = len;
     }
     return *this;
 }
 
-lString16 & lString16::assign(const lChar8 * str)
+lString32 & lString32::assign(const lChar8 * str)
 {
     if (!str || !(*str))
     {
@@ -735,7 +735,7 @@ lString16 & lString16::assign(const lChar8 * str)
             if (pchunk->size<=len)
             {
                 // resize is necessary
-                pchunk->buf16 = (lChar16*) ::realloc( pchunk->buf16, sizeof(lChar16)*(len+1) );
+                pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(len+1) );
                 pchunk->size = len+1;
             }
         }
@@ -744,13 +744,13 @@ lString16 & lString16::assign(const lChar8 * str)
             release();
             alloc(len);
         }
-        _lStr_cpy( pchunk->buf16, str );
+        _lStr_cpy( pchunk->buf32, str );
         pchunk->len = len;
     }
     return *this;
 }
 
-lString16 & lString16::assign(const lChar16 * str, size_type count)
+lString32 & lString32::assign(const lChar32 * str, size_type count)
 {
     if ( !str || !(*str) || count<=0 )
     {
@@ -764,7 +764,7 @@ lString16 & lString16::assign(const lChar16 * str, size_type count)
             if (pchunk->size<=len)
             {
                 // resize is necessary
-                pchunk->buf16 = (lChar16*) ::realloc( pchunk->buf16, sizeof(lChar16)*(len+1) );
+                pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(len+1) );
                 pchunk->size = len+1;
             }
         }
@@ -773,13 +773,13 @@ lString16 & lString16::assign(const lChar16 * str, size_type count)
             release();
             alloc(len);
         }
-        _lStr_ncpy( pchunk->buf16, str, count );
+        _lStr_ncpy( pchunk->buf32, str, count );
         pchunk->len = len;
     }
     return *this;
 }
 
-lString16 & lString16::assign(const lChar8 * str, size_type count)
+lString32 & lString32::assign(const lChar8 * str, size_type count)
 {
     if ( !str || !(*str) || count<=0 )
     {
@@ -793,7 +793,7 @@ lString16 & lString16::assign(const lChar8 * str, size_type count)
             if (pchunk->size<=len)
             {
                 // resize is necessary
-                pchunk->buf16 = (lChar16*) ::realloc( pchunk->buf16, sizeof(lChar16)*(len+1) );
+                pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(len+1) );
                 pchunk->size = len+1;
             }
         }
@@ -802,13 +802,13 @@ lString16 & lString16::assign(const lChar8 * str, size_type count)
             release();
             alloc(len);
         }
-        _lStr_ncpy( pchunk->buf16, str, count );
+        _lStr_ncpy( pchunk->buf32, str, count );
         pchunk->len = len;
     }
     return *this;
 }
 
-lString16 & lString16::assign(const lString16 & str, size_type offset, size_type count)
+lString32 & lString32::assign(const lString32 & str, size_type offset, size_type count)
 {
     if ( count > str.length() - offset )
         count = str.length() - offset;
@@ -827,9 +827,9 @@ lString16 & lString16::assign(const lString16 & str, size_type offset, size_type
             }
             if (offset>0)
             {
-                _lStr_memcpy( pchunk->buf16, str.pchunk->buf16+offset, count );
+                _lStr_memcpy( pchunk->buf32, str.pchunk->buf32+offset, count );
             }
-            pchunk->buf16[count]=0;
+            pchunk->buf32[count]=0;
         }
         else
         {
@@ -838,7 +838,7 @@ lString16 & lString16::assign(const lString16 & str, size_type offset, size_type
                 if (pchunk->size<=count)
                 {
                     // resize is necessary
-                    pchunk->buf16 = (lChar16*) ::realloc( pchunk->buf16, sizeof(lChar16)*(count+1) );
+                    pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(count+1) );
                     pchunk->size = count+1;
                 }
             }
@@ -847,15 +847,15 @@ lString16 & lString16::assign(const lString16 & str, size_type offset, size_type
                 release();
                 alloc(count);
             }
-            _lStr_memcpy( pchunk->buf16, str.pchunk->buf16+offset, count );
-            pchunk->buf16[count]=0;
+            _lStr_memcpy( pchunk->buf32, str.pchunk->buf32+offset, count );
+            pchunk->buf32[count]=0;
         }
         pchunk->len = count;
     }
     return *this;
 }
 
-lString16 & lString16::erase(size_type offset, size_type count)
+lString32 & lString32::erase(size_type offset, size_type count)
 {
     if ( count > length() - offset )
         count = length() - offset;
@@ -868,29 +868,29 @@ lString16 & lString16::erase(size_type offset, size_type count)
         size_type newlen = length()-count;
         if (refCount()==1)
         {
-            _lStr_memcpy( pchunk->buf16+offset, pchunk->buf16+offset+count, newlen-offset+1 );
+            _lStr_memcpy( pchunk->buf32+offset, pchunk->buf32+offset+count, newlen-offset+1 );
         }
         else
         {
             lstring_chunk_t * poldchunk = pchunk;
             release();
             alloc( newlen );
-            _lStr_memcpy( pchunk->buf16, poldchunk->buf16, offset );
-            _lStr_memcpy( pchunk->buf16+offset, poldchunk->buf16+offset+count, newlen-offset+1 );
+            _lStr_memcpy( pchunk->buf32, poldchunk->buf32, offset );
+            _lStr_memcpy( pchunk->buf32+offset, poldchunk->buf32+offset+count, newlen-offset+1 );
         }
         pchunk->len = newlen;
-        pchunk->buf16[newlen]=0;
+        pchunk->buf32[newlen]=0;
     }
     return *this;
 }
 
-void lString16::reserve(size_type n)
+void lString32::reserve(size_type n)
 {
     if (refCount()==1)
     {
         if (pchunk->size < n)
         {
-            pchunk->buf16 = (lChar16*) ::realloc( pchunk->buf16, sizeof(lChar16)*(n+1) );
+            pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(n+1) );
             pchunk->size = n;
         }
     }
@@ -899,12 +899,12 @@ void lString16::reserve(size_type n)
         lstring_chunk_t * poldchunk = pchunk;
         release();
         alloc( n );
-        _lStr_memcpy( pchunk->buf16, poldchunk->buf16, poldchunk->len+1 );
+        _lStr_memcpy( pchunk->buf32, poldchunk->buf32, poldchunk->len+1 );
         pchunk->len = poldchunk->len;
     }
 }
 
-void lString16::lock( size_type newsize )
+void lString32::lock( size_type newsize )
 {
     if (refCount()>1)
     {
@@ -914,141 +914,141 @@ void lString16::lock( size_type newsize )
         size_type len = newsize;
         if (len>poldchunk->len)
             len = poldchunk->len;
-        _lStr_memcpy( pchunk->buf16, poldchunk->buf16, len );
-        pchunk->buf16[len]=0;
+        _lStr_memcpy( pchunk->buf32, poldchunk->buf32, len );
+        pchunk->buf32[len]=0;
         pchunk->len = len;
     }
 }
 
 // lock string, allocate buffer and reset length to 0
-void lString16::reset( size_type size )
+void lString32::reset( size_type size )
 {
     if (refCount()>1 || pchunk->size<size)
     {
         release();
         alloc( size );
     }
-    pchunk->buf16[0] = 0;
+    pchunk->buf32[0] = 0;
     pchunk->len = 0;
 }
 
-void lString16::resize(size_type n, lChar16 e)
+void lString32::resize(size_type n, lChar32 e)
 {
     lock( n );
     if (n>=pchunk->size)
     {
-        pchunk->buf16 = (lChar16*) ::realloc( pchunk->buf16, sizeof(lChar16)*(n+1) );
+        pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(n+1) );
         pchunk->size = n;
     }
     // fill with data if expanded
     for (size_type i=pchunk->len; i<n; i++)
-        pchunk->buf16[i] = e;
-    pchunk->buf16[pchunk->len] = 0;
+        pchunk->buf32[i] = e;
+    pchunk->buf32[pchunk->len] = 0;
 }
 
-lString16 & lString16::append(const lChar16 * str)
+lString32 & lString32::append(const lChar32 * str)
 {
     size_type len = _lStr_len(str);
     reserve( pchunk->len+len );
-    _lStr_memcpy(pchunk->buf16+pchunk->len, str, len+1);
+    _lStr_memcpy(pchunk->buf32+pchunk->len, str, len+1);
     pchunk->len += len;
     return *this;
 }
 
-lString16 & lString16::append(const lChar16 * str, size_type count)
+lString32 & lString32::append(const lChar32 * str, size_type count)
 {
     reserve(pchunk->len + count);
-    _lStr_ncpy(pchunk->buf16 + pchunk->len, str, count);
+    _lStr_ncpy(pchunk->buf32 + pchunk->len, str, count);
     pchunk->len += count;
     return *this;
 }
 
-lString16 & lString16::append(const lChar8 * str)
+lString32 & lString32::append(const lChar8 * str)
 {
     size_type len = _lStr_len(str);
     reserve( pchunk->len+len );
-    _lStr_ncpy(pchunk->buf16+pchunk->len, str, len+1);
+    _lStr_ncpy(pchunk->buf32+pchunk->len, str, len+1);
     pchunk->len += len;
     return *this;
 }
 
-lString16 & lString16::append(const lChar8 * str, size_type count)
+lString32 & lString32::append(const lChar8 * str, size_type count)
 {
     reserve(pchunk->len + count);
-    _lStr_ncpy(pchunk->buf16+pchunk->len, str, count);
+    _lStr_ncpy(pchunk->buf32+pchunk->len, str, count);
     pchunk->len += count;
     return *this;
 }
 
-lString16 & lString16::append(const lString16 & str)
+lString32 & lString32::append(const lString32 & str)
 {
     size_type len2 = pchunk->len + str.pchunk->len;
     reserve( len2 );
-    _lStr_memcpy( pchunk->buf16+pchunk->len, str.pchunk->buf16, str.pchunk->len+1 );
+    _lStr_memcpy( pchunk->buf32+pchunk->len, str.pchunk->buf32, str.pchunk->len+1 );
     pchunk->len = len2;
     return *this;
 }
 
-lString16 & lString16::append(const lString16 & str, size_type offset, size_type count)
+lString32 & lString32::append(const lString32 & str, size_type offset, size_type count)
 {
     if ( str.pchunk->len>offset )
     {
         if ( offset + count > str.pchunk->len )
             count = str.pchunk->len - offset;
         reserve( pchunk->len+count );
-        _lStr_ncpy(pchunk->buf16 + pchunk->len, str.pchunk->buf16 + offset, count);
+        _lStr_ncpy(pchunk->buf32 + pchunk->len, str.pchunk->buf32 + offset, count);
         pchunk->len += count;
-        pchunk->buf16[pchunk->len] = 0;
+        pchunk->buf32[pchunk->len] = 0;
     }
     return *this;
 }
 
-lString16 & lString16::append(size_type count, lChar16 ch)
+lString32 & lString32::append(size_type count, lChar32 ch)
 {
     reserve( pchunk->len+count );
-    _lStr_memset(pchunk->buf16+pchunk->len, ch, count);
+    _lStr_memset(pchunk->buf32+pchunk->len, ch, count);
     pchunk->len += count;
-    pchunk->buf16[pchunk->len] = 0;
+    pchunk->buf32[pchunk->len] = 0;
     return *this;
 }
 
-lString16 & lString16::insert(size_type p0, size_type count, lChar16 ch)
+lString32 & lString32::insert(size_type p0, size_type count, lChar32 ch)
 {
     if (p0>pchunk->len)
         p0 = pchunk->len;
     reserve( pchunk->len+count );
     for (size_type i=pchunk->len+count; i>p0; i--)
-        pchunk->buf16[i] = pchunk->buf16[i-1];
-    _lStr_memset(pchunk->buf16+p0, ch, count);
+        pchunk->buf32[i] = pchunk->buf32[i-1];
+    _lStr_memset(pchunk->buf32+p0, ch, count);
     pchunk->len += count;
-    pchunk->buf16[pchunk->len] = 0;
+    pchunk->buf32[pchunk->len] = 0;
     return *this;
 }
 
-lString16 & lString16::insert(size_type p0, const lString16 & str)
+lString32 & lString32::insert(size_type p0, const lString32 & str)
 {
     if (p0>pchunk->len)
         p0 = pchunk->len;
     int count = str.length();
     reserve( pchunk->len+count );
     for (size_type i=pchunk->len+count; i>p0; i--)
-        pchunk->buf16[i] = pchunk->buf16[i-1];
-    _lStr_memcpy(pchunk->buf16 + p0, str.c_str(), count);
+        pchunk->buf32[i] = pchunk->buf32[i-1];
+    _lStr_memcpy(pchunk->buf32 + p0, str.c_str(), count);
     pchunk->len += count;
-    pchunk->buf16[pchunk->len] = 0;
+    pchunk->buf32[pchunk->len] = 0;
     return *this;
 }
 
-lString16 lString16::substr(size_type pos, size_type n) const
+lString32 lString32::substr(size_type pos, size_type n) const
 {
     if (pos>=length())
-        return lString16::empty_str;
+        return lString32::empty_str;
     if (pos+n>length())
         n = length() - pos;
-    return lString16( pchunk->buf16+pos, n );
+    return lString32( pchunk->buf32+pos, n );
 }
 
-lString16 & lString16::pack()
+lString32 & lString32::pack()
 {
     if (pchunk->len + 4 < pchunk->size )
     {
@@ -1058,24 +1058,24 @@ lString16 & lString16::pack()
         }
         else
         {
-            pchunk->buf16 = cr_realloc( pchunk->buf16, pchunk->len+1 );
+            pchunk->buf32 = cr_realloc( pchunk->buf32, pchunk->len+1 );
             pchunk->size = pchunk->len;
         }
     }
     return *this;
 }
 
-bool isAlNum(lChar16 ch) {
+bool isAlNum(lChar32 ch) {
     lUInt16 props = lGetCharProps(ch);
     return (props & (CH_PROP_ALPHA | CH_PROP_DIGIT)) != 0;
 }
 
 /// trims non alpha at beginning and end of string
-lString16 & lString16::trimNonAlpha()
+lString32 & lString32::trimNonAlpha()
 {
     int firstns;
     for (firstns = 0; firstns<pchunk->len &&
-        !isAlNum(pchunk->buf16[firstns]); ++firstns)
+        !isAlNum(pchunk->buf32[firstns]); ++firstns)
         ;
     if (firstns >= pchunk->len)
     {
@@ -1084,7 +1084,7 @@ lString16 & lString16::trimNonAlpha()
     }
     int lastns;
     for (lastns = pchunk->len-1; lastns>0 &&
-        !isAlNum(pchunk->buf16[lastns]); --lastns)
+        !isAlNum(pchunk->buf32[lastns]); --lastns)
         ;
     int newlen = lastns-firstns+1;
     if (newlen == pchunk->len)
@@ -1092,8 +1092,8 @@ lString16 & lString16::trimNonAlpha()
     if (refCount()==1)
     {
         if (firstns>0)
-            lStr_memcpy( pchunk->buf16, pchunk->buf16+firstns, newlen );
-        pchunk->buf16[newlen] = 0;
+            lStr_memcpy( pchunk->buf32, pchunk->buf32+firstns, newlen );
+        pchunk->buf32[newlen] = 0;
         pchunk->len = newlen;
     }
     else
@@ -1101,19 +1101,19 @@ lString16 & lString16::trimNonAlpha()
         lstring_chunk_t * poldchunk = pchunk;
         release();
         alloc( newlen );
-        _lStr_memcpy( pchunk->buf16, poldchunk->buf16+firstns, newlen );
-        pchunk->buf16[newlen] = 0;
+        _lStr_memcpy( pchunk->buf32, poldchunk->buf32+firstns, newlen );
+        pchunk->buf32[newlen] = 0;
         pchunk->len = newlen;
     }
     return *this;
 }
 
-lString16 & lString16::trim()
+lString32 & lString32::trim()
 {
     //
     int firstns;
     for (firstns = 0; firstns<pchunk->len &&
-        (pchunk->buf16[firstns]==' ' || pchunk->buf16[firstns]=='\t'); ++firstns)
+        (pchunk->buf32[firstns]==' ' || pchunk->buf32[firstns]=='\t'); ++firstns)
         ;
     if (firstns >= pchunk->len)
     {
@@ -1122,7 +1122,7 @@ lString16 & lString16::trim()
     }
     int lastns;
     for (lastns = pchunk->len-1; lastns>0 &&
-        (pchunk->buf16[lastns]==' ' || pchunk->buf16[lastns]=='\t'); --lastns)
+        (pchunk->buf32[lastns]==' ' || pchunk->buf32[lastns]=='\t'); --lastns)
         ;
     int newlen = lastns-firstns+1;
     if (newlen == pchunk->len)
@@ -1130,8 +1130,8 @@ lString16 & lString16::trim()
     if (refCount()==1)
     {
         if (firstns>0)
-            lStr_memcpy( pchunk->buf16, pchunk->buf16+firstns, newlen );
-        pchunk->buf16[newlen] = 0;
+            lStr_memcpy( pchunk->buf32, pchunk->buf32+firstns, newlen );
+        pchunk->buf32[newlen] = 0;
         pchunk->len = newlen;
     }
     else
@@ -1139,14 +1139,14 @@ lString16 & lString16::trim()
         lstring_chunk_t * poldchunk = pchunk;
         release();
         alloc( newlen );
-        _lStr_memcpy( pchunk->buf16, poldchunk->buf16+firstns, newlen );
-        pchunk->buf16[newlen] = 0;
+        _lStr_memcpy( pchunk->buf32, poldchunk->buf32+firstns, newlen );
+        pchunk->buf32[newlen] = 0;
         pchunk->len = newlen;
     }
     return *this;
 }
 
-int lString16::atoi() const
+int lString32::atoi() const
 {
     int n = 0;
     atoi(n);
@@ -1173,7 +1173,7 @@ int hexDigit( int c )
 }
 
 // decode LEN hex digits, return decoded number, -1 if invalid
-int decodeHex( const lChar16 * str, int len ) {
+int decodeHex( const lChar32 * str, int len ) {
     int n = 0;
     for ( int i=0; i<len; i++ ) {
         if ( !str[i] )
@@ -1187,7 +1187,7 @@ int decodeHex( const lChar16 * str, int len ) {
 }
 
 // decode LEN decimal digits, return decoded number, -1 if invalid
-int decodeDecimal( const lChar16 * str, int len ) {
+int decodeDecimal( const lChar32 * str, int len ) {
     int n = 0;
     for ( int i=0; i<len; i++ ) {
         if ( !str[i] )
@@ -1200,11 +1200,11 @@ int decodeDecimal( const lChar16 * str, int len ) {
     return n;
 }
 
-bool lString16::atoi( int &n ) const
+bool lString32::atoi( int &n ) const
 {
     n = 0;
     int sgn = 1;
-    const lChar16 * s = c_str();
+    const lChar32 * s = c_str();
     while (*s == ' ' || *s == '\t')
         s++;
     if ( s[0]=='0' && s[1]=='x') {
@@ -1236,10 +1236,10 @@ bool lString16::atoi( int &n ) const
     return *s=='\0' || *s==' ' || *s=='\t';
 }
 
-bool lString16::atoi( lInt64 &n ) const
+bool lString32::atoi( lInt64 &n ) const
 {
     int sgn = 1;
-    const lChar16 * s = c_str();
+    const lChar32 * s = c_str();
     while (*s == ' ' || *s == '\t')
         s++;
     if (*s == '-')
@@ -1263,15 +1263,15 @@ bool lString16::atoi( lInt64 &n ) const
 }
 
 #define STRING_HASH_MULT 31
-lUInt32 lString16::getHash() const
+lUInt32 lString32::getHash() const
 {
     lUInt32 res = 0;
     for (lInt32 i=0; i<pchunk->len; i++)
-        res = res * STRING_HASH_MULT + pchunk->buf16[i];
+        res = res * STRING_HASH_MULT + pchunk->buf32[i];
     return res;
 }
 
-lUInt32 calcStringHash( const lChar16 * s )
+lUInt32 calcStringHash( const lChar32 * s )
 {
     lUInt32 a = 2166136261u;
     while (*s)
@@ -1293,7 +1293,7 @@ lUInt32 lStr_crc32( lUInt32 prevValue, const void * buf, int size )
 }
 
 
-const lString16 lString16::empty_str;
+const lString32 lString32::empty_str;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1344,7 +1344,7 @@ lString8::lString8(const lChar8 * str)
     _lStr_cpy( pchunk->buf8, str );
 }
 
-lString8::lString8(const lChar16 * str)
+lString8::lString8(const lChar32 * str)
 {
     if (!str || !(*str))
     {
@@ -1636,9 +1636,9 @@ lString8 & lString8::appendHex(lUInt64 n)
     return *this;
 }
 
-lString16 & lString16::appendDecimal(lInt64 n)
+lString32 & lString32::appendDecimal(lInt64 n)
 {
-    lChar16 buf[24];
+    lChar32 buf[24];
     int i=0;
     int negative = 0;
     if (n==0)
@@ -1660,7 +1660,7 @@ lString16 & lString16::appendDecimal(lInt64 n)
     return *this;
 }
 
-lString16 & lString16::appendHex(lUInt64 n)
+lString32 & lString32::appendHex(lUInt64 n)
 {
     if (n == 0)
         return append(1, '0');
@@ -1831,7 +1831,7 @@ int lString8::pos(const lString8 & subStr, int startPos) const
     return -1;
 }
 
-int lString16::pos(const lString16 & subStr, int startPos) const
+int lString32::pos(const lString32 & subStr, int startPos) const
 {
     if (subStr.length() > length() - startPos)
         return -1;
@@ -1840,7 +1840,7 @@ int lString16::pos(const lString16 & subStr, int startPos) const
     for (int i = startPos; i <= dl; i++) {
         int flg = 1;
         for (int j=0; j<l; j++)
-            if (pchunk->buf16[i+j]!=subStr.pchunk->buf16[j])
+            if (pchunk->buf32[i+j]!=subStr.pchunk->buf32[j])
             {
                 flg = 0;
                 break;
@@ -1875,7 +1875,7 @@ int lString8::pos(const char * subStr, int startPos) const
 }
 
 /// find position of substring inside string, -1 if not found
-int lString16::pos(const lChar16 * subStr, int startPos) const
+int lString32::pos(const lChar32 * subStr, int startPos) const
 {
     if (!subStr || !subStr[0])
         return -1;
@@ -1886,7 +1886,7 @@ int lString16::pos(const lChar16 * subStr, int startPos) const
     for (int i = startPos; i <= dl; i++) {
         int flg = 1;
         for (int j=0; j<l; j++)
-            if (pchunk->buf16[i+j] != subStr[j])
+            if (pchunk->buf32[i+j] != subStr[j])
             {
                 flg = 0;
                 break;
@@ -1898,7 +1898,7 @@ int lString16::pos(const lChar16 * subStr, int startPos) const
 }
 
 /// find position of substring inside string, right to left, return -1 if not found
-int lString16::rpos(lString16 subStr) const
+int lString32::rpos(lString32 subStr) const
 {
     if (subStr.length()>length())
         return -1;
@@ -1908,7 +1908,7 @@ int lString16::rpos(lString16 subStr) const
     {
         int flg = 1;
         for (int j=0; j<l; j++)
-            if (pchunk->buf16[i+j]!=subStr.pchunk->buf16[j])
+            if (pchunk->buf32[i+j]!=subStr.pchunk->buf32[j])
             {
                 flg = 0;
                 break;
@@ -1920,7 +1920,7 @@ int lString16::rpos(lString16 subStr) const
 }
 
 /// find position of substring inside string, -1 if not found
-int lString16::pos(const lChar16 * subStr) const
+int lString32::pos(const lChar32 * subStr) const
 {
     if (!subStr)
         return -1;
@@ -1932,7 +1932,7 @@ int lString16::pos(const lChar16 * subStr) const
     {
         int flg = 1;
         for (int j=0; j<l; j++)
-            if (pchunk->buf16[i+j] != subStr[j])
+            if (pchunk->buf32[i+j] != subStr[j])
             {
                 flg = 0;
                 break;
@@ -1944,7 +1944,7 @@ int lString16::pos(const lChar16 * subStr) const
 }
 
 /// find position of substring inside string, -1 if not found
-int lString16::pos(const lChar8 * subStr) const
+int lString32::pos(const lChar8 * subStr) const
 {
     if (!subStr)
         return -1;
@@ -1956,7 +1956,7 @@ int lString16::pos(const lChar8 * subStr) const
     {
         int flg = 1;
         for (int j=0; j<l; j++)
-            if (pchunk->buf16[i+j] != subStr[j])
+            if (pchunk->buf32[i+j] != subStr[j])
             {
                 flg = 0;
                 break;
@@ -1968,7 +1968,7 @@ int lString16::pos(const lChar8 * subStr) const
 }
 
 /// find position of substring inside string, -1 if not found
-int lString16::pos(const lChar8 * subStr, int start) const
+int lString32::pos(const lChar8 * subStr, int start) const
 {
     if (!subStr)
         return -1;
@@ -1980,7 +1980,7 @@ int lString16::pos(const lChar8 * subStr, int start) const
     {
         int flg = 1;
         for (int j=0; j<l; j++)
-            if (pchunk->buf16[i+j] != subStr[j])
+            if (pchunk->buf32[i+j] != subStr[j])
             {
                 flg = 0;
                 break;
@@ -1991,7 +1991,7 @@ int lString16::pos(const lChar8 * subStr, int start) const
     return -1;
 }
 
-int lString16::pos(lString16 subStr) const
+int lString32::pos(lString32 subStr) const
 {
     if (subStr.length()>length())
         return -1;
@@ -2001,7 +2001,7 @@ int lString16::pos(lString16 subStr) const
     {
         int flg = 1;
         for (int j=0; j<l; j++)
-            if (pchunk->buf16[i+j]!=subStr.pchunk->buf16[j])
+            if (pchunk->buf32[i+j]!=subStr.pchunk->buf32[j])
             {
                 flg = 0;
                 break;
@@ -2190,19 +2190,19 @@ lString8 lString8::itoa( lInt64 n )
 }
 
 // constructs string representation of integer
-lString16 lString16::itoa( int n )
+lString32 lString32::itoa( int n )
 {
     return itoa( (lInt64)n );
 }
 
 // constructs string representation of integer
-lString16 lString16::itoa( lInt64 n )
+lString32 lString32::itoa( lInt64 n )
 {
-    lChar16 buf[32];
+    lChar32 buf[32];
     int i=0;
     int negative = 0;
     if (n==0)
-        return cs16("0");
+        return cs32("0");
     else if (n<0)
     {
         negative = 1;
@@ -2210,9 +2210,9 @@ lString16 lString16::itoa( lInt64 n )
     }
     for ( ; n && i<30; n/=10 )
     {
-        buf[i++] = (lChar16)('0' + (n%10));
+        buf[i++] = (lChar32)('0' + (n%10));
     }
-    lString16 res;
+    lString32 res;
     res.reserve(i+negative);
     if (negative)
         res.append(1, L'-');
@@ -2221,7 +2221,7 @@ lString16 lString16::itoa( lInt64 n )
     return res;
 }
 
-bool lvUnicodeIsAlpha( lChar16 ch )
+bool lvUnicodeIsAlpha( lChar32 ch )
 {
     if ( ch<128 ) {
         if ( (ch>='a' && ch<='z') || (ch>='A' && ch<='Z') )
@@ -2233,34 +2233,34 @@ bool lvUnicodeIsAlpha( lChar16 ch )
 }
 
 
-lString16 & lString16::uppercase()
+lString32 & lString32::uppercase()
 {
     lStr_uppercase( modify(), length() );
     return *this;
 }
 
-lString16 & lString16::lowercase()
+lString32 & lString32::lowercase()
 {
     lStr_lowercase( modify(), length() );
     return *this;
 }
 
-lString16 & lString16::capitalize()
+lString32 & lString32::capitalize()
 {
     lStr_capitalize( modify(), length() );
     return *this;
 }
 
-lString16 & lString16::fullWidthChars()
+lString32 & lString32::fullWidthChars()
 {
     lStr_fullWidthChars( modify(), length() );
     return *this;
 }
 
-void lStr_uppercase( lChar16 * str, int len )
+void lStr_uppercase( lChar32 * str, int len )
 {
     for ( int i=0; i<len; i++ ) {
-        lChar16 ch = str[i];
+        lChar32 ch = str[i];
 #if (USE_UTF8PROC==1)
         str[i] = utf8proc_toupper(ch);
 #else
@@ -2273,7 +2273,7 @@ void lStr_uppercase( lChar16 * str, int len )
         } else if ( ch>=0x3b0 && ch<=0x3cF ) {
             str[i] = ch - 0x20;
         } else if ( (ch >> 8)==0x1F ) { // greek
-            lChar16 n = ch & 255;
+            lChar32 n = ch & 255;
             if (n<0x70) {
                 str[i] = ch | 8;
             } else if (n<0x80) {
@@ -2286,10 +2286,10 @@ void lStr_uppercase( lChar16 * str, int len )
     }
 }
 
-void lStr_lowercase( lChar16 * str, int len )
+void lStr_lowercase( lChar32 * str, int len )
 {
     for ( int i=0; i<len; i++ ) {
-        lChar16 ch = str[i];
+        lChar32 ch = str[i];
 #if (USE_UTF8PROC==1)
         str[i] = utf8proc_tolower(ch);
 #else
@@ -2302,7 +2302,7 @@ void lStr_lowercase( lChar16 * str, int len )
         } else if ( ch>=0x390 && ch<=0x3aF ) {
             str[i] = ch + 0x20;
         } else if ( (ch >> 8)==0x1F ) { // greek
-            lChar16 n = ch & 255;
+            lChar32 n = ch & 255;
             if (n<0x70) {
                 str[i] = ch & (~8);
             } else if (n<0x80) {
@@ -2315,10 +2315,10 @@ void lStr_lowercase( lChar16 * str, int len )
     }
 }
 
-void lStr_fullWidthChars( lChar16 * str, int len )
+void lStr_fullWidthChars( lChar32 * str, int len )
 {
     for ( int i=0; i<len; i++ ) {
-        lChar16 ch = str[i];
+        lChar32 ch = str[i];
         if ( ch>=0x21 && ch<=0x7E ) {
             // full-width versions of ascii chars 0x21-0x7E are at 0xFF01-0Xff5E
             str[i] = ch + UNICODE_ASCII_FULL_WIDTH_OFFSET;
@@ -2328,11 +2328,11 @@ void lStr_fullWidthChars( lChar16 * str, int len )
     }
 }
 
-void lStr_capitalize( lChar16 * str, int len )
+void lStr_capitalize( lChar32 * str, int len )
 {
     bool prev_is_word_sep = true; // first char of string will be capitalized
     for ( int i=0; i<len; i++ ) {
-        lChar16 ch = str[i];
+        lChar32 ch = str[i];
         if (prev_is_word_sep) {
             // as done as in lStr_uppercase()
 #if (USE_UTF8PROC==1)
@@ -2347,7 +2347,7 @@ void lStr_capitalize( lChar16 * str, int len )
             } else if ( ch>=0x3b0 && ch<=0x3cF ) {
                 str[i] = ch - 0x20;
             } else if ( (ch >> 8)==0x1F ) { // greek
-                lChar16 n = ch & 255;
+                lChar32 n = ch & 255;
                 if (n<0x70) {
                     str[i] = ch | 8;
                 } else if (n<0x80) {
@@ -2364,13 +2364,13 @@ void lStr_capitalize( lChar16 * str, int len )
 }
 
 
-int TrimDoubleSpaces(lChar16 * buf, int len,  bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens)
+int TrimDoubleSpaces(lChar32 * buf, int len,  bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens)
 {
-    lChar16 * psrc = buf;
-    lChar16 * pdst = buf;
+    lChar32 * psrc = buf;
+    lChar32 * pdst = buf;
     int state = 0; // 0=beginning, 1=after space, 2=after non-space
     while ((len--) > 0) {
-        lChar16 ch = *psrc++;
+        lChar32 ch = *psrc++;
         if (ch == ' ' || ch == '\t') {
             if ( state==2 ) {
                 if ( *psrc || allowEndSpace ) // if not last
@@ -2397,11 +2397,11 @@ int TrimDoubleSpaces(lChar16 * buf, int len,  bool allowStartSpace, bool allowEn
     return (int)(pdst - buf);
 }
 
-lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens )
+lString32 & lString32::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens )
 {
     if ( empty() )
         return *this;
-    lChar16 * buf = modify();
+    lChar32 * buf = modify();
     int len = length();
     int nlen = TrimDoubleSpaces(buf, len,  allowStartSpace, allowEndSpace, removeEolHyphens);
     if (nlen < len)
@@ -2410,23 +2410,23 @@ lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpac
 }
 
 // constructs string representation of integer
-lString16 lString16::itoa( unsigned int n )
+lString32 lString32::itoa( unsigned int n )
 {
     return itoa( (lUInt64) n );
 }
 
 // constructs string representation of integer
-lString16 lString16::itoa( lUInt64 n )
+lString32 lString32::itoa( lUInt64 n )
 {
-    lChar16 buf[24];
+    lChar32 buf[24];
     int i=0;
     if (n==0)
-        return cs16("0");
+        return cs32("0");
     for ( ; n; n/=10 )
     {
-        buf[i++] = (lChar16)('0' + (n%10));
+        buf[i++] = (lChar32)('0' + (n%10));
     }
-    lString16 res;
+    lString32 res;
     res.reserve(i);
     for (int j=i-1; j>=0; j--)
         res.append(1, buf[j]);
@@ -2597,7 +2597,7 @@ inline int charUtf8ByteCount(lUInt32 ch) {
     return 1;
 }
 
-int Utf8ByteCount(const lChar16 * str)
+int Utf8ByteCount(const lChar32 * str)
 {
     int count = 0;
     lUInt32 ch;
@@ -2619,7 +2619,7 @@ inline int charWtf8ByteCount(lUInt32 ch) {
     return 1;
 }
 
-int Utf8ByteCount(const lChar16 * str, int len)
+int Utf8ByteCount(const lChar32 * str, int len)
 {
     int count = 0;
     lUInt32 ch;
@@ -2630,7 +2630,7 @@ int Utf8ByteCount(const lChar16 * str, int len)
     return count;
 }
 
-int Wtf8ByteCount(const lChar16 * str, int len)
+int Wtf8ByteCount(const lChar32 * str, int len)
 {
     int count = 0;
     lUInt32 ch;
@@ -2641,16 +2641,16 @@ int Wtf8ByteCount(const lChar16 * str, int len)
     return count;
 }
 
-lString16 Utf8ToUnicode( const lString8 & str )
+lString32 Utf8ToUnicode( const lString8 & str )
 {
     return Utf8ToUnicode( str.c_str() );
 }
 
-#define CONT_BYTE(index,shift) (((lChar16)(s[index]) & 0x3F) << shift)
+#define CONT_BYTE(index,shift) (((lChar32)(s[index]) & 0x3F) << shift)
 
-static void DecodeUtf8(const char * s,  lChar16 * p, int len)
+static void DecodeUtf8(const char * s,  lChar32 * p, int len)
 {
-    lChar16 * endp = p + len;
+    lChar32 * endp = p + len;
     lUInt32 ch;
     while (p < endp) {
         ch = *s++;
@@ -2679,9 +2679,9 @@ static void DecodeUtf8(const char * s,  lChar16 * p, int len)
     }
 }
 
-static void DecodeWtf8(const char * s,  lChar16 * p, int len)
+static void DecodeWtf8(const char * s,  lChar32 * p, int len)
 {
-    lChar16 * endp = p + len;
+    lChar32 * endp = p + len;
     lUInt32 ch;
     while (p < endp) {
         ch = *s;
@@ -2740,12 +2740,12 @@ static void DecodeWtf8(const char * s,  lChar16 * p, int len)
 // Top two bits are 10, i.e. original & 11000000(2) == 10000000(2)
 #define IS_FOLLOWING(index) ((s[index] & 0xC0) == 0x80)
 
-void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
+void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar32 * dst, int &dstlen)
 {
     const lUInt8 * s = src;
     const lUInt8 * ends = s + srclen;
-    lChar16 * p = dst;
-    lChar16 * endp = p + dstlen;
+    lChar32 * p = dst;
+    lChar32 * endp = p + dstlen;
     lUInt32 ch;
     bool matched;
     while (p < endp && s < ends) {
@@ -2788,8 +2788,6 @@ void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
                 //   trailing, or low, surrogates are from DC00 to DFFF. They
                 //   are called surrogates, since they do not represent
                 //   characters directly, but only as a pair.
-                // (Note that lChar16 (wchar_t) is 4-bytes, and can store
-                // unicode codepoint > 0xFFFF like 0x10123)
                 if (*(p-1) >= 0xD800 && *(p-1) <= 0xDBFF && s+2 < ends) { // what we wrote is a high surrogate,
                     lUInt32 next = *s;                            // and there's room next for a low surrogate
                     if ( (next & 0xF0) == 0xE0 && IS_FOLLOWING(1) && IS_FOLLOWING(2)) { // is a valid 3-bytes sequence
@@ -2831,64 +2829,64 @@ void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
     dstlen = (int)(p - dst);
 }
 
-lString16 Utf8ToUnicode( const char * s ) {
+lString32 Utf8ToUnicode( const char * s ) {
     if (!s || !s[0])
-      return lString16::empty_str;
+      return lString32::empty_str;
     int len = Utf8CharCount( s );
     if (!len)
-      return lString16::empty_str;
-    lString16 dst;
-    dst.append(len, (lChar16)0);
-    lChar16 * p = dst.modify();
+      return lString32::empty_str;
+    lString32 dst;
+    dst.append(len, (lChar32)0);
+    lChar32 * p = dst.modify();
     DecodeUtf8(s, p, len);
     return dst;
 }
 
-lString16 Utf8ToUnicode( const char * s, int sz ) {
+lString32 Utf8ToUnicode( const char * s, int sz ) {
     if (!s || !s[0] || sz <= 0)
-      return lString16::empty_str;
+      return lString32::empty_str;
     int len = Utf8CharCount( s, sz );
     if (!len)
-      return lString16::empty_str;
-    lString16 dst;
+      return lString32::empty_str;
+    lString32 dst;
     dst.append(len, 0);
-    lChar16 * p = dst.modify();
+    lChar32 * p = dst.modify();
     DecodeUtf8(s, p, len);
     return dst;
 }
 
-lString16 Wtf8ToUnicode( const lString8 & str )
+lString32 Wtf8ToUnicode( const lString8 & str )
 {
     return Wtf8ToUnicode( str.c_str() );
 }
 
-lString16 Wtf8ToUnicode( const char * s ) {
+lString32 Wtf8ToUnicode( const char * s ) {
     if (!s || !s[0])
-      return lString16::empty_str;
+      return lString32::empty_str;
     int len = Wtf8CharCount( s );
     if (!len)
-      return lString16::empty_str;
-    lString16 dst;
-    dst.append(len, (lChar16)0);
-    lChar16 * p = dst.modify();
+      return lString32::empty_str;
+    lString32 dst;
+    dst.append(len, (lChar32)0);
+    lChar32 * p = dst.modify();
     DecodeWtf8(s, p, len);
     return dst;
 }
 
-lString16 Wtf8ToUnicode( const char * s, int sz ) {
+lString32 Wtf8ToUnicode( const char * s, int sz ) {
     if (!s || !s[0] || sz <= 0)
-      return lString16::empty_str;
+      return lString32::empty_str;
     int len = Utf8CharCount( s, sz );
     if (!len)
-      return lString16::empty_str;
-    lString16 dst;
+      return lString32::empty_str;
+    lString32 dst;
     dst.append(len, 0);
-    lChar16 * p = dst.modify();
+    lChar32 * p = dst.modify();
     DecodeWtf8(s, p, len);
     return dst;
 }
 
-lString8 UnicodeToUtf8(const lChar16 * s, int count)
+lString8 UnicodeToUtf8(const lChar32 * s, int count)
 {
     if (count <= 0)
       return lString8::empty_str;
@@ -2926,12 +2924,12 @@ lString8 UnicodeToUtf8(const lChar16 * s, int count)
     return dst;
 }
 
-lString8 UnicodeToUtf8( const lString16 & str )
+lString8 UnicodeToUtf8( const lString32 & str )
 {
     return UnicodeToUtf8(str.c_str(), str.length());
 }
 
-lString8 UnicodeToWtf8(const lChar16 * s, int count)
+lString8 UnicodeToWtf8(const lChar32 * s, int count)
 {
     if (count <= 0)
       return lString8::empty_str;
@@ -2980,17 +2978,17 @@ lString8 UnicodeToWtf8(const lChar16 * s, int count)
     return dst;
 }
 
-lString8 UnicodeToWtf8( const lString16 & str )
+lString8 UnicodeToWtf8( const lString32 & str )
 {
     return UnicodeToWtf8(str.c_str(), str.length());
 }
 
-lString8 UnicodeTo8Bit( const lString16 & str, const lChar8 * * table )
+lString8 UnicodeTo8Bit( const lString32 & str, const lChar8 * * table )
 {
     lString8 buf;
     buf.reserve( str.length() );
     for (int i=0; i < str.length(); i++) {
-        lChar16 ch = str[i];
+        lChar32 ch = str[i];
         const lChar8 * p = table[ (ch>>8) & 255 ];
         if ( p ) {
             buf += p[ ch&255 ];
@@ -3001,13 +2999,13 @@ lString8 UnicodeTo8Bit( const lString16 & str, const lChar8 * * table )
     return buf;
 }
 
-lString16 ByteToUnicode( const lString8 & str, const lChar16 * table )
+lString32 ByteToUnicode( const lString8 & str, const lChar32 * table )
 {
-    lString16 buf;
+    lString32 buf;
     buf.reserve( str.length() );
     for (int i=0; i < str.length(); i++) {
-        lChar16 ch = (unsigned char)str[i];
-        lChar16 ch16 = ((ch & 0x80) && table) ? table[ (ch&0x7F) ] : ch;
+        lChar32 ch = (unsigned char)str[i];
+        lChar32 ch16 = ((ch & 0x80) && table) ? table[ (ch&0x7F) ] : ch;
         buf += ch16;
     }
     return buf;
@@ -3082,12 +3080,12 @@ lString16 LocalToUnicode( const lString8 & str )
 
 #else
 
-lString8 UnicodeToLocal( const lString16 & str )
+lString8 UnicodeToLocal( const lString32 & str )
 {
     return UnicodeToUtf8( str );
 }
 
-lString16 LocalToUnicode( const lString8 & str )
+lString32 LocalToUnicode( const lString8 & str )
 {
     return Utf8ToUnicode( str );
 }
@@ -3174,7 +3172,7 @@ static const char * latin_1[64] =
 "y", // U+00FF	LATIN SMALL LETTER Y WITH DIAERESIS
 };
 
-static const char * getCharTranscript( lChar16 ch )
+static const char * getCharTranscript( lChar32 ch )
 {
     if ( ch>=0x410 && ch<0x430 )
         return russian_capital[ch-0x410];
@@ -3190,14 +3188,14 @@ static const char * getCharTranscript( lChar16 ch )
 }
 
 
-lString8  UnicodeToTranslit( const lString16 & str )
+lString8  UnicodeToTranslit( const lString32 & str )
 {
     lString8 buf;
     if ( str.empty() )
         return buf;
     buf.reserve( str.length()*5/4 );
     for ( int i=0; i<str.length(); i++ ) {
-        lChar16 ch = str[i];
+        lChar32 ch = str[i];
         if ( ch>=32 && ch<=127 ) {
             buf.append( 1, (lChar8)ch );
         } else {
@@ -4091,8 +4089,8 @@ CH_PROP_UPPER | CH_PROP_VOWEL, // GREEK CAPITAL LETTER OMEGA WITH PROSGEGRAMMENI
 0, 0, 0
 };
 
-inline lUInt16 getCharProp(lChar16 ch) {
-    static const lChar16 maxchar = sizeof(char_props) / sizeof( lUInt16 );
+inline lUInt16 getCharProp(lChar32 ch) {
+    static const lChar32 maxchar = sizeof(char_props) / sizeof( lUInt16 );
     if (ch<maxchar)
         return char_props[ch];
     else if ((ch>>8) == 0x1F)
@@ -4113,15 +4111,15 @@ inline lUInt16 getCharProp(lChar16 ch) {
     return 0;
 }
 
-void lStr_getCharProps( const lChar16 * str, int sz, lUInt16 * props )
+void lStr_getCharProps( const lChar32 * str, int sz, lUInt16 * props )
 {
     for ( int i=0; i<sz; i++ ) {
-        lChar16 ch = str[i];
+        lChar32 ch = str[i];
         props[i] = getCharProp(ch);
     }
 }
 
-bool lStr_isWordSeparator( lChar16 ch )
+bool lStr_isWordSeparator( lChar32 ch )
 {
     // ASCII letters and digits are NOT word separators
     if (ch >= 0x61 && ch <= 0x7A) return false; // lowercase ascii letters
@@ -4155,7 +4153,7 @@ bool lStr_isWordSeparator( lChar16 ch )
 }
 
 /// find alpha sequence bounds
-void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int & end )
+void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int & end )
 {
     int hwStart, hwEnd;
 
@@ -4170,7 +4168,7 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
 //    // skip spaces
 //    for (hwStart=pos-1; hwStart>0; hwStart--)
 //    {
-//        lChar16 ch = str[hwStart];
+//        lChar32 ch = str[hwStart];
 //        if ( ch<(int)maxchar ) {
 //            lUInt16 props = char_props[ch];
 //            if ( !(props & CH_PROP_SPACE) )
@@ -4180,7 +4178,7 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
 //    // skip punctuation signs and digits
 //    for (; hwStart>0; hwStart--)
 //    {
-//        lChar16 ch = str[hwStart];
+//        lChar32 ch = str[hwStart];
 //        if ( ch<(int)maxchar ) {
 //            lUInt16 props = char_props[ch];
 //            if ( !(props & (CH_PROP_PUNCT|CH_PROP_DIGIT)) )
@@ -4190,7 +4188,7 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     // skip until first alpha
     for (hwStart = pos-1; hwStart > 0; hwStart--)
     {
-        lChar16 ch = str[hwStart];
+        lChar32 ch = str[hwStart];
         lUInt16 props = getCharProp(ch);
         if ( props & CH_PROP_ALPHA || props & CH_PROP_HYPHEN )
             break;
@@ -4204,7 +4202,7 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     // skipping while alpha
     for (; hwStart>0; hwStart--)
     {
-        lChar16 ch = str[hwStart];
+        lChar32 ch = str[hwStart];
         //int lastAlpha = -1;
         if ( getCharProp(ch) & CH_PROP_ALPHA || getCharProp(ch) & CH_PROP_HYPHEN ) {
             //lastAlpha = hwStart;
@@ -4220,7 +4218,7 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
 //    }
     for (hwEnd=hwStart+1; hwEnd<sz; hwEnd++) // 20080404
     {
-        lChar16 ch = str[hwEnd];
+        lChar32 ch = str[hwEnd];
         if (!(getCharProp(ch) & CH_PROP_ALPHA) && !(getCharProp(ch) & CH_PROP_HYPHEN))
             break;
         ch = str[hwEnd-1];
@@ -4232,26 +4230,26 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     //CRLog::debug("Word bounds: '%s'", LCSTR(lString16(str+start, end-start)));
 }
 
-void  lString16::limit( size_type sz )
+void  lString32::limit( size_type sz )
 {
     if ( length() > sz ) {
         modify();
         pchunk->len = sz;
-        pchunk->buf16[sz] = 0;
+        pchunk->buf32[sz] = 0;
     }
 }
 
-lUInt16 lGetCharProps( lChar16 ch )
+lUInt16 lGetCharProps( lChar32 ch )
 {
     return getCharProp(ch);
 }
 
 
 /// returns true if string starts with specified substring, case insensitive
-bool lString16::startsWithNoCase ( const lString16 & substring ) const
+bool lString32::startsWithNoCase ( const lString32 & substring ) const
 {
-    lString16 a = *this;
-    lString16 b = substring;
+    lString32 a = *this;
+    lString32 b = substring;
     a.uppercase();
     b.uppercase();
     return a.startsWith( b );
@@ -4303,54 +4301,54 @@ bool lString8::endsWith( const lChar8 * substring ) const
 }
 
 /// returns true if string ends with specified substring
-bool lString16::endsWith( const lChar16 * substring ) const
+bool lString32::endsWith( const lChar32 * substring ) const
 {
     if ( !substring || !*substring )
         return true;
     int len = lStr_len(substring);
     if ( length() < len )
         return false;
-    const lChar16 * s1 = c_str() + (length()-len);
-    const lChar16 * s2 = substring;
+    const lChar32 * s1 = c_str() + (length()-len);
+    const lChar32 * s2 = substring;
     return lStr_cmp( s1, s2 )==0;
 }
 
 /// returns true if string ends with specified substring
-bool lString16::endsWith( const lChar8 * substring ) const
+bool lString32::endsWith( const lChar8 * substring ) const
 {
     if ( !substring || !*substring )
         return true;
     int len = lStr_len(substring);
     if ( length() < len )
         return false;
-    const lChar16 * s1 = c_str() + (length()-len);
+    const lChar32 * s1 = c_str() + (length()-len);
     const lChar8 * s2 = substring;
     return lStr_cmp( s1, s2 )==0;
 }
 
 /// returns true if string ends with specified substring
-bool lString16::endsWith ( const lString16 & substring ) const
+bool lString32::endsWith ( const lString32 & substring ) const
 {
     if ( substring.empty() )
         return true;
     int len = substring.length();
     if ( length() < len )
         return false;
-    const lChar16 * s1 = c_str() + (length()-len);
-    const lChar16 * s2 = substring.c_str();
+    const lChar32 * s1 = c_str() + (length()-len);
+    const lChar32 * s2 = substring.c_str();
     return lStr_cmp( s1, s2 )==0;
 }
 
 /// returns true if string starts with specified substring
-bool lString16::startsWith( const lString16 & substring ) const
+bool lString32::startsWith( const lString32 & substring ) const
 {
     if ( substring.empty() )
         return true;
     int len = substring.length();
     if ( length() < len )
         return false;
-    const lChar16 * s1 = c_str();
-    const lChar16 * s2 = substring.c_str();
+    const lChar32 * s1 = c_str();
+    const lChar32 * s2 = substring.c_str();
     for ( int i=0; i<len; i++ )
         if ( s1[i]!=s2[i] )
             return false;
@@ -4358,15 +4356,15 @@ bool lString16::startsWith( const lString16 & substring ) const
 }
 
 /// returns true if string starts with specified substring
-bool lString16::startsWith(const lChar16 * substring) const
+bool lString32::startsWith(const lChar32 * substring) const
 {
     if (!substring || !substring[0])
         return true;
     int len = _lStr_len(substring);
     if ( length() < len )
         return false;
-    const lChar16 * s1 = c_str();
-    const lChar16 * s2 = substring;
+    const lChar32 * s1 = c_str();
+    const lChar32 * s2 = substring;
     for ( int i=0; i<len; i++ )
         if ( s1[i] != s2[i] )
             return false;
@@ -4374,14 +4372,14 @@ bool lString16::startsWith(const lChar16 * substring) const
 }
 
 /// returns true if string starts with specified substring
-bool lString16::startsWith(const lChar8 * substring) const
+bool lString32::startsWith(const lChar8 * substring) const
 {
     if (!substring || !substring[0])
         return true;
     int len = _lStr_len(substring);
     if ( length() < len )
         return false;
-    const lChar16 * s1 = c_str();
+    const lChar32 * s1 = c_str();
     const lChar8 * s2 = substring;
     for ( int i=0; i<len; i++ )
         if (s1[i] != s2[i])
@@ -4389,7 +4387,7 @@ bool lString16::startsWith(const lChar8 * substring) const
     return true;
 }
 
-bool lString16::split2( const lString16 & delim, lString16 & value1, lString16 & value2 )
+bool lString32::split2( const lString32 & delim, lString32 & value1, lString32 & value2 )
 {
     if ( empty() )
         return false;
@@ -4401,7 +4399,7 @@ bool lString16::split2( const lString16 & delim, lString16 & value1, lString16 &
     return true;
 }
 
-bool lString16::split2( const lChar16 * delim, lString16 & value1, lString16 & value2 )
+bool lString32::split2( const lChar32 * delim, lString32 & value1, lString32 & value2 )
 {
     if (empty())
         return false;
@@ -4414,7 +4412,7 @@ bool lString16::split2( const lChar16 * delim, lString16 & value1, lString16 & v
     return true;
 }
 
-bool lString16::split2( const lChar8 * delim, lString16 & value1, lString16 & value2 )
+bool lString32::split2( const lChar8 * delim, lString32 & value1, lString32 & value2 )
 {
     if (empty())
         return false;
@@ -4427,11 +4425,11 @@ bool lString16::split2( const lChar8 * delim, lString16 & value1, lString16 & va
     return true;
 }
 
-bool splitIntegerList( lString16 s, lString16 delim, int &value1, int &value2 )
+bool splitIntegerList( lString32 s, lString32 delim, int &value1, int &value2 )
 {
     if ( s.empty() )
         return false;
-    lString16 s1, s2;
+    lString32 s1, s2;
     if ( !s.split2( delim, s1, s2 ) )
         return false;
     int n1, n2;
@@ -4451,16 +4449,16 @@ lString8 & lString8::replace(size_type p0, size_type n0, const lString8 & str) {
     return *this;
 }
 
-lString16 & lString16::replace(size_type p0, size_type n0, const lString16 & str)
+lString32 & lString32::replace(size_type p0, size_type n0, const lString32 & str)
 {
-    lString16 s1 = substr( 0, p0 );
-    lString16 s2 = length() - p0 - n0 > 0 ? substr( p0+n0, length()-p0-n0 ) : lString16::empty_str;
+    lString32 s1 = substr( 0, p0 );
+    lString32 s2 = length() - p0 - n0 > 0 ? substr( p0+n0, length()-p0-n0 ) : lString32::empty_str;
     *this = s1 + str + s2;
     return *this;
 }
 
 /// replaces part of string, if pattern is found
-bool lString16::replace(const lString16 & findStr, const lString16 & replaceStr)
+bool lString32::replace(const lString32 & findStr, const lString32 & replaceStr)
 {
     int p = pos(findStr);
     if ( p<0 )
@@ -4469,18 +4467,18 @@ bool lString16::replace(const lString16 & findStr, const lString16 & replaceStr)
     return true;
 }
 
-bool lString16::replaceParam(int index, const lString16 & replaceStr)
+bool lString32::replaceParam(int index, const lString32 & replaceStr)
 {
-    return replace( cs16("$") + fmt::decimal(index), replaceStr );
+    return replace( cs32("$") + fmt::decimal(index), replaceStr );
 }
 
 /// replaces first found occurence of "$N" pattern with itoa of integer, where N=index
-bool lString16::replaceIntParam(int index, int replaceNumber)
+bool lString32::replaceIntParam(int index, int replaceNumber)
 {
-    return replaceParam( index, lString16::itoa(replaceNumber));
+    return replaceParam( index, lString32::itoa(replaceNumber));
 }
 
-static int decodeHex( lChar16 ch )
+static int decodeHex( lChar32 ch )
 {
     if ( ch>='0' && ch<='9' )
         return ch-'0';
@@ -4491,7 +4489,7 @@ static int decodeHex( lChar16 ch )
     return -1;
 }
 
-static lChar8 decodeHTMLChar( const lChar16 * s )
+static lChar8 decodeHTMLChar( const lChar32 * s )
 {
     if (s[0] == '%') {
         int d1 = decodeHex( s[1] );
@@ -4506,9 +4504,9 @@ static lChar8 decodeHTMLChar( const lChar16 * s )
 }
 
 /// decodes path like "file%20name%C3%A7" to "file nameç"
-lString16 DecodeHTMLUrlString( lString16 s )
+lString32 DecodeHTMLUrlString( lString32 s )
 {
-    const lChar16 * str = s.c_str();
+    const lChar32 * str = s.c_str();
     for ( int i=0; str[i]; i++ ) {
         if ( str[i]=='%'  ) {
             lChar8 ch = decodeHTMLChar( str + i );
@@ -4542,7 +4540,7 @@ lString16 DecodeHTMLUrlString( lString16 s )
     return s;
 }
 
-void limitStringSize(lString16 & str, int maxSize) {
+void limitStringSize(lString32 & str, int maxSize) {
     if (str.length() < maxSize)
         return;
     int lastSpace = -1;
@@ -4559,9 +4557,9 @@ void limitStringSize(lString16 & str, int maxSize) {
 }
 
 /// remove soft-hyphens from string
-lString16 removeSoftHyphens( lString16 s )
+lString32 removeSoftHyphens( lString32 s )
 {
-    lChar16 hyphen = lChar16(UNICODE_SOFT_HYPHEN_CODE);
+    lChar32 hyphen = lChar32(UNICODE_SOFT_HYPHEN_CODE);
     int start = 0;
     while (true) {
         int p = -1;
@@ -4575,8 +4573,8 @@ lString16 removeSoftHyphens( lString16 s )
         if (p == -1)
             break;
         start = p;
-        lString16 s1 = s.substr( 0, p );
-        lString16 s2 = p < len-1 ? s.substr( p+1, len-p-1 ) : lString16::empty_str;
+        lString32 s1 = s.substr( 0, p );
+        lString32 s2 = p < len-1 ? s.substr( p+1, len-p-1 ) : lString32::empty_str;
         s = s1 + s2;
     }
     return s;

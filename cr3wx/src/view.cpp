@@ -65,14 +65,14 @@ void cr3view::OnInitDialog(wxInitDialogEvent& event)
 	_isFullscreen = _props->getBoolDef(PROP_WINDOW_FULLSCREEN);
 }
 
-lString16 cr3view::GetLastRecentFileName()
+lString32 cr3view::GetLastRecentFileName()
 {
     if ( getDocView() && getDocView()->getHistory()->getRecords().length()>0 )
         return getDocView()->getHistory()->getRecords()[0]->getFilePathName();
-    return lString16::empty_str;
+    return lString32::empty_str;
 }
 
-cr3view::cr3view(CRPropRef props, lString16 exeDirPath )
+cr3view::cr3view(CRPropRef props, lString32 exeDirPath )
 : _normalCursor(wxCURSOR_ARROW)
 , _linkCursor(wxCURSOR_HAND)
 , _scrollbar(NULL)
@@ -339,7 +339,7 @@ void cr3view::Paint()
     Refresh( FALSE );
 }
 
-static lChar16 detectSlash( lString16 path )
+static lChar32 detectSlash( lString32 path )
 {
     for ( unsigned i=0; i<path.length(); i++ )
         if ( path[i]=='\\' || path[i]=='/' )
@@ -351,16 +351,13 @@ static lChar16 detectSlash( lString16 path )
 #endif
 }
 
-lString16 cr3view::GetHistoryFileName()
+lString32 cr3view::GetHistoryFileName()
 {
-    #if wxCHECK_VERSION(3, 0, 0)
-        lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().wx_str() );
-    #else
-        lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().c_str() );
-    #endif
-    if ( !wxDirExists( cfgdir.c_str() ) )
-        ::wxMkdir( wxString( cfgdir.c_str() ) );
-    lChar16 slash = detectSlash( cfgdir );
+    wxString wxcfgdir = wxStandardPaths::Get().GetUserDataDir();
+    if ( !wxDirExists( wxcfgdir ) )
+        ::wxMkdir( wxcfgdir );
+    lString32 cfgdir = wx2cr(wxcfgdir);
+    lChar32 slash = detectSlash( cfgdir );
     cfgdir << slash;
     return cfgdir + "cr3hist.bmk";
 }
@@ -391,7 +388,7 @@ void cr3view::UpdateScrollBar()
     );
     wxStatusBar * sb = ((wxFrame*)GetParent())->GetStatusBar();
     if ( sb )
-        sb->SetStatusText( wxString( lvsi->posText.c_str() ), 1 );
+        sb->SetStatusText( cr2wx(lvsi->posText), 1 );
 
 }
 
@@ -403,7 +400,7 @@ void cr3view::OnMouseMotion(wxMouseEvent& event)
     if ( ptr.isNull() ) {
         return;
     }
-    lString16 href = ptr.getHRef();
+    lString32 href = ptr.getHRef();
     if ( href.empty() ) {
         SetCursor(_normalCursor);
     } else {
@@ -422,14 +419,14 @@ void cr3view::OnMouseLDown( wxMouseEvent & event )
 {
     int x = event.GetX();
     int y = event.GetY();
-    //lString16 txt = _docview->getPageText( true );
+    //lString32 txt = _docview->getPageText( true );
     //CRLog::debug( "getPageText : %s", UnicodeToUtf8(txt).c_str() );
     ldomXPointer ptr = getDocView()->getNodeByPoint( lvPoint( x, y ) );
     if ( ptr.isNull() ) {
         CRLog::debug( "cr3view::OnMouseLDown() : node not found!\n");
         return;
     }
-    lString16 href = ptr.getHRef();
+    lString32 href = ptr.getHRef();
     if ( ptr.getNode()->isText() ) {
         lString8 s = UnicodeToUtf8( ptr.toString() );
         CRLog::debug("Text node clicked (%d, %d): %s", x, y, s.c_str() );
@@ -671,26 +668,19 @@ bool cr3view::LoadDocument( const wxString & fname )
     //===========================================
     GetParent()->Update();
     //printf("   loading...  ");
-    #if wxCHECK_VERSION(3, 0, 0)
-        bool res = getDocView()->LoadDocument( fname.wx_str() );
-    #else
-        bool res = getDocView()->LoadDocument( fname.c_str() );
-    #endif
+    lString32 fname32 = wx2cr(fname);
+    bool res = getDocView()->LoadDocument( fname32.c_str() );
     //printf("   done. \n");
 	//DEBUG
 	//_docview->exportWolFile( "test.wol", true );
 	//_docview->SetPos(0);
     if ( !res )
-        #if wxCHECK_VERSION(3, 0, 0)
-            getDocView()->createDefaultDocument(lString16("File open error"), lString16("Cannot open file ") + fname.wx_str() );
-        #else
-            getDocView()->createDefaultDocument(lString16("File open error"), lString16("Cannot open file ") + fname.c_str() );
-        #endif
-    lString16 title = getDocView()->getAuthors();
+        getDocView()->createDefaultDocument(lString32("File open error"), lString32("Cannot open file ") + fname32 );
+    lString32 title = getDocView()->getAuthors();
     if ( !title.empty() && !getDocView()->getTitle().empty() )
-        title << L". ";
+        title << U". ";
     title << getDocView()->getTitle();
-    GetParent()->SetLabel( wxString( title.c_str() ) );
+    GetParent()->SetLabel( cr2wx(title) );
 
     //UpdateScrollBar();
     _firstRender = true;
@@ -798,7 +788,7 @@ void cr3view::OnSize(wxSizeEvent& event)
 
 
 // LVDocViewCallback override
-void cr3view::OnExternalLink( lString16 url, ldomNode * node )
+void cr3view::OnExternalLink( lString32 url, ldomNode * node )
 {
-    ::wxLaunchDefaultBrowser( wxString(url.c_str()) );
+    ::wxLaunchDefaultBrowser( cr2wx(url) );
 }

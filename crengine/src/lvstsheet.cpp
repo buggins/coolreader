@@ -603,22 +603,22 @@ static bool parse_number_value( const char * & str, css_length_t & value,
     return true;
 }
 
-static lString16 parse_nth_value( const lString16 value )
+static lString32 parse_nth_value( const lString32 value )
 {
     // https://developer.mozilla.org/en-US/docs/Web/CSS/:nth-child
     // Parse "even", "odd", "5", "5n", "5n+2", "-n"...
-    // Pack 3 numbers, enough to check if match, into another lString16
+    // Pack 3 numbers, enough to check if match, into another lString32
     // for quicker checking:
-    // - a tuple of 3 lChar16: (negative, n-step, offset)
+    // - a tuple of 3 lChar32: (negative, n-step, offset)
     // - or the empty string when invalid or if it would never match
     // (Note that we get the input already trimmed and lowercased.)
-    lString16 ret = lString16(); // empty string = never match
+    lString32 ret = lString32(); // empty string = never match
     if ( value == "even" ) { //  = "2n"
-        ret << lChar16(0) <<lChar16(2) << lChar16(0);
+        ret << lChar32(0) <<lChar32(2) << lChar32(0);
         return ret;
     }
     if ( value == "odd" ) {  // = "2n+1"
-        ret << lChar16(0) <<lChar16(2) << lChar16(1);
+        ret << lChar32(0) <<lChar32(2) << lChar32(1);
         return ret;
     }
     int len = value.length();
@@ -628,7 +628,7 @@ static lString16 parse_nth_value( const lString16 value )
     int first = 0;
     int second = 0;
     int i = 0;
-    lChar16 c;
+    lChar32 c;
     c = value[i];
     if ( c == '-' ) {
         negative = true;
@@ -650,7 +650,7 @@ static lString16 parse_nth_value( const lString16 value )
             if ( i==len ) { // single number seen: this parsed number is actually the offset
                 if ( negative ) // "-4"
                     return ret; // never match
-                ret << lChar16(0) << lChar16(0) << lChar16(first);
+                ret << lChar32(0) << lChar32(0) << lChar32(first);
                 return ret;
             }
             c = value[i];
@@ -664,7 +664,7 @@ static lString16 parse_nth_value( const lString16 value )
     if ( i==len ) { // ends with that 'n'
         if ( negative || first == 0) // valid, but would never match anything
             return ret; // never match
-        ret << lChar16(0) << lChar16(first) << lChar16(0);
+        ret << lChar32(0) << lChar32(first) << lChar32(0);
         return ret;
     }
     c = value[i];
@@ -687,11 +687,11 @@ static lString16 parse_nth_value( const lString16 value )
             return ret; // invalid
     }
     // Valid, and we parsed everything
-    ret << lChar16(negative) << lChar16(first) << lChar16(second);
+    ret << lChar32(negative) << lChar32(first) << lChar32(second);
     return ret;
 }
 
-static bool match_nth_value( const lString16 value, int n)
+static bool match_nth_value( const lString32 value, int n)
 {
     // Apply packed parsed value (parsed by above function) to n
     if ( value.empty() ) // invalid, or never match
@@ -1060,7 +1060,7 @@ bool parse_color_value( const char * & str, css_length_t & value )
 }
 
 // Parse a CSS "content:" property into an intermediate format single string.
-bool parse_content_property( const char * & str, lString16 & parsed_content)
+bool parse_content_property( const char * & str, lString32 & parsed_content)
 {
     // https://developer.mozilla.org/en-US/docs/Web/CSS/content
     // The property may have multiple tokens:
@@ -1136,10 +1136,10 @@ bool parse_content_property( const char * & str, lString16 & parsed_content)
                 }
                 if ( *str == ')' ) {
                     str++;
-                    lString16 attr = Utf8ToUnicode(attr8);
+                    lString32 attr = Utf8ToUnicode(attr8);
                     attr.trim();
                     parsed_content << L'a';
-                    parsed_content << lChar16(attr.length() + 1); // (+1 to avoid storing \x00)
+                    parsed_content << lChar32(attr.length() + 1); // (+1 to avoid storing \x00)
                     parsed_content << attr;
                     continue;
                 }
@@ -1196,8 +1196,8 @@ bool parse_content_property( const char * & str, lString16 & parsed_content)
                             codepoint = 0xFFFD; // replacement character
                         }
                         // Serialize it as UTF-8
-                        lString16 c;
-                        c << (lChar16)codepoint;
+                        lString32 c;
+                        c << (lChar32)codepoint;
                         str8 << UnicodeToLocal(c);
                     }
                     else if ( *str == '\r' && *(str+1) == '\n' ) {
@@ -1226,9 +1226,9 @@ bool parse_content_property( const char * & str, lString16 & parsed_content)
                 // (declaration or rule) in which the string was found."
             }
             if ( *str == quote_ch ) {
-                lString16 str16 = Utf8ToUnicode(str8);
+                lString32 str16 = Utf8ToUnicode(str8);
                 parsed_content << L's';
-                parsed_content << lChar16(str16.length() + 1); // (+1 to avoid storing \x00)
+                parsed_content << lChar32(str16.length() + 1); // (+1 to avoid storing \x00)
                 parsed_content << str16;
                 str++;
                 continue;
@@ -1309,20 +1309,20 @@ void update_style_content_property( css_style_rec_t * style, ldomNode * node ) {
     // Might be that HarfBuzz first substitute it with arabic quotes (which
     // happen to look inverted), and then mirror that?
 
-    lString16 res;
-    lString16 parsed_content = style->content;
-    lString16 quote;
+    lString32 res;
+    lString32 parsed_content = style->content;
+    lString32 quote;
     int i = 1; // skip initial '$'
     int parsed_content_len = parsed_content.length();
     while ( i < parsed_content_len ) {
-        lChar16 ctype = parsed_content[i];
+        lChar32 ctype = parsed_content[i];
         if ( ctype == 's' ) { // literal string: copy as-is
-            lChar16 len = parsed_content[i] - 1; // (remove added +1)
+            lChar32 len = parsed_content[i] - 1; // (remove added +1)
             res.append(parsed_content, i, len+2);
             i += len+2;
         }
         else if ( ctype == 'a' ) { // attribute value: copy as-is
-            lChar16 len = parsed_content[i] - 1; // (remove added +1)
+            lChar32 len = parsed_content[i] - 1; // (remove added +1)
             res.append(parsed_content, i, len+2);
             i += len+2;
         }
@@ -1357,24 +1357,24 @@ void update_style_content_property( css_style_rec_t * style, ldomNode * node ) {
 }
 
 /// Returns the computed value for a node from its parsed CSS "content:" value
-lString16 get_applied_content_property( ldomNode * node ) {
-    lString16 res;
+lString32 get_applied_content_property( ldomNode * node ) {
+    lString32 res;
     css_style_ref_t style = node->getStyle();
-    lString16 parsed_content = style->content;
+    lString32 parsed_content = style->content;
     if ( parsed_content.empty() )
         return res;
     int i = 0;
     int parsed_content_len = parsed_content.length();
     while ( i < parsed_content_len ) {
-        lChar16 ctype = parsed_content[i++];
+        lChar32 ctype = parsed_content[i++];
         if ( ctype == 's' ) { // literal string
-            lChar16 len = parsed_content[i++] - 1; // (remove added +1)
+            lChar32 len = parsed_content[i++] - 1; // (remove added +1)
             res << parsed_content.substr(i, len);
             i += len;
         }
         else if ( ctype == 'a' ) { // attribute value
-            lChar16 len = parsed_content[i++] - 1; // (remove added +1)
-            lString16 attr_name = parsed_content.substr(i, len);
+            lChar32 len = parsed_content[i++] - 1; // (remove added +1)
+            lString32 attr_name = parsed_content.substr(i, len);
             i += len;
             ldomNode * attrNode = node;
             if ( node->getNodeId() == el_pseudoElem ) {
@@ -1425,22 +1425,22 @@ lString16 get_applied_content_property( ldomNode * node ) {
     return res;
 }
 
-static void resolve_url_path( lString8 & str, lString16 codeBase ) {
+static void resolve_url_path( lString8 & str, lString32 codeBase ) {
     // A URL (path to local or container's file) must be resolved
     // at parsing time, as it is related to this stylesheet file
     // path (and not to the HTML files that are linking to this
     // stylesheet) - it wouldn't be possible to resolve it later.
-    lString16 path = Utf8ToUnicode(str);
+    lString32 path = Utf8ToUnicode(str);
     path.trim();
-    if (path.startsWithNoCase(lString16("url"))) path = path.substr(3);
+    if (path.startsWithNoCase(lString32("url"))) path = path.substr(3);
     path.trim();
-    if (path.startsWith(L"(")) path = path.substr(1);
-    if (path.endsWith(L")")) path = path.substr(0, path.length() - 1);
+    if (path.startsWith(U"(")) path = path.substr(1);
+    if (path.endsWith(U")")) path = path.substr(0, path.length() - 1);
     path.trim();
-    if (path.startsWith(L"\"") || path.startsWith(L"'")) path = path.substr(1);
-    if (path.endsWith(L"\"") || path.endsWith(L"'")) path = path.substr(0, path.length() - 1);
+    if (path.startsWith(U"\"") || path.startsWith(U"'")) path = path.substr(1);
+    if (path.endsWith(U"\"") || path.endsWith(U"'")) path = path.substr(0, path.length() - 1);
     path.trim();
-    if (path.startsWith(lString16("data:image"))) {
+    if (path.startsWith(lString32("data:image"))) {
         // base64 encoded image: leave as-is
     }
     else {
@@ -1821,7 +1821,7 @@ enum cr_only_if_t {
     cr_only_if_fb2_document, // fb2 or fb3
 };
 
-bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, bool higher_importance, lxmlDocBase * doc, lString16 codeBase )
+bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, bool higher_importance, lxmlDocBase * doc, lString32 codeBase )
 {
     if ( !decl )
         return false;
@@ -2879,7 +2879,7 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                 break;
             case cssd_content:
                 {
-                    lString16 parsed_content;
+                    lString32 parsed_content;
                     if ( parse_content_property( decl, parsed_content) ) {
                         buf<<(lUInt32) (cssd_content | importance | parsed_important | parse_important(decl));
                         buf<<(lUInt32) parsed_content.length();
@@ -3196,11 +3196,11 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
         case cssd_content:
             {
                 int l = *p++;
-                lString16 content;
+                lString32 content;
                 if ( l > 0 ) {
                     content.reserve(l);
                     for (int i=0; i<l; i++)
-                        content << (lChar16)(*p++);
+                        content << (lChar32)(*p++);
                 }
                 style->Apply( content, &style->content, imp_bit_content, is_important );
             }
@@ -3413,7 +3413,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         {
             if ( !node->hasAttribute(_attrid) )
                 return false;
-            lString16 val = node->getAttributeValue(_attrid);
+            lString32 val = node->getAttributeValue(_attrid);
             if (_type == cssrt_attreq_i)
                 val.lowercase();
             return val == _value;
@@ -3425,10 +3425,10 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         {
             if ( !node->hasAttribute(_attrid) )
                 return false;
-            lString16 val = node->getAttributeValue(_attrid);
+            lString32 val = node->getAttributeValue(_attrid);
             if (_type == cssrt_attrhas_i)
                 val.lowercase();
-            int p = val.pos( lString16(_value.c_str()) );            
+            int p = val.pos( lString32(_value.c_str()) );            
             if (p<0)
                 return false;
             if ( (p>0 && val[p-1]!=' ') 
@@ -3444,7 +3444,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                 return false;
             // value can be exactly value or can begin with value
             // immediately followed by a hyphen
-            lString16 val = node->getAttributeValue(_attrid);
+            lString32 val = node->getAttributeValue(_attrid);
             int val_len = val.length();
             int value_len = _value.length();
             if (value_len > val_len)
@@ -3465,7 +3465,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         {
             if ( !node->hasAttribute(_attrid) )
                 return false;
-            lString16 val = node->getAttributeValue(_attrid);
+            lString32 val = node->getAttributeValue(_attrid);
             int val_len = val.length();
             int value_len = _value.length();
             if (value_len > val_len)
@@ -3481,7 +3481,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         {
             if ( !node->hasAttribute(_attrid) )
                 return false;
-            lString16 val = node->getAttributeValue(_attrid);
+            lString32 val = node->getAttributeValue(_attrid);
             int val_len = val.length();
             int value_len = _value.length();
             if (value_len > val_len)
@@ -3497,7 +3497,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         {
             if ( !node->hasAttribute(_attrid) )
                 return false;
-            lString16 val = node->getAttributeValue(_attrid);
+            lString32 val = node->getAttributeValue(_attrid);
             if (_value.length()>val.length())
                 return false;
             if (_type == cssrt_attrcontains_i)
@@ -3507,10 +3507,10 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         break;
     case cssrt_id:            // E#id
         {
-            lString16 val = node->getAttributeValue(attr_id);
+            lString32 val = node->getAttributeValue(attr_id);
             if ( val.empty() )
                 return false;
-            /*lString16 ldomDocumentFragmentWriter::convertId( lString16 id ) adds codeBasePrefix to
+            /*lString32 ldomDocumentFragmentWriter::convertId( lString32 id ) adds codeBasePrefix to
              *original id name, I can not get codeBasePrefix from here so I add a space to identify the
              *real id name.*/
             int pos = val.pos(" ");
@@ -3524,7 +3524,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         break;
     case cssrt_class:         // E.class
         {
-            lString16 val = node->getAttributeValue(attr_class);
+            lString32 val = node->getAttributeValue(attr_class);
             if ( val.empty() )
                 return false;
             // val.lowercase(); // className should be case sensitive
@@ -3534,14 +3534,14 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
             /*As I have eliminated leading and ending spaces in the attribute value, any space in
              *val means there are more than one classes */
             if (val.pos(" ") != -1) {
-                lString16 value_w_space_after = _value + " ";
+                lString32 value_w_space_after = _value + " ";
                 if (val.pos(value_w_space_after) == 0)
                     return true; // at start
-                lString16 value_w_space_before = " " + _value;
+                lString32 value_w_space_before = " " + _value;
                 int pos = val.pos(value_w_space_before);
                 if (pos != -1 && pos + value_w_space_before.length() == val.length())
                     return true; // at end
-                lString16 value_w_spaces_before_after = " " + _value + " ";
+                lString32 value_w_spaces_before_after = " " + _value + " ";
                 if (val.pos(value_w_spaces_before_after) != -1)
                     return true; // in between
                 return false;
@@ -3596,7 +3596,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                             elem = elem->getParentNode();
                             continue;
                         }
-                        lString16 dir = elem->getAttributeValue( attr_dir );
+                        lString32 dir = elem->getAttributeValue( attr_dir );
                         dir = dir.lowercase(); // (no need for trim(), it's done by the XMLParser)
                         if ( dir.compare(_value) == 0 )
                             return true;
@@ -3868,7 +3868,7 @@ LVCssSelectorRule * parse_attr( const char * &str, lxmlDocBase * doc )
         if (!parse_ident( str, attrvalue ))
             return NULL;
         LVCssSelectorRule * rule = new LVCssSelectorRule(cssrt_class);
-        lString16 s( attrvalue );
+        lString32 s( attrvalue );
         // s.lowercase(); // className should be case sensitive
         rule->setAttr(attr_class, s);
         return rule;
@@ -3878,7 +3878,7 @@ LVCssSelectorRule * parse_attr( const char * &str, lxmlDocBase * doc )
         if (!parse_ident( str, attrvalue ))
             return NULL;
         LVCssSelectorRule * rule = new LVCssSelectorRule(cssrt_id);
-        lString16 s( attrvalue );
+        lString32 s( attrvalue );
         rule->setAttr(attr_id, s);
         return rule;
     } else if ( *str==':' ) {
@@ -3906,11 +3906,11 @@ LVCssSelectorRule * parse_attr( const char * &str, lxmlDocBase * doc )
             // values, so trim() and lowercase() below to avoid doing it on each check.
         }
         LVCssSelectorRule * rule = new LVCssSelectorRule(cssrt_pseudoclass);
-        lString16 s( attrvalue );
+        lString32 s( attrvalue );
         s.trim().lowercase();
         if ( n == csspc_nth_child || n == csspc_nth_of_type || n == csspc_nth_last_child || n == csspc_nth_last_of_type ) {
             // Parse "even", "odd", "5", "5n", "5n+2", "-n" into a few
-            // numbers packed into a lString16, for quicker checking.
+            // numbers packed into a lString32, for quicker checking.
             s = parse_nth_value(s);
         }
         rule->setAttr(n, s);
@@ -4012,11 +4012,11 @@ LVCssSelectorRule * parse_attr( const char * &str, lxmlDocBase * doc )
         return NULL;
     }
     LVCssSelectorRule * rule = new LVCssSelectorRule(st);
-    lString16 s( attrvalue );
+    lString32 s( attrvalue );
     if (parse_trailing_i) { // cssrt_attr*_i met
         s.lowercase();
     }
-    lUInt16 id = doc->getAttrNameIndex( lString16(attrname).c_str() );
+    lUInt16 id = doc->getAttrNameIndex( lString32(attrname).c_str() );
     rule->setAttr(id, s);
     return rule;
 }
@@ -4083,7 +4083,7 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
             // All element names have been lowercased by HTMLParser (except
             // a few ones that are added explicitely by crengine): we need
             // to lowercase them here too to expect a match.
-            lString16 element(ident);
+            lString32 element(ident);
             if ( element.length() < 7 ) {
                 // Avoid following string comparisons if element name string
                 // is shorter than the shortest of them (rubyBox)
@@ -4401,7 +4401,7 @@ lUInt32 LVStyleSheet::getHash()
     return hash;
 }
 
-bool LVStyleSheet::parse( const char * str, bool higher_importance, lString16 codeBase )
+bool LVStyleSheet::parse( const char * str, bool higher_importance, lString32 codeBase )
 {
     LVCssSelector * selector = NULL;
     LVCssSelector * prev_selector;
@@ -4556,7 +4556,7 @@ bool LVProcessStyleSheetImport( const char * &str, lString8 & import_file )
 }
 
 /// load stylesheet from file, with processing of import
-bool LVLoadStylesheetFile( lString16 pathName, lString8 & css )
+bool LVLoadStylesheetFile( lString32 pathName, lString8 & css )
 {
     LVStreamRef file = LVOpenFileStream( pathName.c_str(), LVOM_READ );
     if ( file.isNull() )
@@ -4566,7 +4566,7 @@ bool LVLoadStylesheetFile( lString16 pathName, lString8 & css )
     const char * s = txt.c_str();
     lString8 import_file;
     if ( LVProcessStyleSheetImport( s, import_file ) ) {
-        lString16 importFilename = LVMakeRelativeFilename( pathName, Utf8ToUnicode(import_file) );
+        lString32 importFilename = LVMakeRelativeFilename( pathName, Utf8ToUnicode(import_file) );
         //lString8 ifn = UnicodeToLocal(importFilename);
         //const char * ifns = ifn.c_str();
         if ( !importFilename.empty() ) {

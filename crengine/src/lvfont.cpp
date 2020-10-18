@@ -20,10 +20,10 @@
 int LVFont::getVisualAligmentWidth() {
     FONT_GUARD
     if (_visual_alignment_width == -1) {
-        //lChar16 chars[] = { getHyphChar(), ',', '.', '!', ':', ';', 0 };
-        lChar16 chars[] = {getHyphChar(), ',', '.', '!', ':', ';',
-                           (lChar16) L'\xff0c', (lChar16) L'\x3302', (lChar16) L'\xff01', 0};
-        //                  (lChar16)L'，', (lChar16)L'。', (lChar16)L'！', 0 };
+        //lChar32 chars[] = { getHyphChar(), ',', '.', '!', ':', ';', 0 };
+        lChar32 chars[] = {getHyphChar(), ',', '.', '!', ':', ';',
+                           (lChar32) L'\xff0c', (lChar32) L'\x3302', (lChar32) L'\xff01', 0};
+        //                  (lChar32)U'，', (lChar32)U'。', (lChar32)U'！', 0 };
         //                  65292 12290 65281
         //                  ff0c 3002 ff01
         int maxw = 0;

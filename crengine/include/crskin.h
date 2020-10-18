@@ -55,7 +55,7 @@ inline int toSkinPercent( int x )
 }
 
 /// encodes percent value*100 (0..10000), to store in skin, from string like "75%" or "10"
-int toSkinPercent( const lString16 & value, int defValue, bool * res );
+int toSkinPercent( const lString32 & value, int defValue, bool * res );
 
 /// decodes skin percent to pixels (fullx is value corresponding to 100%)
 int fromSkinPercent( int x, int fullx );
@@ -142,7 +142,7 @@ protected:
     //lUInt32 _bgcolor;
     //LVImageSourceRef _bgimage;
     //lvPoint _bgimagesplit;
-    lString16 _fontFace;
+    lString32 _fontFace;
     int _fontSize;
     bool _fontBold;
     bool _fontItalic;
@@ -174,11 +174,11 @@ public:
     //virtual lUInt32 getBackgroundColor() { return _bgcolor; }
     //virtual LVImageSourceRef getBackgroundImage() { return _bgimage; }
     //virtual lvPoint getBackgroundImageSplit() { return _bgimagesplit; }
-    virtual lString16 getFontFace() { return _fontFace; }
+    virtual lString32 getFontFace() { return _fontFace; }
     virtual int getFontSize() { return _fontSize; }
     virtual bool getFontBold() { return _fontBold; }
     virtual bool getFontItalic() { return _fontItalic; }
-    virtual void setFontFace( lString16 face );
+    virtual void setFontFace( lString32 face );
     virtual void setFontSize( int size );
     virtual void setFontBold( bool bold );
     virtual void setFontItalic( bool italic );
@@ -189,21 +189,21 @@ public:
     //virtual void setBackgroundImageSplit( lvPoint pt ) { _bgimagesplit = pt; }
     virtual void setFont( LVFontRef fnt ) { _font = fnt; }
     virtual void draw( LVDrawBuf & buf, const lvRect & rc );
-    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font, lUInt32 textColor, lUInt32 bgColor, int flags );
-    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font )
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString32 text, LVFontRef font, lUInt32 textColor, lUInt32 bgColor, int flags );
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString32 text, LVFontRef font )
     {
         drawText(  buf, rc, text, font, getTextColor(), getBackgroundColor(), getTextAlign() );
     }
-    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text )
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString32 text )
     {
         drawText(  buf, rc, text, LVFontRef(), getTextColor(), getBackgroundColor(), getTextAlign() );
     }
-    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, lUInt32 color )
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString32 text, lUInt32 color )
     {
         drawText(  buf, rc, text, LVFontRef(), color, getBackgroundColor(), getTextAlign() );
     }
     /// measures text string using current font
-    virtual lvPoint measureText( lString16 text );
+    virtual lvPoint measureText( lString32 text );
     virtual ~CRSkinnedItem() { }
 };
 
@@ -218,7 +218,7 @@ protected:
     int _align;
 public:
     /// same as measureText, but with added margins and minSize applied
-    virtual lvPoint measureTextItem( lString16 text );
+    virtual lvPoint measureTextItem( lString32 text );
     CRRectSkin();
     virtual ~CRRectSkin() { }
     /// returns rect based on pos and size
@@ -240,9 +240,9 @@ public:
     virtual void setBorderWidths( const lvRect & rc) { _margins = rc; }
     virtual lvRect getBorderWidths() { return _margins; }
     virtual lvRect getClientRect( const lvRect &windowRect );
-    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text );
-    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font );
-    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font, lUInt32 textColor, lUInt32 bgColor, int flags )
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString32 text );
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString32 text, LVFontRef font );
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString32 text, LVFontRef font, lUInt32 textColor, lUInt32 bgColor, int flags )
     {
         CRSkinnedItem::drawText( buf, rc, text, font, textColor, bgColor, flags );
     }
@@ -263,10 +263,10 @@ class CRPageSkin : public CRSkinnedItem
     CRRectSkinRef _leftPageSkin;
     CRRectSkinRef _rightPageSkin;
     CRRectSkinRef _singlePageSkin;
-    lString16     _name;
+    lString32     _name;
 public:
-    const lString16 & getName() { return _name; }
-    void setName( const lString16 & newName ) { _name = newName; }
+    const lString32 & getName() { return _name; }
+    void setName( const lString32 & newName ) { _name = newName; }
     CRPageSkin();
     CRRectSkinRef getSkin( page_skin_type_t type );
 };
@@ -275,7 +275,7 @@ typedef LVFastRef<CRPageSkin> CRPageSkinRef;
 class CRPageSkinList : public LVArray<CRPageSkinRef>
 {
 public:
-    CRPageSkinRef findByName( const lString16 & name );
+    CRPageSkinRef findByName( const lString32 & name );
 };
 typedef LVRef<CRPageSkinList> CRPageSkinListRef;
 
@@ -494,67 +494,67 @@ typedef LVFastRef<CRMenuSkin> CRMenuSkinRef;
 class CRSkinContainer : public LVRefCounter
 {
 protected:
-    virtual bool readRectSkin(  const lChar16 * path, CRRectSkin * res );
-    virtual bool readIconSkin(  const lChar16 * path, CRIconSkin * res );
-    virtual bool readButtonSkin(  const lChar16 * path, CRButtonSkin * res );
-    virtual bool readScrollSkin(  const lChar16 * path, CRScrollSkin * res );
-    virtual bool readWindowSkin(  const lChar16 * path, CRWindowSkin * res );
-    virtual bool readPageSkin(  const lChar16 * path, CRPageSkin * res );
-    virtual bool readMenuSkin(  const lChar16 * path, CRMenuSkin * res );
-    virtual bool readToolBarSkin( const lChar16 * path, CRToolBarSkin *res );
+    virtual bool readRectSkin(  const lChar32 * path, CRRectSkin * res );
+    virtual bool readIconSkin(  const lChar32 * path, CRIconSkin * res );
+    virtual bool readButtonSkin(  const lChar32 * path, CRButtonSkin * res );
+    virtual bool readScrollSkin(  const lChar32 * path, CRScrollSkin * res );
+    virtual bool readWindowSkin(  const lChar32 * path, CRWindowSkin * res );
+    virtual bool readPageSkin(  const lChar32 * path, CRPageSkin * res );
+    virtual bool readMenuSkin(  const lChar32 * path, CRMenuSkin * res );
+    virtual bool readToolBarSkin( const lChar32 * path, CRToolBarSkin *res );
 public:
     /// retuns path to base definition, if attribute base="#nodeid" is specified for element of path
-    virtual lString16 getBasePath( const lChar16 * path );
+    virtual lString32 getBasePath( const lChar32 * path );
     /// find path by id
-    virtual lString16 pathById( const lChar16 * id ) = 0;
+    virtual lString32 pathById( const lChar32 * id ) = 0;
     /// gets image from container
-    virtual LVImageSourceRef getImage( const lChar16 * filename ) = 0;
+    virtual LVImageSourceRef getImage( const lChar32 * filename ) = 0;
     /// gets image from container
-    virtual LVImageSourceRef getImage( const lString16 & filename ) { return getImage( filename.c_str() ); }
+    virtual LVImageSourceRef getImage( const lString32 & filename ) { return getImage( filename.c_str() ); }
     /// gets doc pointer by path
-    virtual ldomXPointer getXPointer( const lString16 & xPointerStr ) = 0;
+    virtual ldomXPointer getXPointer( const lString32 & xPointerStr ) = 0;
     /// gets doc pointer by path
-    virtual ldomXPointer getXPointer( const lChar16 * xPointerStr ) { return getXPointer( lString16(xPointerStr) ); }
+    virtual ldomXPointer getXPointer( const lChar32 * xPointerStr ) { return getXPointer( lString32(xPointerStr) ); }
     /// reads int value from attrname attribute of element specified by path, returns defValue if not found
-    virtual int readInt( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res=NULL );
+    virtual int readInt( const lChar32 * path, const lChar32 * attrname, int defValue, bool * res=NULL );
     /// reads boolean value from attrname attribute of element specified by path, returns defValue if not found
-    virtual bool readBool( const lChar16 * path, const lChar16 * attrname, bool defValue, bool * res=NULL );
+    virtual bool readBool( const lChar32 * path, const lChar32 * attrname, bool defValue, bool * res=NULL );
     /// reads image transform value from attrname attribute of element specified by path, returns defValue if not found
-    ImageTransform readTransform( const lChar16 * path, const lChar16 * attrname, ImageTransform defValue, bool * res );
+    ImageTransform readTransform( const lChar32 * path, const lChar32 * attrname, ImageTransform defValue, bool * res );
     /// reads h align value from attrname attribute of element specified by path, returns defValue if not found
-    virtual int readHAlign( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res=NULL );
+    virtual int readHAlign( const lChar32 * path, const lChar32 * attrname, int defValue, bool * res=NULL );
     /// reads h align value from attrname attribute of element specified by path, returns defValue if not found
-    virtual int readVAlign( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res=NULL );
+    virtual int readVAlign( const lChar32 * path, const lChar32 * attrname, int defValue, bool * res=NULL );
     /// reads string value from attrname attribute of element specified by path, returns empty string if not found
-    virtual lString16 readString( const lChar16 * path, const lChar16 * attrname, bool * res=NULL );
+    virtual lString32 readString( const lChar32 * path, const lChar32 * attrname, bool * res=NULL );
     /// reads string value from attrname attribute of element specified by path, returns defValue if not found
-    virtual lString16 readString( const lChar16 * path, const lChar16 * attrname, const lString16 & defValue, bool * res=NULL );
+    virtual lString32 readString( const lChar32 * path, const lChar32 * attrname, const lString32 & defValue, bool * res=NULL );
     /// reads color value from attrname attribute of element specified by path, returns defValue if not found
-    virtual lUInt32 readColor( const lChar16 * path, const lChar16 * attrname, lUInt32 defValue, bool * res=NULL );
+    virtual lUInt32 readColor( const lChar32 * path, const lChar32 * attrname, lUInt32 defValue, bool * res=NULL );
     /// reads rect value from attrname attribute of element specified by path, returns defValue if not found
-    virtual lvRect readRect( const lChar16 * path, const lChar16 * attrname, lvRect defValue, bool * res=NULL );
+    virtual lvRect readRect( const lChar32 * path, const lChar32 * attrname, lvRect defValue, bool * res=NULL );
     /// reads point(size) value from attrname attribute of element specified by path, returns defValue if not found
-    virtual lvPoint readSize( const lChar16 * path, const lChar16 * attrname, lvPoint defValue, bool * res=NULL );
+    virtual lvPoint readSize( const lChar32 * path, const lChar32 * attrname, lvPoint defValue, bool * res=NULL );
     /// reads rect value from attrname attribute of element specified by path, returns null ref if not found
-    virtual LVImageSourceRef readImage( const lChar16 * path, const lChar16 * attrname, bool * res=NULL );
+    virtual LVImageSourceRef readImage( const lChar32 * path, const lChar32 * attrname, bool * res=NULL );
     /// reads list of icons
-    virtual CRIconListRef readIcons( const lChar16 * path, bool * res=NULL );
+    virtual CRIconListRef readIcons( const lChar32 * path, bool * res=NULL );
 	/// reads list of buttons
-    virtual CRButtonListRef readButtons( const lChar16 * path, bool * res=NULL );
+    virtual CRButtonListRef readButtons( const lChar32 * path, bool * res=NULL );
     /// returns rect skin by path or #id
-    virtual CRRectSkinRef getRectSkin( const lChar16 * path ) = 0;
+    virtual CRRectSkinRef getRectSkin( const lChar32 * path ) = 0;
     /// returns scroll skin by path or #id
-    virtual CRScrollSkinRef getScrollSkin( const lChar16 * path ) = 0;
+    virtual CRScrollSkinRef getScrollSkin( const lChar32 * path ) = 0;
     /// returns window skin by path or #id
-    virtual CRWindowSkinRef getWindowSkin( const lChar16 * path ) = 0;
+    virtual CRWindowSkinRef getWindowSkin( const lChar32 * path ) = 0;
     /// returns menu skin by path or #id
-    virtual CRMenuSkinRef getMenuSkin( const lChar16 * path ) = 0;
+    virtual CRMenuSkinRef getMenuSkin( const lChar32 * path ) = 0;
     /// returns book page skin by path or #id
-    virtual CRPageSkinRef getPageSkin( const lChar16 * path ) = 0;
+    virtual CRPageSkinRef getPageSkin( const lChar32 * path ) = 0;
     /// returns book page skin list
     virtual CRPageSkinListRef getPageSkinList() = 0;
     /// returns toolbar skin by path or #id
-    virtual CRToolBarSkinRef getToolBarSkin( const lChar16 * path ) = 0;
+    virtual CRToolBarSkinRef getToolBarSkin( const lChar32 * path ) = 0;
 
     /// garbage collection
     virtual void gc() { }
@@ -568,29 +568,29 @@ typedef LVFastRef<CRSkinContainer> CRSkinRef;
 
 class CRSkinListItem
 {
-    lString16 _name;
-    lString16 _baseDir;
-    lString16 _fileName;
-    lString16Collection _pageSkinList;
+    lString32 _name;
+    lString32 _baseDir;
+    lString32 _fileName;
+    lString32Collection _pageSkinList;
     CRSkinListItem() { }
 public:
-    lString16 getName() { return _name; }
-    lString16 getFileName() { return _fileName; }
-    lString16 getDirName() { return _baseDir; }
-    lString16Collection & getPageSkinList() { return _pageSkinList; }
-    static CRSkinListItem * init( lString16 baseDir, lString16 fileName );
+    lString32 getName() { return _name; }
+    lString32 getFileName() { return _fileName; }
+    lString32 getDirName() { return _baseDir; }
+    lString32Collection & getPageSkinList() { return _pageSkinList; }
+    static CRSkinListItem * init( lString32 baseDir, lString32 fileName );
     CRSkinRef getSkin();
     virtual ~CRSkinListItem() { }
 };
 class CRSkinList : public LVPtrVector<CRSkinListItem>
 {
 public:
-    CRSkinListItem * findByName(const lString16 & name);
+    CRSkinListItem * findByName(const lString32 & name);
 };
 
 
 /// opens skin from directory or .zip file
-CRSkinRef LVOpenSkin( const lString16 & pathname );
+CRSkinRef LVOpenSkin( const lString32 & pathname );
 /// open simple skin, without image files, from string
 CRSkinRef LVOpenSimpleSkin( const lString8 & xml );
 

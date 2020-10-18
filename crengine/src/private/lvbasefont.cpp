@@ -17,8 +17,8 @@
 
 
 int LVBaseFont::DrawTextString(LVDrawBuf * buf, int x, int y,
-                   const lChar16 * text, int len,
-                   lChar16 def_char, lUInt32 * palette, bool addHyphen, TextLangCfg *lang_cfg, lUInt32 , int , int, int , lUInt32 fallbackPassMask)
+                   const lChar32 * text, int len,
+                   lChar32 def_char, lUInt32 * palette, bool addHyphen, TextLangCfg *lang_cfg, lUInt32 , int , int, int , lUInt32 fallbackPassMask)
 {
     //static lUInt8 glyph_buf[16384];
     //LVFont::glyph_info_t info;
@@ -26,7 +26,7 @@ int LVBaseFont::DrawTextString(LVDrawBuf * buf, int x, int y,
     int x0 = x;
     while (len >= (addHyphen ? 0 : 1)) {
         if (len <= 1 || *text != UNICODE_SOFT_HYPHEN_CODE) {
-            lChar16 ch = ((len == 0) ? UNICODE_SOFT_HYPHEN_CODE : *text);
+            lChar32 ch = ((len == 0) ? UNICODE_SOFT_HYPHEN_CODE : *text);
 
             LVFontGlyphCacheItem *item = getGlyph(ch, def_char);
             int w = 0;

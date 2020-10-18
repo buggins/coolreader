@@ -6,13 +6,13 @@
 
 uint8_t CRJNIEnv::sdk_int = 0;
 
-lString16 CRJNIEnv::fromJavaString( jstring str )
+lString32 CRJNIEnv::fromJavaString( jstring str )
 {
 	if (!str)
-        return lString16::empty_str;
+        return lString32::empty_str;
 	jboolean iscopy;
 	const char * s = env->GetStringUTFChars(str, &iscopy);
-    lString16 res;
+    lString32 res;
     if (CRJNIEnv::sdk_int >= __ANDROID_API_M__)
         res = Utf8ToUnicode(s);
     else
@@ -21,7 +21,7 @@ lString16 CRJNIEnv::fromJavaString( jstring str )
 	return res;
 }
 
-jstring CRJNIEnv::toJavaString( const lString16 & str )
+jstring CRJNIEnv::toJavaString( const lString32 & str )
 {
     if (CRJNIEnv::sdk_int >= __ANDROID_API_M__)
         return env->NewStringUTF(UnicodeToUtf8(str).c_str());
@@ -32,7 +32,7 @@ jstring CRJNIEnv::toJavaString( const lString16 & str )
     return env->NewStringUTF(UnicodeToWtf8(str).c_str());
 }
 
-void CRJNIEnv::fromJavaStringArray( jobjectArray array, lString16Collection & dst )
+void CRJNIEnv::fromJavaStringArray( jobjectArray array, lString32Collection & dst )
 {
 	dst.clear();
 	if (!array)
@@ -45,7 +45,7 @@ void CRJNIEnv::fromJavaStringArray( jobjectArray array, lString16Collection & ds
 	}
 }
 
-jobjectArray CRJNIEnv::toJavaStringArray( lString16Collection & src )
+jobjectArray CRJNIEnv::toJavaStringArray( lString32Collection & src )
 {
     int len = src.length();
 	jobjectArray array = env->NewObjectArray(len, env->FindClass("java/lang/String"), env->NewStringUTF(""));
@@ -84,8 +84,8 @@ jobject CRJNIEnv::toJavaProperties( CRPropRef props )
     CRObjectAccessor jp(env, obj);
     CRMethodAccessor p_setProperty(jp, "setProperty", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
     for ( int i=0; i<props->getCount(); i++ ) {
-    	jstring key = toJavaString(lString16(props->getName(i)));
-    	jstring value = toJavaString(lString16(props->getValue(i)));
+    	jstring key = toJavaString(lString32(props->getName(i)));
+    	jstring value = toJavaString(lString32(props->getValue(i)));
     	p_setProperty.callObj(key, value);
 		env->DeleteLocalRef(key);
 		env->DeleteLocalRef(value);

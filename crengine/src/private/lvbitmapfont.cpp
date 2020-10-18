@@ -32,7 +32,7 @@ LVFontRef LoadFontFromFile( const char * fname )
     return ref;
 }
 
-bool LBitmapFont::getGlyphInfo( lUInt32 code, LVFont::glyph_info_t * glyph, lChar16 def_char, lUInt32 fallbackPassMask )
+bool LBitmapFont::getGlyphInfo( lUInt32 code, LVFont::glyph_info_t * glyph, lChar32 def_char, lUInt32 fallbackPassMask )
 {
     const lvfont_glyph_t * ptr = lvfontGetGlyph( m_font, code );
     if (!ptr)
@@ -46,11 +46,11 @@ bool LBitmapFont::getGlyphInfo( lUInt32 code, LVFont::glyph_info_t * glyph, lCha
 }
 
 lUInt16 LBitmapFont::measureText( 
-                    const lChar16 * text, int len, 
+                    const lChar32 * text, int len, 
                     lUInt16 * widths,
                     lUInt8 * flags,
                     int max_width,
-                    lChar16 def_char,
+                    lChar32 def_char,
                     TextLangCfg * lang_cfg,
                     int letter_spacing,
                     bool allow_hyphenation,
@@ -61,7 +61,7 @@ lUInt16 LBitmapFont::measureText(
     return lvfontMeasureText( m_font, text, len, widths, flags, max_width, def_char );
 }
 
-lUInt32 LBitmapFont::getTextWidth( const lChar16 * text, int len, TextLangCfg * lang_cfg )
+lUInt32 LBitmapFont::getTextWidth( const lChar32 * text, int len, TextLangCfg * lang_cfg )
 {
     //
     static lUInt16 widths[MAX_LINE_CHARS+1];
@@ -114,7 +114,7 @@ int LBitmapFont::getItalic() const
     return hdr->flgItalic;
 }
 /*
-bool LBitmapFont::getGlyphImage(lUInt32 code, lUInt8 * buf, lChar16 def_char)
+bool LBitmapFont::getGlyphImage(lUInt32 code, lUInt8 * buf, lChar32 def_char)
 {
     const lvfont_glyph_t * ptr = lvfontGetGlyph( m_font, code );
     if (!ptr)
@@ -126,7 +126,7 @@ bool LBitmapFont::getGlyphImage(lUInt32 code, lUInt8 * buf, lChar16 def_char)
     return true;
 }
 */
-LVFontGlyphCacheItem *LBitmapFont::getGlyph(lUInt32 ch, lChar16 def_char, lUInt32 fallbackPassMask) {
+LVFontGlyphCacheItem *LBitmapFont::getGlyph(lUInt32 ch, lChar32 def_char, lUInt32 fallbackPassMask) {
     // TODO:
     return NULL;
 }

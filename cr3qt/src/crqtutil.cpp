@@ -4,12 +4,12 @@
 #include <QWidget>
 #include <QPoint>
 
-lString16 qt2cr(QString str)
+lString32 qt2cr(QString str)
 {
-    return lString16( str.toUtf8().constData() );
+    return lString32( str.toUtf8().constData() );
 }
 
-QString cr2qt(lString16 str)
+QString cr2qt(lString32 str)
 {
     lString8 s8 = UnicodeToUtf8(str);
     return QString::fromUtf8( s8.c_str(), s8.length() );
@@ -27,7 +27,7 @@ public:
     virtual bool hasProperty( const char * propName ) const { return _ref->hasProperty(propName); }
     virtual bool getString( const char * prop, QString & result )
     {
-        lString16 value;
+        lString32 value;
         if ( !_ref->getString(prop, value) )
             return false;
         result = cr2qt( value );
@@ -118,7 +118,7 @@ PropsRef operator ^ ( PropsRef props1, PropsRef props2 )
     return QSharedPointer<Props>( new CRPropsImpl(((CRPropsImpl*)props1.data())->getRef() ^ ((CRPropsImpl*)props2.data())->getRef()));
 }
 
-void cr2qt( QStringList & dst, const lString16Collection & src )
+void cr2qt( QStringList & dst, const lString32Collection & src )
 {
     dst.clear();
     for ( int i=0; i<src.length(); i++ ) {
@@ -126,7 +126,7 @@ void cr2qt( QStringList & dst, const lString16Collection & src )
     }
 }
 
-void qt2cr( lString16Collection & dst, const QStringList & src )
+void qt2cr( lString32Collection & dst, const QStringList & src )
 {
     dst.clear();
     for ( int i=0; i<src.length(); i++ ) {
@@ -136,7 +136,7 @@ void qt2cr( lString16Collection & dst, const QStringList & src )
 
 void crGetFontFaceList( QStringList & dst )
 {
-    lString16Collection faceList;
+    lString32Collection faceList;
     fontMan->getFaceList( faceList );
     cr2qt( dst, faceList );
 }

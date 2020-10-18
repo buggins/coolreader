@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
 
 int pdb2pattern(const char *srcfilename, const char *dstfilename) {
     bool res = false;
-    lString16 id = Utf8ToUnicode(srcfilename);
+    lString32 id = Utf8ToUnicode(srcfilename);
     MyTexHyph* hyph = new MyTexHyph(id);
     if (hyph->load(Utf8ToUnicode(srcfilename))) {
         CRLog::info("hyph dictionary \"%s\" loaded successfully.", srcfilename);

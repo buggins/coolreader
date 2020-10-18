@@ -89,17 +89,17 @@ wxString HistList::OnGetItemText(long item, long column) const
 {
     if ( _records && item>=0 && item<_records->length() ) {
         CRFileHistRecord * rec = (*_records)[item];
-        lString16 data;
+        lString32 data;
         switch ( column ) {
         case 0:
             data = rec->getLastTimeString();
             break;
         case 1:
             {
-                lString16 fname = rec->getFileName();
-                lString16 author = rec->getAuthor();
-                lString16 title = rec->getTitle();
-                lString16 series = rec->getSeries();
+                lString32 fname = rec->getFileName();
+                lString32 author = rec->getAuthor();
+                lString32 title = rec->getTitle();
+                lString32 series = rec->getSeries();
                 if ( !series.empty() ) {
                     if ( !title.empty() )
                         title << " ";
@@ -114,11 +114,11 @@ wxString HistList::OnGetItemText(long item, long column) const
             break;
         case 2:
             {
-                data = lString16::itoa(rec->getLastPos()->getPercent()/100) + "%";
+                data = lString32::itoa(rec->getLastPos()->getPercent()/100) + "%";
             }
             break;
         }
-        return wxString(data.c_str());
+        return cr2wx(data);
     } else
         return wxString(wxT(""));
 }

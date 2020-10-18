@@ -27,7 +27,7 @@ typedef unsigned short int lUInt16; ///< unsigned 16 bit int
 typedef signed char lInt8;          ///< signed 8 bit int
 typedef unsigned char lUInt8;       ///< unsigned 8 bit int
 
-typedef wchar_t lChar16;            ///< 16 bit char, on Android 32 bits
+typedef char32_t lChar32;           ///< 32 bit char
 typedef char lChar8;                ///< 8 bit char
 
 #if defined(_WIN32) && !defined(CYGWIN)

@@ -155,7 +155,7 @@ struct css_style_rec_tag {
     css_float_t            float_; // "float" is a C++ keyword...
     css_clear_t            clear;
     css_direction_t        direction;
-    lString16              content;
+    lString32              content;
     css_length_t           cr_hint;
     // The following should only be used when applying stylesheets while in lvend.cpp setNodeStyle(),
     // and cleaned up there, before the style is cached and shared. They are not serialized.

@@ -87,7 +87,7 @@ int LVRendPageContext::getCurrentLinksCount()
 }
 
 /// append or insert footnote link to last added line
-void LVRendPageContext::addLink( lString16 id, int pos )
+void LVRendPageContext::addLink( lString32 id, int pos )
 {
     if ( !gather_lines ) {
         if ( pos >= 0 ) // insert at pos
@@ -103,7 +103,7 @@ void LVRendPageContext::addLink( lString16 id, int pos )
 }
 
 /// mark start of foot note
-void LVRendPageContext::enterFootNote( lString16 id )
+void LVRendPageContext::enterFootNote( lString32 id )
 {
     if ( !page_list )
         return;

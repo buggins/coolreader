@@ -34,7 +34,7 @@ public:
 	static void setDefTranslator( CRI18NTranslator * translator );
     static const char * translate( const char * src );
     static const lString8 translate8( const char * src );
-    static const lString16 translate16( const char * src );
+    static const lString32 translate32( const char * src );
 };
 
 class CRMoFileTranslator : public CRI18NTranslator
@@ -61,7 +61,7 @@ protected:
 	virtual void sort();
 public:
 	CRMoFileTranslator();
-	bool openMoFile( lString16 fileName );
+	bool openMoFile( lString32 fileName );
 	virtual ~CRMoFileTranslator();
 };
 
@@ -85,12 +85,12 @@ public:
 #ifdef _8
 #undef _8
 #endif
-#ifdef _16
-#undef _16
+#ifdef _32
+#undef _32
 #endif
 #define _(String) CRI18NTranslator::translate(String)
 #define _8(String) CRI18NTranslator::translate8(String)
-#define _16(String) CRI18NTranslator::translate16(String)
+#define _32(String) CRI18NTranslator::translate32(String)
 
 
 #endif

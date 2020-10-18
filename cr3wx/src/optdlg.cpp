@@ -41,11 +41,7 @@ public:
             if ( v==_choices[i] )
                 tb = i;
         if ( _storeStringValues ) {
-            #if wxCHECK_VERSION(3, 0, 0)
-                props->setString( _option, lString16(_choices[tb].wx_str()) );
-            #else
-                props->setString( _option, lString16(_choices[tb]) );
-            #endif
+            props->setString( _option, wx2cr(_choices[tb]) );
         } else {
             props->setInt( _option, tb );
         }
@@ -54,13 +50,9 @@ public:
     {
         unsigned tb = _defvalue;
         if ( _storeStringValues ) {
-            #if wxCHECK_VERSION(3, 0, 0)
-                lString8 s8 = UnicodeToUtf8( lString16(_choices[_defvalue].wx_str()) );
-            #else
-                lString8 s8 = UnicodeToUtf8( lString16(_choices[_defvalue]) );
-            #endif
-            lString16 s16 = props->getStringDef( _option, s8.c_str() );
-            wxString v = s16.c_str();
+            lString8 s8 = lString8( _choices[_defvalue].utf8_str() );
+            lString32 s32 = props->getStringDef( _option, s8.c_str() );
+            wxString v = cr2wx(s32);
             for ( unsigned i=0; i<_choices.GetCount(); i++ )
                 if ( v==_choices[i] )
                     tb = i;
@@ -159,14 +151,14 @@ wxPanel * OptPanel::AddColor( const char * option, wxString caption, lvColor def
 
 wxComboBox * OptPanel::AddFontFaceCombobox( const char * option, wxString caption )
 {
-    lString16Collection list;
+    lString32Collection list;
     fontMan->getFaceList( list );
     wxArrayString wxlist;// = new wxString[ list.length() + 1 ];
     int arialIndex = -1;
     for ( unsigned i=0; i<list.length(); i++ ) {
         if (list[i] == "Arial")
             arialIndex = i;
-        wxlist.Add( wxString(list[i].c_str()) );
+        wxlist.Add( cr2wx(list[i]) );
     }
     if ( arialIndex<0 )
         arialIndex = 0;

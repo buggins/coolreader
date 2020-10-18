@@ -10,13 +10,13 @@
 #define DOCX_TAG_CHILD(itm) { DOCX_TAG_ID(itm), DOCX_TAG_NAME(itm) }
 #define DOCX_LAST_ITEM { -1, NULL }
 
-static const lChar16* const docx_DocumentContentType   = L"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
-static const lChar16* const docx_NumberingContentType  = L"application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml";
-static const lChar16* const docx_StylesContentType     = L"application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml";
-static const lChar16* const docx_ImageRelationship     = L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
-static const lChar16* const docx_HyperlinkRelationship = L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink";
-static const lChar16* const docx_FootNotesRelationShip = L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes";
-static const lChar16* const docx_EndNotesRelationShip  = L"http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes";
+static const lChar32* const docx_DocumentContentType   = U"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
+static const lChar32* const docx_NumberingContentType  = U"application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml";
+static const lChar32* const docx_StylesContentType     = U"application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml";
+static const lChar32* const docx_ImageRelationship     = U"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
+static const lChar32* const docx_HyperlinkRelationship = U"http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink";
+static const lChar32* const docx_FootNotesRelationShip = U"http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes";
+static const lChar32* const docx_EndNotesRelationShip  = U"http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes";
 
 enum {
 #define DOCX_NUM_FMT(itm)
@@ -27,7 +27,7 @@ enum {
 };
 
 #define DOCX_NUM_FMT(itm)
-#define DOCX_TAG(itm) static const lChar16 * const DOCX_TAG_NAME(itm) = L ## #itm;
+#define DOCX_TAG(itm) static const lChar32 * const DOCX_TAG_NAME(itm) = U ## #itm;
     #include "docxdtd.inc"
 
 const struct item_def_t styles_elements[] = {
@@ -220,53 +220,53 @@ const struct item_def_t no_elements[] = {
 };
 
 const struct item_def_t jc_attr_values[] = {
-    { css_ta_left, L"left"},
-    { css_ta_right, L"right" },
-    { css_ta_center, L"center" },
-    { css_ta_justify, L"both" },
+    { css_ta_left, U"left"},
+    { css_ta_right, U"right" },
+    { css_ta_center, U"center" },
+    { css_ta_justify, U"both" },
     DOCX_LAST_ITEM
 };
 
 const struct item_def_t vertAlign_attr_values[] = {
-    { css_va_baseline, L"baseline"},
-    { css_va_super, L"superscript" },
-    { css_va_sub, L"subscript" },
+    { css_va_baseline, U"baseline"},
+    { css_va_super, U"superscript" },
+    { css_va_sub, U"subscript" },
     DOCX_LAST_ITEM
 };
 
 const struct item_def_t textAlignment_attr_values[] = {
-    { css_va_inherit, L"auto" },
-    { css_va_baseline, L"baseline"},
-    { css_va_bottom, L"bottom"},
-    { css_va_middle, L"center" },
-    { css_va_top, L"top" },
+    { css_va_inherit, U"auto" },
+    { css_va_baseline, U"baseline"},
+    { css_va_bottom, U"bottom"},
+    { css_va_middle, U"center" },
+    { css_va_top, U"top" },
     DOCX_LAST_ITEM
 };
 
 const struct item_def_t lineRule_attr_values[] = {
-    { odx_lineRule_atLeast, L"atLeast" },
-    { odx_lineRule_auto, L"auto"},
-    { odx_lineRule_exact, L"exact"},
+    { odx_lineRule_atLeast, U"atLeast" },
+    { odx_lineRule_auto, U"auto"},
+    { odx_lineRule_exact, U"exact"},
     DOCX_LAST_ITEM
 };
 
 const struct item_def_t styleType_attr_values[] = {
-    { odx_paragraph_style, L"paragraph" },
-    { odx_character_style, L"character"},
-    { odx_numbering_style, L"numbering"},
-    { odx_table_style, L"table"},
+    { odx_paragraph_style, U"paragraph" },
+    { odx_character_style, U"character"},
+    { odx_numbering_style, U"numbering"},
+    { odx_table_style, U"table"},
     DOCX_LAST_ITEM
 };
 
 const struct item_def_t lvlSuff_attr_values[] = {
-    { docx_level_suffix_tab, L"tab" },
-    { docx_level_suffix_space, L"space" },
-    { docx_level_suffix_nothing, L"nothing" },
+    { docx_level_suffix_tab, U"tab" },
+    { docx_level_suffix_space, U"space" },
+    { docx_level_suffix_nothing, U"nothing" },
     DOCX_LAST_ITEM
 };
 
 #define DOCX_TAG(itm)
-#define DOCX_NUM_FMT(itm) { docx_numFormat_##itm , L ## #itm },
+#define DOCX_NUM_FMT(itm) { docx_numFormat_##itm , U ## #itm },
 const struct item_def_t numFmt_attr_values[] = {
     #include "docxdtd.inc"
     DOCX_LAST_ITEM
@@ -292,12 +292,12 @@ private:
     css_text_align_t m_lvlJc;
     css_length_t m_ilvl;
     css_length_t m_lvlRestart;
-    lString16 m_lvlText;
+    lString32 m_lvlText;
     bool m_lvlTextNull;
     docx_numFormat_type m_lvlNumFormat;
     odx_pPr m_pPr;
     odx_rPr m_rPr;
-    lString16 m_pStyle;
+    lString32 m_pStyle;
     css_length_t m_lvlStart;
     docx_LevelSuffix_type m_suffix;
 public:
@@ -314,14 +314,14 @@ public:
     inline void setLevel(const css_length_t &value) { m_ilvl = value; }
     inline css_length_t getLevelRestart() const { return m_lvlRestart; }
     inline void setLevelRestart(const css_length_t &value) { m_lvlRestart = value; }
-    inline lString16 getLevelText() const { return m_lvlText; }
-    inline void setLevelText(const lString16 value) { m_lvlText = value; }
+    inline lString32 getLevelText() const { return m_lvlText; }
+    inline void setLevelText(const lString32 value) { m_lvlText = value; }
     inline bool getLevelTextNull() const { return m_lvlTextNull; }
     inline void setLevelTextNull(const bool value) { m_lvlTextNull = value; }
     inline docx_numFormat_type getNumberFormat() const { return m_lvlNumFormat; }
     inline void setNumberFormat(const docx_numFormat_type value) { m_lvlNumFormat = value; }
-    inline lString16 getReferencedStyleId() const { return m_pStyle; }
-    inline void setReferencedStyleId(const lString16 value) { m_pStyle = value; }
+    inline lString32 getReferencedStyleId() const { return m_pStyle; }
+    inline void setReferencedStyleId(const lString32 value) { m_pStyle = value; }
     inline css_length_t getLevelStart() const { return m_lvlStart; }
     inline void setLevelStart(const css_length_t &value) { m_lvlStart = value; }
     inline docx_LevelSuffix_type getLevelSuffix() const { return m_suffix; }
@@ -390,32 +390,32 @@ public:
     void addAbstractNum(docxAbstractNumRef abstractNum );
     docxNumRef getNum(lUInt32 id) { return m_Numbers.get(id); }
     docxAbstractNumRef getAbstractNum(lUInt32 id) { return m_abstractNumbers.get(id); }
-    lString16 getImageTarget(lString16 id) {
+    lString32 getImageTarget(lString32 id) {
         return getRelationTarget(docx_ImageRelationship, id);
     }
-    lString16 getLinkTarget(lString16 id) {
+    lString32 getLinkTarget(lString32 id) {
         return getRelationTarget(docx_HyperlinkRelationship, id);
     }
-    lString16 getRelationTarget(const lChar16 * const relationType, lString16 id) {
+    lString32 getRelationTarget(const lChar32 * const relationType, lString32 id) {
         if ( !m_relatedPart.isNull() )
             return m_relatedPart->getRelatedPartName(relationType, id);
         return m_docPart->getRelatedPartName(relationType, id);
     }
-    LVStreamRef openContentPart(const lChar16 * const contentType);
-    LVStreamRef openRelatedPart(const lChar16 * const relationshipType);
+    LVStreamRef openContentPart(const lChar32 * const contentType);
+    LVStreamRef openRelatedPart(const lChar32 * const relationshipType);
     void closeRelatedPart();
     void openList(int level, int numid, ldomDocumentWriter *writer);
     void closeList(int level, ldomDocumentWriter *writer);
     inline int getListLevel() { return m_ListLevels.length(); }
     inline bool isInList() { return m_ListLevels.length() != 0; }
-    lString16 m_footNoteId;
+    lString32 m_footNoteId;
     int m_footNoteCount;
     int m_endNoteCount;
     bool m_inField;
     ldomNode *m_linkNode;
     odx_Style* m_pStyle;
 private:
-    lString16 getListStyle(css_list_style_type_t listType);
+    lString32 getListStyle(css_list_style_type_t listType);
 };
 
 class docx_ElementHandler : public xml_ElementHandler
@@ -423,8 +423,8 @@ class docx_ElementHandler : public xml_ElementHandler
 protected:
     docxImportContext *m_importContext;
 protected:
-    static bool parse_OnOff_attribute(const lChar16 * attrValue);
-    void generateLink(const lChar16 * target, const lChar16 * type, const lChar16 *text);
+    static bool parse_OnOff_attribute(const lChar32 * attrValue);
+    void generateLink(const lChar32 * target, const lChar32 * type, const lChar32 *text);
     docx_ElementHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context,
                         int element, const struct item_def_t *children) : xml_ElementHandler(reader, writer, element, children),
         m_importContext(context)
@@ -443,7 +443,7 @@ public:
     {
     }
     ldomNode * handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
+    void handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue);
     void start(odx_rPr *rPr);
     void reset();
 };
@@ -458,8 +458,8 @@ public:
     {
     }
     ldomNode * handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
-    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue);
+    void handleTagClose( const lChar32 * nsname, const lChar32 * tagname );
     void reset() { m_level = 1; }
 };
 
@@ -470,12 +470,12 @@ private:
     odx_rPr m_rPr;
     docx_pHandler* m_pHandler;
     docx_rPrHandler m_rPrHandler;
-    lString16 m_footnoteId;
-    lString16 m_instruction;
+    lString32 m_footnoteId;
+    lString32 m_instruction;
     docx_drawingHandler m_drawingHandler;
     bool m_content;
 private:
-    void handleInstruction(lString16& instruction, lString16 parameters);
+    void handleInstruction(lString32& instruction, lString32 parameters);
 public:
     docx_rHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, docx_pHandler* pHandler) :
         docx_ElementHandler(reader, writer, context, docx_el_r, r_elements), m_pHandler(pHandler),
@@ -485,9 +485,9 @@ public:
     {
     }
     ldomNode * handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
-    void handleText( const lChar16 * text, int len, lUInt32 flags );
-    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue);
+    void handleText( const lChar32 * text, int len, lUInt32 flags );
+    void handleTagClose( const lChar32 * nsname, const lChar32 * tagname );
     void reset();
 };
 
@@ -501,8 +501,8 @@ public:
     {
     }
     ldomNode * handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
-    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue);
+    void handleTagClose( const lChar32 * nsname, const lChar32 * tagname );
     void start(odx_pPr *pPr);
     void reset();
 };
@@ -510,7 +510,7 @@ public:
 class docx_hyperlinkHandler  : public docx_ElementHandler
 {
     docx_rHandler m_rHandler;
-    lString16 m_target;
+    lString32 m_target;
     int m_runCount;
 public:
     docx_hyperlinkHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, docx_pHandler* pHandler) :
@@ -519,8 +519,8 @@ public:
     {
     }
     ldomNode * handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
-    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue);
+    void handleTagClose( const lChar32 * nsname, const lChar32 * tagname );
     void reset() { m_target.clear(); m_rHandler.reset(); m_runCount = 0; }
 };
 
@@ -546,8 +546,8 @@ public:
     {
     }
     ldomNode * handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
-    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue);
+    void handleTagClose( const lChar32 * nsname, const lChar32 * tagname );
     void reset();
 };
 
@@ -588,8 +588,8 @@ public:
     {
     }
     ldomNode * handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
-    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue);
+    void handleTagClose( const lChar32 * nsname, const lChar32 * tagname );
     void reset();
 };
 
@@ -608,8 +608,8 @@ public:
     {
     }
     ldomNode * handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
-    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue);
+    void handleTagClose( const lChar32 * nsname, const lChar32 * tagname );
 };
 
 class docx_documentHandler : public docx_ElementHandler
@@ -627,8 +627,8 @@ public:
     {
     }
     ldomNode * handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue);
-    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void handleAttribute(const lChar32 * nsname, const lChar32 * attrname, const lChar32 * attrvalue);
+    void handleTagClose( const lChar32 * nsname, const lChar32 * tagname );
 };
 
 class docx_styleHandler : public docx_ElementHandler
@@ -647,8 +647,8 @@ public:
     {
     }
     ldomNode * handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
-    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue);
+    void handleTagClose( const lChar32 * nsname, const lChar32 * tagname );
     void start();
 };
 
@@ -669,7 +669,7 @@ public:
     }
     /// destructor
     ldomNode * handleTagOpen(int tagId);
-    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void handleTagClose( const lChar32 * nsname, const lChar32 * tagname );
     void reset();
 };
 
@@ -691,7 +691,7 @@ public:
         m_lvl = level;
         docx_ElementHandler::start();
     }
-    void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
+    void handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue);
     ldomNode * handleTagOpen(int tagId);
     void reset();
 };
@@ -707,9 +707,9 @@ public:
         m_lvlHandler(reader, writer, context)
     {
     }
-    void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
+    void handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue);
     ldomNode * handleTagOpen(int tagId);
-    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void handleTagClose( const lChar32 * nsname, const lChar32 * tagname );
     void start();
 };
 
@@ -724,9 +724,9 @@ public:
         m_lvlHandler(reader, writer, context)
     {
     }
-    void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
+    void handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue);
     ldomNode * handleTagOpen(int tagId);
-    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void handleTagClose( const lChar32 * nsname, const lChar32 * tagname );
     void start();
 };
 
@@ -744,7 +744,7 @@ public:
     {
     }
     ldomNode * handleTagOpen(int tagId);
-    void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    void handleTagClose( const lChar32 * nsname, const lChar32 * tagname );
 };
 
 
@@ -785,7 +785,7 @@ css_list_style_type_t docxNumLevel::getListType() const
     case docx_numFormat_upperRoman:
         return css_lst_upper_roman;
     case docx_numFormat_bullet:
-        if ( getLevelText() == L"\xf0a7" )
+        if ( getLevelText() == U"\xf0a7" )
             return css_lst_square;
         return css_lst_disc;
     case docx_numFormat_decimal:
@@ -795,39 +795,39 @@ css_list_style_type_t docxNumLevel::getListType() const
     }
 }
 
-bool docx_ElementHandler::parse_OnOff_attribute(const lChar16 * attrValue)
+bool docx_ElementHandler::parse_OnOff_attribute(const lChar32 * attrValue)
 {
     if ( !lStr_cmp(attrValue, "1") || !lStr_cmp(attrValue, "on") || !lStr_cmp(attrValue, "true") )
         return true;
     return false;
 }
 
-void docx_ElementHandler::generateLink(const lChar16 *target, const lChar16 *type, const lChar16 *text)
+void docx_ElementHandler::generateLink(const lChar32 *target, const lChar32 *type, const lChar32 *text)
 {
-    m_writer->OnTagOpen(L"", L"a");
-    m_writer->OnAttribute(L"", L"href", target );
+    m_writer->OnTagOpen(U"", U"a");
+    m_writer->OnAttribute(U"", U"href", target );
     if(type)
-        m_writer->OnAttribute(L"", L"type", type);
+        m_writer->OnAttribute(U"", U"type", type);
     // Add classic role=doc-noteref attribute to allow popup/in-page footnotes
-    m_writer->OnAttribute(L"", L"role", L"doc-noteref");
+    m_writer->OnAttribute(U"", U"role", U"doc-noteref");
     m_writer->OnTagBody();
 #ifndef ODX_CRENGINE_IN_PAGE_FOOTNOTES
     if( !lStr_cmp(type, "note") ) {
         // For footnotes (but not endnotes), wrap in <sup> (to get the
         // same effect as the following in docx.css:
         //   a[type="note"] { vertical-align: super; font-size: 70%; }
-        m_writer->OnTagOpen(L"", L"sup");
+        m_writer->OnTagOpen(U"", U"sup");
         m_writer->OnTagBody();
     }
 #endif
-    lString16 t(text);
+    lString32 t(text);
     m_writer->OnText(t.c_str(), t.length(), 0);
 #ifndef ODX_CRENGINE_IN_PAGE_FOOTNOTES
     if( !lStr_cmp(type, "note") ) {
-        m_writer->OnTagClose(L"", L"sup");
+        m_writer->OnTagClose(U"", U"sup");
     }
 #endif
-    m_writer->OnTagClose(L"", L"a");
+    m_writer->OnTagClose(U"", U"a");
 }
 
 ldomNode * docx_rPrHandler::handleTagOpen(int tagId)
@@ -855,7 +855,7 @@ ldomNode * docx_rPrHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_rPrHandler::handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue)
+void docx_rPrHandler::handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue)
 {
     int attr_value;
     switch(m_state) {
@@ -930,16 +930,16 @@ void docx_rPrHandler::start(odx_rPr * const rPr)
     docx_ElementHandler::start();
 }
 
-void docx_rHandler::handleInstruction(lString16 &instruction, lString16 parameters)
+void docx_rHandler::handleInstruction(lString32 &instruction, lString32 parameters)
 {
-    if( instruction == cs16("REF") || instruction == cs16("NOTEREF") || instruction == cs16("PAGEREF") ) {
-        lString16 argument, switches;
-        if( parameters.split2( cs16(" "), argument, switches) && !argument.empty() )
+    if( instruction == cs32("REF") || instruction == cs32("NOTEREF") || instruction == cs32("PAGEREF") ) {
+        lString32 argument, switches;
+        if( parameters.split2( cs32(" "), argument, switches) && !argument.empty() )
         {
-            m_importContext->m_linkNode = m_writer->OnTagOpen(L"", L"a");
-            lString16 target = L"#";
+            m_importContext->m_linkNode = m_writer->OnTagOpen(U"", U"a");
+            lString32 target = U"#";
             target  << argument;
-            m_writer->OnAttribute(L"", L"href", target.c_str());
+            m_writer->OnAttribute(U"", U"href", target.c_str());
             m_writer->OnTagBody();
         }
     }
@@ -981,7 +981,7 @@ ldomNode *docx_rHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_rHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrvalue)
+void docx_rHandler::handleAttribute(const lChar32 *attrname, const lChar32 *attrvalue)
 {
     if( (docx_el_footnoteReference == m_state || docx_el_endnoteReference == m_state) &&
        !lStr_cmp(attrname, "id") ) {
@@ -992,7 +992,7 @@ void docx_rHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attr
             m_importContext->m_inField = true;
         } else if( !lStr_cmp(attrvalue, "end") ) {
             if( m_importContext->m_linkNode ) {
-                m_writer->OnTagClose(L"", L"a");
+                m_writer->OnTagClose(U"", U"a");
                 m_importContext->m_linkNode = NULL;
             }
             m_importContext->m_inField = false;
@@ -1000,7 +1000,7 @@ void docx_rHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attr
     }
 }
 
-void docx_rHandler::handleText(const lChar16 *text, int len, lUInt32 flags)
+void docx_rHandler::handleText(const lChar32 *text, int len, lUInt32 flags)
 {
     switch(m_state) {
     case docx_el_t:
@@ -1014,14 +1014,14 @@ void docx_rHandler::handleText(const lChar16 *text, int len, lUInt32 flags)
     }
 }
 
-void docx_rHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname)
+void docx_rHandler::handleTagClose(const lChar32 *nsname, const lChar32 *tagname)
 {
-    lChar16 nobsp = 0x00A0;
+    lChar32 nobsp = 0x00A0;
     CR_UNUSED2(nsname, tagname);
 
     switch(m_state) {
     case docx_el_br:
-        m_writer->OnTagOpenAndClose(L"", L"br");
+        m_writer->OnTagOpenAndClose(U"", U"br");
         m_state = docx_el_r;
         break;
     case docx_el_r:
@@ -1034,9 +1034,9 @@ void docx_rHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname
     case docx_el_footnoteReference:
         if( !m_footnoteId.empty() ) {
             m_importContext->m_footNoteCount++;
-            lString16 target = L"#n_";
+            lString32 target = U"#n_";
             target  << m_footnoteId;
-            generateLink(target.c_str(), L"note", m_footnoteId.c_str());
+            generateLink(target.c_str(), U"note", m_footnoteId.c_str());
         }
         m_state = docx_el_r;
         break;
@@ -1044,8 +1044,8 @@ void docx_rHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname
         if( m_importContext->m_inField ) {
             m_instruction.trim();
             if ( !m_instruction.empty() ) {
-                lString16 instruction, parameters;
-                if ( m_instruction.split2(cs16(" "), instruction, parameters) )
+                lString32 instruction, parameters;
+                if ( m_instruction.split2(cs32(" "), instruction, parameters) )
                     handleInstruction(instruction, parameters);
             }
         }
@@ -1054,19 +1054,19 @@ void docx_rHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname
     case docx_el_endnoteReference:
         if( !m_footnoteId.empty() ) {
             m_importContext->m_endNoteCount++;
-            lString16 target = L"#c_";
+            lString32 target = U"#c_";
             target  << m_footnoteId;
-            generateLink(target.c_str(), L"comment", m_footnoteId.c_str());
+            generateLink(target.c_str(), U"comment", m_footnoteId.c_str());
         }
         m_state = docx_el_r;
         break;
     case docx_el_footnoteRef:
     case docx_el_endnoteRef:
         if(!m_importContext->m_footNoteId.empty()) {
-            m_writer->OnTagOpen(L"", L"sup");
+            m_writer->OnTagOpen(U"", U"sup");
             m_writer->OnTagBody();
             m_writer->OnText(m_importContext->m_footNoteId.c_str(), m_importContext->m_footNoteId.length(), 0);
-            m_writer->OnTagClose(L"", L"sup");
+            m_writer->OnTagClose(U"", U"sup");
         }
     default:
         m_state = docx_el_r;
@@ -1111,7 +1111,7 @@ ldomNode * docx_pPrHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_pPrHandler::handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue)
+void docx_pPrHandler::handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue)
 {
     switch(m_state) {
     case docx_el_pStyle:
@@ -1195,7 +1195,7 @@ void docx_pPrHandler::handleAttribute(const lChar16 * attrname, const lChar16 * 
     }
 }
 
-void docx_pPrHandler::handleTagClose( const lChar16 * nsname, const lChar16 * tagname )
+void docx_pPrHandler::handleTagClose( const lChar32 * nsname, const lChar32 * tagname )
 {
     switch(m_state) {
     case docx_el_ilvl:
@@ -1243,19 +1243,19 @@ ldomNode * docx_pHandler::handleTagOpen(int tagId)
                 else if( level < m_importContext->getListLevel() )
                     m_importContext->closeList(level, m_writer);
                 else
-                    m_writer->OnTagClose(L"", L"li");
-                m_writer->OnTagOpen(L"", L"li");
+                    m_writer->OnTagClose(U"", U"li");
+                m_writer->OnTagOpen(U"", U"li");
             } else {
                 if( m_importContext->isInList() )
                     m_importContext->closeList(0, m_writer);
                 if( m_inTitle )
                     m_titleHandler->onTitleStart(outlineLevel.value + 1);
                 else
-                    m_writer->OnTagOpen(L"", L"p");
+                    m_writer->OnTagOpen(U"", U"p");
             }
-            lString16 style = m_pPr.getCss();
+            lString32 style = m_pPr.getCss();
             if( !style.empty() )
-                m_writer->OnAttribute(L"", L"style", style.c_str());
+                m_writer->OnAttribute(U"", U"style", style.c_str());
             m_writer->OnTagBody();
         }
         if(docx_el_r == tagId)
@@ -1278,17 +1278,17 @@ ldomNode * docx_pHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_pHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrvalue)
+void docx_pHandler::handleAttribute(const lChar32 *attrname, const lChar32 *attrvalue)
 {
     if( docx_el_bookmarkStart == m_state && !lStr_cmp(attrname, "name") ) {
-        m_writer->OnTagOpen(L"", L"a");
-        m_writer->OnAttribute(L"", L"id", attrvalue);
+        m_writer->OnTagOpen(U"", U"a");
+        m_writer->OnAttribute(U"", U"id", attrvalue);
         m_writer->OnTagBody();
-        m_writer->OnTagClose(L"", L"a");
+        m_writer->OnTagClose(U"", U"a");
     }
 }
 
-void docx_pHandler::handleTagClose( const lChar16 * nsname, const lChar16 * tagname )
+void docx_pHandler::handleTagClose( const lChar32 * nsname, const lChar32 * tagname )
 {
     CR_UNUSED2(nsname, tagname);
 
@@ -1297,7 +1297,7 @@ void docx_pHandler::handleTagClose( const lChar16 * nsname, const lChar16 * tagn
         closeStyleTags(m_writer);
         if( m_pPr.getNumberingId() == 0 ) {
             if( !m_inTitle ) {
-                m_writer->OnTagClose(L"", L"p");
+                m_writer->OnTagClose(U"", U"p");
             }
         }
         stop();
@@ -1342,13 +1342,13 @@ ldomNode * docx_documentHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_documentHandler::handleAttribute(const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue)
+void docx_documentHandler::handleAttribute(const lChar32 * nsname, const lChar32 * attrname, const lChar32 * attrvalue)
 {
     if (m_state == docx_el_document && !lStr_cmp(nsname, "xmlns") )
         CRLog::debug("namespace declaration %s:%s",  LCSTR(attrname), LCSTR(attrvalue));
 }
 
-void docx_documentHandler::handleTagClose( const lChar16 * nsname, const lChar16 * tagname )
+void docx_documentHandler::handleTagClose( const lChar32 * nsname, const lChar32 * tagname )
 {
     switch(m_state) {
     case docx_el_body:
@@ -1381,7 +1381,7 @@ ldomNode * docx_styleHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_styleHandler::handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue)
+void docx_styleHandler::handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue)
 {
     switch(m_state) {
     case docx_el_style:
@@ -1408,7 +1408,7 @@ void docx_styleHandler::handleAttribute(const lChar16 * attrname, const lChar16 
     }
 }
 
-void docx_styleHandler::handleTagClose( const lChar16 * nsname, const lChar16 * tagname )
+void docx_styleHandler::handleTagClose( const lChar32 * nsname, const lChar32 * tagname )
 {
     CR_UNUSED2(nsname, tagname);
 
@@ -1454,7 +1454,7 @@ ldomNode * docx_stylesHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_stylesHandler::handleTagClose( const lChar16 * nsname, const lChar16 * tagname )
+void docx_stylesHandler::handleTagClose( const lChar32 * nsname, const lChar32 * tagname )
 {
     switch(m_state) {
     case docx_el_rPrDefault:
@@ -1534,11 +1534,11 @@ void parseFootnotes(ldomDocumentWriter& writer, docxImportContext& context, int 
 
         if(parser.Parse())
 #ifdef ODX_CRENGINE_IN_PAGE_FOOTNOTES
-            writer.OnTagClose(L"", docx_el_body_name);
+            writer.OnTagClose(U"", docx_el_body_name);
 #else
             // We didn't add <body name=notes> to not trigger crengine auto-in-page-foonotes
             // mechanism, so we can tweak them with style tweaks. We used a simple <div> instead.
-            writer.OnTagClose(L"", L"div");
+            writer.OnTagClose(U"", U"div");
 #endif
     }
     context.closeRelatedPart();
@@ -1638,7 +1638,7 @@ void docxImportContext::addAbstractNum(docxAbstractNumRef abstractNum)
     }
 }
 
-LVStreamRef docxImportContext::openContentPart(const lChar16 * const contentType)
+LVStreamRef docxImportContext::openContentPart(const lChar32 * const contentType)
 {
     m_docPart = m_package->getContentPart(contentType);
     if( !m_docPart.isNull() ) {
@@ -1647,7 +1647,7 @@ LVStreamRef docxImportContext::openContentPart(const lChar16 * const contentType
     return LVStreamRef();
 }
 
-LVStreamRef docxImportContext::openRelatedPart(const lChar16 * const relationshipType)
+LVStreamRef docxImportContext::openRelatedPart(const lChar32 * const relationshipType)
 {
     if ( !m_docPart.isNull() ) {
         m_relatedPart = m_docPart->getRelatedPart(relationshipType);
@@ -1675,20 +1675,20 @@ void docxImportContext::openList(int level, int numid, ldomDocumentWriter *write
             listLevel = num->getDocxLevel(const_cast<docxImportContext&>(*this), level - 1);
         if (listLevel)
             listType = listLevel->getListType();
-        writer->OnTagOpen(L"", L"ol");
+        writer->OnTagOpen(U"", U"ol");
         m_ListLevels.add(listType);
-        writer->OnAttribute(L"", L"style", getListStyleCss(listType).c_str());
+        writer->OnAttribute(U"", U"style", getListStyleCss(listType).c_str());
         writer->OnTagBody();
         if ( i != level - 1 )
-            writer->OnTagOpenNoAttr(L"", L"li");
+            writer->OnTagOpenNoAttr(U"", U"li");
     }
 }
 
 void docxImportContext::closeList(int level, ldomDocumentWriter *writer)
 {
     for(int i = getListLevel(); i > level; i--) {
-        writer->OnTagClose(L"", L"li");
-        writer->OnTagClose(L"", L"ol");
+        writer->OnTagClose(U"", U"li");
+        writer->OnTagClose(U"", U"ol");
         m_ListLevels.remove(getListLevel() - 1);
     }
 }
@@ -1718,7 +1718,7 @@ ldomNode * docx_lvlHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_lvlHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrvalue)
+void docx_lvlHandler::handleAttribute(const lChar32 *attrname, const lChar32 *attrvalue)
 {
     css_length_t result;
 
@@ -1783,11 +1783,11 @@ ldomNode *docx_footnotesHandler::handleTagOpen(int tagId)
     case docx_el_p:
         if( m_normal && !m_importContext->m_footNoteId.empty() ) {
             if( m_pCount == 0 ) {
-                m_writer->OnTagOpen(L"", L"section");
-                lString16 id = isEndNote() ? L"c_" : L"n_";
+                m_writer->OnTagOpen(U"", U"section");
+                lString32 id = isEndNote() ? U"c_" : U"n_";
                 id << m_importContext->m_footNoteId.c_str();
-                m_writer->OnAttribute(L"", L"id", id.c_str());
-                m_writer->OnAttribute(L"", L"role", isEndNote() ? L"doc-rearnote" : L"doc-footnote");
+                m_writer->OnAttribute(U"", U"id", id.c_str());
+                m_writer->OnAttribute(U"", U"role", isEndNote() ? U"doc-rearnote" : U"doc-footnote");
                 m_writer->OnTagBody();
             }
             paragraphHandler.start();
@@ -1806,23 +1806,23 @@ ldomNode *docx_footnotesHandler::handleTagOpen(int tagId)
     case docx_el_footnotes:
     case docx_el_endnotes:
 #ifdef ODX_CRENGINE_IN_PAGE_FOOTNOTES
-        m_writer->OnTagOpen(L"", docx_el_body_name);
+        m_writer->OnTagOpen(U"", docx_el_body_name);
         if(isEndNote()) {
-            m_writer->OnAttribute(L"", L"name", L"comments");
+            m_writer->OnAttribute(U"", U"name", U"comments");
             m_writer->OnTagBody();
-            m_writer->OnTagOpen(L"", L"subtitle");
+            m_writer->OnTagOpen(U"", U"subtitle");
             m_writer->OnTagBody();
-            m_writer->OnText(L"* * *", 5, 0);
-            m_writer->OnTagClose(L"", L"subtitle");
+            m_writer->OnText(U"* * *", 5, 0);
+            m_writer->OnTagClose(U"", U"subtitle");
         } else {
-            m_writer->OnAttribute(L"", L"name", L"notes");
+            m_writer->OnAttribute(U"", U"name", U"notes");
             m_writer->OnTagBody();
         }
 #else
         // We don't add <body name=notes> to not trigger crengine auto-in-page-foonotes
         // mechanism, so we can tweak them with style tweaks. We use a simple <div> instead.
-        m_writer->OnTagOpen(L"", L"div");
-        m_writer->OnAttribute(L"", L"style", L"page-break-before: always");
+        m_writer->OnTagOpen(U"", U"div");
+        m_writer->OnAttribute(U"", U"style", U"page-break-before: always");
         m_writer->OnTagBody();
 #endif
         //fallthrough
@@ -1833,7 +1833,7 @@ ldomNode *docx_footnotesHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_footnotesHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrvalue)
+void docx_footnotesHandler::handleAttribute(const lChar32 *attrname, const lChar32 *attrvalue)
 {
     switch(m_state) {
     case docx_el_footnote:
@@ -1849,7 +1849,7 @@ void docx_footnotesHandler::handleAttribute(const lChar16 *attrname, const lChar
     }
 }
 
-void docx_footnotesHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname)
+void docx_footnotesHandler::handleTagClose(const lChar32 *nsname, const lChar32 *tagname)
 {
     switch (m_state) {
     case docx_el_p:
@@ -1857,7 +1857,7 @@ void docx_footnotesHandler::handleTagClose(const lChar16 *nsname, const lChar16 
         break;
     case docx_el_endnote:
     case docx_el_footnote:
-        m_writer->OnTagClose(L"", L"section");
+        m_writer->OnTagClose(U"", U"section");
     default:
         docx_ElementHandler::handleTagClose(nsname, tagname);
         break;
@@ -1869,8 +1869,8 @@ ldomNode *docx_hyperlinkHandler::handleTagOpen(int tagId)
     switch(tagId) {
     case docx_el_r:
         if ( !m_target.empty() && 0 == m_runCount ) {
-            m_writer->OnTagOpen(L"", L"a");
-            m_writer->OnAttribute(L"", L"href", m_target.c_str());
+            m_writer->OnTagOpen(U"", U"a");
+            m_writer->OnAttribute(U"", U"href", m_target.c_str());
             m_writer->OnTagBody();
         }
         m_runCount++;
@@ -1883,23 +1883,23 @@ ldomNode *docx_hyperlinkHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_hyperlinkHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrvalue)
+void docx_hyperlinkHandler::handleAttribute(const lChar32 *attrname, const lChar32 *attrvalue)
 {
     if( docx_el_hyperlink == m_state) {
         if ( !lStr_cmp(attrname, "id") ) {
-            m_target = m_importContext->getLinkTarget(lString16(attrvalue));
+            m_target = m_importContext->getLinkTarget(lString32(attrvalue));
         } else if (!lStr_cmp(attrname, "anchor") && m_target.empty()) {
-            m_target = cs16("#") + lString16(attrvalue);
+            m_target = cs32("#") + lString32(attrvalue);
         }
     }
 }
 
-void docx_hyperlinkHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname)
+void docx_hyperlinkHandler::handleTagClose(const lChar32 *nsname, const lChar32 *tagname)
 {
     switch (m_state) {
     case docx_el_hyperlink:
         if ( !m_target.empty() ) {
-            m_writer->OnTagClose(L"", L"a");
+            m_writer->OnTagClose(U"", U"a");
         }
     default:
         docx_ElementHandler::handleTagClose(nsname, tagname);
@@ -1914,20 +1914,20 @@ ldomNode *docx_drawingHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_drawingHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrvalue)
+void docx_drawingHandler::handleAttribute(const lChar32 *attrname, const lChar32 *attrvalue)
 {
     if( m_state == docx_el_blip && !lStr_cmp(attrname, "embed") ) {
-        lString16 imgPath = m_importContext->getImageTarget(lString16(attrvalue));
+        lString32 imgPath = m_importContext->getImageTarget(lString32(attrvalue));
         if( !imgPath.empty() ) {
-            m_writer->OnTagOpen(L"", L"img");
-            m_writer->OnAttribute(L"", L"src",  imgPath.c_str());
+            m_writer->OnTagOpen(U"", U"img");
+            m_writer->OnAttribute(U"", U"src",  imgPath.c_str());
             m_writer->OnTagBody();
-            m_writer->OnTagClose(L"", L"img", true);
+            m_writer->OnTagClose(U"", U"img", true);
         }
     }
 }
 
-void docx_drawingHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname)
+void docx_drawingHandler::handleTagClose(const lChar32 *nsname, const lChar32 *tagname)
 {
     CR_UNUSED2(nsname, tagname);
 
@@ -1943,8 +1943,8 @@ void docx_tblHandler::endRowSpan(int column)
         CRLog::warn("Row span on column: %d, end: %d", column, rowSpan.rows);
         if( rowSpan.column ) {
             rowSpan.column->setAttributeValue(LXML_NS_NONE,
-                                              rowSpan.column->getDocument()->getAttrNameIndex(L"rowspan"),
-                                              lString16::itoa(rowSpan.rows).c_str());
+                                              rowSpan.column->getDocument()->getAttrNameIndex(U"rowspan"),
+                                              lString32::itoa(rowSpan.rows).c_str());
         } else {
             CRLog::error("No column node");
         }
@@ -1969,7 +1969,7 @@ ldomNode *docx_tblHandler::handleTagOpen(int tagId)
         break;
     case docx_el_tr:
         m_column = 0;
-        m_writer->OnTagOpenNoAttr(L"", L"tr");
+        m_writer->OnTagOpenNoAttr(U"", U"tr");
         break;
     default:
         break;
@@ -1981,33 +1981,33 @@ ldomNode *docx_tblHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_tblHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrvalue)
+void docx_tblHandler::handleAttribute(const lChar32 *attrname, const lChar32 *attrvalue)
 {
     if( m_state == docx_el_gridSpan && !lStr_cmp( attrname, "val" ) ) {
-        m_colSpan = lString16(attrvalue).atoi();
+        m_colSpan = lString32(attrvalue).atoi();
     } else if( m_state == docx_el_vMerge && !lStr_cmp( attrname, "val" ) ) {
         if( !lStr_cmp( attrvalue, "restart" ) )
             m_vMergeState = VMERGE_RESET;
     }
 }
 
-void docx_tblHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname)
+void docx_tblHandler::handleTagClose(const lChar32 *nsname, const lChar32 *tagname)
 {
     CR_UNUSED2(nsname, tagname);
 
     if( !m_levels.empty() ) {
         switch(m_state) {
         case docx_el_tblPr:
-            m_writer->OnTagOpenNoAttr(L"", L"table");
+            m_writer->OnTagOpenNoAttr(U"", U"table");
             break;
         case docx_el_tr:
-            m_writer->OnTagClose(L"", L"tr");
+            m_writer->OnTagClose(U"", U"tr");
             m_rowCount++;
             break;
         case docx_el_tc:
             m_column++;
             if( m_pHandler_ == &m_pHandler )
-                m_writer->OnTagClose(L"", L"td");
+                m_writer->OnTagClose(U"", U"td");
             break;
         case docx_el_gridCol:
             m_columnCount++;
@@ -2019,7 +2019,7 @@ void docx_tblHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagna
         case docx_el_tcPr:
             if( VMERGE_NONE == m_vMergeState || VMERGE_RESET == m_vMergeState) {
                 m_pHandler_ = &m_pHandler;
-                ldomNode *columnNode = m_writer->OnTagOpen(L"", L"td");
+                ldomNode *columnNode = m_writer->OnTagOpen(U"", U"td");
                 for(int i = 0; i < m_colSpan; i++) {
                     if( m_column + i >= m_columnCount )
                         break; // shouldn't happen
@@ -2027,7 +2027,7 @@ void docx_tblHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagna
                 }
                 m_rowSpaninfo[m_column] = docx_row_span_info(columnNode);
                 if( m_colSpan > 1)
-                    m_writer->OnAttribute(L"", L"colspan", lString16::itoa(m_colSpan).c_str() );
+                    m_writer->OnAttribute(U"", U"colspan", lString32::itoa(m_colSpan).c_str() );
                 m_writer->OnTagBody();
             } else if ( VMERGE_CONTINUE == m_vMergeState ) {
                 m_pHandler_ = &m_skipHandler;
@@ -2048,7 +2048,7 @@ void docx_tblHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagna
         for(int i = 0; i < m_columnCount; i++) {
             endRowSpan(i);
         }
-        m_writer->OnTagClose(L"", L"table");
+        m_writer->OnTagClose(U"", U"table");
         stop();
     }
 
@@ -2077,7 +2077,7 @@ ldomNode *docx_numberingHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_numberingHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname)
+void docx_numberingHandler::handleTagClose(const lChar32 *nsname, const lChar32 *tagname)
 {
     switch(m_state) {
     case docx_el_num:
@@ -2108,19 +2108,19 @@ ldomNode *docx_abstractNumHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_abstractNumHandler::handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue)
+void docx_abstractNumHandler::handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue)
 {
     switch(m_state) {
     case docx_el_abstractNum:
         if ( !lStr_cmp(attrname, "abstractNumId") )
-            m_abstractNumRef->setId(lString16(attrvalue).atoi());
+            m_abstractNumRef->setId(lString32(attrvalue).atoi());
         break;
     default:
         break;
     }
 }
 
-void docx_abstractNumHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname)
+void docx_abstractNumHandler::handleTagClose(const lChar32 *nsname, const lChar32 *tagname)
 {
     CR_UNUSED2(nsname, tagname);
 
@@ -2144,16 +2144,16 @@ void docx_abstractNumHandler::start()
     docx_ElementHandler::start();
 }
 
-void docx_numHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrvalue)
+void docx_numHandler::handleAttribute(const lChar32 *attrname, const lChar32 *attrvalue)
 {
     switch(m_state) {
     case docx_el_num:
         if ( !lStr_cmp(attrname, "numId") )
-            m_numRef->setId( lString16(attrvalue).atoi() );
+            m_numRef->setId( lString32(attrvalue).atoi() );
         break;
     case docx_el_abstractNumId:
         if ( !lStr_cmp(attrname, "val") )
-            m_numRef->setBaseId( lString16(attrvalue).atoi() );
+            m_numRef->setBaseId( lString32(attrvalue).atoi() );
         break;
     default:
         break;
@@ -2175,7 +2175,7 @@ ldomNode *docx_numHandler::handleTagOpen(int tagId)
     return NULL;
 }
 
-void docx_numHandler::handleTagClose(const lChar16 *nsname, const lChar16 *tagname)
+void docx_numHandler::handleTagClose(const lChar32 *nsname, const lChar32 *tagname)
 {
     CR_UNUSED2(nsname, tagname);
 

@@ -297,7 +297,7 @@ protected:
     PDBFile * _file;
     int _startBlock;
     int _size;
-    lString16 _name;
+    lString32 _name;
 public:
     /// returns object size (file size or directory entry count)
     virtual lverror_t GetSize( lvsize_t * pSize ) {
@@ -305,14 +305,14 @@ public:
 		return LVERR_OK;
     }
     virtual lvsize_t        GetSize() const { return _size; }
-    virtual const lChar16 * GetName() const { return _name.c_str(); }
+    virtual const lChar32 * GetName() const { return _name.c_str(); }
     virtual lUInt32         GetFlags() const { return 0; }
     virtual bool            IsContainer() const { return false; }
     virtual LVStreamRef openStream() {
         // TODO: implement stream creation
         return LVStreamRef();
     }
-    LVPDBContainerItem( LVStreamRef stream, PDBFile * file, lString16 name, int startBlockIndex, int size )
+    LVPDBContainerItem( LVStreamRef stream, PDBFile * file, lString32 name, int startBlockIndex, int size )
         : _stream(stream), _file(file), _startBlock(startBlockIndex), _size(size), _name(name) {
     }
 };
@@ -325,7 +325,7 @@ public:
         // return region of base stream
         return LVStreamRef( new LVStreamFragment( _stream, _startBlock, _size ) );
     }
-    LVPDBRegionContainerItem( LVStreamRef stream, PDBFile * file, lString16 name, int startOffset, int size )
+    LVPDBRegionContainerItem( LVStreamRef stream, PDBFile * file, lString32 name, int startOffset, int size )
         : LVPDBContainerItem(stream, file, name, startOffset, size) {
     }
 };
@@ -341,7 +341,7 @@ public:
         _list.add(item);
     }
 
-    //virtual const LVContainerItemInfo * GetObjectInfo(const wchar_t * pname);
+    //virtual const LVContainerItemInfo * GetObjectInfo(const lChar32 * pname);
     virtual const LVContainerItemInfo * GetObjectInfo(int index) {
         if ( index>=0 && index<_list.length() )
             return _list[index];
@@ -354,11 +354,11 @@ public:
 		return LVERR_OK;
     }
 
-    virtual LVStreamRef OpenStream( const lChar16 * fname, lvopen_mode_t mode ) {
+    virtual LVStreamRef OpenStream( const lChar32 * fname, lvopen_mode_t mode ) {
         if ( mode!=LVOM_READ )
             return LVStreamRef();
         for ( int i=0; i<_list.length(); i++ ) {
-            //CRLog::trace("OpenStream(%s) : %s", LCSTR(lString16(fname)), LCSTR(lString16(_list[i]->GetName())) );
+            //CRLog::trace("OpenStream(%s) : %s", LCSTR(lString32(fname)), LCSTR(lString32(_list[i]->GetName())) );
             if ( !lStr_cmp(_list[i]->GetName(), fname) )
                 return _list[i]->openStream();
         }
@@ -635,11 +635,11 @@ public:
             if ( bytesRead>0 ) {
                 int pmlCount = 0;
                 int htmlCount = 0;
-                lString16 pmlChars("pXxCcriuovtnsblaUBSmqQI");
+                lString32 pmlChars("pXxCcriuovtnsblaUBSmqQI");
                 for ( int i=0; i<bytesRead-10; i++ ) {
                     const lUInt8 * p = buf.get() + i;
                     if ( p[0]=='\\' ) {
-                        if ( pmlChars.pos(lString16((const lChar8 *)p+1, 1)) >=0 )
+                        if ( pmlChars.pos(lString32((const lChar8 *)p+1, 1)) >=0 )
                             pmlCount++;
                     } else if (p[0]=='<') {
                         if ( pattern_cmp(p+1, "html") )
@@ -740,7 +740,7 @@ public:
                             lvsize_t bytesRead = 0;
                             stream->Read(name, 32, &bytesRead);
                             if ( name[0] ) {
-                                lString16 fname = lString16(name);
+                                lString32 fname = lString32(name);
                                 container->addItem( new LVPDBRegionContainerItem( stream, this, fname, start, size ) );
                             }
                         }
@@ -836,7 +836,7 @@ public:
                     if (buf[0]=='G' && buf[1]=='I' && buf[2]=='F')
                         fmt = "gif";
                     if (fmt) {
-                        lString16 name = lString16(MOBI_IMAGE_NAME_PREFIX) + fmt::decimal((int) (index - preamble.firstImageIndex + 1));
+                        lString32 name = lString32(MOBI_IMAGE_NAME_PREFIX) + fmt::decimal((int) (index - preamble.firstImageIndex + 1));
                         //CRLog::debug("Adding image %s [%d] %s", LCSTR(name), _records[index].size, fmt);
                         container->addItem( new LVPDBRegionContainerItem( stream, this, name, _records[index].offset, _records[index].size ) );
                         if ((unsigned)index == preamble.firstImageIndex + coverOffset) {
@@ -1163,7 +1163,7 @@ LVStreamRef GetPDBCoverpage(LVStreamRef stream)
     LVContainerRef cnt(container);
     container->setStream(stream);
     LVStreamRef coverStream;
-    lString16 coverName = pdb->getDocProps()->getStringDef(DOC_PROP_COVER_FILE);
+    lString32 coverName = pdb->getDocProps()->getStringDef(DOC_PROP_COVER_FILE);
     if (!coverName.empty()) {
         coverStream = cnt->OpenStream(coverName.c_str(), LVOM_READ);
     }
@@ -1212,7 +1212,7 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
                 return false;
             } else {
                 if (pdb->getFormat()==PDBFile::MOBI && isCorrectUtf8Text(stream))
-                    parser.SetCharset(L"utf-8");
+                    parser.SetCharset(U"utf-8");
                 if (!parser.Parse()) {
                     return false;
                 }
@@ -1257,10 +1257,10 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
         const LVContainerItemInfo * item = container->GetObjectInfo(i);
         if (item->IsContainer())
             continue;
-        lString16 fn = item->GetName();
+        lString32 fn = item->GetName();
         if (fn.empty())
-            fn = cs16("pdb_item_") + lString16::itoa(i);
-        fn = cs16("/tmp/") + fn;
+            fn = cs32("pdb_item_") + lString32::itoa(i);
+        fn = cs32("/tmp/") + fn;
         LVStreamRef in = container->OpenStream(item->GetName(), LVOM_READ);
         if (in.isNull())
             continue;

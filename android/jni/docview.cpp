@@ -67,7 +67,7 @@ public:
 		_docview->setCallback( _oldcallback );
 	}
     /// on starting file loading
-    virtual void OnLoadFileStart( lString16 filename )
+    virtual void OnLoadFileStart( lString32 filename )
     {
 		CRLog::info("DocViewCallback::OnLoadFileStart() called");
     	_env->CallVoidMethod(_obj, _OnLoadFileStart, _env.toJavaString(filename));
@@ -79,7 +79,7 @@ public:
     	jobject e = _env.enumByNativeId("org/coolreader/crengine/DocumentFormat", (int)fileFormat);
     	jstring css = (jstring)_env->CallObjectMethod(_obj, _OnLoadFileFormatDetected, e);
     	if ( css ) {
-    		lString16 s = _env.fromJavaString(css);
+    		lString32 s = _env.fromJavaString(css);
     		CRLog::info("OnLoadFileFormatDetected: setting CSS for format %d", (int)fileFormat);
     		_docview->setStyleSheet( UnicodeToUtf8(s) );
     	}
@@ -127,16 +127,16 @@ public:
     	jboolean res = _env->CallBooleanMethod(_obj, _OnExportProgress, (jint)(percent*100));
     }
     /// file load finiished with error
-    virtual void OnLoadFileError( lString16 message )
+    virtual void OnLoadFileError( lString32 message )
     {
 		CRLog::info("DocViewCallback::OnLoadFileError() called");
     	_env->CallVoidMethod(_obj, _OnLoadFileError, _env.toJavaString(message));
     }
     /// Override to handle external links
-    virtual void OnExternalLink( lString16 url, ldomNode * node )
+    virtual void OnExternalLink( lString32 url, ldomNode * node )
     {
 		CRLog::info("DocViewCallback::OnExternalLink() called");
-    	lString16 path = ldomXPointer(node,0).toString();
+    	lString32 path = ldomXPointer(node,0).toString();
     	_env->CallVoidMethod(_obj, _OnExternalLink, _env.toJavaString(url), _env.toJavaString(path));
     }
     virtual void OnImageCacheClear()
@@ -844,7 +844,7 @@ DocViewNative::DocViewNative()
 	_docview->setFontSize(24);
 	_docview->setBatteryFont( fontMan->GetFont( 16, 600, false, css_ff_sans_serif, lString8("Droid Sans") ));
 	
-	_docview->createDefaultDocument(lString16("Welcome to CoolReader"), lString16("Please select file to open"));
+	_docview->createDefaultDocument(lString32("Welcome to CoolReader"), lString32("Please select file to open"));
 }
 
 DocViewNative::~DocViewNative()
@@ -867,12 +867,12 @@ static DocViewNative * getNative(JNIEnv * env, jobject _this)
 	return res;
 }
 
-void DocViewNative::createDefaultDocument( lString16 title, lString16 message )
+void DocViewNative::createDefaultDocument( lString32 title, lString32 message )
 {
 	_docview->createDefaultDocument(title, message);
 }
 
-bool DocViewNative::loadDocument( lString16 filename )
+bool DocViewNative::loadDocument( lString32 filename )
 {
 	CRLog::info("Loading document %s", LCSTR(filename));
 	bool res = _docview->LoadDocument(filename.c_str());
@@ -885,13 +885,13 @@ bool DocViewNative::loadDocument( lString16 filename )
 			// 1. I/O error - failed to open file
 			// 2. open archive without supported files
 			CRLog::error("Document is NULL, inserting stub.");
-			_docview->createDefaultDocument(lString16::empty_str, Utf8ToUnicode("Error while opening file!"));
+			_docview->createDefaultDocument(lString32::empty_str, Utf8ToUnicode("Error while opening file!"));
 		}
 	}
     return res;
 }
 
-bool DocViewNative::loadDocument( LVStreamRef stream, lString16 contentPath )
+bool DocViewNative::loadDocument( LVStreamRef stream, lString32 contentPath )
 {
 	CRLog::info("Loading document from memory stream, content path: %s", LCSTR(contentPath));
 	bool res = _docview->LoadDocument(stream, contentPath.c_str(), false);
@@ -904,7 +904,7 @@ bool DocViewNative::loadDocument( LVStreamRef stream, lString16 contentPath )
 			// 1. I/O error - failed to open file
 			// 2. open archive without supported files
 			CRLog::error("Document is NULL, inserting stub.");
-			_docview->createDefaultDocument(lString16::empty_str, Utf8ToUnicode("Error while opening file!"));
+			_docview->createDefaultDocument(lString32::empty_str, Utf8ToUnicode("Error while opening file!"));
 		}
 	}
 	return res;
@@ -926,14 +926,14 @@ bool DocViewNative::openRecentBook()
     CRLog::info("DocViewNative::openRecentBook() : %d files found in history, startIndex=%d", files.length(), index);
     if ( index < files.length() ) {
         CRFileHistRecord * file = files.get( index );
-        lString16 fn = file->getFilePathName();
+        lString32 fn = file->getFilePathName();
         CRLog::info("DocViewNative::openRecentBook() : checking file %s", LCSTR(fn));
         // TODO: check error
         if ( LVFileExists(fn) ) {
             bool res = loadDocument( fn );
             if (!res && _docview->getDocument() == NULL) {
                 CRLog::error("Document is NULL, inserting stub.");
-                _docview->createDefaultDocument(lString16::empty_str, Utf8ToUnicode("Error while opening file!"));
+                _docview->createDefaultDocument(lString32::empty_str, Utf8ToUnicode("Error while opening file!"));
             }
             return res;
         } else {
@@ -953,7 +953,7 @@ bool DocViewNative::closeBook()
 	if ( _docview->isDocumentOpened() ) {
 	    _docview->savePosition();
         _docview->getDocument()->updateMap();
-        saveHistory(lString16::empty_str);
+        saveHistory(lString32::empty_str);
 	    _docview->close();
 	    return true;
 	}
@@ -965,7 +965,7 @@ void DocViewNative::clearSelection()
     _docview->clearSelection();
 }
 
-bool DocViewNative::findText( lString16 pattern, int origin, bool reverse, bool caseInsensitive )
+bool DocViewNative::findText( lString32 pattern, int origin, bool reverse, bool caseInsensitive )
 {
     if ( pattern.empty() )
         return false;
@@ -1024,7 +1024,7 @@ bool DocViewNative::findText( lString16 pattern, int origin, bool reverse, bool 
 
 
 
-bool DocViewNative::loadHistory( lString16 filename )
+bool DocViewNative::loadHistory( lString32 filename )
 {
     CRFileHist * hist = _docview->getHistory();
 	if ( !filename.empty() )
@@ -1048,7 +1048,7 @@ bool DocViewNative::loadHistory( lString16 filename )
     return res;
 }
 
-bool DocViewNative::saveHistory( lString16 filename )
+bool DocViewNative::saveHistory( lString32 filename )
 {
 	if ( !filename.empty() )
 		historyFileName = filename;
@@ -1325,8 +1325,8 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_createDefaultDocumen
 		CRLog::error("Cannot get native view");
 		return;
 	}
-	lString16 title_str = env.fromJavaString(title);
-	lString16 message_str = env.fromJavaString(message);
+	lString32 title_str = env.fromJavaString(title);
+	lString32 message_str = env.fromJavaString(message);
 	p->createDefaultDocument(title_str, message_str);
 }
 
@@ -1345,7 +1345,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_loadDocumentInte
     	return JNI_FALSE;
     }
 	DocViewCallback callback( _env, p->_docview, _this );
-	lString16 str = env.fromJavaString(s);
+	lString32 str = env.fromJavaString(s);
     bool res = p->loadDocument(str);
     return res ? JNI_TRUE : JNI_FALSE;
 }
@@ -1366,7 +1366,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_loadDocumentFrom
 	}
 	DocViewCallback callback( _env, p->_docview, _this );
 	LVStreamRef stream = env.jbyteArrayToStream(buf);
-	lString16 contentPath16 = env.fromJavaString(contentPath);
+	lString32 contentPath16 = env.fromJavaString(contentPath);
 	bool res = p->loadDocument(stream, contentPath16);
 	return res ? JNI_TRUE : JNI_FALSE;
 }
@@ -1571,9 +1571,9 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getCurrentPageBoo
 	if ( ptr.isNull() )
 		return NULL;
 	CRBookmark bm(ptr);
-	lString16 comment;
-    lString16 titleText;
-    lString16 posText;
+	lString32 comment;
+    lString32 titleText;
+    lString32 posText;
     bm.setType( bmkt_pos );
     if ( p->_docview->getBookmarkPosText( ptr, titleText, posText ) ) {
          bm.setTitleText( titleText );
@@ -1662,7 +1662,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_goToPositionInte
 	if ( !p->_docview->isDocumentOpened() )
 		return JNI_FALSE;
 	DocViewCallback callback( _env, p->_docview, _this );
-	lString16 str = env.fromJavaString(jstr);
+	lString32 str = env.fromJavaString(jstr);
     ldomXPointer bm = p->_docview->getDocument()->createXPointer(str);
 	if ( bm.isNull() )
 		return JNI_FALSE;
@@ -1696,7 +1696,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
 		return obj;
 	}
 	DocViewCallback callback( _env, p->_docview, _this );
-    lString16 str = env.fromJavaString(_path);
+    lString32 str = env.fromJavaString(_path);
     ldomXPointer bm;
     bool useCurPos = false; // use current Y position for scroll view mode
     p->_docview->checkPos();
@@ -1731,12 +1731,12 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
         p->_docview->getMutex().lock();
         LVRef<ldomXRange> range = p->_docview->getPageDocumentRange(-1);
         p->_docview->getMutex().unlock();
-        lString16 text;
+        lString32 text;
         if (!range.isNull())
             text = range->getRangeText();
         int charCount = 0;
         for (int i = 0; i < text.length(); i++) {
-            lChar16 ch = text[i];
+            lChar32 ch = text[i];
             if (ch >= '0')
                 charCount++;
         }
@@ -1927,24 +1927,24 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateSelectionInter
         r.sort();
 		if ( !r.getStart().isVisibleWordStart() )
 			r.getStart().prevVisibleWordStart();
-		//lString16 start = r.getStart().toString();
+		//lString32 start = r.getStart().toString();
 		if ( !r.getEnd().isVisibleWordEnd() )
 			r.getEnd().nextVisibleWordEnd();
         if ( r.isNull() )
             return;
-        //lString16 end = r.getEnd().toString();
+        //lString32 end = r.getEnd().toString();
         //CRLog::debug("Range: %s - %s", UnicodeToUtf8(start).c_str(), UnicodeToUtf8(end).c_str());
         r.setFlags(1);
         p->_docview->selectRange( r );
         int page = p->_docview->getBookmarkPage(startp);
         int pages = p->_docview->getPageCount();
-        lString16 titleText;
-        lString16 posText;
+        lString32 titleText;
+        lString32 posText;
         p->_docview->getBookmarkPosText(startp, titleText, posText);
         int percent = 0;
         if ( pages>1 )
         	percent = 10000 * page/(pages-1);
-        lString16 selText = r.getRangeText( '\n', 8192 );
+        lString32 selText = r.getRangeText( '\n', 8192 );
         sel_percent.set(percent);
     	sel_startPos.set( r.getStart().toString() );
     	sel_endPos.set( r.getEnd().toString() );
@@ -2000,13 +2000,13 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_moveSelectionInt
 
                 int page = p->_docview->getBookmarkPage(currSel.getStart());
                 int pages = p->_docview->getPageCount();
-                lString16 titleText;
-                lString16 posText;
+                lString32 titleText;
+                lString32 posText;
                 p->_docview->getBookmarkPosText(currSel.getStart(), titleText, posText);
                 int percent = 0;
                 if ( pages>1 )
                 	percent = 10000 * page/(pages-1);
-                lString16 selText = currSel.getRangeText( '\n', 8192 );
+                lString32 selText = currSel.getRangeText( '\n', 8192 );
                 sel_percent.set(percent);
             	sel_text.set(selText);
             	sel_chapter.set(titleText);
@@ -2019,14 +2019,14 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_moveSelectionInt
 }
 
 
-lString16 DocViewNative::getLink( int x, int y, int r )
+lString32 DocViewNative::getLink( int x, int y, int r )
 {
 	int step = 5;
 	int n = r / step;
 	r = n * step;
 	if ( r==0 )
 		return getLink(x, y);
-	lString16 link;
+	lString32 link;
 	for ( int xx = -r; xx<=r; xx+=step ) {
 		link = getLink( x+xx, y-r );
 		if ( !link.empty() )
@@ -2043,15 +2043,15 @@ lString16 DocViewNative::getLink( int x, int y, int r )
 		if ( !link.empty() )
 			return link;
 	}
-	return lString16::empty_str;
+	return lString32::empty_str;
 }
 
-lString16 DocViewNative::getLink( int x, int y )
+lString32 DocViewNative::getLink( int x, int y )
 {
 	ldomXPointer p = _docview->getNodeByPoint( lvPoint(x, y) );
 	if ( p.isNull() )
-		return lString16::empty_str;
-	lString16 href = p.getHRef();
+		return lString32::empty_str;
+	lString32 href = p.getHRef();
 	return href;
 }
 
@@ -2175,7 +2175,7 @@ JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_DocView_checkLinkInternal
     	CRLog::error("Cannot get native view");
     	return NULL;
     }
-    lString16 link;
+    lString32 link;
     for ( int r=0; r<=delta; r+=5 ) {
     	link = p->getLink(x, y, r);
     	if ( !link.empty() )
@@ -2198,7 +2198,7 @@ JNIEXPORT jint JNICALL Java_org_coolreader_crengine_DocView_goLinkInternal
     	CRLog::error("Cannot get native view");
     	return 0;
     }
-    lString16 link = env.fromJavaString(_link);
+    lString32 link = env.fromJavaString(_link);
     bool res = p->_docview->goLink( link, true );
     return res ? 1 : 0;
 }

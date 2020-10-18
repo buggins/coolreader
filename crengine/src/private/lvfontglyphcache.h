@@ -129,7 +129,7 @@ private:
 #if USE_HARFBUZZ == 1
     typedef lUInt32 LVFontGlyphCacheKeyType;
 #else
-    typedef lChar16 LVFontGlyphCacheKeyType;
+    typedef lChar32 LVFontGlyphCacheKeyType;
 #endif
 
 struct LVFontGlyphCacheItem {

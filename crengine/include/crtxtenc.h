@@ -61,7 +61,7 @@ enum char_encoding_type {
 #define CRENC_ID_UTF32_BE     ce_utf32_be
 #define CRENC_ID_8BIT_START   ce_8bit_cp
 
-int CREncodingNameToId( const lChar16 * name );
+int CREncodingNameToId( const lChar32 * name );
 const char * CREncodingIdToName( int id );
 
 /**
@@ -75,13 +75,13 @@ const char * CREncodingIdToName( int id );
 
     \return pointer to conversion table if found, NULL otherwise
 */
-const lChar16 * GetCharsetByte2UnicodeTable( const lChar16 * encoding_name );
-const lChar16 * GetCharsetByte2UnicodeTableById( int id );
-const lChar8 ** GetCharsetUnicode2ByteTable( const lChar16 * encoding_name );
+const lChar32 * GetCharsetByte2UnicodeTable( const lChar32 * encoding_name );
+const lChar32 * GetCharsetByte2UnicodeTableById( int id );
+const lChar8 ** GetCharsetUnicode2ByteTable( const lChar32 * encoding_name );
 /// get conversion table for upper 128 characters of codepage, by codepage number
-const lChar16 * GetCharsetByte2UnicodeTable( int codepage );
+const lChar32 * GetCharsetByte2UnicodeTable( int codepage );
 /// returns "cp1251" for 1251, etc. for supported codepages
-const lChar16 * GetCharsetName( int codepage );
+const lChar32 * GetCharsetName( int codepage );
 /// convert language id to codepage number (MS)
 int langToCodepage( int lang );
 const char* langToLanguage( int lang );

@@ -18,7 +18,7 @@
 #include <string.h>
 #include <stdio.h>
 
-static const lChar16 __cp737[128] = {
+static const lChar32 __cp737[128] = {
   /* 0x80 */
   0x0391, 0x0392, 0x0393, 0x0394, 0x0395, 0x0396, 0x0397, 0x0398,
   0x0399, 0x039a, 0x039b, 0x039c, 0x039d, 0x039e, 0x039f, 0x03a0,
@@ -45,7 +45,7 @@ static const lChar16 __cp737[128] = {
   0x00b0, 0x2219, 0x00b7, 0x221a, 0x207f, 0x00b2, 0x25a0, 0x00a0,
 };
 
-static const lChar16 __cp1253[128] = {
+static const lChar32 __cp1253[128] = {
   /* 0x80 */
   0x20ac, 0xfffd, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021,
   0xfffd, 0x2030, 0xfffd, 0x2039, 0xfffd, 0xfffd, 0xfffd, 0xfffd,
@@ -72,7 +72,7 @@ static const lChar16 __cp1253[128] = {
   0x03c8, 0x03c9, 0x03ca, 0x03cb, 0x03cc, 0x03cd, 0x03ce, 0xfffd,
 };
 
-static const lChar16 __cp775[128] = {
+static const lChar32 __cp775[128] = {
   /* 0x80 */
   0x0106, 0x00fc, 0x00e9, 0x0101, 0x00e4, 0x0123, 0x00e5, 0x0107,
   0x0142, 0x0113, 0x0156, 0x0157, 0x012b, 0x0179, 0x00c4, 0x00c5,
@@ -103,7 +103,7 @@ static const lChar16 __cp775[128] = {
  * CP852
  */
 
-static const lChar16 __cp852[128] = {
+static const lChar32 __cp852[128] = {
   /* 0x80 */
   0x00c7, 0x00fc, 0x00e9, 0x00e2, 0x00e4, 0x016f, 0x0107, 0x00e7,
   0x0142, 0x00eb, 0x0150, 0x0151, 0x00ee, 0x0179, 0x00c4, 0x0106,
@@ -134,7 +134,7 @@ static const lChar16 __cp852[128] = {
  * ISO-8859-2
  */
 
-static const lChar16 __iso8859_2[128] = {
+static const lChar32 __iso8859_2[128] = {
   /* 0x80*/
   0x0402, 0x0403, 0x201a, 0x0453, 0x201e, 0x2026, 0x2020, 0x2021,
   0x20ac, 0x2030, 0x0409, 0x2039, 0x040a, 0x040c, 0x040b, 0x040f,
@@ -165,7 +165,7 @@ static const lChar16 __iso8859_2[128] = {
  * ISO-8859-16
  */
 
-static const lChar16 __iso8859_16[128] = {
+static const lChar32 __iso8859_16[128] = {
     /* 0x80*/
     0x0402, 0x0403, 0x201a, 0x0453, 0x201e, 0x2026, 0x2020, 0x2021,
     0x20ac, 0x2030, 0x0409, 0x2039, 0x040a, 0x040c, 0x040b, 0x040f,
@@ -192,7 +192,7 @@ static const lChar16 __iso8859_16[128] = {
     0x0171, 0x00f9, 0x00fa, 0x00fb, 0x00fc, 0x0119, 0x021b, 0x00ff,
 };
 
-static const lChar16 __cp1257[128] = {
+static const lChar32 __cp1257[128] = {
   /* 0x80 */
   0x20ac, 0xfffd, 0x201a, 0xfffd, 0x201e, 0x2026, 0x2020, 0x2021,
   0xfffd, 0x2030, 0xfffd, 0x2039, 0xfffd, 0x00a8, 0x02c7, 0x00b8,
@@ -219,7 +219,7 @@ static const lChar16 __cp1257[128] = {
   0x0173, 0x0142, 0x015b, 0x016b, 0x00fc, 0x017c, 0x017e, 0x02d9,
 };
 
-static const lChar16 __cp1251[128] = {
+static const lChar32 __cp1251[128] = {
     /* 0x80*/
     0x0402, 0x0403, 0x201a, 0x0453,
     0x201e, 0x2026, 0x2020, 0x2021,
@@ -262,7 +262,7 @@ static const lChar16 __cp1251[128] = {
     0x044c, 0x044d, 0x044e, 0x044f,
 };
 
-static const lChar16 __cp1252[128] = {
+static const lChar32 __cp1252[128] = {
     /* 0x80*/
     0x0402, 0x0403, 0x201a, 0x0453,
     0x201e, 0x2026, 0x2020, 0x2021,
@@ -305,7 +305,7 @@ static const lChar16 __cp1252[128] = {
     0x00fc, 0x00fd, 0x00fe, 0x00ff,
 };
 
-static const lChar16 __cp1254[128] = {
+static const lChar32 __cp1254[128] = {
     /* 0x80 */
     0x20ac, 0xfffd, 0x201a, 0x0192,
     0x201e, 0x2026, 0x2020, 0x2021,
@@ -348,7 +348,7 @@ static const lChar16 __cp1254[128] = {
     0x00fc, 0x0131, 0x015f, 0x00ff,
 };
 
-static const lChar16 __cp866[128] = {
+static const lChar32 __cp866[128] = {
     /* 0x80*/
     0x0410, 0x0411, 0x0412, 0x0413,
     0x0414, 0x0415, 0x0416, 0x0417,
@@ -391,7 +391,7 @@ static const lChar16 __cp866[128] = {
     0x2116, 0x00a4, 0x25a0, 0x00a0,
 };
 
-static const lChar16 __koi8r[128] = {
+static const lChar32 __koi8r[128] = {
     /* 0x80*/
     0x2500, 0x2502, 0x250c, 0x2510,
     0x2514, 0x2518, 0x251c, 0x2524,
@@ -434,7 +434,7 @@ static const lChar16 __koi8r[128] = {
     0x042d, 0x0429, 0x0427, 0x042a,
 };
 
-static const lChar16 __cp1250[128] = {
+static const lChar32 __cp1250[128] = {
     /* 0x80*/
     0x20ac, 0x0000, 0x201a, 0x0000,
     0x201e, 0x2026, 0x2020, 0x2021,
@@ -477,7 +477,7 @@ static const lChar16 __cp1250[128] = {
     0x00fc, 0x00fd, 0x0163, 0x02d9,
 };
 
-static const lChar16 __cp850[128] = {
+static const lChar32 __cp850[128] = {
     /* 0x80*/
     0x00c7, 0x00fc, 0x00e9, 0x00e2,
     0x00e4, 0x00e0, 0x00e5, 0x00e7,
@@ -539,7 +539,7 @@ static const lChar16 __cp850[128] = {
 /// add other encodings here
 static struct {
     const char * name;
-    const lChar16 * table;
+    const lChar32 * table;
     int id;
 } _enc_table[] = {
     {"windows-1250", __cp1250, CRENC_ID_CP1250},
@@ -583,11 +583,11 @@ static struct {
     {NULL, NULL, 0}
 };
 
-int CREncodingNameToId( const lChar16 * enc_name )
+int CREncodingNameToId( const lChar32 * enc_name )
 {
-    lString16 s( enc_name );
+    lString32 s( enc_name );
     s.lowercase();
-    const lChar16 * encoding_name = s.c_str();
+    const lChar32 * encoding_name = s.c_str();
     if ( !lStr_cmp(encoding_name, "utf-8") )
         return CRENC_ID_UTF8;
     else if ( !lStr_cmp(encoding_name, "utf-16") )
@@ -636,11 +636,11 @@ const char * CREncodingIdToName( int id )
     return NULL; // not found
 }
 
-const lChar16 * GetCharsetByte2UnicodeTable( const lChar16 * enc_name )
+const lChar32 * GetCharsetByte2UnicodeTable( const lChar32 * enc_name )
 {
-    lString16 s( enc_name );
+    lString32 s( enc_name );
     s.lowercase();
-    const lChar16 * encoding_name = s.c_str();
+    const lChar32 * encoding_name = s.c_str();
     for (int i=0; _enc_table[i].name!=NULL; i++)
     {
         if ( !lStr_cmp(encoding_name, _enc_table[i].name) )
@@ -651,7 +651,7 @@ const lChar16 * GetCharsetByte2UnicodeTable( const lChar16 * enc_name )
     return NULL; // not found
 }
 
-const lChar16 * GetCharsetByte2UnicodeTableById( int id )
+const lChar32 * GetCharsetByte2UnicodeTableById( int id )
 {
     for (int i=0; _enc_table[i].name!=NULL; i++)
     {
@@ -1225,7 +1225,7 @@ const char* langToLanguage( int lang )
     }
 }
 
-const lChar16 * GetCharsetByte2UnicodeTable( int codepage )
+const lChar32 * GetCharsetByte2UnicodeTable( int codepage )
 {
     switch ( codepage )
     {
@@ -1250,26 +1250,26 @@ const lChar16 * GetCharsetByte2UnicodeTable( int codepage )
     }
 }
 
-const lChar16 * GetCharsetName( int codepage )
+const lChar32 * GetCharsetName( int codepage )
 {
     switch ( codepage )
     {
     case 1251:
-        return L"cp1251";
+        return U"cp1251";
     case 1257:
-        return L"cp1257";
+        return U"cp1257";
     case 204:
-        return L"cp1251";
+        return U"cp1251";
     case 1252:
-        return L"cp1252";
+        return U"cp1252";
     case 1253:
-        return L"cp1253";
+        return U"cp1253";
     case 737:
-        return L"cp737";
-    case 1250: return L"cp1250";
-    case 866:  return L"cp866";
-    case 850:  return L"cp850";
-    default:   return L"cp1252";
+        return U"cp737";
+    case 1250: return U"cp1250";
+    case 866:  return U"cp866";
+    case 850:  return U"cp850";
+    default:   return U"cp1252";
     }
 }
 
@@ -1411,11 +1411,11 @@ static struct {
     {NULL, NULL}
 };
 
-const lChar8 ** GetCharsetUnicode2ByteTable( const lChar16 * enc_name )
+const lChar8 ** GetCharsetUnicode2ByteTable( const lChar32 * enc_name )
 {
-    lString16 s( enc_name );
+    lString32 s( enc_name );
     s.lowercase();
-    const lChar16 * encoding_name = s.c_str();
+    const lChar32 * encoding_name = s.c_str();
     for (int i=0; _uni2byte_enc_table[i].name!=NULL; i++)
     {
         if ( !lStr_cmp(encoding_name, _uni2byte_enc_table[i].name) )

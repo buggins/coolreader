@@ -275,8 +275,8 @@ int main( int argc, const char * argv[] )
         if ( !dir.isNull() )
         for ( int i=0; i<dir->GetObjectCount(); i++ ) {
             const LVContainerItemInfo * item = dir->GetObjectInfo(i);
-            lString16 fileName = item->GetName();
-            if ( !item->IsContainer() && fileName.length()>4 && lString16(fileName, fileName.length()-4, 4)==L".ttf" ) {
+            lString32 fileName = item->GetName();
+            if ( !item->IsContainer() && fileName.length()>4 && lString32(fileName, fileName.length()-4, 4)==U".ttf" ) {
                 lString8 fn = UnicodeToLocal(fileName);
                 printf("loading font: %s\n", fn.c_str());
                 if ( !fontMan->RegisterFont(fn) ) {
@@ -301,7 +301,7 @@ int main( int argc, const char * argv[] )
 
     // init hyphenation manager
     HyphMan::initDictionaries(Utf8ToUnicode(exedir));
-    HyphMan::activateDictionary(L"Russian_EnUS.pattern");
+    HyphMan::activateDictionary(U"Russian_EnUS.pattern");
 
     //LVCHECKPOINT("WinMain start");
 

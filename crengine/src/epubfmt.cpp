@@ -4,10 +4,10 @@
 
 class EpubItem {
 public:
-    lString16 href;
-    lString16 mediaType;
-    lString16 id;
-    lString16 title;
+    lString32 href;
+    lString32 mediaType;
+    lString32 id;
+    lString32 title;
     EpubItem()
     { }
     EpubItem( const EpubItem & v )
@@ -24,7 +24,7 @@ public:
 
 class EpubItems : public LVPtrVector<EpubItem> {
 public:
-    EpubItem * findById( const lString16 & id )
+    EpubItem * findById( const lString32 & id )
     {
         if ( id.empty() )
             return NULL;
@@ -36,15 +36,15 @@ public:
 };
 
 //static void dumpZip( LVContainerRef arc ) {
-//    lString16 arcName = LVExtractFilenameWithoutExtension( arc->GetName() );
+//    lString32 arcName = LVExtractFilenameWithoutExtension( arc->GetName() );
 //    if ( arcName.empty() )
 //        arcName = "unziparc";
-//    lString16 outDir = cs16("/tmp/") + arcName;
+//    lString32 outDir = cs32("/tmp/") + arcName;
 //    LVCreateDirectory(outDir);
 //    for ( int i=0; i<arc->GetObjectCount(); i++ ) {
 //        const LVContainerItemInfo * info = arc->GetObjectInfo(i);
 //        if ( !info->IsContainer() ) {
-//            lString16 outFileName = outDir + "/" + info->GetName();
+//            lString32 outFileName = outDir + "/" + info->GetName();
 //            LVCreateDirectory(LVExtractPath(outFileName));
 //            LVStreamRef in = arc->OpenStream(info->GetName(), LVOM_READ);
 //            LVStreamRef out = LVOpenFileStream(outFileName.c_str(), LVOM_WRITE);
@@ -67,9 +67,9 @@ bool DetectEpubFormat( LVStreamRef stream )
     //dumpZip( m_arc );
 
     // read "mimetype" file contents from root of archive
-    lString16 mimeType;
+    lString32 mimeType;
     {
-        LVStreamRef mtStream = m_arc->OpenStream(L"mimetype", LVOM_READ );
+        LVStreamRef mtStream = m_arc->OpenStream(U"mimetype", LVOM_READ );
         if ( !mtStream.isNull() ) {
             lvsize_t size = mtStream->GetSize();
             if ( size>4 && size<100 ) {
@@ -86,7 +86,7 @@ bool DetectEpubFormat( LVStreamRef stream )
         }
     }
 
-    if ( mimeType != L"application/epub+zip" )
+    if ( mimeType != U"application/epub+zip" )
         return false;
     return true;
 }
@@ -94,10 +94,10 @@ bool DetectEpubFormat( LVStreamRef stream )
 void ReadEpubNcxToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, ldomDocumentFragmentWriter & appender ) {
     if ( !mapRoot || !baseToc)
         return;
-    lUInt16 navPoint_id = mapRoot->getDocument()->getElementNameIndex(L"navPoint");
-    lUInt16 navLabel_id = mapRoot->getDocument()->getElementNameIndex(L"navLabel");
-    lUInt16 content_id = mapRoot->getDocument()->getElementNameIndex(L"content");
-    lUInt16 text_id = mapRoot->getDocument()->getElementNameIndex(L"text");
+    lUInt16 navPoint_id = mapRoot->getDocument()->getElementNameIndex(U"navPoint");
+    lUInt16 navLabel_id = mapRoot->getDocument()->getElementNameIndex(U"navLabel");
+    lUInt16 content_id = mapRoot->getDocument()->getElementNameIndex(U"content");
+    lUInt16 text_id = mapRoot->getDocument()->getElementNameIndex(U"text");
     for ( int i=0; i<EPUB_TOC_MAX_ITER; i++ ) {
         ldomNode * navPoint = mapRoot->findChildElement(LXML_NS_ANY, navPoint_id, i);
         if ( !navPoint )
@@ -111,8 +111,8 @@ void ReadEpubNcxToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc
         ldomNode * content = navPoint->findChildElement(LXML_NS_ANY, content_id, -1);
         if ( !content )
             continue;
-        lString16 href = content->getAttributeValue("src");
-        lString16 title = text->getText(' ');
+        lString32 href = content->getAttributeValue("src");
+        lString32 title = text->getText(' ');
         title.trimDoubleSpaces(false, false, false);
         if ( href.empty() || title.empty() )
             continue;
@@ -126,7 +126,7 @@ void ReadEpubNcxToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc
         if ( !target )
             continue;
         ldomXPointer ptr(target, 0);
-        LVTocItem * tocItem = baseToc->addChild(title, ptr, lString16::empty_str);
+        LVTocItem * tocItem = baseToc->addChild(title, ptr, lString32::empty_str);
         ReadEpubNcxToc( doc, navPoint, tocItem, appender );
     }
 }
@@ -143,10 +143,10 @@ void ReadEpubNcxPageList( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * pa
     // Also see http://kb.daisy.org/publishing/docs/navigation/pagelist.html
     if ( !mapRoot || !pageMap)
         return;
-    lUInt16 pageTarget_id = mapRoot->getDocument()->getElementNameIndex(L"pageTarget");
-    lUInt16 navLabel_id = mapRoot->getDocument()->getElementNameIndex(L"navLabel");
-    lUInt16 content_id = mapRoot->getDocument()->getElementNameIndex(L"content");
-    lUInt16 text_id = mapRoot->getDocument()->getElementNameIndex(L"text");
+    lUInt16 pageTarget_id = mapRoot->getDocument()->getElementNameIndex(U"pageTarget");
+    lUInt16 navLabel_id = mapRoot->getDocument()->getElementNameIndex(U"navLabel");
+    lUInt16 content_id = mapRoot->getDocument()->getElementNameIndex(U"content");
+    lUInt16 text_id = mapRoot->getDocument()->getElementNameIndex(U"text");
     for ( int i=0; i<EPUB_ITEM_MAX_ITER; i++ ) {
         ldomNode * pageTarget = mapRoot->findChildElement(LXML_NS_ANY, pageTarget_id, i);
         if ( !pageTarget )
@@ -160,8 +160,8 @@ void ReadEpubNcxPageList( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * pa
         ldomNode * content = pageTarget->findChildElement(LXML_NS_ANY, content_id, -1);
         if ( !content )
             continue;
-        lString16 href = content->getAttributeValue("src");
-        lString16 title = text->getText(' ');
+        lString32 href = content->getAttributeValue("src");
+        lString32 title = text->getText(' ');
         title.trimDoubleSpaces(false, false, false);
         if ( href.empty() || title.empty() )
             continue;
@@ -173,7 +173,7 @@ void ReadEpubNcxPageList( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * pa
         if ( !target )
             continue;
         ldomXPointer ptr(target, 0);
-        pageMap->addPage(title, ptr, lString16::empty_str);
+        pageMap->addPage(title, ptr, lString32::empty_str);
     }
 }
 
@@ -181,10 +181,10 @@ void ReadEpubNavToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc
     // http://idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-nav-def
     if ( !mapRoot || !baseToc)
         return;
-    lUInt16 ol_id = mapRoot->getDocument()->getElementNameIndex(L"ol");
-    lUInt16 li_id = mapRoot->getDocument()->getElementNameIndex(L"li");
-    lUInt16 a_id = mapRoot->getDocument()->getElementNameIndex(L"a");
-    lUInt16 span_id = mapRoot->getDocument()->getElementNameIndex(L"span");
+    lUInt16 ol_id = mapRoot->getDocument()->getElementNameIndex(U"ol");
+    lUInt16 li_id = mapRoot->getDocument()->getElementNameIndex(U"li");
+    lUInt16 a_id = mapRoot->getDocument()->getElementNameIndex(U"a");
+    lUInt16 span_id = mapRoot->getDocument()->getElementNameIndex(U"span");
     for ( int i=0; i<EPUB_TOC_MAX_ITER; i++ ) {
         ldomNode * li = mapRoot->findChildElement(LXML_NS_ANY, li_id, i);
         if ( !li )
@@ -192,8 +192,8 @@ void ReadEpubNavToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc
         LVTocItem * tocItem = NULL;
         ldomNode * a = li->findChildElement(LXML_NS_ANY, a_id, -1);
         if ( a ) {
-            lString16 href = a->getAttributeValue("href");
-            lString16 title = a->getText(' ');
+            lString32 href = a->getAttributeValue("href");
+            lString32 title = a->getText(' ');
             if ( title.empty() ) {
                 // "If the a element contains [...] that do not provide intrinsic text alternatives,
                 // it must also include a title attribute with an alternate text rendition of the
@@ -208,7 +208,7 @@ void ReadEpubNavToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc
                     ldomNode * target = doc->getNodeById(doc->getAttrValueIndex(href.substr(1).c_str()));
                     if ( target ) {
                         ldomXPointer ptr(target, 0);
-                        tocItem = baseToc->addChild(title, ptr, lString16::empty_str);
+                        tocItem = baseToc->addChild(title, ptr, lString32::empty_str);
                         // Report xpointer to upper parent(s) that didn't have
                         // one (no <a>) - but stop before the root node
                         LVTocItem * tmp = baseToc;
@@ -229,14 +229,14 @@ void ReadEpubNavToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc
             if ( !tocItem ) {
                 // Make a LVTocItem to contain sub items
                 // There can be a <span>, with no href: children will set it to its own xpointer
-                lString16 title;
+                lString32 title;
                 ldomNode * span = li->findChildElement(LXML_NS_ANY, span_id, -1);
                 if ( span ) {
                     title = span->getText(' ');
                     title.trimDoubleSpaces(false, false, false);
                 }
                 // If none, let title empty
-                tocItem = baseToc->addChild(title, ldomXPointer(), lString16::empty_str);
+                tocItem = baseToc->addChild(title, ldomXPointer(), lString32::empty_str);
             }
             ReadEpubNavToc( doc, ol, tocItem, appender );
         }
@@ -247,16 +247,16 @@ void ReadEpubNavPageMap( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * pag
     // http://idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-nav-def
     if ( !mapRoot || !pageMap)
         return;
-    lUInt16 li_id = mapRoot->getDocument()->getElementNameIndex(L"li");
-    lUInt16 a_id = mapRoot->getDocument()->getElementNameIndex(L"a");
+    lUInt16 li_id = mapRoot->getDocument()->getElementNameIndex(U"li");
+    lUInt16 a_id = mapRoot->getDocument()->getElementNameIndex(U"a");
     for ( int i=0; i<EPUB_ITEM_MAX_ITER; i++ ) {
         ldomNode * li = mapRoot->findChildElement(LXML_NS_ANY, li_id, i);
         if ( !li )
             break;
         ldomNode * a = li->findChildElement(LXML_NS_ANY, a_id, -1);
         if ( a ) {
-            lString16 href = a->getAttributeValue("href");
-            lString16 title = a->getText(' ');
+            lString32 href = a->getAttributeValue("href");
+            lString32 title = a->getText(' ');
             if ( title.empty() ) {
                 title = a->getAttributeValue("title");
             }
@@ -268,7 +268,7 @@ void ReadEpubNavPageMap( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * pag
                     ldomNode * target = doc->getNodeById(doc->getAttrValueIndex(href.substr(1).c_str()));
                     if ( target ) {
                         ldomXPointer ptr(target, 0);
-                        pageMap->addPage(title, ptr, lString16::empty_str);
+                        pageMap->addPage(title, ptr, lString32::empty_str);
                     }
                 }
             }
@@ -280,13 +280,13 @@ void ReadEpubAdobePageMap( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * p
     // https://wiki.mobileread.com/wiki/Adobe_Digital_Editions#Page-map
     if ( !mapRoot || !pageMap)
         return;
-    lUInt16 page_id = mapRoot->getDocument()->getElementNameIndex(L"page");
+    lUInt16 page_id = mapRoot->getDocument()->getElementNameIndex(U"page");
     for ( int i=0; i<EPUB_ITEM_MAX_ITER; i++ ) {
         ldomNode * page = mapRoot->findChildElement(LXML_NS_ANY, page_id, i);
         if ( !page )
             break;
-        lString16 href = page->getAttributeValue("href");
-        lString16 title = page->getAttributeValue("name");
+        lString32 href = page->getAttributeValue("href");
+        lString32 title = page->getAttributeValue("name");
         title.trimDoubleSpaces(false, false, false);
         if ( href.empty() || title.empty() )
             continue;
@@ -298,22 +298,22 @@ void ReadEpubAdobePageMap( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * p
         if ( !target )
             continue;
         ldomXPointer ptr(target, 0);
-        pageMap->addPage(title, ptr, lString16::empty_str);
+        pageMap->addPage(title, ptr, lString32::empty_str);
     }
 }
 
-lString16 EpubGetRootFilePath(LVContainerRef m_arc)
+lString32 EpubGetRootFilePath(LVContainerRef m_arc)
 {
     // check root media type
-    lString16 rootfilePath;
-    lString16 rootfileMediaType;
+    lString32 rootfilePath;
+    lString32 rootfileMediaType;
     // read container.xml
     {
-        LVStreamRef container_stream = m_arc->OpenStream(L"META-INF/container.xml", LVOM_READ);
+        LVStreamRef container_stream = m_arc->OpenStream(U"META-INF/container.xml", LVOM_READ);
         if ( !container_stream.isNull() ) {
             ldomDocument * doc = LVParseXMLStream( container_stream );
             if ( doc ) {
-                ldomNode * rootfile = doc->nodeFromXPath( cs16("container/rootfiles/rootfile") );
+                ldomNode * rootfile = doc->nodeFromXPath( cs32("container/rootfiles/rootfile") );
                 if ( rootfile && rootfile->isElement() ) {
                     rootfilePath = rootfile->getAttributeValue("full-path");
                     rootfileMediaType = rootfile->getAttributeValue("media-type");
@@ -324,7 +324,7 @@ lString16 EpubGetRootFilePath(LVContainerRef m_arc)
     }
 
     if (rootfilePath.empty() || rootfileMediaType != "application/oebps-package+xml")
-        return lString16::empty_str;
+        return lString32::empty_str;
     return rootfilePath;
 }
 
@@ -351,9 +351,9 @@ public:
 
 class EncryptedItem {
 public:
-    lString16 _uri;
-    lString16 _method;
-    EncryptedItem(lString16 uri, lString16 method) : _uri(uri), _method(method) {
+    lString32 _uri;
+    lString32 _method;
+    EncryptedItem(lString32 uri, lString32 method) : _uri(uri), _method(method) {
 
     }
 };
@@ -373,7 +373,7 @@ class EncCallback : public LVXMLParserCallback {
     bool insideCipherReference;
 public:
     /// called on opening tag <
-    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname) {
+    virtual ldomNode * OnTagOpen( const lChar32 * nsname, const lChar32 * tagname) {
         CR_UNUSED(nsname);
         if (!lStr_cmp(tagname, "encryption"))
             insideEncryption = true;
@@ -388,7 +388,7 @@ public:
         return NULL;
     }
     /// called on tag close
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false ) {
+    virtual void OnTagClose( const lChar32 * nsname, const lChar32 * tagname, bool self_closing_tag=false ) {
         CR_UNUSED(nsname);
         if (!lStr_cmp(tagname, "encryption"))
             insideEncryption = false;
@@ -405,7 +405,7 @@ public:
             insideCipherReference = false;
     }
     /// called on element attribute
-    virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue ) {
+    virtual void OnAttribute( const lChar32 * nsname, const lChar32 * attrname, const lChar32 * attrvalue ) {
         CR_UNUSED2(nsname, attrvalue);
         if (!lStr_cmp(attrname, "URI") && insideCipherReference)
             insideEncryption = false;
@@ -413,11 +413,11 @@ public:
             insideEncryptedData = false;
     }
     /// called on text
-    virtual void OnText( const lChar16 * text, int len, lUInt32 flags ) {
+    virtual void OnText( const lChar32 * text, int len, lUInt32 flags ) {
         CR_UNUSED3(text,len,flags);
     }
     /// add named BLOB data to document
-    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) {
+    virtual bool OnBlob(lString32 name, const lUInt8 * data, int size) {
         CR_UNUSED3(name,data,size);
         return false;
     }
@@ -427,8 +427,8 @@ public:
     virtual void OnTagBody() { }
 
     EncryptedItemCallback * _container;
-    lString16 algorithm;
-    lString16 uri;
+    lString32 algorithm;
+    lString32 uri;
     /// destructor
     EncCallback(EncryptedItemCallback * container) : _container(container) {
         insideEncryption = false;
@@ -449,14 +449,14 @@ public:
     }
 
     virtual LVContainer * GetParentContainer() { return _container->GetParentContainer(); }
-    //virtual const LVContainerItemInfo * GetObjectInfo(const wchar_t * pname);
+    //virtual const LVContainerItemInfo * GetObjectInfo(const lChar32 * pname);
     virtual const LVContainerItemInfo * GetObjectInfo(int index) { return _container->GetObjectInfo(index); }
     virtual int GetObjectCount() const { return _container->GetObjectCount(); }
     /// returns object size (file size or directory entry count)
     virtual lverror_t GetSize( lvsize_t * pSize ) { return _container->GetSize(pSize); }
 
 
-    virtual LVStreamRef OpenStream( const lChar16 * fname, lvopen_mode_t mode ) {
+    virtual LVStreamRef OpenStream( const lChar32 * fname, lvopen_mode_t mode ) {
 
         LVStreamRef res = _container->OpenStream(fname, mode);
         if (res.isNull())
@@ -467,12 +467,12 @@ public:
     }
 
     /// returns stream/container name, may be NULL if unknown
-    virtual const lChar16 * GetName()
+    virtual const lChar32 * GetName()
     {
         return _container->GetName();
     }
     /// sets stream/container name, may be not implemented for some objects
-    virtual void SetName(const lChar16 * name)
+    virtual void SetName(const lChar32 * name)
     {
         _container->SetName(name);
     }
@@ -482,13 +482,13 @@ public:
         _list.add(item);
     }
 
-    EncryptedItem * findEncryptedItem(const lChar16 * name) {
-        lString16 n;
+    EncryptedItem * findEncryptedItem(const lChar32 * name) {
+        lString32 n;
         if (name[0] != '/' && name[0] != '\\')
             n << "/";
         n << name;
         for (int i=0; i<_list.length(); i++) {
-            lString16 s = _list[i]->_uri;
+            lString32 s = _list[i]->_uri;
             if (s[0]!='/' && s[i]!='\\')
                 s = "/" + s;
             if (_list[i]->_uri == s)
@@ -497,13 +497,13 @@ public:
         return NULL;
     }
 
-    bool isEncryptedItem(const lChar16 * name) {
+    bool isEncryptedItem(const lChar32 * name) {
         return findEncryptedItem(name) != NULL;
     }
 
     LVArray<lUInt8> _fontManglingKey;
 
-    bool setManglingKey(lString16 key) {
+    bool setManglingKey(lString32 key) {
         if (key.startsWith("urn:uuid:"))
             key = key.substr(9);
         _fontManglingKey.clear();
@@ -526,7 +526,7 @@ public:
 
     bool hasUnsupportedEncryption() {
         for (int i=0; i<_list.length(); i++) {
-            lString16 method = _list[i]->_method;
+            lString32 method = _list[i]->_method;
             if (method != "http://ns.adobe.com/pdf/enc#RC") {
                 CRLog::debug("unsupported encryption method: %s", LCSTR(method));
                 return true;
@@ -536,7 +536,7 @@ public:
     }
 
     bool open() {
-        LVStreamRef stream = _container->OpenStream(L"META-INF/encryption.xml", LVOM_READ);
+        LVStreamRef stream = _container->OpenStream(U"META-INF/encryption.xml", LVOM_READ);
         if (stream.isNull())
             return false;
         EncCallback enccallback(this);
@@ -552,43 +552,43 @@ public:
 void createEncryptedEpubWarningDocument(ldomDocument * m_doc) {
     CRLog::error("EPUB document contains encrypted items");
     ldomDocumentWriter writer(m_doc);
-    writer.OnTagOpenNoAttr(NULL, L"body");
-    writer.OnTagOpenNoAttr(NULL, L"h3");
-    lString16 hdr("Encrypted content");
+    writer.OnTagOpenNoAttr(NULL, U"body");
+    writer.OnTagOpenNoAttr(NULL, U"h3");
+    lString32 hdr("Encrypted content");
     writer.OnText(hdr.c_str(), hdr.length(), 0);
-    writer.OnTagClose(NULL, L"h3");
+    writer.OnTagClose(NULL, U"h3");
 
-    writer.OnTagOpenAndClose(NULL, L"hr");
+    writer.OnTagOpenAndClose(NULL, U"hr");
 
-    writer.OnTagOpenNoAttr(NULL, L"p");
-    lString16 txt("This document is encrypted (has DRM protection).");
+    writer.OnTagOpenNoAttr(NULL, U"p");
+    lString32 txt("This document is encrypted (has DRM protection).");
     writer.OnText(txt.c_str(), txt.length(), 0);
-    writer.OnTagClose(NULL, L"p");
+    writer.OnTagClose(NULL, U"p");
 
-    writer.OnTagOpenNoAttr(NULL, L"p");
-    lString16 txt2("Cool Reader doesn't support reading of DRM protected books.");
+    writer.OnTagOpenNoAttr(NULL, U"p");
+    lString32 txt2("Cool Reader doesn't support reading of DRM protected books.");
     writer.OnText(txt2.c_str(), txt2.length(), 0);
-    writer.OnTagClose(NULL, L"p");
+    writer.OnTagClose(NULL, U"p");
 
-    writer.OnTagOpenNoAttr(NULL, L"p");
-    lString16 txt3("To read this book, please use software recommended by book seller.");
+    writer.OnTagOpenNoAttr(NULL, U"p");
+    lString32 txt3("To read this book, please use software recommended by book seller.");
     writer.OnText(txt3.c_str(), txt3.length(), 0);
-    writer.OnTagClose(NULL, L"p");
+    writer.OnTagClose(NULL, U"p");
 
-    writer.OnTagOpenAndClose(NULL, L"hr");
+    writer.OnTagOpenAndClose(NULL, U"hr");
 
-    writer.OnTagOpenNoAttr(NULL, L"p");
-    lString16 txt4("");
+    writer.OnTagOpenNoAttr(NULL, U"p");
+    lString32 txt4("");
     writer.OnText(txt4.c_str(), txt4.length(), 0);
-    writer.OnTagClose(NULL, L"p");
+    writer.OnTagClose(NULL, U"p");
 
-    writer.OnTagClose(NULL, L"body");
+    writer.OnTagClose(NULL, U"body");
 }
 
 LVStreamRef GetEpubCoverpage(LVContainerRef arc)
 {
     // check root media type
-    lString16 rootfilePath = EpubGetRootFilePath(arc);
+    lString32 rootfilePath = EpubGetRootFilePath(arc);
     if ( rootfilePath.empty() )
         return LVStreamRef();
 
@@ -599,7 +599,7 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
 
     LVContainerRef m_arc = LVContainerRef(decryptor);
 
-    lString16 codeBase = LVExtractPath(rootfilePath, false);
+    lString32 codeBase = LVExtractPath(rootfilePath, false);
     CRLog::trace("codeBase=%s", LCSTR(codeBase));
 
     LVStreamRef content_stream = m_arc->OpenStream(rootfilePath.c_str(), LVOM_READ);
@@ -610,18 +610,18 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
     LVStreamRef coverPageImageStream;
     // reading content stream
     {
-        lString16 coverId;
+        lString32 coverId;
         ldomDocument * doc = LVParseXMLStream( content_stream );
         if ( !doc )
             return LVStreamRef();
 
         for ( size_t i=1; i<=EPUB_META_MAX_ITER; i++ ) {
-            ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/meta[") << fmt::decimal(i) << "]");
+            ldomNode * item = doc->nodeFromXPath(lString32("package/metadata/meta[") << fmt::decimal(i) << "]");
             if ( !item )
                 break;
-            lString16 name = item->getAttributeValue("name");
+            lString32 name = item->getAttributeValue("name");
             if (name == "cover") {
-                lString16 content = item->getAttributeValue("content");
+                lString32 content = item->getAttributeValue("content");
                 coverId = content;
                 // We're done
                 break;
@@ -630,16 +630,16 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
 
         // items
         for ( size_t i=1; i<=EPUB_ITEM_MAX_ITER; i++ ) {
-            ldomNode * item = doc->nodeFromXPath(lString16("package/manifest/item[") << fmt::decimal(i) << "]");
+            ldomNode * item = doc->nodeFromXPath(lString32("package/manifest/item[") << fmt::decimal(i) << "]");
             if ( !item )
                 break;
-            lString16 href = item->getAttributeValue("href");
-            lString16 id = item->getAttributeValue("id");
+            lString32 href = item->getAttributeValue("href");
+            lString32 id = item->getAttributeValue("id");
             if ( !href.empty() && !id.empty() ) {
                 if (id == coverId) {
                     // coverpage file
                     href = DecodeHTMLUrlString(href);
-                    lString16 coverFileName = LVCombinePaths(codeBase, href);
+                    lString32 coverFileName = LVCombinePaths(codeBase, href);
                     CRLog::info("EPUB coverpage file: %s", LCSTR(coverFileName));
                     coverPageImageStream = m_arc->OpenStream(coverFileName.c_str(), LVOM_READ);
                     // We're done
@@ -656,13 +656,13 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
 
 class EmbeddedFontStyleParser {
     LVEmbeddedFontList & _fontList;
-    lString16 _basePath;
+    lString32 _basePath;
     int _state;
     lString8 _face;
     lString8 islocal;
     bool _italic;
     bool _bold;
-    lString16 _url;
+    lString32 _url;
 public:
     EmbeddedFontStyleParser(LVEmbeddedFontList & fontList) : _fontList(fontList) { }
     void onToken(char token) {
@@ -708,7 +708,7 @@ public:
                     if (islocal.length()==5 && _basePath.length()!=0)
                         _url = _url.substr((_basePath.length()+1), (_url.length()-_basePath.length()));
                     if (_fontList.findByUrl(_url))
-                        _url=_url.append(lString16(" ")); //avoid add() replaces existing local name
+                        _url=_url.append(lString32(" ")); //avoid add() replaces existing local name
                     _fontList.add(_url, _face, _bold, _italic);
                 }
             }
@@ -718,7 +718,7 @@ public:
             if (_state == 2) {
                 if (!_url.empty()) {
                       if (islocal.length() == 5 && _basePath.length()!=0) _url=(_url.substr((_basePath.length()+1),(_url.length()-_basePath.length())));
-                        if (_fontList.findByUrl(_url)) _url=_url.append(lString16(" "));
+                        if (_fontList.findByUrl(_url)) _url=_url.append(lString32(" "));
                     _fontList.add(_url, _face, _bold, _italic);
                 }
                 _state = 11;
@@ -784,8 +784,8 @@ public:
         //CRLog::trace("state==%d: \"%s\"", _state, token.c_str());
         if (_state == 11 || _state == 13) {
             if (!token.empty()) {
-                lString16 ltoken = Utf8ToUnicode(token);
-                if (ltoken.startsWithNoCase(lString16("res://")) || ltoken.startsWithNoCase(lString16("file://")) )
+                lString32 ltoken = Utf8ToUnicode(token);
+                if (ltoken.startsWithNoCase(lString32("res://")) || ltoken.startsWithNoCase(lString32("file://")) )
                     _url = ltoken;
                 else
                     _url = LVCombinePaths(_basePath, ltoken);
@@ -852,7 +852,7 @@ public:
         }
         return tmp;
     }
-    void parse(lString16 basePath, const lString8 & css) {
+    void parse(lString32 basePath, const lString8 & css) {
         _state = 0;
         _basePath = basePath;
         lString8 token;
@@ -896,7 +896,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         return false; // not a ZIP archive
 
     // check root media type
-    lString16 rootfilePath = EpubGetRootFilePath(arc);
+    lString32 rootfilePath = EpubGetRootFilePath(arc);
     if ( rootfilePath.empty() )
         return false;
 
@@ -922,8 +922,8 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     EpubItems epubItems;
     //EpubItem * epubToc = NULL; //TODO
     LVArray<EpubItem*> spineItems;
-    lString16 codeBase;
-    //lString16 css;
+    lString32 codeBase;
+    //lString32 css;
 
     //
     {
@@ -937,12 +937,12 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
 
     bool isEpub3 = false;
-    lString16 epubVersion;
-    lString16 navHref; // epub3 TOC
-    lString16 ncxHref; // epub2 TOC
-    lString16 pageMapHref; // epub2 Adobe page-map
-    lString16 pageMapSource;
-    lString16 coverId;
+    lString32 epubVersion;
+    lString32 navHref; // epub3 TOC
+    lString32 ncxHref; // epub2 TOC
+    lString32 pageMapHref; // epub2 Adobe page-map
+    lString32 pageMapSource;
+    lString32 coverId;
 
     LVEmbeddedFontList fontList;
     EmbeddedFontStyleParser styleParser(fontList);
@@ -960,7 +960,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 //            doc->saveToStream(out, NULL, true);
 //        }
 
-        ldomNode * package = doc->nodeFromXPath(lString16("package"));
+        ldomNode * package = doc->nodeFromXPath(lString32("package"));
         if ( package ) {
             epubVersion = package->getAttributeValue("version");
             if ( !epubVersion.empty() && epubVersion[0] >= '3' )
@@ -968,11 +968,11 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         }
 
         CRPropRef m_doc_props = m_doc->getProps();
-        // lString16 authors = doc->textFromXPath( cs16("package/metadata/creator"));
-        lString16 title = doc->textFromXPath( cs16("package/metadata/title"));
-        lString16 language = doc->textFromXPath( cs16("package/metadata/language"));
-        lString16 description = doc->textFromXPath( cs16("package/metadata/description"));
-        pageMapSource = doc->textFromXPath( cs16("package/metadata/source"));
+        // lString32 authors = doc->textFromXPath( cs32("package/metadata/creator"));
+        lString32 title = doc->textFromXPath( cs32("package/metadata/title"));
+        lString32 language = doc->textFromXPath( cs32("package/metadata/language"));
+        lString32 description = doc->textFromXPath( cs32("package/metadata/description"));
+        pageMapSource = doc->textFromXPath( cs32("package/metadata/source"));
         // m_doc_props->setString(DOC_PROP_AUTHORS, authors);
         m_doc_props->setString(DOC_PROP_TITLE, title);
         m_doc_props->setString(DOC_PROP_LANGUAGE, language);
@@ -983,12 +983,12 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         // as a single doc_props string with values separated by \n.
         // (these \n can be replaced on the lua side for the most appropriate display)
         bool authors_set = false;
-        lString16 authors;
+        lString32 authors;
         for ( size_t i=1; i<=EPUB_META_MAX_ITER; i++ ) {
-            ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/creator[") << fmt::decimal(i) << "]");
+            ldomNode * item = doc->nodeFromXPath(lString32("package/metadata/creator[") << fmt::decimal(i) << "]");
             if (!item)
                 break;
-            lString16 author = item->getText().trim();
+            lString32 author = item->getText().trim();
             if (authors_set) {
                 authors << "\n" << author;
             }
@@ -1001,12 +1001,12 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
         // There may be multiple <dc:subject> tags, which are usually used for keywords, categories
         bool subjects_set = false;
-        lString16 subjects;
+        lString32 subjects;
         for ( size_t i=1; i<=EPUB_META_MAX_ITER; i++ ) {
-            ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/subject[") << fmt::decimal(i) << "]");
+            ldomNode * item = doc->nodeFromXPath(lString32("package/metadata/subject[") << fmt::decimal(i) << "]");
             if (!item)
                 break;
-            lString16 subject = item->getText().trim();
+            lString32 subject = item->getText().trim();
             if (subjects_set) {
                 subjects << "\n" << subject;
             }
@@ -1018,10 +1018,10 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         m_doc_props->setString(DOC_PROP_KEYWORDS, subjects);
 
         for ( size_t i=1; i<=EPUB_META_MAX_ITER; i++ ) {
-            ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/identifier[") << fmt::decimal(i) << "]");
+            ldomNode * item = doc->nodeFromXPath(lString32("package/metadata/identifier[") << fmt::decimal(i) << "]");
             if (!item)
                 break;
-            lString16 key = item->getText().trim();
+            lString32 key = item->getText().trim();
             if (decryptor->setManglingKey(key)) {
                 CRLog::debug("Using font mangling key %s", LCSTR(key));
                 break;
@@ -1060,23 +1060,23 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 break;
             }
 
-            ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/meta[") << fmt::decimal(i) << "]");
+            ldomNode * item = doc->nodeFromXPath(lString32("package/metadata/meta[") << fmt::decimal(i) << "]");
             if ( !item )
                 break;
 
-            lString16 name = item->getAttributeValue("name");
+            lString32 name = item->getAttributeValue("name");
             // Might come before or after the series stuff
             // (e.g., while you might think it'd come early, Calibre appends it during the Send To Device process).
             // Fun fact: this isn't part of *either* version of the ePub specs.
             // It's simply an agreed-upon convention, given how utterly terrible the actual specs are.
             if (coverId.empty() && name == "cover") {
-                lString16 content = item->getAttributeValue("content");
+                lString32 content = item->getAttributeValue("content");
                 coverId = content;
                 continue;
             }
             // Has to come before calibre:series_index
             if (!hasSeriesMeta && name == "calibre:series") {
-                lString16 content = item->getAttributeValue("content");
+                lString32 content = item->getAttributeValue("content");
                 PreProcessXmlString(content, 0);
                 m_doc_props->setString(DOC_PROP_SERIES_NAME, content);
                 hasSeriesMeta = true;
@@ -1084,7 +1084,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             }
             // Has to come after calibre:series
             if (hasSeriesMeta && name == "calibre:series_index") {
-                lString16 content = item->getAttributeValue("content");
+                lString32 content = item->getAttributeValue("content");
                 PreProcessXmlString(content, 0);
                 m_doc_props->setString(DOC_PROP_SERIES_NUMBER, content);
                 hasSeriesIdMeta = true;
@@ -1095,14 +1095,14 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         // Fallback to the ePub 3 spec for cover-image, c.f. https://www.w3.org/publishing/epub3/epub-packages.html#sec-cover-image
         if (isEpub3 && coverId.empty()) {
             for ( size_t i=1; i<=EPUB_ITEM_MAX_ITER; i++ ) {
-                ldomNode * item = doc->nodeFromXPath(lString16("package/manifest/item[") << fmt::decimal(i) << "]");
+                ldomNode * item = doc->nodeFromXPath(lString32("package/manifest/item[") << fmt::decimal(i) << "]");
                 if ( !item )
                     break;
 
                 // NOTE: Yes, plural, not a typo... -_-"
-                lString16 props = item->getAttributeValue("properties");
+                lString32 props = item->getAttributeValue("properties");
                 if (!props.empty() && props == "cover-image") {
-                    lString16 id = item->getAttributeValue("id");
+                    lString32 id = item->getAttributeValue("id");
                     coverId = id;
                     // Can only be one (or none), we're done!
                     break;
@@ -1120,13 +1120,13 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         //       That thankfully seems to have been relegated to the past, despite title-type still supporting a collection type:
         //       https://www.w3.org/publishing/epub32/epub-packages.html#sec-title-type
         if (isEpub3 && !hasSeriesMeta) {
-            lString16 seriesId;
+            lString32 seriesId;
             for ( size_t i=1; i<=EPUB_META_MAX_ITER; i++ ) {
-                ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/meta[") << fmt::decimal(i) << "]");
+                ldomNode * item = doc->nodeFromXPath(lString32("package/metadata/meta[") << fmt::decimal(i) << "]");
                 if ( !item )
                     break;
 
-                lString16 property = item->getAttributeValue("property");
+                lString32 property = item->getAttributeValue("property");
 
                 // If we don't have a collection yet, try to find one
                 // NOTE: The specs say that collections *MAY* be nested (i.e., a belongs-to-collection node may refine another one).
@@ -1135,7 +1135,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 //       or the most deeply nested one, depending on what made the most sense, but I don't, so, KISS ;).
                 if (!hasSeriesMeta) {
                     if (property == "belongs-to-collection") {
-                        lString16 content = item->getText().trim();
+                        lString32 content = item->getText().trim();
                         PreProcessXmlString(content, 0);
                         m_doc_props->setString(DOC_PROP_SERIES_NAME, content);
                         hasSeriesMeta = true;
@@ -1151,9 +1151,9 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     /*
                     if (property == "collection-type") {
                         // Only support valid types (series or set)
-                        lString16 content = item->getText().trim();
+                        lString32 content = item->getText().trim();
                         if (content == "series" || content == "set") {
-                            lString16 id = item->getAttributeValue("refines");
+                            lString32 id = item->getAttributeValue("refines");
                             // Strip the anchor to match against seriesId
                             if (id.startsWith("#")) {
                                 id = id.substr(1, id.length() - 1);
@@ -1166,14 +1166,14 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     }
                     */
                     if (property == "group-position") {
-                        lString16 id = item->getAttributeValue("refines");
+                        lString32 id = item->getAttributeValue("refines");
                         // Strip the anchor to match against seriesId
                         if (id.startsWith("#")) {
                             id = id.substr(1, id.length() - 1);
                         }
                         // If we've got a match, that's our position in the series!
                         if (id == seriesId) {
-                            lString16 content = item->getText().trim();
+                            lString32 content = item->getText().trim();
                             PreProcessXmlString(content, 0);
                             // NOTE: May contain decimal values (much like calibre:series_index).
                             //       c.f., https://github.com/koreader/crengine/pull/346#discussion_r436190907
@@ -1198,17 +1198,17 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         // items
         CRLog::debug("opf: reading items");
         for ( size_t i=1; i<=EPUB_ITEM_MAX_ITER; i++ ) {
-            ldomNode * item = doc->nodeFromXPath(lString16("package/manifest/item[") << fmt::decimal(i) << "]");
+            ldomNode * item = doc->nodeFromXPath(lString32("package/manifest/item[") << fmt::decimal(i) << "]");
             if ( !item )
                 break;
-            lString16 href = item->getAttributeValue("href");
-            lString16 mediaType = item->getAttributeValue("media-type");
-            lString16 id = item->getAttributeValue("id");
+            lString32 href = item->getAttributeValue("href");
+            lString32 mediaType = item->getAttributeValue("media-type");
+            lString32 id = item->getAttributeValue("id");
             if ( !href.empty() && !id.empty() ) {
                 href = DecodeHTMLUrlString(href);
                 if ( id==coverId ) {
                     // coverpage file
-                    lString16 coverFileName = LVCombinePaths(codeBase, href);
+                    lString32 coverFileName = LVCombinePaths(codeBase, href);
                     CRLog::info("EPUB coverpage file: %s", LCSTR(coverFileName));
                     LVStreamRef stream = m_arc->OpenStream(coverFileName.c_str(), LVOM_READ);
                     if ( !stream.isNull() ) {
@@ -1231,28 +1231,28 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 epubItems.add( epubItem );
 
                 if ( isEpub3 && navHref.empty() ) {
-                    lString16 properties = item->getAttributeValue("properties");
+                    lString32 properties = item->getAttributeValue("properties");
                     // We met properties="nav scripted"...
-                    if ( properties == L"nav" || properties.startsWith(L"nav ")
-                            || properties.endsWith(L" nav") || properties.pos(L" nav ") >= 0 ) {
+                    if ( properties == U"nav" || properties.startsWith(U"nav ")
+                            || properties.endsWith(U" nav") || properties.pos(U" nav ") >= 0 ) {
                         navHref = href;
                     }
                 }
 
 //                // register embedded document fonts
-//                if (mediaType == L"application/vnd.ms-opentype"
-//                        || mediaType == L"application/x-font-otf"
-//                        || mediaType == L"application/x-font-ttf") { // TODO: more media types?
+//                if (mediaType == U"application/vnd.ms-opentype"
+//                        || mediaType == U"application/x-font-otf"
+//                        || mediaType == U"application/x-font-ttf") { // TODO: more media types?
 //                    // TODO:
 //                    fontList.add(codeBase + href);
 //                }
             }
             if (mediaType == "text/css") {
-                lString16 name = LVCombinePaths(codeBase, href);
+                lString32 name = LVCombinePaths(codeBase, href);
                 LVStreamRef cssStream = m_arc->OpenStream(name.c_str(), LVOM_READ);
                 if (!cssStream.isNull()) {
                     lString8 cssFile = UnicodeToUtf8(LVReadTextFile(cssStream));
-                    lString16 base = name;
+                    lString32 base = name;
                     LVExtractLastPathElement(base);
                     //CRLog::trace("style: %s", cssFile.c_str());
                     styleParser.parse(base, cssFile);
@@ -1271,7 +1271,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         // spine == itemrefs
         if ( epubItems.length()>0 ) {
             CRLog::debug("opf: reading spine");
-            ldomNode * spine = doc->nodeFromXPath( cs16("package/spine") );
+            ldomNode * spine = doc->nodeFromXPath( cs32("package/spine") );
             if ( spine ) {
 
                 // <spine toc="ncx" page-map="page-map">
@@ -1283,7 +1283,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     pageMapHref = LVCombinePaths(codeBase, page_map->href);
 
                 for ( size_t i=1; i<=EPUB_ITEM_MAX_ITER; i++ ) {
-                    ldomNode * item = doc->nodeFromXPath(lString16("package/spine/itemref[") << fmt::decimal(i) << "]");
+                    ldomNode * item = doc->nodeFromXPath(lString32("package/spine/itemref[") << fmt::decimal(i) << "]");
                     if ( !item )
                         break;
                     EpubItem * epubItem = epubItems.findById( item->getAttributeValue("idref") );
@@ -1327,15 +1327,15 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         m_doc->registerEmbeddedFonts();
     }
 
-    ldomDocumentFragmentWriter appender(&writer, cs16("body"), cs16("DocFragment"), lString16::empty_str );
+    ldomDocumentFragmentWriter appender(&writer, cs32("body"), cs32("DocFragment"), lString32::empty_str );
     writer.OnStart(NULL);
-    writer.OnTagOpenNoAttr(L"", L"body");
+    writer.OnTagOpenNoAttr(U"", U"body");
     int fragmentCount = 0;
     size_t spineItemsNb = spineItems.length();
     for ( size_t i=0; i<spineItemsNb; i++ ) {
         if (spineItems[i]->mediaType == "application/xhtml+xml") {
-            lString16 name = LVCombinePaths(codeBase, spineItems[i]->href);
-            lString16 subst = cs16("_doc_fragment_") + fmt::decimal(i);
+            lString32 name = LVCombinePaths(codeBase, spineItems[i]->href);
+            lString32 subst = cs32("_doc_fragment_") + fmt::decimal(i);
             appender.addPathSubstitution( name, subst );
             //CRLog::trace("subst: %s => %s", LCSTR(name), LCSTR(subst));
         }
@@ -1350,13 +1350,13 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             }
         }
         if (spineItems[i]->mediaType == "application/xhtml+xml") {
-            lString16 name = LVCombinePaths(codeBase, spineItems[i]->href);
+            lString32 name = LVCombinePaths(codeBase, spineItems[i]->href);
             {
                 CRLog::debug("Checking fragment: %s", LCSTR(name));
                 LVStreamRef stream = m_arc->OpenStream(name.c_str(), LVOM_READ);
                 if ( !stream.isNull() ) {
                     appender.setCodeBase( name );
-                    lString16 base = name;
+                    lString32 base = name;
                     LVExtractLastPathElement(base);
                     //CRLog::trace("base: %s", LCSTR(base));
                     //LVXMLParser
@@ -1390,7 +1390,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         // http://idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-nav-def
         navHref = LVCombinePaths(codeBase, navHref);
         LVStreamRef stream = m_arc->OpenStream(navHref.c_str(), LVOM_READ);
-        lString16 codeBase = LVExtractPath( navHref );
+        lString32 codeBase = LVExtractPath( navHref );
         if ( codeBase.length()>0 && codeBase.lastChar()!='/' )
             codeBase.append(1, L'/');
         appender.setCodeBase(codeBase);
@@ -1398,7 +1398,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             ldomDocument * navDoc = LVParseXMLStream( stream );
             if ( navDoc!=NULL ) {
                 // Find <nav epub:type="toc">
-                lUInt16 nav_id = navDoc->getElementNameIndex(L"nav");
+                lUInt16 nav_id = navDoc->getElementNameIndex(U"nav");
                 ldomNode * navDocRoot = navDoc->getRootNode();
                 ldomNode * n = navDocRoot;
                 // Kobo falls back to other <nav type=> when no <nav type=toc> is found,
@@ -1414,14 +1414,14 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                         // and not when we get back to it from a child to process next sibling
                         if (nextChildIndex == 0) {
                             if ( n->isElement() && n->getNodeId() == nav_id ) {
-                                lString16 type = n->getAttributeValue("type");
-                                if ( type == L"toc") {
+                                lString32 type = n->getAttributeValue("type");
+                                if ( type == U"toc") {
                                     n_toc = n;
                                 }
-                                else if ( type == L"landmarks") {
+                                else if ( type == U"landmarks") {
                                     n_landmarks = n;
                                 }
-                                else if ( type == L"page-list") {
+                                else if ( type == U"page-list") {
                                     n_page_list = n;
                                 }
                             }
@@ -1457,12 +1457,12 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     // we could just add it as a top container item for the others, which will
                     // be useless (and bothering), so let's just ignore it.
                     // Get its first and single <OL> child
-                    ldomNode * ol_root = n_toc->findChildElement( LXML_NS_ANY, navDoc->getElementNameIndex(L"ol"), -1 );
+                    ldomNode * ol_root = n_toc->findChildElement( LXML_NS_ANY, navDoc->getElementNameIndex(U"ol"), -1 );
                     if ( ol_root )
                         ReadEpubNavToc( m_doc, ol_root, m_doc->getToc(), appender );
                 }
                 if ( n_page_list ) {
-                    ldomNode * ol_root = n_page_list->findChildElement( LXML_NS_ANY, navDoc->getElementNameIndex(L"ol"), -1 );
+                    ldomNode * ol_root = n_page_list->findChildElement( LXML_NS_ANY, navDoc->getElementNameIndex(U"ol"), -1 );
                     if ( ol_root )
                         ReadEpubNavPageMap( m_doc, ol_root, m_doc->getPageMap(), appender );
                 }
@@ -1478,7 +1478,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     // We may also find in the ncx a <pageList> list
     if ( ( !has_toc || !has_pagemap ) && !ncxHref.empty() ) {
         LVStreamRef stream = m_arc->OpenStream(ncxHref.c_str(), LVOM_READ);
-        lString16 codeBase = LVExtractPath( ncxHref );
+        lString32 codeBase = LVExtractPath( ncxHref );
         if ( codeBase.length()>0 && codeBase.lastChar()!='/' )
             codeBase.append(1, L'/');
         appender.setCodeBase(codeBase);
@@ -1486,13 +1486,13 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             ldomDocument * ncxdoc = LVParseXMLStream( stream );
             if ( ncxdoc!=NULL ) {
                 if ( !has_toc ) {
-                    ldomNode * navMap = ncxdoc->nodeFromXPath( cs16("ncx/navMap"));
+                    ldomNode * navMap = ncxdoc->nodeFromXPath( cs32("ncx/navMap"));
                     if ( navMap!=NULL )
                         ReadEpubNcxToc( m_doc, navMap, m_doc->getToc(), appender );
                 }
                 // http://blog.epubbooks.com/346/marking-up-page-numbers-in-the-epub-ncx/
                 if ( !has_pagemap ) {
-                    ldomNode * pageList = ncxdoc->nodeFromXPath( cs16("ncx/pageList"));
+                    ldomNode * pageList = ncxdoc->nodeFromXPath( cs32("ncx/pageList"));
                     if ( pageList!=NULL )
                         ReadEpubNcxPageList( m_doc, pageList, m_doc->getPageMap(), appender );
                 }
@@ -1509,15 +1509,15 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         LVTocItem * baseToc = m_doc->getToc();
         for ( size_t i=0; i<spineItemsNb; i++ ) {
             if (spineItems[i]->mediaType == "application/xhtml+xml") {
-                lString16 title = spineItems[i]->id; // nothing much else to use
-                lString16 href = appender.convertHref(spineItems[i]->id);
+                lString32 title = spineItems[i]->id; // nothing much else to use
+                lString32 href = appender.convertHref(spineItems[i]->id);
                 if ( href.empty() || href[0]!='#' )
                     continue;
                 ldomNode * target = m_doc->getNodeById(m_doc->getAttrValueIndex(href.substr(1).c_str()));
                 if ( !target )
                     continue;
                 ldomXPointer ptr(target, 0);
-                baseToc->addChild(title, ptr, lString16::empty_str);
+                baseToc->addChild(title, ptr, lString32::empty_str);
             }
         }
     }
@@ -1526,7 +1526,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     // https://wiki.mobileread.com/wiki/Adobe_Digital_Editions#Page-map
     if ( !has_pagemap && !pageMapHref.empty() ) {
         LVStreamRef stream = m_arc->OpenStream(pageMapHref.c_str(), LVOM_READ);
-        lString16 codeBase = LVExtractPath( pageMapHref );
+        lString32 codeBase = LVExtractPath( pageMapHref );
         if ( codeBase.length()>0 && codeBase.lastChar()!='/' )
             codeBase.append(1, L'/');
         appender.setCodeBase(codeBase);
@@ -1534,7 +1534,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             ldomDocument * pagemapdoc = LVParseXMLStream( stream );
             if ( pagemapdoc!=NULL ) {
                 if ( !has_pagemap ) {
-                    ldomNode * pageMap = pagemapdoc->nodeFromXPath( cs16("page-map"));
+                    ldomNode * pageMap = pagemapdoc->nodeFromXPath( cs32("page-map"));
                     if ( pageMap!=NULL )
                         ReadEpubAdobePageMap( m_doc, pageMap, m_doc->getPageMap(), appender );
                 }
@@ -1546,7 +1546,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     if ( m_doc->getPageMap()->getChildCount() > 0 && !pageMapSource.empty() )
         m_doc->getPageMap()->setSource(pageMapSource);
 
-    writer.OnTagClose(L"", L"body");
+    writer.OnTagClose(U"", U"body");
     writer.OnStop();
     CRLog::debug("EPUB: %d documents merged", fragmentCount);
 
@@ -1590,7 +1590,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     }
 #endif
 #if 0
-    LVStreamRef out = LVOpenFileStream( L"c:\\doc.xml" , LVOM_WRITE );
+    LVStreamRef out = LVOpenFileStream( U"c:\\doc.xml" , LVOM_WRITE );
     if ( !out.isNull() )
         m_doc->saveToStream( out, "utf-8" );
 #endif

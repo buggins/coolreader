@@ -69,7 +69,7 @@ extern lString8 familyName(FT_Face face);
 
 inline int myabs(int n) { return n < 0 ? -n : n; }
 
-static lChar16 getReplacementChar(lUInt16 code) {
+static lChar32 getReplacementChar(lUInt32 code) {
     switch (code) {
         case UNICODE_SOFT_HYPHEN_CODE:
             return '-';
@@ -119,6 +119,8 @@ static lChar16 getReplacementChar(lUInt16 code) {
             return '*';
         case 0x25A0: // css_lst_square:
             return '-';
+        default:
+            break;
     }
     return 0;
 }
@@ -145,7 +147,7 @@ bool isHBScriptCursive( hb_script_t script ) {
 }
 #endif
 
-static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lChar16 ch, FT_GlyphSlot slot) // , bool drawMonochrome
+static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lChar32 ch, FT_GlyphSlot slot) // , bool drawMonochrome
 {
     FONT_LOCAL_GLYPH_CACHE_GUARD
     FT_Bitmap *bitmap = &slot->bitmap;
@@ -283,10 +285,10 @@ static lUInt16 char_flags[] = {
 // For use with Harfbuzz light
 struct LVCharTriplet
 {
-    lChar16 prevChar;
-    lChar16 Char;
-    lChar16 nextChar;
-    bool operator==(const struct LVCharTriplet &other) {
+    lChar32 prevChar;
+    lChar32 Char;
+    lChar32 nextChar;
+    bool operator==(const struct LVCharTriplet &other) const {
         return prevChar == other.prevChar && Char == other.Char && nextChar == other.nextChar;
     }
 };
@@ -754,7 +756,7 @@ LVFreeTypeFace::loadFromFile(const char *fname, int index, int size, css_font_fa
 
 #if USE_HARFBUZZ == 1
 
-lChar16 LVFreeTypeFace::filterChar(lChar16 code, lChar16 def_char) {
+lChar32 LVFreeTypeFace::filterChar(lChar32 code, lChar32 def_char) {
     if (code == '\t')     // (FreeSerif doesn't have \t, get a space
         code = ' ';       // rather than a '?')
     FT_UInt ch_glyph_index = FT_Get_Char_Index(_face, code);
@@ -775,7 +777,7 @@ lChar16 LVFreeTypeFace::filterChar(lChar16 code, lChar16 def_char) {
             }
         }
     }
-    lChar16 res = getReplacementChar(code);
+    lChar32 res = getReplacementChar(code);
     if (res != 0)
         return res;
     if (def_char != 0)
@@ -785,7 +787,7 @@ lChar16 LVFreeTypeFace::filterChar(lChar16 code, lChar16 def_char) {
 }
 
 bool LVFreeTypeFace::hbCalcCharWidth(LVCharPosInfo *posInfo, const LVCharTriplet &triplet,
-                                     lChar16 def_char, lUInt32 fallbackPassMask) {
+                                     lChar32 def_char, lUInt32 fallbackPassMask) {
     if (!posInfo)
         return false;
     unsigned int segLen = 0;
@@ -846,7 +848,7 @@ bool LVFreeTypeFace::hbCalcCharWidth(LVCharPosInfo *posInfo, const LVCharTriplet
 
 #endif  // USE_HARFBUZZ==1
 
-FT_UInt LVFreeTypeFace::getCharIndex(lUInt32 code, lChar16 def_char) {
+FT_UInt LVFreeTypeFace::getCharIndex(lUInt32 code, lChar32 def_char) {
     if (code == '\t')
         code = ' ';
     FT_UInt ch_glyph_index = FT_Get_Char_Index(_face, code);
@@ -1012,7 +1014,7 @@ void LVFreeTypeFace::setupHBFeatures()
 }
 #endif
 
-bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar16 def_char, lUInt32 fallbackPassMask) {
+bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar32 def_char, lUInt32 fallbackPassMask) {
     //FONT_GUARD
     int glyph_index = getCharIndex(code, 0);
     if (glyph_index == 0) {
@@ -1201,12 +1203,12 @@ bool LVFreeTypeFace::checkFontLangCompat(const lString8 &langCode) {
     return fullSupport;
 }
 
-lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
+lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
                                     int len,
                                     lUInt16 *widths,
                                     lUInt8 *flags,
                                     int max_width,
-                                    lChar16 def_char, TextLangCfg *lang_cfg,
+                                    lChar32 def_char, TextLangCfg *lang_cfg,
                                     int letter_spacing,
                                     bool allow_hyphenation,
                                     lUInt32 hints, lUInt32 fallbackPassMask) {
@@ -1576,7 +1578,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
         struct LVCharPosInfo posInfo;
         triplet.Char = 0;
         for ( i=0; i<len; i++) {
-            lChar16 ch = text[i];
+            lChar32 ch = text[i];
             bool isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE);
             if (isHyphen) {
                 // do just what would be done below if zero width (no change
@@ -1630,7 +1632,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
     int use_kerning = _allowKerning && FT_HAS_KERNING( _face );
 #endif
     for ( i=0; i<len; i++) {
-        lChar16 ch = text[i];
+        lChar32 ch = text[i];
         bool isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE);
         if (isHyphen) {
             // do just what would be done below if zero width (no change
@@ -1728,7 +1730,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
     return lastFitChar; //i;
 }
 
-lUInt32 LVFreeTypeFace::getTextWidth(const lChar16 *text, int len, TextLangCfg *lang_cfg) {
+lUInt32 LVFreeTypeFace::getTextWidth(const lChar32 *text, int len, TextLangCfg *lang_cfg) {
     static lUInt16 widths[MAX_LINE_CHARS + 1];
     static lUInt8 flags[MAX_LINE_CHARS + 1];
     if (len > MAX_LINE_CHARS)
@@ -1757,7 +1759,7 @@ void LVFreeTypeFace::updateTransform() {
     //        }
 }
 
-LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar16 def_char, lUInt32 fallbackPassMask) {
+LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar32 def_char, lUInt32 fallbackPassMask) {
     //FONT_GUARD
     FT_UInt ch_glyph_index = getCharIndex(ch, 0);
     if (ch_glyph_index == 0) {
@@ -1812,7 +1814,7 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar16 def_char, lUI
             FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
         }
 
-        item = newItem(&_glyph_cache, (lChar16)ch, _slot); //, _drawMonochrome
+        item = newItem(&_glyph_cache, (lChar32)ch, _slot); //, _drawMonochrome
         if (item)
             _glyph_cache.put(item);
     }
@@ -1880,8 +1882,8 @@ LVFontGlyphCacheItem* LVFreeTypeFace::getGlyphByIndex(lUInt32 index) {
 
 #endif  // USE_HARFBUZZ==1
 
-int LVFreeTypeFace::getCharWidth(lChar16 ch, lChar16 def_char) {
-    int w = _wcache.get(ch);
+int LVFreeTypeFace::getCharWidth(lChar32 ch, lChar32 def_char) {
+    lUInt16 w = _wcache.get(ch);
     if (w == CACHED_UNSIGNED_METRIC_NOT_SET) {
         glyph_info_t glyph;
         if (getGlyphInfo(ch, &glyph, def_char)) {
@@ -1891,14 +1893,14 @@ int LVFreeTypeFace::getCharWidth(lChar16 ch, lChar16 def_char) {
         }
         _wcache.put(ch, w);
     }
-    return w;
+    return (int) w;
 }
 
-int LVFreeTypeFace::getLeftSideBearing( lChar16 ch, bool negative_only, bool italic_only )
+int LVFreeTypeFace::getLeftSideBearing( lChar32 ch, bool negative_only, bool italic_only )
 {
     if ( italic_only && !getItalic() )
         return 0;
-    int b = _lsbcache.get(ch);
+    lInt16 b = _lsbcache.get(ch);
     if ( b == CACHED_SIGNED_METRIC_NOT_SET ) {
         glyph_info_t glyph;
         if ( getGlyphInfo( ch, &glyph, '?' ) ) {
@@ -1911,14 +1913,14 @@ int LVFreeTypeFace::getLeftSideBearing( lChar16 ch, bool negative_only, bool ita
     }
     if (negative_only && b >= 0)
         return 0;
-    return b;
+    return (int) b;
 }
 
-int LVFreeTypeFace::getRightSideBearing( lChar16 ch, bool negative_only, bool italic_only )
+int LVFreeTypeFace::getRightSideBearing( lChar32 ch, bool negative_only, bool italic_only )
 {
     if ( italic_only && !getItalic() )
         return 0;
-    int b = _rsbcache.get(ch);
+    lInt16 b = _rsbcache.get(ch);
     if ( b == CACHED_SIGNED_METRIC_NOT_SET ) {
         glyph_info_t glyph;
         if ( getGlyphInfo( ch, &glyph, '?' ) ) {
@@ -1931,11 +1933,11 @@ int LVFreeTypeFace::getRightSideBearing( lChar16 ch, bool negative_only, bool it
     }
     if (negative_only && b >= 0)
         return 0;
-    return b;
+    return (int) b;
 }
 
-int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *text, int len,
-                                    lChar16 def_char, lUInt32 *palette, bool addHyphen, TextLangCfg *lang_cfg,
+int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *text, int len,
+                                   lChar32 def_char, lUInt32 *palette, bool addHyphen, TextLangCfg *lang_cfg,
                                     lUInt32 flags, int letter_spacing, int width, int text_decoration_back_gap, lUInt32 fallbackPassMask) {
     FONT_GUARD
     if (len <= 0 || _face == NULL)
@@ -1959,7 +1961,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *
 
     unsigned int i;
     //lUInt16 prev_width = 0;
-    lChar16 ch;
+    lChar32 ch;
     // measure character widths
     bool isHyphen = false;
     int x0 = x;
@@ -2167,7 +2169,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *
                 // Adjust fallback y so baselines of both fonts match
                 int fb_y = y + _baseline - fallbackFont->getBaseline();
                 bool fb_addHyphen = false; // will be added by main font
-                const lChar16 * fb_text = text + fb_t_start;
+                const lChar32 * fb_text = text + fb_t_start;
                 int fb_len = fb_t_end - fb_t_start;
                 // (width and text_decoration_back_gap are only used for
                 // text decoration, that we dropped: no update needed)

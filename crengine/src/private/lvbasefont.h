@@ -34,8 +34,8 @@ public:
 
     /// draws text string
     virtual int DrawTextString( LVDrawBuf * buf, int x, int y,
-                       const lChar16 * text, int len,
-                       lChar16 def_char, lUInt32 * palette = NULL,
+                       const lChar32 * text, int len,
+                       lChar32 def_char, lUInt32 * palette = NULL,
                        bool addHyphen = false, TextLangCfg * lang_cfg = NULL,
                        lUInt32 flags=0, int letter_spacing=0, int width=-1,
                        int text_decoration_back_gap=0, 

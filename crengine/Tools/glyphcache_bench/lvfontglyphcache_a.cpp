@@ -28,7 +28,7 @@ void LVFontLocalGlyphCacheA::clear() {
     }
 }
 
-LVFontGlyphCacheItemA *LVFontLocalGlyphCacheA::getByChar(lChar16 ch) {
+LVFontGlyphCacheItemA *LVFontLocalGlyphCacheA::getByChar(lChar32 ch) {
     FONT_LOCAL_GLYPH_CACHE_GUARD
     LVFontGlyphCacheItemA *ptr = head;
     for (; ptr; ptr = ptr->next_local) {
@@ -149,7 +149,7 @@ void LVFontGlobalGlyphCacheA::clear() {
     }
 }
 
-LVFontGlyphCacheItemA *LVFontGlyphCacheItemA::newItem(LVFontLocalGlyphCacheA *local_cache, lChar16 ch, int w, int h) {
+LVFontGlyphCacheItemA *LVFontGlyphCacheItemA::newItem(LVFontLocalGlyphCacheA *local_cache, lChar32 ch, int w, int h) {
     LVFontGlyphCacheItemA *item = (LVFontGlyphCacheItemA *) malloc(sizeof(LVFontGlyphCacheItemA)
                                                                  + (w * h - 1) * sizeof(lUInt8));
     if (item) {

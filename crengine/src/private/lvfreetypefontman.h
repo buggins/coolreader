@@ -38,7 +38,7 @@ private:
     LVFontCache _cache;
     FT_Library _library;
     LVFontGlobalGlyphCache _globalCache;
-    lString16 _requiredChars;
+    lString32 _requiredChars;
 #if (DEBUG_FONT_MAN == 1)
     FILE * _log;
 #endif
@@ -111,10 +111,10 @@ public:
     lString8 makeFontFileName(lString8 name);
 
     /// returns available typefaces
-    virtual void getFaceList(lString16Collection &list);
+    virtual void getFaceList(lString32Collection &list);
 
     /// returns registered font files
-    virtual void getFontFileNameList(lString16Collection &list);
+    virtual void getFontFileNameList(lString32Collection &list);
 
     bool SetAlias(lString8 alias, lString8 facename, int id, bool bold, bool italic);
 
@@ -127,13 +127,13 @@ public:
 
     //bool isMonoSpaced( FT_Face face );
     /// registers document font
-    virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString16 name,
+    virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString32 name,
                                       lString8 faceName, bool bold, bool italic);
 
     /// unregisters all document fonts
     virtual void UnregisterDocumentFonts(int documentId);
 
-    virtual bool RegisterExternalFont(lString16 name, lString8 family_name, bool bold, bool italic);
+    virtual bool RegisterExternalFont(lString32 name, lString8 family_name, bool bold, bool italic);
 
     virtual bool RegisterFont(lString8 name);
 

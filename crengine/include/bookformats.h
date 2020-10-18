@@ -23,8 +23,8 @@ typedef enum {
     // Add new types of formats only at the end of this enum to save the correct format number in the history file/database!
 } doc_format_t;
 
-lString16 LVDocFormatName(int fmt);
-int LVDocFormatFromExtension(lString16 &pathName);
+lString32 LVDocFormatName(int fmt);
+int LVDocFormatFromExtension(lString32 &pathName);
 lString8 LVDocFormatCssFileName(int fmt);
 
 

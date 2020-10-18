@@ -10,15 +10,15 @@
     See LICENSE file for details.
 */
 
-#ifndef __LV_STRING16HASHEDCOLLECTION_H_INCLUDED__
-#define __LV_STRING16HASHEDCOLLECTION_H_INCLUDED__
+#ifndef __LV_STRING32HASHEDCOLLECTION_H_INCLUDED__
+#define __LV_STRING32HASHEDCOLLECTION_H_INCLUDED__
 
-#include "lvstring16collection.h"
+#include "lvstring32collection.h"
 
 class SerialBuf;
 
 /// hashed wide string collection
-class lString16HashedCollection : public lString16Collection
+class lString16HashedCollection : public lString32Collection
 {
 private:
     int hashSize;
@@ -41,8 +41,8 @@ public:
     lString16HashedCollection( lString16HashedCollection & v );
     lString16HashedCollection( lUInt32 hashSize );
     ~lString16HashedCollection();
-    int add( const lChar16 * s );
-    int find( const lChar16 * s );
+    int add( const lChar32 * s );
+    int find( const lChar32 * s );
 };
 
-#endif  // __LV_STRING16HASHEDCOLLECTION_H_INCLUDED__
+#endif  // __LV_STRING32HASHEDCOLLECTION_H_INCLUDED__

@@ -20,7 +20,7 @@
 #define MAX_FONT_SIZE 0x100000
 
 #ifndef __cplusplus
-int lvfontIsUnicodeSpace( lChar16 code )
+int lvfontIsUnicodeSpace( lChar32 code )
 {
     /* TODO: add other space codes here */
     return (code==0x0020);
@@ -127,11 +127,11 @@ void lvfontClose( lvfont_handle pfont )
 }
 
 lUInt16 lvfontMeasureText( const lvfont_handle pfont, 
-                    const lChar16 * text, int len, 
+                    const lChar32 * text, int len, 
                     lUInt16 * widths,
                     lUInt8 * flags,
                     int max_width,
-                    lChar16 def_char
+                    lChar32 def_char
                  )
 {
     lUInt16 wsum = 0;
@@ -141,7 +141,7 @@ lUInt16 lvfontMeasureText( const lvfont_handle pfont,
     lUInt16 hyphwidth = 0;
     lUInt8 bflags;
     int isSpace;
-    lChar16 ch;
+    lChar32 ch;
     int hwStart, hwEnd;
 
     glyph = lvfontGetGlyph( pfont, UNICODE_SOFT_HYPHEN_CODE );
@@ -180,7 +180,7 @@ lUInt16 lvfontMeasureText( const lvfont_handle pfont,
     }
     for (hwEnd=nchars; hwEnd<len; hwEnd++)
     {
-        lChar16 ch = text[hwEnd];
+        lChar32 ch = text[hwEnd];
         if (lvfontIsUnicodeSpace(ch))
             break;
         if (flags[hwEnd-1]&LCHAR_ALLOW_WRAP_AFTER)

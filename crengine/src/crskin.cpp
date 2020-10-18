@@ -60,7 +60,7 @@ lvPoint fromSkinPercent( lvPoint pt, lvPoint fullpt )
 }
 
 /// encodes percent value*100 (0..10000), to store in skin, from string like "75%" or "10"
-int toSkinPercent( const lString16 & value, int defValue, bool * res )
+int toSkinPercent( const lString32 & value, int defValue, bool * res )
 {
     // "75%" format - in percent
     int p = value.pos("%");
@@ -90,7 +90,7 @@ int toSkinPercent( const lString16 & value, int defValue, bool * res )
     return defValue;
 }
 
-CRPageSkinRef CRPageSkinList::findByName( const lString16 & name )
+CRPageSkinRef CRPageSkinList::findByName( const lString32 & name )
 {
     for ( int i=0; i<length(); i++ ) {
         if ( get(i)->getName()==name )
@@ -245,20 +245,20 @@ void CRIconList::draw( LVDrawBuf & buf, const lvRect & rc )
 }
 
 /// retuns path to base definition, if attribute base="#nodeid" is specified for element of path
-lString16 CRSkinContainer::getBasePath( const lChar16 * path )
+lString32 CRSkinContainer::getBasePath( const lChar32 * path )
 {
-    lString16 res;
-    ldomXPointer p = getXPointer( lString16( path ) );
+    lString32 res;
+    ldomXPointer p = getXPointer( lString32( path ) );
     if ( !p )
         return res;
     if ( !p.getNode()->isElement() )
         return res;
-    lString16 value = p.getNode()->getAttributeValue("base");
+    lString32 value = p.getNode()->getAttributeValue("base");
     if (value.empty() || value[0] != '#')
         return res;
     res = pathById( value.c_str() + 1 );
     crtrace log;
-    log << "CRSkinContainer::getBasePath( " << lString16( path ) << " ) = " << res;
+    log << "CRSkinContainer::getBasePath( " << lString32( path ) << " ) = " << res;
     return res;
 }
 
@@ -268,35 +268,35 @@ class CRSkinImpl : public CRSkinContainer
 protected:
     LVContainerRef _container;
     LVAutoPtr<ldomDocument> _doc;
-    LVCacheMap<lString16,LVImageSourceRef> _imageCache;
-    LVCacheMap<lString16,CRRectSkinRef> _rectCache;
-    LVCacheMap<lString16,CRScrollSkinRef> _scrollCache;
-    LVCacheMap<lString16,CRWindowSkinRef> _windowCache;
-    LVCacheMap<lString16,CRMenuSkinRef> _menuCache;
-    LVCacheMap<lString16,CRPageSkinRef> _pageCache;
-    LVCacheMap<lString16,CRToolBarSkinRef> _toolbarCache;
+    LVCacheMap<lString32,LVImageSourceRef> _imageCache;
+    LVCacheMap<lString32,CRRectSkinRef> _rectCache;
+    LVCacheMap<lString32,CRScrollSkinRef> _scrollCache;
+    LVCacheMap<lString32,CRWindowSkinRef> _windowCache;
+    LVCacheMap<lString32,CRMenuSkinRef> _menuCache;
+    LVCacheMap<lString32,CRPageSkinRef> _pageCache;
+    LVCacheMap<lString32,CRToolBarSkinRef> _toolbarCache;
     CRPageSkinListRef _pageSkinList;
 public:
     /// returns scroll skin by path or #id
-    virtual CRScrollSkinRef getScrollSkin( const lChar16 * path );
+    virtual CRScrollSkinRef getScrollSkin( const lChar32 * path );
     /// returns rect skin by path or #id
-    virtual CRRectSkinRef getRectSkin( const lChar16 * path );
+    virtual CRRectSkinRef getRectSkin( const lChar32 * path );
     /// returns window skin by path or #id
-    virtual CRWindowSkinRef getWindowSkin( const lChar16 * path );
+    virtual CRWindowSkinRef getWindowSkin( const lChar32 * path );
     /// returns menu skin by path or #id
-    virtual CRMenuSkinRef getMenuSkin( const lChar16 * path );
+    virtual CRMenuSkinRef getMenuSkin( const lChar32 * path );
     /// returns book page skin by path or #id
-    virtual CRPageSkinRef getPageSkin( const lChar16 * path );
+    virtual CRPageSkinRef getPageSkin( const lChar32 * path );
     /// returns book page skin list
     virtual CRPageSkinListRef getPageSkinList();
     /// return ToolBar skin by path or #id
-	virtual CRToolBarSkinRef getToolBarSkin( const lChar16 * path );
+	virtual CRToolBarSkinRef getToolBarSkin( const lChar32 * path );
     /// get DOM path by id
-    virtual lString16 pathById( const lChar16 * id );
+    virtual lString32 pathById( const lChar32 * id );
     /// gets image from container
-    virtual LVImageSourceRef getImage( const lChar16 * filename );
+    virtual LVImageSourceRef getImage( const lChar32 * filename );
     /// gets doc pointer by asolute path
-    virtual ldomXPointer getXPointer( const lString16 & xPointerStr ) { return _doc->createXPointer( xPointerStr ); }
+    virtual ldomXPointer getXPointer( const lString32 & xPointerStr ) { return _doc->createXPointer( xPointerStr ); }
     /// garbage collection
     virtual void gc()
     {
@@ -435,21 +435,21 @@ static const char *menu_shortcut_background[] = {
 
 
 typedef struct {
-    const lChar16 * filename;
+    const lChar32 * filename;
     const char * * xpm;
 } standard_image_item_t;
 
 static standard_image_item_t standard_images [] = {
-    { L"std_menu_shortcut_background.xpm", menu_shortcut_background },
-    { L"std_menu_item_background.xpm", menu_item_background },
+    { U"std_menu_shortcut_background.xpm", menu_shortcut_background },
+    { U"std_menu_item_background.xpm", menu_item_background },
     { NULL, NULL }
 };
 
 /// gets image from container
-LVImageSourceRef CRSkinImpl::getImage(  const lChar16 * filename  )
+LVImageSourceRef CRSkinImpl::getImage(  const lChar32 * filename  )
 {
     LVImageSourceRef res;
-    lString16 fn( filename );
+    lString32 fn( filename );
     if ( _imageCache.get( fn, res ) )
         return res; // found in cache
 
@@ -480,7 +480,7 @@ bool CRSkinImpl::open( LVContainerRef container )
 {
     if ( container.isNull() )
         return false;
-    LVStreamRef stream = container->OpenStream( L"cr3skin.xml", LVOM_READ );
+    LVStreamRef stream = container->OpenStream( U"cr3skin.xml", LVOM_READ );
     if ( stream.isNull() ) {
         CRLog::error("cannot open skin: cr3skin.xml not found");
         return false;
@@ -508,25 +508,25 @@ bool CRSkinImpl::open( lString8 simpleXml )
 }
 
 /// reads string value from attrname attribute of element specified by path, returns empty string if not found
-lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * attrname, bool * res )
+lString32 CRSkinContainer::readString( const lChar32 * path, const lChar32 * attrname, bool * res )
 {
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr )
-        return lString16::empty_str;
+        return lString32::empty_str;
     if ( !ptr.getNode()->isElement() )
-        return lString16::empty_str;
-	//lString16 pnname = ptr.getNode()->getParentNode()->getNodeName();
-	//lString16 nname = ptr.getNode()->getNodeName();
-    lString16 value = ptr.getNode()->getAttributeValue(attrname);
+        return lString32::empty_str;
+	//lString32 pnname = ptr.getNode()->getParentNode()->getNodeName();
+	//lString32 nname = ptr.getNode()->getNodeName();
+    lString32 value = ptr.getNode()->getAttributeValue(attrname);
 	if ( res )
 		*res = true;
     return value;
 }
 
 /// reads string value from attrname attribute of element specified by path, returns defValue if not found
-lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * attrname, const lString16 & defValue, bool * res )
+lString32 CRSkinContainer::readString( const lChar32 * path, const lChar32 * attrname, const lString32 & defValue, bool * res )
 {
-    lString16 value = readString( path, attrname );
+    lString32 value = readString( path, attrname );
     if ( value.empty() )
         return defValue;
 	if ( res )
@@ -535,9 +535,9 @@ lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * att
 }
 
 /// reads color value from attrname attribute of element specified by path, returns defValue if not found
-lUInt32 CRSkinContainer::readColor( const lChar16 * path, const lChar16 * attrname, lUInt32 defValue, bool * res  )
+lUInt32 CRSkinContainer::readColor( const lChar32 * path, const lChar32 * attrname, lUInt32 defValue, bool * res  )
 {
-    lString16 value = readString( path, attrname );
+    lString32 value = readString( path, attrname );
     if ( value.empty() )
         return defValue;
     css_length_t cv;
@@ -551,13 +551,13 @@ lUInt32 CRSkinContainer::readColor( const lChar16 * path, const lChar16 * attrna
 }
 
 /// reads rect value from attrname attribute of element specified by path, returns defValue if not found
-lvRect CRSkinContainer::readRect( const lChar16 * path, const lChar16 * attrname, lvRect defValue, bool * res )
+lvRect CRSkinContainer::readRect( const lChar32 * path, const lChar32 * attrname, lvRect defValue, bool * res )
 {
-    lString16 value = readString( path, attrname );
+    lString32 value = readString( path, attrname );
     if ( value.empty() )
         return defValue;
     lvRect p = defValue;
-    lString16 s1, s2, s3, s4, s;
+    lString32 s1, s2, s3, s4, s;
     s = value;
     if ( !s.split2(",", s1, s2) )
         return p;
@@ -591,9 +591,9 @@ lvRect CRSkinContainer::readRect( const lChar16 * path, const lChar16 * attrname
 }
 
 /// reads boolean value from attrname attribute of element specified by path, returns defValue if not found
-bool CRSkinContainer::readBool( const lChar16 * path, const lChar16 * attrname, bool defValue, bool * res )
+bool CRSkinContainer::readBool( const lChar32 * path, const lChar32 * attrname, bool defValue, bool * res )
 {
-    lString16 value = readString( path, attrname );
+    lString32 value = readString( path, attrname );
     if (value.empty())
         return defValue;
     if (value == "true" || value == "yes")
@@ -606,9 +606,9 @@ bool CRSkinContainer::readBool( const lChar16 * path, const lChar16 * attrname, 
 }
 
 /// reads image transform value from attrname attribute of element specified by path, returns defValue if not found
-ImageTransform CRSkinContainer::readTransform( const lChar16 * path, const lChar16 * attrname, ImageTransform defValue, bool * res )
+ImageTransform CRSkinContainer::readTransform( const lChar32 * path, const lChar32 * attrname, ImageTransform defValue, bool * res )
 {
-    lString16 value = readString( path, attrname );
+    lString32 value = readString( path, attrname );
     if ( value.empty() )
         return defValue;
     value.lowercase();
@@ -637,9 +637,9 @@ ImageTransform CRSkinContainer::readTransform( const lChar16 * path, const lChar
 }
 
 /// reads h align value from attrname attribute of element specified by path, returns defValue if not found
-int CRSkinContainer::readHAlign( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res )
+int CRSkinContainer::readHAlign( const lChar32 * path, const lChar32 * attrname, int defValue, bool * res )
 {
-    lString16 value = readString( path, attrname );
+    lString32 value = readString( path, attrname );
     if (value.empty())
         return defValue;
     if (value == "left") {
@@ -662,9 +662,9 @@ int CRSkinContainer::readHAlign( const lChar16 * path, const lChar16 * attrname,
 }
 
 /// reads h align value from attrname attribute of element specified by path, returns defValue if not found
-int CRSkinContainer::readVAlign( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res )
+int CRSkinContainer::readVAlign( const lChar32 * path, const lChar32 * attrname, int defValue, bool * res )
 {
-    lString16 value = readString( path, attrname );
+    lString32 value = readString( path, attrname );
     if (value.empty())
         return defValue;
     if (value == "top") {
@@ -687,9 +687,9 @@ int CRSkinContainer::readVAlign( const lChar16 * path, const lChar16 * attrname,
 }
 
 /// reads int value from attrname attribute of element specified by path, returns defValue if not found
-int CRSkinContainer::readInt( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res )
+int CRSkinContainer::readInt( const lChar32 * path, const lChar32 * attrname, int defValue, bool * res )
 {
-    lString16 value = readString( path, attrname );
+    lString32 value = readString( path, attrname );
     if ( value.empty() )
         return defValue;
     value.trim();
@@ -697,13 +697,13 @@ int CRSkinContainer::readInt( const lChar16 * path, const lChar16 * attrname, in
 }
 
 /// reads point(size) value from attrname attribute of element specified by path, returns defValue if not found
-lvPoint CRSkinContainer::readSize( const lChar16 * path, const lChar16 * attrname, lvPoint defValue, bool * res )
+lvPoint CRSkinContainer::readSize( const lChar32 * path, const lChar32 * attrname, lvPoint defValue, bool * res )
 {
-    lString16 value = readString( path, attrname );
+    lString32 value = readString( path, attrname );
     if ( value.empty() )
         return defValue;
     lvPoint p = defValue;
-    lString16 s1, s2;
+    lString32 s1, s2;
     if ( !value.split2(",", s1, s2) )
         return p;
     s1.trim();
@@ -721,9 +721,9 @@ lvPoint CRSkinContainer::readSize( const lChar16 * path, const lChar16 * attrnam
 }
 
 /// reads rect value from attrname attribute of element specified by path, returns null ref if not found
-LVImageSourceRef CRSkinContainer::readImage( const lChar16 * path, const lChar16 * attrname, bool * r )
+LVImageSourceRef CRSkinContainer::readImage( const lChar32 * path, const lChar32 * attrname, bool * r )
 {
-    lString16 value = readString( path, attrname );
+    lString32 value = readString( path, attrname );
     if ( value.empty() ) {
 #ifdef TRACE_SKIN_ERRORS
         crtrace log;
@@ -745,11 +745,11 @@ LVImageSourceRef CRSkinContainer::readImage( const lChar16 * path, const lChar16
 }
 
 /// reads rect value from attrname attribute of element specified by path, returns null ref if not found
-CRIconListRef CRSkinContainer::readIcons( const lChar16 * path, bool * r )
+CRIconListRef CRSkinContainer::readIcons( const lChar32 * path, bool * r )
 {
     CRIconListRef list = CRIconListRef(new CRIconList() );
     for ( int i=1; i<16; i++ ) {
-        lString16 p = lString16(path) << "[" << fmt::decimal(i) << "]";
+        lString32 p = lString32(path) << "[" << fmt::decimal(i) << "]";
         CRIconSkin * icon = new CRIconSkin();
         if ( readIconSkin(p.c_str(), icon ) )
             list->add( CRIconSkinRef(icon) );
@@ -782,7 +782,7 @@ CRSkinRef LVOpenSimpleSkin( const lString8 & xml )
 }
 
 /// opens skin from directory or .zip file
-CRSkinRef LVOpenSkin( const lString16 & pathname )
+CRSkinRef LVOpenSkin( const lString32 & pathname )
 {
     LVContainerRef container = LVOpenDirectory( pathname.c_str() );
     if ( !container ) {
@@ -870,7 +870,7 @@ CRSkinnedItem::CRSkinnedItem()
 {
 }
 
-void CRSkinnedItem::setFontFace( lString16 face )
+void CRSkinnedItem::setFontFace( lString32 face )
 {
     if ( _fontFace != face ) {
         _fontFace = face;
@@ -910,16 +910,16 @@ LVFontRef CRSkinnedItem::getFont()
     return _font;
 }
 
-lvPoint CRSkinnedItem::measureText( lString16 text )
+lvPoint CRSkinnedItem::measureText( lString32 text )
 {
     int th = getFont()->getHeight();
     int tw = getFont()->getTextWidth( text.c_str(), text.length() );
     return lvPoint( tw, th );
 }
 
-static void wrapLine( lString16Collection & dst, lString16 stringToSplit, int maxWidth, LVFontRef font )
+static void wrapLine( lString32Collection & dst, lString32 stringToSplit, int maxWidth, LVFontRef font )
 {
-    lString16 str = stringToSplit;
+    lString32 str = stringToSplit;
     int w = font->getTextWidth( str.c_str(), str.length() );
     if ( w<=maxWidth ) {
         dst.add( str );
@@ -929,10 +929,10 @@ static void wrapLine( lString16Collection & dst, lString16 stringToSplit, int ma
         int wpos = 1;
         int wquality = 0;
         for ( int i=str.length(); i>=0; i-- ) {
-            lChar16 ch = str[i];
+            lChar32 ch = str[i];
             if ( ch!=' ' && ch!=0 && wpos>1 )
                 continue;
-            lChar16 prevChar = i>0 ? str[i-1] : 0;
+            lChar32 prevChar = i>0 ? str[i-1] : 0;
             w = font->getTextWidth( str.c_str(), i );
             int q = 0;
             if ( ch!=' ' && ch!=0 )
@@ -948,7 +948,7 @@ static void wrapLine( lString16Collection & dst, lString16 stringToSplit, int ma
             if ( wquality>1 && w<=maxWidth*2/3 )
                 break;
         }
-        lString16 s = str.substr(0, wpos);
+        lString32 s = str.substr(0, wpos);
         s.trim();
         if ( s.length()>0 )
             dst.add( s );
@@ -957,7 +957,7 @@ static void wrapLine( lString16Collection & dst, lString16 stringToSplit, int ma
     }
 }
 
-lvPoint CRRectSkin::measureTextItem( lString16 text )
+lvPoint CRRectSkin::measureTextItem( lString32 text )
 {
     lvPoint sz = CRSkinnedItem::measureText( text );
     sz.x += _margins.left + _margins.right;
@@ -969,15 +969,15 @@ lvPoint CRRectSkin::measureTextItem( lString16 text )
     return sz;
 }
 
-void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font, lUInt32 textColor, lUInt32 bgColor, int flags )
+void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString32 text, LVFontRef font, lUInt32 textColor, lUInt32 bgColor, int flags )
 {
     SAVE_DRAW_STATE( buf );
     if ( font.isNull() )
         font = getFont();
     if ( font.isNull() )
         return;
-    lString16Collection lines;
-    lString16 tabText;
+    lString32Collection lines;
+    lString32 tabText;
     int tabPos = text.pos("\t");
     if ( tabPos>=0 ) {
         if ( flags & SKIN_EXTEND_TAB ) {
@@ -987,10 +987,10 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
             text[tabPos] = L' ';
         }
     }
-    lString16 cr("\n");
+    lString32 cr("\n");
     if ( flags & SKIN_WORD_WRAP ) {
-        lString16Collection crlines;
-        lString16 s1, s2;
+        lString32Collection crlines;
+        lString32 s1, s2;
         while ( text.split2( cr, s1, s2 ) ) {
             crlines.add(s1);
             text = s2;
@@ -1000,8 +1000,8 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
             wrapLine( lines, crlines[i], rc.width(), font );
         }
     } else {
-        lString16 s = text;
-        while ( s.replace( cr, cs16(" ") ) )
+        lString32 s = text;
+        while ( s.replace( cr, cs32(" ") ) )
             ;
         lines.add( s );
     }
@@ -1026,7 +1026,7 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
         y += dy;
 
     for ( int i=0; i<lines.length(); i++ ) {
-        lString16 s = lines[i];
+        lString32 s = lines[i];
         int tw = font->getTextWidth( s.c_str(), s.length() );
         int x = txtrc.left;
         int dx = txtrc.width() - tw;
@@ -1046,12 +1046,12 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
     buf.SetClipRect( &oldRc );
 }
 
-void CRRectSkin::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font )
+void CRRectSkin::drawText( LVDrawBuf & buf, const lvRect & rc, lString32 text, LVFontRef font )
 {
     lvRect rect = getClientRect( rc );
     CRSkinnedItem::drawText( buf, rect, text, font );
 }
-void CRRectSkin::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text )
+void CRRectSkin::drawText( LVDrawBuf & buf, const lvRect & rc, lString32 text )
 {
     lvRect rect = CRRectSkin::getClientRect( rc );
     CRSkinnedItem::drawText( buf, rect, text );
@@ -1115,7 +1115,7 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
                 r.right = r.left + tabwidth;
                 if ( i+1!=page ) {
                     _bottomTabSkin->draw(buf, r);
-                    lString16 label = lString16::itoa(i+1);
+                    lString32 label = lString32::itoa(i+1);
                     _bottomTabSkin->drawText(buf, r, label);
                 }
                 r.left += tabwidth - r.height()/6;
@@ -1127,7 +1127,7 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
                 r.right = r.left + tabwidth;
                 if ( i+1==page ) {
                     _bottomActiveTabSkin->draw(buf, r);
-                    lString16 label = lString16::itoa(i+1);
+                    lString32 label = lString32::itoa(i+1);
                     _bottomActiveTabSkin->drawText(buf, r, label);
                 }
                 r.left += tabwidth - r.height()/6;
@@ -1156,7 +1156,7 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
 
     if ( _hBody.isNull() ) {
         // text label with optional arrows
-        lString16 label;
+        lString32 label;
         label << fmt::decimal(page) << " / " << fmt::decimal(pages);
         // calc label width
         int w = getFont()->getTextWidth( label.c_str(), label.length() );
@@ -1235,7 +1235,7 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
             sliderRect.width(), sliderRect.height() );
         buf.Draw( img, sliderRect.left, sliderRect.top, sliderRect.width(), sliderRect.height(), false );
         if ( this->getShowPageNumbers() ) {
-            lString16 label;
+            lString32 label;
             label << fmt::decimal(page) << " / " << fmt::decimal(pages);
             drawText( buf, sliderRect, label );
         }
@@ -1414,10 +1414,10 @@ public:
         _titleSkin->setFontBold( true );
         _titleSkin->setFontSize( 28 );
         _itemSkin = CRRectSkinRef( new CRRectSkin() );
-        _itemSkin->setBackgroundImage( skin->getImage( L"std_menu_item_background.xpm" ) );
+        _itemSkin->setBackgroundImage( skin->getImage( U"std_menu_item_background.xpm" ) );
         _itemSkin->setBorderWidths( lvRect( 8, 8, 8, 8 ) );
         _itemShortcutSkin = CRRectSkinRef( new CRRectSkin() );
-        _itemShortcutSkin->setBackgroundImage( skin->getImage( L"std_menu_shortcut_background.xpm" ) );
+        _itemShortcutSkin->setBackgroundImage( skin->getImage( U"std_menu_shortcut_background.xpm" ) );
         _itemShortcutSkin->setBorderWidths( lvRect( 12, 8, 8, 8 ) );
         _itemShortcutSkin->setTextColor( 0x555555 );
         _itemShortcutSkin->setTextHAlign( SKIN_HALIGN_CENTER );
@@ -1427,17 +1427,17 @@ public:
 
 CRButtonSkin::CRButtonSkin() { }
 
-bool CRSkinContainer::readButtonSkin(  const lChar16 * path, CRButtonSkin * res )
+bool CRSkinContainer::readButtonSkin(  const lChar32 * path, CRButtonSkin * res )
 {
     bool flg = false;
-    lString16 base = getBasePath( path );
+    lString32 base = getBasePath( path );
     RecursionLimit limit;
     if ( !base.empty() && limit.test() ) {
         // read base skin first
         flg = readButtonSkin( base.c_str(), res ) || flg;
     }
 
-    lString16 p( path );
+    lString32 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
 #ifdef TRACE_SKIN_ERRORS
@@ -1448,10 +1448,10 @@ bool CRSkinContainer::readButtonSkin(  const lChar16 * path, CRButtonSkin * res 
     }
 
     flg = readRectSkin( path, res ) || flg;
-    res->setNormalImage( readImage( path, L"normal", &flg ) );
-    res->setDisabledImage( readImage( path, L"disabled", &flg ) );
-    res->setPressedImage( readImage( path, L"pressed", &flg ) );
-    res->setSelectedImage( readImage( path, L"selected", &flg ) );
+    res->setNormalImage( readImage( path, U"normal", &flg ) );
+    res->setDisabledImage( readImage( path, U"disabled", &flg ) );
+    res->setPressedImage( readImage( path, U"pressed", &flg ) );
+    res->setSelectedImage( readImage( path, U"selected", &flg ) );
 
     LVImageSourceRef img = res->getNormalImage();
     lvRect margins = res->getBorderWidths();
@@ -1472,17 +1472,17 @@ bool CRSkinContainer::readButtonSkin(  const lChar16 * path, CRButtonSkin * res 
 
 CRScrollSkin::CRScrollSkin() : _autohide(false), _showPageNumbers(true), _location(CRScrollSkin::Status) { }
 
-bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res )
+bool CRSkinContainer::readScrollSkin(  const lChar32 * path, CRScrollSkin * res )
 {
     bool flg = false;
-    lString16 base = getBasePath( path );
+    lString32 base = getBasePath( path );
     RecursionLimit limit;
     if ( !base.empty() && limit.test() ) {
         // read base skin first
         flg = readScrollSkin( base.c_str(), res ) || flg;
     }
 
-    lString16 p( path );
+    lString32 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
 #ifdef TRACE_SKIN_ERRORS
@@ -1496,9 +1496,9 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
 
     flg = readRectSkin( path, res ) || flg;
 
-    res->setAutohide( readBool( (p).c_str(), L"autohide", res->getAutohide()) );
-    res->setShowPageNumbers( readBool( (p).c_str(), L"show-page-numbers", res->getShowPageNumbers()) );
-    lString16 l = readString( (p).c_str(), L"location", lString16::empty_str );
+    res->setAutohide( readBool( (p).c_str(), U"autohide", res->getAutohide()) );
+    res->setShowPageNumbers( readBool( (p).c_str(), U"show-page-numbers", res->getShowPageNumbers()) );
+    lString32 l = readString( (p).c_str(), U"location", lString32::empty_str );
     if ( !l.empty() ) {
         l.lowercase();
         if (l == "title")
@@ -1546,16 +1546,16 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
         flg = true;
     }
 
-    LVImageSourceRef hf = readImage( (p + "/hbody").c_str(), L"frame", &flg );
+    LVImageSourceRef hf = readImage( (p + "/hbody").c_str(), U"frame", &flg );
     if ( !hf.isNull() )
         res->setHBody( hf );
-    LVImageSourceRef hs = readImage( (p + "/hbody").c_str(), L"slider", &flg );
+    LVImageSourceRef hs = readImage( (p + "/hbody").c_str(), U"slider", &flg );
     if ( !hs.isNull() )
         res->setHSlider( hs );
-    LVImageSourceRef vf = readImage( (p + "/vbody").c_str(), L"frame", &flg );
+    LVImageSourceRef vf = readImage( (p + "/vbody").c_str(), U"frame", &flg );
     if ( !vf.isNull() )
         res->setVBody( vf );
-    LVImageSourceRef vs = readImage( (p + "/vbody").c_str(), L"slider", &flg );
+    LVImageSourceRef vs = readImage( (p + "/vbody").c_str(), U"slider", &flg );
     if ( !vs.isNull() )
         res->setVSlider(vs );
 
@@ -1567,16 +1567,16 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
     return flg;
 }
 
-bool CRSkinContainer::readIconSkin(  const lChar16 * path, CRIconSkin * res )
+bool CRSkinContainer::readIconSkin(  const lChar32 * path, CRIconSkin * res )
 {
     bool flg = false;
-    lString16 base = getBasePath( path );
+    lString32 base = getBasePath( path );
     RecursionLimit limit;
     if ( !base.empty() && limit.test() ) {
         // read base skin first
         flg = readIconSkin( base.c_str(), res ) || flg;
     }
-    lString16 p( path );
+    lString32 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
 #ifdef TRACE_SKIN_ERRORS
@@ -1585,32 +1585,32 @@ bool CRSkinContainer::readIconSkin(  const lChar16 * path, CRIconSkin * res )
 #endif
         return false;
     }
-    LVImageSourceRef image = readImage( path, L"image", &flg );
+    LVImageSourceRef image = readImage( path, U"image", &flg );
     if ( !image.isNull() )
         res->setImage( image );
-    res->setHAlign( readHAlign( path, L"halign", res->getHAlign(), &flg) );
-    res->setVAlign( readVAlign( path, L"valign", res->getVAlign(), &flg) );
-    res->setBgColor( readColor( path, L"color", res->getBgColor(), &flg) );
-    res->setHTransform( readTransform( path, L"htransform", res->getHTransform(), &flg) );
-    res->setVTransform( readTransform( path, L"vtransform", res->getVTransform(), &flg) );
-    res->setSplitPoint( readSize( path, L"split", res->getSplitPoint(), &flg) );
-    res->setPos( readSize( path, L"pos", res->getPos(), &flg) );
-    res->setSize( readSize( path, L"size", res->getSize(), &flg) );
+    res->setHAlign( readHAlign( path, U"halign", res->getHAlign(), &flg) );
+    res->setVAlign( readVAlign( path, U"valign", res->getVAlign(), &flg) );
+    res->setBgColor( readColor( path, U"color", res->getBgColor(), &flg) );
+    res->setHTransform( readTransform( path, U"htransform", res->getHTransform(), &flg) );
+    res->setVTransform( readTransform( path, U"vtransform", res->getVTransform(), &flg) );
+    res->setSplitPoint( readSize( path, U"split", res->getSplitPoint(), &flg) );
+    res->setPos( readSize( path, U"pos", res->getPos(), &flg) );
+    res->setSize( readSize( path, U"size", res->getSize(), &flg) );
     return flg;
 }
 
-bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
+bool CRSkinContainer::readRectSkin(  const lChar32 * path, CRRectSkin * res )
 {
     bool flg = false;
 
-    lString16 base = getBasePath( path );
+    lString32 base = getBasePath( path );
     RecursionLimit limit;
     if ( !base.empty() && limit.test() ) {
         // read base skin first
         flg = readRectSkin( base.c_str(), res ) || flg;
     }
 
-    lString16 p( path );
+    lString32 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
 #ifdef TRACE_SKIN_ERRORS
@@ -1620,10 +1620,10 @@ bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
         return false;
     }
 
-    lString16 bgpath = p + "/background";
-    lString16 borderpath = p + "/border";
-    lString16 textpath = p + "/text";
-    lString16 sizepath = p + "/size";
+    lString32 bgpath = p + "/background";
+    lString32 borderpath = p + "/border";
+    lString32 textpath = p + "/text";
+    lString32 sizepath = p + "/size";
 
     CRIconListRef icons;
     bool bgIconsFlag = false;
@@ -1632,23 +1632,23 @@ bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
         res->setBgIcons( icons );
         flg = true;
     }
-    //res->setBackgroundColor( readColor( bgpath.c_str(), L"color", res->getBackgroundColor(), &flg ) );
-    res->setBorderWidths( readRect( borderpath.c_str(), L"widths", res->getBorderWidths(), &flg ) );
-    res->setMinSize( readSize( sizepath.c_str(), L"minvalue", res->getMinSize(), &flg ) );
-    res->setMaxSize( readSize( sizepath.c_str(), L"maxvalue", res->getMaxSize(), &flg ) );
-    res->setFontFace( readString( textpath.c_str(), L"face", res->getFontFace(), &flg ) );
-    res->setTextColor( readColor( textpath.c_str(), L"color", res->getTextColor(), &flg ) );
-    res->setFontBold( readBool( textpath.c_str(), L"bold", res->getFontBold(), &flg ) );
-    res->setWordWrap( readBool( textpath.c_str(), L"wordwrap", res->getWordWrap(), &flg ) );
-    res->setFontItalic( readBool( textpath.c_str(), L"italic", res->getFontItalic(), &flg ) );
-    res->setFontSize( readInt( textpath.c_str(), L"size", res->getFontSize(), &flg ) );
-    res->setTextHAlign( readHAlign( textpath.c_str(), L"halign", res->getTextHAlign(), &flg) );
-    res->setTextVAlign( readVAlign( textpath.c_str(), L"valign", res->getTextVAlign(), &flg) );
+    //res->setBackgroundColor( readColor( bgpath.c_str(), U"color", res->getBackgroundColor(), &flg ) );
+    res->setBorderWidths( readRect( borderpath.c_str(), U"widths", res->getBorderWidths(), &flg ) );
+    res->setMinSize( readSize( sizepath.c_str(), U"minvalue", res->getMinSize(), &flg ) );
+    res->setMaxSize( readSize( sizepath.c_str(), U"maxvalue", res->getMaxSize(), &flg ) );
+    res->setFontFace( readString( textpath.c_str(), U"face", res->getFontFace(), &flg ) );
+    res->setTextColor( readColor( textpath.c_str(), U"color", res->getTextColor(), &flg ) );
+    res->setFontBold( readBool( textpath.c_str(), U"bold", res->getFontBold(), &flg ) );
+    res->setWordWrap( readBool( textpath.c_str(), U"wordwrap", res->getWordWrap(), &flg ) );
+    res->setFontItalic( readBool( textpath.c_str(), U"italic", res->getFontItalic(), &flg ) );
+    res->setFontSize( readInt( textpath.c_str(), U"size", res->getFontSize(), &flg ) );
+    res->setTextHAlign( readHAlign( textpath.c_str(), U"halign", res->getTextHAlign(), &flg) );
+    res->setTextVAlign( readVAlign( textpath.c_str(), U"valign", res->getTextVAlign(), &flg) );
 
-    res->setHAlign( readHAlign( path, L"halign", res->getHAlign(), &flg) );
-    res->setVAlign( readVAlign( path, L"valign", res->getVAlign(), &flg) );
-    res->setPos( readSize( path, L"pos", res->getPos(), &flg) );
-    res->setSize( readSize( path, L"size", res->getSize(), &flg) );
+    res->setHAlign( readHAlign( path, U"halign", res->getHAlign(), &flg) );
+    res->setVAlign( readVAlign( path, U"valign", res->getVAlign(), &flg) );
+    res->setPos( readSize( path, U"pos", res->getPos(), &flg) );
+    res->setSize( readSize( path, U"size", res->getSize(), &flg) );
 
     if ( !flg ) {
         crtrace log;
@@ -1664,18 +1664,18 @@ lvPoint CRWindowSkin::getTitleSize()
     return minsize;
 }
 
-bool CRSkinContainer::readPageSkin(  const lChar16 * path, CRPageSkin * res )
+bool CRSkinContainer::readPageSkin(  const lChar32 * path, CRPageSkin * res )
 {
     bool flg = false;
 
-    lString16 base = getBasePath( path );
+    lString32 base = getBasePath( path );
     RecursionLimit limit;
     if ( !base.empty() && limit.test() ) {
         // read base skin first
         flg = readPageSkin( base.c_str(), res ) || flg;
     }
 
-    lString16 p( path );
+    lString32 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
 #ifdef TRACE_SKIN_ERRORS
@@ -1685,7 +1685,7 @@ bool CRSkinContainer::readPageSkin(  const lChar16 * path, CRPageSkin * res )
         return false;
     }
 
-    lString16 name = ptr.getNode()->getAttributeValue(ptr.getNode()->getDocument()->getAttrNameIndex("name"));
+    lString32 name = ptr.getNode()->getAttributeValue(ptr.getNode()->getDocument()->getAttrNameIndex("name"));
     if ( !name.empty() )
         res->setName(name);
 
@@ -1702,18 +1702,18 @@ bool CRSkinContainer::readPageSkin(  const lChar16 * path, CRPageSkin * res )
     return flg;
 }
 
-bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res )
+bool CRSkinContainer::readWindowSkin(  const lChar32 * path, CRWindowSkin * res )
 {
     bool flg = false;
 
-    lString16 base = getBasePath( path );
+    lString32 base = getBasePath( path );
     RecursionLimit limit;
     if ( !base.empty() && limit.test() ) {
         // read base skin first
         flg = readWindowSkin( base.c_str(), res ) || flg;
     }
 
-    lString16 p( path );
+    lString32 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
 #ifdef TRACE_SKIN_ERRORS
@@ -1723,7 +1723,7 @@ bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res 
         return false;
     }
 
-    res->setFullScreen(readBool(path, L"fullscreen", res->getFullScreen(), &flg));
+    res->setFullScreen(readBool(path, U"fullscreen", res->getFullScreen(), &flg));
 
     flg = readRectSkin(  path, res ) || flg;
     CRRectSkinRef titleSkin( new CRRectSkin() );
@@ -1764,18 +1764,18 @@ bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res 
     return flg;
 }
 
-bool CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
+bool CRSkinContainer::readMenuSkin(  const lChar32 * path, CRMenuSkin * res )
 {
     bool flg = false;
 
-    lString16 base = getBasePath( path );
+    lString32 base = getBasePath( path );
     RecursionLimit limit;
     if ( !base.empty() && limit.test() ) {
         // read base skin first
         flg = readMenuSkin( base.c_str(), res ) || flg;
     }
 
-    lString16 p( path );
+    lString32 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
 #ifdef TRACE_SKIN_ERRORS
@@ -1844,18 +1844,18 @@ bool CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
     if ( b )
         res->setEvenSelItemShortcutSkin( evenshortcutSelSkin );
 
-    res->setMinItemCount( readInt( path, L"min-item-count", res->getMinItemCount()) );
-    res->setMaxItemCount( readInt( path, L"max-item-count", res->getMaxItemCount()) );
-    res->setShowShortcuts( readBool( path, L"show-shortcuts", res->getShowShortcuts() ) );
+    res->setMinItemCount( readInt( path, U"min-item-count", res->getMinItemCount()) );
+    res->setMaxItemCount( readInt( path, U"max-item-count", res->getMaxItemCount()) );
+    res->setShowShortcuts( readBool( path, U"show-shortcuts", res->getShowShortcuts() ) );
 
     return flg;
 }
 
-CRButtonListRef CRSkinContainer::readButtons( const lChar16 * path, bool * res )
+CRButtonListRef CRSkinContainer::readButtons( const lChar32 * path, bool * res )
 {
     CRButtonListRef list = CRButtonListRef(new CRButtonList() );
     for ( int i=1; i<64; i++ ) {
-        lString16 p = lString16(path) << "[" << fmt::decimal(i) << "]";
+        lString32 p = lString32(path) << "[" << fmt::decimal(i) << "]";
         CRButtonSkin * button = new CRButtonSkin();
         if ( readButtonSkin(p.c_str(), button ) )
             list->add( LVRef<CRButtonSkin>(button) );
@@ -1878,17 +1878,17 @@ CRButtonListRef CRSkinContainer::readButtons( const lChar16 * path, bool * res )
     return list;	
 }
 
-bool CRSkinContainer::readToolBarSkin(  const lChar16 * path, CRToolBarSkin * res )
+bool CRSkinContainer::readToolBarSkin(  const lChar32 * path, CRToolBarSkin * res )
 {
     bool flg = false;
-    lString16 base = getBasePath( path );
+    lString32 base = getBasePath( path );
     RecursionLimit limit;
     if ( !base.empty() && limit.test() ) {
         // read base skin first
         flg = readToolBarSkin( base.c_str(), res ) || flg;
     }
 
-    lString16 p( path );
+    lString32 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
 #ifdef TRACE_SKIN_ERRORS
@@ -1899,7 +1899,7 @@ bool CRSkinContainer::readToolBarSkin(  const lChar16 * path, CRToolBarSkin * re
     }
     flg = readRectSkin( path, res ) || flg;
 
-    lString16 buttonspath = p + "/button";
+    lString32 buttonspath = p + "/button";
     bool buttonsFlag = false;
     CRButtonListRef buttons = readButtons( buttonspath.c_str(), &buttonsFlag);
     if ( buttonsFlag ) {
@@ -1909,18 +1909,18 @@ bool CRSkinContainer::readToolBarSkin(  const lChar16 * path, CRToolBarSkin * re
 	return flg;
 }
 
-lString16 CRSkinImpl::pathById( const lChar16 * id )
+lString32 CRSkinImpl::pathById( const lChar32 * id )
 {
     ldomNode * elem = _doc->getElementById( id );
     if ( !elem )
-        return lString16::empty_str;
+        return lString32::empty_str;
     return ldomXPointer(elem, -1).toString();
 }
 
 /// returns rect skin
-CRRectSkinRef CRSkinImpl::getRectSkin( const lChar16 * path )
+CRRectSkinRef CRSkinImpl::getRectSkin( const lChar32 * path )
 {
-    lString16 p(path);
+    lString32 p(path);
     CRRectSkinRef res;
     if ( _rectCache.get( p, res ) )
         return res; // found in cache
@@ -1931,14 +1931,14 @@ CRRectSkinRef CRSkinImpl::getRectSkin( const lChar16 * path )
     // create new one
     res = CRRectSkinRef( new CRRectSkin() );
     readRectSkin( p.c_str(), res.get() );
-    _rectCache.set( lString16(path), res );
+    _rectCache.set( lString32(path), res );
     return res;
 }
 
 /// returns scroll skin by path or #id
-CRScrollSkinRef CRSkinImpl::getScrollSkin( const lChar16 * path )
+CRScrollSkinRef CRSkinImpl::getScrollSkin( const lChar32 * path )
 {
-    lString16 p(path);
+    lString32 p(path);
     CRScrollSkinRef res;
     if ( _scrollCache.get( p, res ) )
         return res; // found in cache
@@ -1949,7 +1949,7 @@ CRScrollSkinRef CRSkinImpl::getScrollSkin( const lChar16 * path )
     // create new one
     res = CRScrollSkinRef( new CRScrollSkin() );
     readScrollSkin( p.c_str(), res.get() );
-    _scrollCache.set( lString16(path), res );
+    _scrollCache.set( lString32(path), res );
     return res;
 }
 
@@ -1959,8 +1959,8 @@ CRPageSkinListRef CRSkinImpl::getPageSkinList()
     if ( _pageSkinList.isNull() ) {
         _pageSkinList = CRPageSkinListRef( new CRPageSkinList() );
         for ( int i=0; i<32; i++ ) {
-            lString16 path("/CR3Skin/page-skins/page-skin[");
-            path << (i+1) << L"]";
+            lString32 path("/CR3Skin/page-skins/page-skin[");
+            path << (i+1) << U"]";
             CRPageSkinRef skin = CRPageSkinRef( new CRPageSkin() );
             if ( readPageSkin(path.c_str(), skin.get() ) ) {
                 _pageSkinList->add( skin );
@@ -1973,9 +1973,9 @@ CRPageSkinListRef CRSkinImpl::getPageSkinList()
 }
 
 /// returns book page skin by path or #id
-CRPageSkinRef CRSkinImpl::getPageSkin( const lChar16 * path )
+CRPageSkinRef CRSkinImpl::getPageSkin( const lChar32 * path )
 {
-    lString16 p(path);
+    lString32 p(path);
     CRPageSkinRef res;
     if ( _pageCache.get( p, res ) )
         return res; // found in cache
@@ -1986,14 +1986,14 @@ CRPageSkinRef CRSkinImpl::getPageSkin( const lChar16 * path )
     // create new one
     res = CRPageSkinRef( new CRPageSkin() );
     readPageSkin( p.c_str(), res.get() );
-    _pageCache.set( lString16(path), res );
+    _pageCache.set( lString32(path), res );
     return res;
 }
 
 /// returns window skin
-CRWindowSkinRef CRSkinImpl::getWindowSkin( const lChar16 * path )
+CRWindowSkinRef CRSkinImpl::getWindowSkin( const lChar32 * path )
 {
-    lString16 p(path);
+    lString32 p(path);
     CRWindowSkinRef res;
     if ( _windowCache.get( p, res ) )
         return res; // found in cache
@@ -2004,14 +2004,14 @@ CRWindowSkinRef CRSkinImpl::getWindowSkin( const lChar16 * path )
     // create new one
     res = CRWindowSkinRef( new CRWindowSkin() );
     readWindowSkin( p.c_str(), res.get() );
-    _windowCache.set( lString16(path), res );
+    _windowCache.set( lString32(path), res );
     return res;
 }
 
 /// returns menu skin
-CRMenuSkinRef CRSkinImpl::getMenuSkin( const lChar16 * path )
+CRMenuSkinRef CRSkinImpl::getMenuSkin( const lChar32 * path )
 {
-    lString16 p(path);
+    lString32 p(path);
     CRMenuSkinRef res;
     if ( _menuCache.get( p, res ) )
         return res; // found in cache
@@ -2022,13 +2022,13 @@ CRMenuSkinRef CRSkinImpl::getMenuSkin( const lChar16 * path )
     // create new one
     res = CRMenuSkinRef( new CRMenuSkin() );
     readMenuSkin( p.c_str(), res.get() );
-    _menuCache.set( lString16(path), res );
+    _menuCache.set( lString32(path), res );
     return res;
 }
 
-CRToolBarSkinRef CRSkinImpl::getToolBarSkin( const lChar16 * path )
+CRToolBarSkinRef CRSkinImpl::getToolBarSkin( const lChar32 * path )
 {
-    lString16 p(path);
+    lString32 p(path);
     CRToolBarSkinRef res;
     if ( _toolbarCache.get( p, res ) )
         return res; // found in cache
@@ -2038,11 +2038,11 @@ CRToolBarSkinRef CRSkinImpl::getToolBarSkin( const lChar16 * path )
     }
     res = CRToolBarSkinRef( new CRToolBarSkin() );
     readToolBarSkin( p.c_str(), res.get() );
-    _toolbarCache.set( lString16(path), res );
+    _toolbarCache.set( lString32(path), res );
     return res;
 }
 
-CRSkinListItem * CRSkinList::findByName( const lString16 & name )
+CRSkinListItem * CRSkinList::findByName( const lString32 & name )
 {
     for ( int i=0; i<length(); i++ )
         if ( get(i)->getName()==name )
@@ -2050,7 +2050,7 @@ CRSkinListItem * CRSkinList::findByName( const lString16 & name )
     return NULL;
 }
 
-CRSkinListItem * CRSkinListItem::init( lString16 baseDir, lString16 fileName )
+CRSkinListItem * CRSkinListItem::init( lString32 baseDir, lString32 fileName )
 {
     CRSkinRef skin = LVOpenSkin( baseDir + fileName );
     if ( skin.isNull() )
@@ -2067,7 +2067,7 @@ CRSkinRef CRSkinListItem::getSkin()
     return LVOpenSkin( getDirName() + getFileName() );
 }
 
-bool CRLoadSkinList( lString16 baseDir, CRSkinList & list )
+bool CRLoadSkinList( lString32 baseDir, CRSkinList & list )
 {
     return false;
 }

@@ -4,14 +4,13 @@
 #include "my_texpattern.h"
 
 #include <string.h>
-#include <wchar.h>
 
 int MyTexPattern::cmp(MyTexPattern *v)
 {
     return lStr_cmp( word, v->word );
 }
 
-bool MyTexPattern::match(const lChar16 *s, char *mask)
+bool MyTexPattern::match(const lChar32 *s, char *mask)
 {
     MyTexPattern * p = this;
     bool found = false;
@@ -25,7 +24,7 @@ bool MyTexPattern::match(const lChar16 *s, char *mask)
         if ( res ) {
             if ( p->word[0]==s[0] && (p->word[1]==0 || p->word[1]==s[1]) ) {
 #if DUMP_PATTERNS==1
-                CRLog::debug("Pattern matched: %s %s on %s %s", LCSTR(lString16(p->word)), p->attr, LCSTR(lString16(s)), mask);
+                CRLog::debug("Pattern matched: %s %s on %s %s", LCSTR(lString32(p->word)), p->attr, LCSTR(lString32(s)), mask);
 #endif
                 p->apply(mask);
                 found = true;
@@ -45,7 +44,7 @@ void MyTexPattern::apply(char *mask)
     }
 }
 
-MyTexPattern::MyTexPattern(const lString16 &s)
+MyTexPattern::MyTexPattern(const lString32 &s)
  : next( NULL )
 {
     overflowed = 0;
@@ -54,7 +53,7 @@ MyTexPattern::MyTexPattern(const lString16 &s)
     attr[sizeof(attr)-1] = 0;
     int n = 0;      // char number in pattern
     for ( int i=0; i<(int)s.length(); i++ ) {
-        lChar16 ch = s[i];
+        lChar32 ch = s[i];
         if (n > MAX_PATTERN_SIZE) {
             if ( ch<'0' || ch>'9' ) {
                 overflowed = n++;
@@ -86,7 +85,7 @@ MyTexPattern::MyTexPattern(const lString16 &s)
         overflowed = overflowed + 1; // convert counter to number of things counted
 }
 
-MyTexPattern::MyTexPattern(const unsigned char *s, int sz, const lChar16 *charMap)
+MyTexPattern::MyTexPattern(const unsigned char *s, int sz, const lChar32 *charMap)
  : next(NULL)
 {
     overflowed = 0;

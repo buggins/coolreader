@@ -14,6 +14,9 @@
 #include <cr3version.h>
 #define CR3_VERSION CR_ENGINE_VERSION
 
+lString32 wx2cr( wxString str );
+wxString cr2wx( lString32 str );
+
 class 
 cr3app : public wxApp
 {
@@ -49,7 +52,7 @@ cr3Frame : public wxFrame
         active_mode_t _activeMode;
         int  _toolbarSize;
 	public:
-		cr3Frame( const wxString& title, const wxPoint& p, const wxSize& sz, lString16 appDir );
+		cr3Frame( const wxString& title, const wxPoint& p, const wxSize& sz, lString32 appDir );
 
         void SetActiveMode( active_mode_t mode );
         void UpdateToolbar();
@@ -81,13 +84,13 @@ cr3Frame : public wxFrame
         void SetStatus( bool visible );
         void SetToolbarSize( int size );
 
-        wxBitmap getIcon16x16( const lChar16 * name );
+        wxBitmap getIcon16x16( const lChar32 * name );
 	protected:
     	cr3scroll * _scrollBar;
 		cr3view * _view;
     	HistList * _hist;
         wxBoxSizer * _sizer;
-        lString16 _appDir;
+        lString32 _appDir;
         CRPropRef _props;
 	private:
 		DECLARE_EVENT_TABLE()

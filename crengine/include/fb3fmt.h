@@ -18,11 +18,11 @@ public:
     fb3ImportContext(OpcPackage *package);
     virtual ~fb3ImportContext();
 
-    lString16 geImageTarget(const lString16 relationId);
+    lString32 geImageTarget(const lString32 relationId);
     LVStreamRef openBook();
     ldomDocument *getDescription();
 public:
-    lString16 m_coverImage;
+    lString32 m_coverImage;
 };
 
 #endif // FB3FMT_H

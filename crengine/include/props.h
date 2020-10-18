@@ -33,26 +33,26 @@ public:
     /// returns property name by index
     virtual const char * getName( int index ) const = 0;
     /// returns property value by index
-    virtual const lString16 & getValue( int index ) const = 0;
+    virtual const lString32 & getValue( int index ) const = 0;
     /// sets property value by index
-    virtual void setValue( int index, const lString16 &value ) = 0;
+    virtual void setValue( int index, const lString32 &value ) = 0;
 
     /// returns true if specified property exists
     virtual bool hasProperty( const char * propName ) const = 0;
     /// get string property by name, returns false if not found
-    virtual bool getString( const char * propName, lString16 &result ) const = 0;
+    virtual bool getString( const char * propName, lString32 &result ) const = 0;
     /// get string property by name, returns default value if not found
-    virtual lString16 getStringDef( const char * propName, const char * defValue = NULL ) const;
+    virtual lString32 getStringDef( const char * propName, const char * defValue = NULL ) const;
     /// set string property by name, if it's not set already
     virtual void setStringDef( const char * propName, const char * defValue );
     /// set string property by name, if it's not set already
-    virtual void setStringDef( const char * propName, lString16 defValue )
+    virtual void setStringDef( const char * propName, lString32 defValue )
     {
         if ( !hasProperty(propName) )
             setString( propName, defValue );
     }
     /// set string property by name
-    virtual void setString( const char * propName, const lString16 &value ) = 0;
+    virtual void setString( const char * propName, const lString32 &value ) = 0;
     /// set string property by name
     virtual void setString( const char * propName, const lString8 &value )
     {
@@ -100,7 +100,7 @@ public:
     virtual void setInt64( const char * propName, lInt64 value );
 
 
-    static bool parseColor(lString16 value, lUInt32 & result);
+    static bool parseColor(lString32 value, lUInt32 & result);
     /// get argb color (#xxxxxx) property by name, returns false if not found
     virtual bool getColor( const char * propName, lUInt32 &result ) const;
     /// get argb color (#xxxxxx) property by name, returns default value if not found

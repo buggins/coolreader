@@ -24,7 +24,7 @@
 #include "lvdocviewprops.h"
 
 
-const lChar16 * getDocFormatName( doc_format_t fmt );
+const lChar32 * getDocFormatName( doc_format_t fmt );
 
 /// text format import options
 typedef enum {
@@ -185,7 +185,7 @@ public:
     // access to words
     ldomWordExList & getWords() { return _words; }
     // append chars to search pattern
-    ldomWordEx * appendPattern( lString16 chars );
+    ldomWordEx * appendPattern( lString32 chars );
     // remove last item from pattern
     ldomWordEx * reducePattern();
     // selects word of current page with specified coords;
@@ -209,7 +209,7 @@ public:
     int maxpos;
     int pagesize;
     int scale;
-    lString16 posText;
+    lString32 posText;
     LVScrollInfo()
     : pos(0), maxpos(0), pagesize(0), scale(1)
     {
@@ -299,16 +299,16 @@ private:
     LVPtrVector<LVBookMarkPercentInfo> m_bookmarksPercents;
 
 protected:
-    lString16 m_last_clock;
+    lString32 m_last_clock;
 
     ldomMarkedRangeList m_markRanges;
     ldomMarkedRangeList m_bmkRanges;
 
 private:
-    lString16 m_filename;
+    lString32 m_filename;
 #define ORIGINAL_FILENAME_PATCH
 #ifdef ORIGINAL_FILENAME_PATCH
-    lString16 m_originalFilename;
+    lString32 m_originalFilename;
 #endif
     lvsize_t  m_filesize;
 
@@ -356,7 +356,7 @@ private:
     /// edit cursor position
     ldomXPointer m_cursorPos;
 
-    lString16 m_pageHeaderOverride;
+    lString32 m_pageHeaderOverride;
 
     int m_drawBufferBits;
 
@@ -423,7 +423,7 @@ public:
     /// set buffer format
     void setDrawBufferBits( int bits ) { m_drawBufferBits = bits; }
     /// substitute page header with custom text (e.g. to be used while loading)
-    void setPageHeaderOverride( lString16 s );
+    void setPageHeaderOverride( lString32 s );
     /// get screen rectangle for current cursor position, returns false if not visible
     bool getCursorRect( lvRect & rc, bool scrollToCursor = false )
     {
@@ -452,11 +452,11 @@ public:
     /// saves current position to navigation history, to be able return back
     bool savePosToNavigationHistory();
     /// saves position to navigation history, to be able return back
-    bool savePosToNavigationHistory(lString16 path);
+    bool savePosToNavigationHistory(lString32 path);
     /// navigate to history path URL
-    bool navigateTo( lString16 historyPath );
+    bool navigateTo( lString32 historyPath );
     /// packs current file path and name
-    lString16 getNavigationPath();
+    lString32 getNavigationPath();
     /// returns pointer to bookmark/last position containter of currently opened file
     CRFileHistRecord * getCurrentFileHistRecord();
 	/// -1 moveto previous chapter, 0 to current chaoter first pae, 1 to next chapter
@@ -464,13 +464,13 @@ public:
 	/// -1 moveto previous page, 1 to next page
 	bool moveByPage( int delta );
 	/// saves new bookmark
-    CRBookmark * saveRangeBookmark( ldomXRange & range, bmk_type type, lString16 comment );
+    CRBookmark * saveRangeBookmark( ldomXRange & range, bmk_type type, lString32 comment );
 	/// export bookmarks to text file
-	bool exportBookmarks( lString16 filename );
+	bool exportBookmarks( lString32 filename );
 	/// saves current page bookmark under numbered shortcut
     CRBookmark * saveCurrentPageShortcutBookmark( int number );
     /// saves current page bookmark under numbered shortcut
-    CRBookmark * saveCurrentPageBookmark( lString16 comment );
+    CRBookmark * saveCurrentPageBookmark( lString32 comment );
     /// removes bookmark from list, and deletes it, false if not found
     bool removeBookmark( CRBookmark * bm );
     /// sets new list of bookmarks, removes old values
@@ -491,7 +491,7 @@ public:
     void propsUpdateDefaults( CRPropRef props );
 
     /// applies only one property by name, return false if property is unknown
-    virtual bool propApply( lString8 name, lString16 value );
+    virtual bool propApply( lString8 name, lString32 value );
     /// applies properties, returns list of not recognized properties
     virtual CRPropRef propsApply( CRPropRef props );
     /// returns current values of supported properties
@@ -551,7 +551,7 @@ public:
     /// returns selected link on page, if any. null if no links.
     virtual ldomXRange * getCurrentPageSelectedLink();
     /// follow link, returns true if navigation was successful
-    virtual bool goLink( lString16 href, bool savePos=true );
+    virtual bool goLink( lString32 href, bool savePos=true );
     /// follow selected link, returns true if navigation was successful
     virtual bool goSelectedLink();
     /// go back. returns true if navigation was successful
@@ -565,9 +565,9 @@ public:
 
 
     /// create empty document with specified message (e.g. to show errors)
-    virtual void createDefaultDocument( lString16 title, lString16 message );
+    virtual void createDefaultDocument( lString32 title, lString32 message );
     /// create empty document with specified message (to show errors)
-    virtual void createHtmlDocument(lString16 code);
+    virtual void createHtmlDocument(lString32 code);
 
     /// returns default font face
     lString8 getDefaultFontFace() { return m_defaultFontFace; }
@@ -599,7 +599,7 @@ public:
     /// get page document range, -1 for current page
     LVRef<ldomXRange> getPageDocumentRange( int pageIndex=-1 );
     /// get page text, -1 for current page
-    lString16 getPageText( bool wrapWords, int pageIndex=-1 );
+    lString32 getPageText( bool wrapWords, int pageIndex=-1 );
     /// returns number of non-space characters on current page
     int getCurrentPageCharCount();
     /// returns number of images on current page
@@ -641,7 +641,7 @@ public:
     /// returns battery state
     int getBatteryState( ) { return m_battery_state; }
     /// returns current time representation string
-    virtual lString16 getTimeString();
+    virtual lString32 getTimeString();
     /// returns true if time changed since clock has been last drawed
     bool isTimeChanged();
     /// returns if Render has been called
@@ -748,35 +748,35 @@ public:
     /// return document properties
     CRPropRef getDocProps() { return m_doc_props; }
     /// returns book title
-    lString16 getTitle() { return m_doc_props->getStringDef(DOC_PROP_TITLE); }
+    lString32 getTitle() { return m_doc_props->getStringDef(DOC_PROP_TITLE); }
     /// returns book language
-    lString16 getLanguage() { return m_doc_props->getStringDef(DOC_PROP_LANGUAGE); }
+    lString32 getLanguage() { return m_doc_props->getStringDef(DOC_PROP_LANGUAGE); }
     /// returns book author(s)
-    lString16 getAuthors() { return m_doc_props->getStringDef(DOC_PROP_AUTHORS); }
+    lString32 getAuthors() { return m_doc_props->getStringDef(DOC_PROP_AUTHORS); }
     /// returns book description
-    lString16 getDescription() { return m_doc_props->getStringDef(DOC_PROP_DESCRIPTION); }
+    lString32 getDescription() { return m_doc_props->getStringDef(DOC_PROP_DESCRIPTION); }
     /// returns book keywords (separated by "; ")
-    lString16 getKeywords() { return m_doc_props->getStringDef(DOC_PROP_KEYWORDS); }
+    lString32 getKeywords() { return m_doc_props->getStringDef(DOC_PROP_KEYWORDS); }
     /// returns book series name and number (series name #1)
-    lString16 getSeries()
+    lString32 getSeries()
     {
-        lString16 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
-        lString16 number = m_doc_props->getStringDef(DOC_PROP_SERIES_NUMBER);
+        lString32 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
+        lString32 number = m_doc_props->getStringDef(DOC_PROP_SERIES_NUMBER);
         if ( !name.empty() && !number.empty() )
             name << " #" << number;
         return name;
     }
     /// returns book series name and number (series name #1)
-    lString16 getSeriesName()
+    lString32 getSeriesName()
     {
-        lString16 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
+        lString32 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
         return name;
     }
     /// returns book series name and number (series name #1)
     int getSeriesNumber()
     {
-        lString16 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
-        lString16 number = m_doc_props->getStringDef(DOC_PROP_SERIES_NUMBER);
+        lString32 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
+        lString32 number = m_doc_props->getStringDef(DOC_PROP_SERIES_NUMBER);
         if (!name.empty() && !number.empty())
             return number.atoi();
         return 0;
@@ -789,13 +789,13 @@ public:
     /// export to WOL format
     bool exportWolFile( const char * fname, bool flgGray, int levels );
     /// export to WOL format
-    bool exportWolFile( const wchar_t * fname, bool flgGray, int levels );
+    bool exportWolFile( const lChar32 * fname, bool flgGray, int levels );
     /// export to WOL format
     bool exportWolFile( LVStream * stream, bool flgGray, int levels );
 
     /// get a stream for reading to document internal file (path inside the ZIP for EPUBs,
     /// path relative to document directory for non-container documents like HTML)
-    LVStreamRef getDocumentFileStream( lString16 filePath );
+    LVStreamRef getDocumentFileStream( lString32 filePath );
 
     /// draws page to image buffer
     void drawPageTo( LVDrawBuf * drawBuf, LVRendPageInfo & page, lvRect * pageRect, int pageCount, int basePage);
@@ -817,7 +817,7 @@ public:
     /// get page number by bookmark
     int getBookmarkPage(ldomXPointer bm);
     /// get bookmark position text
-    bool getBookmarkPosText( ldomXPointer bm, lString16 & titleText, lString16 & posText );
+    bool getBookmarkPosText( ldomXPointer bm, lString32 & titleText, lString32 & posText );
 
     /// returns scrollbar control info
     const LVScrollInfo * getScrollInfo() { updateScroll(); return &m_scrollinfo; }
@@ -896,9 +896,9 @@ public:
     /// load document from file
     bool LoadDocument( const char * fname, bool metadataOnly = false );
     /// load document from file
-    bool LoadDocument( const lChar16 * fname, bool metadataOnly = false );
+    bool LoadDocument( const lChar32 * fname, bool metadataOnly = false );
     /// load document from stream
-    bool LoadDocument( LVStreamRef stream, const lChar16 * contentPath, bool metadataOnly = false );
+    bool LoadDocument( LVStreamRef stream, const lChar32 * contentPath, bool metadataOnly = false );
 
     /// save last file position
     void savePosition();
@@ -906,10 +906,10 @@ public:
     void restorePosition();
 
 #ifdef ORIGINAL_FILENAME_PATCH
-    void setOriginalFilename( const lString16 & fn ) {
+    void setOriginalFilename( const lString32 & fn ) {
         m_originalFilename = fn;
     }
-    const lString16 & getOriginalFilename() {
+    const lString32 & getOriginalFilename() {
         return m_originalFilename;
     }
     void setMinFileSizeToCache( int size ) {
@@ -929,8 +929,8 @@ public:
 };
 
 class SimpleTitleFormatter {
-    lString16 _text;
-    lString16Collection _lines;
+    lString32 _text;
+    lString32Collection _lines;
     lString8 _fontFace;
     bool _bold;
     bool _italic;
@@ -945,18 +945,18 @@ class SimpleTitleFormatter {
 public:
     int getHeight() { return _height; }
     int getWidth() { return _width; }
-    SimpleTitleFormatter(lString16 text, lString8 fontFace, bool bold, bool italic, lUInt32 color, int maxWidth, int maxHeight, int fntSize = 0);
+    SimpleTitleFormatter(lString32 text, lString8 fontFace, bool bold, bool italic, lUInt32 color, int maxWidth, int maxHeight, int fntSize = 0);
 
     bool measure();
     bool splitLines(const char * delimiter);
     bool format(int fontSize);
     bool findBestSize();
-    void draw(LVDrawBuf & buf, lString16 str, int x, int y, int align);
+    void draw(LVDrawBuf & buf, lString32 str, int x, int y, int align);
     void draw(LVDrawBuf & buf, lvRect rc, int halign, int valign);
 };
 
 
 /// draw book cover, either from image, or generated from title/authors
-void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace, lString16 title, lString16 authors, lString16 seriesName, int seriesNumber);
+void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace, lString32 title, lString32 authors, lString32 seriesName, int seriesNumber);
 
 #endif
