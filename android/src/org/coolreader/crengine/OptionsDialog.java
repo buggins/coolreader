@@ -1868,7 +1868,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_bottom), prefix + ".margin-bottom").add(marginBottomOptions, marginTopBottomOptionNames).setIconIdByAttr(R.attr.cr3_option_text_margin_bottom_drawable, R.drawable.cr3_option_text_margin_bottom));
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_left), prefix + ".margin-left").add(marginLeftOptions, marginLeftRightOptionNames).setIconIdByAttr(R.attr.cr3_option_text_margin_left_drawable, R.drawable.cr3_option_text_margin_left));
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_right), prefix + ".margin-right").add(marginRightOptions, marginLeftRightOptionNames).setIconIdByAttr(R.attr.cr3_option_text_margin_right_drawable, R.drawable.cr3_option_text_margin_right));
-			
 
 			dlg.setTitle(label);
 			dlg.setView(listView);
