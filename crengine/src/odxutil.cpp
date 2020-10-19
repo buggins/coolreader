@@ -2,7 +2,7 @@
 #include "../include/crlog.h"
 #include "odxutil.h"
 
-ldomNode * docXMLreader::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
+ldomNode * docXMLreader::OnTagOpen( const lChar32 * nsname, const lChar32 * tagname)
 {
     if ( m_state == xml_doc_in_start && !lStr_cmp(tagname, "?xml") )
         m_state = xml_doc_in_xml_declaration;
@@ -27,7 +27,7 @@ void docXMLreader::OnTagBody()
         m_handler->handleTagBody();
 }
 
-void docXMLreader::OnTagClose(const lChar16 * nsname, const lChar16 * tagname , bool self_closing_tag)
+void docXMLreader::OnTagClose(const lChar32 * nsname, const lChar32 * tagname , bool self_closing_tag)
 {
     CR_UNUSED2(nsname, self_closing_tag);
 
@@ -39,7 +39,7 @@ void docXMLreader::OnTagClose(const lChar16 * nsname, const lChar16 * tagname , 
         if( isSkipping() )
             skipped();
         else if ( m_handler )
-            m_handler->handleTagClose(L"", tagname);
+            m_handler->handleTagClose(U"", tagname);
         break;
     default:
         CRLog::error("Unexpected state");
@@ -47,7 +47,7 @@ void docXMLreader::OnTagClose(const lChar16 * nsname, const lChar16 * tagname , 
     }
 }
 
-void docXMLreader::OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
+void docXMLreader::OnAttribute( const lChar32 * nsname, const lChar32 * attrname, const lChar32 * attrvalue )
 {
     switch(m_state) {
     case xml_doc_in_xml_declaration:
@@ -63,13 +63,13 @@ void docXMLreader::OnAttribute( const lChar16 * nsname, const lChar16 * attrname
     }
 }
 
-void docXMLreader::OnText( const lChar16 * text, int len, lUInt32 flags )
+void docXMLreader::OnText( const lChar32 * text, int len, lUInt32 flags )
 {
     if( !isSkipping() && m_handler )
         m_handler->handleText(text, len, flags);
 }
 
-bool docXMLreader::OnBlob(lString16 name, const lUInt8 * data, int size)
+bool docXMLreader::OnBlob(lString32 name, const lUInt8 * data, int size)
 {
     if ( !isSkipping() && m_writer )
         return m_writer->OnBlob(name, data, size);
@@ -81,7 +81,7 @@ void xml_ElementHandler::setChildrenInfo(const struct item_def_t *tags)
     m_children = tags;
 }
 
-int xml_ElementHandler::parse_name(const struct item_def_t *tags, const lChar16 * nameValue)
+int xml_ElementHandler::parse_name(const struct item_def_t *tags, const lChar32 * nameValue)
 {
     for (int i=0; tags[i].name; i++) {
         if ( !lStr_cmp( tags[i].name, nameValue )) {
@@ -92,16 +92,16 @@ int xml_ElementHandler::parse_name(const struct item_def_t *tags, const lChar16 
     return -1;
 }
 
-void xml_ElementHandler::parse_int(const lChar16 * attrValue, css_length_t & result)
+void xml_ElementHandler::parse_int(const lChar32 * attrValue, css_length_t & result)
 {
-    lString16 value = attrValue;
+    lString32 value = attrValue;
 
     result.type = css_val_unspecified;
     if ( value.atoi(result.value) )
         result.type = css_val_pt; //just to distinguish with unspecified value
 }
 
-ldomNode *xml_ElementHandler::handleTagOpen(const lChar16 *nsname, const lChar16 *tagname)
+ldomNode *xml_ElementHandler::handleTagOpen(const lChar32 *nsname, const lChar32 *tagname)
 {
     int tag = parseTagName(tagname);
 
@@ -139,7 +139,7 @@ void xml_ElementHandler::reset()
 
 ldomNode *odx_titleHandler::onBodyStart()
 {
-    return m_writer->OnTagOpen(L"", L"body");
+    return m_writer->OnTagOpen(U"", U"body");
 }
 
 void odx_titleHandler::onTitleStart(int level, bool noSection)
@@ -147,26 +147,26 @@ void odx_titleHandler::onTitleStart(int level, bool noSection)
     CR_UNUSED(noSection);
 
     m_titleLevel = level;
-    lString16 name = cs16("h") +  lString16::itoa(m_titleLevel);
+    lString32 name = cs32("h") +  lString32::itoa(m_titleLevel);
     if( m_useClassName ) {
-        m_writer->OnTagOpen(L"", L"p");
-        m_writer->OnAttribute(L"", L"class", name.c_str());
+        m_writer->OnTagOpen(U"", U"p");
+        m_writer->OnAttribute(U"", U"class", name.c_str());
     } else
-        m_writer->OnTagOpen(L"", name.c_str());
+        m_writer->OnTagOpen(U"", name.c_str());
 }
 
 void odx_titleHandler::onTitleEnd()
 {
     if( !m_useClassName ) {
-        lString16 tagName = cs16("h") +  lString16::itoa(m_titleLevel);
-        m_writer->OnTagClose(L"", tagName.c_str());
+        lString32 tagName = cs32("h") +  lString32::itoa(m_titleLevel);
+        m_writer->OnTagClose(U"", tagName.c_str());
     } else
-        m_writer->OnTagClose(L"", L"p");
+        m_writer->OnTagClose(U"", U"p");
 }
 
 ldomNode* odx_fb2TitleHandler::onBodyStart()
 {
-    m_section = m_writer->OnTagOpen(L"", L"body");
+    m_section = m_writer->OnTagOpen(U"", U"body");
     return m_section;
 }
 
@@ -183,15 +183,15 @@ void odx_fb2TitleHandler::onTitleStart(int level, bool noSection)
         } else
             closeSection(m_titleLevel - level + 1);
         openSection(level);
-        m_writer->OnTagOpen(L"", L"title");
-        lString16 headingName = cs16("h") +  lString16::itoa(level);
+        m_writer->OnTagOpen(U"", U"title");
+        lString32 headingName = cs32("h") +  lString32::itoa(level);
         if( m_useClassName ) {
             m_writer->OnTagBody();
-            m_writer->OnTagOpen(L"", L"p");
-            m_writer->OnAttribute(L"", L"class", headingName.c_str());
+            m_writer->OnTagOpen(U"", U"p");
+            m_writer->OnAttribute(U"", U"class", headingName.c_str());
         } else {
             m_writer->OnTagBody();
-            m_writer->OnTagOpen(L"", headingName.c_str());
+            m_writer->OnTagOpen(U"", headingName.c_str());
         }
     }
 }
@@ -199,12 +199,12 @@ void odx_fb2TitleHandler::onTitleStart(int level, bool noSection)
 void odx_fb2TitleHandler::onTitleEnd()
 {
     if( !m_useClassName ) {
-        lString16 headingName = cs16("h") +  lString16::itoa(m_titleLevel);
-        m_writer->OnTagClose(L"", headingName.c_str());
+        lString32 headingName = cs32("h") +  lString32::itoa(m_titleLevel);
+        m_writer->OnTagClose(U"", headingName.c_str());
     } else
-        m_writer->OnTagClose(L"", L"p");
+        m_writer->OnTagClose(U"", U"p");
 
-    m_writer->OnTagClose(L"", L"title");
+    m_writer->OnTagClose(U"", U"title");
     m_hasTitle = true;
 }
 
@@ -220,7 +220,7 @@ void odx_fb2TitleHandler::makeSection(int startIndex)
 void odx_fb2TitleHandler::openSection(int level)
 {
     for(int i = m_titleLevel; i < level; i++) {
-        m_section = m_writer->OnTagOpen(L"", L"section");
+        m_section = m_writer->OnTagOpen(U"", U"section");
         m_writer->OnTagBody();
     }
     m_titleLevel = level;
@@ -230,7 +230,7 @@ void odx_fb2TitleHandler::openSection(int level)
 void odx_fb2TitleHandler::closeSection(int level)
 {
     for(int i = 0; i < level; i++) {
-        m_writer->OnTagClose(L"", L"section");
+        m_writer->OnTagClose(U"", U"section");
         m_titleLevel--;
     }
     m_hasTitle = false;
@@ -240,9 +240,9 @@ odx_rPr::odx_rPr() : odx_StylePropertiesContainer(odx_character_style)
 {
 }
 
-lString16 odx_rPr::getCss()
+lString32 odx_rPr::getCss()
 {
-    lString16 style;
+    lString32 style;
 
     if( isBold() )
         style << " font-weight: bold;";
@@ -259,9 +259,9 @@ odx_pPr::odx_pPr() : odx_StylePropertiesContainer(odx_paragraph_style)
 {
 }
 
-lString16 odx_pPr::getCss()
+lString32 odx_pPr::getCss()
 {
-    lString16 style;
+    lString32 style;
 
     css_text_align_t align = getTextAlign();
     if(align != css_ta_inherit)
@@ -311,7 +311,7 @@ bool odx_Style::isValid() const
 
 odx_Style *odx_Style::getBaseStyle(odx_ImportContext *context)
 {
-    lString16 basedOn = getBasedOn();
+    lString32 basedOn = getBasedOn();
     if ( !basedOn.empty() ) {
         odx_Style *pStyle = context->getStyle(basedOn);
         if( pStyle && pStyle->getStyleType() == getStyleType() )
@@ -366,82 +366,82 @@ void odx_ImportContext::addStyle(odx_StyleRef style)
     }
 }
 
-void odx_ImportContext::setLanguage(const lChar16 *lang)
+void odx_ImportContext::setLanguage(const lChar32 *lang)
 {
-    lString16 language(lang);
+    lString32 language(lang);
 
-    int p = language.pos(cs16("-"));
+    int p = language.pos(cs32("-"));
     if ( p > 0  ) {
         language = language.substr(0, p);
     }
     m_doc->getProps()->setString(DOC_PROP_LANGUAGE, language);
 }
 
-lString16 odx_ImportContext::getListStyleCss(css_list_style_type_t listType)
+lString32 odx_ImportContext::getListStyleCss(css_list_style_type_t listType)
 {
     switch(listType) {
     case css_lst_disc:
-        return cs16("list-style-type: disc;");
+        return cs32("list-style-type: disc;");
     case css_lst_circle:
-        return cs16("list-style-type: circle;");
+        return cs32("list-style-type: circle;");
     case css_lst_square:
-        return cs16("list-style-type: square;");
+        return cs32("list-style-type: square;");
     case css_lst_decimal:
-        return cs16("list-style-type: decimal;");
+        return cs32("list-style-type: decimal;");
     case css_lst_lower_roman:
-        return cs16("list-style-type: lower-roman;");
+        return cs32("list-style-type: lower-roman;");
     case css_lst_upper_roman:
-        return cs16("list-style-type: upper-roman;");
+        return cs32("list-style-type: upper-roman;");
     case css_lst_lower_alpha:
-        return cs16("list-style-type: lower-alpha;");
+        return cs32("list-style-type: lower-alpha;");
     case css_lst_upper_alpha:
-        return cs16("list-style-type: upper-alpha;");
+        return cs32("list-style-type: upper-alpha;");
     default:
         break;
     }
-    return cs16("list-style-type: none;");
+    return cs32("list-style-type: none;");
 }
 
 void odx_ImportContext::startDocument(ldomDocumentWriter &writer)
 {
 #ifdef DOCX_FB2_DOM_STRUCTURE
     writer.OnStart(NULL);
-    writer.OnTagOpen(NULL, L"?xml");
-    writer.OnAttribute(NULL, L"version", L"1.0");
-    writer.OnAttribute(NULL, L"encoding", L"utf-8");
-    writer.OnEncoding(L"utf-8", NULL);
+    writer.OnTagOpen(NULL, U"?xml");
+    writer.OnAttribute(NULL, U"version", U"1.0");
+    writer.OnAttribute(NULL, U"encoding", U"utf-8");
+    writer.OnEncoding(U"utf-8", NULL);
     writer.OnTagBody();
-    writer.OnTagClose(NULL, L"?xml");
-    writer.OnTagOpenNoAttr(NULL, L"FictionBook");
+    writer.OnTagClose(NULL, U"?xml");
+    writer.OnTagOpenNoAttr(NULL, U"FictionBook");
     // DESCRIPTION
-    writer.OnTagOpenNoAttr(NULL, L"description");
-    writer.OnTagOpenNoAttr(NULL, L"title-info");
-    writer.OnTagOpenNoAttr(NULL, L"book-title");
-    writer.OnTagClose(NULL, L"book-title");
-    writer.OnTagClose(NULL, L"title-info");
-    writer.OnTagClose(NULL, L"description");
+    writer.OnTagOpenNoAttr(NULL, U"description");
+    writer.OnTagOpenNoAttr(NULL, U"title-info");
+    writer.OnTagOpenNoAttr(NULL, U"book-title");
+    writer.OnTagClose(NULL, U"book-title");
+    writer.OnTagClose(NULL, U"title-info");
+    writer.OnTagClose(NULL, U"description");
 #else
     writer.OnStart(NULL);
-    writer.OnTagOpen(NULL, L"?xml");
-    writer.OnAttribute(NULL, L"version", L"1.0");
-    writer.OnAttribute(NULL, L"encoding", L"utf-8");
-    writer.OnEncoding(L"utf-8", NULL);
+    writer.OnTagOpen(NULL, U"?xml");
+    writer.OnAttribute(NULL, U"version", U"1.0");
+    writer.OnAttribute(NULL, U"encoding", U"utf-8");
+    writer.OnEncoding(U"utf-8", NULL);
     writer.OnTagBody();
-    writer.OnTagClose(NULL, L"?xml");
-    writer.OnTagOpenNoAttr(NULL, L"html");
+    writer.OnTagClose(NULL, U"?xml");
+    writer.OnTagOpenNoAttr(NULL, U"html");
 #endif
 }
 
 void odx_ImportContext::endDocument(ldomDocumentWriter &writer)
 {
 #ifdef DOCX_FB2_DOM_STRUCTURE
-    writer.OnTagClose(NULL, L"FictionBook");
+    writer.OnTagClose(NULL, U"FictionBook");
 #else
-    writer.OnTagClose(NULL, L"html");
+    writer.OnTagClose(NULL, U"html");
 #endif
 }
 
-int odx_styleTagsHandler::styleTagPos(lChar16 ch)
+int odx_styleTagsHandler::styleTagPos(lChar32 ch)
 {
     for (int i=0; i < m_styleTags.length(); i++)
         if (m_styleTags[i] == ch)
@@ -449,47 +449,47 @@ int odx_styleTagsHandler::styleTagPos(lChar16 ch)
     return -1;
 }
 
-const lChar16 *odx_styleTagsHandler::getStyleTagName(lChar16 ch)
+const lChar32 *odx_styleTagsHandler::getStyleTagName(lChar32 ch)
 {
     switch ( ch ) {
     case 'b':
-        return L"strong";
+        return U"strong";
     case 'i':
-        return L"em";
+        return U"em";
     case 'u':
-        return L"u";
+        return U"u";
     case 's':
-        return L"s";
+        return U"s";
     case 't':
-        return L"sup";
+        return U"sup";
     case 'd':
-        return L"sub";
+        return U"sub";
     default:
         return NULL;
     }
 }
 
-void odx_styleTagsHandler::closeStyleTag(lChar16 ch, ldomDocumentWriter *writer)
+void odx_styleTagsHandler::closeStyleTag(lChar32 ch, ldomDocumentWriter *writer)
 {
     int pos = styleTagPos( ch );
     if (pos >= 0) {
         for (int i = m_styleTags.length() - 1; i >= pos; i--) {
-            const lChar16 * tag = getStyleTagName(m_styleTags[i]);
+            const lChar32 * tag = getStyleTagName(m_styleTags[i]);
             m_styleTags.erase(m_styleTags.length() - 1, 1);
             if ( tag ) {
-                writer->OnTagClose(L"", tag);
+                writer->OnTagClose(U"", tag);
             }
         }
     }
 }
 
-void odx_styleTagsHandler::openStyleTag(lChar16 ch, ldomDocumentWriter *writer)
+void odx_styleTagsHandler::openStyleTag(lChar32 ch, ldomDocumentWriter *writer)
 {
     int pos = styleTagPos( ch );
     if (pos < 0) {
-        const lChar16 * tag = getStyleTagName(ch);
+        const lChar32 * tag = getStyleTagName(ch);
         if ( tag ) {
-            writer->OnTagOpenNoAttr(L"", tag);
+            writer->OnTagOpenNoAttr(U"", tag);
             m_styleTags.append( 1,  ch );
         }
     }

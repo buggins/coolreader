@@ -64,7 +64,7 @@ const lString8 CRI18NTranslator::translate8( const char * src )
 	return lString8( translate( src ) );
 }
 
-const lString16 CRI18NTranslator::translate16( const char * src )
+const lString32 CRI18NTranslator::translate32( const char * src )
 {
 	return Utf8ToUnicode( translate8( src ) );
 }
@@ -119,7 +119,7 @@ static void reverse( lUInt32 & n )
 
 #define MO_MAGIC_NUMBER 0x950412de
 #define MO_MAGIC_NUMBER_REV 0xde120495
-bool CRMoFileTranslator::openMoFile( lString16 fileName )
+bool CRMoFileTranslator::openMoFile( lString32 fileName )
 {
 	LVStreamRef stream = LVOpenFileStream( fileName.c_str(), LVOM_READ );
 	if ( stream.isNull() ) {

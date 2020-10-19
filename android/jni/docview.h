@@ -15,8 +15,8 @@
 #define READERVIEW_DCMD_END DCMD_RESTORE_POSITION
 
 class DocViewNative {
-	lString16 historyFileName;
-	lString16 _lastPattern;
+	lString32 historyFileName;
+	lString32 _lastPattern;
 	LVImageSourceRef _currentImage;
 	lUInt32 _batteryIconColor;
 	int _batteryIconSize;
@@ -26,16 +26,16 @@ public:
 	~DocViewNative();
 	bool openRecentBook();
 	bool closeBook();
-	bool loadHistory( lString16 filename );
-	bool saveHistory( lString16 filename );
-	void createDefaultDocument( lString16 title, lString16 message );
-	bool loadDocument( lString16 filename );
-	bool loadDocument( LVStreamRef stream, lString16 contentPath );
+	bool loadHistory( lString32 filename );
+	bool saveHistory( lString32 filename );
+	void createDefaultDocument( lString32 title, lString32 message );
+	bool loadDocument( lString32 filename );
+	bool loadDocument( LVStreamRef stream, lString32 contentPath );
 	int doCommand( int cmd, int param );
-    bool findText( lString16 pattern, int origin, bool reverse, bool caseInsensitive );
+    bool findText( lString32 pattern, int origin, bool reverse, bool caseInsensitive );
     void clearSelection();
-    lString16 getLink( int x, int y );
-    lString16 getLink( int x, int y, int r );
+    lString32 getLink( int x, int y );
+    lString32 getLink( int x, int y, int r );
     // checks whether point belongs to image: if found, returns true, and _currentImage is set to image
     bool checkImage(int x, int y, int bufWidth, int bufHeight, int &dx, int &dy, bool & needRotate);
     // draws current image to buffer (scaled, panned)

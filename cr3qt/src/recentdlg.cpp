@@ -40,10 +40,10 @@ RecentBooksDlg::RecentBooksDlg(QWidget *parent, CR3View * docView ) :
     int firstItem = docView->getDocView()->isDocumentOpened() ? 1 : 0;
     for ( int i=firstItem; i<files.length(); i++ ) {
         CRFileHistRecord * book = files.get( i );
-        lString16 author = book->getAuthor();
-        lString16 title = book->getTitle();
-        lString16 series = book->getSeries();
-        lString16 filename = book->getFileName();
+        lString32 author = book->getAuthor();
+        lString32 title = book->getTitle();
+        lString32 series = book->getSeries();
+        lString32 filename = book->getFileName();
         if ( author.empty() )
             author = "-"; //_book->getFileName();
         if ( title.empty() )
@@ -51,7 +51,7 @@ RecentBooksDlg::RecentBooksDlg(QWidget *parent, CR3View * docView ) :
         else if ( !series.empty() )
             title << " - " << series;
         int index = 0;
-        m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(lString16::itoa(i - firstItem + 1 ))));
+        m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(lString32::itoa(i - firstItem + 1 ))));
         m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(author)));
         m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(title)));
         m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(filename)));

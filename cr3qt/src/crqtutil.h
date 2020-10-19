@@ -5,8 +5,8 @@
 #include <QSharedPointer>
 #include "../crengine/include/crengine.h"
 
-lString16 qt2cr( QString str );
-QString cr2qt( lString16 str );
+lString32 qt2cr( QString str );
+QString cr2qt( lString32 str );
 
 class Props;
 typedef QSharedPointer<Props> PropsRef;
@@ -49,8 +49,8 @@ PropsRef cr2qt( CRPropRef & ref );
 /// adapter from qt property collection to coolreader
 const CRPropRef & qt2cr( PropsRef & ref );
 
-void cr2qt( QStringList & dst, const lString16Collection & src );
-void qt2cr( lString16Collection & dst, const QStringList & src );
+void cr2qt( QStringList & dst, const lString32Collection & src );
+void qt2cr( lString32Collection & dst, const QStringList & src );
 
 /// format p as percent*100 - e.g. 1234->"12.34%"
 QString crpercent( int p );

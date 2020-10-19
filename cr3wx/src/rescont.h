@@ -31,7 +31,7 @@ public:
     {
         return OpenFromStream( LVCreateMemoryStream( buf, size ) );
     }
-    bool OpenFromFile( const lChar16 * fname )
+    bool OpenFromFile( const lChar32 * fname )
     {
         return OpenFromStream( LVOpenFileStream( fname, LVOM_READ ) );
     }
@@ -39,13 +39,13 @@ public:
     {
         return OpenFromStream( LVOpenFileStream( fname, LVOM_READ ) );
     }
-    LVStreamRef GetStream( const lChar16 * pathname )
+    LVStreamRef GetStream( const lChar32 * pathname )
     {
         if ( !pathname )
             return LVStreamRef();
         return _container->OpenStream( pathname, LVOM_READ );
     }
-    LVByteArrayRef GetData( const lChar16 * pathname )
+    LVByteArrayRef GetData( const lChar32 * pathname )
     {
         if ( !pathname || !_container )
             return LVByteArrayRef();
@@ -60,7 +60,7 @@ public:
         }
         return LVByteArrayRef();
     }
-    wxImage GetImage( const lChar16 * pathname )
+    wxImage GetImage( const lChar32 * pathname )
     {
         LVByteArrayRef data = GetData( pathname );
         if ( !data )
@@ -71,7 +71,7 @@ public:
             return wxImage();
         return img;
     }
-    wxBitmap GetBitmap( const lChar16 * pathname )
+    wxBitmap GetBitmap( const lChar32 * pathname )
     {
         wxImage image = GetImage( pathname );
         if ( !image.IsOk() ) {

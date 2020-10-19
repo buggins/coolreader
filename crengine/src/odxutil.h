@@ -37,7 +37,7 @@ template <int N>
 class odx_StylePropertiesContainer : public odx_StylePropertiesGetter
 {
     odx_style_type m_styleType;
-    lString16 m_styleId;
+    lString32 m_styleId;
 public:
     static const int PROP_COUNT = N;
 
@@ -97,7 +97,7 @@ public:
                 set(i, baseValue);
         }
     }
-    void setStyleId(odx_ImportContext* context, const lChar16* styleId);
+    void setStyleId(odx_ImportContext* context, const lChar32* styleId);
     odx_Style* getStyle(odx_ImportContext* context);
 protected:
     css_length_t m_properties[N];
@@ -149,7 +149,7 @@ public:
         return getValue(odx_run_valign_prop, css_va_inherit);
     }
     inline void setVertAlign(css_vertical_align_t value) { set(odx_run_valign_prop,value); }
-    lString16 getCss();
+    lString32 getCss();
 };
 
 enum odx_p_properties {
@@ -207,12 +207,12 @@ public:
     inline int getNumberingId() { return getValue(odx_p_num_id_prop, 0); }
     css_length_t getOutlineLvl() { return get(odx_p_outline_level_prop); }
     inline int getNumberingLevel() { return get(odx_p_ilvl_prop).value; }
-    lString16 getCss();
+    lString32 getCss();
 };
 
 class odx_ImportContext
 {
-    LVHashTable<lString16, odx_StyleRef> m_styles;
+    LVHashTable<lString32, odx_StyleRef> m_styles;
     odx_rPr m_rPrDefault;
     odx_pPr m_pPrDefault;
 protected:
@@ -221,22 +221,22 @@ public:
     odx_ImportContext(ldomDocument* doc) : m_styles(64), m_doc(doc) { }
     virtual ~odx_ImportContext() {}
     void addStyle( odx_StyleRef style );
-    odx_Style * getStyle( lString16 id ) {
+    odx_Style * getStyle( lString32 id ) {
         return m_styles.get(id).get();
     }
     inline odx_rPr * get_rPrDefault() { return &m_rPrDefault; }
     inline odx_pPr * get_pPrDefault() { return &m_pPrDefault; }
-    void setLanguage(const lChar16 *lang);
-    lString16 getListStyleCss(css_list_style_type_t listType);
+    void setLanguage(const lChar32 *lang);
+    lString32 getListStyleCss(css_list_style_type_t listType);
     void startDocument(ldomDocumentWriter& writer);
     void endDocument(ldomDocumentWriter& writer);
 };
 
 class odx_Style : public LVRefCounter
 {
-    lString16 m_Name;
-    lString16 m_Id;
-    lString16 m_basedOn;
+    lString32 m_Name;
+    lString32 m_Id;
+    lString32 m_basedOn;
     odx_style_type m_type;
     odx_pPr m_pPr;
     odx_rPr m_rPr;
@@ -245,14 +245,14 @@ class odx_Style : public LVRefCounter
 public:
     odx_Style();
 
-    inline lString16 getName() const { return m_Name; }
-    inline void setName(const lChar16 * value) { m_Name = value; }
+    inline lString32 getName() const { return m_Name; }
+    inline void setName(const lChar32 * value) { m_Name = value; }
 
-    inline lString16 getId() const { return m_Id; }
-    inline void setId(const lChar16 * value) { m_Id = value; }
+    inline lString32 getId() const { return m_Id; }
+    inline void setId(const lChar32 * value) { m_Id = value; }
 
-    inline lString16 getBasedOn() const { return m_basedOn; }
-    inline void setBasedOn(const lChar16 * value) { m_basedOn = value; }
+    inline lString32 getBasedOn() const { return m_basedOn; }
+    inline void setBasedOn(const lChar32 * value) { m_basedOn = value; }
     bool isValid() const;
 
     inline odx_style_type getStyleType() const { return m_type; }
@@ -267,7 +267,7 @@ public:
 };
 
 template<int N>
-void odx_StylePropertiesContainer<N>::setStyleId(odx_ImportContext *context, const lChar16 *styleId) {
+void odx_StylePropertiesContainer<N>::setStyleId(odx_ImportContext *context, const lChar32 *styleId) {
     m_styleId = styleId;
     if ( !m_styleId.empty() ) {
         odx_Style *style = context->getStyle(m_styleId);
@@ -290,7 +290,7 @@ odx_Style *odx_StylePropertiesContainer<N>::getStyle(odx_ImportContext *context)
 /// known docx items name and identifier
 struct item_def_t {
     int      id;
-    const lChar16 * name;
+    const lChar32 * name;
 };
 
 class xml_ElementHandler;
@@ -340,22 +340,22 @@ public:
     }
 
     /// called on opening tag <
-    ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname);
+    ldomNode * OnTagOpen( const lChar32 * nsname, const lChar32 * tagname);
 
     /// called after > of opening tag (when entering tag body)
     void OnTagBody();
 
     /// called on tag close
-    void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false );
+    void OnTagClose( const lChar32 * nsname, const lChar32 * tagname, bool self_closing_tag=false );
 
     /// called on element attribute
-    void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
+    void OnAttribute( const lChar32 * nsname, const lChar32 * attrname, const lChar32 * attrvalue );
 
     /// called on text
-    void OnText( const lChar16 * text, int len, lUInt32 flags );
+    void OnText( const lChar32 * text, int len, lUInt32 flags );
 
     /// add named BLOB data to document
-    bool OnBlob(lString16 name, const lUInt8 * data, int size);
+    bool OnBlob(lString32 name, const lUInt8 * data, int size);
 
     xml_ElementHandler * getHandler()
     {
@@ -390,31 +390,31 @@ protected:
     {
     }
     virtual ~xml_ElementHandler() {}
-    virtual int parseTagName(const lChar16 *tagname) {
+    virtual int parseTagName(const lChar32 *tagname) {
         if(m_children)
             return parse_name(m_children, tagname);
         return -1;
     }
 public:
-    static int parse_name(const struct item_def_t *tags, const lChar16 * nameValue);
-    static void parse_int(const lChar16 * attrValue, css_length_t & result);
+    static int parse_name(const struct item_def_t *tags, const lChar32 * nameValue);
+    static void parse_int(const lChar32 * attrValue, css_length_t & result);
     void setChildrenInfo(const struct item_def_t *tags);
-    ldomNode * handleTagOpen(const lChar16 * nsname, const lChar16 * tagname);
+    ldomNode * handleTagOpen(const lChar32 * nsname, const lChar32 * tagname);
     virtual ldomNode * handleTagOpen(int tagId);
-    void handleAttribute(const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue)
+    void handleAttribute(const lChar32 * nsname, const lChar32 * attrname, const lChar32 * attrvalue)
     {
         CR_UNUSED(nsname);
 
         handleAttribute(attrname, attrvalue);
     }
-    virtual void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue) {
+    virtual void handleAttribute(const lChar32 * attrname, const lChar32 * attrvalue) {
         CR_UNUSED2(attrname, attrvalue);
     }
     virtual void handleTagBody() {}
-    virtual void handleText( const lChar16 * text, int len, lUInt32 flags ) {
+    virtual void handleText( const lChar32 * text, int len, lUInt32 flags ) {
         CR_UNUSED3(text,len,flags);
     }
-    virtual void handleTagClose( const lChar16 * nsname, const lChar16 * tagname )
+    virtual void handleTagClose( const lChar32 * nsname, const lChar32 * tagname )
     {
         CR_UNUSED2(nsname, tagname);
 
@@ -441,12 +441,12 @@ public:
 
 class odx_styleTagsHandler
 {
-    lString16 m_styleTags;
-    int styleTagPos(lChar16 ch);
+    lString32 m_styleTags;
+    int styleTagPos(lChar32 ch);
 protected:
-    const lChar16 * getStyleTagName( lChar16 ch );
-    void closeStyleTag( lChar16 ch, ldomDocumentWriter *writer);
-    void openStyleTag(lChar16 ch, ldomDocumentWriter *writer);
+    const lChar32 * getStyleTagName( lChar32 ch );
+    void closeStyleTag( lChar32 ch, ldomDocumentWriter *writer);
+    void openStyleTag(lChar32 ch, ldomDocumentWriter *writer);
 public:
     odx_styleTagsHandler() {}
     void openStyleTags(odx_rPr* runProps, ldomDocumentWriter *writer);

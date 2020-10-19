@@ -61,10 +61,10 @@ public:
 	static uint8_t sdk_int;
     CRJNIEnv(JNIEnv * pEnv) : env(pEnv) { }
     JNIEnv * operator -> () { return env; }
-	lString16 fromJavaString( jstring str );
-	jstring toJavaString( const lString16 & str );
-	void fromJavaStringArray( jobjectArray array, lString16Collection & dst );
-	jobjectArray toJavaStringArray( lString16Collection & dst );
+	lString32 fromJavaString( jstring str );
+	jstring toJavaString( const lString32 & str );
+	void fromJavaStringArray( jobjectArray array, lString32Collection & dst );
+	jobjectArray toJavaStringArray( lString32Collection & dst );
 	LVStreamRef jbyteArrayToStream( jbyteArray array ); 
 	jbyteArray streamToJByteArray( LVStreamRef stream ); 
 	jobject enumByNativeId( const char * classname, int id ); 
@@ -157,13 +157,13 @@ public:
 	: CRFieldAccessor( acc, fieldName, "Ljava/lang/String;" ) 
 	{
 	}
-	lString16 get() {
+	lString32 get() {
 		jstring str = (jstring)objacc->GetObjectField(objacc.getObject(), fieldid);
-		lString16 res = objacc.fromJavaString(str);
+		lString32 res = objacc.fromJavaString(str);
 		objacc.env->DeleteLocalRef(str);
 		return res;
 	}
-	void set( const lString16& str) { objacc->SetObjectField(objacc.getObject(), fieldid, objacc.toJavaString(str)); } 
+	void set( const lString32& str) { objacc->SetObjectField(objacc.getObject(), fieldid, objacc.toJavaString(str)); }
 };
 
 class CRIntField : public CRFieldAccessor {

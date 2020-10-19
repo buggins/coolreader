@@ -147,7 +147,7 @@ bool LVWin32FontManager::Init(lString8 path)
     return res!=0;
 }
 
-void LVWin32FontManager::getFontFileNameList(lString16Collection &list)
+void LVWin32FontManager::getFontFileNameList(lString32Collection &list)
 {
     FONT_MAN_GUARD
             _cache.getFontFileNameList(list);
@@ -174,7 +174,7 @@ int CALLBACK LVWin32FontEnumFontFamExProc(
         if ( fnt.Create( *lf ) )
         {
             //
-            static lChar16 chars[] = {0, 0xBF, 0xE9, 0x106, 0x410, 0x44F, 0 };
+            static lChar32 chars[] = {0, 0xBF, 0xE9, 0x106, 0x410, 0x44F, 0 };
             for (int i=0; chars[i]; i++)
             {
                 LVFont::glyph_info_t glyph;

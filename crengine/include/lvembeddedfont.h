@@ -22,19 +22,19 @@
 class SerialBuf;
 
 class LVEmbeddedFontDef {
-    lString16 _url;
+    lString32 _url;
     lString8 _face;
     bool _bold;
     bool _italic;
 public:
-    LVEmbeddedFontDef(lString16 url, lString8 face, bool bold, bool italic) :
+    LVEmbeddedFontDef(lString32 url, lString8 face, bool bold, bool italic) :
             _url(url), _face(face), _bold(bold), _italic(italic) {
     }
 
     LVEmbeddedFontDef() : _bold(false), _italic(false) {
     }
 
-    const lString16 &getUrl() { return _url; }
+    const lString32 &getUrl() { return _url; }
 
     const lString8 &getFace() { return _face; }
 
@@ -55,13 +55,13 @@ public:
 
 class LVEmbeddedFontList : public LVPtrVector<LVEmbeddedFontDef> {
 public:
-    LVEmbeddedFontDef *findByUrl(lString16 url);
+    LVEmbeddedFontDef *findByUrl(lString32 url);
 
     void add(LVEmbeddedFontDef *def) { LVPtrVector<LVEmbeddedFontDef>::add(def); }
 
-    bool add(lString16 url, lString8 face, bool bold, bool italic);
+    bool add(lString32 url, lString8 face, bool bold, bool italic);
 
-    bool add(lString16 url) { return add(url, lString8::empty_str, false, false); }
+    bool add(lString32 url) { return add(url, lString8::empty_str, false, false); }
 
     bool addAll(LVEmbeddedFontList &list);
 

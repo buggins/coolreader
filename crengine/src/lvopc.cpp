@@ -2,7 +2,7 @@
 #include "../include/lvtinydom.h"
 #include "../include/crlog.h"
 
-static const lChar16 * const OPC_PropertiesContentType = L"application/vnd.openxmlformats-package.core-properties+xml";
+static const lChar32 * const OPC_PropertiesContentType = U"application/vnd.openxmlformats-package.core-properties+xml";
 
 OpcPart::~OpcPart()
 {
@@ -14,17 +14,17 @@ LVStreamRef OpcPart::open()
     return m_package->open(m_name);
 }
 
-lString16 OpcPart::getRelatedPartName(const lChar16 * const relationType, const lString16 id)
+lString32 OpcPart::getRelatedPartName(const lChar32 * const relationType, const lString32 id)
 {
     if( !m_relationsValid ) {
         readRelations();
         m_relationsValid = true;
     }
-    LVHashTable<lString16, lString16> *relationsTable = m_relations.get(relationType);
+    LVHashTable<lString32, lString32> *relationsTable = m_relations.get(relationType);
     if( relationsTable ) {
         if( id.empty() ) {
-            LVHashTable<lString16, lString16>::iterator it = relationsTable->forwardIterator();
-            LVHashTable<lString16, lString16>::pair *p = it.next();
+            LVHashTable<lString32, lString32>::iterator it = relationsTable->forwardIterator();
+            LVHashTable<lString32, lString32>::pair *p = it.next();
             if( p ) {
                 return p->value; // return first value
             }
@@ -32,37 +32,37 @@ lString16 OpcPart::getRelatedPartName(const lChar16 * const relationType, const 
             return relationsTable->get(id);
         }
     }
-    return lString16();
+    return lString32();
 }
 
-OpcPartRef OpcPart::getRelatedPart(const lChar16 * const relationType, const lString16 id)
+OpcPartRef OpcPart::getRelatedPart(const lChar32 * const relationType, const lString32 id)
 {
     return m_package->getPart( getRelatedPartName(relationType, id) );
 }
 
 void OpcPart::readRelations()
 {
-    lString16 relsPath = LVExtractPath(m_name) + cs16("_rels/") + LVExtractFilename(m_name) + cs16(".rels");
+    lString32 relsPath = LVExtractPath(m_name) + cs32("_rels/") + LVExtractFilename(m_name) + cs32(".rels");
     LVStreamRef container_stream = m_package->open(relsPath);
 
     if ( !container_stream.isNull() ) {
         ldomDocument * doc = LVParseXMLStream( container_stream );
-        lString16 srcPath = LVExtractPath(m_name);
+        lString32 srcPath = LVExtractPath(m_name);
 
         if ( doc ) {
-            ldomNode *root = doc->nodeFromXPath(cs16("Relationships"));
+            ldomNode *root = doc->nodeFromXPath(cs32("Relationships"));
             if( root ) {
                 for(int i = 0; i < root->getChildCount(); i++) {
                     ldomNode * relationshipNode = root->getChildNode((lUInt32)i);
-                    const lString16 relType = relationshipNode->getAttributeValue(L"Type");
-                    LVHashTable<lString16, lString16> *relationsTable = m_relations.get(relType);
+                    const lString32 relType = relationshipNode->getAttributeValue(U"Type");
+                    LVHashTable<lString32, lString32> *relationsTable = m_relations.get(relType);
                     if( !relationsTable ) {
-                        relationsTable = new LVHashTable<lString16, lString16>(16);
+                        relationsTable = new LVHashTable<lString32, lString32>(16);
                         m_relations.set(relType, relationsTable);
                     }
-                    const lString16 id = relationshipNode->getAttributeValue(L"Id");
-                    relationsTable->set( id, getTargetPath(srcPath, relationshipNode->getAttributeValue(L"TargetMode"),
-                                                           relationshipNode->getAttributeValue(L"Target")) );
+                    const lString32 id = relationshipNode->getAttributeValue(U"Id");
+                    relationsTable->set( id, getTargetPath(srcPath, relationshipNode->getAttributeValue(U"TargetMode"),
+                                                           relationshipNode->getAttributeValue(U"Target")) );
                 }
             }
             delete doc;
@@ -70,10 +70,10 @@ void OpcPart::readRelations()
     }
 }
 
-lString16 OpcPart::getTargetPath(const lString16 srcPath, const lString16 targetMode, lString16 target)
+lString32 OpcPart::getTargetPath(const lString32 srcPath, const lString32 targetMode, lString32 target)
 {
     if( !target.empty() ) {
-        if ( targetMode == L"External" || target.pos(L":") != -1 )
+        if ( targetMode == U"External" || target.pos(U":") != -1 )
             return target;
 
         if( !LVIsAbsolutePath(target) ) {
@@ -86,7 +86,7 @@ lString16 OpcPart::getTargetPath(const lString16 srcPath, const lString16 target
     return target;
 }
 
-lString16 OpcPackage::getContentPartName(const lChar16 *contentType)
+lString32 OpcPackage::getContentPartName(const lChar32 *contentType)
 {
     if ( !m_contentTypesValid ) {
         readContentTypes();
@@ -95,12 +95,12 @@ lString16 OpcPackage::getContentPartName(const lChar16 *contentType)
     return m_contentTypes.get(contentType);
 }
 
-OpcPartRef OpcPackage::getPart(const lString16 partName)
+OpcPartRef OpcPackage::getPart(const lString32 partName)
 {
     return OpcPartRef(createPart(this, partName));
 }
 
-bool OpcPackage::partExist(const lString16 partName)
+bool OpcPackage::partExist(const lString32 partName)
 {
     LVStreamRef partStream = open(partName);
     return !partStream.isNull();
@@ -113,10 +113,10 @@ void OpcPackage::readCoreProperties(CRPropRef doc_props)
     if ( !propStream.isNull() ) {
         ldomDocument * propertiesDoc = LVParseXMLStream( propStream );
         if ( propertiesDoc ) {
-            lString16 author = propertiesDoc->textFromXPath( cs16("coreProperties/creator") );
-            lString16 title = propertiesDoc->textFromXPath( cs16("coreProperties/title") );
-            lString16 language = propertiesDoc->textFromXPath( cs16("coreProperties/language") );
-            lString16 description = propertiesDoc->textFromXPath( cs16("coreProperties/description") );
+            lString32 author = propertiesDoc->textFromXPath( cs32("coreProperties/creator") );
+            lString32 title = propertiesDoc->textFromXPath( cs32("coreProperties/title") );
+            lString32 language = propertiesDoc->textFromXPath( cs32("coreProperties/language") );
+            lString32 description = propertiesDoc->textFromXPath( cs32("coreProperties/description") );
             doc_props->setString(DOC_PROP_TITLE, title);
             doc_props->setString(DOC_PROP_AUTHORS, author );
             doc_props->setString(DOC_PROP_LANGUAGE, language );
@@ -132,18 +132,18 @@ void OpcPackage::readCoreProperties(CRPropRef doc_props)
 
 void OpcPackage::readContentTypes()
 {
-    LVStreamRef mtStream = m_container->OpenStream(L"[Content_Types].xml", LVOM_READ );
+    LVStreamRef mtStream = m_container->OpenStream(U"[Content_Types].xml", LVOM_READ );
     if ( !mtStream.isNull() ) {
         ldomDocument * doc = LVParseXMLStream( mtStream );
         if( doc ) {
-            ldomNode *root = doc->nodeFromXPath(cs16("Types"));
+            ldomNode *root = doc->nodeFromXPath(cs32("Types"));
             if(root) {
                 for(int i = 0; i < root->getChildCount(); i++) {
                     ldomNode * typeNode = root->getChildNode(i);
 
-                    if(typeNode->getNodeName() == cs16("Override")) //Don't care about Extensions
-                        m_contentTypes.set( typeNode->getAttributeValue(L"ContentType"),
-                                            typeNode->getAttributeValue(L"PartName") );
+                    if(typeNode->getNodeName() == cs32("Override")) //Don't care about Extensions
+                        m_contentTypes.set( typeNode->getAttributeValue(U"ContentType"),
+                                            typeNode->getAttributeValue(U"PartName") );
                 }
             }
             delete doc;

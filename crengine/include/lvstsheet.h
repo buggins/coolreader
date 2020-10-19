@@ -81,7 +81,7 @@ private:
 public:
     void apply( css_style_rec_t * style );
     bool empty() { return _data==NULL; }
-    bool parse( const char * & decl, lUInt32 domVersionRequested, bool higher_importance=false, lxmlDocBase * doc=NULL, lString16 codeBase=lString16::empty_str );
+    bool parse( const char * & decl, lUInt32 domVersionRequested, bool higher_importance=false, lxmlDocBase * doc=NULL, lString32 codeBase=lString32::empty_str );
     lUInt32 getHash();
     LVCssDeclaration() : _data(NULL) { }
     ~LVCssDeclaration() { if (_data) delete[] _data; }
@@ -121,14 +121,14 @@ class LVCssSelectorRule
     lUInt16 _id;
     lUInt16 _attrid;
     LVCssSelectorRule * _next;
-    lString16 _value;
+    lString32 _value;
 public:
     LVCssSelectorRule(LVCssSelectorRuleType type)
     : _type(type), _id(0), _attrid(0), _next(NULL)
     { }
     LVCssSelectorRule( LVCssSelectorRule & v );
     void setId( lUInt16 id ) { _id = id; }
-    void setAttr( lUInt16 id, lString16 value ) { _attrid = id; _value = value; }
+    void setAttr( lUInt16 id, lString32 value ) { _attrid = id; _value = value; }
     LVCssSelectorRule * getNext() { return _next; }
     void setNext(LVCssSelectorRule * next) { _next = next; }
     ~LVCssSelectorRule() { if (_next) delete _next; }
@@ -265,7 +265,7 @@ public:
     /// copy constructor
     LVStyleSheet( LVStyleSheet & sheet );
     /// parse stylesheet, compile and add found rules to sheet
-    bool parse( const char * str, bool higher_importance=false, lString16 codeBase=lString16::empty_str );
+    bool parse( const char * str, bool higher_importance=false, lString32 codeBase=lString32::empty_str );
     /// apply stylesheet to node style
     void apply( const ldomNode * node, css_style_rec_t * style );
     /// calculate hash
@@ -279,11 +279,11 @@ bool parse_color_value( const char * & str, css_length_t & value );
 //  applying to a node's style
 void update_style_content_property( css_style_rec_t * style, ldomNode * node );
 /// get the computed final text value for a node from its style->content
-lString16 get_applied_content_property( ldomNode * node );
+lString32 get_applied_content_property( ldomNode * node );
 
 /// extract @import filename from beginning of CSS
 bool LVProcessStyleSheetImport( const char * &str, lString8 & import_file );
 /// load stylesheet from file, with processing of import
-bool LVLoadStylesheetFile( lString16 pathName, lString8 & css );
+bool LVLoadStylesheetFile( lString32 pathName, lString8 & css );
 
 #endif // __LVSTSHEET_H_INCLUDED__

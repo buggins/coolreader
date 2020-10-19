@@ -19,23 +19,23 @@ public:
         fprintf(out, "</HyphenationDescription>\n");
         //fclose(out);
     }
-    void processLine(lString16 & line) {
+    void processLine(lString32 & line) {
         if (line.lastChar()=='\r' || line.lastChar()=='\n')
             line.erase(line.length()-1, 1);
         if (state == 0) {
             //
-            if (line.startsWith(lString16("%"))) {
+            if (line.startsWith(lString32("%"))) {
                 fprintf(out, "%s\n", LCSTR(line));
                 return;
             }
-            if (line.startsWith(lString16("\\patterns{"))) {
+            if (line.startsWith(lString32("\\patterns{"))) {
                 start();
                 return;
             }
         } else {
-            lString16 word;
+            lString32 word;
             for (int i=0; i<=line.length(); i++) {
-                lChar16 ch = (i<line.length()) ? line[i] : 0;
+                lChar32 ch = (i<line.length()) ? line[i] : 0;
                 if (ch == '}')
                     break;
                 if (ch==' ' || ch=='\t' || ch=='%' || ch==0) {
@@ -52,7 +52,7 @@ public:
         }
     }
 private:
-    void addPattern(lString16 pattern) {
+    void addPattern(lString32 pattern) {
         if (pattern[0] == '.')
             pattern[0] = ' ';
         if (pattern[pattern.length()-1] == '.')
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
     Convertor cnv(out);
     char buf[4096];
     while (fgets(buf, 4096, src)) {
-        lString16 line(buf);
+        lString32 line(buf);
         cnv.processLine(line);
     }
     fclose(src);

@@ -85,7 +85,7 @@ public:
     simpleLogFile & operator << ( const char * str ) { fprintf( f, "%s", str ); fflush( f ); return *this; }
     //simpleLogFile & operator << ( int d ) { fprintf( f, "%d(0x%X) ", d, d ); fflush( f ); return *this; }
     simpleLogFile & operator << ( int d ) { fprintf( f, "%d ", d ); fflush( f ); return *this; }
-    simpleLogFile & operator << ( const wchar_t * str )
+    simpleLogFile & operator << ( const lChar32 * str )
     {
         if (str)
         {
@@ -97,7 +97,7 @@ public:
         fflush( f );
         return *this;
     }
-    simpleLogFile & operator << ( const lString16 &str ) { return operator << (str.c_str()); }
+    simpleLogFile & operator << ( const lString32 &str ) { return operator << (str.c_str()); }
 };
 
 simpleLogFile logfile("/tmp/logfile.log");
@@ -110,8 +110,8 @@ class simpleLogFile
 public:
     simpleLogFile & operator << ( const char * ) { return *this; }
     simpleLogFile & operator << ( int ) { return *this; }
-    simpleLogFile & operator << ( const wchar_t * ) { return *this; }
-    simpleLogFile & operator << ( const lString16 & ) { return *this; }
+    simpleLogFile & operator << ( const lChar32 * ) { return *this; }
+    simpleLogFile & operator << ( const lString32 & ) { return *this; }
 };
 
 simpleLogFile logfile;
@@ -181,7 +181,7 @@ public:
     int y;
     int numcols; // sum of colspan
     int linkindex;
-    lString16Collection links;
+    lString32Collection links;
     ldomNode * elem;
     LVPtrVector<CCRTableCell> cells;
     CCRTableRowGroup * rowgroup;
@@ -248,8 +248,8 @@ public:
     in: string      25   35%
     out:            25   -35
 */
-int StrToIntPercent( const wchar_t * s, int digitwidth=0 );
-int StrToIntPercent( const wchar_t * s, int digitwidth )
+int StrToIntPercent( const lChar32 * s, int digitwidth=0 );
+int StrToIntPercent( const lChar32 * s, int digitwidth )
 {
     int n=0;
     if (!s || !s[0]) return 0;
@@ -344,7 +344,7 @@ public:
 
                 int item_direction = elem_direction;
                 if ( item->hasAttribute( attr_dir ) ) {
-                    lString16 dir = item->getAttributeValue( attr_dir );
+                    lString32 dir = item->getAttributeValue( attr_dir );
                     dir = dir.lowercase();
                     if ( dir.compare("rtl") == 0 ) {
                         item_direction = REND_DIRECTION_RTL;
@@ -420,7 +420,7 @@ public:
                         // It's not mentionned in any HTML or FB2 spec,
                         // and row->linkindex is never used.
                         if (row->elem->hasAttribute(LXML_NS_ANY, attr_link)) {
-                            lString16 lnk=row->elem->getAttributeValue(attr_link);
+                            lString32 lnk=row->elem->getAttributeValue(attr_link);
                             row->linkindex = lnk.atoi();
                         }
                         // recursion: search for inner elements
@@ -435,7 +435,7 @@ public:
                         CCRTableCol * col = cols[colindex];
                         col->elem = item;
                         /*
-                        lString16 w = item->getAttributeValue(attr_width);
+                        lString32 w = item->getAttributeValue(attr_width);
                         if (!w.empty()) {
                             // TODO: px, em, and other length types support
                             int wn = StrToIntPercent(w.c_str(), digitwidth);
@@ -497,7 +497,7 @@ public:
                         }
                         /*
                         // "width"
-                        lString16 w = item->getAttributeValue(attr_width);
+                        lString32 w = item->getAttributeValue(attr_width);
                         if (!w.empty()) {
                             int wn = StrToIntPercent(w.c_str(), digitwidth);
                             if (wn<0)
@@ -506,13 +506,13 @@ public:
                                 cell->width = wn;
                         }
                         // "align"
-                        lString16 halign = item->getAttributeValue(attr_align);
+                        lString32 halign = item->getAttributeValue(attr_align);
                         if (halign == "center")
                             cell->halign = 1; // center
                         else if (halign == "right")
                             cell->halign = 2; // right
                         // "valign"
-                        lString16 valign = item->getAttributeValue(attr_valign);
+                        lString32 valign = item->getAttributeValue(attr_valign);
                         if (valign == "center")
                             cell->valign = 2; // middle
                         else if (valign == "bottom")
@@ -1638,7 +1638,7 @@ public:
                                             while (parent && parent->getNodeId() != el_a)
                                                 parent = parent->getParentNode();
                                             if ( parent && parent->hasAttribute(LXML_NS_ANY, attr_href ) ) {
-                                                lString16 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
+                                                lString32 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
                                                 if ( href.length()>0 && href.at(0)=='#' ) {
                                                     href.erase(0,1);
                                                     if ( is_single_column )
@@ -1700,7 +1700,7 @@ public:
                         }
                         if ( !is_single_column ) {
                             // Gather footnotes links accumulated by cell_context
-                            lString16Collection * link_ids = cell_context->getLinkIds();
+                            lString32Collection * link_ids = cell_context->getLinkIds();
                             if (link_ids->length() > 0) {
                                 for ( int n=0; n<link_ids->length(); n++ ) {
                                     row->links.add( link_ids->at(n) );
@@ -2413,16 +2413,16 @@ int lengthToPx( css_length_t val, int base_px, int base_em, bool unspecified_as_
     return px;
 }
 
-void SplitLines( const lString16 & str, lString16Collection & lines )
+void SplitLines( const lString32 & str, lString32Collection & lines )
 {
-    const lChar16 * s = str.c_str();
-    const lChar16 * start = s;
+    const lChar32 * s = str.c_str();
+    const lChar32 * start = s;
     for ( ; *s; s++ ) {
         if ( *s=='\r' || *s=='\n' ) {
             //if ( s > start )
-            //    lines.add( cs16("*") + lString16( start, s-start ) + cs16("<") );
+            //    lines.add( cs32("*") + lString32( start, s-start ) + cs32("<") );
             //else
-            //    lines.add( cs16("#") );
+            //    lines.add( cs32("#") );
             if ( (s[1] =='\r' || s[1]=='\n') && (s[1]!=s[0]) )
                 s++;
             start = s+1;
@@ -2431,15 +2431,15 @@ void SplitLines( const lString16 & str, lString16Collection & lines )
     while ( *start=='\r' || *start=='\n' )
         start++;
     if ( s > start )
-        lines.add( lString16( start, (lvsize_t)(s-start) ) );
+        lines.add( lString32( start, (lvsize_t)(s-start) ) );
 }
 
 // Returns the marker for a list item node. If txform is supplied render the marker, too.
 // marker_width is updated and can be used to add indent or padding necessary to make
 // room for the marker (what and how to do it depending of list-style_position (inside/outside)
 // is left to the caller)
-lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormattedText * txform, int line_h, lUInt32 flags ) {
-    lString16 marker;
+lString32 renderListItemMarker( ldomNode * enode, int & marker_width, LFormattedText * txform, int line_h, lUInt32 flags ) {
+    lString32 marker;
     marker_width = 0;
     ldomDocument* doc = enode->getDocument();
     // The UL > LI parent-child chain may have had some of our boxing elements inserted
@@ -2451,7 +2451,7 @@ lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
         int maxWidth = 0;
         ldomNode * sibling = parent->getUnboxedFirstChild(true);
         while ( sibling ) {
-            lString16 marker;
+            lString32 marker;
             int markerWidth = 0;
             if ( sibling->getNodeListMarker( counterValue, marker, markerWidth ) ) {
                 if ( markerWidth > maxWidth )
@@ -2568,7 +2568,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             return; // don't draw invisible
 
         if ( enode->hasAttribute( attr_lang ) ) {
-            lString16 lang_tag = enode->getAttributeValue( attr_lang );
+            lString32 lang_tag = enode->getAttributeValue( attr_lang );
             if ( !lang_tag.empty() )
                 lang_cfg = TextLangMan::getTextLangCfg( lang_tag );
         }
@@ -3011,7 +3011,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
 
         if ( style->display == css_d_list_item_legacy ) { // obsolete (used only when gDOMVersionRequested < 20180524)
             // put item number/marker to list
-            lString16 marker;
+            lString32 marker;
             int marker_width = 0;
 
             ListNumberingPropsRef listProps =  enode->getDocument()->getNodeNumberingProps( enode->getParentNode()->getDataIndex() );
@@ -3021,7 +3021,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 int maxWidth = 0;
                 ldomNode * sibling = enode->getUnboxedParent()->getUnboxedFirstChild(true);
                 while ( sibling ) {
-                    lString16 marker;
+                    lString32 marker;
                     int markerWidth = 0;
                     if ( sibling->getNodeListMarker( counterValue, marker, markerWidth ) ) {
                         if ( markerWidth > maxWidth )
@@ -3057,7 +3057,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // (we don't draw anything when list-style-type=none)
             if ( renderAsListStylePositionInside(style, is_rtl) && style->list_style_type != css_lst_none ) {
                 int marker_width;
-                lString16 marker = renderListItemMarker( enode, marker_width, txform, line_h, flags );
+                lString32 marker = renderListItemMarker( enode, marker_width, txform, line_h, flags );
                 if ( marker.length() ) {
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH;
                 }
@@ -3076,7 +3076,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             if ( listPropNodeIndex ) {
                 ldomNode * list_item_block_parent = enode->getDocument()->getTinyNode( listPropNodeIndex );
                 int marker_width;
-                lString16 marker = renderListItemMarker( list_item_block_parent, marker_width, txform, line_h, flags );
+                lString32 marker = renderListItemMarker( list_item_block_parent, marker_width, txform, line_h, flags );
                 if ( marker.length() ) {
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH;
                 }
@@ -3091,32 +3091,32 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             if ( isBlock ) {
                 // If block image, forget any current flags and start from baseflags (?)
                 lUInt32 flags = styleToTextFmtFlags( true, enode->getStyle(), baseflags, direction );
-                //txform->AddSourceLine(L"title", 5, 0x000000, 0xffffff, font, baseflags, interval, margin, NULL, 0, 0);
+                //txform->AddSourceLine(U"title", 5, 0x000000, 0xffffff, font, baseflags, interval, margin, NULL, 0, 0);
                 LVFontRef font = enode->getFont();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-                lString16 title;
+                lString32 title;
                 //txform->AddSourceLine( title.c_str(), title.length(), cl, bgcl, font, LTEXT_FLAG_OWNTEXT|LTEXT_FLAG_NEWLINE, line_h, 0, NULL );
                 //baseflags
                 title = enode->getAttributeValue(attr_suptitle);
                 if ( !title.empty() ) {
-                    lString16Collection lines;
-                    lines.parse(title, cs16("\\n"), true);
+                    lString32Collection lines;
+                    lines.parse(title, cs32("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
                         txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
                 }
                 txform->AddSourceObject(flags, line_h, valign_dy, indent, enode, lang_cfg );
                 title = enode->getAttributeValue(attr_subtitle);
                 if ( !title.empty() ) {
-                    lString16Collection lines;
-                    lines.parse(title, cs16("\\n"), true);
+                    lString32Collection lines;
+                    lines.parse(title, cs32("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
                         txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
                 }
                 title = enode->getAttributeValue(attr_title);
                 if ( !title.empty() ) {
-                    lString16Collection lines;
-                    lines.parse(title, cs16("\\n"), true);
+                    lString32Collection lines;
+                    lines.parse(title, cs32("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
                         txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
                 }
@@ -3222,7 +3222,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // When meeting them, we add the equivalent unicode opening and closing chars so
                 // that fribidi (working on text only) can ensure what's specified with HTML tags.
                 // See http://unicode.org/reports/tr9/#Markup_And_Formatting
-                lString16 dir = enode->getAttributeValue( attr_dir );
+                lString32 dir = enode->getAttributeValue( attr_dir );
                 dir = dir.lowercase(); // (no need for trim(), it's done by the XMLParser)
                 if ( nodeElementId == el_bdo ) {
                     // <bdo> (bidirectional override): prevents the bidirectional algorithm from
@@ -3236,16 +3236,16 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     //  leaving  => PDF PDI
                     // but it then doesn't have the intended effect (fribidi bug or limitation?)
                     if ( dir.compare("rtl") == 0 ) {
-                        // txform->AddSourceLine( L"\x2068\x202E", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        // txform->AddSourceLine( U"\x2068\x202E", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         // closeWithPDFPDI = true;
-                        txform->AddSourceLine( L"\x202E", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( U"\x202E", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDF = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( dir.compare("ltr") == 0 ) {
-                        // txform->AddSourceLine( L"\x2068\x202D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        // txform->AddSourceLine( U"\x2068\x202D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         // closeWithPDFPDI = true;
-                        txform->AddSourceLine( L"\x202D", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( U"\x202D", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDF = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
@@ -3258,17 +3258,17 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     //  dir=auto => FSI     U+2068  FIRST STRONG ISOLATE
                     //  leaving  => PDI     U+2069  POP DIRECTIONAL ISOLATE
                     if ( dir.compare("rtl") == 0 ) {
-                        txform->AddSourceLine( L"\x2067", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( U"\x2067", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( dir.compare("ltr") == 0 ) {
-                        txform->AddSourceLine( L"\x2066", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( U"\x2066", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( nodeElementId == el_bdi || dir.compare("auto") == 0 ) {
-                        txform->AddSourceLine( L"\x2068", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( U"\x2068", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
@@ -3293,7 +3293,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // (if <q dir="rtl">...</q>, the added quote (first child pseudo element)
                 // should be inside the RTL bidi isolation.
                 if ( nodeElementId == el_pseudoElem ) {
-                    lString16 content = get_applied_content_property(enode);
+                    lString32 content = get_applied_content_property(enode);
                     if ( !content.empty() ) {
                         int em = font->getSize();
                         int letter_spacing = lengthToPx(style->letter_spacing, em, em);
@@ -3323,15 +3323,15 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
                 // See comment above: these are the closing counterpart
                 if ( closeWithPDI ) {
-                    txform->AddSourceLine( L"\x2069", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                    txform->AddSourceLine( U"\x2069", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
                 else if ( closeWithPDFPDI ) {
-                    txform->AddSourceLine( L"\x202C\x2069", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                    txform->AddSourceLine( U"\x202C\x2069", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
                 else if ( closeWithPDF ) {
-                    txform->AddSourceLine( L"\x202C", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                    txform->AddSourceLine( U"\x202C", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
             }
@@ -3346,13 +3346,13 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 css_style_ref_t style = enode->getStyle();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-                txform->AddSourceLine( L" ", 1, cl, bgcl, font.get(), lang_cfg, LTEXT_LOCKED_SPACING|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                txform->AddSourceLine( U" ", 1, cl, bgcl, font.get(), lang_cfg, LTEXT_LOCKED_SPACING|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                 /*
                 // We used to specify two UNICODE_NO_BREAK_SPACE (that would not collapse)
                 // mostly so we were able to detect them in lvtextfm.cpp and avoid this
                 // spacing to change width with text justification.
-                lChar16 delimiter[] = {UNICODE_NO_BREAK_SPACE, UNICODE_NO_BREAK_SPACE}; //160
-                txform->AddSourceLine( delimiter, sizeof(delimiter)/sizeof(lChar16), cl, bgcl, font.get(), lang_cfg,
+                lChar32 delimiter[] = {UNICODE_NO_BREAK_SPACE, UNICODE_NO_BREAK_SPACE}; //160
+                txform->AddSourceLine( delimiter, sizeof(delimiter)/sizeof(lChar32), cl, bgcl, font.get(), lang_cfg,
                                             LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
                 // Users who would like more spacing can use:
                 //   body[name="notes"] section title:after,
@@ -3397,7 +3397,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 LVFontRef font = enode->getFont();
                 lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-                txform->AddSourceLine( L" ", 1, cl, bgcl, font.get(), lang_cfg,
+                txform->AddSourceLine( U" ", 1, cl, bgcl, font.get(), lang_cfg,
                                         baseflags | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
                                         line_h, valign_dy);
                 // baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
@@ -3458,14 +3458,14 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             LVFontRef font = enode->getFont();
             lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
             lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-            txform->AddSourceLine( L" ", 1, cl, bgcl, font.get(), lang_cfg,
+            txform->AddSourceLine( U" ", 1, cl, bgcl, font.get(), lang_cfg,
                             baseflags | LTEXT_SRC_IS_CLEAR_LAST | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
                             line_h, valign_dy);
         }
     }
     else if ( enode->isText() ) {
         // text nodes
-        lString16 txt = enode->getText();
+        lString32 txt = enode->getText();
         if ( !txt.empty() ) {
             #ifdef DEBUG_DUMP_ENABLED
                 for (int i=0; i<enode->getNodeLevel(); i++)
@@ -3479,7 +3479,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // if ( parent->getNodeId() == el_a ) // "123" in <a href=><sup>123</sup></a> would not be flagged
             if (is_link_start && *is_link_start) { // was propagated from some outer <A>
                 tflags |= LTEXT_IS_LINK; // used to gather in-page footnotes
-                lString16 tmp = lString16(txt);
+                lString32 tmp = lString32(txt);
                 if (!tmp.trim().empty()) // non empty text, will make out a word
                     *is_link_start = false;
                     // reset to false, so next text nodes in that link are not
@@ -3529,10 +3529,10 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             /*
             if ( baseflags & LTEXT_FLAG_PREFORMATTED ) {
                 int flags = baseflags | tflags;
-                lString16Collection lines;
+                lString32Collection lines;
                 SplitLines( txt, lines );
                 for ( int k=0; k<lines.length(); k++ ) {
-                    lString16 str = lines[k];
+                    lString32 str = lines[k];
                     txform->AddSourceLine( str.c_str(), str.length(), cl, bgcl,
                         font, flags, line_h, 0, node, 0, letter_spacing );
                     flags &= ~LTEXT_FLAG_NEWLINE;
@@ -3563,7 +3563,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     line_h, valign_dy, indent, enode, 0, letter_spacing );
                 baseflags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 // To show the lang tag for the lang used for this text node AFTER it:
-                // lString16 lang_tag_txt = L"[" + (lang_cfg ? lang_cfg->getLangTag() : lString16("??")) + L"]";
+                // lString32 lang_tag_txt = U"[" + (lang_cfg ? lang_cfg->getLangTag() : lString32("??")) + U"]";
                 // txform->AddSourceLine( lang_tag_txt.c_str(), lang_tag_txt.length(), cl, bgcl, font,
                 //          lang_cfg, baseflags|tflags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
             }
@@ -3915,7 +3915,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
     {
         css_style_ref_t style = enode->getStyle();
         bool isFootNoteBody = false;
-        lString16 footnoteId;
+        lString32 footnoteId;
         // Allow displaying footnote content at the bottom of all pages that contain a link
         // to it, when -cr-hint: footnote-inpage is set on the footnote block container.
         if ( STYLE_HAS_CR_HINT(style, FOOTNOTE_INPAGE) &&
@@ -4211,7 +4211,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                         // Get marker width and height
                         LFormattedTextRef txform( enode->getDocument()->createFormattedText() );
                         int list_marker_width;
-                        lString16 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, 0);
+                        lString32 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, 0);
                         list_marker_height = txform->Format( (lUInt16)(width - list_marker_width), (lUInt16)enode->getDocument()->getPageHeight() );
                         if ( style->list_style_position == css_lsp_outside &&
                             style->text_align != css_ta_center && style->text_align != css_ta_right) {
@@ -4256,7 +4256,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                             if (child->isText()) {
                                 // We may occasionally let empty text nodes among block elements,
                                 // just skip them
-                                lString16 s = child->getText();
+                                lString32 s = child->getText();
                                 if (IsEmptySpace(s.c_str(), s.length()))
                                     continue;
                                 crFatalError(144, "Attempting to render non-empty Text node");
@@ -4321,7 +4321,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                             // When list_style_position = outside, we have to shift the final block
                             // to the right and reduce its width
                             int list_marker_width;
-                            lString16 marker = renderListItemMarker( enode, list_marker_width, NULL, -1, 0 );
+                            lString32 marker = renderListItemMarker( enode, list_marker_width, NULL, -1, 0 );
                             fmt.setX( fmt.getX() + list_marker_width );
                             width -= list_marker_width;
                         }
@@ -4383,7 +4383,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                 inside = getPageBreakInside( enode );
 
 //                if (before!=css_pb_auto) {
-//                    CRLog::trace("page break before node %s class=%s text=%s", LCSTR(enode->getNodeName()), LCSTR(enode->getAttributeValue(L"class")), LCSTR(enode->getText(' ', 120) ));
+//                    CRLog::trace("page break before node %s class=%s text=%s", LCSTR(enode->getNodeName()), LCSTR(enode->getAttributeValue(U"class")), LCSTR(enode->getText(' ', 120) ));
 //                }
 
                 //getPageBreakStyle( enode, before, inside, after );
@@ -4448,7 +4448,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                                             // but we want to be able to gather in-page footnotes by only
                                             // specifying a -cr-hint: to the footnote target, with no need
                                             // to set one to the link itself
-                                        lString16 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
+                                        lString32 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
                                         if ( href.length()>0 && href.at(0)=='#' ) {
                                             href.erase(0,1);
                                             context.addLink( href, link_insert_pos );
@@ -4483,7 +4483,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                                     while (parent && parent->getNodeId() != el_a)
                                         parent = parent->getParentNode();
                                     if ( parent && parent->hasAttribute(LXML_NS_ANY, attr_href ) ) {
-                                        lString16 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
+                                        lString32 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
                                         if ( href.length()>0 && href.at(0)=='#' ) {
                                             href.erase(0,1);
                                             context.addLink( href, link_insert_pos );
@@ -6270,7 +6270,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     // See if dir= attribute or CSS specified direction
     int direction = flow->getDirection();
     if ( enode->hasAttribute( attr_dir ) ) {
-        lString16 dir = enode->getAttributeValue( attr_dir );
+        lString32 dir = enode->getAttributeValue( attr_dir );
         dir = dir.lowercase(); // (no need for trim(), it's done by the XMLParser)
         if ( dir.compare("rtl") == 0 ) {
             direction = REND_DIRECTION_RTL;
@@ -6300,7 +6300,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     if ( enode->hasAttribute( attr_lang ) && !enode->getAttributeValue( attr_lang ).empty() ) {
         // We'll probably have to check it is a valid lang specification
         // before overriding the upper one.
-        //   lString16 lang = enode->getAttributeValue( attr_lang );
+        //   lString32 lang = enode->getAttributeValue( attr_lang );
         //   LangManager->check(lang)...
         // In here, we don't care about the language, we just need to
         // know if this node specifies one, so children final blocks
@@ -6310,7 +6310,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
     // See if this block is a footnote container, so we can deal with it accordingly
     bool isFootNoteBody = false;
-    lString16 footnoteId;
+    lString32 footnoteId;
     // Allow displaying footnote content at the bottom of all pages that contain a link
     // to it, when -cr-hint: footnote-inpage is set on the footnote block container.
     if ( STYLE_HAS_CR_HINT(style, FOOTNOTE_INPAGE) &&
@@ -7039,7 +7039,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     // Get marker width and height
                     LFormattedTextRef txform( enode->getDocument()->createFormattedText() );
                     int list_marker_width;
-                    lString16 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, 0);
+                    lString32 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, 0);
                     list_marker_height = txform->Format( (lUInt16)(width - list_marker_width), (lUInt16)enode->getDocument()->getPageHeight(), direction );
                     if ( ! renderAsListStylePositionInside(style, is_rtl) ) {
                         // When list_style_position = outside, we have to shift the whole block
@@ -7131,7 +7131,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     if ( child->isText() ) {
                         // We may occasionally let empty text nodes among block elements,
                         // just skip them
-                        lString16 s = child->getText();
+                        lString32 s = child->getText();
                         if ( IsEmptySpace(s.c_str(), s.length() ) )
                             continue;
                         crFatalError(144, "Attempting to render non-empty Text node");
@@ -7177,7 +7177,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                                     0, width - list_marker_padding - padding_left - padding_right, 0, 0, direction );
                         flow->addFloat(child, child_clear, is_right, flt_vertical_margin);
                         // Gather footnotes links accumulated by alt_context
-                        lString16Collection * link_ids = alt_context.getLinkIds();
+                        lString32Collection * link_ids = alt_context.getLinkIds();
                         if (link_ids->length() > 0) {
                             for ( int n=0; n<link_ids->length(); n++ ) {
                                 flow->getPageContext()->addLink( link_ids->at(n) );
@@ -7349,7 +7349,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     if ( ! renderAsListStylePositionInside(style, is_rtl) ) {
                         // When list_style_position = outside, we have to shift the final block
                         // to the right (or to the left if RTL) and reduce its width
-                        lString16 marker = renderListItemMarker( enode, list_marker_padding, NULL, -1, 0 );
+                        lString32 marker = renderListItemMarker( enode, list_marker_padding, NULL, -1, 0 );
                         // With css_lsp_outside, the marker is outside: it shifts x left and reduces width
                         width -= list_marker_padding;
                         fmt.setWidth( width );
@@ -7626,7 +7626,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                                             // but we want to be able to gather in-page footnotes by only
                                             // specifying a -cr-hint: to the footnote target, with no need
                                             // to set one to the link itself
-                                        lString16 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
+                                        lString32 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
                                         if ( href.length()>0 && href.at(0)=='#' ) {
                                             href.erase(0,1);
                                             flow->getPageContext()->addLink( href, link_insert_pos );
@@ -8202,7 +8202,7 @@ void DrawBackgroundImage(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int d
     // (The provided width and height gives the area we have to draw the background image on)
     css_style_ref_t style=enode->getStyle();
     if (!style->background_image.empty()) {
-        lString16 filepath = lString16(style->background_image.c_str());
+        lString32 filepath = lString32(style->background_image.c_str());
         LVImageSourceRef img = enode->getParentNode()->getDocument()->getObjectImageSource(filepath);
         if (!img.isNull()) {
             // Native image size
@@ -8626,7 +8626,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     // If RTL, have the marker aligned to the right inside list_marker_width
                     lUInt32 txt_flags = is_rtl ? LTEXT_ALIGN_RIGHT : 0;
                     int list_marker_width;
-                    lString16 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, txt_flags);
+                    lString32 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, txt_flags);
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
                     lvRect clip;
                     drawbuf.GetClipRect( &clip );
@@ -8797,7 +8797,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     // If RTL, have the marker aligned to the right inside list_marker_width
                     lUInt32 txt_flags = is_rtl ? LTEXT_ALIGN_RIGHT : 0;
                     int list_marker_width;
-                    lString16 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, txt_flags);
+                    lString32 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, txt_flags);
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
                     lvRect clip;
                     drawbuf.GetClipRect( &clip );
@@ -9050,9 +9050,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     // apply node style= attribute
     //////////////////////////////////////////////////////
     if ( enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) && enode->hasAttribute( LXML_NS_ANY, attr_style ) ) {
-        lString16 nodeStyle = enode->getAttributeValue( LXML_NS_ANY, attr_style );
+        lString32 nodeStyle = enode->getAttributeValue( LXML_NS_ANY, attr_style );
         if ( !nodeStyle.empty() ) {
-            nodeStyle = cs16("{") + nodeStyle + "}";
+            nodeStyle = cs32("{") + nodeStyle + "}";
             LVCssDeclaration decl;
             lString8 s8 = UnicodeToUtf8(nodeStyle);
             const char * s = s8.c_str();
@@ -9636,7 +9636,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             lang_cfg = TextLangMan::getTextLangCfg( node ); // Fetch it from node or its parents
         }
         else if ( node->hasAttribute( attr_lang ) ) {
-            lString16 lang_tag = node->getAttributeValue( attr_lang );
+            lString32 lang_tag = node->getAttributeValue( attr_lang );
             if ( !lang_tag.empty() )
                 lang_cfg = TextLangMan::getTextLangCfg( lang_tag );
         }
@@ -9790,7 +9790,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         bool list_marker_width_as_padding = false;
         if ( style->display == css_d_list_item_block ) {
             LFormattedTextRef txform( node->getDocument()->createFormattedText() );
-            lString16 marker = renderListItemMarker( node, list_marker_width, txform.get(), -1, 0);
+            lString32 marker = renderListItemMarker( node, list_marker_width, txform.get(), -1, 0);
             #ifdef DEBUG_GETRENDEREDWIDTHS
                 printf("GRW: list_marker_width: %d\n", list_marker_width);
             #endif
@@ -10187,7 +10187,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             minWidth = _minWidth;
     }
     else { // text or pseudoElem
-        lString16 text;
+        lString32 text;
         int start = 0;
         int len = 0;
         ldomNode * parent;
@@ -10254,7 +10254,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         #define fit_glyphs true
 
         // measure text
-        const lChar16 * txt = text.c_str();
+        const lChar32 * txt = text.c_str();
         #ifdef DEBUG_GETRENDEREDWIDTHS
             printf("GRW text: |%s|\n", UnicodeToLocal(text).c_str());
             printf("GRW text:  (dumb text size=%d)\n", font->getTextWidth(txt, len));
@@ -10297,8 +10297,8 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 if ( (flags[i] & LCHAR_IS_SPACE) && (space_width_scale_percent != 100) ) {
                     w = w * space_width_scale_percent / 100;
                 }
-                lChar16 c = *(txt + start + i);
-                lChar16 next_c = *(txt + start + i + 1); // might be 0 at end of string
+                lChar32 c = *(txt + start + i);
+                lChar32 next_c = *(txt + start + i + 1); // might be 0 at end of string
                 if ( lang_cfg->hasLBCharSubFunc() ) {
                     next_c = lang_cfg->getLBCharSubFunc()(&lbCtx, txt+start, i+1, len-1 - (i+1));
                 }
@@ -10321,7 +10321,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                         if (fit_glyphs && curWordWidth > 0) { // there was a word before this space
                             if (start+i > 0) {
                                 // adjust for last word's last char overflow (italic, letter f...)
-                                lChar16 prevc = *(txt + start + i - 1);
+                                lChar32 prevc = *(txt + start + i - 1);
                                 int right_overflow = - font->getRightSideBearing(prevc, true);
                                 curWordWidth += right_overflow;
                             }
@@ -10337,7 +10337,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                         if (fit_glyphs && curWordWidth > 0) { // there was a word or CJK char before this CJK char
                             if (start+i > 0) {
                                 // adjust for last word's last char or previous CJK char right overflow
-                                lChar16 prevc = *(txt + start + i - 1);
+                                lChar32 prevc = *(txt + start + i - 1);
                                 int right_overflow = - font->getRightSideBearing(prevc, true);
                                 curWordWidth += right_overflow;
                             }
@@ -10359,7 +10359,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     if (fit_glyphs && curWordWidth > 0) { // we end with a word
                         if (start+i > 0) {
                             // adjust for last word's last char or previous CJK char right overflow
-                            lChar16 prevc = *(txt + start + i - 1);
+                            lChar32 prevc = *(txt + start + i - 1);
                             int right_overflow = - font->getRightSideBearing(prevc, true);
                             curWordWidth += right_overflow;
                             curMaxWidth += right_overflow;
@@ -10410,7 +10410,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             (void)nowrap; // avoid clang warning: value stored is never read
             for (int i=0; i<chars_measured; i++) {
                 int w = widths[i] - (i>0 ? widths[i-1] : 0);
-                lChar16 c = *(txt + start + i);
+                lChar32 c = *(txt + start + i);
                 if ( (flags[i] & LCHAR_IS_SPACE) && (space_width_scale_percent != 100) ) {
                     w = w * space_width_scale_percent / 100;
                 }
@@ -10433,7 +10433,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     if (fit_glyphs && curWordWidth > 0) { // there was a word before this space
                         if (start+i > 0) {
                             // adjust for last word's last char overflow (italic, letter f...)
-                            lChar16 prevc = *(txt + start + i - 1);
+                            lChar32 prevc = *(txt + start + i - 1);
                             int right_overflow = - font->getRightSideBearing(prevc, true);
                             curWordWidth += right_overflow;
                         }
@@ -10449,7 +10449,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     if (fit_glyphs && curWordWidth > 0) { // there was a word or CJK char before this CJK char
                         if (start+i > 0) {
                             // adjust for last word's last char or previous CJK char right overflow
-                            lChar16 prevc = *(txt + start + i - 1);
+                            lChar32 prevc = *(txt + start + i - 1);
                             int right_overflow = - font->getRightSideBearing(prevc, true);
                             curWordWidth += right_overflow;
                         }
@@ -10493,7 +10493,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 if (fit_glyphs && curWordWidth > 0) { // we end with a word
                     if (start+len > 0) {
                         // adjust for word last char right overflow
-                        lChar16 prevc = *(txt + start + len - 1);
+                        lChar32 prevc = *(txt + start + len - 1);
                         int right_overflow = - font->getRightSideBearing(prevc, true);
                         curWordWidth += right_overflow;
                         curMaxWidth += right_overflow; // also add it to max width

@@ -18,7 +18,7 @@
 #include "../../include/crsetup.h"
 #include "../../include/lvfont.h"
 #include "../../include/lvptrvec.h"
-#include "../../include/lvstring16collection.h"
+#include "../../include/lvstring32collection.h"
 #include "lvfontdef.h"
 
 /// font cache item
@@ -82,23 +82,23 @@ public:
         return 0;
     }
 
-    virtual void getFaceList(lString16Collection &list) {
+    virtual void getFaceList(lString32Collection &list) {
         list.clear();
         for (int i = 0; i < _registered_list.length(); i++) {
             if (_registered_list[i]->getDef()->getDocumentId() != -1)
                 continue;
-            lString16 name = Utf8ToUnicode(_registered_list[i]->getDef()->getTypeFace());
+            lString32 name = Utf8ToUnicode(_registered_list[i]->getDef()->getTypeFace());
             if (!list.contains(name))
                 list.add(name);
         }
         list.sort();
     }
 
-    virtual void getFontFileNameList(lString16Collection &list) {
+    virtual void getFontFileNameList(lString32Collection &list) {
         list.clear();
         for (int i = 0; i < _registered_list.length(); i++) {
             if (_registered_list[i]->getDef()->getDocumentId() == -1) {
-                lString16 name = Utf8ToUnicode(_registered_list[i]->getDef()->getName());
+                lString32 name = Utf8ToUnicode(_registered_list[i]->getDef()->getName());
                 if (!list.contains(name))
                     list.add(name);
             }

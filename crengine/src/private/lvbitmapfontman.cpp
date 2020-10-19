@@ -110,7 +110,7 @@ bool LVBitmapFontManager::RegisterFont(lString8 name) {
     return res;
 }
 
-void LVBitmapFontManager::getFontFileNameList(lString16Collection &list) {
+void LVBitmapFontManager::getFontFileNameList(lString32Collection &list) {
     FONT_MAN_GUARD
     _cache.getFontFileNameList(list);
 }

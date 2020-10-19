@@ -7,8 +7,8 @@ SET (CRENGINE_SOURCES
     src/cp_stats.cpp
     src/lvstring.cpp
     src/lvstring8collection.cpp
-    src/lvstring16collection.cpp
-    src/lvstring16hashedcollection.cpp
+    src/lvstring32collection.cpp
+    src/lvstring32hashedcollection.cpp
     src/serialbuf.cpp
     src/crlog.cpp
     src/props.cpp

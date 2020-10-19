@@ -9,7 +9,7 @@
 
 #include "lvfnt.h"
 #include "lvstring.h"
-#include "lvstring16collection.h"
+#include "lvstring32collection.h"
 #include "crlog.h"
 
 //#define DUMP_PATTERNS 1
@@ -69,7 +69,7 @@ static int isCorrectHyphFile(LVStream * stream)
 
 
 
-MyTexHyph::MyTexHyph( lString16 id, int leftHyphenMin, int rightHyphenMin )
+MyTexHyph::MyTexHyph( lString32 id, int leftHyphenMin, int rightHyphenMin )
  : HyphMethod(id, leftHyphenMin, rightHyphenMin)
 {
     memset( table, 0, sizeof(table) );
@@ -90,7 +90,7 @@ MyTexHyph::~MyTexHyph()
     }
 }
 
-bool MyTexHyph::match( const lChar16 * str, char * mask )
+bool MyTexHyph::match( const lChar32 * str, char * mask )
 {
     bool found = false;
     MyTexPattern * res = table[ MyTexPattern::hash( str ) ];
@@ -112,7 +112,7 @@ bool MyTexHyph::match( const lChar16 * str, char * mask )
     return found;
 }
 
-bool MyTexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+bool MyTexHyph::hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
 {
     // stub
     return false;
@@ -147,7 +147,7 @@ bool MyTexHyph::load( LVStreamRef stream )
         stream->SetPos(p);
         if ( stream->SetPos(p)!=p )
             return false;
-        lChar16 charMap[256] = { 0 };
+        lChar32 charMap[256] = { 0 };
         unsigned char buf[0x10000];
         // make char map table
         for (i=0; i<hyph_count; i++)
@@ -163,8 +163,8 @@ bool MyTexHyph::load( LVStreamRef stream )
             cnv.msf( hyph.wu );
             charMap[ (unsigned char)hyph.al ] = hyph.wl;
             charMap[ (unsigned char)hyph.au ] = hyph.wu;
-//            lChar16 ch = hyph.wl;
-//            CRLog::debug("wl=%s mask=%c%c", LCSTR(lString16(&ch, 1)), hyph.mask0[0], hyph.mask0[1]);
+//            lChar32 ch = hyph.wl;
+//            CRLog::debug("wl=%s mask=%c%c", LCSTR(lString32(&ch, 1)), hyph.mask0[0], hyph.mask0[1]);
             if (hyph.mask0[0]!='0'||hyph.mask0[1]!='0') {
                 unsigned char pat[4];
                 pat[0] = hyph.al;
@@ -173,11 +173,11 @@ bool MyTexHyph::load( LVStreamRef stream )
                 pat[3] = 0;
                 MyTexPattern * pattern = new MyTexPattern(pat, 1, charMap);
 #if DUMP_PATTERNS==1
-                CRLog::debug("Pattern: '%s' - %s", LCSTR(lString16(pattern->word)), pattern->attr );
+                CRLog::debug("Pattern: '%s' - %s", LCSTR(lString32(pattern->word)), pattern->attr );
 #endif
                 if (pattern->overflowed) {
                     // don't use truncated words
-                    CRLog::warn("Pattern overflowed (%d > %d) and ignored: '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(lString16(pattern->word)));
+                    CRLog::warn("Pattern overflowed (%d > %d) and ignored: '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(lString32(pattern->word)));
                     if (pattern->overflowed > largest_overflowed_word)
                         largest_overflowed_word = pattern->overflowed;
                     delete pattern;
@@ -211,11 +211,11 @@ bool MyTexHyph::load( LVStreamRef stream )
                     break;
                 MyTexPattern * pattern = new MyTexPattern( p, sz, charMap );
 #if DUMP_PATTERNS==1
-                CRLog::debug("Pattern: '%s' - %s", LCSTR(lString16(pattern->word)), pattern->attr);
+                CRLog::debug("Pattern: '%s' - %s", LCSTR(lString32(pattern->word)), pattern->attr);
 #endif
                 if (pattern->overflowed) {
                     // don't use truncated words
-                    CRLog::warn("Pattern overflowed (%d > %d) and ignored: '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(lString16(pattern->word)));
+                    CRLog::warn("Pattern overflowed (%d > %d) and ignored: '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(lString32(pattern->word)));
                     if (pattern->overflowed > largest_overflowed_word)
                         largest_overflowed_word = pattern->overflowed;
                     delete pattern;
@@ -234,7 +234,7 @@ bool MyTexHyph::load( LVStreamRef stream )
         return patternCount>0;
     } else {
         // tex xml format as for FBReader
-        lString16Collection data;
+        lString32Collection data;
         MyHyphPatternReader reader( data );
         LVXMLParser parser( stream, &reader );
         if ( !parser.CheckFormat() )
@@ -247,11 +247,11 @@ bool MyTexHyph::load( LVStreamRef stream )
             data[i].lowercase();
             MyTexPattern * pattern = new MyTexPattern( data[i] );
 #if DUMP_PATTERNS==1
-            CRLog::debug("Pattern: (%s) '%s' - %s", LCSTR(data[i]), LCSTR(lString16(pattern->word)), pattern->attr);
+            CRLog::debug("Pattern: (%s) '%s' - %s", LCSTR(data[i]), LCSTR(lString32(pattern->word)), pattern->attr);
 #endif
             if (pattern->overflowed) {
                 // don't use truncated words
-                CRLog::warn("Pattern overflowed (%d > %d) and ignored: (%s) '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(data[i]), LCSTR(lString16(pattern->word)));
+                CRLog::warn("Pattern overflowed (%d > %d) and ignored: (%s) '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(data[i]), LCSTR(lString32(pattern->word)));
                 if (pattern->overflowed > largest_overflowed_word)
                     largest_overflowed_word = pattern->overflowed;
                 delete pattern;
@@ -265,7 +265,7 @@ bool MyTexHyph::load( LVStreamRef stream )
     }
 }
 
-bool MyTexHyph::load( lString16 fileName )
+bool MyTexHyph::load( lString32 fileName )
 {
     LVStreamRef stream = LVOpenFileStream( fileName.c_str(), LVOM_READ );
     if ( stream.isNull() )
@@ -287,13 +287,13 @@ bool MyTexHyph::dump(LVStreamRef stream, const lString8& title)
     }
     CRLog::info("Dictionary contains %d patterns.", _pattern_count);
 
-    lString16Collection strPatterns;
+    lString32Collection strPatterns;
     MyTexPattern* pattern;
     for (lUInt32 i = 0; i < PATTERN_HASH_SIZE; i++) {
         pattern = table[i];
         while (pattern != 0) {
-            //CRLog::debug("Pattern: '%s' - %s", LCSTR(lString16(pattern->word)), pattern->attr);
-            lString16 str;
+            //CRLog::debug("Pattern: '%s' - %s", LCSTR(lString32(pattern->word)), pattern->attr);
+            lString32 str;
             int k = 0;
             for (int j = 0; pattern->attr[j] && j < MAX_PATTERN_SIZE + 2 && k < MAX_PATTERN_SIZE + 1; j++) {
                 if (pattern->attr[j] > '0' && pattern->attr[j] <= '9') {

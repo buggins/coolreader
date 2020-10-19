@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include "crsetup.h"
 #include "lvstring.h"
-#include "lvstring16collection.h"
+#include "lvstring32collection.h"
 #include "lvfont.h"
 
 /// font manager interface class
@@ -71,10 +71,10 @@ public:
     /// registers font by name
     virtual bool RegisterFont( lString8 name ) = 0;
     /// registers font by name and face
-    virtual bool RegisterExternalFont(lString16 /*name*/, lString8 /*face*/, bool /*bold*/, bool /*italic*/) { return false; }
+    virtual bool RegisterExternalFont(lString32 /*name*/, lString8 /*face*/, bool /*bold*/, bool /*italic*/) { return false; }
     /// registers document font
     virtual bool
-    RegisterDocumentFont(int /*documentId*/, LVContainerRef /*container*/, lString16 /*name*/,
+    RegisterDocumentFont(int /*documentId*/, LVContainerRef /*container*/, lString32 /*name*/,
                          lString8 /*face*/, bool /*bold*/, bool /*italic*/) { return false; }
 
     /// unregisters all document fonts
@@ -121,9 +121,9 @@ public:
     /// destructor
     virtual ~LVFontManager() { }
     /// returns available typefaces
-    virtual void getFaceList( lString16Collection & ) { }
+    virtual void getFaceList( lString32Collection & ) { }
     /// returns available font files
-    virtual void getFontFileNameList( lString16Collection & ) { }
+    virtual void getFontFileNameList( lString32Collection & ) { }
     /// check font language compatibility
     virtual bool checkFontLangCompat(const lString8 &typeface, const lString8 &langCode) { return true; }
     /// returns first found face from passed list, or return face for font found by family only

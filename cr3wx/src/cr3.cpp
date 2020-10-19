@@ -15,12 +15,23 @@
 //scan directory
 //scan file
 
+lString32 wx2cr( wxString str )
+{
+    return lString32(str.utf8_str().data());
+}
+
+wxString cr2wx( lString32 str )
+{
+    lString8 s8 = UnicodeToUtf8(str);
+    return wxString(s8.c_str(), wxConvUTF8);
+}
+
 /// author properties
 class CRDocAuthor {
-    lString16 _firstName;
-    lString16 _lastName;
-    lString16 _middleName;
-    lString16 _nickName;
+    lString32 _firstName;
+    lString32 _lastName;
+    lString32 _middleName;
+    lString32 _nickName;
 public:
     CRDocAuthor() { }
     ~CRDocAuthor() { }
@@ -37,45 +48,45 @@ public:
         _nickName = v._nickName;
         return *this;
     }
-    lString16 getFirstName() { return _firstName; }
-    lString16 getLastName() { return _lastName; }
-    lString16 getMiddleName() { return _middleName; }
-    lString16 getNickName() { return _nickName; }
-    void setFirstName( lString16 fn ) { _firstName = fn; }
-    void setLastName( lString16 ln ) { _lastName = ln; }
-    void getMiddleName( lString16 mn ) { _middleName = mn; }
-    void getNickName( lString16 nn ) { _nickName = nn; }
+    lString32 getFirstName() { return _firstName; }
+    lString32 getLastName() { return _lastName; }
+    lString32 getMiddleName() { return _middleName; }
+    lString32 getNickName() { return _nickName; }
+    void setFirstName( lString32 fn ) { _firstName = fn; }
+    void setLastName( lString32 ln ) { _lastName = ln; }
+    void getMiddleName( lString32 mn ) { _middleName = mn; }
+    void getNickName( lString32 nn ) { _nickName = nn; }
 };
 
 /// document properties container
 class CRDocProperties {
-    lString16 _fileName;
+    lString32 _fileName;
     lvsize_t  _fileSize;
     doc_format_t _format;
-    lString16  _title;
-    lString16  _seriesName;
+    lString32  _title;
+    lString32  _seriesName;
     int        _seriesNumber;
     LVPtrVector<CRDocAuthor> _authors;
 public:
     /// returns array of document authors
     LVPtrVector<CRDocAuthor> & getAuthors() { return _authors; }
     /// returns document file name
-    lString16 getFileName() { return _fileName; }
+    lString32 getFileName() { return _fileName; }
     /// returns document file size
     lvsize_t getFileSize() { return _fileSize; }
     /// returns document format
     doc_format_t getFormat() { return _format; }
     /// returns document title
-    lString16 getTitle() { return _title; }
+    lString32 getTitle() { return _title; }
     /// returns document series name
-    lString16 getSeriesName() { return _seriesName; }
+    lString32 getSeriesName() { return _seriesName; }
     /// returns document series number
     int getSeriesNumber() { return _seriesNumber; }
-    void setFileName( lString16 fn ) { _fileName = fn; }
+    void setFileName( lString32 fn ) { _fileName = fn; }
     void setFileSize( lvsize_t sz ) { _fileSize = sz; }
     void setFormat( doc_format_t fmt ) { _format = fmt; }
-    void setTitle( lString16 title ) { _title = title; }
-    void setSeriesName( lString16 sn ) {  _seriesName = sn; }
+    void setTitle( lString32 title ) { _title = title; }
+    void setSeriesName( lString32 sn ) {  _seriesName = sn; }
     void setSeriesNumber( int sn ) { _seriesNumber = sn; }
     CRDocProperties() : _seriesNumber(0)
     {
@@ -87,29 +98,29 @@ public:
 
 /// file properties container
 class CRFileProperties {
-    lString16 _storageBasePath;
-    lString16 _relativePath;
-    lString16 _fileName;
+    lString32 _storageBasePath;
+    lString32 _relativePath;
+    lString32 _fileName;
     lvsize_t  _fileSize;
     bool      _isArchieve;
     LVPtrVector<CRDocProperties> _docList;
-    lString16  _mimeType;
+    lString32  _mimeType;
     //===============================================
-    bool readDocument( lString16 fileName, LVStreamRef stream )
+    bool readDocument( lString32 fileName, LVStreamRef stream )
     {
         return true;
     }
     bool readEpub( LVContainerRef arc )
     {
-        lString16 rootfilePath;
-        lString16 rootfileMediaType;
+        lString32 rootfilePath;
+        lString32 rootfileMediaType;
         // read container.xml
         {
-            LVStreamRef container_stream = arc->OpenStream(L"META-INF/container.xml", LVOM_READ);
+            LVStreamRef container_stream = arc->OpenStream(U"META-INF/container.xml", LVOM_READ);
             if ( !container_stream.isNull() ) {
                 ldomDocument * doc = LVParseXMLStream( container_stream );
                 if ( doc ) {
-                    ldomNode * rootfile = doc->nodeFromXPath( lString16("container/rootfiles/rootfile") );
+                    ldomNode * rootfile = doc->nodeFromXPath( lString32("container/rootfiles/rootfile") );
                     if ( rootfile && rootfile->isElement() ) {
                         rootfilePath = rootfile->getAttributeValue("full-path");
                         rootfileMediaType = rootfile->getAttributeValue("media-type");
@@ -118,7 +129,7 @@ class CRFileProperties {
                 }
             }
         }
-        lString16 codeBase;
+        lString32 codeBase;
         if (!rootfilePath.empty() && rootfileMediaType == "application/oebps-package+xml") {
             //
             {
@@ -127,14 +138,14 @@ class CRFileProperties {
                     if ( rootfilePath[i]=='/' )
                         lastSlash = i;
                 if ( lastSlash>0 )
-                    codeBase = lString16( rootfilePath.c_str(), lastSlash + 1);
+                    codeBase = lString32( rootfilePath.c_str(), lastSlash + 1);
             }
             LVStreamRef content_stream = arc->OpenStream(rootfilePath.c_str(), LVOM_READ);
             if ( !content_stream.isNull() ) {
                 ldomDocument * doc = LVParseXMLStream( content_stream );
                 if ( doc ) {
-                    lString16 title = doc->textFromXPath( lString16("package/metadata/title") );
-                    lString16 authors = doc->textFromXPath( lString16("package/metadata/creator") );
+                    lString32 title = doc->textFromXPath( lString32("package/metadata/title") );
+                    lString32 authors = doc->textFromXPath( lString32("package/metadata/creator") );
                     delete doc;
                 }
             }
@@ -144,7 +155,7 @@ class CRFileProperties {
     bool readArchieve( LVContainerRef arc )
     {
         // epub support
-        LVStreamRef mtStream = arc->OpenStream(L"mimetype", LVOM_READ );
+        LVStreamRef mtStream = arc->OpenStream(U"mimetype", LVOM_READ );
         if ( !mtStream.isNull() ) {
             int size = mtStream->GetSize();
             if ( size>4 && size<100 ) {
@@ -167,14 +178,14 @@ class CRFileProperties {
             if ( !item->IsContainer() ) {
                 LVStreamRef stream = arc->OpenStream( item->GetName(), LVOM_READ );
                 if ( !stream.isNull() ) {
-                    readDocument( lString16(item->GetName() ), stream );
+                    readDocument( lString32(item->GetName() ), stream );
                 }
             }
         }
         return _docList.length() > 0;
     }
 public:
-    bool readFileProps( lString16 storageBasePath, lString16 filePathName )
+    bool readFileProps( lString32 storageBasePath, lString32 filePathName )
     {
         LVAppendPathDelimiter( storageBasePath );
         if ( filePathName.startsWith( storageBasePath ) ) {
@@ -257,13 +268,13 @@ IMPLEMENT_APP(cr3app)
 
 void testHyphen( const char * str )
 {
-    lString16 s16 = Utf8ToUnicode( lString8(str) );
+    lString32 s32 = Utf8ToUnicode( lString8(str) );
     lUInt16 widths[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
     lUInt8 flags[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    HyphMan::hyphenate( s16.c_str(), s16.length(), widths, flags, 1, 15 );
+    HyphMan::hyphenate( s32.c_str(), s32.length(), widths, flags, 1, 15 );
     lString8 buf( str );
     buf << " = ";
-    for ( int i=0; i<s16.length(); i++ ) {
+    for ( int i=0; i<s32.length(); i++ ) {
         buf << str[i];
         if ( flags[i] & LCHAR_ALLOW_HYPH_WRAP_AFTER )
             buf << '-';
@@ -288,9 +299,9 @@ void testFormatting()
     class Tester {
         public:
             LFormattedText txt;
-            void addLine( const lChar16 * str, int flags, LVFontRef font )
+            void addLine( const lChar32 * str, int flags, LVFontRef font )
             {
-                lString16 s( str );
+                lString32 s( str );
                 txt.AddSourceLine(
                         s.c_str(),        /* pointer to unicode text string */
                 s.length(),         /* number of chars in text, 0 for auto(strlen) */
@@ -319,7 +330,7 @@ void testFormatting()
                         } else {
                             // dump text
                             src_text_fragment_t * src = &buf->srctext[word->src_text_index];
-                            lString16 txt = lString16( src->t.text, word->t.start, word->t.len );
+                            lString32 txt = lString32( src->t.text, word->t.start, word->t.len );
                             lString8 txt8 = UnicodeToUtf8( txt );
                             printf("{%d..%d} \"%s\"\t", (int)word->x, (int)(word->x + word->width), (const char *)txt8.c_str() );
                         }
@@ -331,25 +342,25 @@ void testFormatting()
     LVFontRef font1 = fontMan->GetFont(20, 300, false, css_ff_sans_serif, lString8("Arial") );
     LVFontRef font2 = fontMan->GetFont(20, 300, false, css_ff_serif, lString8("Times New Roman") );
     Tester t;
-    t.addLine( L"   Testing preformatted\ntext wrapping.", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"\nNewline.", LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"\n\n2 Newlines.", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"   Testing preformatted\ntext wrapping.", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"\nNewline.", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"\n\n2 Newlines.", LTEXT_FLAG_OWNTEXT, font1 );
 #if 0
-    t.addLine( L"Testing thisislonglongwordto", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"Testing", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"several", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font2 );
-    t.addLine( L" short", LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"words!", LTEXT_FLAG_OWNTEXT, font2 );
-    t.addLine( L"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"There is seldom reason to tag a file in isolation. A more common use is to tag all the files that constitute a module with the same tag at strategic points in the development life-cycle, such as when a release is made.", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"There is seldom reason to tag a file in isolation. A more common use is to tag all the files that constitute a module with the same tag at strategic points in the development life-cycle, such as when a release is made.", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"There is seldom reason to tag a file in isolation. A more common use is to tag all the files that constitute a module with the same tag at strategic points in the development life-cycle, such as when a release is made.", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"Next paragraph: left-aligned. Blabla bla blabla blablabla hdjska hsdjkasld hsdjka sdjaksdl hasjkdl ahklsd hajklsdh jaksd hajks dhjksdhjshd sjkdajsh hasjdkh ajskd hjkhjksajshd hsjkadh sjk.", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"Another fragment of text. ", LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"And the last one written with another font", LTEXT_FLAG_OWNTEXT, font2 );
-    t.addLine( L"Next paragraph: left-aligned. ", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"Testing thisislonglongwordto", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"Testing", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"several", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font2 );
+    t.addLine( U" short", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"words!", LTEXT_FLAG_OWNTEXT, font2 );
+    t.addLine( U"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"There is seldom reason to tag a file in isolation. A more common use is to tag all the files that constitute a module with the same tag at strategic points in the development life-cycle, such as when a release is made.", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"There is seldom reason to tag a file in isolation. A more common use is to tag all the files that constitute a module with the same tag at strategic points in the development life-cycle, such as when a release is made.", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"There is seldom reason to tag a file in isolation. A more common use is to tag all the files that constitute a module with the same tag at strategic points in the development life-cycle, such as when a release is made.", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"Next paragraph: left-aligned. Blabla bla blabla blablabla hdjska hsdjkasld hsdjka sdjaksdl hasjkdl ahklsd hajklsdh jaksd hajks dhjksdhjshd sjkdajsh hasjdkh ajskd hjkhjksajshd hsjkadh sjk.", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"Another fragment of text. ", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"And the last one written with another font", LTEXT_FLAG_OWNTEXT, font2 );
+    t.addLine( U"Next paragraph: left-aligned. ", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( U"One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
     int i;
 #endif
 //    t.txt.FormatNew( 300, 400 );
@@ -382,7 +393,7 @@ void testFormatting()
 
 ResourceContainer * resources = NULL;
 
-static lChar16 detectSlash( lString16 path )
+static lChar32 detectSlash( lString32 path )
 {
     for ( int i=0; i<path.length(); i++ )
         if ( path[i]=='\\' || path[i]=='/' )
@@ -394,16 +405,13 @@ static lChar16 detectSlash( lString16 path )
 #endif
 }
 
-lString16 GetConfigFileName()
+lString32 GetConfigFileName()
 {
-    #if wxCHECK_VERSION(3, 0, 0)
-        lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().wx_str() );
-    #else
-        lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().c_str() );
-    #endif
-    if ( !wxDirExists( cfgdir.c_str() ) )
-        ::wxMkdir( wxString( cfgdir.c_str() ) );
-    lChar16 slash = detectSlash( cfgdir );
+    wxString wxcfgdir = wxStandardPaths::Get().GetUserDataDir();
+    if ( !wxDirExists( wxcfgdir ) )
+        ::wxMkdir( wxString( wxcfgdir ) );
+    lString32 cfgdir = wx2cr(wxcfgdir);
+    lChar32 slash = detectSlash( cfgdir );
     cfgdir << slash;
     return cfgdir + "cr3.ini";
 }
@@ -428,12 +436,12 @@ void cr3Frame::OnHistItemActivated( wxListEvent& event )
         return;
     }
     if ( index>=0 && index<_view->getDocView()->getHistory()->getRecords().length() ) {
-        lString16 pathname = _view->getDocView()->getHistory()->getRecords()[index]->getFilePath() + 
+        lString32 pathname = _view->getDocView()->getHistory()->getRecords()[index]->getFilePath() + 
             _view->getDocView()->getHistory()->getRecords()[index]->getFileName();
         if ( !pathname.empty() ) {
             Update();
             SetActiveMode( am_book );
-            _view->LoadDocument( wxString( pathname.c_str()) );
+            _view->LoadDocument( cr2wx(pathname) );
             UpdateToolbar();
         }
     }
@@ -493,7 +501,7 @@ bool initHyph(const char * fname)
     //    return false;
    // }
     // stream.get()
-    return HyphMan::initDictionaries( lString16(fname) );
+    return HyphMan::initDictionaries( lString32(fname) );
 }
 
 lString8 readFileToString( const char * fname )
@@ -523,10 +531,10 @@ int cr3app::OnExit()
     return 0;
 }
 
-wxBitmap cr3Frame::getIcon16x16( const lChar16 * name )
+wxBitmap cr3Frame::getIcon16x16(const lChar32 *name )
 {
     wxLogNull logNo; // Temporary disable warnings ( see: http://trac.wxwidgets.org/ticket/15331 )
-    lString16 dir;
+    lString32 dir;
     if ( _toolbarSize==2 )
         dir = "icons/22x22/";
     else if ( _toolbarSize==1 )
@@ -540,10 +548,10 @@ wxBitmap cr3Frame::getIcon16x16( const lChar16 * name )
 } // ~wxLogNull called, old log sink restored
 
 #if (USE_FREETYPE==1)
-bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16Collection & fonts, bool absPath )
+bool getDirectoryFonts( lString32Collection & pathList, lString32 ext, lString32Collection & fonts, bool absPath )
 {
     int foundCount = 0;
-    lString16 path;
+    lString32 path;
     for ( int di=0; di<pathList.length();di++ ) {
         path = pathList[di];
         LVContainerRef dir = LVOpenDirectory(path.c_str());
@@ -551,11 +559,11 @@ bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16
             CRLog::trace("Checking directory %s", UnicodeToUtf8(path).c_str() );
             for ( int i=0; i < dir->GetObjectCount(); i++ ) {
                 const LVContainerItemInfo * item = dir->GetObjectInfo(i);
-                lString16 fileName = item->GetName();
+                lString32 fileName = item->GetName();
                 lString8 fn = UnicodeToLocal(fileName);
                     //printf(" test(%s) ", fn.c_str() );
-                if ( !item->IsContainer() && fileName.length()>4 && lString16(fileName, fileName.length()-4, 4)==ext ) {
-                    lString16 fn;
+                if ( !item->IsContainer() && fileName.length()>4 && lString32(fileName, fileName.length()-4, 4)==ext ) {
+                    lString32 fn;
                     if ( absPath ) {
                         fn = path;
                         if ( !fn.empty() && fn[fn.length()-1]!=PATH_SEPARATOR_CHAR)
@@ -579,12 +587,12 @@ cr3app::OnInit()
     // test property container unit test
     {
         CRPropRef props = LVCreatePropsContainer();
-        props->setString("test.string.values.1", lString16("string value 1"));
-        props->setString("test.string.values.2", lString16("string value 2 with extra chars(\\\r\n)"));
+        props->setString("test.string.values.1", lString32("string value 1"));
+        props->setString("test.string.values.2", lString32("string value 2 with extra chars(\\\r\n)"));
         props->setBool("test.string.boolean1", true);
         props->setBool("test.string.boolean2", false);
-        props->setString("test.string.more_values.2", lString16("string more values (2)"));
-        props->setString("test.string.values.22", lString16("string value 22"));
+        props->setString("test.string.more_values.2", lString32("string more values (2)"));
+        props->setString("test.string.values.22", lString32("string value 22"));
         props->setInt("test.int.value1", 1 );
         props->setInt("test.int.value2", -2 );
         props->setInt("test.int.value3", 3 );
@@ -603,7 +611,7 @@ cr3app::OnInit()
         props->setInt("test.results.str-items", sub->getCount());
         props->setString("test.results.item1-value", sub->getValue(1));
         props->setString("test.results.item2-name", Utf8ToUnicode(lString8(sub->getName(2))));
-        props->setBool("test.results.compare-chars-eq", sub->getStringDef("values.2")==lString16("string value 2 with extra chars(\\\r\n)") );
+        props->setBool("test.results.compare-chars-eq", sub->getStringDef("values.2")==lString32("string value 2 with extra chars(\\\r\n)") );
         LVStreamRef stream = LVOpenFileStream( "props1.ini", LVOM_WRITE );
         props->saveToStream( stream.get() );
     }
@@ -628,13 +636,9 @@ cr3app::OnInit()
     wxImage::AddHandler(new wxPNGHandler);
     resources = new ResourceContainer();
 
-    #if wxCHECK_VERSION(3, 0, 0)
-        lString16 appname( argv[0].wx_str() );
-    #else
-        lString16 appname( argv[0] );
-    #endif
+    lString32 appname = wx2cr(argv[0]);
     int lastSlash=-1;
-    lChar16 slashChar = '/';
+    lChar32 slashChar = '/';
     for ( int p=0; p<(int)appname.length(); p++ ) {
         if ( appname[p]=='\\' ) {
             slashChar = '\\';
@@ -645,7 +649,7 @@ cr3app::OnInit()
         }
     }
 
-    lString16 appPath;
+    lString32 appPath;
     if ( lastSlash>=0 )
         appPath = appname.substr( 0, lastSlash+1 );
 
@@ -659,20 +663,20 @@ cr3app::OnInit()
 
     if (resources->OpenFromMemory( cr3_icons, sizeof(cr3_icons) )) {
 /*
-        LVStreamRef testStream = resources.GetStream(L"icons/16x16/signature.png");
+        LVStreamRef testStream = resources.GetStream(U"icons/16x16/signature.png");
         if ( !testStream.isNull() ) {
             int sz = testStream->GetSize();
             lUInt8 * buf = new lUInt8[ sz ];
             testStream->Read(buf, sz, NULL);
             printf("read: %c%c%c\n", buf[0], buf[1], buf[2]);
         }
-        wxBitmap icon = resources.GetBitmap(L"icons/16x16/signature.png");
+        wxBitmap icon = resources.GetBitmap(U"icons/16x16/signature.png");
         if ( icon.IsOk() ) {
             printf( "Image opened: %dx%d:%d\n", icon.GetWidth(), icon.GetHeight(), icon.GetDepth() );
         }
 */
     }
-    lString16 fontDir = appPath + "fonts";
+    lString32 fontDir = appPath + "fonts";
     fontDir << slashChar;
     lString8 fontDir8 = UnicodeToLocal(fontDir);
     const char * fontDir8s = fontDir8.c_str();
@@ -685,13 +689,13 @@ cr3app::OnInit()
 
 
 #if (USE_FREETYPE==1)
-    lString16 fontExt = L".ttf";
+    lString32 fontExt = U".ttf";
 #else
-    lString16 fontExt = L".lbf";
+    lString32 fontExt = U".lbf";
 #endif
 #if (USE_FREETYPE==1)
-    lString16Collection fonts;
-    lString16Collection fontDirs;
+    lString32Collection fonts;
+    lString32Collection fontDirs;
     fontDirs.add( fontDir );
     static const char * msfonts[] = {
         "arial.ttf", "arialbd.ttf", "ariali.ttf", "arialbi.ttf",
@@ -703,21 +707,21 @@ cr3app::OnInit()
     wchar_t sd_buf[MAX_PATH];
     sd_buf[0] = 0;
     ::GetSystemDirectoryW(sd_buf, MAX_PATH-1);
-    lString16 sysFontDir = lString16(sd_buf) + L"\\..\\fonts\\";
+    lString32 sysFontDir = lString32(sd_buf) + U"\\..\\fonts\\";
     lString8 sfd = UnicodeToLocal( sysFontDir );
     //const char * s = sfd.c_str();
     //CRLog::debug(s);
     for ( int fi=0; msfonts[fi]; fi++ )
-        fonts.add( sysFontDir + lString16(msfonts[fi]) );
+        fonts.add( sysFontDir + lString32(msfonts[fi]) );
 #endif
 #ifdef _LINUX
     fontDirs.add("/usr/local/share/cr3/fonts");
     fontDirs.add("/usr/local/share/fonts/truetype/freefont");
     fontDirs.add("/usr/share/cr3/fonts");
     fontDirs.add("/usr/share/fonts/truetype/freefont");
-    //fontDirs.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts") );
+    //fontDirs.add( lString32(U"/usr/share/fonts/truetype/msttcorefonts") );
     for ( int fi=0; msfonts[fi]; fi++ )
-        fonts.add( lString16("/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
+        fonts.add( lString32("/usr/share/fonts/truetype/msttcorefonts/") + lString32(msfonts[fi]) );
 #endif
     getDirectoryFonts( fontDirs, fontExt, fonts, true );
 
@@ -732,23 +736,23 @@ cr3app::OnInit()
             }
         }
     }
-/*
+#if 0
         LVContainerRef dir = LVOpenDirectory(fontDir.c_str());
         for ( int i=0; i<dir->GetObjectCount(); i++ ) {
             const LVContainerItemInfo * item = dir->GetObjectInfo(i);
-            lString16 fileName = item->GetName();
-            lString16 fileNameLower = fileName;
+            lString32 fileName = item->GetName();
+            lString32 fileNameLower = fileName;
             fileNameLower.lowercase();
             lString8 fn = UnicodeToLocal(fileName);
             const char * pfn = fn.c_str();
-            if ( !item->IsContainer() && fileNameLower.length()>4 && lString16(fileNameLower, fileNameLower.length()-4, 4)==L".ttf" ) {
+            if ( !item->IsContainer() && fileNameLower.length()>4 && lString32(fileNameLower, fileNameLower.length()-4, 4)==U".ttf" ) {
                 printf("loading font: %s\n", fn.c_str());
                 if ( !fontMan->RegisterFont(fn) ) {
                     printf("    failed\n");
                 }
             }
         }
-*/
+#endif
         //fontMan->RegisterFont(lString8("arial.ttf"));
 #else
         #define MAX_FONT_FILE 128
@@ -785,17 +789,13 @@ cr3app::OnInit()
     printf("%d fonts loaded.\n", fontMan->GetFontCount());
 
     int argc = wxGetApp().argc;
-    lString16 fnameToOpen;
+    lString32 fnameToOpen;
     for ( int i=1; i<argc; i++ ) {
-        #if wxCHECK_VERSION(3, 0, 0)
-            lString16 param = lString16( wxGetApp().argv[1].wx_str() );
-        #else
-            lString16 param = lString16( wxGetApp().argv[1] );
-        #endif
+        lString32 param = wx2cr(wxGetApp().argv[1]);
         if ( param[0]!='-' )
             fnameToOpen = param;
     }
-    if ( fnameToOpen == L"test_format" ) {
+    if ( fnameToOpen == U"test_format" ) {
         testFormatting();
     }
 
@@ -1011,7 +1011,7 @@ void cr3Frame::SetToolbarSize( int size )
     }
     */
 
-    wxBitmap fileopenBitmap = getIcon16x16(L"fileopen");
+    wxBitmap fileopenBitmap = getIcon16x16(U"fileopen");
 
     int w = fileopenBitmap.GetWidth(),
         h = fileopenBitmap.GetHeight();
@@ -1029,60 +1029,60 @@ void cr3Frame::SetToolbarSize( int size )
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Open file"), _T("This is help for open file tool"));
     toolBar->AddTool(Menu_View_History, _T("History (F5)"),
-                     getIcon16x16(L"project_open"),//toolBarBitmaps[Tool_open], 
+                     getIcon16x16(U"project_open"),//toolBarBitmaps[Tool_open], 
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Toggle recent books list"), _T("Toggle recent opened books list"));
 
     toolBar->AddTool(wxID_SAVE, _T("Save"), 
-                     getIcon16x16(L"filesaveas"),//toolBarBitmaps[Tool_save], 
+                     getIcon16x16(U"filesaveas"),//toolBarBitmaps[Tool_save], 
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Save as..."), _T("Export document"));
 
     toolBar->AddSeparator();
     toolBar->AddTool(Menu_View_ZoomIn, _T("Zoom In"),
-                     getIcon16x16(L"viewmag+"),//toolBarBitmaps[Tool_zoomin], 
+                     getIcon16x16(U"viewmag+"),//toolBarBitmaps[Tool_zoomin], 
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Zoom in"), _T("Increase font size"));
     toolBar->AddTool(Menu_View_ZoomOut, _T("Zoom Out"),
-                     getIcon16x16(L"viewmag-"),//toolBarBitmaps[Tool_zoomout], 
+                     getIcon16x16(U"viewmag-"),//toolBarBitmaps[Tool_zoomout], 
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Zoom out"), _T("Decrease font size"));
     toolBar->AddTool(Menu_View_Rotate, _T("Rotate (Ctrl+R)"),
-                     getIcon16x16(L"rotate_cw"),//toolBarBitmaps[Tool_zoomout],
+                     getIcon16x16(U"rotate_cw"),//toolBarBitmaps[Tool_zoomout],
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Rotate (Ctrl+R)"), _T("Rotate text clockwise"));
     toolBar->AddSeparator();
     toolBar->AddTool(Menu_View_TOC, _T("Table of Contents (F5)"),
-                     getIcon16x16(L"player_playlist"),//toolBarBitmaps[Tool_zoomout],
+                     getIcon16x16(U"player_playlist"),//toolBarBitmaps[Tool_zoomout],
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Table of Contents (F5)"), _T("Show Table of Contents window"));
     toolBar->AddTool(Menu_View_TogglePages, _T("Toggle pages (Ctrl+P)"),
-                     getIcon16x16(L"view_left_right"),//toolBarBitmaps[Tool_zoomout], 
+                     getIcon16x16(U"view_left_right"),//toolBarBitmaps[Tool_zoomout], 
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Toggle pages (Ctrl+P)"), _T("Switch pages/scroll mode"));
     toolBar->AddTool(Menu_View_ToggleFullScreen, _T("Fullscreen (Alt+Enter)"),
-                     getIcon16x16(L"window_fullscreen"),//toolBarBitmaps[Tool_zoomout], 
+                     getIcon16x16(U"window_fullscreen"),//toolBarBitmaps[Tool_zoomout], 
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Fullscreen (Alt+Enter)"), _T("Switch to fullscreen mode"));
     toolBar->AddSeparator();
 //Menu_View_ToggleFullScreen
     toolBar->AddTool(Menu_View_PrevPage, _T("Previous page"),
-                     getIcon16x16(L"previous"),//toolBarBitmaps[Tool_north], 
+                     getIcon16x16(U"previous"),//toolBarBitmaps[Tool_north], 
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Previous page"), _T("Go to previous page"));
     toolBar->AddTool(Menu_View_NextPage, _T("Next page"),
-                     getIcon16x16(L"next"),//toolBarBitmaps[Tool_south], 
+                     getIcon16x16(U"next"),//toolBarBitmaps[Tool_south], 
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Next page"), _T("Go to next page"));
 
     toolBar->AddSeparator();
     toolBar->AddTool(Menu_File_Options, _T("Options"), //wxID_HELP
-                     getIcon16x16(L"configure"),//toolBarBitmaps[Tool_help], 
+                     getIcon16x16(U"configure"),//toolBarBitmaps[Tool_help], 
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Options (F9)"), _T("Options (F9)"));
     toolBar->AddSeparator();
     toolBar->AddTool(Menu_File_About, _T("Help"), //wxID_HELP
-                     getIcon16x16(L"help"),//toolBarBitmaps[Tool_help], 
+                     getIcon16x16(U"help"),//toolBarBitmaps[Tool_help], 
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Help"), _T("Help"));
 
@@ -1145,10 +1145,10 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     LVLoadStylesheetFile( _appDir + "fb2.css", css );
 #ifdef _LINUX
     if ( css.empty() )
-        LVLoadStylesheetFile( L"/usr/share/cr3/fb2.css", css );
+        LVLoadStylesheetFile( U"/usr/share/cr3/fb2.css", css );
         //css = readFileToString( "/usr/share/crengine/fb2.css" );
     if ( css.empty() )
-        LVLoadStylesheetFile( L"/usr/local/share/cr3/fb2.css", css );
+        LVLoadStylesheetFile( U"/usr/local/share/cr3/fb2.css", css );
         //css = readFileToString( "/usr/local/share/crengine/fb2.css" );
 #endif
     if (css.length() > 0)
@@ -1202,16 +1202,12 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
 
     //toolBar->SetRows(!(toolBar->IsVertical()) ? m_rows : 10 / m_rows);
     int argc = wxGetApp().argc;
-    lString16 fnameToOpen;
-    lString16 formatName;
-    lString16 outFile;
+    lString32 fnameToOpen;
+    lString32 formatName;
+    lString32 outFile;
     bool convert = false;
     for ( int i=1; i<argc; i++ ) {
-        #if wxCHECK_VERSION(3, 0, 0)
-            lString16 param = lString16( wxGetApp().argv[i].wx_str() );
-        #else
-            lString16 param = lString16( wxGetApp().argv[i] );
-        #endif
+        lString32 param = wx2cr(wxGetApp().argv[i]);
         if ( param[0]!='-' )
             fnameToOpen = param;
         else if (param.startsWith("--convert"))
@@ -1222,17 +1218,17 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
             outFile = param.substr(6);
         }
     }
-    if ( fnameToOpen == L"test_format" ) {
+    if ( fnameToOpen == U"test_format" ) {
         testFormatting();
     }
     if ( !fnameToOpen.empty() && convert  ) {
         if ( formatName.empty() )
-            formatName = L"wol";
-        //==L"wol"
+            formatName = U"wol";
+        //==U"wol"
         if ( outFile.empty() )
             outFile = fnameToOpen + ".wol";
         // convertor
-        if ( !_view->LoadDocument( wxString( fnameToOpen.c_str() ) ) )
+        if ( !_view->LoadDocument( cr2wx(fnameToOpen) ) )
             exit(1);
         if ( !_view->getDocView()->exportWolFile( outFile.c_str(), true, 3 ) )
             exit(2);
@@ -1247,7 +1243,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
         fnameToOpen.erase(0, 1);
     if ( !fnameToOpen.empty() && fnameToOpen[fnameToOpen.length()-1]=='\"' )
         fnameToOpen.erase(fnameToOpen.length()-1, 1);
-    if ( fnameToOpen == L"test_format" ) {
+    if ( fnameToOpen == U"test_format" ) {
         testFormatting();
         Destroy();
         return;
@@ -1258,7 +1254,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
 
     RestoreOptions();
     if ( !fnameToOpen.empty() ) {
-        if ( !_view->LoadDocument( wxString( fnameToOpen.c_str() ) ) )
+        if ( !_view->LoadDocument( cr2wx(fnameToOpen) ) )
         {
             printf("cannot open document\n");
         }
@@ -1272,7 +1268,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
 }
 
 
-cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& size, lString16 appDir )
+cr3Frame::cr3Frame(const wxString& title, const wxPoint& pos, const wxSize& size, lString32 appDir )
     : wxFrame((wxFrame *)NULL, -1, title, pos, size), _activeMode(am_none), _toolbarSize(false)
 {
     //wxStandardPaths::GetUserDataDir();
@@ -1488,11 +1484,7 @@ cr3Frame::OnFileSave( wxCommandEvent& WXUNUSED( event ) )
         wxCursor hg( wxCURSOR_WAIT );
         this->SetCursor( hg );
         wxSetCursor( hg );
-        #if wxCHECK_VERSION(3, 0, 0)
-            _view->getDocView()->exportWolFile( dlg.GetPath().wx_str(), opts.getMode()==0, opts.getLevels() );
-        #else
-            _view->getDocView()->exportWolFile( dlg.GetPath(), opts.getMode()==0, opts.getLevels() );
-        #endif
+        _view->getDocView()->exportWolFile( wx2cr(dlg.GetPath()).c_str(), opts.getMode()==0, opts.getLevels() );
         wxSetCursor( wxNullCursor );
         this->SetCursor( wxNullCursor );
     }

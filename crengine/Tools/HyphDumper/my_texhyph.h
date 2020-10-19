@@ -14,13 +14,13 @@ class MyTexHyph : public HyphMethod
     lUInt32 _pattern_count;
 public:
     int largest_overflowed_word;
-    bool match( const lChar16 * str, char * mask );
-    virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
+    bool match( const lChar32 * str, char * mask );
+    virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
     void addPattern( MyTexPattern * pattern );
-    MyTexHyph( lString16 id=HYPH_DICT_ID_DICTIONARY, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN, int rightHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN );
+    MyTexHyph( lString32 id=HYPH_DICT_ID_DICTIONARY, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN, int rightHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN );
     virtual ~MyTexHyph();
     bool load( LVStreamRef stream );
-    bool load( lString16 fileName );
+    bool load( lString32 fileName );
     virtual lUInt32 getHash() { return _hash; }
     virtual lUInt32 getCount() { return _pattern_count; }
     virtual lUInt32 getSize();

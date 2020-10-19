@@ -41,36 +41,36 @@ public:
     /// sets flags
     virtual void setFlags( lUInt32 ) { }
     /// called on document encoding definition
-    virtual void OnEncoding( const lChar16 *, const lChar16 * ) { }
+    virtual void OnEncoding( const lChar32 *, const lChar32 * ) { }
     /// called on parsing start
     virtual void OnStart(LVFileFormatParser * parser) { _parser = parser; }
     /// called on parsing end
     virtual void OnStop() = 0;
     /// called on opening tag <
-    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname) = 0;
+    virtual ldomNode * OnTagOpen( const lChar32 * nsname, const lChar32 * tagname) = 0;
     /// called after > of opening tag (when entering tag body)
     virtual void OnTagBody() = 0;
     /// calls OnTagOpen & OnTagBody
-    virtual void OnTagOpenNoAttr( const lChar16 * nsname, const lChar16 * tagname)
+    virtual void OnTagOpenNoAttr( const lChar32 * nsname, const lChar32 * tagname)
     {
         OnTagOpen( nsname, tagname);
         OnTagBody();
     }
     /// calls OnTagOpen & OnTagClose
-    virtual void OnTagOpenAndClose( const lChar16 * nsname, const lChar16 * tagname)
+    virtual void OnTagOpenAndClose( const lChar32 * nsname, const lChar32 * tagname)
     {
         OnTagOpen( nsname, tagname );
         OnTagBody();
         OnTagClose( nsname, tagname, true );
     }
     /// called on tag close
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false ) = 0;
+    virtual void OnTagClose( const lChar32 * nsname, const lChar32 * tagname, bool self_closing_tag=false ) = 0;
     /// called on element attribute
-    virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue ) = 0;
+    virtual void OnAttribute( const lChar32 * nsname, const lChar32 * attrname, const lChar32 * attrvalue ) = 0;
     /// called on text
-    virtual void OnText( const lChar16 * text, int len, lUInt32 flags ) = 0;
+    virtual void OnText( const lChar32 * text, int len, lUInt32 flags ) = 0;
     /// add named BLOB data to document
-    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) = 0;
+    virtual bool OnBlob(lString32 name, const lUInt8 * data, int size) = 0;
     /// call to set document property
     virtual void OnDocProperty(const char * /*name*/, lString8 /*value*/) { }
     /// destructor
@@ -94,9 +94,9 @@ public:
 #define TXTFLG_PROCESS_ATTRIBUTE            0x20000
 
 /// converts XML text: decode character entities, convert space chars
-void PreProcessXmlString( lString16 & s, lUInt32 flags, const lChar16 * enc_table=NULL );
+void PreProcessXmlString( lString32 & s, lUInt32 flags, const lChar32 * enc_table=NULL );
 /// converts XML text in-place: decode character entities, convert space chars, returns new length of string
-int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * enc_table = NULL);
+int PreProcessXmlString(lChar32 * str, int len, lUInt32 flags, const lChar32 * enc_table = NULL);
 
 #define MAX_PERSISTENT_BUF_SIZE 16384
 
@@ -119,11 +119,11 @@ public:
     /// stops parsing in the middle of file, to read header only
     virtual void Stop() = 0;
     /// sets charset by name
-    virtual void SetCharset( const lChar16 * name ) = 0;
+    virtual void SetCharset( const lChar32 * name ) = 0;
     /// sets 8-bit charset conversion table (128 items, for codes 128..255)
-    virtual void SetCharsetTable( const lChar16 * table ) = 0;
+    virtual void SetCharsetTable( const lChar32 * table ) = 0;
     /// returns 8-bit charset conversion table (128 items, for codes 128..255)
-    virtual lChar16 * GetCharsetTable( ) = 0;
+    virtual lChar32 * GetCharsetTable( ) = 0;
     /// changes space mode
     virtual void SetSpaceMode( bool ) { }
     /// returns space mode
@@ -168,7 +168,7 @@ public:
     /// returns source stream
     LVStreamRef getStream() { return m_stream; }
     /// return stream file name
-    lString16 getFileName();
+    lString32 getFileName();
     /// returns true if end of fle is reached, and there is no data left in buffer
     virtual bool Eof() { return m_buf_fpos + m_buf_pos >= m_stream_size; }
     /// resets parsing, moves to beginning of stream
@@ -181,19 +181,19 @@ class LVTextFileBase : public LVFileParserBase
 {
 protected:
     char_encoding_type m_enc_type;
-    lString16 m_txt_buf;
-    lString16 m_encoding_name;
-    lString16 m_lang_name;
-    lChar16 * m_conv_table; // charset conversion table for 8-bit encodings
+    lString32 m_txt_buf;
+    lString32 m_encoding_name;
+    lString32 m_lang_name;
+    lChar32 * m_conv_table; // charset conversion table for 8-bit encodings
 
-    lChar16 m_read_buffer[XML_CHAR_BUFFER_SIZE];
+    lChar32 m_read_buffer[XML_CHAR_BUFFER_SIZE];
     int m_read_buffer_len;
     int m_read_buffer_pos;
     bool m_eof;
 
     void checkEof();
 
-    inline lChar16 ReadCharFromBuffer()
+    inline lChar32 ReadCharFromBuffer()
     {
         if ( m_read_buffer_pos >= m_read_buffer_len ) {
             if ( !fillCharBuffer() ) {
@@ -203,7 +203,7 @@ protected:
         }
         return m_read_buffer[m_read_buffer_pos++];
     }
-    inline lChar16 PeekCharFromBuffer()
+    inline lChar32 PeekCharFromBuffer()
     {
         if ( m_read_buffer_pos >= m_read_buffer_len ) {
             if ( !fillCharBuffer() ) {
@@ -213,7 +213,7 @@ protected:
         }
         return m_read_buffer[m_read_buffer_pos];
     }
-    inline lChar16 PeekCharFromBuffer( int offset )
+    inline lChar32 PeekCharFromBuffer( int offset )
     {
         if ( m_read_buffer_pos + offset >= m_read_buffer_len ) {
             if ( !fillCharBuffer() ) {
@@ -226,7 +226,7 @@ protected:
         return m_read_buffer[m_read_buffer_pos + offset];
     }
     // skip current char (was already peeked), peek next
-    inline lChar16 PeekNextCharFromBuffer()
+    inline lChar32 PeekNextCharFromBuffer()
     {
         if ( m_read_buffer_pos + 1 >= m_read_buffer_len ) {
             if ( !fillCharBuffer() ) {
@@ -237,7 +237,7 @@ protected:
         return m_read_buffer[++m_read_buffer_pos];
     }
     // skip current char (was already peeked), peek next
-    inline lChar16 PeekNextCharFromBuffer( int offset )
+    inline lChar32 PeekNextCharFromBuffer( int offset )
     {
         if ( m_read_buffer_pos+offset >= m_read_buffer_len ) {
             if ( !fillCharBuffer() ) {
@@ -257,16 +257,16 @@ protected:
     int fillCharBuffer();
 
     /// reads one character from buffer
-    //lChar16 ReadChar();
+    //lChar32 ReadChar();
     /// reads several characters from buffer
-    int ReadChars( lChar16 * buf, int maxsize );
+    int ReadChars( lChar32 * buf, int maxsize );
     /// reads one character from buffer in RTF format
-    lChar16 ReadRtfChar( int enc_type, const lChar16 * conv_table );
+    lChar32 ReadRtfChar( int enc_type, const lChar32 * conv_table );
     /// reads specified number of bytes, converts to characters and saves to buffer, returns number of chars read
-    int ReadTextBytes( lvpos_t pos, int bytesToRead, lChar16 * buf, int buf_size, int flags );
+    int ReadTextBytes( lvpos_t pos, int bytesToRead, lChar32 * buf, int buf_size, int flags );
 #if 0
     /// reads specified number of characters and saves to buffer, returns number of chars read
-    int ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size, int flags );
+    int ReadTextChars( lvpos_t pos, int charsToRead, lChar32 * buf, int buf_size, int flags );
 #endif
 public:
     /// returns true if end of fle is reached, and there is no data left in buffer
@@ -275,20 +275,20 @@ public:
     /// tries to autodetect text encoding
     bool AutodetectEncoding( bool utfOnly=false );
     /// reads next text line, tells file position and size of line, sets EOL flag
-    lString16 ReadLine( int maxLineSize, lUInt32 & flags );
-    //lString16 ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & fsize, lUInt32 & flags );
+    lString32 ReadLine( int maxLineSize, lUInt32 & flags );
+    //lString32 ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & fsize, lUInt32 & flags );
     /// returns name of character encoding
-    lString16 GetEncodingName() { return m_encoding_name; }
+    lString32 GetEncodingName() { return m_encoding_name; }
     /// returns name of language
-    lString16 GetLangName() { return m_lang_name; }
+    lString32 GetLangName() { return m_lang_name; }
 
     // overrides
     /// sets charset by name
-    virtual void SetCharset( const lChar16 * name );
+    virtual void SetCharset( const lChar32 * name );
     /// sets 8-bit charset conversion table (128 items, for codes 128..255)
-    virtual void SetCharsetTable( const lChar16 * table );
+    virtual void SetCharsetTable( const lChar32 * table );
     /// returns 8-bit charset conversion table (128 items, for codes 128..255)
-    virtual lChar16 * GetCharsetTable( ) { return m_conv_table; }
+    virtual lChar32 * GetCharsetTable( ) { return m_conv_table; }
 
     /// constructor
     LVTextFileBase( LVStreamRef stream );
@@ -310,8 +310,8 @@ private:
         lUInt32      pos;
         lUInt32      size;
         lUInt32      flags;
-        lString16    text;
-        cache_item( lString16 & txt )
+        lString32    text;
+        cache_item( lString32 & txt )
             : next(NULL), pos(0), size(0), flags(0), text(txt)
         {
         }
@@ -324,7 +324,7 @@ private:
     void cleanOldItems( lUInt32 newItemChars );
 
     /// adds new item
-    void addItem( lString16 & str );
+    void addItem( lString32 & str );
 
 public:
     /// returns true if format is recognized by parser
@@ -341,7 +341,7 @@ public:
     /// destructor
     virtual ~LVXMLTextCache();
     /// reads text from cache or input stream
-    lString16 getText( lUInt32 pos, lUInt32 size, lUInt32 flags );
+    lString32 getText( lUInt32 pos, lUInt32 size, lUInt32 flags );
 };
 
 
@@ -394,8 +394,8 @@ private:
     bool m_trimspaces;
     int  m_state;
     bool SkipSpaces();
-    bool SkipTillChar( lChar16 ch );
-    bool ReadIdent( lString16 & ns, lString16 & str );
+    bool SkipTillChar( lChar32 ch );
+    bool ReadIdent( lString32 & ns, lString32 & str );
     bool ReadText();
 protected:
     bool m_citags;
@@ -407,7 +407,7 @@ public:
     /// parses input stream
     virtual bool Parse();
     /// sets charset by name
-    virtual void SetCharset( const lChar16 * name );
+    virtual void SetCharset( const lChar32 * name );
     /// resets parsing, moves to beginning of stream
     virtual void Reset();
     /// constructor
@@ -438,9 +438,9 @@ public:
 };
 
 /// read stream contents to string
-lString16 LVReadTextFile( LVStreamRef stream );
+lString32 LVReadTextFile( LVStreamRef stream );
 /// read file contents to string
-lString16 LVReadTextFile( lString16 filename );
+lString32 LVReadTextFile( lString32 filename );
 
 LVStreamRef GetFB2Coverpage(LVStreamRef stream);
 

@@ -33,8 +33,8 @@
 class CR3View::DocViewData
 {
     friend class CR3View;
-    lString16 _settingsFileName;
-    lString16 _historyFileName;
+    lString32 _settingsFileName;
+    lString32 _historyFileName;
     CRPropRef _props;
 };
 
@@ -445,7 +445,7 @@ void CR3View::setDocumentText( QString text )
 {
     _docview->savePosition();
     clearSelection();
-    _docview->createDefaultDocument(lString16::empty_str, qt2cr(text));
+    _docview->createDefaultDocument(lString32::empty_str, qt2cr(text));
 }
 
 bool CR3View::loadLastDocument()
@@ -464,7 +464,7 @@ bool CR3View::loadDocument( QString fileName )
     if ( res ) {
         CRPropRef props = _docview->propsGetCurrent();
         if (props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false)) {
-            lString16 doc_lang = _docview->getLanguage();
+            lString32 doc_lang = _docview->getLanguage();
             if (!doc_lang.empty())
                 _docview->propApply(lString8(PROP_TEXTLANG_MAIN_LANG), doc_lang);
         }
@@ -474,7 +474,7 @@ bool CR3View::loadDocument( QString fileName )
         _docview->restorePosition();
         checkFontLanguageCompatibility();
     } else {
-        _docview->createDefaultDocument(lString16::empty_str, qt2cr(tr("Error while opening document ") + fileName));
+        _docview->createDefaultDocument(lString32::empty_str, qt2cr(tr("Error while opening document ") + fileName));
     }
     update();
     return res;
@@ -790,7 +790,7 @@ void CR3View::setScrollBar( QScrollBar * scroll )
 /// load fb2.css file
 bool CR3View::loadCSS( QString fn )
 {
-    lString16 filename( qt2cr(fn) );
+    lString32 filename( qt2cr(fn) );
     lString8 css;
     if ( LVLoadStylesheetFile( filename, css ) ) {
         if ( !css.empty() ) {
@@ -807,7 +807,7 @@ bool CR3View::loadCSS( QString fn )
 /// load settings from file
 bool CR3View::loadSettings( QString fn )
 {
-    lString16 filename( qt2cr(fn) );
+    lString32 filename( qt2cr(fn) );
     _data->_settingsFileName = filename;
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
     bool res = false;
@@ -881,7 +881,7 @@ PropsRef CR3View::getOptions()
 /// save settings from file
 bool CR3View::saveSettings( QString fn )
 {
-    lString16 filename( qt2cr(fn) );
+    lString32 filename( qt2cr(fn) );
     crtrace log;
     if ( filename.empty() )
         filename = _data->_settingsFileName;
@@ -891,7 +891,7 @@ bool CR3View::saveSettings( QString fn )
     log << "V3DocViewWin::saveSettings(" << filename << ")";
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
     if ( !stream ) {
-        lString16 path16 = LVExtractPath( filename );
+        lString32 path16 = LVExtractPath( filename );
         lString8 path = UnicodeToUtf8(path16);
         if ( !LVCreateDirectory( path16 ) ) {
             CRLog::error("Cannot create directory %s", path.c_str() );
@@ -910,7 +910,7 @@ bool CR3View::saveSettings( QString fn )
 /// load history from file
 bool CR3View::loadHistory( QString fn )
 {
-    lString16 filename( qt2cr(fn) );
+    lString32 filename( qt2cr(fn) );
     CRLog::trace("V3DocViewWin::loadHistory( %s )", UnicodeToUtf8(filename).c_str());
     _data->_historyFileName = filename;
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
@@ -925,7 +925,7 @@ bool CR3View::loadHistory( QString fn )
 /// save history to file
 bool CR3View::saveHistory( QString fn )
 {
-    lString16 filename( qt2cr(fn) );
+    lString32 filename( qt2cr(fn) );
     crtrace log;
     if ( filename.empty() )
         filename = _data->_historyFileName;
@@ -935,14 +935,14 @@ bool CR3View::saveHistory( QString fn )
     }
     //CRLog::debug("Exporting bookmarks to %s", UnicodeToUtf8(_bookmarkDir).c_str());
     //_docview->exportBookmarks(_bookmarkDir); //use default filename
-    lString16 bmdir = qt2cr(_bookmarkDir);
+    lString32 bmdir = qt2cr(_bookmarkDir);
     LVAppendPathDelimiter( bmdir );
     _docview->exportBookmarks( bmdir ); //use default filename
     _data->_historyFileName = filename;
     log << "V3DocViewWin::saveHistory(" << filename << ")";
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
     if ( !stream ) {
-        lString16 path16 = LVExtractPath( filename );
+        lString32 path16 = LVExtractPath( filename );
         lString8 path = UnicodeToUtf8(path16);
         if ( !LVCreateDirectory( path16 ) ) {
             CRLog::error("Cannot create directory %s", path.c_str() );
@@ -980,8 +980,8 @@ void CR3View::mouseMoveEvent ( QMouseEvent * event )
     //bool mid = (event->buttons() & Qt::MidButton);
     lvPoint pt ( event->x(), event->y() );
     ldomXPointer p = _docview->getNodeByPoint( pt );
-    lString16 path;
-    lString16 href;
+    lString32 path;
+    lString32 href;
     if ( !p.isNull() ) {
         path = p.toString();
         href = p.getHRef();
@@ -1055,7 +1055,7 @@ bool CR3View::updateSelection( ldomXPointer p )
             r.getStart().prevVisibleWordStart();
             //CRLog::trace("updated : %s", LCSTR(r.getStart().toString()));
         }
-        //lString16 start = r.getStart().toString();
+        //lString32 start = r.getStart().toString();
         if ( !r.getEnd().isVisibleWordEnd() ) {
             //CRLog::trace("calling nextVisibleWordEnd : %s", LCSTR(r.getEnd().toString()));
             r.getEnd().nextVisibleWordEnd();
@@ -1064,7 +1064,7 @@ bool CR3View::updateSelection( ldomXPointer p )
     }
     if ( r.isNull() )
         return false;
-    //lString16 end = r.getEnd().toString();
+    //lString32 end = r.getEnd().toString();
     //CRLog::debug("Range: %s - %s", UnicodeToUtf8(start).c_str(), UnicodeToUtf8(end).c_str());
     r.setFlags(1);
     _docview->selectRange( r );
@@ -1077,10 +1077,10 @@ bool CR3View::updateSelection( ldomXPointer p )
 
 void CR3View::checkFontLanguageCompatibility()
 {
-    lString16 fontFace;
+    lString32 fontFace;
     _data->_props->getString(PROP_FONT_FACE, fontFace);
     lString8 fontFace_u8 = UnicodeToUtf8(fontFace);
-    lString16 langCode = _docview->getLanguage();
+    lString32 langCode = _docview->getLanguage();
     lString8 langCode_u8 = UnicodeToUtf8(langCode);
     if (langCode_u8.length() == 0) {
         CRLog::debug("Can't fetch book's language to check font compatibility!");
@@ -1115,8 +1115,8 @@ void CR3View::mousePressEvent ( QMouseEvent * event )
         if (mid)
             AddBookmarkDialog::editBookmark((QWidget*)parent(), this, bmk);
     }
-    lString16 path;
-    lString16 href;
+    lString32 path;
+    lString32 href;
     if ( !p.isNull() ) {
         path = p.toString();
         CRLog::debug("mousePressEvent(%s)", LCSTR(path));
@@ -1149,8 +1149,8 @@ void CR3View::mouseReleaseEvent ( QMouseEvent * event )
     //bool mid = event->button() == Qt::MidButton;
     lvPoint pt (event->x(), event->y());
     ldomXPointer p = _docview->getNodeByPoint( pt );
-    lString16 path;
-    lString16 href;
+    lString32 path;
+    lString32 href;
     if ( !p.isNull() ) {
         path = p.toString();
         href = p.getHRef();
@@ -1176,7 +1176,7 @@ void CR3View::mouseReleaseEvent ( QMouseEvent * event )
 }
 
 /// Override to handle external links
-void CR3View::OnExternalLink( lString16 url, ldomNode * node )
+void CR3View::OnExternalLink( lString32 url, ldomNode * node )
 {
     // TODO: add support of file links
     // only URL supported for now
@@ -1189,9 +1189,9 @@ CRBookmark * CR3View::createBookmark()
 {
     CRBookmark * bm = NULL;
     if ( getSelectionText().length()>0 && !_selRange.isNull() ) {
-        bm = getDocView()->saveRangeBookmark(_selRange, bmkt_comment, lString16::empty_str);
+        bm = getDocView()->saveRangeBookmark(_selRange, bmkt_comment, lString32::empty_str);
     } else {
-        bm = getDocView()->saveCurrentPageBookmark(lString16::empty_str);
+        bm = getDocView()->saveCurrentPageBookmark(lString32::empty_str);
     }
 
     return bm;
@@ -1274,13 +1274,13 @@ void CR3View::OnLoadFileFormatDetected( doc_format_t fileFormat )
 }
 
 /// on starting file loading
-void CR3View::OnLoadFileStart( lString16 filename )
+void CR3View::OnLoadFileStart( lString32 filename )
 {
     setCursor( _waitCursor );
 }
 
 /// file load finiished with error
-void CR3View::OnLoadFileError( lString16 message )
+void CR3View::OnLoadFileError( lString32 message )
 {
     setCursor( _normalCursor );
 }
@@ -1430,7 +1430,7 @@ void CR3View::OnLoadFileFirstPagesReady()
     //update();
     repaint();
     CRLog::info( "OnLoadFileFirstPagesReady() - painting done" );
-    _docview->setPageHeaderOverride(lString16::empty_str);
+    _docview->setPageHeaderOverride(lString32::empty_str);
     _docview->requestRender();
     // TODO: remove debug sleep
     //sleep(5);

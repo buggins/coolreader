@@ -11,7 +11,7 @@
 
 *******************************************************/
 
-#include "../include/lvstring16hashedcollection.h"
+#include "../include/lvstring32hashedcollection.h"
 #include "../include/serialbuf.h"
 
 static const char * str_hash_magic="STRS";
@@ -43,7 +43,7 @@ bool lString16HashedCollection::deserialize( SerialBuf & buf )
     lInt32 count = 0;
     buf >> count;
     for ( int i=0; i<count; i++ ) {
-        lString16 s;
+        lString32 s;
         buf >> s;
         if ( buf.error() )
             break;
@@ -54,7 +54,7 @@ bool lString16HashedCollection::deserialize( SerialBuf & buf )
 }
 
 lString16HashedCollection::lString16HashedCollection( lString16HashedCollection & v )
-: lString16Collection( v )
+: lString32Collection( v )
 , hashSize( v.hashSize )
 , hash( NULL )
 {
@@ -112,7 +112,7 @@ lString16HashedCollection::~lString16HashedCollection()
     clearHash();
 }
 
-int lString16HashedCollection::find( const lChar16 * s )
+int lString16HashedCollection::find( const lChar32 * s )
 {
     if ( !hash || !length() )
         return -1;
@@ -120,12 +120,12 @@ int lString16HashedCollection::find( const lChar16 * s )
     lUInt32 n = h % hashSize;
     if ( hash[n].index!=-1 )
     {
-        const lString16 & str = at( hash[n].index );
+        const lString32 & str = at( hash[n].index );
         if ( str == s )
             return hash[n].index;
         HashPair * p = hash[n].next;
         for ( ;p ;p = p->next ) {
-            const lString16 & str = at( p->index );
+            const lString32 & str = at( p->index );
             if ( str==s )
                 return p->index;
         }
@@ -151,7 +151,7 @@ void lString16HashedCollection::reHash( int newSize )
     }
 }
 
-int lString16HashedCollection::add( const lChar16 * s )
+int lString16HashedCollection::add( const lChar32 * s )
 {
     if ( !hash || hashSize < length()*2 ) {
         int sz = 16;
@@ -164,17 +164,17 @@ int lString16HashedCollection::add( const lChar16 * s )
     lUInt32 n = h % hashSize;
     if ( hash[n].index!=-1 )
     {
-        const lString16 & str = at( hash[n].index );
+        const lString32 & str = at( hash[n].index );
         if ( str == s )
             return hash[n].index;
         HashPair * p = hash[n].next;
         for ( ;p ;p = p->next ) {
-            const lString16 & str = at( p->index );
+            const lString32 & str = at( p->index );
             if ( str==s )
                 return p->index;
         }
     }
-    lUInt32 i = lString16Collection::add( lString16(s) );
+    lUInt32 i = lString32Collection::add( lString32(s) );
     addHashItem( n, i );
     return i;
 }

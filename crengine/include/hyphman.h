@@ -39,17 +39,17 @@
 class HyphMethod
 {
 protected:
-    lString16 _id;
+    lString32 _id;
     int _left_hyphen_min;
     int _right_hyphen_min;
 public:
-    HyphMethod(lString16 id, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN, int rightHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN)
+    HyphMethod(lString32 id, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN, int rightHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN)
         : _id(id)
         , _left_hyphen_min(leftHyphenMin)
         , _right_hyphen_min(rightHyphenMin)
         { }
-    lString16 getId() { return _id; }
-    virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize=1 ) = 0;
+    lString32 getId() { return _id; }
+    virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize=1 ) = 0;
     virtual ~HyphMethod() { }
     virtual lUInt32 getCount() { return 0; }
     virtual lUInt32 getSize() { return 0; }
@@ -70,25 +70,25 @@ enum HyphDictType
 class HyphDictionary
 {
 	HyphDictType _type;
-	lString16 _title;
-	lString16 _id;
-	lString16 _filename;
+	lString32 _title;
+	lString32 _id;
+	lString32 _filename;
 public:
-	HyphDictionary( HyphDictType type, lString16 title, lString16 id, lString16 filename )
+	HyphDictionary( HyphDictType type, lString32 title, lString32 id, lString32 filename )
 		: _type(type), _title(title), _id( id ), _filename( filename ) { }
 	HyphDictType getType() const { return _type; }
-	lString16 getTitle() const { return _title; }
-	lString16 getId() const { return _id; }
-	lString16 getFilename() const { return _filename; }
+	lString32 getTitle() const { return _title; }
+	lString32 getId() const { return _id; }
+	lString32 getFilename() const { return _filename; }
 	bool activate();
 	virtual lUInt32 getHash() const { return getTitle().getHash(); }
     virtual ~HyphDictionary() { }
 };
 
-#define HYPH_DICT_ID_NONE L"@none"
-#define HYPH_DICT_ID_ALGORITHM L"@algorithm"
-#define HYPH_DICT_ID_SOFTHYPHENS L"@softhyphens"
-#define HYPH_DICT_ID_DICTIONARY L"@dictionary"
+#define HYPH_DICT_ID_NONE U"@none"
+#define HYPH_DICT_ID_ALGORITHM U"@algorithm"
+#define HYPH_DICT_ID_SOFTHYPHENS U"@softhyphens"
+#define HYPH_DICT_ID_DICTIONARY U"@dictionary"
 
 class HyphDictionaryList
 {
@@ -99,9 +99,9 @@ public:
 	int length() { return _list.length(); }
 	HyphDictionary * get( int index ) { return (index>=0 && index<+_list.length()) ? _list[index] : NULL; }
 	HyphDictionaryList() { addDefault(); }
-    bool open(lString16 hyphDirectory, bool clear = true);
-	HyphDictionary * find( const lString16& id );
-	bool activate( lString16 id );
+    bool open(lString32 hyphDirectory, bool clear = true);
+	HyphDictionary * find( const lString32& id );
+	bool activate( lString32 id );
 };
 
 #define DEF_HYPHENATION_DICT "English_US.pattern"
@@ -120,7 +120,7 @@ class HyphDataLoader
 public:
     HyphDataLoader() {}
     virtual ~HyphDataLoader() {}
-	virtual LVStreamRef loadData(lString16 id) = 0;
+	virtual LVStreamRef loadData(lString32 id) = 0;
 };
 
 /// hyphenation manager
@@ -134,18 +134,18 @@ class HyphMan
     // static HyphMethod * _method;
     // static HyphDictionary * _selectedDictionary;
     static HyphDictionaryList * _dictList; // available hyph dict files (+ none/algo/softhyphens)
-    static LVHashTable<lString16, HyphMethod*> _loaded_hyph_methods; // methods with loaded dictionaries
+    static LVHashTable<lString32, HyphMethod*> _loaded_hyph_methods; // methods with loaded dictionaries
     static HyphDataLoader* _dataLoader;
     static int _LeftHyphenMin;
     static int _RightHyphenMin;
     static int _TrustSoftHyphens;
 public:
     static void uninit();
-    static bool initDictionaries(lString16 dir, bool clear = true);
+    static bool initDictionaries(lString32 dir, bool clear = true);
     static HyphDictionaryList * getDictList() { return _dictList; }
     static bool addDictionaryItem(HyphDictionary* dict);
     static void setDataLoader(HyphDataLoader* loader);
-    static bool activateDictionary( lString16 id ) { return _dictList->activate(id); }
+    static bool activateDictionary( lString32 id ) { return _dictList->activate(id); }
     static HyphDictionary * getSelectedDictionary(); // was: { return _selectedDictionary; }
     static int getLeftHyphenMin() { return _LeftHyphenMin; }
     static int getRightHyphenMin() { return _RightHyphenMin; }
@@ -154,15 +154,15 @@ public:
     static int getTrustSoftHyphens() { return _TrustSoftHyphens; }
     static bool setTrustSoftHyphens( int trust_soft_hyphen );
     static bool isEnabled();
-    static HyphMethod * getHyphMethodForDictionary( lString16 id, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN,
+    static HyphMethod * getHyphMethodForDictionary( lString32 id, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN,
                                                         int rightHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN );
 
     HyphMan();
     ~HyphMan();
 
-    static bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize=1 );
+    static bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize=1 );
     /* Obsolete:
-    inline static bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize=1 )
+    inline static bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize=1 )
     {
         return _method->hyphenate( str, len, widths, flags, hyphCharWidth, maxWidth, flagSize );
     }

@@ -33,13 +33,13 @@ lString8 LVFontManager::findFontFace(lString8 commaSeparatedFaceList, css_font_f
     lString8Collection list;
     splitPropertyValueList(commaSeparatedFaceList.c_str(), list);
     // faces we have
-    lString16Collection faces;
+    lString32Collection faces;
     getFaceList(faces);
     // find first matched
     for (int i = 0; i < list.length(); i++) {
         lString8 wantFace = list[i];
         for (int j = 0; j < faces.length(); j++) {
-            lString16 haveFace = faces[j];
+            lString32 haveFace = faces[j];
             if (wantFace == haveFace)
                 return wantFace;
         }

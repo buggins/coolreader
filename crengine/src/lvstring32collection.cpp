@@ -11,17 +11,17 @@
 
 *******************************************************/
 
-#include "../include/lvstring16collection.h"
+#include "../include/lvstring32collection.h"
 
-void lString16Collection::reserve(int space)
+void lString32Collection::reserve(int space)
 {
     if ( count + space > size )
     {
         int tmpSize = count + space + 64;
-        void* tmp = realloc( chunks, sizeof(lstring16_chunk_t *) * tmpSize );
+        void* tmp = realloc( chunks, sizeof(lstring32_chunk_t *) * tmpSize );
         if (tmp) {
             size = tmpSize;
-            chunks = (lstring16_chunk_t * *)tmp;
+            chunks = (lstring32_chunk_t * *)tmp;
         }
         else {
             // TODO: throw exception or change function prototype & return code
@@ -29,40 +29,40 @@ void lString16Collection::reserve(int space)
     }
 }
 
-static int (str16_comparator)(const void * n1, const void * n2)
+static int (str32_comparator)(const void * n1, const void * n2)
 {
-    lstring16_chunk_t ** s1 = (lstring16_chunk_t **)n1;
-    lstring16_chunk_t ** s2 = (lstring16_chunk_t **)n2;
-    return lStr_cmp( (*s1)->data16(), (*s2)->data16() );
+    lstring32_chunk_t ** s1 = (lstring32_chunk_t **)n1;
+    lstring32_chunk_t ** s2 = (lstring32_chunk_t **)n2;
+    return lStr_cmp( (*s1)->data32(), (*s2)->data32() );
 }
 
-static int(*custom_lstr16_comparator_ptr)(lString16 & s1, lString16 & s2);
-static int (str16_custom_comparator)(const void * n1, const void * n2)
+static int(*custom_lstr32_comparator_ptr)(lString32 & s1, lString32 & s2);
+static int (str32_custom_comparator)(const void * n1, const void * n2)
 {
-    lString16 s1(*((lstring16_chunk_t **)n1));
-    lString16 s2(*((lstring16_chunk_t **)n2));
-    return custom_lstr16_comparator_ptr(s1, s2);
+    lString32 s1(*((lstring32_chunk_t **)n1));
+    lString32 s2(*((lstring32_chunk_t **)n2));
+    return custom_lstr32_comparator_ptr(s1, s2);
 }
 
-void lString16Collection::sort(int(comparator)(lString16 & s1, lString16 & s2))
+void lString32Collection::sort(int(comparator)(lString32 & s1, lString32 & s2))
 {
-    custom_lstr16_comparator_ptr = comparator;
-    qsort(chunks,count,sizeof(lstring16_chunk_t*), str16_custom_comparator);
+    custom_lstr32_comparator_ptr = comparator;
+    qsort(chunks,count,sizeof(lstring32_chunk_t*), str32_custom_comparator);
 }
 
-void lString16Collection::sort()
+void lString32Collection::sort()
 {
-    qsort(chunks,count,sizeof(lstring16_chunk_t*), str16_comparator);
+    qsort(chunks,count,sizeof(lstring32_chunk_t*), str32_comparator);
 }
 
-int lString16Collection::add( const lString16 & str )
+int lString32Collection::add( const lString32 & str )
 {
     reserve( 1 );
     chunks[count] = str.pchunk;
     str.addref();
     return count++;
 }
-int lString16Collection::insert( int pos, const lString16 & str )
+int lString32Collection::insert( int pos, const lString32 & str )
 {
     if (pos<0 || pos>=count)
         return add(str);
@@ -73,12 +73,12 @@ int lString16Collection::insert( int pos, const lString16 & str )
     str.addref();
     return count++;
 }
-void lString16Collection::clear()
+void lString32Collection::clear()
 {
     if (chunks) {
         for (int i=0; i<count; i++)
         {
-            ((lString16 *)chunks)[i].release();
+            ((lString32 *)chunks)[i].release();
         }
         free(chunks);
         chunks = NULL;
@@ -87,7 +87,7 @@ void lString16Collection::clear()
     size = 0;
 }
 
-void lString16Collection::erase(int offset, int cnt)
+void lString32Collection::erase(int offset, int cnt)
 {
     if (count<=0)
         return;
@@ -96,7 +96,7 @@ void lString16Collection::erase(int offset, int cnt)
     int i;
     for (i = offset; i < offset + cnt; i++)
     {
-        ((lString16 *)chunks)[i].release();
+        ((lString32 *)chunks)[i].release();
     }
     for (i = offset + cnt; i < count; i++)
     {
@@ -107,7 +107,7 @@ void lString16Collection::erase(int offset, int cnt)
         clear();
 }
 
-void lString16Collection::split( const lString16 & str, const lString16 & delimiter )
+void lString32Collection::split( const lString32 & str, const lString32 & delimiter )
 {
     if (str.empty())
         return;
@@ -120,12 +120,12 @@ void lString16Collection::split( const lString16 & str, const lString16 & delimi
     }
 }
 
-void lString16Collection::parse( lString16 string, lChar16 delimiter, bool flgTrim )
+void lString32Collection::parse( lString32 string, lChar32 delimiter, bool flgTrim )
 {
     int wstart=0;
     for ( int i=0; i<=string.length(); i++ ) {
         if ( i==string.length() || string[i]==delimiter ) {
-            lString16 s( string.substr( wstart, i-wstart) );
+            lString32 s( string.substr( wstart, i-wstart) );
             if ( flgTrim )
                 s.trimDoubleSpaces(false, false, false);
             if ( !flgTrim || !s.empty() )
@@ -135,10 +135,10 @@ void lString16Collection::parse( lString16 string, lChar16 delimiter, bool flgTr
     }
 }
 
-void lString16Collection::parse( lString16 string, lString16 delimiter, bool flgTrim )
+void lString32Collection::parse( lString32 string, lString32 delimiter, bool flgTrim )
 {
     if ( delimiter.empty() || string.pos(delimiter)<0 ) {
-        lString16 s( string );
+        lString32 s( string );
         if ( flgTrim )
             s.trimDoubleSpaces(false, false, false);
         add(s);
@@ -154,7 +154,7 @@ void lString16Collection::parse( lString16 string, lString16 delimiter, bool flg
             }
         }
         if ( matched ) {
-            lString16 s( string.substr( wstart, i-wstart) );
+            lString32 s( string.substr( wstart, i-wstart) );
             if ( flgTrim )
                 s.trimDoubleSpaces(false, false, false);
             if ( !flgTrim || !s.empty() )

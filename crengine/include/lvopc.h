@@ -19,22 +19,22 @@ class OpcPart : public LVRefCounter
 public:
     ~OpcPart();
     LVStreamRef open();
-    lString16 getRelatedPartName(const lChar16 * const relationType, const lString16 id = lString16());
-    OpcPartRef getRelatedPart(const lChar16 * const relationType, const lString16 id = lString16());
+    lString32 getRelatedPartName(const lChar32 * const relationType, const lString32 id = lString32());
+    OpcPartRef getRelatedPart(const lChar32 * const relationType, const lString32 id = lString32());
 protected:
-    OpcPart(OpcPackage* package, lString16 name):
+    OpcPart(OpcPackage* package, lString32 name):
        m_relations(16), m_package(package), m_name(name), m_relationsValid(false)
     {
     }
     void readRelations();
-    lString16 getTargetPath(const lString16 srcPath, const lString16 targetMode, lString16 target);
-    OpcPart* createPart(OpcPackage* package, lString16 name) {
+    lString32 getTargetPath(const lString32 srcPath, const lString32 targetMode, lString32 target);
+    OpcPart* createPart(OpcPackage* package, lString32 name) {
         return new OpcPart(package, name);
     }
 private:
-    LVHashTable<lString16, LVHashTable<lString16, lString16> *> m_relations;
+    LVHashTable<lString32, LVHashTable<lString32, lString32> *> m_relations;
     OpcPackage* m_package;
-    lString16 m_name;
+    lString32 m_name;
     bool m_relationsValid;
 private:
     // non copyable
@@ -49,30 +49,30 @@ class OpcPackage : public OpcPart
 private:
     bool m_contentTypesValid;
     LVContainerRef m_container;
-    LVHashTable<lString16, lString16> m_contentTypes;
+    LVHashTable<lString32, lString32> m_contentTypes;
 private:
     // non copyable
     OpcPackage();
     OpcPackage( const OpcPackage& );
     OpcPackage& operator=( const OpcPart& );
 public:
-    OpcPackage(LVContainerRef container) : OpcPart(this, L"/"),
+    OpcPackage(LVContainerRef container) : OpcPart(this, U"/"),
         m_contentTypesValid(false), m_container(container),
         m_contentTypes(16)
     {
     }
-    LVStreamRef open(lString16 partName) {
+    LVStreamRef open(lString32 partName) {
         return m_container->OpenStream(partName.c_str(), LVOM_READ);
     }
-    lString16 getContentPartName(const lChar16* contentType);
-    OpcPartRef getContentPart(const lChar16* contentType) {
+    lString32 getContentPartName(const lChar32* contentType);
+    OpcPartRef getContentPart(const lChar32* contentType) {
         return getPart(getContentPartName(contentType));
     }
-    LVStreamRef openContentPart(const lChar16* contentType) {
+    LVStreamRef openContentPart(const lChar32* contentType) {
         return open(getContentPartName(contentType));
     }
-    OpcPartRef getPart(const lString16 partName);
-    bool partExist(const lString16 partName);
+    OpcPartRef getPart(const lString32 partName);
+    bool partExist(const lString32 partName);
     void readCoreProperties(CRPropRef doc_props);
 private:
     void readContentTypes();

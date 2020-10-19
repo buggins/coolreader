@@ -268,7 +268,7 @@ bool LVFreeTypeFontManager::initSystemFonts() {
 #elif (USE_FONTCONFIG == 1)
     {
         CRLog::info("Reading list of system fonts using FONTCONFIG");
-        lString16Collection fonts;
+        lString32Collection fonts;
         
         int facesFound = 0;
         
@@ -305,9 +305,9 @@ bool LVFreeTypeFontManager::initSystemFonts() {
                 continue;
             }
             lString8 fn( (const char *)s );
-            lString16 fn16( fn.c_str() );
-            fn16.lowercase();
-            if (!fn16.endsWith(".ttf") && !fn16.endsWith(".odf") && !fn16.endsWith(".otf") && !fn16.endsWith(".pfb") && !fn16.endsWith(".pfa")  ) {
+            lString32 fn32( fn.c_str() );
+            fn32.lowercase();
+            if (!fn32.endsWith(".ttf") && !fn32.endsWith(".odf") && !fn32.endsWith(".otf") && !fn32.endsWith(".pfb") && !fn32.endsWith(".pfa")  ) {
                 continue;
             }
             int weight = FC_WEIGHT_MEDIUM;
@@ -399,13 +399,13 @@ bool LVFreeTypeFontManager::initSystemFonts() {
             //                    default: cr_weight=300; break;
             //                }
             css_font_family_t fontFamily = css_ff_sans_serif;
-            lString16 face16((const char *)family);
-            face16.lowercase();
+            lString32 face32((const char *)family);
+            face32.lowercase();
             if ( spacing==FC_MONO )
                 fontFamily = css_ff_monospace;
-            else if (face16.pos("sans") >= 0)
+            else if (face32.pos("sans") >= 0)
                 fontFamily = css_ff_sans_serif;
-            else if (face16.pos("serif") >= 0)
+            else if (face32.pos("serif") >= 0)
                 fontFamily = css_ff_serif;
             
             //css_ff_inherit,
@@ -417,11 +417,11 @@ bool LVFreeTypeFontManager::initSystemFonts() {
             bool italic = (slant!=FC_SLANT_ROMAN);
             
             lString8 face((const char*)family);
-            lString16 style16((const char*)style);
-            style16.lowercase();
-            if (style16.pos("condensed") >= 0)
+            lString32 style32((const char*)style);
+            style32.lowercase();
+            if (style32.pos("condensed") >= 0)
                 face << " Condensed";
-            else if (style16.pos("extralight") >= 0)
+            else if (style32.pos("extralight") >= 0)
                 face << " Extra Light";
             
             LVFontDef def(
@@ -532,11 +532,11 @@ LVFreeTypeFontManager::LVFreeTypeFontManager()
         fprintf(_log, "=========================== LOGGING STARTED ===================\n");
     }
 #endif
-    // _requiredChars = L"azAZ09";//\x0410\x042F\x0430\x044F";
+    // _requiredChars = U"azAZ09";//\x0410\x042F\x0430\x044F";
     // Some fonts come without any of these (ie. NotoSansMyanmar.ttf), there's
     // no reason to prevent them from being used.
     // So, check only for the presence of the space char, hoping it's there in any font.
-    _requiredChars = L" ";
+    _requiredChars = U" ";
 }
 
 void LVFreeTypeFontManager::gc() // garbage collector
@@ -553,12 +553,12 @@ lString8 LVFreeTypeFontManager::makeFontFileName(lString8 name) {
     return filename;
 }
 
-void LVFreeTypeFontManager::getFaceList(lString16Collection &list) {
+void LVFreeTypeFontManager::getFaceList(lString32Collection &list) {
     FONT_MAN_GUARD
     _cache.getFaceList(list);
 }
 
-void LVFreeTypeFontManager::getFontFileNameList(lString16Collection &list) {
+void LVFreeTypeFontManager::getFontFileNameList(lString32Collection &list) {
     FONT_MAN_GUARD
     _cache.getFontFileNameList(list);
 }
@@ -830,7 +830,7 @@ bool LVFreeTypeFontManager::checkCharSet(FT_Face face) {
     if (face == NULL)
         return false; // invalid face
     for (int i = 0; i < _requiredChars.length(); i++) {
-        lChar16 ch = _requiredChars[i];
+        lChar32 ch = _requiredChars[i];
         FT_UInt ch_glyph_index = FT_Get_Char_Index(face, ch);
         if ( ch_glyph_index == 0 ) {
             CRLog::debug("Required char not found in font: %04x", ch);
@@ -855,7 +855,7 @@ bool LVFreeTypeFontManager::isMonoSpaced( FT_Face face )
     // TODO: check existance of required characters (e.g. cyrillic)
     if (face==NULL)
         return false; // invalid face
-    lChar16 ch1 = 'i';
+    lChar32 ch1 = 'i';
     FT_UInt ch_glyph_index1 = FT_Get_Char_Index( face, ch1 );
     if ( ch_glyph_index1==0 )
         return false; // no required char!!!
@@ -875,7 +875,7 @@ bool LVFreeTypeFontManager::isMonoSpaced( FT_Face face )
     else
         w2 = (face->glyph->metrics.horiAdvance >> 6);
 
-    lChar16 ch2 = 'W';
+    lChar32 ch2 = 'W';
     FT_UInt ch_glyph_index2 = FT_Get_Char_Index( face, ch2 );
     if ( ch_glyph_index2==0 )
         return false; // no required char!!!
@@ -887,7 +887,7 @@ bool LVFreeTypeFontManager::isMonoSpaced( FT_Face face )
 // in the @font-face declaration.
 // TODO: parse it and pass it here, and set it on the non-instantiated font (instead of -1)
 bool LVFreeTypeFontManager::RegisterDocumentFont(int documentId, LVContainerRef container,
-                                                 lString16 name, lString8 faceName, bool bold,
+                                                 lString32 name, lString8 faceName, bool bold,
                                                  bool italic) {
     FONT_MAN_GUARD
     lString8 name8 = UnicodeToUtf8(name);
@@ -999,11 +999,11 @@ void LVFreeTypeFontManager::UnregisterDocumentFonts(int documentId) {
     _cache.removeDocumentFonts(documentId);
 }
 
-bool LVFreeTypeFontManager::RegisterExternalFont(lString16 name, lString8 family_name, bool bold,
+bool LVFreeTypeFontManager::RegisterExternalFont(lString32 name, lString8 family_name, bool bold,
                                                  bool italic) {
-    if (name.startsWithNoCase(lString16("res://")))
+    if (name.startsWithNoCase(lString32("res://")))
         name = name.substr(6);
-    else if (name.startsWithNoCase(lString16("file://")))
+    else if (name.startsWithNoCase(lString32("file://")))
         name = name.substr(7);
     lString8 fname = UnicodeToUtf8(name);
 

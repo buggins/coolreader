@@ -82,16 +82,16 @@ void LVSetAssetContainerFactory(LVAssetContainerFactory * asset) {
 	_assetContainerFactory = asset;
 }
 
-lString16 LVExtractAssetPath(lString16 fn) {
+lString32 LVExtractAssetPath(lString32 fn) {
 	if (fn.length() < 2 || fn[0] != ASSET_PATH_PREFIX)
-		return lString16();
+		return lString32();
 	if (fn[1] == '/' || fn[1] == '\\')
 		return fn.substr(2);
 	return fn.substr(1);
 }
 
 // LVStorageObject stubs
-const lChar16 * LVStorageObject::GetName()
+const lChar32 * LVStorageObject::GetName()
 {
     return NULL;
 }
@@ -101,7 +101,7 @@ LVContainer * LVStorageObject::GetParentContainer()
     return NULL;
 }
 
-void LVStorageObject::SetName(const lChar16 *)
+void LVStorageObject::SetName(const lChar32 *)
 {
 }
 
@@ -139,23 +139,23 @@ lverror_t LVNamedStream::getcrc32( lUInt32 & dst )
     }
 }
 /// returns stream/container name, may be NULL if unknown
-const lChar16 * LVNamedStream::GetName()
+const lChar32 * LVNamedStream::GetName()
 {
     if (m_fname.empty())
         return NULL;
     return m_fname.c_str();
 }
 /// sets stream/container name, may be not implemented for some objects
-void LVNamedStream::SetName(const lChar16 * name)
+void LVNamedStream::SetName(const lChar32 * name)
 {
     m_fname = name;
     m_filename.clear();
     m_path.clear();
     if (m_fname.empty())
         return;
-    const lChar16 * fn = m_fname.c_str();
+    const lChar32 * fn = m_fname.c_str();
 
-    const lChar16 * p = fn + m_fname.length() - 1;
+    const lChar32 * p = fn + m_fname.length() - 1;
     for ( ;p>fn; p--) {
         if (p[-1] == '/' || p[-1]=='\\')
             break;
@@ -566,7 +566,7 @@ public:
         return (m_pos >= m_size);
     }
 
-    static LVFileMappedStream * CreateFileStream( lString16 fname, lvopen_mode_t mode, int minSize )
+    static LVFileMappedStream * CreateFileStream( lString32 fname, lvopen_mode_t mode, int minSize )
     {
         LVFileMappedStream * f = new LVFileMappedStream();
         if ( f->OpenFile( fname, mode, minSize )==LVERR_OK ) {
@@ -700,7 +700,7 @@ public:
         return LVERR_OK;
     }
 
-    lverror_t OpenFile( lString16 fname, lvopen_mode_t mode, lvsize_t minSize = (lvsize_t)-1 )
+    lverror_t OpenFile( lString32 fname, lvopen_mode_t mode, lvsize_t minSize = (lvsize_t)-1 )
     {
         m_mode = mode;
         if ( mode!=LVOM_READ && mode!=LVOM_APPEND )
@@ -719,7 +719,7 @@ public:
         lUInt32 m = 0;
         lUInt32 s = 0;
         lUInt32 c = 0;
-        SetName(fname.c_str());
+        lString16 fn16 = UnicodeToUtf16( fname );
         switch (mode) {
         case LVOM_READWRITE:
             m |= GENERIC_WRITE|GENERIC_READ;
@@ -746,14 +746,14 @@ public:
             crFatalError();
             break;
         }
-        m_hFile = CreateFileW( fname.c_str(), m, s, NULL, c, FILE_ATTRIBUTE_NORMAL, NULL);
+        m_hFile = CreateFileW( fn16.c_str(), m, s, NULL, c, FILE_ATTRIBUTE_NORMAL, NULL);
         if (m_hFile == INVALID_HANDLE_VALUE || !m_hFile) {
 			// unicode not implemented?
 			lUInt32 err = GetLastError();
 			if (err==ERROR_CALL_NOT_IMPLEMENTED)
-				m_hFile = CreateFileA( fn8.c_str(), m, s, NULL, c, FILE_ATTRIBUTE_NORMAL, NULL);
+				m_hFile = CreateFileA( UnicodeToLocal(fname).c_str(), m, s, NULL, c, FILE_ATTRIBUTE_NORMAL, NULL);
 			if ( (m_hFile == INVALID_HANDLE_VALUE) || (!m_hFile) ) {
-                CRLog::error("Error opening file %s", UnicodeToUtf8(fname).c_str() );
+                CRLog::error("Error opening file %s", fn8.c_str() );
                 m_hFile = NULL;
 				// error
 				return error();
@@ -841,7 +841,7 @@ public:
 */
 LVStreamRef LVMapFileStream( const lChar8 * pathname, lvopen_mode_t mode, lvsize_t minSize )
 {
-	lString16 fn = LocalToUnicode( lString8(pathname) );
+	lString32 fn = LocalToUnicode( lString8(pathname) );
 	return LVMapFileStream( fn.c_str(), mode, minSize );
 }
 
@@ -930,7 +930,7 @@ public:
     {
         return feof(m_file)!=0;
     }
-    static LVFileStream * CreateFileStream( lString16 fname, lvopen_mode_t mode )
+    static LVFileStream * CreateFileStream( lString32 fname, lvopen_mode_t mode )
     {
         LVFileStream * f = new LVFileStream;
         if (f->OpenFile( fname, mode )==LVERR_OK) {
@@ -940,7 +940,7 @@ public:
             return NULL;
         }
     }
-    lverror_t OpenFile( lString16 fname, lvopen_mode_t mode )
+    lverror_t OpenFile( lString32 fname, lvopen_mode_t mode )
     {
         m_mode = mode;
         m_file = NULL;
@@ -1243,7 +1243,7 @@ public:
         SetName(NULL);
         return LVERR_OK;
     }
-    static LVFileStream * CreateFileStream( lString16 fname, lvopen_mode_t mode )
+    static LVFileStream * CreateFileStream( lString32 fname, lvopen_mode_t mode )
     {
         LVFileStream * f = new LVFileStream;
         if (f->OpenFile( fname, mode )==LVERR_OK) {
@@ -1253,7 +1253,7 @@ public:
             return NULL;
         }
     }
-    lverror_t OpenFile( lString16 fname, int mode )
+    lverror_t OpenFile( lString32 fname, int mode )
     {
         mode = mode & LVOM_MASK;
 #if defined(_WIN32)
@@ -1287,7 +1287,8 @@ public:
             crFatalError();
             break;
         }
-        m_hFile = CreateFileW( fname.c_str(), m, s, NULL, c, FILE_ATTRIBUTE_NORMAL, NULL);
+        lString16 fn16 = UnicodeToUtf16(fname);
+        m_hFile = CreateFileW( fn16.c_str(), m, s, NULL, c, FILE_ATTRIBUTE_NORMAL, NULL);
         if (m_hFile == INVALID_HANDLE_VALUE || !m_hFile) {
          // unicode not implemented?
             lUInt32 err = GetLastError();
@@ -1360,7 +1361,7 @@ public:
 #endif
 
 /// tries to split full path name into archive name and file name inside archive using separator "@/" or "@\"
-bool LVSplitArcName( lString16 fullPathName, lString16 & arcPathName, lString16 & arcItemPathName )
+bool LVSplitArcName( lString32 fullPathName, lString32 & arcPathName, lString32 & arcItemPathName )
 {
     int p = fullPathName.pos("@/");
     if ( p<0 )
@@ -1386,13 +1387,13 @@ bool LVSplitArcName( lString8 fullPathName, lString8 & arcPathName, lString8 & a
 }
 
 // facility functions
-LVStreamRef LVOpenFileStream( const lChar16 * pathname, int mode )
+LVStreamRef LVOpenFileStream( const lChar32 * pathname, int mode )
 {
-    lString16 fn(pathname);
+    lString32 fn(pathname);
     if (fn.length() > 1 && fn[0] == ASSET_PATH_PREFIX) {
     	if (!_assetContainerFactory || mode != LVOM_READ)
     		return LVStreamRef();
-    	lString16 assetPath = LVExtractAssetPath(fn);
+    	lString32 assetPath = LVExtractAssetPath(fn);
     	return _assetContainerFactory->openAssetStream(assetPath);
     }
 #if 0
@@ -1417,7 +1418,7 @@ LVStreamRef LVOpenFileStream( const lChar16 * pathname, int mode )
 
 LVStreamRef LVOpenFileStream( const lChar8 * pathname, int mode )
 {
-    lString16 fn = Utf8ToUnicode(lString8(pathname));
+    lString32 fn = Utf8ToUnicode(lString8(pathname));
     return LVOpenFileStream( fn.c_str(), mode );
 }
 
@@ -1478,7 +1479,7 @@ class LVDirectoryContainer : public LVNamedContainer
 protected:
     LVDirectoryContainer * m_parent;
 public:
-    virtual LVStreamRef OpenStream( const wchar_t * fname, lvopen_mode_t mode )
+    virtual LVStreamRef OpenStream( const char32_t * fname, lvopen_mode_t mode )
     {
         int found_index = -1;
         for (int i=0; i<m_list.length(); i++) {
@@ -1492,10 +1493,10 @@ public:
             }
         }
         // make filename
-        lString16 fn = m_fname;
+        lString32 fn = m_fname;
         fn << fname;
         //const char * fb8 = UnicodeToUtf8( fn ).c_str();
-        //printf("Opening directory container file %s : %s fname=%s path=%s\n", UnicodeToUtf8( lString16(fname) ).c_str(), UnicodeToUtf8( fn ).c_str(), UnicodeToUtf8( m_fname ).c_str(), UnicodeToUtf8( m_path ).c_str());
+        //printf("Opening directory container file %s : %s fname=%s path=%s\n", UnicodeToUtf8( lString32(fname) ).c_str(), UnicodeToUtf8( fn ).c_str(), UnicodeToUtf8( m_fname ).c_str(), UnicodeToUtf8( m_path ).c_str());
         LVStreamRef stream( LVOpenFileStream( fn.c_str(), mode ) );
         if (!stream) {
             return stream;
@@ -1539,7 +1540,7 @@ public:
         SetName(NULL);
         Clear();
     }
-    static LVDirectoryContainer * OpenDirectory( const wchar_t * path, const wchar_t * mask = L"*.*" )
+    static LVDirectoryContainer * OpenDirectory( const char32_t * path, const char32_t * mask = U"*.*" )
     {
         if (!path || !path[0])
             return NULL;
@@ -1549,8 +1550,8 @@ public:
         LVDirectoryContainer * dir = new LVDirectoryContainer;
 
         // make filename
-        lString16 fn( path );
-        lChar16 lastch = 0;
+        lString32 fn( path );
+        lChar32 lastch = 0;
         if ( !fn.empty() )
             lastch = fn[fn.length()-1];
         if ( lastch!='\\' && lastch!='/' )
@@ -1564,7 +1565,8 @@ public:
         WIN32_FIND_DATAW data = { 0 };
         WIN32_FIND_DATAA dataa = { 0 };
         //lString8 bs = DOMString(path).ToAnsiString();
-        HANDLE hFind = FindFirstFileW(fn.c_str(), &data);
+        lString16 fn16 = UnicodeToUtf16(fn);
+        HANDLE hFind = FindFirstFileW(fn16.c_str(), &data);
         bool unicode=true;
         if (hFind == INVALID_HANDLE_VALUE || !hFind) {
             lUInt32 err=GetLastError();
@@ -1599,14 +1601,14 @@ public:
                     } else {
                         // normal directory
                         LVDirectoryContainerItemInfo * item = new LVDirectoryContainerItemInfo;
-                        item->m_name = pfn;
+                        item->m_name = Utf16ToUnicode(pfn);
                         item->m_is_container = true;
                         dir->Add(item);
                     }
                 } else {
                     // file
                     LVDirectoryContainerItemInfo * item = new LVDirectoryContainerItemInfo;
-                    item->m_name = pfn;
+                    item->m_name = Utf16ToUnicode(pfn);
                     item->m_size = data.nFileSizeLow;
                     item->m_flags = data.dwFileAttributes;
                     dir->Add(item);
@@ -1659,7 +1661,7 @@ public:
         FindClose( hFind );
 #else
         // POSIX
-        lString16 p( fn );
+        lString32 p( fn );
         p.erase( p.length()-1, 1 );
         lString8 p8 = UnicodeToLocal( p );
         if ( p8.empty() )
@@ -2221,7 +2223,7 @@ private:
             {
                 //check CRC
                 if ( m_CRC != m_originalCRC ) {
-                    CRLog::error("ZIP stream '%s': CRC doesn't match", LCSTR(lString16(GetName())) );
+                    CRLog::error("ZIP stream '%s': CRC doesn't match", LCSTR(lString32(GetName())) );
                     return -1; // CRC error
                 }
             }
@@ -2447,7 +2449,7 @@ public:
     {
         return LVERR_NOTIMPL;
     }
-    static LVStream * Create( LVStreamRef stream, lvpos_t pos, lString16 name, lUInt32 srcPackSize, lUInt32 srcUnpSize )
+    static LVStream * Create( LVStreamRef stream, lvpos_t pos, lString32 name, lUInt32 srcPackSize, lUInt32 srcUnpSize )
     {
         ZipLocalFileHdr hdr;
         unsigned hdr_size = 0x1E; //sizeof(hdr);
@@ -2502,7 +2504,7 @@ public:
     bool isAltReadingMethod() { return m_alt_reading_method; }
     void setAltReadingMethod() { m_alt_reading_method = true; }
 
-    virtual LVStreamRef OpenStream( const wchar_t * fname, lvopen_mode_t /*mode*/ )
+    virtual LVStreamRef OpenStream( const char32_t * fname, lvopen_mode_t /*mode*/ )
     {
         if ( fname[0]=='/' )
             fname++;
@@ -2520,7 +2522,7 @@ public:
         if (found_index<0)
             return LVStreamRef(); // not found
         // make filename
-        lString16 fn = fname;
+        lString32 fn = fname;
         LVStreamRef strm = m_stream; // fix strange arm-linux-g++ bug
         LVStreamRef stream(
 		LVZipDecodeStream::Create(
@@ -2718,7 +2720,7 @@ public:
             NextPosition += SeekLen;
             m_stream->Seek(NextPosition, LVSEEK_SET, NULL);
 
-            lString16 fName;
+            lString32 fName;
             if (ZipHeader.PackVer >= 63 && (ZipHeader.Flags & 0x0800) == 0x0800) {
                 // Language encoding flag (EFS).  If this bit is set,
                 // the filename and comment fields for this file
@@ -2735,9 +2737,9 @@ public:
                     //  "Win32","SMS/QDOS","Acorn RISC OS","Win32 VFAT","MVS",
                     //  "BeOS","Tandem"};
                     // TODO: try to detect proper charset using 0x0008 Extra Field (InfoZip APPNOTE-6.3.5, Appendix D.4).
-                    const lChar16 * enc_name = (ZipHeader.PackOS==0) ? L"cp866" : L"cp1251";
+                    const lChar32 * enc_name = (ZipHeader.PackOS==0) ? U"cp866" : U"cp1251";
                     //CRLog::trace("detected encoding %s", LCSTR(enc_name));
-                    const lChar16 * table = GetCharsetByte2UnicodeTable( enc_name );
+                    const lChar32 * table = GetCharsetByte2UnicodeTable( enc_name );
                     fName = ByteToUnicode( lString8(fnbuf), table );
                 }
             }
@@ -2798,7 +2800,7 @@ class LVRarArc : public LVArcContainerBase
 {
 public:
 
-    virtual LVStreamRef OpenStream( const wchar_t * fname, lvopen_mode_t mode )
+    virtual LVStreamRef OpenStream( const lChar32 * fname, lvopen_mode_t mode )
     {
         int found_index = -1;
         for (int i=0; i<m_list.length(); i++) {
@@ -2818,7 +2820,7 @@ public:
         return LVStreamRef(); // not found
 /*
         // make filename
-        lString16 fn = fname;
+        lString32 fn = fname;
         LVStreamRef strm = m_stream; // fix strange arm-linux-g++ bug
         LVStreamRef stream(
 		LVZipDecodeStream::Create(
@@ -3159,7 +3161,7 @@ LVStreamRef LVCreateStringStream( lString8 data )
 }
 
 /// Creates memory stream as copy of string contents
-LVStreamRef LVCreateStringStream( lString16 data )
+LVStreamRef LVCreateStringStream( lString32 data )
 {
     return LVCreateStringStream( UnicodeToUtf8( data ) );
 }
@@ -3187,7 +3189,7 @@ LVStreamRef LVCreateMemoryStream( LVStreamRef srcStream )
 }
 
 /// Creates memory stream as copy of file contents.
-LVStreamRef LVCreateMemoryStream( lString16 filename )
+LVStreamRef LVCreateMemoryStream( lString32 filename )
 {
     LVStreamRef fs = LVOpenFileStream( filename.c_str(), LVOM_READ );
     if ( fs.isNull() )
@@ -3235,28 +3237,28 @@ bool LVDirectoryIsEmpty(const lString8& path) {
     return LVDirectoryIsEmpty(Utf8ToUnicode(path));
 }
 
-bool LVDirectoryIsEmpty(const lString16& path) {
+bool LVDirectoryIsEmpty(const lString32& path) {
     LVContainerRef dir = LVOpenDirectory(path);
     if (dir.isNull())
         return false;
     return dir->GetObjectCount() == 0;
 }
 
-LVContainerRef LVOpenDirectory(const lString16& path, const wchar_t * mask) {
+LVContainerRef LVOpenDirectory(const lString32& path, const char32_t * mask) {
 	return LVOpenDirectory(path.c_str(), mask);
 }
 
-LVContainerRef LVOpenDirectory(const lString8& path, const wchar_t * mask) {
+LVContainerRef LVOpenDirectory(const lString8& path, const char32_t * mask) {
 	return LVOpenDirectory(Utf8ToUnicode(path).c_str(), mask);
 }
 
-LVContainerRef LVOpenDirectory( const wchar_t * path, const wchar_t * mask )
+LVContainerRef LVOpenDirectory( const char32_t * path, const char32_t * mask )
 {
-	lString16 pathname(path);
+	lString32 pathname(path);
     if (pathname.length() > 1 && pathname[0] == ASSET_PATH_PREFIX) {
     	if (!_assetContainerFactory)
     		return LVContainerRef();
-    	lString16 assetPath = LVExtractAssetPath(pathname);
+    	lString32 assetPath = LVExtractAssetPath(pathname);
     	return _assetContainerFactory->openAssetContainer(assetPath);
     }
     LVContainerRef dir(LVDirectoryContainer::OpenDirectory(path, mask));
@@ -3601,7 +3603,7 @@ lString8 LVExtractPath( lString8 pathName, bool appendEmptyPath) {
 }
 
 /// returns path part of pathname (appended with / or \ delimiter)
-lString16 LVExtractPath( lString16 pathName, bool appendEmptyPath )
+lString32 LVExtractPath( lString32 pathName, bool appendEmptyPath )
 {
     int last_delim_pos = -1;
     for ( int i=0; i<pathName.length(); i++ )
@@ -3609,9 +3611,9 @@ lString16 LVExtractPath( lString16 pathName, bool appendEmptyPath )
             last_delim_pos = i;
     if ( last_delim_pos==-1 )
 #ifdef _LINUX
-        return lString16(appendEmptyPath ? L"./" : L"");
+        return lString32(appendEmptyPath ? U"./" : U"");
 #else
-        return lString16(appendEmptyPath ? L".\\" : L"");
+        return lString32(appendEmptyPath ? U".\\" : U"");
 #endif
     return pathName.substr( 0, last_delim_pos+1 );
 }
@@ -3622,7 +3624,7 @@ lString8 LVExtractFilename( lString8 pathName ) {
 }
 
 /// returns filename part of pathname
-lString16 LVExtractFilename( lString16 pathName )
+lString32 LVExtractFilename( lString32 pathName )
 {
     int last_delim_pos = -1;
     for ( int i=0; i<pathName.length(); i++ )
@@ -3634,9 +3636,9 @@ lString16 LVExtractFilename( lString16 pathName )
 }
 
 /// returns filename part of pathname without extension
-lString16 LVExtractFilenameWithoutExtension( lString16 pathName )
+lString32 LVExtractFilenameWithoutExtension( lString32 pathName )
 {
-    lString16 s = LVExtractFilename( pathName );
+    lString32 s = LVExtractFilename( pathName );
     int lastDot = -1;
     for ( int i=0; i<s.length(); i++ )
         if ( s[i]=='.' )
@@ -3647,11 +3649,11 @@ lString16 LVExtractFilenameWithoutExtension( lString16 pathName )
 }
 
 /// returns true if absolute path is specified
-bool LVIsAbsolutePath( lString16 pathName )
+bool LVIsAbsolutePath( lString32 pathName )
 {
     if ( pathName.empty() )
         return false;
-    lChar16 c = pathName[0];
+    lChar32 c = pathName[0];
     if ( c=='\\' || c=='/' )
         return true;
 #ifdef _WIN32
@@ -3663,10 +3665,10 @@ bool LVIsAbsolutePath( lString16 pathName )
 }
 
 /// removes first path part from pathname and returns it
-lString16 LVExtractFirstPathElement( lString16 & pathName )
+lString32 LVExtractFirstPathElement( lString32 & pathName )
 {
     if ( pathName.empty() )
-        return lString16::empty_str;
+        return lString32::empty_str;
     if ( pathName[0]=='/' || pathName[0]=='\\' )
         pathName.erase(0, 1);
     int first_delim_pos = -1;
@@ -3676,21 +3678,21 @@ lString16 LVExtractFirstPathElement( lString16 & pathName )
             break;
         }
     if ( first_delim_pos==-1 ) {
-        lString16 res = pathName;
+        lString32 res = pathName;
         pathName.clear();
         return res;
     }
-    lString16 res = pathName.substr(0, first_delim_pos );
+    lString32 res = pathName.substr(0, first_delim_pos );
     pathName.erase(0, first_delim_pos+1 );
     return res;
 }
 
 /// appends path delimiter character to end of path, if absent
-void LVAppendPathDelimiter( lString16 & pathName )
+void LVAppendPathDelimiter( lString32 & pathName )
 {
     if ( pathName.empty() || (pathName.length() == 1 && pathName[0] == ASSET_PATH_PREFIX))
         return;
-    lChar16 delim = LVDetectPathDelimiter( pathName );
+    lChar32 delim = LVDetectPathDelimiter( pathName );
     if ( pathName[pathName.length()-1]!=delim )
         pathName << delim;
 }
@@ -3706,7 +3708,7 @@ void LVAppendPathDelimiter( lString8 & pathName )
 }
 
 /// removes path delimiter from end of path, if present
-void LVRemoveLastPathDelimiter( lString16 & pathName ) {
+void LVRemoveLastPathDelimiter( lString32 & pathName ) {
     if (pathName.empty() || (pathName.length() == 1 && pathName[0] == ASSET_PATH_PREFIX))
         return;
     if (pathName.endsWith("/") || pathName.endsWith("\\"))
@@ -3723,20 +3725,20 @@ void LVRemoveLastPathDelimiter( lString8 & pathName )
 }
 
 /// replaces any found / or \\ separator with specified one
-void LVReplacePathSeparator( lString16 & pathName, lChar16 separator )
+void LVReplacePathSeparator( lString32 & pathName, lChar32 separator )
 {
-    lChar16 * buf = pathName.modify();
+    lChar32 * buf = pathName.modify();
     for ( ; *buf; buf++ )
         if ( *buf=='/' || *buf=='\\' )
             *buf = separator;
 }
 
 // resolve relative links
-lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
+lString32 LVCombinePaths( lString32 basePath, lString32 newPath )
 {
     if ( newPath[0]=='/' || newPath[0]=='\\' || (newPath.length()>0 && newPath[1]==':' && newPath[2]=='\\') )
         return newPath; // absolute path
-    lChar16 separator = 0;
+    lChar32 separator = 0;
     if (!basePath.empty())
         LVAppendPathDelimiter(basePath);
     for ( int i=0; i<basePath.length(); i++ ) {
@@ -3754,12 +3756,12 @@ lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
         }
     if ( separator == 0 )
         separator = '/';
-    lString16 s = basePath;
+    lString32 s = basePath;
     LVAppendPathDelimiter( s );
     s += newPath;
     //LVAppendPathDelimiter( s );
     LVReplacePathSeparator( s, separator );
-    lString16 pattern;
+    lString32 pattern;
     pattern << separator << ".." << separator;
     bool changed;
     do {
@@ -3784,7 +3786,7 @@ lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
     // Replace "/./" inside with "/"
     pattern.clear();
     pattern << separator << "." << separator;
-    lString16 replacement;
+    lString32 replacement;
     replacement << separator;
     while ( s.replace( pattern, replacement ) ) ;
     // Remove "./" at start
@@ -3795,11 +3797,11 @@ lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
 
 
 /// removes last path part from pathname and returns it
-lString16 LVExtractLastPathElement( lString16 & pathName )
+lString32 LVExtractLastPathElement( lString32 & pathName )
 {
     int l = pathName.length();
     if ( l==0 )
-        return lString16::empty_str;
+        return lString32::empty_str;
     if ( pathName[l-1]=='/' || pathName[l-1]=='\\' )
         pathName.erase(l-1, 1);
     int last_delim_pos = -1;
@@ -3807,17 +3809,17 @@ lString16 LVExtractLastPathElement( lString16 & pathName )
         if ( pathName[i]=='/' || pathName[i]=='\\' )
             last_delim_pos = i;
     if ( last_delim_pos==-1 ) {
-        lString16 res = pathName;
+        lString32 res = pathName;
         pathName.clear();
         return res;
     }
-    lString16 res = pathName.substr( last_delim_pos + 1, pathName.length()-last_delim_pos-1 );
+    lString32 res = pathName.substr( last_delim_pos + 1, pathName.length()-last_delim_pos-1 );
     pathName.erase( last_delim_pos, pathName.length()-last_delim_pos );
     return res;
 }
 
 /// returns path delimiter character
-lChar16 LVDetectPathDelimiter( lString16 pathName )
+lChar32 LVDetectPathDelimiter( lString32 pathName )
 {
     for ( int i=0; i<pathName.length(); i++ )
         if ( pathName[i]=='/' || pathName[i]=='\\' )
@@ -3842,16 +3844,16 @@ char LVDetectPathDelimiter( lString8 pathName ) {
 }
 
 /// returns full path to file identified by pathName, with base directory == basePath
-lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName )
+lString32 LVMakeRelativeFilename( lString32 basePath, lString32 pathName )
 {
     if ( LVIsAbsolutePath( pathName ) )
         return pathName;
-    lChar16 delim = LVDetectPathDelimiter( basePath );
-    lString16 path = LVExtractPath( basePath );
-    lString16 name = LVExtractFilename( pathName );
-    lString16 dstpath = LVExtractPath( pathName );
+    lChar32 delim = LVDetectPathDelimiter( basePath );
+    lString32 path = LVExtractPath( basePath );
+    lString32 name = LVExtractFilename( pathName );
+    lString32 dstpath = LVExtractPath( pathName );
     while ( !dstpath.empty() ) {
-        lString16 element = LVExtractFirstPathElement( dstpath );
+        lString32 element = LVExtractFirstPathElement( dstpath );
         if (element == ".") {
             // do nothing
         } else if (element == "..")
@@ -3865,7 +3867,7 @@ lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName )
 }
 
 /// removes path delimiter character from end of path, if exists
-void LVRemovePathDelimiter( lString16 & pathName )
+void LVRemovePathDelimiter( lString32 & pathName )
 {
     int len = pathName.length();
     if ( len>0 && pathName != "/" && pathName != "\\" && !pathName.endsWith(":\\") && !pathName.endsWith("\\\\")) {
@@ -3890,13 +3892,13 @@ bool LVFileExists( const lString8 & pathName ) {
 }
 
 /// returns true if specified file exists
-bool LVFileExists( const lString16 & pathName )
+bool LVFileExists( const lString32 & pathName )
 {
-    lString16 fn(pathName);
+    lString32 fn(pathName);
     if (fn.length() > 1 && fn[0] == ASSET_PATH_PREFIX) {
     	if (!_assetContainerFactory)
     		return false;
-    	lString16 assetPath = LVExtractAssetPath(fn);
+    	lString32 assetPath = LVExtractAssetPath(fn);
     	return !_assetContainerFactory->openAssetStream(assetPath).isNull();
     }
 #ifdef _WIN32
@@ -3913,8 +3915,8 @@ bool LVFileExists( const lString16 & pathName )
 }
 
 /// returns true if directory exists and your app can write to directory
-bool LVDirectoryIsWritable(const lString16 & pathName) {
-    lString16 fn = pathName;
+bool LVDirectoryIsWritable(const lString32 & pathName) {
+    lString32 fn = pathName;
     LVAppendPathDelimiter(fn);
     fn << ".cr3_directory_write_test";
     bool res = false;
@@ -3935,13 +3937,13 @@ bool LVDirectoryIsWritable(const lString16 & pathName) {
 }
 
 /// returns true if specified directory exists
-bool LVDirectoryExists( const lString16 & pathName )
+bool LVDirectoryExists( const lString32 & pathName )
 {
-    lString16 fn(pathName);
+    lString32 fn(pathName);
     if (fn.length() > 1 && fn[0] == ASSET_PATH_PREFIX) {
     	if (!_assetContainerFactory)
     		return false;
-    	lString16 assetPath = LVExtractAssetPath(fn);
+    	lString32 assetPath = LVExtractAssetPath(fn);
     	return !_assetContainerFactory->openAssetContainer(assetPath).isNull();
     }
     LVContainerRef dir = LVOpenDirectory( pathName.c_str() );
@@ -3951,11 +3953,11 @@ bool LVDirectoryExists( const lString16 & pathName )
 /// returns true if specified directory exists
 bool LVDirectoryExists( const lString8 & pathName )
 {
-    lString16 fn(Utf8ToUnicode(pathName));
+    lString32 fn(Utf8ToUnicode(pathName));
     if (fn.length() > 1 && fn[0] == ASSET_PATH_PREFIX) {
     	if (!_assetContainerFactory)
     		return false;
-    	lString16 assetPath = LVExtractAssetPath(fn);
+    	lString32 assetPath = LVExtractAssetPath(fn);
     	return !_assetContainerFactory->openAssetContainer(assetPath).isNull();
     }
     LVContainerRef dir = LVOpenDirectory(fn);
@@ -3963,7 +3965,7 @@ bool LVDirectoryExists( const lString8 & pathName )
 }
 
 /// Create directory if not exist
-bool LVCreateDirectory( lString16 path )
+bool LVCreateDirectory( lString32 path )
 {
     CRLog::trace("LVCreateDirectory(%s)", UnicodeToUtf8(path).c_str() );
     //LVRemovePathDelimiter(path);
@@ -3977,14 +3979,14 @@ bool LVCreateDirectory( lString16 path )
     if ( dir.isNull() ) {
         CRLog::trace("Directory %s not found", UnicodeToUtf8(path).c_str());
         LVRemovePathDelimiter(path);
-        lString16 basedir = LVExtractPath( path );
+        lString32 basedir = LVExtractPath( path );
         CRLog::trace("Checking base directory %s", UnicodeToUtf8(basedir).c_str());
         if ( !LVCreateDirectory( basedir ) ) {
             CRLog::error("Failed to create directory %s", UnicodeToUtf8(basedir).c_str());
             return false;
         }
 #ifdef _WIN32
-        return CreateDirectoryW( path.c_str(), NULL )!=0;
+        return CreateDirectoryW( UnicodeToUtf16(path).c_str(), NULL )!=0;
 #else
         //LVRemovePathDelimiter( path );
         lString8 path8 = UnicodeToUtf8( path );
@@ -4007,7 +4009,7 @@ bool LVCreateDirectory( lString16 path )
         \param minSize is minimum file size for R/W mode
     \return reference to opened stream if success, NULL if error
 */
-LVStreamRef LVMapFileStream( const lChar16 * pathname, lvopen_mode_t mode, lvsize_t minSize )
+LVStreamRef LVMapFileStream( const lChar32 * pathname, lvopen_mode_t mode, lvsize_t minSize )
 {
 #if !defined(_WIN32) && !defined(_LINUX)
         // STUB for systems w/o mmap
@@ -4018,16 +4020,16 @@ LVStreamRef LVMapFileStream( const lChar16 * pathname, lvopen_mode_t mode, lvsiz
     }
     return LVStreamRef();
 #else
-        LVFileMappedStream * stream = LVFileMappedStream::CreateFileStream( lString16(pathname), mode, (int)minSize );
+        LVFileMappedStream * stream = LVFileMappedStream::CreateFileStream( lString32(pathname), mode, (int)minSize );
         return LVStreamRef(stream);
 #endif
 }
 
 /// delete file, return true if file found and successfully deleted
-bool LVDeleteFile( lString16 filename )
+bool LVDeleteFile( lString32 filename )
 {
 #ifdef _WIN32
-    return DeleteFileW( filename.c_str() ) ? true : false;
+    return DeleteFileW( UnicodeToUtf16(filename).c_str() ) ? true : false;
 #else
     if ( unlink( UnicodeToUtf8( filename ).c_str() ) )
         return false;
@@ -4036,20 +4038,28 @@ bool LVDeleteFile( lString16 filename )
 }
 
 /// rename file
-bool LVRenameFile(lString16 oldname, lString16 newname) {
-    return LVRenameFile(UnicodeToUtf8(oldname), UnicodeToUtf8(newname));
+bool LVRenameFile(lString32 oldname, lString32 newname) {
+    lString8 oldname8 = UnicodeToLocal(oldname);
+    lString8 newname8 = UnicodeToLocal(newname);
+#ifdef _WIN32
+    lString16 oldname16 = UnicodeToUtf16(oldname);
+    lString16 newname16 = UnicodeToUtf16(newname);
+    CRLog::trace("Renaming %s to %s", oldname8.c_str(), newname8.c_str());
+    bool res = MoveFileW(oldname16.c_str(), newname16.c_str()) != 0;
+    if (!res) {
+        CRLog::error("Renaming result: %s for renaming of %s to %s", res ? "success" : "failed", oldname8.c_str(), newname8.c_str());
+        CRLog::error("Last Error: %d", GetLastError());
+    }
+    return res;
+#else
+    return LVRenameFile(oldname8, newname8);
+#endif
 }
 
 /// rename file
 bool LVRenameFile(lString8 oldname, lString8 newname) {
 #ifdef _WIN32
-    CRLog::trace("Renaming %s to %s", oldname.c_str(), newname.c_str());
-    bool res = MoveFileW(Utf8ToUnicode(oldname).c_str(), Utf8ToUnicode(newname).c_str()) != 0;
-    if (!res) {
-        CRLog::error("Renaming result: %s for renaming of %s to %s", res ? "success" : "failed", oldname.c_str(), newname.c_str());
-        CRLog::error("Last Error: %d", GetLastError());
-    }
-    return res;
+    return LVRenameFile(LocalToUnicode(oldname), LocalToUnicode(newname));
 #else
     return !rename(oldname.c_str(), newname.c_str());
 #endif
@@ -4061,9 +4071,9 @@ bool LVDeleteFile( lString8 filename ) {
 }
 
 /// delete directory, return true if directory is found and successfully deleted
-bool LVDeleteDirectory( lString16 filename ) {
+bool LVDeleteDirectory( lString32 filename ) {
 #ifdef _WIN32
-    return RemoveDirectoryW( filename.c_str() ) ? true : false;
+    return RemoveDirectoryW( UnicodeToUtf16(filename).c_str() ) ? true : false;
 #else
     if ( unlink( UnicodeToUtf8( filename ).c_str() ) )
         return false;
@@ -4351,7 +4361,7 @@ public:
         Flush( true ); // NOLINT: Call to virtual function during destruction
     }
 
-    virtual const lChar16 * GetName()
+    virtual const lChar32 * GetName()
             { return _baseStream->GetName(); }
     virtual lvopen_mode_t GetMode()
             { return _baseStream->GetMode(); }
