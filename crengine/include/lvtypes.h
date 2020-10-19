@@ -30,6 +30,12 @@ typedef unsigned char lUInt8;       ///< unsigned 8 bit int
 typedef char32_t lChar32;           ///< 32 bit char
 typedef char lChar8;                ///< 8 bit char
 
+#ifdef _WIN32
+typedef wchar_t lChar16;            ///< 16 bit char, only for Windows
+#else
+typedef char16_t lChar16;           ///< 16 bit char
+#endif
+
 #if defined(_WIN32) && !defined(CYGWIN)
 typedef __int64 lInt64;             ///< signed 64 bit int
 typedef unsigned __int64 lUInt64;   ///< unsigned 64 bit int

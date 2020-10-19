@@ -218,15 +218,15 @@ int WINAPI WinMain( HINSTANCE hInstance,
 {
 	wchar_t buf0[MAX_PATH];
 	GetModuleFileNameW(NULL, buf0, MAX_PATH-1);
-	lString16 str016(buf0);
+	lString32 str032 = Utf16ToUnicode(buf0);
 #ifdef _UNICODE
-	lString16 str116(lpCmdLine);
+	lString32 str132 = Utf16ToUnicode(lpCmdLine);
 #else
 	lString8 str18(lpCmdLine);
-	lString16 str116 = LocalToUnicode(str18);
+	lString32 str132 = LocalToUnicode(str18);
 #endif
-	lString8 str0 = UnicodeToUtf8(str016);
-	lString8 str1 = UnicodeToUtf8(str116);
+	lString8 str0 = UnicodeToUtf8(str032);
+	lString8 str1 = UnicodeToUtf8(str132);
 	if ( !str1.empty() && str1[0]=='\"' ) {
 		// quoted filename support
 		str1.erase(0, 1);
@@ -240,7 +240,7 @@ int WINAPI WinMain( HINSTANCE hInstance,
 	int argc = str1.empty() ? 1 : 2;
 	return main(argc, argv);
 }
-#endif
+#endif  // _WIN32
 
 
 /*
@@ -333,9 +333,9 @@ bool InitCREngine( const char * exename, lString32Collection & fontDirs )
 {
 	CRLog::trace("InitCREngine(%s)", exename);
 #ifdef _WIN32
-    lString16 appname( exename );
+    lString32 appname( exename );
     int lastSlash=-1;
-    lChar16 slashChar = '/';
+    lChar32 slashChar = '/';
     for ( int p=0; p<(int)appname.length(); p++ ) {
         if ( appname[p]=='\\' ) {
             slashChar = '\\';
@@ -346,11 +346,11 @@ bool InitCREngine( const char * exename, lString32Collection & fontDirs )
         }
     }
 
-    lString16 appPath;
+    lString32 appPath;
     if ( lastSlash>=0 )
         appPath = appname.substr( 0, lastSlash+1 );
 	InitCREngineLog(UnicodeToUtf8(appPath).c_str());
-    lString16 datadir = appPath;
+    lString32 datadir = appPath;
 #else
     lString32 datadir = lString32(CR3_DATA_DIR);
 #endif
@@ -367,9 +367,9 @@ bool InitCREngine( const char * exename, lString32Collection & fontDirs )
     InitFontManager(lString8::empty_str);
 
 #if defined(_WIN32) && USE_FONTCONFIG!=1
-    lChar16 sysdir[MAX_PATH+1];
-    GetWindowsDirectoryW(sysdir, MAX_PATH);
-    lString16 fontdir( sysdir );
+    wchar_t sysdir_w[MAX_PATH+1];
+    GetWindowsDirectoryW(sysdir_w, MAX_PATH);
+    lString32 fontdir = Utf16ToUnicode( sysdir_w );
     fontdir << "\\Fonts\\";
     lString8 fontdir8( UnicodeToUtf8(fontdir) );
     const char * fontnames[] = {
@@ -416,7 +416,7 @@ bool InitCREngine( const char * exename, lString32Collection & fontDirs )
     for ( int fi = 0; fontnames[fi]; fi++ ) {
         fontMan->RegisterFont( fontdir8 + fontnames[fi] );
     }
-#endif
+#endif  // defined(_WIN32) && USE_FONTCONFIG!=1
     // Load font definitions into font manager
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
     // use fontconfig
