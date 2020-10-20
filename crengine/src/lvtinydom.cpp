@@ -4525,12 +4525,12 @@ bool ldomDocument::setRenderProps( int width, int dy, bool /*showCover*/, int /*
         _def_font = def_font;
         changed = true;
     }
-    if ( _page_height != dy ) {
+    if ( _page_height != dy && dy > 0 ) {
         CRLog::trace("ldomDocument::setRenderProps() - page height is changed: %d != %d", _page_height, dy);
         _page_height = dy;
         changed = true;
     }
-    if ( _page_width != width ) {
+    if ( _page_width != width && width > 0 ) {
         CRLog::trace("ldomDocument::setRenderProps() - page width is changed");
         _page_width = width;
         changed = true;
