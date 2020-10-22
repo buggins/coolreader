@@ -207,6 +207,7 @@ class LVStyleSheet {
 
     int _selector_count;
     LVArray <int> _selector_count_stack;
+    lString8 _charset;
 
     LVPtrVector <LVCssSelector> _selectors;
     LVPtrVector <LVPtrVector <LVCssSelector> > _stack;
@@ -266,6 +267,8 @@ public:
     LVStyleSheet( LVStyleSheet & sheet );
     /// parse stylesheet, compile and add found rules to sheet
     bool parse( const char * str, bool higher_importance=false, lString32 codeBase=lString32::empty_str );
+    /// parse @charset rule
+    bool parseCharsetRule( const char * &str );
     /// apply stylesheet to node style
     void apply( const ldomNode * node, css_style_rec_t * style );
     /// calculate hash

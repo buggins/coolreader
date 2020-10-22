@@ -4304,6 +4304,7 @@ LVStyleSheet::LVStyleSheet( LVStyleSheet & sheet )
 {
     set( sheet._selectors );
     _selector_count = sheet._selector_count;
+    _charset = sheet._charset;
 }
 
 void LVStyleSheet::apply( const ldomNode * node, css_style_rec_t * style )
@@ -4415,6 +4416,9 @@ bool LVStyleSheet::parse( const char * str, bool higher_importance, lString32 co
         bool err = false;
         for (;*str;)
         {
+            // parse charset, and... ignored it
+            // just to avoid generating a parse error
+            parseCharsetRule(str);
             // parse selector(s)
             // Have selector count number make the initial value
             // of _specificity, so order of selectors is preserved
@@ -4497,6 +4501,34 @@ bool LVStyleSheet::parse( const char * str, bool higher_importance, lString32 co
         }
     }
     return _selectors.length() > 0;
+}
+
+bool LVStyleSheet::parseCharsetRule( const char * &str )
+{
+    // Parse rule '@charset' according https://developer.mozilla.org/en-US/docs/Web/CSS/@charset
+    if (!str || !*str)
+        return false;
+    skip_spaces( str );
+    if ( *str == '@' ) {
+        str++;
+        char word[64];
+        if ( parse_ident( str, word ) ) {
+            lString8 keyword(word);
+            if (keyword == "charset") {
+                // skip required space(s)
+                if (*str == ' ' || *str == '\t') {
+                    skip_spaces(str);
+                    if (parse_attr_value(str, word, ';')) {
+                        if (_charset.empty()) {
+                            _charset = word;
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return false;
 }
 
 /// extract @import filename from beginning of CSS
