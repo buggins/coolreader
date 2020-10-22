@@ -10,6 +10,7 @@ hr { height: 1px; background-color: #808080; margin-top: 0.5em; margin-bottom: 0
 
 a { display: inline; $link.all }
 a[type="note"] { $footnote-link.all }
+a[type="note"]::before { content: "\2060" } /* word joiner, avoid break before */
 
 image { text-align: center; text-indent: 0px; display: block }
 p image { display: inline }
