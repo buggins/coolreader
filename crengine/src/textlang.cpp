@@ -32,6 +32,7 @@ static struct {
     int left_hyphen_min;
     int right_hyphen_min;
 } _hyph_dict_table[] = {
+    { "hy",    "Armenian",      "Armenian.pattern",      1, 2 },
     { "eu",    "Basque",        "Basque.pattern",        2, 2 },
     { "bg",    "Bulgarian",     "Bulgarian.pattern",     2, 2 },
     { "ca",    "Catalan",       "Catalan.pattern",       2, 2 },
@@ -44,6 +45,7 @@ static struct {
     { "et",    "Estonian",      "Estonian.pattern",      2, 3 },
     { "fi",    "Finnish",       "Finnish.pattern",       2, 2 },
     { "fr",    "French",        "French.pattern",        2, 1 }, // see French.pattern file for why right_hyphen_min=1
+    { "fur",   "Friulian",      "Friulian.pattern",      2, 2 },
     { "gl",    "Galician",      "Galician.pattern",      2, 2 },
     { "ka",    "Georgian",      "Georgian.pattern",      1, 2 },
     { "de",    "German",        "German.pattern",        2, 2 },
@@ -58,9 +60,12 @@ static struct {
     { "mk",    "Macedonian",    "Macedonian.pattern",    2, 2 },
     { "no",    "Norwegian",     "Norwegian.pattern",     2, 2 },
     { "oc",    "Occitan",       "Occitan.pattern",       2, 2 },
+    { "pms",   "Piedmontese",   "Piedmontese.pattern",   2, 2 },
     { "pl",    "Polish",        "Polish.pattern",        2, 2 },
+    { "pt-BR", "Portuguese_BR", "Portuguese_BR.pattern", 2, 3 },
     { "pt",    "Portuguese",    "Portuguese.pattern",    2, 3 },
     { "ro",    "Roman",         "Romanian.pattern",      2, 2 }, // truncated prefix (see above)
+    { "rm",    "Romansh",       "Romansh.pattern",       2, 2 },
     { "ru-GB", "Russian_EnGB",  "Russian_EnGB.pattern",  2, 2 },
     { "ru-US", "Russian_EnUS",  "Russian_EnUS.pattern",  2, 2 },
     { "ru",    "Russian",       "Russian.pattern",       2, 2 },
@@ -72,6 +77,7 @@ static struct {
     { "tr",    "Turkish",       "Turkish.pattern",       2, 2 },
     { "uk",    "Ukrain",        "Ukrainian.pattern",     2, 2 }, // truncated prefix (see above)
     { "cy",    "Welsh",         "Welsh.pattern",         2, 3 },
+    { "zu",    "Zulu",          "Zulu.pattern",          2, 1 }, // defaulting to 2,1, left hyphenmin might need tweaking
     // No-lang hyph methods, for legacy HyphMan methods: other lang properties will be from English
     { "en#@none",        "@none",        "@none",        2, 2 },
     { "en#@softhyphens", "@softhyphens", "@softhyphens", 2, 2 },
@@ -365,6 +371,7 @@ static quotes_spec _quotes_spec_table[] = {
     { "fr-ch",    U"\x00ab", U"\x00bb", U"\x2039", U"\x203a" }, /* « » ‹ › */
     // { "fr",    U"\x00ab", U"\x00bb", U"\x00ab", U"\x00bb" }, /* « » « » */  /* Same pair for both level, bit sad... */
     { "fr",       U"\x00ab", U"\x00bb", U"\x201c", U"\x201d" }, /* « » “ ” */  /* Better to have "fr" just as "it" */
+    { "fur",      U"\x00ab", U"\x00bb", U"\x201c", U"\x201d" }, /* « » “ ” */  /* Defaulting to "it", needs verification */
     { "ga",       U"\x201c", U"\x201d", U"\x2018", U"\x2019" }, /* “ ” ‘ ’ */
     { "gd",       U"\x201c", U"\x201d", U"\x2018", U"\x2019" }, /* “ ” ‘ ’ */
     { "gl",       U"\x201c", U"\x201d", U"\x2018", U"\x2019" }, /* “ ” ‘ ’ */
@@ -439,8 +446,11 @@ static quotes_spec _quotes_spec_table[] = {
     { "oc",       U"\x00ab", U"\x00bb", U"\x201c", U"\x201d" }, /* « » “ ” */
     { "pa",       U"\x201c", U"\x201d", U"\x2018", U"\x2019" }, /* “ ” ‘ ’ */
     { "pl",       U"\x201e", U"\x201d", U"\x00ab", U"\x00bb" }, /* „ ” « » */
+    { "pms",      U"\x00ab", U"\x00bb", U"\x201c", U"\x201d" }, /* « » “ ” */  /* Defaulting to "it", needs verification */
+    { "pt-br",    U"\x201c", U"\x201d", U"\x2018", U"\x2019" }, /* “ ” ‘ ’ */
     { "pt-pt",    U"\x00ab", U"\x00bb", U"\x201c", U"\x201d" }, /* « » “ ” */
-    { "pt",       U"\x201c", U"\x201d", U"\x2018", U"\x2019" }, /* “ ” ‘ ’ */
+    { "pt",       U"\x00ab", U"\x00bb", U"\x201c", U"\x201d" }, /* « » “ ” */
+    { "rm",       U"\x00ab", U"\x00bb", U"\x2039", U"\x203a" }, /* « » ‹ › */
     { "rn",       U"\x201d", U"\x201d", U"\x2019", U"\x2019" }, /* ” ” ’ ’ */
     { "rof",      U"\x201c", U"\x201d", U"\x2018", U"\x2019" }, /* “ ” ‘ ’ */
     { "ro",       U"\x201e", U"\x201d", U"\x00ab", U"\x00bb" }, /* „ ” « » */
@@ -755,10 +765,18 @@ TextLangCfg::TextLangCfg( lString32 lang_tag ) {
         has_left_single_quotation_mark_closing = true;
         has_right_single_quotation_mark_glue = true;
         has_left_double_quotation_mark_closing = true;
+        /* Next ones commented out, as non-inverted usage of these
+         * quotation marks can be found in pure "de" text - and
+         * generally, these quotations marks are stuck to their
+         * quoted first or last word and have only a space on the
+         * other side, and so should be fine with just being "QU"
+         * for libunibreak.
+         * See https://github.com/koreader/koreader/issues/6717
         has_left_single_angle_quotation_mark_closing = true;
         has_right_single_angle_quotation_mark_opening = true;
         has_left_double_angle_quotation_mark_closing = true;
         has_right_double_angle_quotation_mark_opening = true;
+        */
     }
     else if ( LANG_STARTS_WITH(("ru")) ) { // Russian
         has_left_double_quotation_mark_closing = true;

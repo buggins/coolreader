@@ -85,7 +85,7 @@ extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.12.72"
+#define CACHE_FILE_FORMAT_VERSION "3.12.73"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0025
@@ -2035,6 +2035,7 @@ tinyNodeCollection::tinyNodeCollection()
 ,_fontMap(113)
 ,_hangingPunctuationEnabled(false)
 ,_renderBlockRenderingFlags(BLOCK_RENDERING_FLAGS_DEFAULT)
+,_DOMVersionRequested(DOM_VERSION_CURRENT)
 ,_interlineScaleFactor(INTERLINE_SCALE_FACTOR_NO_SCALE)
 {
     memset( _textList, 0, sizeof(_textList) );
@@ -2078,6 +2079,7 @@ tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
 ,_fontMap(113)
 ,_hangingPunctuationEnabled(v._hangingPunctuationEnabled)
 ,_renderBlockRenderingFlags(v._renderBlockRenderingFlags)
+,_DOMVersionRequested(v._DOMVersionRequested)
 ,_interlineScaleFactor(v._interlineScaleFactor)
 {
     memset( _textList, 0, sizeof(_textList) );
@@ -5134,9 +5136,9 @@ static bool isFloatingNode( ldomNode * node )
 
 static bool isNotBoxWrappingNode( ldomNode * node )
 {
-    if ( BLOCK_RENDERING(node->getDocument()->getRenderBlockRenderingFlags(), PREPARE_FLOATBOXES) && node->getStyle()->float_ > css_f_none )
+    if ( BLOCK_RENDERING_N(node, PREPARE_FLOATBOXES) && node->getStyle()->float_ > css_f_none )
         return false; // floatBox
-    // isBoxingInlineBox() already checks for BLOCK_RENDERING(rend_flags, BOX_INLINE_BLOCKS)
+    // isBoxingInlineBox() already checks for BLOCK_RENDERING_BOX_INLINE_BLOCKS)
     return !node->isBoxingInlineBox();
 }
 
@@ -5459,7 +5461,7 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex, bool handleFloatin
         // remove starting empty
         removeChildren(startIndex, firstNonEmpty-1);
         abox->initNodeStyle();
-        if ( !BLOCK_RENDERING(getDocument()->getRenderBlockRenderingFlags(), FLOAT_FLOATBOXES) ) {
+        if ( !BLOCK_RENDERING_N(this, FLOAT_FLOATBOXES) ) {
             // If we don't want floatBoxes floating, reset them to be
             // rendered inline among inlines
             abox->recurseMatchingElements( resetRendMethodToInline, isNotBoxingInlineBoxNode );
@@ -5525,7 +5527,7 @@ bool ldomNode::hasNonEmptyInlineContent( bool ignoreFloats )
     if ( getRendMethod() == erm_invisible ) {
         return false;
     }
-    if ( ignoreFloats && BLOCK_RENDERING(getDocument()->getRenderBlockRenderingFlags(), FLOAT_FLOATBOXES) && getStyle()->float_ > css_f_none ) {
+    if ( ignoreFloats && BLOCK_RENDERING_N(this, FLOAT_FLOATBOXES) && getStyle()->float_ > css_f_none ) {
         return false;
     }
     // With some other bool param, we might want to also check for
@@ -5640,7 +5642,7 @@ ldomNode * ldomNode::boxWrapChildren( int startIndex, int endIndex, lUInt16 elem
 // init table element render methods
 // states: 0=table, 1=colgroup, 2=rowgroup, 3=row, 4=cell
 // returns table cell count
-// When BLOCK_RENDERING(rend_flags, COMPLETE_INCOMPLETE_TABLES), we follow rules
+// When BLOCK_RENDERING_COMPLETE_INCOMPLETE_TABLES, we follow rules
 // from the "Generate missing child wrappers" section in:
 //   https://www.w3.org/TR/CSS22/tables.html#anonymous-boxes
 //   https://www.w3.org/TR/css-tables-3/#fixup (clearer than previous one)
@@ -5891,10 +5893,10 @@ bool hasInvisibleParent( ldomNode * node )
 
 bool ldomNode::isFloatingBox() const
 {
-    // BLOCK_RENDERING(rend_flags, FLOAT_FLOATBOXES) is what triggers rendering
+    // BLOCK_RENDERING_FLOAT_FLOATBOXES is what triggers rendering
     // the floats floating. They are wrapped in a floatBox, possibly
-    // not floating, when BLOCK_RENDERING(rend_flags, WRAP_FLOATS)).
-    if ( BLOCK_RENDERING(getDocument()->getRenderBlockRenderingFlags(), FLOAT_FLOATBOXES) && getNodeId() == el_floatBox
+    // not floating, when BLOCK_RENDERING_WRAP_FLOATS.
+    if ( BLOCK_RENDERING_N(this, FLOAT_FLOATBOXES) && getNodeId() == el_floatBox
                 && getStyle()->float_ > css_f_none)
         return true;
     return false;
@@ -5904,11 +5906,11 @@ bool ldomNode::isFloatingBox() const
 /// its child no more inline-block/inline-table
 bool ldomNode::isBoxingInlineBox() const
 {
-    // BLOCK_RENDERING(rend_flags, BOX_INLINE_BLOCKS) is what ensures inline-block
+    // BLOCK_RENDERING_BOX_INLINE_BLOCKS) is what ensures inline-block
     // are boxed and rendered as an inline block, but we may have them
     // wrapping a node that is no more inline-block (when some style
     // tweaks have changed the display: property).
-    if ( getNodeId() == el_inlineBox && BLOCK_RENDERING(getDocument()->getRenderBlockRenderingFlags(), BOX_INLINE_BLOCKS) ) {
+    if ( getNodeId() == el_inlineBox && BLOCK_RENDERING_N(this, BOX_INLINE_BLOCKS) ) {
         if (getChildCount() == 1) {
             css_display_t d = getChildNode(0)->getStyle()->display;
             if (d == css_d_inline_block || d == css_d_inline_table) {
@@ -5932,7 +5934,7 @@ bool ldomNode::isBoxingInlineBox() const
 bool ldomNode::isEmbeddedBlockBoxingInlineBox(bool inline_box_checks_done) const
 {
     if ( !inline_box_checks_done ) {
-        if ( getNodeId() != el_inlineBox || !BLOCK_RENDERING(getDocument()->getRenderBlockRenderingFlags(), BOX_INLINE_BLOCKS) )
+        if ( getNodeId() != el_inlineBox || !BLOCK_RENDERING_N(this, BOX_INLINE_BLOCKS) )
             return false;
         if (getChildCount() != 1)
             return false;
@@ -13880,11 +13882,12 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar32 * nsname, const lChar3
     // HTML valign= => CSS vertical-align: only for TH & TD (as lvrend.cpp
     // only uses it with table cells (erm_final or erm_block))
     if (id == el_th || id == el_td) {
-        // Default rendering for cells is valign=top
-        // There is no support for valign=baseline.
+        // Default rendering for cells is valign=baseline
         if ( !lStr_cmp(attrname, "valign") ) {
             lString32 valign = lString32(attrvalue).lowercase();
-            if ( valign == U"middle" )
+            if ( valign == U"top" )
+                appendStyle( U"vertical-align: top" );
+            else if ( valign == U"middle" )
                 appendStyle( U"vertical-align: middle" );
             else if ( valign == U"bottom")
                 appendStyle( U"vertical-align: bottom" );
@@ -14888,7 +14891,7 @@ lUInt32 tinyNodeCollection::calcStyleHash(bool already_rendered)
                         if (style.get()->white_space >= css_ws_pre_line)
                             _nodeDisplayStyleHash += 29;
                         // Also account for style->float_, as it should create/remove new floatBox
-                        // elements wrapping floats when toggling BLOCK_RENDERING(rend_flags, ENHANCED)
+                        // elements wrapping floats when toggling BLOCK_RENDERING_ENHANCED
                         if (style.get()->float_ > css_f_none)
                             _nodeDisplayStyleHash += 123;
                     }
@@ -14915,6 +14918,7 @@ lUInt32 tinyNodeCollection::calcStyleHash(bool already_rendered)
     res = res * 31 + _spaceWidthScalePercent;
     res = res * 31 + _minSpaceCondensingPercent;
     res = res * 31 + _unusedSpaceThresholdPercent;
+
     // _maxAddedLetterSpacingPercent does not need to be accounted, as, working
     // only on a laid out line, it does not need a re-rendering, but just
     // a _renderedBlockCache.clear() to reformat paragraphs and have the
@@ -14923,8 +14927,8 @@ lUInt32 tinyNodeCollection::calcStyleHash(bool already_rendered)
     // Hanging punctuation does not need to trigger a re-render, as
     // it's now ensured by alignLine() and won't change paragraphs height.
     // We just need to _renderedBlockCache.clear() when it changes.
-    //if ( gHangingPunctuationEnabled )
-    // res = res * 75 + 1761;
+    // if ( _hangingPunctuationEnabled )
+    //     res = res * 75 + 1761;
 
     res = res * 31 + _renderBlockRenderingFlags;
     res = res * 31 + _interlineScaleFactor;
@@ -16962,7 +16966,7 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction, bool strict_bo
 
     RenderRectAccessor fmt( this );
 
-    if ( BLOCK_RENDERING(getDocument()->getRenderBlockRenderingFlags(), ENHANCED) ) {
+    if ( BLOCK_RENDERING_N(this, ENHANCED) ) {
         // In enhanced rendering mode, because of collapsing of vertical margins
         // and the fact that we did not update style margins to their computed
         // values, a children box with margins can overlap its parent box, if

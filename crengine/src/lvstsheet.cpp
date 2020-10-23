@@ -1883,55 +1883,45 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                         else if ( name == cr_only_if_never ) {
                             match = invert;
                         }
+                        else if ( !doc ) {
+                            // Without a doc, we don't have access to any of the following properties
+                            match = false;
+                        }
                         else if ( name == cr_only_if_legacy ) {
-                            if (doc)
-                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), ENHANCED)) == invert;
+                            match = BLOCK_RENDERING_D(doc, ENHANCED) == invert;
                         }
                         else if ( name == cr_only_if_enhanced ) {
-                            if (doc)
-                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), ENHANCED)) != invert;
+                            match = BLOCK_RENDERING_D(doc, ENHANCED) != invert;
                         }
                         else if ( name == cr_only_if_float_floatboxes ) {
-                            if (doc)
-                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), FLOAT_FLOATBOXES)) != invert;
+                            match = BLOCK_RENDERING_D(doc, FLOAT_FLOATBOXES) != invert;
                         }
                         else if ( name == cr_only_if_box_inlineboxes ) {
-                            if (doc)
-                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), BOX_INLINE_BLOCKS)) != invert;
+                            match = BLOCK_RENDERING_D(doc, BOX_INLINE_BLOCKS) != invert;
                         }
                         else if ( name == cr_only_if_ensure_style_width ) {
-                            if (doc)
-                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), ENSURE_STYLE_WIDTH)) != invert;
+                            match = BLOCK_RENDERING_D(doc, ENSURE_STYLE_WIDTH) != invert;
                         }
                         else if ( name == cr_only_if_ensure_style_height ) {
-                            if (doc)
-                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), ENSURE_STYLE_HEIGHT)) != invert;
+                            match = BLOCK_RENDERING_D(doc, ENSURE_STYLE_HEIGHT) != invert;
                         }
                         else if ( name == cr_only_if_allow_style_w_h_absolute_units ) {
-                            if (doc)
-                                match = ((bool)BLOCK_RENDERING(doc->getRenderBlockRenderingFlags(), ALLOW_STYLE_W_H_ABSOLUTE_UNITS)) != invert;
+                            match = BLOCK_RENDERING_D(doc, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) != invert;
                         }
                         else if ( name == cr_only_if_full_featured ) {
-                            if (doc)
-                                match = (doc->getRenderBlockRenderingFlags() == BLOCK_RENDERING_FULL_FEATURED) != invert;
+                            match = (doc->getRenderBlockRenderingFlags() == BLOCK_RENDERING_FULL_FEATURED) != invert;
                         }
                         else if ( name == cr_only_if_epub_document ) {
-                            // 'doc' is NULL when parsing elements style= attribute,
-                            // but we don't expect to see -cr-only-if: in them.
-                            if (doc) {
-                                match = doc->getProps()->getIntDef(DOC_PROP_FILE_FORMAT_ID, doc_format_none) == doc_format_epub;
-                                if (invert) {
-                                    match = !match;
-                                }
+                            match = doc->getProps()->getIntDef(DOC_PROP_FILE_FORMAT_ID, doc_format_none) == doc_format_epub;
+                            if (invert) {
+                                match = !match;
                             }
                         }
                         else if ( name == cr_only_if_fb2_document ) {
-                            if (doc) {
-                                int doc_format = doc->getProps()->getIntDef(DOC_PROP_FILE_FORMAT_ID, doc_format_none);
-                                match = (doc_format == doc_format_fb2) || (doc_format == doc_format_fb3);
-                                if (invert) {
-                                    match = !match;
-                                }
+                            int doc_format = doc->getProps()->getIntDef(DOC_PROP_FILE_FORMAT_ID, doc_format_none);
+                            match = (doc_format == doc_format_fb2) || (doc_format == doc_format_fb3);
+                            if (invert) {
+                                match = !match;
                             }
                         }
                         else { // unknown option: ignore
@@ -4404,11 +4394,15 @@ lUInt32 LVStyleSheet::getHash()
 
 bool LVStyleSheet::parse( const char * str, bool higher_importance, lString32 codeBase )
 {
+    if ( !_doc ) {
+        // We can't parse anything if no _doc to get element name ids from
+        return false;
+    }
     LVCssSelector * selector = NULL;
     LVCssSelector * prev_selector;
     int err_count = 0;
     int rule_count = 0;
-    lUInt32 domVersionRequested = (_doc != NULL) ? _doc->getDOMVersionRequested() : 0;
+    lUInt32 domVersionRequested = _doc->getDOMVersionRequested();
     for (;*str;)
     {
         // new rule
