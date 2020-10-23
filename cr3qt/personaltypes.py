@@ -89,15 +89,38 @@ def qdump__lString16(d, value):
     size = pchunk['size']
     refCount = pchunk['refCount']
     buf16 = pchunk['buf16']
-    wcharType = d.createType('wchar_t')
+    char16Type = d.createType('char16_t')
     length_int = length.integer()
     size_int = size.integer()
     d.check(length_int >= 0 and size_int >= 0)
-    #buf16str = buf16.cast(wcharType.pointer())
-    #d.putCharArrayHelper(buf16str, size_int, wcharType, d.currentItemFormat(), False)
-    bytelen = length_int*wcharType.size()
+    #buf16str = buf16.cast(char16Type.pointer())
+    #d.putCharArrayHelper(buf16str, size_int, char16Type, d.currentItemFormat(), False)
+    bytelen = length_int*char16Type.size()
     elided, shown = d.computeLimit(bytelen, 512)
     mem = d.readMemory(buf16, shown)
+    d.putValue(mem, 'ucs2', elided=elided)
+    d.putNumChild(3)
+    if d.isExpanded():
+        with Children(d):
+            d.putSubItem('len', length)
+            d.putSubItem('size', size)
+            d.putSubItem('refCount', refCount)
+
+def qdump__lString32(d, value):
+    pchunk = value['pchunk'].dereference()
+    length = pchunk['len']
+    size = pchunk['size']
+    refCount = pchunk['refCount']
+    buf32 = pchunk['buf32']
+    char32Type = d.createType('char32_t')
+    length_int = length.integer()
+    size_int = size.integer()
+    d.check(length_int >= 0 and size_int >= 0)
+    #buf32str = buf32.cast(char32Type.pointer())
+    #d.putCharArrayHelper(buf32str, size_int, char32Type, d.currentItemFormat(), False)
+    bytelen = length_int*char32Type.size()
+    elided, shown = d.computeLimit(bytelen, 512)
+    mem = d.readMemory(buf32, shown)
     d.putValue(mem, 'ucs4', elided=elided)
     d.putNumChild(3)
     if d.isExpanded():
