@@ -4385,11 +4385,11 @@ void ldomDocument::printWarning(const char * msg, int warning_id) {
 
 ldomDocument::~ldomDocument()
 {
-    ldomNode::unregisterDocument(this);
-    fontMan->UnregisterDocumentFonts(_docIndex);
 #if BUILD_LITE!=1
     updateMap(); // NOLINT: Call to virtual function during destruction
 #endif
+    fontMan->UnregisterDocumentFonts(_docIndex);
+    ldomNode::unregisterDocument(this);
 }
 
 #if BUILD_LITE!=1
