@@ -652,6 +652,7 @@
     <string name="googledrive_sync_failed_with">Synchronization with Google Drive failed with error: %s</string>
     <string name="googledrive_sync_failed">Synchronization with Google Drive failed!</string>
     <string name="googledrive_sync_aborted">Synchronization with Google Drive aborted!</string>
+    <string name="googledrive_sync_failed_disabled">More than 3 sync failures in a row, auto sync disabled.</string>
     <string name="googledrive_localfile_is_newer_confirm">Local file \"%s\" is newer that remote on Google Drive, whatever load remote file or upload local to Drive?</string>
     <string name="googledrive_load_remote">Load remote</string>
     <string name="googledrive_upload_local">Upload local to Drive</string>

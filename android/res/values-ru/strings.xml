@@ -617,6 +617,7 @@
     <string name="googledrive_sync_failed_with">Произошел сбой при синхронизация с Google Диском: %s</string>
     <string name="googledrive_sync_failed">Произошел сбой при синхронизация с Google Диском!</string>
     <string name="googledrive_sync_aborted">Синхронизация с Google Диском прервана!</string>
+    <string name="googledrive_sync_failed_disabled">Более 3 сбоев синхронизации подряд, автосинхронизация отключена.</string>
     <string name="googledrive_localfile_is_newer_confirm">Локальный файл \"%s\" новее чем удаленный файл на Google Диске, скачать удаленный файл или загрузить локальный на Диск?</string>
     <string name="googledrive_load_remote">Скачать удаленный</string>
     <string name="googledrive_upload_local">Загрузить локальный на Диск</string>

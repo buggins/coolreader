@@ -91,6 +91,7 @@ public class CoolReader extends BaseActivity {
 	private boolean mSyncGoogleDriveEnabledCurrentBooks = false;
 	private int mCloudSyncBookmarksKeepAlive = 14;
 	private int mSyncGoogleDriveAutoSavePeriod = 0;
+	private int mSyncGoogleDriveErrorsCount = 0;
 	private Synchronizer mGoogleDriveSync;
 	private Timer mGoogleDriveAutoSaveTimer = null;
 	// can be add more synchronizers
@@ -399,6 +400,8 @@ public class CoolReader extends BaseActivity {
 						if (null != mReaderView)
 							mReaderView.hideSyncProgress();
 					}
+					if (mSyncGoogleDriveEnabled)
+						mSyncGoogleDriveErrorsCount = 0;
 				}
 
 				@Override
@@ -410,6 +413,14 @@ public class CoolReader extends BaseActivity {
 						showToast(R.string.googledrive_sync_failed_with, errorString);
 					else
 						showToast(R.string.googledrive_sync_failed);
+					if (mSyncGoogleDriveEnabled) {
+						mSyncGoogleDriveErrorsCount++;
+						if (mSyncGoogleDriveErrorsCount >= 3) {
+							showToast(R.string.googledrive_sync_failed_disabled);
+							log.e("More than 3 sync failures in a row, auto sync disabled.");
+							mSyncGoogleDriveEnabled = false;
+						}
+					}
 				}
 
 				@Override
