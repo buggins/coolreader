@@ -391,14 +391,25 @@ fribidi_get_par_direction (
   const FriBidiStrIndex len
 )
 {
+  int valid_isolate_count = 0;
   register FriBidiStrIndex i;
 
   fribidi_assert (bidi_types);
 
   for (i = 0; i < len; i++)
-    if (FRIBIDI_IS_LETTER (bidi_types[i]))
-      return FRIBIDI_IS_RTL (bidi_types[i]) ? FRIBIDI_PAR_RTL :
-	FRIBIDI_PAR_LTR;
+    {
+      if (bidi_types[i] == FRIBIDI_TYPE_PDI)
+        {
+          /* Ignore if there is no matching isolate */
+          if (valid_isolate_count>0)
+            valid_isolate_count--;
+        }
+      else if (FRIBIDI_IS_ISOLATE(bidi_types[i]))
+        valid_isolate_count++;
+      else if (valid_isolate_count==0 && FRIBIDI_IS_LETTER (bidi_types[i]))
+        return FRIBIDI_IS_RTL (bidi_types[i]) ? FRIBIDI_PAR_RTL :
+          FRIBIDI_PAR_LTR;
+    }
 
   return FRIBIDI_PAR_ON;
 }
