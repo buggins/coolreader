@@ -1333,8 +1333,10 @@ public:
                         last_non_space_pos = pos;
                         last_non_collapsed_space_pos = -1;
                         is_locked_spacing = false;
-                        if ( !is_space ) {
-                            has_non_space = true;
+                        if ( !has_non_space ) {
+                            if ( !is_space && c != UNICODE_NO_BREAK_SPACE ) {
+                                has_non_space = true;
+                            }
                         }
                     }
                     prev_was_space = is_space || (c == '\n');
