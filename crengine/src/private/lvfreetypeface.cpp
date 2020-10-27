@@ -1805,13 +1805,14 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar32 def_char, lUI
             return NULL;  /* ignore errors */
         }
 
-        if (_embolden) { // Embolden and render
-            // See setEmbolden() for details
-            FT_GlyphSlot_Embolden(_slot);
-            FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
+        if (_embolden) {
+            FT_GlyphSlot_Embolden(_slot); // See setEmbolden() for details
         }
-        if (_italic == 2) { // Obliquen and render
+        if (_italic == 2) {
             FT_GlyphSlot_Oblique(_slot);
+        }
+        if (_embolden || _italic==2) {
+            // Render now that transformations are applied
             FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
         }
 
@@ -1861,16 +1862,18 @@ LVFontGlyphCacheItem* LVFreeTypeFace::getGlyphByIndex(lUInt32 index) {
             return NULL;  /* ignore errors */
         }
 
-        if (_embolden) { // Embolden and render
-            // See setEmbolden() for details
+        if (_embolden) {
             if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
+                // See setEmbolden() for details
                 FT_Outline_Embolden(&_slot->outline, 2*_embolden_half_strength);
                 FT_Outline_Translate(&_slot->outline, -_embolden_half_strength, -_embolden_half_strength);
             }
-            FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
         }
-        if (_italic==2) { // Obliquen and render
+        if (_italic==2) {
             FT_GlyphSlot_Oblique(_slot);
+        }
+        if (_embolden || _italic==2) {
+            // Render now that transformations are applied
             FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
         }
 
