@@ -2725,6 +2725,9 @@ public:
         #endif
         // Ignorables
         bool isToIgnore = false;
+        // Used when LTEXT_FIT_GLYPHS and preceeding or following word is an image or inline box
+        int prev_word_overflow = 0;
+        bool prev_word_is_object = false;
         for ( int i=start; i<=end; i++ ) { // loop thru each char
             src_text_fragment_t * newSrc = i<end ? m_srcs[i] : NULL;
             if ( i<end ) {
@@ -2920,6 +2923,16 @@ public:
 
                 if ( srcline->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object: image or inline-block box (floats have been skipped above)
+
+                    // This is set or used only when LTEXT_FIT_GLYPHS
+                    if ( prev_word_overflow ) {
+                        frmline->width += prev_word_overflow;
+                        frmline->words[frmline->word_count-2].width += prev_word_overflow;
+                        frmline->words[frmline->word_count-2].min_width += prev_word_overflow;
+                        prev_word_overflow = 0;
+                    }
+                    prev_word_is_object = true; // to be used when processing next word
+
                     word->distinct_glyphs = 0;
                     word->x = frmline->width;
                     word->width = srcline->o.width;
@@ -3174,6 +3187,16 @@ public:
                     // on neighbour text nodes), we might need to tweak words x and width
                     bool fit_glyphs = srcline->flags & LTEXT_FIT_GLYPHS;
 
+                    if ( fit_glyphs && !firstWord && prev_word_is_object ) {
+                        int lsb = font->getLeftSideBearing(m_text[wstart]);
+                        if ( lsb < 0 ) {
+                            // Prev word was an image or inline box: avoid first glyph
+                            // from overflowing in it by shifting this new word start
+                            // on the right
+                            frmline->width += -lsb;
+                        }
+                    }
+
                     if ( firstWord && (align == LTEXT_ALIGN_LEFT || align == LTEXT_ALIGN_WIDTH) ) {
                         // Adjust line start x if needed
                         // No need to do it when line is centered or right aligned (doing so
@@ -3403,6 +3426,18 @@ public:
                                 shift_w = usable_right_overflow + rsb;
                             }
                             word->width -= shift_w;
+                        }
+                    }
+
+                    // This is set or used only when LTEXT_FIT_GLYPHS
+                    prev_word_is_object = false;
+                    prev_word_overflow = 0;
+                    if ( fit_glyphs && !lastWord ) {
+                        int rsb = font->getRightSideBearing(m_text[i-1]);
+                        if ( rsb < 0 ) {
+                            // This may be added to shit word width if next
+                            // word is an image or an inline box
+                            prev_word_overflow = -rsb;
                         }
                     }
 
