@@ -8675,19 +8675,23 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     lUInt32 txt_flags = is_rtl ? LTEXT_ALIGN_RIGHT : 0;
                     int list_marker_width;
                     lString32 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, txt_flags);
+                    /*
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
                     lvRect clip;
                     drawbuf.GetClipRect( &clip );
                     if (doc_y + y0 + h <= clip.bottom) { // draw only if marker fully fits on page
-                        // In both LTR and RTL, for erm_block, we draw the marker inside 'width',
-                        // (only the child elements got their width shrinked by list_marker_width).
-                        if ( is_rtl ) {
-                            txform->Draw( &drawbuf, doc_x+x0 + width + shift_x - list_marker_width, doc_y+y0 + padding_top );
-                        }
-                        else {
-                            // (Don't shift by padding left, the list marker is outside padding left)
-                            txform->Draw( &drawbuf, doc_x+x0 + shift_x, doc_y+y0 + padding_top );
-                        }
+                    */
+                    // Better to draw it, even if it slightly overflows, or we might lose some
+                    // list item number for no real reason
+                    txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
+                    // In both LTR and RTL, for erm_block, we draw the marker inside 'width',
+                    // (only the child elements got their width shrinked by list_marker_width).
+                    if ( is_rtl ) {
+                        txform->Draw( &drawbuf, doc_x+x0 + width + shift_x - list_marker_width, doc_y+y0 + padding_top );
+                    }
+                    else {
+                        // (Don't shift by padding left, the list marker is outside padding left)
+                        txform->Draw( &drawbuf, doc_x+x0 + shift_x, doc_y+y0 + padding_top );
                     }
                 }
 
@@ -8846,18 +8850,22 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     lUInt32 txt_flags = is_rtl ? LTEXT_ALIGN_RIGHT : 0;
                     int list_marker_width;
                     lString32 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, txt_flags);
+                    /*
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
                     lvRect clip;
                     drawbuf.GetClipRect( &clip );
                     if (doc_y + y0 + h <= clip.bottom) { // draw only if marker fully fits on page
-                        // In both LTR and RTL, for erm_final, we draw the marker outside 'width',
-                        // as 'width' has already been shrinked by list_marker_width.
-                        if ( is_rtl ) {
-                            txform->Draw( &drawbuf, doc_x+x0 + width + shift_x, doc_y+y0 + padding_top, NULL, NULL );
-                        }
-                        else {
-                            txform->Draw( &drawbuf, doc_x+x0 + shift_x - list_marker_width, doc_y+y0 + padding_top, NULL, NULL );
-                        }
+                    */
+                    // Better to draw it, even if it slightly overflows, or we might lose some
+                    // list item number for no real reason
+                    txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
+                    // In both LTR and RTL, for erm_final, we draw the marker outside 'width',
+                    // as 'width' has already been shrinked by list_marker_width.
+                    if ( is_rtl ) {
+                        txform->Draw( &drawbuf, doc_x+x0 + width + shift_x, doc_y+y0 + padding_top, NULL, NULL );
+                    }
+                    else {
+                        txform->Draw( &drawbuf, doc_x+x0 + shift_x - list_marker_width, doc_y+y0 + padding_top, NULL, NULL );
                     }
                     // Note: if there's a float on the left of the list item, we let
                     // the marker where it would be if there were no float, while Firefox
