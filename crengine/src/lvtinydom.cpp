@@ -4217,7 +4217,9 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
                 *stream << " ";
                 if ( nsName.length() > 0 )
                     *stream << nsName << ":";
-                *stream << attrName << "=\"" << attrValue << "\"";
+                *stream << attrName;
+                if ( !attrValue.empty() ) // don't show ="" if empty
+                    *stream << "=\"" << attrValue << "\"";
                 if ( attrName == "StyleSheet" ) { // gather linked css files
                     lString32 cssFile = node->getDocument()->getAttrValue(attr->index);
                     if (!cssFiles.contains(cssFile))
