@@ -50,12 +50,12 @@ public:
     }
     virtual bool Init( lString8 path );
 
-    virtual void getFaceList( lString16Collection & list )
+    virtual void getFaceList( lString32Collection & list )
     {
         _cache.getFaceList(list);
     }
     /// returns registered font files
-    virtual void getFontFileNameList( lString16Collection & list );
+    virtual void getFontFileNameList( lString32Collection & list );
 };
 
 #endif  // !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE!=1

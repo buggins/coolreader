@@ -392,7 +392,7 @@ void MainWindow::onPropsChange( PropsRef props )
             ui->scroll->setVisible( v );
         }
         if ( name == PROP_BACKGROUND_IMAGE ) {
-            lString16 fn = qt2cr(value);
+            lString32 fn = qt2cr(value);
             LVImageSourceRef img;
             if ( !fn.empty() && fn[0]!='[' ) {
                 CRLog::debug("Background image file: %s", LCSTR(fn));
@@ -402,7 +402,7 @@ void MainWindow::onPropsChange( PropsRef props )
                 }
             }
             fn.lowercase();
-            bool tiled = ( fn.pos(cs16("\\textures\\"))>=0 || fn.pos(cs16("/textures/"))>=0);
+            bool tiled = ( fn.pos(cs32("\\textures\\"))>=0 || fn.pos(cs32("/textures/"))>=0);
             ui->view->getDocView()->setBackgroundImage(img, tiled);
         }
         if ( name == PROP_WINDOW_TOOLBAR_SIZE ) {

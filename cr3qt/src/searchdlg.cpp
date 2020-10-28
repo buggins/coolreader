@@ -49,7 +49,7 @@ void SearchDialog::changeEvent(QEvent *e)
     }
 }
 
-bool SearchDialog::findText( lString16 pattern, int origin, bool reverse, bool caseInsensitive )
+bool SearchDialog::findText( lString32 pattern, int origin, bool reverse, bool caseInsensitive )
 {
     if ( pattern.empty() )
         return false;
@@ -110,7 +110,7 @@ void SearchDialog::on_btnFindNext_clicked()
 {
     bool found = false;
     QString pattern = ui->edPattern->text();
-    lString16 p16 = qt2cr(pattern);
+    lString32 p16 = qt2cr(pattern);
     bool reverse = ui->rbBackward->isChecked();
     bool caseInsensitive = ui->cbCaseSensitive->checkState()!=Qt::Checked;
     found = findText(p16, 1, reverse , caseInsensitive);

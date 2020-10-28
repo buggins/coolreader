@@ -167,8 +167,10 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		m_executor = Executors.newSingleThreadExecutor();
 		//m_executor = Executors.newFixedThreadPool(1);
 		m_folderListCache = new FolderListCache(keepAlive);
-		if (!isServicesAvailable())
+		if (!isServicesAvailable()) {
 			Log.e(TAG, "Google Play Services NOT available!");
+			fixServicesAvailability(null);
+		}
 	}
 
 	public GoogleSignInAccount getGoogleAccount() {
@@ -368,7 +370,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		}
 		if (ConnectionResult.SUCCESS == m_isServiceAvailabilityRetCode) {
 			if (null != listener)
-				listener.onCompleted(true);
+				listener.onCompleted(true, true);
 			return;
 		}
 		if (null == m_gapiAvailability)
@@ -379,7 +381,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			if (task1.isSuccessful())
 				available = true;
 			if (null != listener)
-				listener.onCompleted(available);
+				listener.onCompleted(available, available);
 		});
 	}
 
@@ -449,7 +451,6 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 				GoogleSignInOptions.Builder builder = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN);
 				m_gso = builder.requestEmail().requestScopes(new Scope(DriveScopes.DRIVE_FILE)).build();
 				// without requestScopes(new Scope(DriveScopes.DRIVE_FILE)) all drive operation failed even if drive permission requested separately!
-				//m_gso = builder.requestEmail().build();
 			}
 			// Build a GoogleSignInClient with the options specified by gso.
 			m_googleSignInClient = GoogleSignIn.getClient(m_activity, m_gso);
@@ -537,25 +538,31 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		if (filePath.isEmpty()) {
 			Log.d(TAG, "Attempting to stat root folder, skipping.");
 			if (null != completeListener)
-				completeListener.onCompleted(new FileMetadata("root", "/", true));
+				completeListener.onCompleted(new FileMetadata("root", "/", true), true);
 			return;
 		}
 		String dirPath = dirname(filePath);
 		final String fileName = basename(filePath);
 		list_wrapper(dirPath, new OnOperationCompleteListener<FileMetadataList>() {
 			@Override
-			public void onCompleted(FileMetadataList metalist) {
-				FileMetadata result = null;
-				if (null != metalist) {
-					for (FileMetadata meta : metalist) {
-						if (fileName.equals(meta.fileName)) {
-							result = meta;
-							break;
+			public void onCompleted(FileMetadataList metalist, boolean ok) {
+				if (ok) {
+					FileMetadata result = null;
+					if (null != metalist) {
+						for (FileMetadata meta : metalist) {
+							if (fileName.equals(meta.fileName)) {
+								result = meta;
+								break;
+							}
 						}
 					}
+					if (null != completeListener)
+						completeListener.onCompleted(result, true);
+				} else {
+					// I/O error, propagate onComplete() signal
+					if (null != completeListener)
+						completeListener.onCompleted(null, false);
 				}
-				if (null != completeListener)
-					completeListener.onCompleted(result);
 			}
 
 			@Override
@@ -589,7 +596,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			} else
 				Log.d(TAG, "dir is NULL.");
 			if (null != completeListener)
-				completeListener.onCompleted(meta);
+				completeListener.onCompleted(meta, meta != null);
 			synchronized (m_cacheLocker) {
 				// clear cache
 				m_folderListCache.update(parentPath, null);
@@ -597,7 +604,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		}).addOnFailureListener(e -> {
 			Log.d(TAG, "mkdir_impl() failed, e=" + e.toString());
 			if (null != completeListener) {
-				completeListener.onCompleted(null);
+				completeListener.onCompleted(null, false);
 				completeListener.onFailed(e);
 				if (e instanceof UserRecoverableAuthIOException)
 					m_needSignInRepeat = true;
@@ -610,51 +617,60 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		if (finalFilePath.isEmpty()) {
 			Log.d(TAG, "Attempting to create root folder, skipping.");
 			if (null != completeListener)
-				completeListener.onCompleted(new FileMetadata("root", "/", true));
+				completeListener.onCompleted(new FileMetadata("root", "/", true), true);
 			return;
 		}
 		// 1. Check if this folder already exist.
 		stat_wrapper(finalFilePath, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
-			public void onCompleted(FileMetadata meta) {
-				if (null != meta && meta.isFolder) {
-					// folder already exist
-					Log.d(TAG, "Folder '" + finalFilePath + "' already exist.");
-					if (null != completeListener)
-						completeListener.onCompleted(meta);
-				} else {
-					// 2. Check if parent folder is exist
-					final String dirPath = dirname(finalFilePath);
-					final String fileName = basename(finalFilePath);
-					stat_wrapper(dirPath, new OnOperationCompleteListener<FileMetadata>() {
-						@Override
-						public void onCompleted(FileMetadata meta) {
-							if (null != meta && meta.isFolder) {
-								// parent folder is exist, creating subfolder in parent folder
-								mkdir_impl(fileName, dirPath, meta.id, completeListener);
-							} else {
-								if (null != completeListener) {
-									completeListener.onCompleted(null);
-									completeListener.onFailed(new IOException("parent folder '" + dirPath + "' not exist!"));
+			public void onCompleted(FileMetadata meta, boolean ok) {
+				if (ok) {
+					if (null != meta && meta.isFolder) {
+						// folder already exist
+						Log.d(TAG, "Folder '" + finalFilePath + "' already exist.");
+						if (null != completeListener)
+							completeListener.onCompleted(meta, true);
+					} else {
+						// 2. Check if parent folder is exist
+						final String dirPath = dirname(finalFilePath);
+						final String fileName = basename(finalFilePath);
+						stat_wrapper(dirPath, new OnOperationCompleteListener<FileMetadata>() {
+							@Override
+							public void onCompleted(FileMetadata meta, boolean ok) {
+								if (ok) {
+									if (null != meta && meta.isFolder) {
+										// parent folder is exist, creating subfolder in parent folder
+										mkdir_impl(fileName, dirPath, meta.id, completeListener);
+									} else {
+										if (null != completeListener) {
+											completeListener.onCompleted(null, false);
+											completeListener.onFailed(new IOException("parent folder '" + dirPath + "' not exist!"));
+										}
+									}
+								} else {
+									// I/O error, propagate onComplete() signal
+									if (null != completeListener)
+										completeListener.onCompleted(null, false);
 								}
 							}
-						}
 
-						@Override
-						public void onFailed(Exception e) {
-							if (null != completeListener) {
-								completeListener.onCompleted(null);
-								completeListener.onFailed(e);
+							@Override
+							public void onFailed(Exception e) {
+								if (null != completeListener)
+									completeListener.onFailed(e);
 							}
-						}
-					});
+						});
+					}
+				} else {
+					// I/O error, propagate onComplete() signal
+					if (null != completeListener)
+						completeListener.onCompleted(null, false);
 				}
 			}
 
 			@Override
 			public void onFailed(Exception e) {
 				if (null != completeListener) {
-					completeListener.onCompleted(null);
 					completeListener.onFailed(e);
 				}
 			}
@@ -666,57 +682,66 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		if (finalFilePath.isEmpty()) {
 			Log.d(TAG, "Attempting to create root folder, skipping.");
 			if (null != completeListener)
-				completeListener.onCompleted(new FileMetadata("root", "/", true));
+				completeListener.onCompleted(new FileMetadata("root", "/", true), true);
 			return;
 		}
 		// 1. Check if this folder already exist.
 		stat_wrapper(finalFilePath, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
-			public void onCompleted(FileMetadata meta) {
-				if (null != meta && meta.isFolder) {
-					// folder already exist
-					Log.d(TAG, "Folder '" + finalFilePath + "' already exist.");
-					if (null != completeListener)
-						completeListener.onCompleted(meta);
-				} else {
-					// 2. Check if all parent preceding folders is exist
-					final String dirPath = dirname(finalFilePath);
-					final String fileName = basename(finalFilePath);
-					if (dirPath.isEmpty()) {
-						// head parent folder creation
-						mkdir_impl(fileName, dirPath, parentId, completeListener);
+			public void onCompleted(FileMetadata meta, boolean ok) {
+				if (ok) {
+					if (null != meta && meta.isFolder) {
+						// folder already exist
+						Log.d(TAG, "Folder '" + finalFilePath + "' already exist.");
+						if (null != completeListener)
+							completeListener.onCompleted(meta, true);
 					} else {
-						mkdir_recursively_wrapper(dirPath, parentId, new OnOperationCompleteListener<FileMetadata>() {
-							@Override
-							public void onCompleted(FileMetadata meta) {
-								if (null != meta) {
-									// all parent folder created
-									mkdir_impl(fileName, dirPath, meta.id, completeListener);
-								} else {
-									// any of parent folders not created
-									completeListener.onCompleted(null);
-									completeListener.onFailed(new IOException("Failed to create parent folder '" + dirPath + "'!"));
+						// 2. Check if all parent preceding folders is exist
+						final String dirPath = dirname(finalFilePath);
+						final String fileName = basename(finalFilePath);
+						if (dirPath.isEmpty()) {
+							// head parent folder creation
+							mkdir_impl(fileName, dirPath, parentId, completeListener);
+						} else {
+							mkdir_recursively_wrapper(dirPath, parentId, new OnOperationCompleteListener<FileMetadata>() {
+								@Override
+								public void onCompleted(FileMetadata meta, boolean ok) {
+									if (ok) {
+										if (null != meta) {
+											// all parent folder created
+											mkdir_impl(fileName, dirPath, meta.id, completeListener);
+										} else {
+											// any of parent folders not created
+											completeListener.onCompleted(null, false);
+											completeListener.onFailed(new IOException("Failed to create parent folder '" + dirPath + "'!"));
+										}
+									} else {
+										// I/O error, propagate onComplete() signal
+										if (null != completeListener)
+											completeListener.onCompleted(null, false);
+									}
 								}
-							}
 
-							@Override
-							public void onFailed(Exception e) {
-								if (null != completeListener) {
-									completeListener.onCompleted(null);
-									completeListener.onFailed(e);
+								@Override
+								public void onFailed(Exception e) {
+									if (null != completeListener) {
+										completeListener.onFailed(e);
+									}
 								}
-							}
-						});
+							});
+						}
 					}
+				} else {
+					// I/O error, propagate onComplete() signal
+					if (null != completeListener)
+						completeListener.onCompleted(null, false);
 				}
 			}
 
 			@Override
 			public void onFailed(Exception e) {
-				if (null != completeListener) {
-					completeListener.onCompleted(null);
+				if (null != completeListener)
 					completeListener.onFailed(e);
-				}
 			}
 		});
 	}
@@ -736,10 +761,10 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			m_needSignInRepeat = false;
 			FileMetadataList metalist = getFileMetadataList(fileList);
 			if (null != completeListener)
-				completeListener.onCompleted(metalist);
+				completeListener.onCompleted(metalist, true);
 		}).addOnFailureListener(e -> {
 			if (null != completeListener) {
-				completeListener.onCompleted(null);
+				completeListener.onCompleted(null, false);
 				completeListener.onFailed(e);
 				if (e instanceof UserRecoverableAuthIOException)
 					m_needSignInRepeat = true;
@@ -755,21 +780,27 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		}
 		if (null != cachedList) {
 			if (null != completeListener)
-				completeListener.onCompleted(cachedList);
+				completeListener.onCompleted(cachedList, true);
 			return;
 		}
 		final String finalFilePath = filePath;
 		if (finalFilePath.isEmpty()) {
 			list_impl("root", new OnOperationCompleteListener<FileMetadataList>() {
 				@Override
-				public void onCompleted(FileMetadataList metalist) {
-					if (null != metalist) {
-						synchronized (m_cacheLocker) {
-							m_folderListCache.update(finalFilePath, metalist);
+				public void onCompleted(FileMetadataList metalist, boolean ok) {
+					if (ok) {
+						if (null != metalist) {
+							synchronized (m_cacheLocker) {
+								m_folderListCache.update(finalFilePath, metalist);
+							}
 						}
+						if (null != completeListener)
+							completeListener.onCompleted(metalist, true);
+					} else {
+						// I/O error, propagate onComplete() signal
+						if (null != completeListener)
+							completeListener.onCompleted(null, false);
 					}
-					if (null != completeListener)
-						completeListener.onCompleted(metalist);
 				}
 
 				@Override
@@ -782,31 +813,41 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			// 1. firstly get requested folder id
 			stat_wrapper(filePath, new OnOperationCompleteListener<FileMetadata>() {
 				@Override
-				public void onCompleted(FileMetadata meta) {
-					if (null != meta) {
-						// 2. folder exist, list it
-						list_impl(meta.id, new OnOperationCompleteListener<FileMetadataList>() {
-							@Override
-							public void onCompleted(FileMetadataList metalist) {
-								synchronized (m_cacheLocker) {
-									m_folderListCache.update(finalFilePath, metalist);
+				public void onCompleted(FileMetadata meta, boolean ok) {
+					if (ok) {
+						if (null != meta) {
+							// 2. folder exist, list it
+							list_impl(meta.id, new OnOperationCompleteListener<FileMetadataList>() {
+								@Override
+								public void onCompleted(FileMetadataList metalist, boolean ok) {
+									if (ok) {
+										synchronized (m_cacheLocker) {
+											m_folderListCache.update(finalFilePath, metalist);
+										}
+										if (null != completeListener)
+											completeListener.onCompleted(metalist, true);
+									} else {
+										// I/O error, propagate onComplete() signal
+										if (null != completeListener)
+											completeListener.onCompleted(null, false);
+									}
 								}
-								if (null != completeListener)
-									completeListener.onCompleted(metalist);
-							}
 
-							@Override
-							public void onFailed(Exception e) {
-								if (null != completeListener)
-									completeListener.onFailed(e);
-							}
-						});
-					} else {
-						// folder not found, done
-						if (null != completeListener) {
-							completeListener.onCompleted(null);
-							//completeListener.onFailed(new IOException("folder '" + finalFilePath + "' not exist!"));
+								@Override
+								public void onFailed(Exception e) {
+									if (null != completeListener)
+										completeListener.onFailed(e);
+								}
+							});
+						} else {
+							// folder not found, done
+							if (null != completeListener)
+								completeListener.onCompleted(null, true);
 						}
+					} else {
+						// I/O error, propagate onComplete() signal
+						if (null != completeListener)
+							completeListener.onCompleted(null, false);
 					}
 				}
 
@@ -843,13 +884,13 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			m_needSignInRepeat = false;
 			boolean result = null != file;
 			if (null != completeListener)
-				completeListener.onCompleted(result);
+				completeListener.onCompleted(result, result);
 			synchronized (m_cacheLocker) {
 				m_folderListCache.update(parentPath, null);
 			}
 		}).addOnFailureListener(e -> {
 			if (null != completeListener) {
-				completeListener.onCompleted(false);
+				completeListener.onCompleted(false, false);
 				completeListener.onFailed(e);
 				if (e instanceof UserRecoverableAuthIOException)
 					m_needSignInRepeat = true;
@@ -869,13 +910,13 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			m_needSignInRepeat = false;
 			boolean result = null != file;
 			if (null != completeListener)
-				completeListener.onCompleted(result);
+				completeListener.onCompleted(result, result);
 			synchronized (m_cacheLocker) {
 				m_folderListCache.update(parentPath, null);
 			}
 		}).addOnFailureListener(e -> {
 			if (null != completeListener) {
-				completeListener.onCompleted(false);
+				completeListener.onCompleted(false, false);
 				completeListener.onFailed(e);
 				if (e instanceof UserRecoverableAuthIOException)
 					m_needSignInRepeat = true;
@@ -888,40 +929,52 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		final String finalFilePath = simplifyFilePath(filePath);
 		stat_wrapper(finalFilePath, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
-			public void onCompleted(final FileMetadata meta) {
-				if (null != meta) {
-					// 2. file exist, update content
-					updateFile_impl(meta, dirname(filePath), data, completeListener);
-				} else {
-					// 3. file don't exist, create file with data if parent folder is exist
-					final String dirPath = dirname(finalFilePath);
-					final String fileName = basename(finalFilePath);
-					if (!dirPath.isEmpty()) {
-						stat(dirPath, new OnOperationCompleteListener<FileMetadata>() {
-							@Override
-							public void onCompleted(FileMetadata meta) {
-								if (null != meta) {
-									// 4. parent folder exist, create file inside they
-									createFile_impl(fileName, dirPath, meta.id, data, completeListener);
-								} else {
-									if (null != completeListener) {
-										// 4.1 parent folder not exist, done.
-										completeListener.onCompleted(false);
-										completeListener.onFailed(new IOException("Parent folder '" + dirPath + "' not exist!"));
+			public void onCompleted(final FileMetadata meta, boolean ok) {
+				if (ok) {
+					if (null != meta) {
+						// 2. file exist, update content
+						updateFile_impl(meta, dirname(filePath), data, completeListener);
+					} else {
+						// 3. file don't exist, create file with data if parent folder is exist
+						final String dirPath = dirname(finalFilePath);
+						final String fileName = basename(finalFilePath);
+						if (!dirPath.isEmpty()) {
+							stat_wrapper(dirPath, new OnOperationCompleteListener<FileMetadata>() {
+								@Override
+								public void onCompleted(FileMetadata meta, boolean ok) {
+									if (ok) {
+										if (null != meta) {
+											// 4. parent folder exist, create file inside they
+											createFile_impl(fileName, dirPath, meta.id, data, completeListener);
+										} else {
+											if (null != completeListener) {
+												// 4.1 parent folder not exist, done.
+												completeListener.onCompleted(false, false);
+												completeListener.onFailed(new IOException("Parent folder '" + dirPath + "' not exist!"));
+											}
+										}
+									} else {
+										// I/O error, propagate onComplete() signal
+										if (null != completeListener)
+											completeListener.onCompleted(false, false);
 									}
 								}
-							}
 
-							@Override
-							public void onFailed(Exception e) {
-								if (null != completeListener)
-									completeListener.onFailed(e);
-							}
-						});
-					} else {
-						// 5. In file path no parent folders, create file explicitly
-						createFile_impl(finalFilePath, dirPath, "root", data, completeListener);
+								@Override
+								public void onFailed(Exception e) {
+									if (null != completeListener)
+										completeListener.onFailed(e);
+								}
+							});
+						} else {
+							// 5. In file path no parent folders, create file explicitly
+							createFile_impl(finalFilePath, dirPath, "root", data, completeListener);
+						}
 					}
+				} else {
+					// I/O error, propagate onComplete() signal
+					if (null != completeListener)
+						completeListener.onCompleted(false, false);
 				}
 			}
 
@@ -936,27 +989,32 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 	private void readFile_wrapper(final String filePath, final OnOperationCompleteListener<InputStream> completeListener) {
 		stat_wrapper(filePath, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
-			public void onCompleted(final FileMetadata meta) {
-				if (null != meta) {
-					// File found, get his content
-					Tasks.call(m_executor, () -> m_googleDriveService.files().get(meta.id).executeMediaAsInputStream()).addOnSuccessListener(m_executor, new OnSuccessListener<InputStream>() {
-						@Override
-						public void onSuccess(InputStream inputStream) {
+			public void onCompleted(final FileMetadata meta, boolean ok) {
+				if (ok) {
+					if (null != meta) {
+						// File found, get his content
+						Tasks.call(m_executor, () -> {
+							return m_googleDriveService.files().get(meta.id).executeMediaAsInputStream();
+						}).addOnSuccessListener(m_executor, inputStream -> {
 							if (null != completeListener) {
-								completeListener.onCompleted(inputStream);
+								completeListener.onCompleted(inputStream, true);
 							}
-						}
-					}).addOnFailureListener(e -> {
+						}).addOnFailureListener(e -> {
+							if (null != completeListener) {
+								completeListener.onCompleted(null, false);
+								completeListener.onFailed(e);
+							}
+						});
+					} else {
 						if (null != completeListener) {
-							completeListener.onCompleted(null);
+							completeListener.onCompleted(null, false);
 							completeListener.onFailed(new IOException("file '" + filePath + "' not exist!"));
 						}
-					});
-				} else {
-					if (null != completeListener) {
-						completeListener.onCompleted(null);
-						completeListener.onFailed(new IOException("file '" + filePath + "' not exist!"));
 					}
+				} else {
+					// I/O error, propagate onComplete() signal
+					if (null != completeListener)
+						completeListener.onCompleted(null, false);
 				}
 			}
 
@@ -982,10 +1040,10 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 				m_folderListCache.update(parentPath, null);
 			}
 			if (null != completeListener)
-				completeListener.onCompleted(result);
+				completeListener.onCompleted(result, result);
 		}).addOnFailureListener(e -> {
 			if (null != completeListener) {
-				completeListener.onCompleted(false);
+				completeListener.onCompleted(false, false);
 				completeListener.onFailed(e);
 				if (e instanceof UserRecoverableAuthIOException)
 					m_needSignInRepeat = true;
@@ -997,16 +1055,22 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		// Find file or folder
 		stat_wrapper(filePath, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
-			public void onCompleted(FileMetadata meta) {
-				if (null != meta) {
-					// file or folder found, trashing
-					trash_impl(meta, dirname(filePath), completeListener);
-				} else {
-					// File or folder not exist, done
-					if (null != completeListener) {
-						completeListener.onCompleted(false);
-						completeListener.onFailed(new IOException("File '" + filePath + "' not exist!"));
+			public void onCompleted(FileMetadata meta, boolean ok) {
+				if (ok) {
+					if (null != meta) {
+						// file or folder found, trashing
+						trash_impl(meta, dirname(filePath), completeListener);
+					} else {
+						// File or folder not exist, done
+						if (null != completeListener) {
+							completeListener.onCompleted(false, false);
+							completeListener.onFailed(new IOException("File '" + filePath + "' not exist!"));
+						}
 					}
+				} else {
+					// I/O error, propagate onComplete() signal
+					if (null != completeListener)
+						completeListener.onCompleted(false, false);
 				}
 			}
 
@@ -1019,18 +1083,17 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 	}
 
 	private void delete_impl(final FileMetadata meta, final String parentPath, final OnOperationCompleteListener<Boolean> completeListener) {
-		Tasks.call(m_executor, () -> m_googleDriveService.files().delete(meta.id).execute()).addOnSuccessListener(new OnSuccessListener<Void>() {
-			@Override
-			public void onSuccess(Void res) {
-				m_needSignInRepeat = false;
-				synchronized (m_cacheLocker) {
-					m_folderListCache.update(parentPath, null);
-				}
-				completeListener.onCompleted(true);
+		Tasks.call(m_executor, () -> {
+			return m_googleDriveService.files().delete(meta.id).execute();
+		}).addOnSuccessListener(res -> {
+			m_needSignInRepeat = false;
+			synchronized (m_cacheLocker) {
+				m_folderListCache.update(parentPath, null);
 			}
+			completeListener.onCompleted(true, true);
 		}).addOnFailureListener(e -> {
 			if (null != completeListener) {
-				completeListener.onCompleted(false);
+				completeListener.onCompleted(false, false);
 				completeListener.onFailed(e);
 				if (e instanceof UserRecoverableAuthIOException)
 					m_needSignInRepeat = true;
@@ -1042,16 +1105,22 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		// Find file or folder
 		stat_wrapper(filePath, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
-			public void onCompleted(FileMetadata meta) {
-				if (null != meta) {
-					// file or folder found, deleting
-					delete_impl(meta, dirname(filePath), completeListener);
-				} else {
-					// File or folder not exist, done
-					if (null != completeListener) {
-						completeListener.onCompleted(false);
-						completeListener.onFailed(new IOException("File '" + filePath + "' not exist!"));
+			public void onCompleted(FileMetadata meta, boolean ok) {
+				if (ok) {
+					if (null != meta) {
+						// file or folder found, deleting
+						delete_impl(meta, dirname(filePath), completeListener);
+					} else {
+						// File or folder not exist, done
+						if (null != completeListener) {
+							completeListener.onCompleted(false, false);
+							completeListener.onFailed(new IOException("File '" + filePath + "' not exist!"));
+						}
 					}
+				} else {
+					// I/O error, propagate onComplete() signal
+					if (null != completeListener)
+						completeListener.onCompleted(false, false);
 				}
 			}
 
@@ -1066,29 +1135,35 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 	public void getFile_wrapper(final String filePath, final OnOperationCompleteListener<Pair<FileMetadata, InputStream>> completeListener) {
 		stat_wrapper(filePath, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
-			public void onCompleted(final FileMetadata meta) {
-				if (null != meta) {
-					// File found, get his content
-					Tasks.call(m_executor, () -> {
-						InputStream stream = m_googleDriveService.files().get(meta.id).executeMediaAsInputStream();
-						if (null == stream)
-							throw new IOException("returned stream is null!");
-						return new Pair<FileMetadata, InputStream>(meta, stream);
-					}).addOnSuccessListener(pair -> {
+			public void onCompleted(final FileMetadata meta, boolean ok) {
+				if (ok) {
+					if (null != meta) {
+						// File found, get his content
+						Tasks.call(m_executor, () -> {
+							InputStream stream = m_googleDriveService.files().get(meta.id).executeMediaAsInputStream();
+							if (null == stream)
+								throw new IOException("returned stream is null!");
+							return new Pair<FileMetadata, InputStream>(meta, stream);
+						}).addOnSuccessListener(pair -> {
+							if (null != completeListener) {
+								completeListener.onCompleted(pair, true);
+							}
+						}).addOnFailureListener(e -> {
+							if (null != completeListener) {
+								completeListener.onCompleted(null, false);
+								completeListener.onFailed(new IOException("file '" + filePath + "' not exist!"));
+							}
+						});
+					} else {
 						if (null != completeListener) {
-							completeListener.onCompleted(pair);
-						}
-					}).addOnFailureListener(e -> {
-						if (null != completeListener) {
-							completeListener.onCompleted(null);
+							completeListener.onCompleted(null, false);
 							completeListener.onFailed(new IOException("file '" + filePath + "' not exist!"));
 						}
-					});
-				} else {
-					if (null != completeListener) {
-						completeListener.onCompleted(null);
-						completeListener.onFailed(new IOException("file '" + filePath + "' not exist!"));
 					}
+				} else {
+					// I/O error, propagate onComplete() signal
+					if (null != completeListener)
+						completeListener.onCompleted(null, false);
 				}
 			}
 

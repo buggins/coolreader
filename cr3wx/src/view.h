@@ -13,7 +13,7 @@ class
 cr3view : public wxPanel, public LVDocViewCallback
 {
     public:
-        cr3view(CRPropRef props, lString16 exeDirPath );
+        cr3view(CRPropRef props, lString32 exeDirPath );
         virtual ~cr3view();
         void ScheduleRender() { Resize(0, 0); }
         bool LoadDocument( const wxString & fname );
@@ -42,10 +42,10 @@ cr3view : public wxPanel, public LVDocViewCallback
         void OnInitDialog(wxInitDialogEvent& event);
         void ToggleViewMode();
 		void SetFullScreenState(bool fullscreenState) { _isFullscreen = fullscreenState; }
-        lString16 GetHistoryFileName();
-        lString16 GetLastRecentFileName();
+        lString32 GetHistoryFileName();
+        lString32 GetLastRecentFileName();
         // LVDocViewCallback override
-        virtual void OnExternalLink( lString16 url, ldomNode * node );
+        virtual void OnExternalLink( lString32 url, ldomNode * node );
     protected:
 
         void Paint();

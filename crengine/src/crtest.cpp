@@ -10,11 +10,11 @@ protected:
     LVStreamRef m_base_stream1;
     LVStreamRef m_base_stream2;
 public:
-    virtual const lChar16 * GetName()
+    virtual const lChar32 * GetName()
             {
-                static lChar16 buf[1024];
-                lString16 res1 = m_base_stream1->GetName();
-                lString16 res2 = m_base_stream2->GetName();
+                static lChar32 buf[1024];
+                lString32 res1 = m_base_stream1->GetName();
+                lString32 res2 = m_base_stream2->GetName();
                 MYASSERT( res1==res2, "getName, res");
                 lStr_cpy( buf, res1.c_str());
                 return buf;

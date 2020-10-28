@@ -158,7 +158,7 @@ SerialBuf & SerialBuf::operator << ( lInt32 n )
 	_buf[_pos++] = (lUInt8)((n>>24) & 255);
 	return *this;
 }
-SerialBuf & SerialBuf::operator << ( const lString16 & s )
+SerialBuf & SerialBuf::operator << ( const lString32 & s )
 {
 	if ( check(2) )
 		return *this;
@@ -268,7 +268,7 @@ SerialBuf & SerialBuf::operator >> ( lString8 & s8 )
 	return *this;
 }
 
-SerialBuf & SerialBuf::operator >> ( lString16 & s )
+SerialBuf & SerialBuf::operator >> ( lString32 & s )
 {
 	lString8 s8;
 	(*this) >> s8;

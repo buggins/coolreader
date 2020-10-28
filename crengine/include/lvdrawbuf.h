@@ -201,8 +201,8 @@ public:
     /// draws text string
     /*
     virtual void DrawTextString( int x, int y, LVFont * pfont,
-                       const lChar16 * text, int len,
-                       lChar16 def_char, lUInt32 * palette, bool addHyphen=false ) = 0;
+                       const lChar32 * text, int len,
+                       lChar32 def_char, lUInt32 * palette, bool addHyphen=false ) = 0;
     */
 
 /*
@@ -274,8 +274,8 @@ public:
     /// draws text string
     /*
     virtual void DrawTextString( int x, int y, LVFont * pfont,
-                       const lChar16 * text, int len,
-                       lChar16 def_char,
+                       const lChar32 * text, int len,
+                       lChar32 def_char,
                        lUInt32 * palette, bool addHyphen=false );
     */
     /// draws formatted text

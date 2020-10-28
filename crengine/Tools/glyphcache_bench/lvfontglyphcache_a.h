@@ -71,7 +71,7 @@ public:
 
 	void clear();
 
-	LVFontGlyphCacheItemA *getByChar(lChar16 ch);
+	LVFontGlyphCacheItemA *getByChar(lChar32 ch);
 #if USE_HARFBUZZ==1
 	LVFontGlyphCacheItemA *getByIndex(lUInt32 index);
 #endif
@@ -88,7 +88,7 @@ struct LVFontGlyphCacheItemA {
 	LVFontGlyphCacheItemA *next_local;
 	LVFontLocalGlyphCacheA *local_cache;
 	union {
-		lChar16 ch;
+		lChar32 ch;
 #if USE_HARFBUZZ==1
 		lUInt32 gindex;
 #endif
@@ -106,7 +106,7 @@ struct LVFontGlyphCacheItemA {
 			   + (bmp_width * bmp_height - 1) * sizeof(lUInt8);
 	}
 
-	static LVFontGlyphCacheItemA *newItem(LVFontLocalGlyphCacheA *local_cache, lChar16 data, int w, int h);
+	static LVFontGlyphCacheItemA *newItem(LVFontLocalGlyphCacheA *local_cache, lChar32 data, int w, int h);
 #if USE_HARFBUZZ==1
 	static LVFontGlyphCacheItemA *newItem(LVFontLocalGlyphCacheA *local_cache, lUInt32 glyph_index, int w, int h);
 #endif

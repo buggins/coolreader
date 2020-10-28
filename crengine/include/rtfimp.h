@@ -168,9 +168,9 @@ public:
     virtual void OnTblProp( int id, int param ) = 0;
     virtual void OnAction( int action ) = 0;
     virtual void OnControlWord( const char * control, int param ) = 0;
-    virtual void OnText( const lChar16 * text, int len, lUInt32 flags ) = 0;
+    virtual void OnText( const lChar32 * text, int len, lUInt32 flags ) = 0;
     virtual void OnBlob(const lUInt8 * data, int size) = 0;
-    virtual void SetCharsetTable(const lChar16 * table);
+    virtual void SetCharsetTable(const lChar32 * table);
     virtual ~LVRtfDestination() { }
 };
 
@@ -216,7 +216,7 @@ public:
     /// returns current destination
     inline LVRtfDestination * getDestination() { return dest; }
     /// converts byte to unicode using current code page
-    inline lChar16 byteToUnicode( lUInt8 ch )
+    inline lChar32 byteToUnicode( lUInt8 ch )
     {
         // skip ANSI character counter support
         if ( decInt(pi_skip_ch_count) )
@@ -226,7 +226,7 @@ public:
             return 0;
         // TODO: add codepage support
         if ( ch & 0x80 ) {
-            const lChar16 * conv_table = (const lChar16 *)props[pi_ansicpg].p;
+            const lChar32 * conv_table = (const lChar32 *)props[pi_ansicpg].p;
             return ( conv_table[ch & 0x7F] );
         } else {
             return ( ch );
@@ -270,7 +270,7 @@ public:
             stack[sp].index = index;
             if ( index==pi_ansicpg ) {
                 stack[sp++].value.p = props[index].p;
-                const lChar16 * table = GetCharsetByte2UnicodeTable( value );
+                const lChar32 * table = GetCharsetByte2UnicodeTable( value );
                 props[index].p = (void*)table;
                 //this->getDestination()->SetCharsetTable(table);
             } else {
@@ -340,7 +340,7 @@ public:
                 sp--;
                 props[i] = stack[sp].value;
 //                if (i == pi_ansicpg) {
-//                    const lChar16 * table = (const lChar16 *)props[i].p;
+//                    const lChar32 * table = (const lChar32 *)props[i].p;
 //                    this->getDestination()->SetCharsetTable(table);
 //                }
             }
@@ -355,8 +355,8 @@ class LVRtfParser : public LVFileParserBase
 protected:
     LVXMLParserCallback * m_callback;
     LVRtfValueStack m_stack;
-    const lChar16 * m_conv_table; // charset conversion table for 8-bit encodings
-    lChar16 * txtbuf; /// text buffer
+    const lChar32 * m_conv_table; // charset conversion table for 8-bit encodings
+    lChar32 * txtbuf; /// text buffer
     int txtpos; /// text chars
     int txtfstart; /// text start file offset
     int imageIndex;
@@ -366,7 +366,7 @@ protected:
     void OnBraceClose();
     void OnControlWord( const char * control, int param, bool asterisk );
     void CommitText();
-    void AddChar( lChar16 ch );
+    void AddChar( lChar32 ch );
     void AddChar8( lUInt8 ch );
 public:
     /// counter for image index
@@ -380,11 +380,11 @@ public:
     /// resets parsing, moves to beginning of stream
     virtual void Reset();
     /// sets charset by name
-    virtual void SetCharset( const lChar16 * name );
+    virtual void SetCharset( const lChar32 * name );
     /// sets 8-bit charset conversion table (128 items, for codes 128..255)
-    virtual void SetCharsetTable( const lChar16 * table );
+    virtual void SetCharsetTable( const lChar32 * table );
     /// returns 8-bit charset conversion table (128 items, for codes 128..255)
-    virtual lChar16 * GetCharsetTable( );
+    virtual lChar32 * GetCharsetTable( );
     /// virtual destructor
     virtual ~LVRtfParser();
 };

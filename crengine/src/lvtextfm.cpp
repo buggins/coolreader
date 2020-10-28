@@ -214,7 +214,7 @@ void lvtextFreeFormatter( formatted_text_fragment_t * pbuffer )
 void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
    lvfont_handle   font,     /* handle of font to draw string */
    TextLangCfg *   lang_cfg,
-   const lChar16 * text,     /* pointer to unicode text string */
+   const lChar32 * text,     /* pointer to unicode text string */
    lUInt32         len,      /* number of chars in text, 0 for auto(strlen) */
    lUInt32         color,    /* color */
    lUInt32         bgcolor,  /* bgcolor */
@@ -254,8 +254,8 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
         // allocation size of 0 bytes" without having to add checks for NULL pointer
         // (in lvrend.cpp, we're normalling not adding empty text with LTEXT_FLAG_OWNTEXT)
         lUInt32 alloc_len = len > 0 ? len : 1;
-        pline->t.text = (lChar16*)malloc( alloc_len * sizeof(lChar16) );
-        memcpy((void*)pline->t.text, text, len * sizeof(lChar16));
+        pline->t.text = (lChar32*)malloc( alloc_len * sizeof(lChar32) );
+        memcpy((void*)pline->t.text, text, len * sizeof(lChar32));
     }
     else
     {
@@ -411,7 +411,7 @@ public:
     #if (USE_LIBUNIBREAK==1)
     static bool      m_libunibreak_init_done;
     #endif
-    lChar16 * m_text;
+    lChar32 * m_text;
     lUInt16 * m_flags;
     src_text_fragment_t * * m_srcs;
     lUInt16 * m_charindex;
@@ -637,9 +637,9 @@ public:
             // Gather footnotes links accumulated by alt_context
             // (We only need to gather links in the rendering phase, for
             // page splitting, so no worry if we don't when already_rendered)
-            lString16Collection * link_ids = alt_context.getLinkIds();
+            lString32Collection * link_ids = alt_context.getLinkIds();
             if (link_ids->length() > 0) {
-                flt->links = new lString16Collection();
+                flt->links = new lString32Collection();
                 for ( int n=0; n<link_ids->length(); n++ ) {
                     flt->links->add( link_ids->at(n) );
                 }
@@ -983,7 +983,7 @@ public:
             m_staticBufs = false;
         } else {
             // static buffer space
-            static lChar16 m_static_text[STATIC_BUFS_SIZE];
+            static lChar32 m_static_text[STATIC_BUFS_SIZE];
             static lUInt16 m_static_flags[STATIC_BUFS_SIZE];
             static src_text_fragment_t * m_static_srcs[STATIC_BUFS_SIZE];
             static lUInt16 m_static_charindex[STATIC_BUFS_SIZE];
@@ -1280,7 +1280,7 @@ public:
 
                 bool preformatted = (src->flags & LTEXT_FLAG_PREFORMATTED);
                 for ( int k=0; k<len; k++ ) {
-                    lChar16 c = m_text[pos];
+                    lChar32 c = m_text[pos];
 
                     // If not on a 'pre' text node, we should strip trailing
                     // spaces and collapse consecutive spaces (other spaces
@@ -1420,7 +1420,7 @@ public:
                             m_flags[pos] |= LCHAR_DEPRECATED_WRAP_AFTER;
                         }
                     }
-                    lChar16 ch = m_text[pos];
+                    lChar32 ch = m_text[pos];
                     if ( src->lang_cfg->hasLBCharSubFunc() ) {
                         // Lang specific function may want to substitute char (for
                         // libunibreak only) to tweak line breaking around it
@@ -1529,7 +1529,7 @@ public:
                 // m_text[k] = '='; // uncomment when debugging
             }
         }
-        TR("%s", LCSTR(lString16(m_text, m_length)));
+        TR("%s", LCSTR(lString32(m_text, m_length)));
 
         // Whether any "-cr-hint: strut-confined" should be applied: only when
         // we have non-space-only text in the paragraph - standalone images
@@ -1680,7 +1680,7 @@ public:
     {
         src_text_fragment_t * srcline = &m_pbuffer->srctext[word->src_text_index];
         LVFont * srcfont= (LVFont *) srcline->t.font;
-        const lChar16 * str = srcline->t.text + word->t.start;
+        const lChar32 * str = srcline->t.text + word->t.start;
         // Avoid malloc by using static buffers. Returns false if word too long.
         #define MAX_MEASURED_WORD_SIZE 127
         static lUInt16 widths[MAX_MEASURED_WORD_SIZE+1];
@@ -2050,14 +2050,14 @@ public:
                             // we have them here too early, and we would need to associate
                             // the links to this "char" index, so needing in LVFormatter
                             // something like:
-                            //   LVHashTable<lUInt32, lString16Collection> m_inlinebox_links
+                            //   LVHashTable<lUInt32, lString32Collection> m_inlinebox_links
                             // When adding this inlineBox to a frmline, we could then get back
                             // the links, and associate them to the frmline (so, needing a
-                            // new field holding a lString16Collection, which would hold
+                            // new field holding a lString32Collection, which would hold
                             // all the links in all the inlineBoxs part of that line).
                             // Finally, in renderBlockElementEnhanced, when adding
                             // links for words, we'd also need to add the one found
-                            // in the frmline's lString16Collection.
+                            // in the frmline's lString32Collection.
                             // A bit complicated, for a probably very rare case, so
                             // let's just forget it and not have footnotes from inlineBox
                             // among our in-page footnotes...
@@ -2148,9 +2148,9 @@ public:
             }
         }
 //        // debug dump
-//        lString16 buf;
+//        lString32 buf;
 //        for ( int i=0; i<m_length; i++ ) {
-//            buf << L" " << lChar16(m_text[i]) << L" " << lString16::itoa(m_widths[i]);
+//            buf << L" " << lChar32(m_text[i]) << L" " << lString32::itoa(m_widths[i]);
 //        }
 //        TR("%s", LCSTR(buf));
     }
@@ -2493,7 +2493,7 @@ public:
                 printf("CRE WARNING: bidi processing line overflow (%d > %d)\n", end-start, MAX_LINE_SIZE);
                 end = start + MAX_LINE_SIZE;
             }
-            static lChar16 bidi_tmp_text[MAX_LINE_SIZE];
+            static lChar32 bidi_tmp_text[MAX_LINE_SIZE];
             static lUInt16 bidi_tmp_flags[MAX_LINE_SIZE];
             static src_text_fragment_t * bidi_tmp_srcs[MAX_LINE_SIZE];
             static lUInt16 bidi_tmp_charindex[MAX_LINE_SIZE];
@@ -2876,7 +2876,7 @@ public:
                                 // This is a bit hacky, but no other solution: just
                                 // replace that ignorable char with a space in the
                                 // src text
-                                *((lChar16 *) (m_srcs[wstart]->t.text + m_charindex[wstart])) = L' ';
+                                *((lChar32 *) (m_srcs[wstart]->t.text + m_charindex[wstart])) = L' ';
                             }
                         }
                         else { // Last or single para with no word
@@ -3075,7 +3075,7 @@ public:
                         word->y = srcline->valign_dy;
                     }
                     // printf("baseline_to_bottom=%d top_to_baseline=%d word->y=%d txt=|%s|\n", baseline_to_bottom,
-                    //   top_to_baseline, word->y, UnicodeToLocal(lString16(srcline->t.text, srcline->t.len)).c_str());
+                    //   top_to_baseline, word->y, UnicodeToLocal(lString32(srcline->t.text, srcline->t.len)).c_str());
 
                     // Set word start and end (start+len-1) indices in the source text node
                     if ( !m_has_bidi ) {
@@ -3098,11 +3098,11 @@ public:
                         // do that if Harfbuzz is used, as it does that by itself, and
                         // would mirror back our mirrored chars!)
                         if ( font->getShapingMode() != SHAPING_MODE_HARFBUZZ) {
-                            lChar16 * str = (lChar16*)(srcline->t.text + word->t.start);
+                            lChar32 * str = (lChar32*)(srcline->t.text + word->t.start);
                             FriBidiChar mirror;
                             for (int i=0; i < word->t.len; i++) {
                                 if ( fribidi_get_mirror_char( (FriBidiChar)(str[i]), &mirror) )
-                                    str[i] = (lChar16)mirror;
+                                    str[i] = (lChar32)mirror;
                             }
                         }
                         #endif
@@ -3252,7 +3252,7 @@ public:
                     // Set and adjust word natural width (and min_width which might be used in alignLine())
                     word->width = m_widths[i>0 ? i-1 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
                     word->min_width = word->width;
-                    TR("addLine - word(%d, %d) x=%d (%d..%d)[%d] |%s|", wstart, i, frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width, LCSTR(lString16(m_text+wstart, i-wstart)));
+                    TR("addLine - word(%d, %d) x=%d (%d..%d)[%d] |%s|", wstart, i, frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width, LCSTR(lString32(m_text+wstart, i-wstart)));
                     if ( m_flags[wstart] & LCHAR_IS_CLUSTER_TAIL ) {
                         // The start of this word is part of a ligature that started
                         // in a previous word: some hyphenation wrap happened on
@@ -3506,7 +3506,7 @@ public:
 
                     // printf("addLine - word(%d, %d) x=%d (%d..%d)[%d>%d %x] |%s|\n", wstart, i,
                     //      frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width,
-                    //      word->min_width, word->flags, LCSTR(lString16(m_text+wstart, i-wstart)));
+                    //      word->min_width, word->flags, LCSTR(lString32(m_text+wstart, i-wstart)));
                 }
 
                 // Word added: adjust frmline height and baseline to account for this word
@@ -3662,7 +3662,7 @@ public:
         return 0;
     }
 
-    bool isCJKIdeograph(lChar16 c) {
+    bool isCJKIdeograph(lChar32 c) {
         return c >= UNICODE_CJK_IDEOGRAPHS_BEGIN &&
                c <= UNICODE_CJK_IDEOGRAPHS_END   &&
                ( c <= UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN ||
@@ -3670,7 +3670,7 @@ public:
     }
 
     #if (USE_LIBUNIBREAK!=1)
-    bool isCJKPunctuation(lChar16 c) {
+    bool isCJKPunctuation(lChar32 c) {
         return ( c >= UNICODE_CJK_PUNCTUATION_BEGIN && c <= UNICODE_CJK_PUNCTUATION_END ) ||
                ( c >= UNICODE_GENERAL_PUNCTUATION_BEGIN && c <= UNICODE_GENERAL_PUNCTUATION_END &&
                     c!=0x2018 && c!=0x201a && c!=0x201b &&    // ‘ ‚ ‛  left quotation marks
@@ -3682,14 +3682,14 @@ public:
                ( c == 0x00b7 ); // · middle dot
     }
 
-    bool isCJKLeftPunctuation(lChar16 c) {
+    bool isCJKLeftPunctuation(lChar32 c) {
         return c==0x2018 || c==0x201c || // ‘ “ left single and double quotation marks
                c==0x3008 || c==0x300a || c==0x300c || c==0x300e || c==0x3010 || // 〈 《 「 『 【 CJK left brackets
                c==0xff08; // （ fullwidth left parenthesis
     }
     #endif
 
-    bool isLeftPunctuation(lChar16 c) {
+    bool isLeftPunctuation(lChar32 c) {
         // Opening quotation marks and dashes that we don't want a followup space to
         // have its width changed
         return ( c >= 0x2010 && c <= 0x2027 ) || // Hyphens, dashes, quotation marks, bullets...
@@ -4007,7 +4007,7 @@ public:
                         debug_loop_num++;
                         if (debug_loop_num > 1)
                             printf("hyph loop #%d checking: %s\n", debug_loop_num,
-                                LCSTR(lString16(m_text+wordpos_min, i-wordpos_min+1)));
+                                LCSTR(lString32(m_text+wordpos_min, i-wordpos_min+1)));
                     #endif
                     if ( !(m_srcs[wordpos]->flags & LTEXT_HYPHENATE) || (m_srcs[wordpos]->flags & LTEXT_FLAG_NOWRAP) ) {
                         // The word at worpos can't be hyphenated, but it might be
@@ -4044,11 +4044,11 @@ public:
                     }
                     #ifdef DEBUG_HYPH_EXTRA_LOOPS
                         if (debug_loop_num > 1)
-                            printf("  hyphenating: %s\n", LCSTR(lString16(m_text+wstart, len)));
+                            printf("  hyphenating: %s\n", LCSTR(lString32(m_text+wstart, len)));
                     #endif
                     #if TRACE_LINE_SPLITTING==1
                         TR("wordBounds(%s) unusedSpace=%d wordWidth=%d",
-                                LCSTR(lString16(m_text+wstart, len)), unusedSpace, m_widths[wend]-m_widths[wstart]);
+                                LCSTR(lString32(m_text+wstart, len)), unusedSpace, m_widths[wend]-m_widths[wstart]);
                     #endif
                     // We have a valid word to look for hyphenation
                     if ( len > MAX_WORD_SIZE ) // hyphenate() stops/truncates at 64 chars
@@ -4147,13 +4147,13 @@ public:
             int upSkipCount = 0;
             if (endp > 1 && isCJKLeftPunctuation(*(m_text + endp))) {
                 // Next char will be fine at the start of next line.
-                //CRLog::trace("skip skip punctuation %s, at index %d", LCSTR(lString16(m_text+endp, 1)), endp);
+                //CRLog::trace("skip skip punctuation %s, at index %d", LCSTR(lString32(m_text+endp, 1)), endp);
             } else if (endp > 1 && endp < m_length - 1 && isCJKLeftPunctuation(*(m_text + endp - 1))) {
                 // Most right char is left punctuation: go back 1 char so this one
                 // goes onto next line.
                 upSkipPos = endp;
                 endp--; wrapPos--;
-                //CRLog::trace("up skip left punctuation %s, at index %d", LCSTR(lString16(m_text+endp, 1)), endp);
+                //CRLog::trace("up skip left punctuation %s, at index %d", LCSTR(lString32(m_text+endp, 1)), endp);
             } else if (endp > 1 && isCJKPunctuation(*(m_text + endp))) {
                 // Next char (start of next line) is some right punctuation that
                 // is not allowed at start of line.
@@ -4162,11 +4162,11 @@ public:
                 // which to use.
                 for (int epos = endp; epos<m_length; epos++, downSkipCount++) {
                    if ( !isCJKPunctuation(*(m_text + epos)) ) break;
-                   //CRLog::trace("down skip punctuation %s, at index %d", LCSTR(lString16(m_text + epos, 1)), epos);
+                   //CRLog::trace("down skip punctuation %s, at index %d", LCSTR(lString32(m_text + epos, 1)), epos);
                 }
                 for (int epos = endp; epos>=start; epos--, upSkipCount++) {
                    if ( !isCJKPunctuation(*(m_text + epos)) ) break;
-                   //CRLog::trace("up skip punctuation %s, at index %d", LCSTR(lString16(m_text + epos, 1)), epos);
+                   //CRLog::trace("up skip punctuation %s, at index %d", LCSTR(lString32(m_text + epos, 1)), epos);
                 }
                 if (downSkipCount <= upSkipCount && downSkipCount <= 2 && false ) {
                             // last check was "&& m_hanging_punctuation", but we
@@ -4203,6 +4203,11 @@ public:
                     pos--; // Have that last hyphen also at the start of next line
                            // (small caveat: the duplicated hyphen at start of next
                            // line won't be part of the highlighted text)
+                    // And forbid a break after this duplicated hyphen (this avoids
+                    // a possible infinite loop and out of memory when no allowed
+                    // wrap is found on next line, as we would continuously AddLine()
+                    // lines with only this hyphen)
+                    m_flags[pos] &= ~LCHAR_ALLOW_WRAP_AFTER;
                 }
             }
             #endif
@@ -4239,7 +4244,7 @@ public:
             LVRendPageContext context( NULL, m_pbuffer->page_height );
             // We don't know if the upper LVRendPageContext wants lines or not,
             // so assume it does (the main flow does).
-            int rend_flags = gRenderBlockRenderingFlags; // global flags
+            int rend_flags = node->getDocument()->getRenderBlockRenderingFlags();
             // We want to avoid negative margins (if allowed in global flags) and
             // going back the flow y, as the transfered lines would not reflect
             // that, and we could get some small mismatches and glitches.
@@ -4289,6 +4294,7 @@ public:
             int height = fmt.getHeight();
             formatted_line_t * frmline = lvtextAddFormattedLine( m_pbuffer );
             frmline->x = block_x;
+            frmline->width = width; // single word width
             frmline->y = cur_y;
             frmline->height = height;
             frmline->flags = 0; // no flags needed once page split has been done
@@ -4669,7 +4675,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
     LVFont * font;
     lvRect clip;
     buf->GetClipRect( &clip );
-    const lChar16 * str;
+    const lChar32 * str;
     int line_y = y;
 
     // We might need to translate "marks" (native highlights) from relative
@@ -4910,8 +4916,8 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                         text_decoration_back_gap);
                     /* To display the added letter spacing % at end of line
                     if (j == frmline->word_count-1 && word->added_letter_spacing ) {
-                        // lString16 val = lString16::itoa(word->added_letter_spacing);
-                        lString16 val = lString16::itoa(100*word->added_letter_spacing / font->getSize());
+                        // lString32 val = lString32::itoa(word->added_letter_spacing);
+                        lString32 val = lString32::itoa(100*word->added_letter_spacing / font->getSize());
                         font->DrawTextString( buf, x + frmline->x + word->x + word->width + 10,
                             line_y + (frmline->baseline - font->getBaseline()) + word->y,
                             val.c_str(), val.length(), '?', NULL, false);

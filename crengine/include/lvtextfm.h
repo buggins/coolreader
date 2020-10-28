@@ -16,7 +16,7 @@
 #define __LVTEXTFM_H_INCLUDED__
 
 #include "lvfont.h"
-#include "lvstring16collection.h"
+#include "lvstring32collection.h"
 #include "lvbmpbuf.h"
 #include "textlang.h"
 
@@ -105,7 +105,7 @@ typedef struct
     union {
         struct {
             lvfont_handle   font;     /**< \brief handle of font to draw string */
-            const lChar16 * text;     /**< \brief pointer to unicode text string */
+            const lChar32 * text;     /**< \brief pointer to unicode text string */
             lUInt16         len;      /**< \brief number of chars in text */
             lUInt16         offset;   /**< \brief offset from node start to beginning of line */
         } t;
@@ -217,7 +217,7 @@ typedef struct
    css_clear_t           clear;       /**< clear: css property value */
    bool                  is_right;    /**< is float: right */
    bool                  to_position; /**< not yet positionned */
-   lString16Collection * links;       /** footnote links found in this float text */
+   lString32Collection * links;       /** footnote links found in this float text */
 } embedded_float_t;
 
 /** \brief Bookmark highlight modes.
@@ -317,7 +317,7 @@ void lvtextAddSourceLine(
    formatted_text_fragment_t * pbuffer,
    lvfont_handle   font,     /* handle of font to draw string */
    TextLangCfg *   lang_cfg,
-   const lChar16 * text,     /* pointer to unicode text string */
+   const lChar32 * text,     /* pointer to unicode text string */
    lUInt32         len,      /* number of chars in text, 0 for auto(strlen) */
    lUInt32         color,    /* text color */
    lUInt32         bgcolor,  /* background color */
@@ -409,7 +409,7 @@ public:
          );
 
     void AddSourceLine(
-           const lChar16 * text,        /* pointer to unicode text string */
+           const lChar32 * text,        /* pointer to unicode text string */
            lUInt32         len,         /* number of chars in text, 0 for auto(strlen) */
            lUInt32         color,       /* text color */
            lUInt32         bgcolor,     /* background color */

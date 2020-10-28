@@ -21,7 +21,7 @@
 #include "lvhashtable.h"
 
 union GlyphCacheItemData {
-	lChar16 ch;
+	lChar32 ch;
 #if USE_HARFBUZZ==1
 	lUInt32 gindex;
 #endif
@@ -74,7 +74,7 @@ public:
 
 	void clear();
 
-	LVFontGlyphCacheItemB *getByChar(lChar16 ch);
+	LVFontGlyphCacheItemB *getByChar(lChar32 ch);
 #if USE_HARFBUZZ==1
 	LVFontGlyphCacheItemB *getByIndex(lUInt32 index);
 #endif
@@ -104,7 +104,7 @@ struct LVFontGlyphCacheItemB {
 			   + (bmp_width * bmp_height - 1) * sizeof(lUInt8);
 	}
 
-	static LVFontGlyphCacheItemB *newItem(LVFontLocalGlyphCacheB *local_cache, lChar16 data, int w, int h);
+	static LVFontGlyphCacheItemB *newItem(LVFontLocalGlyphCacheB *local_cache, lChar32 data, int w, int h);
 #if USE_HARFBUZZ==1
 	static LVFontGlyphCacheItemB *newItem(LVFontLocalGlyphCacheB *local_cache, lUInt32 glyph_index, int w, int h);
 #endif

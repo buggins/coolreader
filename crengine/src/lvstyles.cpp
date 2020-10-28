@@ -46,10 +46,10 @@ lUInt32 calcHash(css_style_rec_t & rec)
 {
     if ( !rec.hash )
         rec.hash = ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-           (lUInt32)(rec.important >> 32)) * 31
-         + (lUInt32)(rec.important & 0xFFFFFFFFULL)) * 31
-         + (lUInt32)(rec.importance >> 32)) * 31
-         + (lUInt32)(rec.importance & 0xFFFFFFFFULL)) * 31
+         + (lUInt32)rec.important[0]) * 31
+         + (lUInt32)rec.important[1]) * 31
+         + (lUInt32)rec.importance[0]) * 31
+         + (lUInt32)rec.importance[1]) * 31
          + (lUInt32)rec.display) * 31
          + (lUInt32)rec.white_space) * 31
          + (lUInt32)rec.text_align) * 31
@@ -116,8 +116,10 @@ lUInt32 calcHash(css_style_rec_t & rec)
 bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
 {
     return 
-           r1.important == r2.important &&
-           r1.importance == r2.importance &&
+           r1.important[0] == r2.important[0] &&
+           r1.important[1] == r2.important[1] &&
+           r1.importance[0] == r2.importance[0] &&
+           r1.importance[1] == r2.importance[1] &&
            r1.display == r2.display &&
            r1.white_space == r2.white_space &&
            r1.text_align == r2.text_align &&
@@ -314,8 +316,10 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     if ( buf.error() )
         return false;
     buf.putMagic(style_magic);
-    ST_PUT_UI64(important);         //    lUInt64              important;
-    ST_PUT_UI64(importance);        //    lUInt64              importance;
+    buf << important[0];            //    lUInt32              important[0];
+    buf << important[1];            //    lUInt32              important[1];
+    buf << importance[0];           //    lUInt32              importance[0];
+    buf << importance[1];           //    lUInt32              importance[1];
     ST_PUT_ENUM(display);           //    css_display_t        display;
     ST_PUT_ENUM(white_space);       //    css_white_space_t    white_space;
     ST_PUT_ENUM(text_align);        //    css_text_align_t     text_align;
@@ -375,8 +379,10 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     if ( buf.error() )
         return false;
     buf.putMagic(style_magic);
-    ST_GET_UI64(important);                                 //    lUInt64              important;
-    ST_GET_UI64(importance);                                //    lUInt64              importance;
+    buf >> important[0];                                    //    lUInt32              important[0];
+    buf >> important[1];                                    //    lUInt32              important[1];
+    buf >> importance[0];                                   //    lUInt32              importance[0];
+    buf >> importance[1];                                   //    lUInt32              importance[1];
     ST_GET_ENUM(css_display_t, display);                    //    css_display_t        display;
     ST_GET_ENUM(css_white_space_t, white_space);            //    css_white_space_t    white_space;
     ST_GET_ENUM(css_text_align_t, text_align);              //    css_text_align_t     text_align;

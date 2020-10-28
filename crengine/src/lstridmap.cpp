@@ -17,7 +17,7 @@
 #include "../include/lvtinydom.h"
 #include <string.h>
 
-LDOMNameIdMapItem::LDOMNameIdMapItem(lUInt16 _id, const lString16 & _value, const css_elem_def_props_t * _data)
+LDOMNameIdMapItem::LDOMNameIdMapItem(lUInt16 _id, const lString32 & _value, const css_elem_def_props_t * _data)
     : id(_id), value(_value)
 {
 	if ( _data ) {
@@ -68,7 +68,7 @@ LDOMNameIdMapItem * LDOMNameIdMapItem::deserialize( SerialBuf & buf )
 	if ( !buf.checkMagic( id_map_item_magic ) )
         return NULL;
 	lUInt16 id;
-	lString16 value;
+	lString32 value;
 	lUInt8 flgData;
     buf >> id >> value >> flgData;
     if ( id>=MAX_TYPE_ID )
@@ -202,7 +202,7 @@ void LDOMNameIdMap::Sort()
     m_sorted = true;
 }
 
-const LDOMNameIdMapItem * LDOMNameIdMap::findItem( const lChar16 * name )
+const LDOMNameIdMapItem * LDOMNameIdMap::findItem( const lChar32 * name )
 {
     if (m_count==0 || !name || !*name)
         return NULL;
@@ -287,7 +287,7 @@ void LDOMNameIdMap::AddItem( LDOMNameIdMapItem * item )
     }
 }
 
-void LDOMNameIdMap::AddItem( lUInt16 id, const lString16 & value, const css_elem_def_props_t * data )
+void LDOMNameIdMap::AddItem( lUInt16 id, const lString32 & value, const css_elem_def_props_t * data )
 {
     if (id==0)
         return;
@@ -319,9 +319,9 @@ void LDOMNameIdMap::dumpUnknownItems( FILE * f, int start_id )
     }
 }
 
-lString16 LDOMNameIdMap::getUnknownItems( int start_id )
+lString32 LDOMNameIdMap::getUnknownItems( int start_id )
 {
-    lString16 items;
+    lString32 items;
     for (int i=start_id; i<m_size; i++) {
         if (m_by_id[i] != NULL) {
             if ( !items.empty() )

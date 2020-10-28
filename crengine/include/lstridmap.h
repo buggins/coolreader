@@ -32,9 +32,9 @@ public:
     /// id
     lUInt16    id;
     /// value
-    lString16 value;
+    lString32 value;
 	/// constructor
-    LDOMNameIdMapItem(lUInt16 _id, const lString16 & _value, const css_elem_def_props_t * _data);
+    LDOMNameIdMapItem(lUInt16 _id, const lString32 & _value, const css_elem_def_props_t * _data);
     /// copy constructor
     LDOMNameIdMapItem(LDOMNameIdMapItem & item);
 	/// destructor
@@ -75,7 +75,7 @@ public:
 
     void Clear();
 
-    void AddItem( lUInt16 id, const lString16 & value, const css_elem_def_props_t * data );
+    void AddItem( lUInt16 id, const lString32 & value, const css_elem_def_props_t * data );
 
     void AddItem( LDOMNameIdMapItem * item );
 
@@ -84,11 +84,11 @@ public:
        return m_by_id[id];
     }
 
-    const LDOMNameIdMapItem * findItem( const lChar16 * name );
+    const LDOMNameIdMapItem * findItem( const lChar32 * name );
     const LDOMNameIdMapItem * findItem( const lChar8 * name );
-    const LDOMNameIdMapItem * findItem( const lString16 & name ) { return findItem(name.c_str()); }
+    const LDOMNameIdMapItem * findItem( const lString32 & name ) { return findItem(name.c_str()); }
 
-    inline lUInt16 idByName( const lChar16 * name )
+    inline lUInt16 idByName( const lChar32 * name )
     {
         const LDOMNameIdMapItem * item = findItem(name);
         return item?item->id:0;
@@ -100,12 +100,12 @@ public:
         return item?item->id:0;
     }
 
-    inline const lString16 & nameById( lUInt16 id )
+    inline const lString32 & nameById( lUInt16 id )
     { 
         if (id>=m_size)
-            return lString16::empty_str;
+            return lString32::empty_str;
         const LDOMNameIdMapItem * item = findItem(id);
-        return item?item->value:lString16::empty_str;
+        return item?item->value:lString32::empty_str;
     }
 
     inline const css_elem_def_props_t * dataById( lUInt16 id )
@@ -118,7 +118,7 @@ public:
 
     // debug dump of all unknown entities
     void dumpUnknownItems( FILE * f, int start_id );
-    lString16 getUnknownItems( int start_id );
+    lString32 getUnknownItems( int start_id );
 };
 
 #endif

@@ -13,6 +13,7 @@
 #define HIST_H_INCLUDED
 
 #include "lvptrvec.h"
+#include "lvstring.h"
 #include <time.h>
 
 enum bmk_type {
@@ -24,29 +25,29 @@ enum bmk_type {
 
 class CRBookmark {
 private:
-    lString16 _startpos;
-    lString16 _endpos;
+    lString32 _startpos;
+    lString32 _endpos;
     int       _percent;
     int       _type;
 	int       _shortcut;
-    lString16 _postext;
-    lString16 _titletext;
-    lString16 _commenttext;
+    lString32 _postext;
+    lString32 _titletext;
+    lString32 _commenttext;
     time_t    _timestamp;
     int       _page;
 public:
-	static lString16 getChapterName( ldomXPointer p );
+	static lString32 getChapterName( ldomXPointer p );
 
     // fake bookmark for range
-    CRBookmark(lString16 startPos,lString16 endPos)
+    CRBookmark(lString32 startPos,lString32 endPos)
                 : _startpos(startPos)
     , _endpos(endPos)
     , _percent(0)
     , _type(0)
         , _shortcut(0)
-    , _postext(lString16::empty_str)
-    , _titletext(lString16::empty_str)
-    , _commenttext(lString16::empty_str)
+    , _postext(lString32::empty_str)
+    , _titletext(lString32::empty_str)
+    , _commenttext(lString32::empty_str)
     , _timestamp(time_t(0))
     ,_page(0)
     {
@@ -80,20 +81,20 @@ public:
     }
     CRBookmark() : _percent(0), _type(0), _shortcut(0), _timestamp(0), _page(0) { }
     CRBookmark ( ldomXPointer ptr );
-    lString16 getStartPos() { return _startpos; }
-    lString16 getEndPos() { return _endpos; }
-    lString16 getPosText() { return _postext; }
-    lString16 getTitleText() { return _titletext; }
-    lString16 getCommentText() { return _commenttext; }
+    lString32 getStartPos() { return _startpos; }
+    lString32 getEndPos() { return _endpos; }
+    lString32 getPosText() { return _postext; }
+    lString32 getTitleText() { return _titletext; }
+    lString32 getCommentText() { return _commenttext; }
     int getShortcut() { return _shortcut; }
     int getType() { return _type; }
     int getPercent() { return _percent; }
     time_t getTimestamp() { return _timestamp; }
-    void setStartPos(const lString16 & s ) { _startpos = s; }
-    void setEndPos(const lString16 & s ) { _endpos = s; }
-    void setPosText(const lString16 & s ) { _postext= s; }
-    void setTitleText(const lString16 & s ) { _titletext = s; }
-    void setCommentText(const lString16 & s ) { _commenttext = s; }
+    void setStartPos(const lString32 & s ) { _startpos = s; }
+    void setEndPos(const lString32 & s ) { _endpos = s; }
+    void setPosText(const lString32 & s ) { _postext= s; }
+    void setTitleText(const lString32 & s ) { _titletext = s; }
+    void setCommentText(const lString32 & s ) { _commenttext = s; }
     void setType( int n ) { _type = n; }
     void setShortcut( int n ) { _shortcut = n; }
     void setPercent( int n ) { _percent = n; }
@@ -114,7 +115,7 @@ public:
 /// bookmark/position change info for synchronization/replication
 class ChangeInfo {
     CRBookmark * _bookmark;
-    lString16 _fileName;
+    lString32 _fileName;
     bool _deleted;
     time_t _timestamp;
 
@@ -122,7 +123,7 @@ public:
     ChangeInfo() : _bookmark(NULL), _deleted(false), _timestamp(0) {
     }
 
-    ChangeInfo(CRBookmark * bookmark, lString16 fileName, bool deleted);
+    ChangeInfo(CRBookmark * bookmark, lString32 fileName, bool deleted);
 
     ~ChangeInfo() {
         if (_bookmark)
@@ -131,7 +132,7 @@ public:
 
     CRBookmark * getBookmark() { return _bookmark; }
 
-    lString16 getFileName() { return _fileName; }
+    lString32 getFileName() { return _fileName; }
 
     bool isDeleted() { return _deleted; }
 
@@ -152,11 +153,11 @@ class ChangeInfoList : public LVPtrVector<ChangeInfo> {
 
 class CRFileHistRecord {
 private:
-    lString16 _fname;
-    lString16 _fpath;
-    lString16 _title;
-    lString16 _author;
-    lString16 _series;
+    lString32 _fname;
+    lString32 _fpath;
+    lString32 _title;
+    lString32 _author;
+    lString32 _series;
     lvpos_t   _size;
     int       _domVersion;
     LVPtrVector<CRBookmark> _bookmarks;
@@ -169,24 +170,24 @@ public:
     CRBookmark * setShortcutBookmark( int shortcut, ldomXPointer ptr );
     CRBookmark * getShortcutBookmark( int shortcut );
     time_t getLastTime() { return _lastpos.getTimestamp(); }
-    lString16 getLastTimeString( bool longFormat=false );
+    lString32 getLastTimeString( bool longFormat=false );
     void setLastTime( time_t t ) { _lastpos.setTimestamp(t); }
     LVPtrVector<CRBookmark>  & getBookmarks() { return _bookmarks; }
     CRBookmark * getLastPos() { return &_lastpos; }
     void setLastPos( CRBookmark * bmk );
-    lString16 getTitle() { return _title; }
-    lString16 getAuthor() { return _author; }
-    lString16 getSeries() { return _series; }
-    lString16 getFileName() { return _fname; }
-    lString16 getFilePath() { return _fpath; }
-    lString16 getFilePathName() { return _fpath + _fname; }
+    lString32 getTitle() { return _title; }
+    lString32 getAuthor() { return _author; }
+    lString32 getSeries() { return _series; }
+    lString32 getFileName() { return _fname; }
+    lString32 getFilePath() { return _fpath; }
+    lString32 getFilePathName() { return _fpath + _fname; }
     lvpos_t   getFileSize() const { return _size; }
     int getDOMversion() const { return _domVersion; }
-    void setTitle( const lString16 & s ) { _title = s; }
-    void setAuthor( const lString16 & s ) { _author = s; }
-    void setSeries( const lString16 & s ) { _series = s; }
-    void setFileName( const lString16 & s ) { _fname = s; }
-    void setFilePath( const lString16 & s ) { _fpath = s; }
+    void setTitle( const lString32 & s ) { _title = s; }
+    void setAuthor( const lString32 & s ) { _author = s; }
+    void setSeries( const lString32 & s ) { _series = s; }
+    void setFileName( const lString32 & s ) { _fname = s; }
+    void setFilePath( const lString32 & s ) { _fpath = s; }
     void setFileSize( lvsize_t sz ) { _size = sz; }
     void setDOMversion( int v ) { _domVersion = v; }
     void convertBookmarks(ldomDocument * doc, int newDOMversion);
@@ -215,7 +216,7 @@ public:
 class CRFileHist {
 private:
     LVPtrVector<CRFileHistRecord> _records;
-    int findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz ) const;
+    int findEntry( const lString32 & fname, const lString32 & fpath, lvsize_t sz ) const;
     void makeTop( int index );
 public:
     void limit( int maxItems )
@@ -225,15 +226,15 @@ public:
         }
     }
     LVPtrVector<CRFileHistRecord> & getRecords() { return _records; }
-    CRFileHistRecord* getRecord(const lString16 & fileName, size_t fileSize );
+    CRFileHistRecord* getRecord(const lString32 & fileName, size_t fileSize );
     bool loadFromStream( LVStreamRef stream );
     bool saveToStream( LVStream * stream );
-    CRFileHistRecord * savePosition( lString16 fpathname, size_t sz, 
-        const lString16 & title,
-        const lString16 & author,
-        const lString16 & series,
+    CRFileHistRecord * savePosition( lString32 fpathname, size_t sz, 
+        const lString32 & title,
+        const lString32 & author,
+        const lString32 & series,
         ldomXPointer ptr );
-    ldomXPointer restorePosition(  ldomDocument * doc, lString16 fpathname, size_t sz );
+    ldomXPointer restorePosition(  ldomDocument * doc, lString32 fpathname, size_t sz );
     CRFileHist()
     {
     }

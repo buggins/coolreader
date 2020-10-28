@@ -153,7 +153,7 @@ public:
     };
 
     /// hyphenation character
-    virtual lChar16 getHyphChar() { return UNICODE_SOFT_HYPHEN_CODE; }
+    virtual lChar32 getHyphChar() { return UNICODE_SOFT_HYPHEN_CODE; }
 
     /// hyphen width
     virtual int getHyphenWidth() { return getCharWidth(getHyphChar()); }
@@ -170,7 +170,7 @@ public:
         \param fallbackPassMask bitmask of processed fallback fonts
         \return true if glyph was found 
     */
-    virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar16 def_char = 0, lUInt32 fallbackPassMask = 0) = 0;
+    virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar32 def_char = 0, lUInt32 fallbackPassMask = 0) = 0;
 
     /** \brief measure text
         \param text is text string pointer
@@ -183,11 +183,11 @@ public:
         \return number of characters before max_width reached 
     */
     virtual lUInt16 measureText(
-            const lChar16 *text, int len,
+            const lChar32 *text, int len,
             lUInt16 *widths,
             lUInt8 *flags,
             int max_width,
-            lChar16 def_char,
+            lChar32 def_char,
             TextLangCfg * lang_cfg = NULL,
             int letter_spacing = 0,
             bool allow_hyphenation = true,
@@ -201,7 +201,7 @@ public:
         \return width of specified string 
     */
     virtual lUInt32 getTextWidth(
-            const lChar16 *text, int len, TextLangCfg * lang_cfg = NULL
+            const lChar32 *text, int len, TextLangCfg * lang_cfg = NULL
     ) = 0;
 
 //    /** \brief get glyph image in 1 byte per pixel format
@@ -209,14 +209,14 @@ public:
 //        \param buf is buffer [width*height] to place glyph data
 //        \return true if glyph was found
 //    */
-//    virtual bool getGlyphImage(lUInt32 code, lUInt8 * buf, lChar16 def_char=0) = 0;
+//    virtual bool getGlyphImage(lUInt32 code, lUInt8 * buf, lChar32 def_char=0) = 0;
     /** \brief get glyph item
         \param ch is unicode character code
         \param def_char replacement char if glyph for ch not found for this font
         \param fallbackPassMask bitmask of processed fallback fonts
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar16 def_char = 0, lUInt32 fallbackPassMask = 0) = 0;
+    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar32 def_char = 0, lUInt32 fallbackPassMask = 0) = 0;
 
     /// returns font baseline offset
     virtual int getBaseline() = 0;
@@ -234,13 +234,13 @@ public:
     virtual int getItalic() const = 0;
 
     /// returns char glyph advance width
-    virtual int getCharWidth( lChar16 ch, lChar16 def_char=0 ) = 0;
+    virtual int getCharWidth( lChar32 ch, lChar32 def_char=0 ) = 0;
 
     /// returns char glyph left side bearing
-    virtual int getLeftSideBearing( lChar16 ch, bool negative_only=false, bool italic_only=false ) = 0;
+    virtual int getLeftSideBearing( lChar32 ch, bool negative_only=false, bool italic_only=false ) = 0;
 
     /// returns char glyph right side bearing
-    virtual int getRightSideBearing( lChar16 ch, bool negative_only=false, bool italic_only=false ) = 0;
+    virtual int getRightSideBearing( lChar32 ch, bool negative_only=false, bool italic_only=false ) = 0;
 
     /// retrieves font handle
     virtual void *GetHandle() = 0;
@@ -253,8 +253,8 @@ public:
 
     /// draws text string (returns x advance)
     virtual int DrawTextString( LVDrawBuf * buf, int x, int y,
-                       const lChar16 * text, int len,
-                       lChar16 def_char, lUInt32 * palette = NULL,
+                       const lChar32 * text, int len,
+                       lChar32 def_char, lUInt32 * palette = NULL,
                        bool addHyphen = false, TextLangCfg * lang_cfg = NULL,
                        lUInt32 flags=0, int letter_spacing=0, int width=-1,
                        int text_decoration_back_gap=0,
@@ -307,7 +307,7 @@ public:
 
     virtual bool kerningEnabled() { return false; }
 
-    virtual int getKerningOffset(lChar16 ch1, lChar16 ch2, lChar16 def_char) {
+    virtual int getKerningOffset(lChar32 ch1, lChar32 ch2, lChar32 def_char) {
         CR_UNUSED3(ch1, ch2, def_char);
         return 0;
     }

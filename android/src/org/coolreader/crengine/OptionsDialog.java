@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 public class OptionsDialog extends BaseDialog implements TabContentFactory, OptionOwner, Settings {
 
@@ -76,11 +77,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		return bestIndex;
 	}
 	public static final int[] mBacklightLevels = new int[] {
-		-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100
+			-1,  1,  2,  3,  4,  5,  6,  7,  8,  9,
+			10, 12, 15, 20, 25, 30, 35, 40, 45, 50,
+			55, 60, 65, 70, 75, 80, 85, 90, 95, 100
 	};
 	public static final String[] mBacklightLevelsTitles = new String[] {
 			"Default", "1%", "2%", "3%", "4%", "5%", "6%", "7%", "8%", "9%", 
-			"10%", "12%", "15%", "20%", "25%", "30%", "35%", "40%", "45%", "50%", "55%", "60%", "65%", "70%", "75%", "80%", "85%", "90%", "95%", "100%",
+			"10%", "12%", "15%", "20%", "25%", "30%", "35%", "40%", "45%", "50%",
+			"55%", "60%", "65%", "70%", "75%", "80%", "85%", "90%", "95%", "100%",
 	};
 	public static int[] mMotionTimeouts;
 	public static String[] mMotionTimeoutsTitles;
@@ -290,6 +294,25 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.autosave_period_20min,
 			R.string.autosave_period_30min
 	};
+	int [] mCloudBookmarksKeepAlive = new int [] {
+			0, 1, 2, 3, 4, 5, 6,
+			7, 14, 30, 91, 182, 365
+	};
+	int [] mCloudBookmarksKeepAliveTitles = new int [] {
+			R.string.bookmarks_keepalive_off,
+			R.string.bookmarks_keepalive_1day,
+			R.string.bookmarks_keepalive_2days,
+			R.string.bookmarks_keepalive_3days,
+			R.string.bookmarks_keepalive_4days,
+			R.string.bookmarks_keepalive_5days,
+			R.string.bookmarks_keepalive_6days,
+			R.string.bookmarks_keepalive_1week,
+			R.string.bookmarks_keepalive_2weeks,
+			R.string.bookmarks_keepalive_1month,
+			R.string.bookmarks_keepalive_1quarter,
+			R.string.bookmarks_keepalive_half_a_year,
+			R.string.bookmarks_keepalive_1year
+	};
 	ViewGroup mContentView;
 	TabHost mTabs;
 	LayoutInflater mInflater;
@@ -313,6 +336,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionBase mGoogleDriveEnableCurrentBookOption;
 	OptionBase mCloudSyncAskConfirmationsOption;
 	OptionBase mGoogleDriveAutoSavePeriodOption;
+	OptionBase mCloudSyncBookmarksKeepAliveOptions;
 
 	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
 	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
@@ -1046,6 +1070,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			}
 			return this;
 		}
+		public ListOption add(List<?> values, List<String> labels) {
+			for ( int i=0; i < values.size(); i++ ) {
+				String value = String.valueOf(values.get(i));
+				String label = labels.get(i);
+				add(value, label);
+			}
+			return this;
+		}
 		public ListOption addPercents(int[]values) {
 			for ( int item : values ) {
 				String s = String.valueOf(item); 
@@ -1245,7 +1277,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public HyphenationOptions( OptionOwner owner, String label )
 		{
 			super( owner, label, PROP_HYPHENATION_DICT );
-			setDefaultValue(Engine.HyphDict.RUSSIAN.name);
+			setDefaultValue(Engine.HyphDict.RUSSIAN.code);
 			Engine.HyphDict[] dicts = Engine.HyphDict.values();
 			for ( Engine.HyphDict dict : dicts )
 				if (!dict.hide)
@@ -1836,7 +1868,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_bottom), prefix + ".margin-bottom").add(marginBottomOptions, marginTopBottomOptionNames).setIconIdByAttr(R.attr.cr3_option_text_margin_bottom_drawable, R.drawable.cr3_option_text_margin_bottom));
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_left), prefix + ".margin-left").add(marginLeftOptions, marginLeftRightOptionNames).setIconIdByAttr(R.attr.cr3_option_text_margin_left_drawable, R.drawable.cr3_option_text_margin_left));
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_right), prefix + ".margin-right").add(marginRightOptions, marginLeftRightOptionNames).setIconIdByAttr(R.attr.cr3_option_text_margin_right_drawable, R.drawable.cr3_option_text_margin_right));
-			
 
 			dlg.setTitle(label);
 			dlg.setView(listView);
@@ -2084,7 +2115,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_touch_drawable, R.drawable.cr3_option_touch));
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
-		if ( !DeviceInfo.EINK_SCREEN )
+		if ( !DeviceInfo.EINK_SCREEN || DeviceInfo.EINK_HAVE_FRONTLIGHT )
 			mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.option_controls_gesture_page_flipping_enabled), PROP_APP_GESTURE_PAGE_FLIPPING).add(mPagesPerFullSwipe, mPagesPerFullSwipeTitles).setDefaultValue("1"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_selection_action), PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
@@ -2100,6 +2131,23 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_timeout), PROP_APP_SCREEN_BACKLIGHT_LOCK).add(mBacklightTimeout, mBacklightTimeoutTitles).setDefaultValue("3").noIcon());
 			mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1").noIcon());
+		} else if ( DeviceInfo.EINK_HAVE_FRONTLIGHT ) {
+			List<Integer> frontLightLevels = EinkScreen.getFrontLightLevels(mActivity);
+			if (null != frontLightLevels && frontLightLevels.size() > 0) {
+				ArrayList<String> levelsTitles = new ArrayList<>();
+				ArrayList<Integer> levels = new ArrayList<>();
+				levels.add(-1);
+				levelsTitles.add(getString(R.string.options_app_backlight_screen_default));
+				for (Integer level : frontLightLevels) {
+					float percentLevel = 100 * level / (float)DeviceInfo.MAX_SCREEN_BRIGHTNESS_VALUE;
+					if (percentLevel < 10)
+						levelsTitles.add(String.format("%1$.1f%%", percentLevel));
+					else
+						levelsTitles.add(String.format("%1$.0f%%", percentLevel));
+					levels.add(level);
+				}
+				mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(levels, levelsTitles).setDefaultValue("-1").noIcon());
+			}
 		}
 		mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_tts_stop_motion_timeout), PROP_APP_MOTION_TIMEOUT).add(mMotionTimeouts, mMotionTimeoutsTitles).setDefaultValue(Integer.toString(mMotionTimeouts[0])).noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_key_backlight_off), PROP_APP_KEY_BACKLIGHT_OFF).setDefaultValue("1").noIcon());
@@ -2122,6 +2170,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 					mGoogleDriveEnableBookmarksOption.setEnabled(syncEnabled);
 					mGoogleDriveEnableCurrentBookOption.setEnabled(syncEnabled);
 					mGoogleDriveAutoSavePeriodOption.setEnabled(syncEnabled);
+					// mCloudSyncBookmarksKeepAliveOptions should be enabled regardless of PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED
 				}));
 			mCloudSyncAskConfirmationsOption = new BoolOption(this, getString(R.string.options_app_cloudsync_confirmations), PROP_APP_CLOUDSYNC_CONFIRMATIONS).setDefaultValue("1").noIcon();
 			mCloudSyncAskConfirmationsOption.enabled = gdriveSyncEnabled;
@@ -2133,11 +2182,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mGoogleDriveEnableCurrentBookOption.enabled = gdriveSyncEnabled;
 			mGoogleDriveAutoSavePeriodOption = new ListOption(this, getString(R.string.autosave_period), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD).add(mGoogleDriveAutoSavePeriod, mGoogleDriveAutoSavePeriodTitles).setDefaultValue(Integer.valueOf(5).toString()).noIcon();
 			mGoogleDriveAutoSavePeriodOption.enabled = gdriveSyncEnabled;
+			mCloudSyncBookmarksKeepAliveOptions = new ListOption(this, getString(R.string.bookmarks_keepalive_), PROP_APP_CLOUDSYNC_BOOKMARKS_KEEPALIVE).add(mCloudBookmarksKeepAlive, mCloudBookmarksKeepAliveTitles).setDefaultValue(Integer.valueOf(14).toString()).noIcon();
+			// mCloudSyncBookmarksKeepAliveOptions should be enabled regardless of PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED
 			mOptionsCloudSync.add(mCloudSyncAskConfirmationsOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableSettingsOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableBookmarksOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableCurrentBookOption);
 			mOptionsCloudSync.add(mGoogleDriveAutoSavePeriodOption);
+			mOptionsCloudSync.add(mCloudSyncBookmarksKeepAliveOptions);
 		}
 
 		fillStyleEditorOptions();

@@ -208,11 +208,11 @@ const lvfont_glyph_t * lvfontGetGlyph( const lvfont_handle hfont, lUInt16 code )
     \return number of items written to widths[]
 */
 lUInt16 lvfontMeasureText( const lvfont_handle pfont, 
-                    const lChar16 * text, int len, 
+                    const lChar32 * text, int len, 
                     lUInt16 * widths,
                     lUInt8 * flags,
                     int max_width,
-                    lChar16 def_char
+                    lChar32 def_char
                  );
 
 // These lower than 0x0100 (that fit in a lUint8) may be set by lvfntman's measureText()
@@ -267,7 +267,7 @@ lUInt16 lvfontMeasureText( const lvfont_handle pfont,
     \param code is character
     \return 1 if character is space, 0 otherwise 
 */
-inline int lvfontIsUnicodeSpace( lChar16 code ) { return code==0x0020; }
+inline int lvfontIsUnicodeSpace( lChar32 code ) { return code==0x0020; }
 
 /** \brief returns unpacked glyph image 
     \param packed is RLE/Huffman encoded glyph data

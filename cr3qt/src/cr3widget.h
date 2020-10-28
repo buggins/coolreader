@@ -102,15 +102,15 @@ class CR3View : public QWidget, public LVDocViewCallback
         /// rotate view, +1 = 90` clockwise, -1 = 90` counterclockwise
         void rotate( int angle );
         /// Override to handle external links
-        virtual void OnExternalLink( lString16 url, ldomNode * node );
+        virtual void OnExternalLink( lString32 url, ldomNode * node );
         /// format detection finished
         virtual void OnLoadFileFormatDetected( doc_format_t fileFormat );
         /// on starting file loading
-        virtual void OnLoadFileStart( lString16 filename );
+        virtual void OnLoadFileStart( lString32 filename );
         /// first page is loaded from file an can be formatted for preview
         virtual void OnLoadFileFirstPagesReady();
         /// file load finiished with error
-        virtual void OnLoadFileError( lString16 message );
+        virtual void OnLoadFileError( lString32 message );
         /// file loading is finished successfully - drawCoveTo() may be called there
         virtual void OnLoadFileEnd();
         /// document formatting started

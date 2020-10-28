@@ -179,6 +179,7 @@ public interface Settings {
     String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK = "app.cloudsync.googledrive.currentbook";
     String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD = "app.cloudsync.googledrive.autosaveperiod";
     String PROP_APP_CLOUDSYNC_CONFIRMATIONS = "app.cloudsync.confirmations";
+    String PROP_APP_CLOUDSYNC_BOOKMARKS_KEEPALIVE = "app.cloudsync.bookmarks.keepalive";		// days
 
     // available options for PROP_APP_SELECTION_ACTION setting
     public static final int SELECTION_ACTION_TOOLBAR = 0;

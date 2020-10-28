@@ -4,6 +4,7 @@
 
 lUInt32 uni_chars[] = {
     0x10000,        // LINEAR B SYLLABLE B008 A
+    0x2026,
     0x10123,        // AEGEAN NUMBER TWO THOUSAND
     0x10081,        // LINEAR B IDEOGRAM B102 WOMAN
     0x1F600,        // GRINNING FACE
@@ -22,7 +23,7 @@ lUInt32 uni_chars[] = {
 
 int main(int argc, char* argv[])
 {
-    lString16 src;
+    lString32 src;
     for (size_t i = 0; i < sizeof(uni_chars)/sizeof(lUInt32); i++)
     {
         src.append(1, uni_chars[i]);
@@ -32,7 +33,7 @@ int main(int argc, char* argv[])
     lString8 dstw = UnicodeToWtf8(src);
     printf("WTF8: %s\n", dstw.c_str());
     // Back to unicode
-    lString16 str2 = Wtf8ToUnicode(dstw);
+    lString32 str2 = Wtf8ToUnicode(dstw);
     //   and compare...
     if (str2.compare(src) == 0)
         printf("OK, strings is equal.\n");

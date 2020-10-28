@@ -42,7 +42,7 @@ void LVFontLocalGlyphCacheB::clear() {
     printf("LVFontLocalGlyphCacheB::clear(): removed %d items\n", count);
 }
 
-LVFontGlyphCacheItemB *LVFontLocalGlyphCacheB::getByChar(lChar16 ch) {
+LVFontGlyphCacheItemB *LVFontLocalGlyphCacheB::getByChar(lChar32 ch) {
     FONT_LOCAL_GLYPH_CACHE_GUARD
     LVFontGlyphCacheItemB *ptr = 0;
     GlyphCacheItemData data;
@@ -152,7 +152,7 @@ void LVFontGlobalGlyphCacheB::clear() {
     printf("LVFontGlobalGlyphCacheB::clear(): removed %d items\n", count);
 }
 
-LVFontGlyphCacheItemB *LVFontGlyphCacheItemB::newItem(LVFontLocalGlyphCacheB *local_cache, lChar16 ch, int w, int h) {
+LVFontGlyphCacheItemB *LVFontGlyphCacheItemB::newItem(LVFontLocalGlyphCacheB *local_cache, lChar32 ch, int w, int h) {
     LVFontGlyphCacheItemB *item = (LVFontGlyphCacheItemB *) malloc(sizeof(LVFontGlyphCacheItemB)
                                                                  + (w * h - 1) * sizeof(lUInt8));
     if (item) {

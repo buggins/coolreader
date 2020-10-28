@@ -592,6 +592,8 @@ public class Engine {
 
 	private native static boolean scanBookPropertiesInternal(FileInfo info);
 
+	private native static boolean updateFileCRC32Internal(FileInfo info);
+
 	private native static byte[] scanBookCoverInternal(String path);
 
 	private native static void drawBookCoverInternal(Bitmap bmp, byte[] data, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp);
@@ -812,7 +814,7 @@ public class Engine {
 		public final static HyphDict RUSSIAN2 = new HyphDict("Russian", HYPH_DICT, R.raw.russian_enus_hyphen, "Russian", "ru", true);	// for compatibilty with textlang.cpp
 		public final static HyphDict ENGLISH = new HyphDict("English_US", HYPH_DICT, R.raw.english_us_hyphen, "English US", "en");
 		public final static HyphDict GERMAN = new HyphDict("German", HYPH_DICT, R.raw.german_hyphen, "German", "de");
-		public final static HyphDict UKRAINIAN = new HyphDict("Ukrainian", HYPH_DICT, R.raw.ukrain_hyphen, "Ukrainian", "uk");
+		public final static HyphDict UKRAINIAN = new HyphDict("Ukrain", HYPH_DICT, R.raw.ukrainian_hyphen, "Ukrainian", "uk");
 		public final static HyphDict SPANISH = new HyphDict("Spanish", HYPH_DICT, R.raw.spanish_hyphen, "Spanish", "es");
 		public final static HyphDict FRENCH = new HyphDict("French", HYPH_DICT, R.raw.french_hyphen, "French", "fr");
 		public final static HyphDict BULGARIAN = new HyphDict("Bulgarian", HYPH_DICT, R.raw.bulgarian_hyphen, "Bulgarian", "bg");
@@ -992,6 +994,12 @@ public class Engine {
 			long duration = Utils.timeInterval(start);
 			L.v("scanBookCover took " + duration + " ms for " + path);
 			return res;
+		}
+	}
+
+	public static boolean updateFileCRC32(FileInfo info) {
+		synchronized (lock) {
+			return updateFileCRC32Internal(info);
 		}
 	}
 

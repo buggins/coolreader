@@ -109,6 +109,8 @@
 	java.lang.String series;
 	int seriesNumber;
 	java.lang.String language;
+	java.lang.String description;
+	long crc32;
 }
 
 -keep class org.coolreader.crengine.Selection {

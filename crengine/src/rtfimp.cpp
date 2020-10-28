@@ -72,7 +72,7 @@ static const rtf_control_word * findControlWord( const char * name )
     }
 }
 
-void LVRtfDestination::SetCharsetTable(const lChar16 * table) {
+void LVRtfDestination::SetCharsetTable(const lChar32 * table) {
     m_parser.SetCharsetTable(table);
 }
 
@@ -105,11 +105,11 @@ public:
     // set table state, open/close tags if necessary
     void SetTableState( rtfTblState state )
     {
-        static const lChar16 * tags[5] = {
+        static const lChar32 * tags[5] = {
             NULL,// tbls_none=0,
-            L"table", // tbls_intable,
-            L"tr", // tbls_inrow,
-            L"td", // tbls_incell,
+            U"table", // tbls_intable,
+            U"tr", // tbls_inrow,
+            U"td", // tbls_incell,
             NULL
         };
         if ( tblState < state ) {
@@ -161,15 +161,15 @@ public:
             break;
         }
     }
-    virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
+    virtual void OnText( const lChar32 * text, int len, lUInt32 flags )
     {
-        lString16 s = text;
+        lString32 s = text;
         s.trimDoubleSpaces(!last_space, true, false);
         text = s.c_str();
         len = s.length();
         if ( !len ) {
-            m_callback->OnTagOpenNoAttr(NULL, L"empty-line");
-            m_callback->OnTagClose(NULL, L"empty-line", true);
+            m_callback->OnTagOpenNoAttr(NULL, U"empty-line");
+            m_callback->OnTagClose(NULL, U"empty-line", true);
             return;
         }
         bool intbl = m_stack.getInt( pi_intbl )>0;
@@ -181,16 +181,16 @@ public:
             OnAction(RA_SECTION);
         }
         if ( !in_section ) {
-            m_callback->OnTagOpenNoAttr(NULL, L"section");
+            m_callback->OnTagOpenNoAttr(NULL, U"section");
             in_section = true;
         }
         if ( !intbl ) {
             if ( !in_title && titleFlag ) {
                 if ( asteriskFlag ) {
-                    m_callback->OnTagOpenNoAttr(NULL, L"subtitle");
+                    m_callback->OnTagOpenNoAttr(NULL, U"subtitle");
                     in_subtitle = true;
                 } else {
-                    m_callback->OnTagOpenNoAttr(NULL, L"title");
+                    m_callback->OnTagOpenNoAttr(NULL, U"title");
                     in_subtitle = false;
                 }
                 in_title = true;
@@ -202,20 +202,20 @@ public:
         if ( !in_para ) {
             if ( !in_title )
                 last_notitle = true;
-            m_callback->OnTagOpenNoAttr(NULL, L"p");
+            m_callback->OnTagOpenNoAttr(NULL, U"p");
             last_space = false;
             in_para = true;
         }
         if ( m_stack.getInt(pi_ch_bold) ) {
-            m_callback->OnTagOpenNoAttr(NULL, L"strong");
+            m_callback->OnTagOpenNoAttr(NULL, U"strong");
         }
         if ( m_stack.getInt(pi_ch_italic) ) {
-            m_callback->OnTagOpenNoAttr(NULL, L"emphasis");
+            m_callback->OnTagOpenNoAttr(NULL, U"emphasis");
         }
         if ( m_stack.getInt(pi_ch_sub) ) {
-            m_callback->OnTagOpenNoAttr(NULL, L"sub");
+            m_callback->OnTagOpenNoAttr(NULL, U"sub");
         } else if ( m_stack.getInt(pi_ch_super) ) {
-            m_callback->OnTagOpenNoAttr(NULL, L"sup");
+            m_callback->OnTagOpenNoAttr(NULL, U"sup");
         }
 
         m_callback->OnText( text, len, flags );
@@ -223,15 +223,15 @@ public:
 
 
         if ( m_stack.getInt(pi_ch_super) && !m_stack.getInt(pi_ch_sub) ) {
-            m_callback->OnTagClose(NULL, L"sup");
+            m_callback->OnTagClose(NULL, U"sup");
         } else if ( m_stack.getInt(pi_ch_sub) ) {
-            m_callback->OnTagClose(NULL, L"sub");
+            m_callback->OnTagClose(NULL, U"sub");
         }
         if ( m_stack.getInt(pi_ch_italic) ) {
-            m_callback->OnTagClose(NULL, L"emphasis");
+            m_callback->OnTagClose(NULL, U"emphasis");
         }
         if ( m_stack.getInt(pi_ch_bold) ) {
-            m_callback->OnTagClose(NULL, L"strong");
+            m_callback->OnTagClose(NULL, U"strong");
         }
     }
     virtual void OnBlob(const lUInt8*, int)
@@ -241,22 +241,22 @@ public:
     {
         if ( action==RA_PARA || action==RA_SECTION ) {
             if ( in_para ) {
-                m_callback->OnTagClose(NULL, L"p");
+                m_callback->OnTagClose(NULL, U"p");
                 m_parser.updateProgress();
                 in_para = false;
             }
             if ( in_title ) {
                 if ( in_subtitle )
-                    m_callback->OnTagClose(NULL, L"subtitle");
+                    m_callback->OnTagClose(NULL, U"subtitle");
                 else
-                    m_callback->OnTagClose(NULL, L"title");
+                    m_callback->OnTagClose(NULL, U"title");
                 in_title = false;
             }
         }
         if ( action==RA_SECTION ) {
             SetTableState( tbls_none );
             if ( in_section ) {
-                m_callback->OnTagClose(NULL, L"section");
+                m_callback->OnTagClose(NULL, U"section");
                 in_section = false;
             }
         }
@@ -285,7 +285,7 @@ public:
     virtual void OnControlWord( const char *, int )
     {
     }
-    virtual void OnText( const lChar16 *, int, lUInt32 )
+    virtual void OnText( const lChar32 *, int, lUInt32 )
     {
     }
     virtual void OnBlob(const lUInt8*, int)
@@ -319,7 +319,7 @@ public:
     virtual void OnControlWord( const char *, int )
     {
     }
-    virtual void OnText( const lChar16 * text, int len, lUInt32)
+    virtual void OnText( const lChar32 * text, int len, lUInt32)
     {
         int fmt = m_stack.getInt(pi_imgfmt);
         if (!fmt)
@@ -357,20 +357,20 @@ public:
         if (!_fmt || _buf.empty())
             return;
         // add Image BLOB
-        lString16 name(BLOB_NAME_PREFIX); // L"@blob#"
+        lString32 name(BLOB_NAME_PREFIX); // U"@blob#"
         name << "image";
         name << fmt::decimal(m_parser.nextImageIndex());
         name << (_fmt==rtf_img_jpeg ? ".jpg" : ".png");
         m_callback->OnBlob(name, _buf.get(), _buf.length());
 #if 0
         {
-            LVStreamRef stream = LVOpenFileStream((cs16("/tmp/") + name).c_str(), LVOM_WRITE);
+            LVStreamRef stream = LVOpenFileStream((cs32("/tmp/") + name).c_str(), LVOM_WRITE);
             stream->Write(_buf.get(), _buf.length(), NULL);
         }
 #endif
-        m_callback->OnTagOpen(LXML_NS_NONE, L"img");
-        m_callback->OnAttribute(LXML_NS_NONE, L"src", name.c_str());
-        m_callback->OnTagClose(LXML_NS_NONE, L"img", true);
+        m_callback->OnTagOpen(LXML_NS_NONE, U"img");
+        m_callback->OnAttribute(LXML_NS_NONE, U"src", name.c_str());
+        m_callback->OnTagClose(LXML_NS_NONE, U"img", true);
     }
 };
 
@@ -417,7 +417,7 @@ void LVRtfParser::CommitText()
     txtbuf[txtpos] = 0;
 #ifdef LOG_RTF_PARSING
     if ( CRLog::isLogLevelEnabled(CRLog::LL_TRACE ) ) {
-        lString16 s = txtbuf;
+        lString32 s = txtbuf;
         lString8 s8 = UnicodeToUtf8( s );
         CRLog::trace( "Text(%s)", s8.c_str() );
     }
@@ -430,13 +430,13 @@ void LVRtfParser::CommitText()
 
 void LVRtfParser::AddChar8( lUInt8 ch )
 {
-    lChar16 ch16 = m_stack.byteToUnicode(ch);
+    lChar32 ch16 = m_stack.byteToUnicode(ch);
     if ( ch16 )
         AddChar( ch16 );
 }
 
 // m_buf_pos points to first byte of char
-void LVRtfParser::AddChar( lChar16 ch )
+void LVRtfParser::AddChar( lChar32 ch )
 {
     if ( txtpos >= MAX_TXT_SIZE || ch==13 ) {
         CommitText();
@@ -469,32 +469,32 @@ bool LVRtfParser::Parse()
     m_callback->OnStart(this);
 
     // make fb2 document structure
-    m_callback->OnTagOpen( NULL, L"?xml" );
-    m_callback->OnAttribute( NULL, L"version", L"1.0" );
-    m_callback->OnAttribute( NULL, L"encoding", L"utf-8" );
+    m_callback->OnTagOpen( NULL, U"?xml" );
+    m_callback->OnAttribute( NULL, U"version", U"1.0" );
+    m_callback->OnAttribute( NULL, U"encoding", U"utf-8" );
     //m_callback->OnEncoding( GetEncodingName().c_str(), GetCharsetTable( ) );
     m_callback->OnTagBody();
-    m_callback->OnTagClose( NULL, L"?xml" );
-    m_callback->OnTagOpenNoAttr( NULL, L"FictionBook" );
+    m_callback->OnTagClose( NULL, U"?xml" );
+    m_callback->OnTagOpenNoAttr( NULL, U"FictionBook" );
       // DESCRIPTION
-      m_callback->OnTagOpenNoAttr( NULL, L"description" );
-        m_callback->OnTagOpenNoAttr( NULL, L"title-info" );
+      m_callback->OnTagOpenNoAttr( NULL, U"description" );
+        m_callback->OnTagOpenNoAttr( NULL, U"title-info" );
           //
-            lString16 bookTitle = LVExtractFilenameWithoutExtension( getFileName() ); //m_stream->GetName();
-            m_callback->OnTagOpenNoAttr( NULL, L"book-title" );
+            lString32 bookTitle = LVExtractFilenameWithoutExtension( getFileName() ); //m_stream->GetName();
+            m_callback->OnTagOpenNoAttr( NULL, U"book-title" );
                 if ( !bookTitle.empty() )
                     m_callback->OnText( bookTitle.c_str(), bookTitle.length(), 0 );
           //queue.DetectBookDescription( m_callback );
-        m_callback->OnTagOpenNoAttr( NULL, L"title-info" );
-      m_callback->OnTagClose( NULL, L"description" );
+        m_callback->OnTagOpenNoAttr( NULL, U"title-info" );
+      m_callback->OnTagClose( NULL, U"description" );
       // BODY
-      m_callback->OnTagOpenNoAttr( NULL, L"body" );
-        //m_callback->OnTagOpen( NULL, L"section" );
+      m_callback->OnTagOpenNoAttr( NULL, U"body" );
+        //m_callback->OnTagOpen( NULL, U"section" );
           // process text
           //queue.DoTextImport( m_callback );
-        //m_callback->OnTagClose( NULL, L"section" );
+        //m_callback->OnTagClose( NULL, U"section" );
 
-    txtbuf = new lChar16[ MAX_TXT_SIZE+1 ];
+    txtbuf = new lChar32[ MAX_TXT_SIZE+1 ];
     txtpos = 0;
     txtfstart = 0;
     char cwname[33];
@@ -564,7 +564,7 @@ bool LVRtfParser::Parse()
                 }
                 // \uN -- unicode character
                 if ( cwi==1 && cwname[0]=='u' ) {
-                    AddChar( (lChar16) (param & 0xFFFF) );
+                    AddChar( (lChar32) (param & 0xFFFF) );
                     m_stack.set( pi_skip_ch_count, m_stack.getInt(pi_uc_count) );
                 } else {
                     // usual control word
@@ -590,7 +590,7 @@ bool LVRtfParser::Parse()
                 m_buf_pos += binLength;
             }
         } else {
-            //lChar16 txtch = 0;
+            //lChar32 txtch = 0;
             if ( ch=='\\' ) {
                 p++;
                 int digit1 = charToHex( p[0] );
@@ -625,8 +625,8 @@ bool LVRtfParser::Parse()
     CommitText();
     m_stack.getDestination()->OnAction(LVRtfDestination::RA_SECTION);
 
-      m_callback->OnTagClose( NULL, L"body" );
-    m_callback->OnTagClose( NULL, L"FictionBook" );
+      m_callback->OnTagClose( NULL, U"body" );
+    m_callback->OnTagClose( NULL, U"FictionBook" );
 
     return !errorFlag;
 }
@@ -638,19 +638,19 @@ void LVRtfParser::Reset()
 }
 
 /// sets charset by name
-void LVRtfParser::SetCharset( const lChar16 * )
+void LVRtfParser::SetCharset( const lChar32 * )
 {
     //TODO
 }
 
 /// sets 8-bit charset conversion table (128 items, for codes 128..255)
-void LVRtfParser::SetCharsetTable( const lChar16 * )
+void LVRtfParser::SetCharsetTable( const lChar32 * )
 {
     //TODO
 }
 
 /// returns 8-bit charset conversion table (128 items, for codes 128..255)
-lChar16 * LVRtfParser::GetCharsetTable( )
+lChar32 * LVRtfParser::GetCharsetTable( )
 {
     return NULL;
 }
@@ -674,7 +674,7 @@ void LVRtfParser::OnControlWord( const char * control, int param, bool asterisk 
         switch ( cw->type ) {
         case CWT_CHAR:
             {
-                lChar16 ch = (lChar16)cw->index;
+                lChar32 ch = (lChar32)cw->index;
                 if ( ch==13 ) {
                     // TODO: end of paragraph
                     CommitText();

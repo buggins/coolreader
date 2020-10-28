@@ -70,12 +70,12 @@ public:
     {
     }
     /// add named BLOB data to document
-    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) {
+    virtual bool OnBlob(lString32 name, const lUInt8 * data, int size) {
         CR_UNUSED3(name, data, size);
         return true;
     }
     /// called on opening tag
-    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
+    virtual ldomNode * OnTagOpen( const lChar32 * nsname, const lChar32 * tagname)
     {
         CR_UNUSED(nsname);
         if ( lStr_cmp(tagname, "FictionBookMarks")==0 && state==in_xml ) {
@@ -118,7 +118,7 @@ public:
         return NULL;
     }
     /// called on closing
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false )
+    virtual void OnTagClose( const lChar32 * nsname, const lChar32 * tagname, bool self_closing_tag=false )
     {
         if ( lStr_cmp(nsname, "FictionBookMarks")==0 && state==in_fbm ) {
             state = in_xml;
@@ -169,7 +169,7 @@ public:
         }
     }
     /// called on element attribute
-    virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
+    virtual void OnAttribute( const lChar32 * nsname, const lChar32 * attrname, const lChar32 * attrvalue )
     {
         CR_UNUSED(nsname);
         if ( lStr_cmp(attrname, "type")==0 && state==in_bm ) {
@@ -181,7 +181,7 @@ public:
                 }
             }
         } else if ( lStr_cmp(attrname, "shortcut")==0 && state==in_bm ) {
-            int n = lString16( attrvalue ).atoi();
+            int n = lString32( attrvalue ).atoi();
             _curr_bookmark->setShortcut( n );
         } else if ( lStr_cmp(attrname, "percent")==0 && state==in_bm ) {
             int n1=0, n2=0;
@@ -203,14 +203,14 @@ public:
                 n1 = n1*10 + (attrvalue[i]-'0');
             _curr_bookmark->setTimestamp( n1 );
         } else if (lStr_cmp(attrname, "page")==0 && state==in_bm) {
-            _curr_bookmark->setBookmarkPage(lString16( attrvalue ).atoi());
+            _curr_bookmark->setBookmarkPage(lString32( attrvalue ).atoi());
         }
     }
     /// called on text
-    virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
+    virtual void OnText( const lChar32 * text, int len, lUInt32 flags )
     {
         CR_UNUSED(flags);
-        lString16 txt( text, len );
+        lString32 txt( text, len );
         switch (state) {
         case in_start_point:
             _curr_bookmark->setStartPos( txt );
@@ -271,7 +271,7 @@ bool CRFileHist::loadFromStream( LVStreamRef stream )
     return true;
 }
 
-static void putTagValue( LVStream * stream, int level, const char * tag, lString16 value )
+static void putTagValue( LVStream * stream, int level, const char * tag, lString32 value )
 {
     for ( int i=0; i<level; i++ )
         *stream << "  ";
@@ -324,8 +324,8 @@ bool CRFileHist::saveToStream( LVStream * targetStream )
         putTagValue( stream, 3, "doc-series", rec->getSeries() );
         putTagValue( stream, 3, "doc-filename", rec->getFileName() );
         putTagValue( stream, 3, "doc-filepath", rec->getFilePath() );
-        putTagValue( stream, 3, "doc-filesize", lString16::itoa( (unsigned int)rec->getFileSize() ) );
-        putTagValue( stream, 3, "doc-dom-version", lString16::itoa( (unsigned int)rec->getDOMversion() ) );
+        putTagValue( stream, 3, "doc-filesize", lString32::itoa( (unsigned int)rec->getFileSize() ) );
+        putTagValue( stream, 3, "doc-dom-version", lString32::itoa( (unsigned int)rec->getDOMversion() ) );
         putTag( stream, 2, "/file-info" );
         putTag( stream, 2, "bookmark-list" );
         putBookmark( stream, rec->getLastPos() );
@@ -341,12 +341,12 @@ bool CRFileHist::saveToStream( LVStream * targetStream )
     return true;
 }
 
-static void splitFName( lString16 pathname, lString16 & path, lString16 & name )
+static void splitFName( lString32 pathname, lString32 & path, lString32 & name )
 {
     //
     int spos = -1;
     for ( spos=pathname.length()-1; spos>=0; spos-- ) {
-        lChar16 ch = pathname[spos];
+        lChar32 ch = pathname[spos];
         if ( ch=='\\' || ch=='/' ) {
             break;
         }
@@ -416,7 +416,7 @@ int CRFileHistRecord::getFirstFreeShortcutBookmark()
     return -1;
 }
 
-int CRFileHist::findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz ) const
+int CRFileHist::findEntry( const lString32 & fname, const lString32 & fpath, lvsize_t sz ) const
 {
     CR_UNUSED(fpath);
     for ( int i=0; i<_records.length(); i++ ) {
@@ -442,10 +442,10 @@ void CRFileHist::makeTop( int index )
     _records[0] = rec;
 }
 
-CRFileHistRecord* CRFileHist::getRecord(const lString16 &fileName, size_t fileSize)
+CRFileHistRecord* CRFileHist::getRecord(const lString32 &fileName, size_t fileSize)
 {
-    lString16 name;
-    lString16 path;
+    lString32 name;
+    lString32 path;
     splitFName( fileName, path, name );
     int index = findEntry( name, path, (lvsize_t)fileSize );
     if ( index>=0 ) {
@@ -461,23 +461,25 @@ void CRFileHistRecord::setLastPos( CRBookmark * bmk )
 
 void CRFileHistRecord::convertBookmarks(ldomDocument *doc, int newDOMversion)
 {
+    // TODO: Don't call tinyNodeCollection::setDOMVersionRequested()
+    // but directly use functions ldomDocument::createXPointerV1() & ldomDocument::createXPointerV2().
     for ( int i=0; i< getBookmarks().length(); i++) {
         CRBookmark * bmk = getBookmarks()[i];
 
         if( bmk->isValid() ) {
             if (bmk->getType() != bmkt_lastpos) {
-                gDOMVersionRequested = getDOMversion();
+                doc->setDOMVersionRequested(getDOMversion());
                 ldomXPointer p = doc->createXPointer(bmk->getStartPos());
                 if ( !p.isNull() ) {
-                    gDOMVersionRequested = newDOMversion;
+                    doc->setDOMVersionRequested(newDOMversion);
                     bmk->setStartPos(p.toString());
                 }
-                lString16 endPos = bmk->getEndPos();
+                lString32 endPos = bmk->getEndPos();
                 if( !endPos.empty() ) {
-                    gDOMVersionRequested = getDOMversion();
+                    doc->setDOMVersionRequested(getDOMversion());
                     p = doc->createXPointer(endPos);
                     if( !p.isNull() ) {
-                        gDOMVersionRequested = newDOMversion;
+                        doc->setDOMVersionRequested(newDOMversion);
                         bmk->setEndPos(p.toString());
                     }
                 }
@@ -487,13 +489,13 @@ void CRFileHistRecord::convertBookmarks(ldomDocument *doc, int newDOMversion)
     setDOMversion(newDOMversion);
 }
 
-lString16 CRBookmark::getChapterName( ldomXPointer ptr )
+lString32 CRBookmark::getChapterName( ldomXPointer ptr )
 {
     //CRLog::trace("CRBookmark::getChapterName()");
-	lString16 chapter;
+	lString32 chapter;
 	int lastLevel = -1;
 	bool foundAnySection = false;
-    lUInt16 section_id = ptr.getNode()->getDocument()->getElementNameIndex( L"section" );
+    lUInt16 section_id = ptr.getNode()->getDocument()->getElementNameIndex( U"section" );
 	if ( !ptr.isNull() )
 	{
 		ldomXPointerEx p( ptr );
@@ -506,7 +508,7 @@ lString16 CRBookmark::getChapterName( ldomXPointer ptr )
             foundAnySection = foundAnySection || foundSection;
             if ( !foundSection && foundAnySection )
                 continue;
-			lString16 nname = p.getNode()->getNodeName();
+			lString32 nname = p.getNode()->getNodeName();
             if ( !nname.compare("title") || !nname.compare("h1") || !nname.compare("h2")  || !nname.compare("h3") ) {
 				if ( lastLevel!=-1 && p.getLevel()>=lastLevel )
 					continue;
@@ -522,15 +524,15 @@ lString16 CRBookmark::getChapterName( ldomXPointer ptr )
 	return chapter;
 }
 
-CRFileHistRecord * CRFileHist::savePosition( lString16 fpathname, size_t sz,
-                            const lString16 & title,
-                            const lString16 & author,
-                            const lString16 & series,
+CRFileHistRecord * CRFileHist::savePosition( lString32 fpathname, size_t sz,
+                            const lString32 & title,
+                            const lString32 & author,
+                            const lString32 & series,
                             ldomXPointer ptr )
 {
     //CRLog::trace("CRFileHist::savePosition");
-    lString16 name;
-	lString16 path;
+    lString32 name;
+	lString32 path;
     splitFName( fpathname, path, name );
     CRBookmark bmk( ptr );
     //CRLog::trace("Bookmark created");
@@ -558,10 +560,10 @@ CRFileHistRecord * CRFileHist::savePosition( lString16 fpathname, size_t sz,
     return rec;
 }
 
-ldomXPointer CRFileHist::restorePosition( ldomDocument * doc, lString16 fpathname, size_t sz )
+ldomXPointer CRFileHist::restorePosition( ldomDocument * doc, lString32 fpathname, size_t sz )
 {
-    lString16 name;
-    lString16 path;
+    lString32 name;
+    lString32 path;
     splitFName( fpathname, path, name );
     int index = findEntry( name, path, (lvsize_t)sz );
     if ( index>=0 ) {
@@ -572,14 +574,14 @@ ldomXPointer CRFileHist::restorePosition( ldomDocument * doc, lString16 fpathnam
 }
 
 CRBookmark::CRBookmark (ldomXPointer ptr )
-: _startpos(lString16::empty_str)
-, _endpos(lString16::empty_str)
+: _startpos(lString32::empty_str)
+, _endpos(lString32::empty_str)
 , _percent(0)
 , _type(0)
 , _shortcut(0)
-, _postext(lString16::empty_str)
-, _titletext(lString16::empty_str)
-, _commenttext(lString16::empty_str)
+, _postext(lString32::empty_str)
+, _titletext(lString32::empty_str)
+, _commenttext(lString32::empty_str)
 , _timestamp(time_t(0))
 , _page(0)
 {
@@ -588,7 +590,7 @@ CRBookmark::CRBookmark (ldomXPointer ptr )
         return;
 
     //CRLog::trace("CRBookmark::CRBookmark() started");
-    lString16 path;
+    lString32 path;
 
     //CRLog::trace("CRBookmark::CRBookmark() calling ptr.toPoint");
     lvPoint pt = ptr.toPoint();
@@ -615,7 +617,7 @@ CRBookmark::CRBookmark (ldomXPointer ptr )
 }
 
 
-lString16 CRFileHistRecord::getLastTimeString( bool longFormat )
+lString32 CRFileHistRecord::getLastTimeString( bool longFormat )
 {
 
     time_t t = getLastTime();
@@ -647,7 +649,7 @@ lString16 CRFileHistRecord::getLastTimeString( bool longFormat )
 #define POS_TEXT_TAG         "POSTEXT"
 #define COMMENT_TEXT_TAG     "COMMENTTEXT"
 
-static lString8 encodeText(lString16 text16) {
+static lString8 encodeText(lString32 text16) {
     if (text16.empty())
         return lString8::empty_str;
     lString8 text = UnicodeToUtf8(text16);
@@ -675,9 +677,9 @@ static lString8 encodeText(lString16 text16) {
     return buf;
 }
 
-static lString16 decodeText(lString8 text) {
+static lString32 decodeText(lString8 text) {
     if (text.empty())
-        return lString16::empty_str;
+        return lString32::empty_str;
     lString8 buf;
     bool lastControl = false;
     for (int i=0; i<text.length(); i++) {
@@ -723,7 +725,7 @@ static int findBytes(lChar8 * buf, int start, int end, const lChar8 * pattern) {
     return -1;
 }
 
-ChangeInfo::ChangeInfo(CRBookmark * bookmark, lString16 fileName, bool deleted)
+ChangeInfo::ChangeInfo(CRBookmark * bookmark, lString32 fileName, bool deleted)
     : _bookmark(bookmark ? new CRBookmark(*bookmark) : NULL), _fileName(fileName), _deleted(deleted)
 {
     _timestamp = bookmark && bookmark->getTimestamp() > 0 ? bookmark->getTimestamp() : (time_t)time(0);

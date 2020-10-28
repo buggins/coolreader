@@ -85,7 +85,7 @@ const char * cr_default_skin =
 "  </menu>\n"
 "</CR3Skin>\n";
 
-bool CRGUIWindowManager::loadSkin( lString16 pathname )
+bool CRGUIWindowManager::loadSkin( lString32 pathname )
 {
     CRSkinRef skin;
     if ( !pathname.empty() )
@@ -129,24 +129,24 @@ bool CRGUIAcceleratorTable::add( int keyCode, int keyFlags, int commandId, int c
     return true;
 }
 
-CRGUIAcceleratorTableRef CRGUIAcceleratorTableList::get( const lString16 & name, CRPropRef keyRemappingOptions )
+CRGUIAcceleratorTableRef CRGUIAcceleratorTableList::get( const lString32 & name, CRPropRef keyRemappingOptions )
 {
     CRGUIAcceleratorTableRef prev = get(name);
     if ( !prev )
         return prev;
-    CRPropRef keymaps = keyRemappingOptions->getSubProps(LCSTR(cs16("keymap.") + name + "."));
+    CRPropRef keymaps = keyRemappingOptions->getSubProps(LCSTR(cs32("keymap.") + name + "."));
     if ( keymaps.isNull() || keymaps->getCount()==0 )
         return prev;
     CRGUIAcceleratorTableRef acc( new CRGUIAcceleratorTable( *prev ));
     for ( int i=0; i<keymaps->getCount(); i++ ) {
-        lString16 name( keymaps->getName(i) );
-        lString16 value = keymaps->getValue(i);
+        lString32 name( keymaps->getName(i) );
+        lString32 value = keymaps->getValue(i);
 //        CRLog::trace("Override key map: %s -> %s", LCSTR(name), LCSTR(value) );
         int key, flags;
         int cmd, params;
-        if ( !splitIntegerList( name, cs16("."), key, flags ))
+        if ( !splitIntegerList( name, cs32("."), key, flags ))
             continue;
-        if ( !splitIntegerList( value, cs16(","), cmd, params ))
+        if ( !splitIntegerList( value, cs32(","), cmd, params ))
             continue;
         acc->add(key, flags, cmd, params);
     }
@@ -156,9 +156,9 @@ CRGUIAcceleratorTableRef CRGUIAcceleratorTableList::get( const lString16 & name,
 /// add all tables
 void CRGUIAcceleratorTableList::addAll( const CRGUIAcceleratorTableList & v )
 {
-	LVHashTable<lString16, CRGUIAcceleratorTableRef>::iterator i( v._table );
+	LVHashTable<lString32, CRGUIAcceleratorTableRef>::iterator i( v._table );
 	for ( ;; ) {
-		LVHashTable<lString16, CRGUIAcceleratorTableRef>::pair * p = i.next();
+		LVHashTable<lString32, CRGUIAcceleratorTableRef>::pair * p = i.next();
 		if ( !p )
 			break;
 		CRGUIAcceleratorTableRef t = _table.get( p->key );
@@ -439,7 +439,7 @@ bool CRGUIWindowManager::handleEvent( CRGUIEvent * event )
 static bool firstWaitUpdate = true;
 
 /// draws icon at center of screen
-void CRGUIWindowManager::showWaitIcon( lString16 filename, int progressPercent )
+void CRGUIWindowManager::showWaitIcon( lString32 filename, int progressPercent )
 {
     LVImageSourceRef img = _skin->getImage( filename );
     if ( !img.isNull() ) {
@@ -451,7 +451,7 @@ void CRGUIWindowManager::showWaitIcon( lString16 filename, int progressPercent )
         _screen->getCanvas()->Draw( img, x, y, dx, dy, true );
         int gaugeH = 0;
         if ( progressPercent>=0 && progressPercent<=100 ) {
-            CRScrollSkinRef skin = _skin->getScrollSkin(L"#progress");
+            CRScrollSkinRef skin = _skin->getScrollSkin(U"#progress");
             if ( !skin.isNull() ) {
                 CRLog::trace("Drawing gauge %d%%", progressPercent);
                 gaugeH = 16;
@@ -469,7 +469,7 @@ void CRGUIWindowManager::showWaitIcon( lString16 filename, int progressPercent )
 
 #define PROGRESS_UPDATE_INTERVAL 5
 /// draws icon at center of screen, with optional progress gauge
-void CRGUIWindowManager::showProgress( lString16 filename, int progressPercent )
+void CRGUIWindowManager::showProgress( lString32 filename, int progressPercent )
 {
     time_t t = (time_t)time((time_t*)0);
     if ( t<_lastProgressUpdate+PROGRESS_UPDATE_INTERVAL || progressPercent==_lastProgressPercent )
@@ -589,9 +589,9 @@ bool CRGUIWindowBase::getClientRect( lvRect & rc )
 }
 
 /// formats scroll label (like "1 of 2")
-lString16 CRGUIWindowBase::getScrollLabel( int page, int pages )
+lString32 CRGUIWindowBase::getScrollLabel( int page, int pages )
 {
-    return lString16::itoa(page) << " of " << fmt::decimal(pages);
+    return lString32::itoa(page) << " of " << fmt::decimal(pages);
 }
 
 /// calculates minimum scroll size
@@ -608,7 +608,7 @@ lvPoint CRGUIWindowBase::getMinScrollSize( int page, int pages )
         int h = sf.isNull() ? sskin->getFontSize() : sf->getHeight();
         int w = 0;
         bool noData = sskin->getAutohide() && pages<=1;
-        lString16 label = getScrollLabel( page, pages );
+        lString32 label = getScrollLabel( page, pages );
         if ( !label.empty() )
             w = sskin->getFont()->getTextWidth(label.c_str(), label.length());
         if ( !sskin->getBottomTabSkin().isNull() ) {
@@ -929,10 +929,10 @@ void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectS
     lvRect textRect = rc;
     textRect.left += imgWidth;
 
-    lString16 s1;
-    lString16 s2;
+    lString32 s1;
+    lString32 s2;
     lvRect valueRect = textRect;
-    if ( _label.split2(cs16("\t"), s1, s2 ) ) {
+    if ( _label.split2(cs32("\t"), s1, s2 ) ) {
         //valueSkin->drawText( buf, textRect, s2 );
     } else {
         s1 = _label;
@@ -1011,7 +1011,7 @@ void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinR
     textRect.left += imgWidth;
     //textRect.shrinkBy( itemBorders );
 
-    lString16 s = getSubmenuValue();
+    lString32 s = getSubmenuValue();
     lvRect valueRect = textRect;
     if ( !s.empty() ) {
         if ( valueSkin.isNull() ) {
@@ -1076,10 +1076,10 @@ CRMenuSkinRef CRMenu::getSkin()
 {
     if ( !_skin.isNull() )
         return _skin;
-    lString16 path = getSkinName();
-    lString16 path2;
+    lString32 path = getSkinName();
+    lString32 path2;
     if (!path.startsWith("#"))
-        path = cs16("/CR3Skin/") + path;
+        path = cs32("/CR3Skin/") + path;
     else if ( _wm->getScreenOrientation()&1 )
         _skin = _wm->getSkin()->getMenuSkin( (path + "-rotated").c_str() );
     if ( !_skin )
@@ -1097,7 +1097,7 @@ lvPoint CRMenu::getItemSize()
         return sz;
     int maxw = 0;
     for ( int i=0; i<_items.length(); i++ ) {
-        lString16 s = _items[i]->getLabel();
+        lString32 s = _items[i]->getLabel();
         int w = _valueFont->getTextWidth( s.c_str(), s.length() );
         if ( w > maxw )
             maxw = w;
@@ -1195,25 +1195,25 @@ lvPoint CRMenu::getSize()
     return res;
 }
 
-lString16 CRMenu::getSubmenuValue()
+lString32 CRMenu::getSubmenuValue()
 {
     if ( !isSubmenu() || _propName.empty() || _props.isNull() )
-        return lString16::empty_str;
-    lString16 value = getProps()->getStringDef(
+        return lString32::empty_str;
+    lString32 value = getProps()->getStringDef(
                                UnicodeToUtf8(getPropName()).c_str(), "");
     for ( int i=0; i<_items.length(); i++ ) {
         if ( !_items[i]->getPropValue().empty() &&
                 value==(_items[i]->getPropValue()) )
             return _items[i]->getLabel();
     }
-    return lString16::empty_str;
+    return lString32::empty_str;
 }
 
 void CRMenu::toggleSubmenuValue()
 {
     if ( !isSubmenu() || _propName.empty() || _props.isNull() )
         return;
-    lString16 value = getProps()->getStringDef(
+    lString32 value = getProps()->getStringDef(
                                UnicodeToUtf8(getPropName()).c_str(), "");
     for ( int i=0; i<_items.length(); i++ ) {
         if ( !_items[i]->getPropValue().empty() &&
@@ -1395,7 +1395,7 @@ void CRMenu::drawClient()
             numberRc.right = numberRc.left + shortcutSize;
 
             ss->draw( buf, numberRc );
-            lString16 number = index<9 ? lString16::itoa( index+1 ) : L"0";
+            lString32 number = index<9 ? lString32::itoa( index+1 ) : U"0";
             buf.SetTextColor( ss->getTextColor() );
             buf.SetBackgroundColor( ss->getBackgroundColor() );
             ss->drawText( buf, numberRc, number );
@@ -1696,7 +1696,7 @@ void CRMenu::draw()
 	}
 }
 
-static bool readNextLine( const LVStreamRef & stream, lString16 & dst )
+static bool readNextLine( const LVStreamRef & stream, lString32 & dst )
 {
     lString8 line;
     bool flgComment = false;
@@ -1725,7 +1725,7 @@ static bool readNextLine( const LVStreamRef & stream, lString16 & dst )
     return false;
 }
 
-static bool splitLine( lString16 line, const lString16 & delimiter, lString16 & key, lString16 & value )
+static bool splitLine( lString32 line, const lString32 & delimiter, lString32 & key, lString32 & value )
 {
     if ( !line.empty() ) {
         int n = line.pos(delimiter);
@@ -1742,13 +1742,13 @@ static bool splitLine( lString16 line, const lString16 & delimiter, lString16 & 
     return false;
 }
 
-static int decodeKey( lString16 name )
+static int decodeKey( lString32 name )
 {
     name.trim();
     if ( name.empty() )
         return 0;
     int key = 0;
-    lChar16 ch0 = name[0];
+    lChar32 ch0 = name[0];
     if ( ch0 >= '0' && ch0 <= '9' )
         return name.atoi();
     if ( ch0=='-' && name.length()>=2 && name[1] >= '0' && name[1] <= '9' )
@@ -1759,7 +1759,7 @@ static int decodeKey( lString16 name )
         key = name[0];
     if ( key == 0 && name.length()>=4 && name[0]=='0' && name[1]=='x' ) {
         for ( int i=2; i<name.length(); i++ ) {
-            lChar16 ch = name[i];
+            lChar32 ch = name[i];
             if ( ch>='0' && ch<='9' )
                 key = key*16 + (ch-'0');
             else if ( ch>='a' && ch<='f' )
@@ -1776,7 +1776,7 @@ static int decodeKey( lString16 name )
 bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char * mapFile )
 {
     _table.clear();
-    LVHashTable<lString16, int> defs( 256 );
+    LVHashTable<lString32, int> defs( 256 );
     LVStreamRef defStream = LVOpenFileStream( defFile, LVOM_READ );
     if ( defStream.isNull() ) {
         CRLog::error( "cannot open keymap def file %s", defFile );
@@ -1787,12 +1787,12 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
         CRLog::error( "cannot open keymap file %s", defFile );
         return false;
     }
-    lString16 line;
+    lString32 line;
     CRPropRef props = LVCreatePropsContainer();
     while ( readNextLine(defStream, line) ) {
-        lString16 name;
-        lString16 value;
-        if ( splitLine( line, cs16("="), name, value ) )  {
+        lString32 name;
+        lString32 value;
+        if ( splitLine( line, cs32("="), name, value ) )  {
             int key = decodeKey( value );
             if ( key!=0 )
                 defs.set( name, key );
@@ -1806,7 +1806,7 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
         return false;
 
     }
-    lString16 section;
+    lString32 section;
     CRGUIAcceleratorTableRef table( new CRGUIAcceleratorTable() );
     bool eof = false;
     do {
@@ -1823,7 +1823,7 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
             // begin new section
             if ( !eof ) {
                 table = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable() );
-                int endbracket = line.pos( cs16("]") );
+                int endbracket = line.pos( cs32("]") );
                 if ( endbracket<=0 )
                     endbracket = line.length();
                 if ( endbracket >= 2 )
@@ -1833,14 +1833,14 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
             }
         } else if ( !section.empty() ) {
             // read definition
-            lString16 name;
-            lString16 value;
-            if ( splitLine( line, cs16("="), name, value ) ) {
+            lString32 name;
+            lString32 value;
+            if ( splitLine( line, cs32("="), name, value ) ) {
                 int flag = 0;
                 int key = 0;
-                lString16 keyName;
-                lString16 flagName;
-                splitLine( name, cs16(","), keyName, flagName );
+                lString32 keyName;
+                lString32 flagName;
+                splitLine( name, cs32(","), keyName, flagName );
                 if ( !flagName.empty() ) {
                     flag = decodeKey( flagName );
                     if ( !flag )
@@ -1856,9 +1856,9 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
                 }
                 int cmd = 0;
                 int cmdParam = 0;
-                lString16 cmdName;
-                lString16 paramName;
-                splitLine( value, cs16(","), cmdName, paramName );
+                lString32 cmdName;
+                lString32 paramName;
+                splitLine( value, cs32(","), cmdName, paramName );
                 if ( !paramName.empty() ) {
                     cmdParam = decodeKey( paramName );
                     if ( !cmdParam )
@@ -1886,7 +1886,7 @@ CRKeyboardLayoutRef CRKeyboardLayoutList::getCurrentLayout()
 {
 	if ( !_current.isNull() )
 		return _current;
-    _current = get(cs16("english"));
+    _current = get(cs32("english"));
 	if ( !_current )
 		nextLayout();
 	return _current;
@@ -1900,9 +1900,9 @@ CRKeyboardLayoutRef CRKeyboardLayoutList::prevLayout()
 	CRKeyboardLayoutRef next;
 	CRKeyboardLayoutRef first;
 	CRKeyboardLayoutRef last;
-	LVHashTable<lString16, CRKeyboardLayoutRef>::iterator i( _table );
+	LVHashTable<lString32, CRKeyboardLayoutRef>::iterator i( _table );
 	for ( ;; ) {
-		LVHashTable<lString16, CRKeyboardLayoutRef>::pair * item = i.next();
+		LVHashTable<lString32, CRKeyboardLayoutRef>::pair * item = i.next();
 		if ( !item )
 			break;
 		if ( first.isNull() )
@@ -1933,9 +1933,9 @@ CRKeyboardLayoutRef CRKeyboardLayoutList::nextLayout()
 	CRKeyboardLayoutRef next;
 	CRKeyboardLayoutRef first;
 	CRKeyboardLayoutRef last;
-	LVHashTable<lString16, CRKeyboardLayoutRef>::iterator i( _table );
+	LVHashTable<lString32, CRKeyboardLayoutRef>::iterator i( _table );
 	for ( ;; ) {
-		LVHashTable<lString16, CRKeyboardLayoutRef>::pair * item = i.next();
+		LVHashTable<lString32, CRKeyboardLayoutRef>::pair * item = i.next();
 		if ( !item )
 			break;
 		if ( first.isNull() )
@@ -1966,8 +1966,8 @@ bool CRKeyboardLayoutList::openFromFile( const char  * layoutFile )
         CRLog::error( "cannot open keyboard layout file %s", layoutFile );
         return false;
     }
-    lString16 line;
-    lString16 section;
+    lString32 line;
+    lString32 section;
 	CRKeyboardLayoutRef table;
 	LVRef<CRKeyboardLayout> layout;
     bool eof = false;
@@ -1984,16 +1984,16 @@ bool CRKeyboardLayoutList::openFromFile( const char  * layoutFile )
             }
             // begin new section
             if ( !eof ) {
-                int endbracket = line.pos( cs16("]") );
+                int endbracket = line.pos( cs32("]") );
                 if ( endbracket<=0 )
                     endbracket = line.length();
                 if ( endbracket >= 2 )
                     section = line.substr( 1, endbracket - 1 );
                 else
                     section.clear(); // wrong sectino
-				lString16 langname;
-				lString16 layouttype;
-                if ( !section.empty() && splitLine( section, cs16("."), langname, layouttype ) ) {
+				lString32 langname;
+				lString32 layouttype;
+                if ( !section.empty() && splitLine( section, cs32("."), langname, layouttype ) ) {
 					table = _table.get( langname );
 					if ( table.isNull() ) {
 						table = CRKeyboardLayoutRef( new CRKeyboardLayoutSet() );
@@ -2008,9 +2008,9 @@ bool CRKeyboardLayoutList::openFromFile( const char  * layoutFile )
             }
         } else if ( !section.empty() ) {
             // read definition
-            lString16 name;
-            lString16 value;
-            if ( splitLine( line, cs16("="), name, value ) ) {
+            lString32 name;
+            lString32 value;
+            if ( splitLine( line, cs32("="), name, value ) ) {
                 if (name == "enabled") {
 					//if ( value == L"0" )
 					//	; //TODO:set disabled flag

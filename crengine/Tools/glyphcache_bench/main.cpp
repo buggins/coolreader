@@ -11,7 +11,7 @@
 
 // collected from real book with cyrillic text, order of characters is saved.
 // captured glyph cache filling
-lChar16 glyphCodes_tofill[] = {
+lChar32 glyphCodes_tofill[] = {
     52,
     54,
     56,
@@ -156,7 +156,7 @@ lChar16 glyphCodes_tofill[] = {
 
 // collected from real book with cyrillic text, order of characters is saved.
 // captured glyph cache lookup
-lChar16 lookup_seq[] = {
+lChar32 lookup_seq[] = {
     50,
     32,
     47,
@@ -263,8 +263,8 @@ int64_t timevalcmp(const struct timeval* t1, const struct timeval* t2);
 
 int main(int /*argc*/, char* /*argv*/[])
 {
-    const int glyphCodes_tofill_sz = sizeof(glyphCodes_tofill)/sizeof(lChar16);
-    const int lookup_seq_sz = sizeof(lookup_seq)/sizeof(lChar16);
+    const int glyphCodes_tofill_sz = sizeof(glyphCodes_tofill)/sizeof(lChar32);
+    const int lookup_seq_sz = sizeof(lookup_seq)/sizeof(lChar32);
     const int bench_sz = 100000;
     
     LVFontGlobalGlyphCacheA globalCacheA(0x40000);

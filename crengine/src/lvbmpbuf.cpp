@@ -383,7 +383,7 @@ void lvdrawbufDraw( draw_buf_t * buf, int x, int y, const lUInt8 * bitmap, int n
 */
 /*
 void lvdrawbufDrawText( draw_buf_t * buf, int x, int y, const lvfont_handle pfont, 
-                       const lChar16 * text, int len, lChar16 def_char )
+                       const lChar32 * text, int len, lChar32 def_char )
 {
    const lvfont_glyph_t * glyph;
    int baseline = lvfontGetHeader( pfont )->fontBaseline;
@@ -415,7 +415,7 @@ void lvdrawbufDrawText( draw_buf_t * buf, int x, int y, const lvfont_handle pfon
 }
 */
 void lvdrawbufDrawText( draw_buf_t * buf, int x, int y, const lvfont_handle pfont, 
-                       const lChar16 * text, int len, lChar16 def_char )
+                       const lChar32 * text, int len, lChar32 def_char )
 {
     static lUInt8 glyph_buf[16384];
     const lvfont_glyph_t * glyph;

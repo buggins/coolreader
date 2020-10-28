@@ -87,7 +87,7 @@ public:
     
     SerialBuf & operator << ( lInt32 n );
     
-    SerialBuf & operator << ( const lString16 & s );
+    SerialBuf & operator << ( const lString32 & s );
     
     SerialBuf & operator << ( const lString8 & s8 );
     
@@ -108,7 +108,7 @@ public:
     
     SerialBuf & operator >> ( lString8 & s8 );
     
-    SerialBuf & operator >> ( lString16 & s );
+    SerialBuf & operator >> ( lString32 & s );
     
     bool checkMagic( const char * s );
     /// read crc32 code, comapare with CRC32 for last N bytes

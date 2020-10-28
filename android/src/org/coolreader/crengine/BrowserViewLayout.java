@@ -1,13 +1,12 @@
 package org.coolreader.crengine;
 
-import org.coolreader.CoolReader;
-import org.coolreader.R;
-
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import org.coolreader.R;
 
 public class BrowserViewLayout extends ViewGroup {
 	private BaseActivity activity;
@@ -135,6 +134,8 @@ public class BrowserViewLayout extends ViewGroup {
 				backDownTs = Utils.timeStamp();
 			return true;
 		}
+		if (contentView.onKeyDown(keyCode, event))
+			return true;
 		return super.onKeyDown(keyCode, event);
 	}
 
@@ -160,6 +161,8 @@ public class BrowserViewLayout extends ViewGroup {
 				return true;
 			}
 		}
+		if (contentView.onKeyUp(keyCode, event))
+			return true;
 		return super.onKeyUp(keyCode, event);
 	}
 

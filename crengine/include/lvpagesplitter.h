@@ -22,7 +22,7 @@
 #include "lvstring.h"
 #include "lvhashtable.h"
 #include "crtimerutil.h"
-#include "lvstring16collection.h"
+#include "lvstring32collection.h"
 
 #ifndef RENDER_PROGRESS_INTERVAL_MILLIS
 #define RENDER_PROGRESS_INTERVAL_MILLIS 300
@@ -318,10 +318,10 @@ public:
 typedef LVFastRef<LVFootNote> LVFootNoteRef;
 
 class LVFootNote : public LVRefCounter {
-    lString16 id;
+    lString32 id;
     CompactArray<LVRendLineInfo*, 2, 4> lines;
 public:
-    LVFootNote( lString16 noteId )
+    LVFootNote( lString32 noteId )
         : id(noteId)
     {
     }
@@ -332,7 +332,7 @@ public:
     CompactArray<LVRendLineInfo*, 2, 4> & getLines() { return lines; }
     bool empty() { return lines.empty(); }
     void clear() { lines.clear(); }
-    lString16 getId() { return id; }
+    lString32 getId() { return id; }
 };
 
 class LVDocViewCallback;
@@ -364,13 +364,13 @@ class LVRendPageContext
     // Whether to gather lines or not (only footnote links will be gathered if not)
     bool gather_lines;
     // Links gathered when !gather_lines
-    lString16Collection link_ids;
+    lString32Collection link_ids;
 
-    LVHashTable<lString16, LVFootNoteRef> footNotes;
+    LVHashTable<lString32, LVFootNoteRef> footNotes;
 
     LVFootNote * curr_note;
 
-    LVFootNoteRef getOrCreateFootNote( lString16 id )
+    LVFootNoteRef getOrCreateFootNote( lString32 id )
     {
         LVFootNoteRef ref = footNotes.get(id);
         if ( ref.isNull() ) {
@@ -397,15 +397,15 @@ public:
     int getCurrentLinksCount();
 
     /// append or insert footnote link to last added line
-    void addLink( lString16 id, int pos=-1 );
+    void addLink( lString32 id, int pos=-1 );
 
     /// get gathered links when !gather_lines
-    // (returns a reference to avoid lString16Collection destructor from
+    // (returns a reference to avoid lString32Collection destructor from
     // being called twice and a double free crash)
-    lString16Collection * getLinkIds() { return &link_ids; }
+    lString32Collection * getLinkIds() { return &link_ids; }
 
     /// mark start of foot note
-    void enterFootNote( lString16 id );
+    void enterFootNote( lString32 id );
 
     /// mark end of foot note
     void leaveFootNote();

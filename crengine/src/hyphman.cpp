@@ -30,7 +30,6 @@
 
 #if !defined(__SYMBIAN32__)
 #include <stdio.h>
-#include <wchar.h>
 #endif
 
 #include "../include/lvtypes.h"
@@ -38,14 +37,14 @@
 #include "../include/hyphman.h"
 #include "../include/lvfnt.h"
 #include "../include/lvstring.h"
-#include "../include/lvstring16collection.h"
+#include "../include/lvstring32collection.h"
 #include "../include/crlog.h"
 #include "../include/textlang.h"
 
 
 #ifdef ANDROID
 
-#define _16(x) lString16(x)
+#define _32(x) lString32(x)
 
 #else
 
@@ -56,7 +55,7 @@
 int HyphMan::_LeftHyphenMin = HYPH_DEFAULT_HYPHEN_MIN;
 int HyphMan::_RightHyphenMin = HYPH_DEFAULT_HYPHEN_MIN;
 int HyphMan::_TrustSoftHyphens = HYPH_DEFAULT_TRUST_SOFT_HYPHENS;
-LVHashTable<lString16, HyphMethod*> HyphMan::_loaded_hyph_methods(16);
+LVHashTable<lString32, HyphMethod*> HyphMan::_loaded_hyph_methods(16);
 HyphDataLoader* HyphMan::_dataLoader = NULL;
 
 
@@ -78,13 +77,13 @@ class TexHyph : public HyphMethod
     lUInt32 _pattern_count;
 public:
     int largest_overflowed_word;
-    bool match( const lChar16 * str, char * mask );
-    virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
+    bool match( const lChar32 * str, char * mask );
+    virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
     void addPattern( TexPattern * pattern );
-    TexHyph( lString16 id=HYPH_DICT_ID_DICTIONARY, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN, int rightHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN );
+    TexHyph( lString32 id=HYPH_DICT_ID_DICTIONARY, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN, int rightHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN );
     virtual ~TexHyph();
     bool load( LVStreamRef stream );
-    bool load( lString16 fileName );
+    bool load( lString32 fileName );
     virtual lUInt32 getHash() { return _hash; }
     virtual lUInt32 getCount() { return _pattern_count; }
     virtual lUInt32 getSize();
@@ -94,7 +93,7 @@ class AlgoHyph : public HyphMethod
 {
 public:
     AlgoHyph(): HyphMethod(HYPH_DICT_ID_ALGORITHM) {};
-    virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
+    virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
     virtual ~AlgoHyph();
 };
 
@@ -102,7 +101,7 @@ class SoftHyphensHyph : public HyphMethod
 {
 public:
     SoftHyphensHyph(): HyphMethod(HYPH_DICT_ID_SOFTHYPHENS) {};
-    virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
+    virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
     virtual ~SoftHyphensHyph();
 };
 
@@ -110,7 +109,7 @@ class NoHyph : public HyphMethod
 {
 public:
     NoHyph(): HyphMethod(HYPH_DICT_ID_NONE) {};
-    virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+    virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
     {
         CR_UNUSED6(str, len, widths, flags, hyphCharWidth, maxWidth);
         return false;
@@ -149,7 +148,7 @@ class HyphDataLoaderFromFile: public HyphDataLoader
 public:
     HyphDataLoaderFromFile() : HyphDataLoader() {}
     virtual ~HyphDataLoaderFromFile() {}
-    virtual LVStreamRef loadData(lString16 id) {
+    virtual LVStreamRef loadData(lString32 id) {
         HyphDictionaryList* dictList = HyphMan::getDictList();
         HyphDictionary * p = dictList->find(id);
         if ( !p )
@@ -159,7 +158,7 @@ public:
                 p->getType() == HDT_SOFTHYPHENS ||
                 ( p->getType() != HDT_DICT_ALAN && p->getType() != HDT_DICT_TEX) )
             return LVStreamRef();
-        lString16 filename = p->getFilename();
+        lString32 filename = p->getFilename();
         return LVOpenFileStream( filename.c_str(), LVOM_READ );
     }
 };
@@ -171,8 +170,8 @@ void HyphMan::uninit()
     // Avoid existing frontend code to have to call it:
     TextLangMan::uninit();
     // Clean up _loaded_hyph_methods
-    LVHashTable<lString16, HyphMethod*>::iterator it = _loaded_hyph_methods.forwardIterator();
-    LVHashTable<lString16, HyphMethod*>::pair* pair;
+    LVHashTable<lString32, HyphMethod*>::iterator it = _loaded_hyph_methods.forwardIterator();
+    LVHashTable<lString32, HyphMethod*>::pair* pair;
     while ((pair = it.next())) {
         delete pair->value;
     }
@@ -191,7 +190,7 @@ void HyphMan::uninit()
     */
 }
 
-bool HyphMan::initDictionaries(lString16 dir, bool clear)
+bool HyphMan::initDictionaries(lString32 dir, bool clear)
 {
     if (clear && _dictList)
         delete _dictList;
@@ -200,11 +199,11 @@ bool HyphMan::initDictionaries(lString16 dir, bool clear)
     if (NULL == _dataLoader)
         _dataLoader = new HyphDataLoaderFromFile;
     if (_dictList->open(dir, clear)) {
-		if ( !_dictList->activate( lString16(DEF_HYPHENATION_DICT) ) )
-    			_dictList->activate( lString16(HYPH_DICT_ID_ALGORITHM) );
+		if ( !_dictList->activate( lString32(DEF_HYPHENATION_DICT) ) )
+    			_dictList->activate( lString32(HYPH_DICT_ID_ALGORITHM) );
 		return true;
 	} else {
-		_dictList->activate( lString16(HYPH_DICT_ID_ALGORITHM) );
+		_dictList->activate( lString32(HYPH_DICT_ID_ALGORITHM) );
 		return false;
 	}
 }
@@ -252,7 +251,7 @@ bool HyphMan::isEnabled() {
     */
 }
 
-bool HyphMan::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+bool HyphMan::hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
 {
     return TextLangMan::getMainLangHyphMethod()->hyphenate( str, len, widths, flags, hyphCharWidth, maxWidth, flagSize );
     /* Obsolete:
@@ -261,12 +260,12 @@ bool HyphMan::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
 }
 
 HyphDictionary * HyphMan::getSelectedDictionary() {
-    lString16 id = TextLangMan::getTextLangCfg()->getHyphMethod()->getId();
+    lString32 id = TextLangMan::getTextLangCfg()->getHyphMethod()->getId();
     HyphDictionary * dict = _dictList->find( id );
     return dict;
 }
 
-HyphMethod * HyphMan::getHyphMethodForDictionary( lString16 id, int leftHyphenMin, int rightHyphenMin ) {
+HyphMethod * HyphMan::getHyphMethodForDictionary( lString32 id, int leftHyphenMin, int rightHyphenMin ) {
     if ( id.empty() || NULL == _dataLoader)
         return &NO_HYPH;
     HyphDictionary * p = _dictList->find(id);
@@ -355,7 +354,7 @@ bool HyphDictionary::activate()
     */
 }
 
-bool HyphDictionaryList::activate( lString16 id )
+bool HyphDictionaryList::activate( lString32 id )
 {
     CRLog::trace("HyphDictionaryList::activate(%s)", LCSTR(id));
 	HyphDictionary * p = find(id);
@@ -367,19 +366,19 @@ bool HyphDictionaryList::activate( lString16 id )
 
 void HyphDictionaryList::addDefault()
 {
-	if ( !find( lString16( HYPH_DICT_ID_NONE ) ) ) {
-		_list.add( new HyphDictionary( HDT_NONE, _16("[No Hyphenation]"), lString16(HYPH_DICT_ID_NONE), lString16(HYPH_DICT_ID_NONE) ) );
+	if ( !find( lString32( HYPH_DICT_ID_NONE ) ) ) {
+		_list.add( new HyphDictionary( HDT_NONE, _32("[No Hyphenation]"), lString32(HYPH_DICT_ID_NONE), lString32(HYPH_DICT_ID_NONE) ) );
 	}
-	if ( !find( lString16( HYPH_DICT_ID_ALGORITHM ) ) ) {
-		_list.add( new HyphDictionary( HDT_ALGORITHM, _16("[Algorithmic Hyphenation]"), lString16(HYPH_DICT_ID_ALGORITHM), lString16(HYPH_DICT_ID_ALGORITHM) ) );
+	if ( !find( lString32( HYPH_DICT_ID_ALGORITHM ) ) ) {
+		_list.add( new HyphDictionary( HDT_ALGORITHM, _32("[Algorithmic Hyphenation]"), lString32(HYPH_DICT_ID_ALGORITHM), lString32(HYPH_DICT_ID_ALGORITHM) ) );
 	}
-	if ( !find( lString16( HYPH_DICT_ID_SOFTHYPHENS ) ) ) {
-		_list.add( new HyphDictionary( HDT_SOFTHYPHENS, _16("[Soft-hyphens Hyphenation]"), lString16(HYPH_DICT_ID_SOFTHYPHENS), lString16(HYPH_DICT_ID_SOFTHYPHENS) ) );
+	if ( !find( lString32( HYPH_DICT_ID_SOFTHYPHENS ) ) ) {
+		_list.add( new HyphDictionary( HDT_SOFTHYPHENS, _32("[Soft-hyphens Hyphenation]"), lString32(HYPH_DICT_ID_SOFTHYPHENS), lString32(HYPH_DICT_ID_SOFTHYPHENS) ) );
 	}
 
 }
 
-HyphDictionary * HyphDictionaryList::find( const lString16& id )
+HyphDictionary * HyphDictionaryList::find( const lString32& id )
 {
 	for ( int i=0; i<_list.length(); i++ ) {
 		if ( _list[i]->getId() == id )
@@ -388,7 +387,15 @@ HyphDictionary * HyphDictionaryList::find( const lString16& id )
 	return NULL;
 }
 
-bool HyphDictionaryList::open(lString16 hyphDirectory, bool clear)
+static int HyphDictionary_comparator(const HyphDictionary ** item1, const HyphDictionary ** item2)
+{
+    if ( ( (*item1)->getType() == HDT_DICT_ALAN || (*item1)->getType() == HDT_DICT_TEX) &&
+         ( (*item2)->getType() == HDT_DICT_ALAN || (*item2)->getType() == HDT_DICT_TEX) )
+        return (*item1)->getTitle().compare((*item2)->getTitle());
+    return (int)((*item1)->getType() - (*item2)->getType());
+}
+
+bool HyphDictionaryList::open(lString32 hyphDirectory, bool clear)
 {
     CRLog::info("HyphDictionaryList::open(%s)", LCSTR(hyphDirectory) );
     if (clear) {
@@ -401,7 +408,7 @@ bool HyphDictionaryList::open(lString16 hyphDirectory, bool clear)
     LVContainerRef container;
     LVStreamRef stream;
     if ( (hyphDirectory.endsWith("/") || hyphDirectory.endsWith("\\")) && LVDirectoryExists(hyphDirectory) ) {
-        container = LVOpenDirectory( hyphDirectory.c_str(), L"*.*" );
+        container = LVOpenDirectory( hyphDirectory.c_str(), U"*.*" );
     } else if ( LVFileExists(hyphDirectory) ) {
         stream = LVOpenFileStream( hyphDirectory.c_str(), LVOM_READ );
         if ( !stream.isNull() )
@@ -414,11 +421,13 @@ bool HyphDictionaryList::open(lString16 hyphDirectory, bool clear)
         CRLog::info("%d items found in hyph directory", len);
 		for ( int i=0; i<len; i++ ) {
 			const LVContainerItemInfo * item = container->GetObjectInfo( i );
-			lString16 name = item->GetName();
-            lString16 suffix;
+			lString32 name = item->GetName();
+            lString32 suffix;
+            lString32 suffix2add;
             HyphDictType t = HDT_NONE;
             if ( name.endsWith("_hyphen_(Alan).pdb") ) {
                 suffix = "_hyphen_(Alan).pdb";
+                suffix2add = " (Alan)";
                 t = HDT_DICT_ALAN;
             } else if ( name.endsWith(".pattern") ) {
                 suffix = ".pattern";
@@ -428,14 +437,17 @@ bool HyphDictionaryList::open(lString16 hyphDirectory, bool clear)
 
 
 
-			lString16 filename = hyphDirectory + name;
-			lString16 id = name;
-			lString16 title = name;
+			lString32 filename = hyphDirectory + name;
+			lString32 id = name;
+			lString32 title = name;
 			if ( title.endsWith( suffix ) )
 				title.erase( title.length() - suffix.length(), suffix.length() );
+			if (!suffix2add.empty())
+				title.append(suffix2add);
 			_list.add( new HyphDictionary( t, title, id, filename ) );
             count++;
 		}
+        _list.sort(HyphDictionary_comparator);
 		CRLog::info("%d dictionaries added to list", _list.length());
 		return true;
 	} else {
@@ -457,7 +469,7 @@ HyphMan::~HyphMan()
 // and AlgoHyph::hyphenate(): if soft hyphens are found in the
 // provided word, trust and use them; don't do the regular patterns
 // and algorithm matching.
-static bool softhyphens_hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+static bool softhyphens_hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
 {
     bool soft_hyphens_found = false;
     for ( int i = 0; i<len; i++ ) {
@@ -477,7 +489,7 @@ static bool softhyphens_hyphenate( const lChar16 * str, int len, lUInt16 * width
     return soft_hyphens_found;
 }
 
-bool SoftHyphensHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+bool SoftHyphensHyph::hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
 {
     return softhyphens_hyphenate(str, len, widths, flags, hyphCharWidth, maxWidth, flagSize);
 }
@@ -521,7 +533,7 @@ static int isCorrectHyphFile(LVStream * stream)
 
 class TexPattern {
 public:
-    lChar16 word[MAX_PATTERN_SIZE+1];
+    lChar32 word[MAX_PATTERN_SIZE+1];
     char attr[MAX_PATTERN_SIZE+2];
     int overflowed; // 0, or size of complete word if larger than MAX_PATTERN_SIZE
     TexPattern * next;
@@ -531,22 +543,22 @@ public:
         return lStr_cmp( word, v->word );
     }
 
-    static int hash( const lChar16 * s )
+    static int hash( const lChar32 * s )
     {
         return ((lUInt32)(((s[0] *31 + s[1])*31 + s[2]) * 31 + s[3])) % PATTERN_HASH_SIZE;
     }
 
-    static int hash3( const lChar16 * s )
+    static int hash3( const lChar32 * s )
     {
         return ((lUInt32)(((s[0] *31 + s[1])*31 + s[2]) * 31 + 0)) % PATTERN_HASH_SIZE;
     }
 
-    static int hash2( const lChar16 * s )
+    static int hash2( const lChar32 * s )
     {
         return ((lUInt32)(((s[0] *31 + s[1])*31 + 0) * 31 + 0)) % PATTERN_HASH_SIZE;
     }
 
-    static int hash1( const lChar16 * s )
+    static int hash1( const lChar32 * s )
     {
         return ((lUInt32)(((s[0] *31 + 0)*31 + 0) * 31 + 0)) % PATTERN_HASH_SIZE;
     }
@@ -556,7 +568,7 @@ public:
         return ((lUInt32)(((word[0] *31 + word[1])*31 + word[2]) * 31 + word[3])) % PATTERN_HASH_SIZE;
     }
 
-    bool match( const lChar16 * s, char * mask )
+    bool match( const lChar32 * s, char * mask )
     {
         TexPattern * p = this;
         bool found = false;
@@ -570,7 +582,7 @@ public:
             if ( res ) {
                 if ( p->word[0]==s[0] && (p->word[1]==0 || p->word[1]==s[1]) ) {
 #if DUMP_PATTERNS==1
-                    CRLog::debug("Pattern matched: %s %s on %s %s", LCSTR(lString16(p->word)), p->attr, LCSTR(lString16(s)), mask);
+                    CRLog::debug("Pattern matched: %s %s on %s %s", LCSTR(lString32(p->word)), p->attr, LCSTR(lString32(s)), mask);
 #endif
                     p->apply(mask);
                     found = true;
@@ -590,7 +602,7 @@ public:
         }
     }
 
-    TexPattern( const lString16 &s ) : next( NULL )
+    TexPattern( const lString32 &s ) : next( NULL )
     {
         overflowed = 0;
         memset( word, 0, sizeof(word) );
@@ -598,7 +610,7 @@ public:
         attr[sizeof(attr)-1] = 0;
         int n = 0;
         for ( int i=0; i<(int)s.length(); i++ ) {
-            lChar16 ch = s[i];
+            lChar32 ch = s[i];
             if (n > MAX_PATTERN_SIZE) {
                 if ( ch<'0' || ch>'9' ) {
                     overflowed = n++;
@@ -630,7 +642,7 @@ public:
             overflowed = overflowed + 1; // convert counter to number of things counted
     }
 
-    TexPattern( const unsigned char * s, int sz, const lChar16 * charMap )
+    TexPattern( const unsigned char * s, int sz, const lChar32 * charMap )
     {
         overflowed = 0;
         if ( sz > MAX_PATTERN_SIZE ) {
@@ -649,9 +661,9 @@ class HyphPatternReader : public LVXMLParserCallback
 {
 protected:
     bool insidePatternTag;
-    lString16Collection & data;
+    lString32Collection & data;
 public:
-    HyphPatternReader(lString16Collection & result) : insidePatternTag(false), data(result)
+    HyphPatternReader(lString32Collection & result) : insidePatternTag(false), data(result)
     {
         result.clear();
     }
@@ -660,7 +672,7 @@ public:
     /// called on opening tag end
     virtual void OnTagBody() {}
     /// called on opening tag
-    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
+    virtual ldomNode * OnTagOpen( const lChar32 * nsname, const lChar32 * tagname)
     {
         CR_UNUSED(nsname);
         if (!lStr_cmp(tagname, "pattern")) {
@@ -669,32 +681,32 @@ public:
         return NULL;
     }
     /// called on closing
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname, bool self_closing_tag=false )
+    virtual void OnTagClose( const lChar32 * nsname, const lChar32 * tagname, bool self_closing_tag=false )
     {
         CR_UNUSED2(nsname, tagname);
         insidePatternTag = false;
     }
     /// called on element attribute
-    virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
+    virtual void OnAttribute( const lChar32 * nsname, const lChar32 * attrname, const lChar32 * attrvalue )
     {
         CR_UNUSED3(nsname, attrname, attrvalue);
     }
     /// called on text
-    virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
+    virtual void OnText( const lChar32 * text, int len, lUInt32 flags )
     {
         CR_UNUSED(flags);
         if ( insidePatternTag )
-            data.add( lString16(text, len) );
+            data.add( lString32(text, len) );
     }
     /// add named BLOB data to document
-    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) {
+    virtual bool OnBlob(lString32 name, const lUInt8 * data, int size) {
         CR_UNUSED3(name, data, size);
         return false;
     }
 
 };
 
-TexHyph::TexHyph(lString16 id, int leftHyphenMin, int rightHyphenMin) : HyphMethod(id, leftHyphenMin, rightHyphenMin)
+TexHyph::TexHyph(lString32 id, int leftHyphenMin, int rightHyphenMin) : HyphMethod(id, leftHyphenMin, rightHyphenMin)
 {
     memset( table, 0, sizeof(table) );
     _hash = 123456;
@@ -747,7 +759,7 @@ bool TexHyph::load( LVStreamRef stream )
         stream->SetPos(p);
         if ( stream->SetPos(p)!=p )
             return false;
-        lChar16 charMap[256] = { 0 };
+        lChar32 charMap[256] = { 0 };
         unsigned char buf[0x10000];
         // make char map table
         for (i=0; i<hyph_count; i++)
@@ -763,8 +775,8 @@ bool TexHyph::load( LVStreamRef stream )
             cnv.msf( hyph.wu );
             charMap[ (unsigned char)hyph.al ] = hyph.wl;
             charMap[ (unsigned char)hyph.au ] = hyph.wu;
-//            lChar16 ch = hyph.wl;
-//            CRLog::debug("wl=%s mask=%c%c", LCSTR(lString16(&ch, 1)), hyph.mask0[0], hyph.mask0[1]);
+//            lChar32 ch = hyph.wl;
+//            CRLog::debug("wl=%s mask=%c%c", LCSTR(lString32(&ch, 1)), hyph.mask0[0], hyph.mask0[1]);
             if (hyph.mask0[0]!='0'||hyph.mask0[1]!='0') {
                 unsigned char pat[4];
                 pat[0] = hyph.al;
@@ -773,11 +785,11 @@ bool TexHyph::load( LVStreamRef stream )
                 pat[3] = 0;
                 TexPattern * pattern = new TexPattern(pat, 1, charMap);
 #if DUMP_PATTERNS==1
-                CRLog::debug("Pattern: '%s' - %s", LCSTR(lString16(pattern->word)), pattern->attr );
+                CRLog::debug("Pattern: '%s' - %s", LCSTR(lString32(pattern->word)), pattern->attr );
 #endif
                 if (pattern->overflowed) {
                     // don't use truncated words
-                    CRLog::warn("Pattern overflowed (%d > %d) and ignored: '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(lString16(pattern->word)));
+                    CRLog::warn("Pattern overflowed (%d > %d) and ignored: '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(lString32(pattern->word)));
                     if (pattern->overflowed > largest_overflowed_word)
                         largest_overflowed_word = pattern->overflowed;
                     delete pattern;
@@ -811,11 +823,11 @@ bool TexHyph::load( LVStreamRef stream )
                     break;
                 TexPattern * pattern = new TexPattern( p, sz, charMap );
 #if DUMP_PATTERNS==1
-                CRLog::debug("Pattern: '%s' - %s", LCSTR(lString16(pattern->word)), pattern->attr);
+                CRLog::debug("Pattern: '%s' - %s", LCSTR(lString32(pattern->word)), pattern->attr);
 #endif
                 if (pattern->overflowed) {
                     // don't use truncated words
-                    CRLog::warn("Pattern overflowed (%d > %d) and ignored: '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(lString16(pattern->word)));
+                    CRLog::warn("Pattern overflowed (%d > %d) and ignored: '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(lString32(pattern->word)));
                     if (pattern->overflowed > largest_overflowed_word)
                         largest_overflowed_word = pattern->overflowed;
                     delete pattern;
@@ -831,7 +843,7 @@ bool TexHyph::load( LVStreamRef stream )
         return patternCount>0;
     } else {
         // tex xml format as for FBReader
-        lString16Collection data;
+        lString32Collection data;
         HyphPatternReader reader( data );
         LVXMLParser parser( stream, &reader );
         if ( !parser.CheckFormat() )
@@ -844,11 +856,11 @@ bool TexHyph::load( LVStreamRef stream )
             data[i].lowercase();
             TexPattern * pattern = new TexPattern( data[i] );
 #if DUMP_PATTERNS==1
-            CRLog::debug("Pattern: (%s) '%s' - %s", LCSTR(data[i]), LCSTR(lString16(pattern->word)), pattern->attr);
+            CRLog::debug("Pattern: (%s) '%s' - %s", LCSTR(data[i]), LCSTR(lString32(pattern->word)), pattern->attr);
 #endif
             if (pattern->overflowed) {
                 // don't use truncated words
-                CRLog::warn("Pattern overflowed (%d > %d) and ignored: (%s) '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(data[i]), LCSTR(lString16(pattern->word)));
+                CRLog::warn("Pattern overflowed (%d > %d) and ignored: (%s) '%s'", pattern->overflowed, MAX_PATTERN_SIZE, LCSTR(data[i]), LCSTR(lString32(pattern->word)));
                 if (pattern->overflowed > largest_overflowed_word)
                     largest_overflowed_word = pattern->overflowed;
                 delete pattern;
@@ -862,7 +874,7 @@ bool TexHyph::load( LVStreamRef stream )
     }
 }
 
-bool TexHyph::load( lString16 fileName )
+bool TexHyph::load( lString32 fileName )
 {
     LVStreamRef stream = LVOpenFileStream( fileName.c_str(), LVOM_READ );
     if ( stream.isNull() )
@@ -871,7 +883,7 @@ bool TexHyph::load( lString16 fileName )
 }
 
 
-bool TexHyph::match( const lChar16 * str, char * mask )
+bool TexHyph::match( const lChar32 * str, char * mask )
 {
     bool found = false;
     TexPattern * res = table[ TexPattern::hash( str ) ];
@@ -895,7 +907,7 @@ bool TexHyph::match( const lChar16 * str, char * mask )
 
 //TODO: do we need it?
 ///// returns false if there is rule disabling hyphenation at specified point
-//static bool checkHyphenRules( const lChar16 * str, int len, int pos )
+//static bool checkHyphenRules( const lChar32 * str, int len, int pos )
 //{
 //    if ( pos<1 || pos>len-3 )
 //        return false;
@@ -914,7 +926,7 @@ bool TexHyph::match( const lChar16 * str, char * mask )
 //    return true;
 //}
 
-bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+bool TexHyph::hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
 {
     if ( HyphMan::_TrustSoftHyphens ) {
         if ( softhyphens_hyphenate(str, len, widths, flags, hyphCharWidth, maxWidth, flagSize) )
@@ -924,7 +936,7 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
         return false;
     if ( len>=WORD_LENGTH )
         len = WORD_LENGTH - 2;
-    lChar16 word[WORD_LENGTH+4] = { 0 };
+    lChar32 word[WORD_LENGTH+4] = { 0 };
     char mask[WORD_LENGTH+4] = { 0 };
 
     // Make word from str, with soft-hyphens stripped out.
@@ -942,10 +954,10 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
     if ( wlen<=3 )
         return false;
     lStr_lowercase(word+1, wlen);
-    // printf("word:%s => #%s# (%d => %d)\n", LCSTR(lString16(str, len)), LCSTR(lString16(word)), len, wlen);
+    // printf("word:%s => #%s# (%d => %d)\n", LCSTR(lString32(str, len)), LCSTR(lString32(word)), len, wlen);
 
 #if DUMP_HYPHENATION_WORDS==1
-    CRLog::trace("word to hyphenate: '%s'", LCSTR(lString16(word)));
+    CRLog::trace("word to hyphenate: '%s'", LCSTR(lString32(word)));
 #endif
 
     // Find matches from dict patterns, at any position in word.
@@ -959,26 +971,26 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
         return false;
 
 #if DUMP_HYPHENATION_WORDS==1
-    lString16 buf;
-    lString16 buf2;
+    lString32 buf;
+    lString32 buf2;
     bool boundFound = false;
     for ( int i=0; i<wlen; i++ ) {
         buf << word[i+1];
         buf2 << word[i+1];
-        buf2 << (lChar16)mask[i+2];
+        buf2 << (lChar32)mask[i+2];
         // This maxWidth check may be wrong here (in the dump only) because
         // of a +1 shift and possible more shifts due to soft-hyphens.
         int nw = widths[i]+hyphCharWidth;
         if ( (mask[i+2]&1) ) {
-            buf << (lChar16)'-';
-            buf2 << (lChar16)'-';
+            buf << (lChar32)'-';
+            buf2 << (lChar32)'-';
         }
         if ( nw>maxWidth && !boundFound ) {
-            buf << (lChar16)'|';
-            buf2 << (lChar16)'|';
+            buf << (lChar32)'|';
+            buf2 << (lChar32)'|';
             boundFound = true;
-//            buf << (lChar16)'-';
-//            buf2 << (lChar16)'-';
+//            buf << (lChar32)'-';
+//            buf2 << (lChar32)'-';
         }
     }
     CRLog::trace("Hyphenate: %s  %s", LCSTR(buf), LCSTR(buf2) );
@@ -1024,7 +1036,7 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
     return res;
 }
 
-bool AlgoHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+bool AlgoHyph::hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
 {
     if ( HyphMan::_TrustSoftHyphens ) {
         if ( softhyphens_hyphenate(str, len, widths, flags, hyphCharWidth, maxWidth, flagSize) )

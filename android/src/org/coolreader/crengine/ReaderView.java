@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -1284,7 +1285,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					case STATE_DOWN_1:
 						if (distance < dragThreshold)
 							return true;
-						if (!DeviceInfo.EINK_SCREEN && isBacklightControlFlick != BACKLIGHT_CONTROL_FLICK_NONE && ady > adx) {
+						if ((!DeviceInfo.EINK_SCREEN || DeviceInfo.EINK_HAVE_FRONTLIGHT) && isBacklightControlFlick != BACKLIGHT_CONTROL_FLICK_NONE && ady > adx) {
 							// backlight control enabled
 							if (start_x < dragThreshold * 170 / 100 && isBacklightControlFlick == 1
 									|| start_x > width - dragThreshold * 170 / 100 && isBacklightControlFlick == 2) {
@@ -3781,25 +3782,57 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	int currentBrightnessValueIndex = -1;
+	int currentBrightnessValue = -1;
+	int currentBrightnessPrevYPos = -1;
 
 	private void startBrightnessControl(final int startX, final int startY) {
-		currentBrightnessValueIndex = -1;
+		currentBrightnessValue = mActivity.getScreenBacklightLevel();
+		if (!DeviceInfo.EINK_SCREEN)
+			currentBrightnessValueIndex = OptionsDialog.findBacklightSettingIndex(currentBrightnessValue);
+		else if (DeviceInfo.EINK_HAVE_FRONTLIGHT)
+			currentBrightnessValueIndex = Utils.findNearestIndex(EinkScreen.getFrontLightLevels(mActivity), currentBrightnessValue);
+		currentBrightnessPrevYPos = startY;
 		updateBrightnessControl(startX, startY);
 	}
 
 	private void updateBrightnessControl(final int x, final int y) {
-		int n = OptionsDialog.mBacklightLevels.length;
-		int index = n - 1 - y * n / surface.getHeight();
+		List<Integer> levelList = null;
+		int count = 0;
+		if (!DeviceInfo.EINK_SCREEN)
+			count = OptionsDialog.mBacklightLevels.length;
+		else if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
+			levelList = EinkScreen.getFrontLightLevels(mActivity);
+			if (null != levelList)
+				count = levelList.size();
+			else
+				return;
+		}
+		if (0 == count)
+			return;
+		int diff = count*(currentBrightnessPrevYPos - y)/surface.getHeight();
+		int index = currentBrightnessValueIndex + diff;
 		if (index < 0)
 			index = 0;
-		else if (index >= n)
-			index = n - 1;
+		else if (index >= count)
+			index = count - 1;
+		if (!DeviceInfo.EINK_SCREEN) {
+			if (index == 0) {
+				// ignore system brightness level on non eink devices
+				currentBrightnessPrevYPos = y;
+				return;
+			}
+		}
 		if (index != currentBrightnessValueIndex) {
 			currentBrightnessValueIndex = index;
-			int newValue = OptionsDialog.mBacklightLevels[currentBrightnessValueIndex];
-			mActivity.setScreenBacklightLevel(newValue);
+			if (!DeviceInfo.EINK_SCREEN)
+				currentBrightnessValue = OptionsDialog.mBacklightLevels[currentBrightnessValueIndex];
+			else {
+				// Here levelList already != null
+				currentBrightnessValue = levelList.get(currentBrightnessValueIndex);
+			}
+			mActivity.setScreenBacklightLevel(currentBrightnessValue);
+			currentBrightnessPrevYPos = y;
 		}
-
 	}
 
 	private void stopBrightnessControl(final int x, final int y) {
@@ -3807,14 +3840,16 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			if (x >= 0 && y >= 0) {
 				updateBrightnessControl(x, y);
 			}
-			mSettings.setInt(PROP_APP_SCREEN_BACKLIGHT, OptionsDialog.mBacklightLevels[currentBrightnessValueIndex]);
-			OptionsDialog.mBacklightLevelsTitles[0] = mActivity.getString(R.string.options_app_backlight_screen_default);
+			mSettings.setInt(PROP_APP_SCREEN_BACKLIGHT, currentBrightnessValue);
 			if (showBrightnessFlickToast) {
+				OptionsDialog.mBacklightLevelsTitles[0] = mActivity.getString(R.string.options_app_backlight_screen_default);
 				String s = OptionsDialog.mBacklightLevelsTitles[currentBrightnessValueIndex];
 				mActivity.showToast(s);
 			}
 			saveSettings(mSettings);
+			currentBrightnessValue = -1;
 			currentBrightnessValueIndex = -1;
+			currentBrightnessPrevYPos = -1;
 		}
 	}
 
@@ -4931,7 +4966,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				}
 				CoolReader.dumpHeapAllocation();
 			} else {
-				log.e("Error occured while trying to load document " + filename);
+				log.e("Error occurred while trying to load document " + filename);
 				throw new IOException("Cannot read document");
 			}
 		}
@@ -4942,18 +4977,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
 			if (Services.getHistory() != null) {
 				Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
-				java.util.Properties props = doc.getDocProps();
-				if (null != props) {
-					String crc32Str = props.getProperty(DOC_PROP_FILE_CRC32, "0");
-					if (crc32Str.startsWith("0x"))
-						crc32Str = crc32Str.substring(2);
-					try {
-						mBookInfo.getFileInfo().crc32 = Integer.valueOf(crc32Str, 16);
-					} catch (NumberFormatException e) {
-						mBookInfo.getFileInfo().crc32 = 0;
-					}
-				} else
-					mBookInfo.getFileInfo().crc32 = 0;
 				mActivity.waitForCRDBService(() -> mActivity.getDB().saveBookInfo(mBookInfo));
 				if (coverPageBytes != null && mBookInfo != null && mBookInfo.getFileInfo() != null) {
 					// TODO: fix it

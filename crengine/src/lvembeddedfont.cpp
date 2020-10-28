@@ -39,7 +39,7 @@ bool LVEmbeddedFontDef::deserialize(SerialBuf &buf) {
 ////////////////////////////////////////////////////////////////////
 // LVEmbeddedFontList
 ////////////////////////////////////////////////////////////////////
-LVEmbeddedFontDef *LVEmbeddedFontList::findByUrl(lString16 url) {
+LVEmbeddedFontDef *LVEmbeddedFontList::findByUrl(lString32 url) {
     for (int i = 0; i < length(); i++) {
         if (get(i)->getUrl() == url)
             return get(i);
@@ -56,7 +56,7 @@ bool LVEmbeddedFontList::addAll(LVEmbeddedFontList &list) {
     return changed;
 }
 
-bool LVEmbeddedFontList::add(lString16 url, lString8 face, bool bold, bool italic) {
+bool LVEmbeddedFontList::add(lString32 url, lString8 face, bool bold, bool italic) {
     LVEmbeddedFontDef *def = findByUrl(url);
     if (def) {
         bool changed = false;

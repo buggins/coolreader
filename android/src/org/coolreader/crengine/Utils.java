@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.coolreader.R;
@@ -24,9 +25,14 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
+import android.os.Build;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
+
+import androidx.annotation.RequiresApi;
+import androidx.documentfile.provider.DocumentFile;
 
 public class Utils {
 	public static long timeStamp() {
@@ -157,6 +163,30 @@ public class Utils {
 			if (!f2.delete())
 				Log.e("cr3", "Cannot remove DB file " + f2);
 		return f2;
+	}
+
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+	public static DocumentFile getDocumentFile(FileInfo fi, Context context, Uri sdCardUri) {
+		DocumentFile docFile = null;
+		String filePath = null;
+		if (!fi.isDirectory) {
+			if (fi.isArchive && fi.arcname != null) {
+				filePath = fi.arcname;
+			} else
+				filePath = fi.pathname;
+		}
+		if (null != filePath) {
+			File f = new File(filePath);
+			filePath = f.getAbsolutePath();
+			docFile = DocumentFile.fromTreeUri(context, sdCardUri);
+			String[] parts = filePath.split("\\/");
+			for (int i = 3; i < parts.length; i++) {
+				if (docFile != null) {
+					docFile = docFile.findFile(parts[i]);
+				}
+			}
+		}
+		return docFile;
 	}
 
 	private final static String LATIN_C0 =
@@ -632,4 +662,45 @@ public class Utils {
 			resId = fallbackResId;
 		return resId;
 	}
+
+	public static int findNearestIndex(List<Integer> list, int value) {
+		int res = -1;
+		if (list != null && list.size() > 0) {
+			int min = Math.abs(list.get(0) - value);
+			int index = 0;
+			int diff;
+			for (int i = 1; i < list.size(); i++) {
+				diff = Math.abs(list.get(i) - value);
+				if (diff < min) {
+					min = diff;
+					index = i;
+				}
+				if (diff == 0)
+					break;
+			}
+			res = index;
+		}
+		return res;
+	}
+
+	public static Integer findNearestValue(List<Integer> list, int value) {
+		Integer res = null;
+		if (list != null && list.size() > 0) {
+			int min = Math.abs(list.get(0) - value);
+			int index = 0;
+			int diff;
+			for (int i = 1; i < list.size(); i++) {
+				diff = Math.abs(list.get(i) - value);
+				if (diff < min) {
+					min = diff;
+					index = i;
+				}
+				if (diff == 0)
+					break;
+			}
+			res = list.get(index);
+		}
+		return res;
+	}
+
 }

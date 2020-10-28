@@ -54,7 +54,6 @@ import java.util.zip.GZIPOutputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-// TODO: add an operation to remove old bookmarks from a remote service
 @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
 public class Synchronizer {
 
@@ -87,6 +86,7 @@ public class Synchronizer {
 	private OnSyncStatusListener m_onStatusListener;
 	private Runnable m_onAbortedListener;
 	private HashMap<SyncTarget, Boolean> m_syncTargets;
+	private int m_bookmarksKeepAlive = 14;
 	private boolean m_forcedOperations;			// forced all sync operations regardless of specified sync targets
 
 	private static final String[] ALLOWED_OPTIONS_PROP_NAMES = {
@@ -158,6 +158,14 @@ public class Synchronizer {
 		if (null == value)
 			return defValue;
 		return value;
+	}
+
+	public void setBookmarksKeepAlive(int days) {
+		if (days < 0)
+			days = 0;
+		else if (days > 365)
+			days = 365;
+		m_bookmarksKeepAlive = days;
 	}
 
 	public void setSignInRequestCode(int requestCode) {
@@ -379,7 +387,9 @@ public class Synchronizer {
 
 			m_remoteAccess.mkdir(REMOTE_FOLDER_PATH, new OnOperationCompleteListener<FileMetadata>() {
 				@Override
-				public void onCompleted(FileMetadata meta) {
+				public void onCompleted(FileMetadata meta, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -418,7 +428,9 @@ public class Synchronizer {
 			// 1. Check remote file modification file
 			m_remoteAccess.stat(remoteFilePath, new OnOperationCompleteListener<FileMetadata>() {
 				@Override
-				public void onCompleted(FileMetadata meta) {
+				public void onCompleted(FileMetadata meta, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -506,7 +518,9 @@ public class Synchronizer {
 				outputStream.close();
 				m_remoteAccess.writeFile(remoteFilePath, outputStream.toByteArray(), new OnOperationCompleteListener<Boolean>() {
 					@Override
-					public void onCompleted(Boolean result) {
+					public void onCompleted(Boolean result, boolean ok) {
+						if (!ok)
+							return;		// onFailed() will be called
 						if (checkAbort())
 							return;
 						m_currentOperationIndex++;
@@ -550,7 +564,9 @@ public class Synchronizer {
 			// 1. Check remote file modification file
 			m_remoteAccess.stat(remoteFilePath, new OnOperationCompleteListener<FileMetadata>() {
 				@Override
-				public void onCompleted(FileMetadata meta) {
+				public void onCompleted(FileMetadata meta, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -621,7 +637,9 @@ public class Synchronizer {
 
 			m_remoteAccess.readFile(remoteFilePath, new OnOperationCompleteListener<InputStream>() {
 				@Override
-				public void onCompleted(InputStream inputStream) {
+				public void onCompleted(InputStream inputStream, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -699,7 +717,9 @@ public class Synchronizer {
 						String fileName = fileInfo.filename + "_" + fileInfo.crc32 + ".bmk.xml.gz";
 						m_remoteAccess.writeFile(REMOTE_FOLDER_PATH + "/" + fileName, data, new OnOperationCompleteListener<Boolean>() {
 							@Override
-							public void onCompleted(Boolean result) {
+							public void onCompleted(Boolean result, boolean ok) {
+								if (!ok)
+									return;		// onFailed() will be called
 								if (checkAbort())
 									return;
 								m_currentOperationIndex++;
@@ -757,7 +777,9 @@ public class Synchronizer {
 
 			m_remoteAccess.readFile(fileName, new OnOperationCompleteListener<InputStream>() {
 				@Override
-				public void onCompleted(InputStream inputStream) {
+				public void onCompleted(InputStream inputStream, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -787,7 +809,9 @@ public class Synchronizer {
 
 			m_remoteAccess.list(REMOTE_FOLDER_PATH, new OnOperationCompleteListener<FileMetadataList>() {
 				@Override
-				public void onCompleted(FileMetadataList metalist) {
+				public void onCompleted(FileMetadataList metalist, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -847,13 +871,15 @@ public class Synchronizer {
 						props.setProperty("series", fileInfo.series);
 						props.setInt("seriesNumber", fileInfo.seriesNumber);
 						props.setInt("size", fileInfo.size);
-						props.setInt("crc32", fileInfo.crc32);
+						props.setLong("crc32", fileInfo.crc32);
 						props.storeToXML(gzipOutputStream, "CoolReader current document info");
 						gzipOutputStream.close();
 						outputStream.close();
 						m_remoteAccess.writeFile(REMOTE_FOLDER_PATH + "/current.xml.gz", outputStream.toByteArray(), new OnOperationCompleteListener<Boolean>() {
 							@Override
-							public void onCompleted(Boolean result) {
+							public void onCompleted(Boolean result, boolean ok) {
+								if (!ok)
+									return;		// onFailed() will be called
 								if (checkAbort())
 									return;
 								m_currentOperationIndex++;
@@ -901,7 +927,9 @@ public class Synchronizer {
 
 			m_remoteAccess.readFile(REMOTE_FOLDER_PATH + "/current.xml.gz", new OnOperationCompleteListener<InputStream>() {
 				@Override
-				public void onCompleted(InputStream inputStream) {
+				public void onCompleted(InputStream inputStream, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -920,7 +948,7 @@ public class Synchronizer {
 								fileInfo.series = props.getProperty("series");
 								fileInfo.seriesNumber = props.getInt("seriesNumber", 0);
 								fileInfo.size = props.getInt("size", 0);
-								fileInfo.crc32 = props.getInt("crc32", 0);
+								fileInfo.crc32 = props.getLong("crc32", 0);
 								syncSetCurrentBook(fileInfo);
 								onContinue.run();
 							} else {
@@ -953,7 +981,9 @@ public class Synchronizer {
 			// use trash() instead of delete() so that the user can recover the data later.
 			m_remoteAccess.trash(REMOTE_FOLDER_PATH, new OnOperationCompleteListener<Boolean>() {
 				@Override
-				public void onCompleted(Boolean result) {
+				public void onCompleted(Boolean result, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
@@ -970,6 +1000,77 @@ public class Synchronizer {
 				@Override
 				public void onFailed(Exception e) {
 					log.e("DeleteAllAppDataSyncOperation: delete failed: " + e.toString());
+					doneFailed(e.toString());
+				}
+			});
+		}
+	}
+
+	protected class DeleteOldBookmarksSyncOperation extends SyncOperation {
+		@Override
+		void call(Runnable onContinue) {
+			log.d("Starting DeleteOldBookmarksOperation operation...");
+			m_remoteAccess.list(REMOTE_FOLDER_PATH, new OnOperationCompleteListener<FileMetadataList>() {
+				@Override
+				public void onCompleted(FileMetadataList metalist, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
+					if (checkAbort())
+						return;
+					m_currentOperationIndex++;
+					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					Date now = new Date();
+					SyncOperation op = DeleteOldBookmarksSyncOperation.this;
+					for (FileMetadata meta : metalist) {
+						if (meta.fileName.endsWith(".bmk.xml.gz")) {
+							if (meta.modifiedDate.getTime() + 86400000*(long)m_bookmarksKeepAlive < now.getTime()) {
+								log.d("scheduling to remove file \"" + meta.fileName +  "\".");
+								String fileName = REMOTE_FOLDER_PATH + "/" + meta.fileName;
+								SyncOperation deleteFileOp = new DeleteFileSyncOperation(fileName);
+								insertOperation(op, deleteFileOp);
+								op = deleteFileOp;
+							}
+						}
+					}
+					onContinue.run();
+				}
+
+				@Override
+				public void onFailed(Exception e) {
+					log.e("DeleteOldBookmarksOperation: list failed: " + e.toString());
+					doneFailed(e.toString());
+				}
+			});
+		}
+	}
+
+	protected class DeleteFileSyncOperation extends SyncOperation {
+		private String m_fileName;
+
+		public DeleteFileSyncOperation(String fileName) {
+			m_fileName = fileName;
+		}
+
+		@Override
+		void call(Runnable onContinue) {
+			log.d("Starting DeleteFileSyncOperation operation...");
+			m_remoteAccess.trash(m_fileName, new OnOperationCompleteListener<Boolean>() {
+				@Override
+				public void onCompleted(Boolean result, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
+					if (checkAbort())
+						return;
+					m_currentOperationIndex++;
+					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					if (result)
+						log.d("File \"" + m_fileName + "\" trashed.");
+					onContinue.run();
+				}
+
+				@Override
+				public void onFailed(Exception e) {
+					log.e("DeleteFileSyncOperation: trash failed: " + e.toString());
 					doneFailed(e.toString());
 				}
 			});
@@ -1013,6 +1114,8 @@ public class Synchronizer {
 		}
 		if (force || hasTarget(SyncTarget.BOOKMARKS))
 			addOperation(new DownloadAllBookmarksSyncOperation());
+		if (m_bookmarksKeepAlive > 0)		// if equals 0 -> disabled
+			addOperation(new DeleteOldBookmarksSyncOperation());
 		if (force || hasTarget(SyncTarget.CURRENTBOOKINFO))
 			addOperation(new DownloadCurrentBookInfoSyncOperation());
 		addOperation(m_doneOp);
@@ -1210,7 +1313,7 @@ public class Synchronizer {
 				serializer.endTag("", "size");
 				// File CRC32
 				serializer.startTag("", "crc32");
-				serializer.text(Integer.toString(fileInfo.crc32, 10));
+				serializer.text(Long.toString(fileInfo.crc32, 10));
 				serializer.endTag("", "crc32");
 				serializer.endTag("", "fileinfo");
 				// Write bookmarks

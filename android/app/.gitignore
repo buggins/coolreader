@@ -1,2 +1,6 @@
 /build
 .externalNativeBuild
+/.cxx/
+/debug/
+/release/
+/release_stripped/

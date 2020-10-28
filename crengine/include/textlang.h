@@ -23,12 +23,12 @@
 
 // Be similar to HyphMan default state with "English_US.pattern"
 #define TEXTLANG_DEFAULT_MAIN_LANG              "en"   // for LVDocView
-#define TEXTLANG_DEFAULT_MAIN_LANG_16           L"en"  // for textlang.cpp
+#define TEXTLANG_DEFAULT_MAIN_LANG_32           U"en"  // for textlang.cpp
 #define TEXTLANG_DEFAULT_EMBEDDED_LANGS_ENABLED false
 #define TEXTLANG_DEFAULT_HYPHENATION_ENABLED    true
 #define TEXTLANG_DEFAULT_HYPH_SOFT_HYPHENS_ONLY false
 #define TEXTLANG_DEFAULT_HYPH_FORCE_ALGORITHMIC false
-#define TEXTLANG_FALLBACK_HYPH_DICT_ID  L"English_US.pattern" // For languages without specific hyph dicts
+#define TEXTLANG_FALLBACK_HYPH_DICT_ID  U"English_US.pattern" // For languages without specific hyph dicts
 
 class TextLangCfg;
 class HyphMethod;
@@ -37,7 +37,7 @@ struct ldomNode;
 class TextLangMan
 {
     friend class TextLangCfg;
-    static lString16 _main_lang;
+    static lString32 _main_lang;
     static bool _embedded_langs_enabled;
     static LVPtrVector<TextLangCfg> _lang_cfg_list;
 
@@ -49,14 +49,14 @@ class TextLangMan
     static HyphMethod * _soft_hyphens_method;  // instance of hyphman SoftHyphensHyph
     static HyphMethod * _algo_hyph_method;     // instance of hyphman AlgoHyph
 
-    static HyphMethod * getHyphMethodForLang( lString16 lang_tag ); // Used by TextLangCfg
+    static HyphMethod * getHyphMethodForLang( lString32 lang_tag ); // Used by TextLangCfg
 public:
     static void uninit();
     static lUInt32 getHash();
 
-    static void setMainLang( lString16 lang_tag ) { _main_lang = lang_tag; }
-    static void setMainLangFromHyphDict( lString16 id ); // For HyphMan legacy methods
-    static lString16 getMainLang() { return _main_lang; }
+    static void setMainLang( lString32 lang_tag ) { _main_lang = lang_tag; }
+    static void setMainLangFromHyphDict( lString32 id ); // For HyphMan legacy methods
+    static lString32 getMainLang() { return _main_lang; }
 
     static void setEmbeddedLangsEnabled( bool enabled ) { _embedded_langs_enabled = enabled; }
     static bool getEmbeddedLangsEnabled() { return _embedded_langs_enabled; }
@@ -80,7 +80,7 @@ public:
     }
 
     static TextLangCfg * getTextLangCfg(); // get LangCfg for _main_lang
-    static TextLangCfg * getTextLangCfg( lString16 lang_tag );
+    static TextLangCfg * getTextLangCfg( lString32 lang_tag );
     static TextLangCfg * getTextLangCfg( ldomNode * node );
     static int getLangNodeIndex( ldomNode * node );
 
@@ -93,7 +93,7 @@ public:
         return &_lang_cfg_list;
     }
 
-    static lString16 getLangTag(const lString16& title);
+    static lString32 getLangTag(const lString32& title);
 
     TextLangMan();
     ~TextLangMan();
@@ -102,19 +102,19 @@ public:
 #define MAX_NB_LB_PROPS_ITEMS 20 // for our statically sized array (increase if needed)
 
 #if USE_LIBUNIBREAK==1
-typedef lChar16 (*lb_char_sub_func_t)(struct LineBreakContext *lbpCtx, const lChar16 * text, int pos, int next_usable);
+typedef lChar32 (*lb_char_sub_func_t)(struct LineBreakContext *lbpCtx, const lChar32 * text, int pos, int next_usable);
 #endif
 
 class TextLangCfg
 {
     friend class TextLangMan;
-    lString16 _lang_tag;
+    lString32 _lang_tag;
     HyphMethod * _hyph_method;
 
-    lString16 _open_quote1;
-    lString16 _close_quote1;
-    lString16 _open_quote2;
-    lString16 _close_quote2;
+    lString32 _open_quote1;
+    lString32 _close_quote1;
+    lString32 _open_quote2;
+    lString32 _close_quote2;
     int _quote_nesting_level;
 
     #if USE_HARFBUZZ==1
@@ -131,7 +131,7 @@ class TextLangCfg
     void resetCounters();
 
 public:
-    lString16 getLangTag() const { return _lang_tag; }
+    lString32 getLangTag() const { return _lang_tag; }
 
     HyphMethod * getHyphMethod() const {
         if ( !TextLangMan::_overridden_hyph_method )
@@ -149,11 +149,11 @@ public:
         return _hyph_method;
     }
 
-    lString16 & getOpeningQuote( bool update_level=true );
-    lString16 & getClosingQuote( bool update_level=true );
+    lString32 & getOpeningQuote( bool update_level=true );
+    lString32 & getClosingQuote( bool update_level=true );
 
     int getHyphenHangingPercent();
-    int getHangingPercent( bool right_hanging, bool & check_font, const lChar16 * text, int pos, int next_usable );
+    int getHangingPercent( bool right_hanging, bool & check_font, const lChar32 * text, int pos, int next_usable );
 
     #if USE_HARFBUZZ==1
     hb_language_t getHBLanguage() const { return _hb_language; }
@@ -167,7 +167,7 @@ public:
 
     bool duplicateRealHyphenOnNextLine() const { return _duplicate_real_hyphen_on_next_line; }
 
-    TextLangCfg( lString16 lang_tag );
+    TextLangCfg( lString32 lang_tag );
     ~TextLangCfg();
 };
 

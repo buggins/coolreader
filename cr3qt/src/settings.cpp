@@ -26,7 +26,7 @@ static int DOM_versions[] = { 0, gDOMVersionCurrent };
 
 static bool initDone = false;
 
-static void findImagesFromDirectory( lString16 dir, lString16Collection & files ) {
+static void findImagesFromDirectory( lString32 dir, lString32Collection & files ) {
     LVAppendPathDelimiter(dir);
     if ( !LVDirectoryExists(dir) )
         return;
@@ -35,7 +35,7 @@ static void findImagesFromDirectory( lString16 dir, lString16Collection & files 
         for ( int i=0; i<cont->GetObjectCount(); i++ ) {
             const LVContainerItemInfo * item  = cont->GetObjectInfo(i);
             if ( !item->IsContainer() ) {
-                lString16 name = item->GetName();
+                lString32 name = item->GetName();
                 name.lowercase();
                 if ( name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".gif")
                     || name.endsWith(".jpeg") ) {
@@ -46,15 +46,15 @@ static void findImagesFromDirectory( lString16 dir, lString16Collection & files 
     }
 }
 
-static void findBackgrounds( lString16Collection & baseDirs, lString16Collection & files ) {
+static void findBackgrounds( lString32Collection & baseDirs, lString32Collection & files ) {
     int i;
     for ( i=0; i<baseDirs.length(); i++ ) {
-        lString16 baseDir = baseDirs[i];
+        lString32 baseDir = baseDirs[i];
         LVAppendPathDelimiter(baseDir);
         findImagesFromDirectory( baseDir + "backgrounds", files );
     }
     for ( i=0; i<baseDirs.length(); i++ ) {
-        lString16 baseDir = baseDirs[i];
+        lString32 baseDir = baseDirs[i];
         LVAppendPathDelimiter(baseDir);
         findImagesFromDirectory( baseDir + "textures", files );
     }
@@ -104,13 +104,13 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
 #endif
 
-    lString16Collection baseDirs;
+    lString32Collection baseDirs;
     baseDirs.add(qt2cr(homeDir));
     baseDirs.add(qt2cr(exeDir));
 #ifdef _LINUX
-    baseDirs.add(cs16("/usr/local/share/cr3/"));
+    baseDirs.add(cs32("/usr/local/share/cr3/"));
 #endif
-    lString16Collection bgFiles;
+    lString32Collection bgFiles;
     QStringList bgFileLabels;
     findBackgrounds( baseDirs, bgFiles );
     int bgIndex = 0;
@@ -118,7 +118,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     bgFileLabels.append("[NONE]");
     QString bgFile = m_props->getStringDef(PROP_BACKGROUND_IMAGE, "");
     for ( int i=0; i<bgFiles.length(); i++ ) {
-        lString16 fn = bgFiles[i];
+        lString32 fn = bgFiles[i];
         QString f = cr2qt(fn);
         if ( f==bgFile )
             bgIndex = i + 1;
@@ -310,7 +310,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_ui->crSample->getDocView()->setShowCover( false );
     m_ui->crSample->getDocView()->setViewMode( DVM_SCROLL, 1 );
     QString testPhrase = tr("The quick brown fox jumps over the lazy dog. ");
-    m_ui->crSample->getDocView()->createDefaultDocument(lString16::empty_str, qt2cr(testPhrase+testPhrase+testPhrase));
+    m_ui->crSample->getDocView()->createDefaultDocument(lString32::empty_str, qt2cr(testPhrase+testPhrase+testPhrase));
 
     updateStyleSample();
 
@@ -1166,8 +1166,7 @@ void SettingsDlg::on_cbRendFlags_currentIndexChanged(int index)
         m_ui->label_48->setVisible(embedded_lang);
         m_ui->cbEnableHyph->setVisible(embedded_lang);
     }
-    // don't update preview to not change global variable gRenderBlockRenderingFlags too early!
-    //updateStyleSample();
+    updateStyleSample();
 }
 
 void SettingsDlg::on_cbDOMLevel_currentIndexChanged(int index)
@@ -1191,6 +1190,7 @@ void SettingsDlg::on_cbDOMLevel_currentIndexChanged(int index)
         m_ui->cbEnableHyph->setVisible(embedded_lang);
     }
     m_props->setInt(PROP_REQUESTED_DOM_VERSION, DOM_versions[index]);
+    updateStyleSample();
 }
 
 void SettingsDlg::on_cbMultiLang_stateChanged(int state)

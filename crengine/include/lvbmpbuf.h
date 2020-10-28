@@ -57,7 +57,7 @@ void lvdrawbufDraw( draw_buf_t * buf, int x, int y, const unsigned char * bitmap
    \param text is string to draw
    \param len is number of chars from text to draw
 */
-void lvdrawbufDrawText( draw_buf_t * buf, int x, int y, const lvfont_handle pfont, const lChar16 * text, int len, lChar16 def_char );
+void lvdrawbufDrawText( draw_buf_t * buf, int x, int y, const lvfont_handle pfont, const lChar32 * text, int len, lChar32 def_char );
 
 
 #endif

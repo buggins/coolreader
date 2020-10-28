@@ -77,6 +77,22 @@ public class Properties extends java.util.Properties {
 		return res;
 	}
 
+	public void setLong(String key, Long v) {
+		String value = String.valueOf(v);
+		setProperty(key, value);
+	}
+
+	public long getLong(String key, long def) {
+		String value = getProperty(key);
+		long res = def;
+		try {
+			if (value != null)
+				res = Long.parseLong(value);
+		} catch (Exception e) {
+		}
+		return res;
+	}
+
 	public void setBool(String key, boolean value) {
 		setProperty(key, value ? "1" : "0");
 	}

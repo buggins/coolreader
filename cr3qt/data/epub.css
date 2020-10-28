@@ -55,8 +55,7 @@ blockquote:dir(rtl) {
     margin-right: 2em;
 }
 hr {
-    height: 2px;
-    background-color: #808080;
+    border: 1px solid #808080;
     margin: 0.5em auto;
 }
 center {
@@ -160,6 +159,10 @@ rt, rubyBox[T=rt] {
     font-variant-east-asian: ruby;
     -cr-hint: text-selection-skip;
 }
+
+/* No support for the "quotes:" property, these will use default quote chars */
+q::before               { content: open-quote; }
+q::after                { content: close-quote; }
 
 code {
    $code.all

@@ -2471,4 +2471,11 @@
 <pattern>le2u3kémia</pattern>
 <pattern>t2ri3u2mf</pattern>
 <pattern>kli3e2nt</pattern>
+<pattern>me5tó5da</pattern>
+<pattern>me5tó5dy</pattern>
+<pattern>ne5do5stat5ka5mi</pattern>
+<pattern>sep5tem5bra</pattern>
+<!-- Exceptions, to be fixed, see https://github.com/koreader/crengine/pull/376
+<pattern>dosť</pattern>
+-->
 </HyphenationDescription>

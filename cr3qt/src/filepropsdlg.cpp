@@ -63,15 +63,15 @@ bool FilePropsDialog::showDlg( QWidget * parent, CR3View * docView )
 QString FilePropsDialog::getDocText( const char * path, const char * delim )
 {
     ldomDocument * doc = _docview->getDocument();
-    lString16 res;
+    lString32 res;
     for ( int i=0; i<100; i++ ) {
         lString8 p = lString8(path) + "[" + fmt::decimal(i+1) + "]";
         //CRLog::trace("checking doc path %s", p.c_str() );
-        lString16 p16 = Utf8ToUnicode(p);
+        lString32 p16 = Utf8ToUnicode(p);
         ldomXPointer ptr = doc->createXPointer( p16 );
         if ( ptr.isNull() )
             break;
-        lString16 s = ptr.getText( L' ' );
+        lString32 s = ptr.getText( L' ' );
         if ( s.empty() )
             continue;
         if ( !res.empty() && delim!=NULL )
@@ -83,17 +83,17 @@ QString FilePropsDialog::getDocText( const char * path, const char * delim )
 
 QString FilePropsDialog::getDocAuthors( const char * path, const char * delim )
 {
-    lString16 res;
+    lString32 res;
     for ( int i=0; i<100; i++ ) {
         lString8 p = lString8(path) + "[" + fmt::decimal(i+1) + "]";
         //CRLog::trace("checking doc path %s", p.c_str() ));
-        lString16 firstName = qt2cr(getDocText( (p + "/first-name").c_str(), " " ));
-        lString16 lastName = qt2cr(getDocText( (p + "/last-name").c_str(), " " ));
-        lString16 middleName = qt2cr(getDocText( (p + "/middle-name").c_str(), " " ));
-        lString16 nickName = qt2cr(getDocText( (p + "/nickname").c_str(), " " ));
-        lString16 homePage = qt2cr(getDocText( (p + "/homepage").c_str(), " " ));
-        lString16 email = qt2cr(getDocText( (p + "/email").c_str(), " " ));
-        lString16 s = firstName;
+        lString32 firstName = qt2cr(getDocText( (p + "/first-name").c_str(), " " ));
+        lString32 lastName = qt2cr(getDocText( (p + "/last-name").c_str(), " " ));
+        lString32 middleName = qt2cr(getDocText( (p + "/middle-name").c_str(), " " ));
+        lString32 nickName = qt2cr(getDocText( (p + "/nickname").c_str(), " " ));
+        lString32 homePage = qt2cr(getDocText( (p + "/homepage").c_str(), " " ));
+        lString32 email = qt2cr(getDocText( (p + "/email").c_str(), " " ));
+        lString32 s = firstName;
         if ( !middleName.empty() )
             s << " " << middleName;
         if ( !lastName.empty() ) {
@@ -159,7 +159,7 @@ void FilePropsDialog::fillItems()
     _docview->savePosition();
     CRFileHistRecord * hist = _docview->getCurrentFileHistRecord();
 
-    lString16 title("Cool Reader ");
+    lString32 title("Cool Reader ");
 #ifndef PACKAGE_VERSION
 #define PACKAGE_VERSION CR_ENGINE_VERSION
 #endif
@@ -170,9 +170,9 @@ void FilePropsDialog::fillItems()
     txt << "<table><col width=\"25%\"/><col width=\"75%\"/>\n";
     CRPropRef props = _docview->getDocProps();
 
-    addPropLine( tr("Current page"), cr2qt(lString16::itoa(_docview->getCurPage())) );
-    addPropLine( tr("Total pages"), cr2qt(lString16::itoa(_docview->getPageCount())) );
-    addPropLine( tr("Battery state"), cr2qt(lString16::itoa(_docview->getBatteryState()) + "%") );
+    addPropLine( tr("Current page"), cr2qt(lString32::itoa(_docview->getCurPage())) );
+    addPropLine( tr("Total pages"), cr2qt(lString32::itoa(_docview->getPageCount())) );
+    addPropLine( tr("Battery state"), cr2qt(lString32::itoa(_docview->getBatteryState()) + "%") );
     addPropLine( tr("Current Time"), cr2qt(_docview->getTimeString()) );
     // TODO:
     if ( hist ) {

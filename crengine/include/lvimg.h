@@ -110,7 +110,7 @@ LVImageSourceRef LVCreateDummyImageSource( ldomNode * node, int width, int heigh
 /// creates image source from stream
 LVImageSourceRef LVCreateStreamImageSource( LVStreamRef stream );
 /// creates image source as memory copy of file contents
-LVImageSourceRef LVCreateFileCopyImageSource( lString16 fname );
+LVImageSourceRef LVCreateFileCopyImageSource( lString32 fname );
 /// creates image source as memory copy of stream contents
 LVImageSourceRef LVCreateStreamCopyImageSource( LVStreamRef stream );
 /// creates decoded memory copy of image, if it's unpacked size is less than maxSize (8 bit gray or 32 bit color)

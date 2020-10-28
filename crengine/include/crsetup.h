@@ -329,9 +329,8 @@
 #define SCREEN_SIZE_MIN 80
 #endif
 
-// By default full frame 4K
 #ifndef SCREEN_SIZE_MAX
-#define SCREEN_SIZE_MAX 4096
+#define SCREEN_SIZE_MAX 32767
 #endif
 
 #endif//CRSETUP_H_INCLUDED

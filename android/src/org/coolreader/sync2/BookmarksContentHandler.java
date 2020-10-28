@@ -167,7 +167,7 @@ class BookmarksContentHandler implements ContentHandler {
 						m_fileInfo.size = atoi(m_text);
 						break;
 					case "crc32":
-						m_fileInfo.crc32 = atoi(m_text);
+						m_fileInfo.crc32 = atol(m_text);
 						break;
 				}
 				break;
