@@ -4817,6 +4817,12 @@ public:
     int getUsableRightOverflow() {
         return usable_overflow_x_max - x_max;
     }
+    // "sequence" is what elsewhere we've called "flow",
+    // just changing the name here to make it clear that
+    // this is not the "flow" of FlowState
+    void newSequence( int nonlinear ) {
+        context.newFlow( nonlinear ) ;
+    }
 
     void setRequestedBaselineType(int baseline_req_type) {
         baseline_req = baseline_req_type;
@@ -6314,6 +6320,20 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     css_style_ref_t style = enode->getStyle();
     lUInt16 nodeElementId = enode->getNodeId();
 
+    // force_pb will force a page break before and after the fragment
+    // this is necessary for non-linear fragments if we want the
+    // possibility of hiding them from the normal paging flow
+    bool force_pb = false;
+    if ( enode->getNodeId() == el_DocFragment) {
+        if ( enode->hasAttribute( attr_NonLinear ) ) {
+            flow->newSequence(true);
+            force_pb = enode->getDocument()->getDocFlag(DOC_FLAG_NONLINEAR_PAGEBREAK);
+        }
+        else {
+            flow->newSequence(false);
+        }
+    }
+
     // See if dir= attribute or CSS specified direction
     int direction = flow->getDirection();
     if ( enode->hasAttribute( attr_dir ) ) {
@@ -6912,6 +6932,12 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     int break_inside = CssPageBreak2Flags( style->page_break_inside );
     // Note: some test suites seem to indicate that an inner "break-inside: auto"
     // can override an outer "break-inside: avoid". We don't ensure that.
+
+    // enforce page breaks if needed
+    if (force_pb) {
+        break_before = RN_SPLIT_ALWAYS;
+        break_after = RN_SPLIT_ALWAYS;
+    }
 
     if ( no_margin_collapse ) {
         // Push any earlier margin so it does not get collapsed with this one

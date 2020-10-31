@@ -2128,6 +2128,18 @@ void LVDocView::GetPos(lvRect & rc) {
 	}
 }
 
+int LVDocView::getPageFlow(int pageIndex)
+{
+	if (pageIndex >= 0 && pageIndex < m_pages.length())
+		return m_pages[pageIndex]->flow;
+	return -1;
+}
+
+bool LVDocView::hasNonLinearFlows()
+{
+	return m_pages.hasNonLinearFlows();
+}
+
 int LVDocView::getPageHeight(int pageIndex)
 {
 	if (isPageMode() && pageIndex >= 0 && pageIndex < m_pages.length())
@@ -4654,6 +4666,8 @@ void LVDocView::createEmptyDocument() {
 			PROP_EMBEDDED_STYLES, true));
     m_doc->setDocFlag(DOC_FLAG_ENABLE_DOC_FONTS, m_props->getBoolDef(
             PROP_EMBEDDED_FONTS, true));
+    m_doc->setDocFlag(DOC_FLAG_NONLINEAR_PAGEBREAK, m_props->getBoolDef(
+            PROP_NONLINEAR_PAGEBREAK, false));
     m_doc->setSpaceWidthScalePercent(m_props->getIntDef(PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT, DEF_SPACE_WIDTH_SCALE_PERCENT));
     m_doc->setMinSpaceCondensingPercent(m_props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, DEF_MIN_SPACE_CONDENSING_PERCENT));
     m_doc->setUnusedSpaceThresholdPercent(m_props->getIntDef(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, DEF_UNUSED_SPACE_THRESHOLD_PERCENT));
@@ -6696,6 +6710,11 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             if (m_doc) // not when noDefaultDocument=true
                 getDocument()->setDocFlag(DOC_FLAG_ENABLE_DOC_FONTS, value);
             REQUEST_RENDER("propsApply doc fonts")
+        } else if (name == PROP_NONLINEAR_PAGEBREAK) {
+            bool value = props->getBoolDef(PROP_NONLINEAR_PAGEBREAK, false);
+            if (m_doc) // not when noDefaultDocument=true
+                getDocument()->setDocFlag(DOC_FLAG_NONLINEAR_PAGEBREAK, value);
+            REQUEST_RENDER("propsApply nonlinear")
         } else if (name == PROP_FOOTNOTES) {
             bool value = props->getBoolDef(PROP_FOOTNOTES, true);
             if (m_doc) // not when noDefaultDocument=true

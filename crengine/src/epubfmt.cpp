@@ -8,6 +8,7 @@ public:
     lString32 mediaType;
     lString32 id;
     lString32 title;
+    bool nonlinear;
     EpubItem()
     { }
     EpubItem( const EpubItem & v )
@@ -1287,6 +1288,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     if ( !item )
                         break;
                     EpubItem * epubItem = epubItems.findById( item->getAttributeValue("idref") );
+                    epubItem->nonlinear = lString32(item->getAttributeValue("linear")).lowercase() == U"no";
                     if ( epubItem ) {
                         // TODO: add to document
                         spineItems.add( epubItem );
@@ -1361,6 +1363,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     //CRLog::trace("base: %s", LCSTR(base));
                     //LVXMLParser
                     LVHTMLParser parser(stream, &appender);
+                    appender.setNonLinearFlag(spineItems[i]->nonlinear);
                     if ( parser.CheckFormat() && parser.Parse() ) {
                         // valid
                         fragmentCount++;
