@@ -382,7 +382,7 @@ public:
                         RenderRectAccessor fmt = RenderRectAccessor( item );
                         fmt.setHeight( 15 ); // not squared, so it does not look
                         fmt.setWidth( 10 );  // like a list square bullet
-                        fmt.setX( 0 );       // positionned at top left of its container
+                        fmt.setX( 0 );       // positioned at top left of its container
                         fmt.setY( 0 );       // (which ought to be a proper table element)
                     }
                     break;
@@ -419,7 +419,7 @@ public:
                         }
                         rows.add( row );
                         // What could <tr link="number"> have been in the past ?
-                        // It's not mentionned in any HTML or FB2 spec,
+                        // It's not mentioned in any HTML or FB2 spec,
                         // and row->linkindex is never used.
                         if (row->elem->hasAttribute(LXML_NS_ANY, attr_link)) {
                             lString32 lnk=row->elem->getAttributeValue(attr_link);
@@ -1431,7 +1431,7 @@ public:
         int nb_rows = rows.length();
 
         // We will context.AddLine() for page splitting the elements
-        // (caption, rows) as soon as we meet them and their y-positionnings
+        // (caption, rows) as soon as we meet them and their y-positionings
         // inside the tables are known and won't change.
         // (This would need that rowgroups be dealt with in this flow (and
         // not at the end) if we change the fact that we ignore their
@@ -2099,7 +2099,7 @@ public:
         // relative to its container: RenderRectAccessor X & Y are relative to
         // the parent container top left corner)
         //
-        // As mentionned above, rowgroups' margins and paddings should be
+        // As mentioned above, rowgroups' margins and paddings should be
         // ignored, and their borders are only used with border-collapse,
         // and we collapsed them to the cells when we had to.
         // So, we ignore them here, and DrawDocument() will NOT draw their
@@ -3849,7 +3849,7 @@ int measureBorder(ldomNode *enode,int border) {
         // fmt.setWidth() has not yet been called and fmt.getWidth() would
         // return 0. Later, at drawing time, fmt.getWidth() will return the real
         // width, which could cause rendering of borders over child elements,
-        // as these were positionned with a border=0.)
+        // as these were positioned with a border=0.)
         css_style_ref_t style = enode->getStyle();
         if (border==0){
                 bool hastopBorder = (style->border_style_top >= css_border_solid &&
@@ -3892,7 +3892,7 @@ int measureBorder(ldomNode *enode,int border) {
 }
 
 // Only used by renderBlockElementLegacy()
-//calculate total margin+padding before node,if >0 don't do campulsory page split
+//calculate total margin+padding before node,if >0 don't do compulsory page split
 int pagebreakhelper(ldomNode *enode,int width)
 {
     int flag=css_pb_auto;
@@ -3922,7 +3922,7 @@ int pagebreakhelper(ldomNode *enode,int width)
 //=======================================================================
 // Render block element
 //=======================================================================
-// renderBlockElement() aimed at positionning the node provided: setting
+// renderBlockElement() aimed at positioning the node provided: setting
 // its width and height, and its (x,y) in the coordinates of its parent
 // element's border box (so, including parent's paddings and borders
 // top/left, but not its margins).
@@ -3933,8 +3933,8 @@ int pagebreakhelper(ldomNode *enode,int width)
 // its parent coordinates.
 // So, it just shift coordinates and adjust widths of imbricated block nodes,
 // until it meets a "final" node (a node with text or image content), which
-// will then have been sized and positionned.
-// After the initial rendering, we mostly only care about these positionned
+// will then have been sized and positioned.
+// After the initial rendering, we mostly only care about these positioned
 // final nodes (for text rendering, text selection, text search, links...).
 // We still walk the block nodes when we need absolute coordinates, computed
 // from all the relative shifts of the containing block nodes boxes up to the
@@ -4567,13 +4567,13 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
 // real non-margin content is added.
 // It also forwards lines/spaces to lvpagesplitter's "context", ensuring
 // proper page split flags (and avoiding unwelcome ones).
-// Floats are added to it for positionning along this height
+// Floats are added to it for positioning along this height
 // depending on other floats.
 // It then can provide a "float footprint" to final nodes, so they can
 // lay out their text (and own embedded floats) alongside block floats.
 //
 // Some initial limitations with floats had later found some solutions,
-// which can be enabled by setting some flags. Mentionning them because
+// which can be enabled by setting some flags. Mentioning them because
 // the code might be a bit rooted around these early limitations:
 // - Floats added by a block element are "clear"'ed when leaving
 //   this block: some blank height is added if necessary, so they are
@@ -5155,7 +5155,7 @@ public:
                 vm_target_avoid_pb_inside = avoid_pb_inside;
                 if ( BLOCK_RENDERING(rend_flags, DO_NOT_CLEAR_OWN_FLOATS) && _floats.length()>0 ) {
                     // Reset level of all previous floats as they are
-                    // correctly positionned and should not be moved
+                    // correctly positioned and should not be moved
                     // if this (new) vm_target_node get some margin
                     // and is moved down.
                     resetFloatsLevelToTopLevel();
@@ -5480,14 +5480,14 @@ public:
                     BlockFloat * flt = _floats[i];
                     if ( flt->level > vm_target_level ) {
                         if ( flt->final_pos ) {
-                            // Float already absolutely positionned (block float):
+                            // Float already absolutely positioned (block float):
                             // adjust its relative y to its container's top to
                             // counteract the margin shift
                             RenderRectAccessor fmt( flt->node );
                             fmt.setY( fmt.getY() - margin );
                         }
                         else {
-                            // Float not absolutely positionned (forwarded embedded float):
+                            // Float not absolutely positioned (forwarded embedded float):
                             // update its absolute coordinates as its container will be
                             // moved by this margin, so will its floats.
                             flt->top += margin;
@@ -5752,14 +5752,14 @@ public:
         }
     }
 
-    // Floats positionning helpers. These work in absolute coordinates (relative
+    // Floats positioning helpers. These work in absolute coordinates (relative
     // to flow state initial top)
     // Returns min y for next float
     int getNextFloatMinY(css_clear_t clear) {
         int y = c_y; // current line y
         for (int i=0; i<_floats.length(); i++) {
             BlockFloat * flt = _floats[i];
-            // A later float should never be positionned above an earlier float
+            // A later float should never be positioned above an earlier float
             if ( flt->top > y )
                 y = flt->top;
             if ( clear > css_c_none) {
@@ -5899,9 +5899,9 @@ public:
             in_y_max = fy + height + fmt.getBottomOverflow();
     }
 
-    void addPositionnedFloat( int rel_x, int rel_y, int width, int height, int is_right, ldomNode * node ) {
+    void addPositionedFloat( int rel_x, int rel_y, int width, int height, int is_right, ldomNode * node ) {
         int fx = x_min + rel_x;
-        // Where addPositionnedFloat is used (rendering erm_final), c_y has not
+        // Where addPositionedFloat is used (rendering erm_final), c_y has not
         // yet been updated, so it is still the base for rel_y.
         int fy = c_y + rel_y;
         // These embedded floats are kind of in a sublevel of current level
@@ -5980,7 +5980,7 @@ public:
         int flprint_right_x = right_x;
         int flprint_right_y = top_y;
         // Bottomest top of all our current floats (needed to know the absolute
-        // minimal y at which next left or right float can be positionned)
+        // minimal y at which next left or right float can be positioned)
         int flprint_left_min_y = top_y;
         int flprint_right_min_y = top_y;
         // Extend them to include any part of floats that overlap it.
@@ -6101,7 +6101,7 @@ void BlockFloatFootprint::forwardOverflowingFloat( int x, int y, int w, int h, b
 {
     if ( flow == NULL )
         return;
-    flow->addPositionnedFloat( d_left + x, d_top + y, w, h, r, node );
+    flow->addPositionedFloat( d_left + x, d_top + y, w, h, r, node );
     // Also update used_min_y and used_max_y, so they can be fetched
     // to update erm_final block's top_overflow and bottom_overflow
     // if some floats did overflow
@@ -7128,7 +7128,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 // But each child x and y (set by renderBlockElement() below) must
                 // include padding_top and padding_left. So we keep providing these
                 // to renderBlockElement() even if it feels a bit out of place,
-                // notably in the float positionning code. But it works...
+                // notably in the float positioning code. But it works...
 
                 // Update left and right overflows (usable by glyphs) if this node
                 // has some background or borders, to be given below to 'flow'.
@@ -7204,7 +7204,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     // todo: if needed, implement float: and clear: inline-start / inline-end
 
                     if ( child->isFloatingBox() ) {
-                        // Block floats are positionned respecting the current collapsed
+                        // Block floats are positioned respecting the current collapsed
                         // margin, without actually globally pushing it, and without
                         // collapsing with it.
                         int flt_vertical_margin = flow->getCurrentVerticalMargin();
@@ -7222,7 +7222,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                         // padding-left/right) for the flow to correctly position inner floats
                         // (but we don't provide padding_top, as if non-zero, we already
                         // flow->addContentLine() it above, so the flow is already aware of it):
-                        // flow->addFloat() will additionally shift its positionning by the
+                        // flow->addFloat() will additionally shift its positioning by the
                         // child x/y set by this renderBlockElement().
                         // We provide 0,0 as the usable left/right overflows, so no glyph/hanging
                         // punctuation will leak outside the floatBox - but the floatBox contains

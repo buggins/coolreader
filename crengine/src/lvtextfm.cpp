@@ -490,7 +490,7 @@ public:
     {
     }
 
-    // Embedded floats positionning helpers.
+    // Embedded floats positioning helpers.
     // Returns y of the bottom of the lowest float
     int getFloatsMaxBottomY() {
         int max_b_y = m_y;
@@ -510,9 +510,9 @@ public:
         int y = m_y; // current line y
         for (int i=0; i<m_pbuffer->floatcount; i++) {
             embedded_float_t * flt = m_pbuffer->floats[i];
-            if (flt->to_position) // ignore not yet positionned floats
+            if (flt->to_position) // ignore not yet positioned floats
                 continue;
-            // A later float should never be positionned above an earlier float
+            // A later float should never be positioned above an earlier float
             if ( flt->y > y )
                 y = flt->y;
             if ( clear > css_c_none) {
@@ -541,7 +541,7 @@ public:
         while (y <= start_y + h) {
             for (int i=0; i<m_pbuffer->floatcount; i++) {
                 embedded_float_t * flt = m_pbuffer->floats[i];
-                if (flt->to_position) // ignore not yet positionned floats
+                if (flt->to_position) // ignore not yet positioned floats
                     continue;
                 if (flt->y <= y && flt->y + flt->height > y) { // this float is spanning this y
                     if (flt->is_right) {
@@ -585,7 +585,7 @@ public:
         }
         return y;
     }
-    // The following positionning codes is not the most efficient, as we
+    // The following positioning codes is not the most efficient, as we
     // call the previous functions that do many of the same kind of loops.
     // But it's the clearest to express the decision flow
 
@@ -603,19 +603,19 @@ public:
         // margin, we can set its RenderRectAccessor to be exactly
         // our embedded_float coordinates and sizes.
         //   If the wrapped element has margins, its renderRectAccessor
-        //   will be positionned/sized at the level of borders or padding,
+        //   will be positioned/sized at the level of borders or padding,
         //   as crengine does naturally with:
         //       fmt.setWidth(width - margin_left - margin_right);
         //       fmt.setHeight(height - margin_top - margin_bottom);
         //       fmt.setX(x + margin_left);
         //       fmt.setY(y + margin_top);
         // So, the RenderRectAccessor(floatBox) can act as a cache
-        // of previously rendered and positionned floats!
+        // of previously rendered and positioned floats!
         int width;
         int height;
         // This formatting code is called when rendering, but can also be called when
         // looking for links, highlighting... so it may happen that floats have
-        // already been rendered and positionnned, and we already know their width
+        // already been rendered and positioned, and we already know their width
         // and height.
         bool already_rendered = false;
         { // in its own scope, so this RenderRectAccessor is forgotten when left
@@ -623,7 +623,7 @@ public:
             if ( RENDER_RECT_HAS_FLAG(fmt, BOX_IS_RENDERED) )
                 already_rendered = true;
             // We could also directly use fmt.getX/Y() if it has already been
-            // positionned, and avoid the positionning code below.
+            // positioned, and avoid the positioning code below.
             // But let's be fully deterministic with that, and redo it.
         }
         if ( !already_rendered ) {
@@ -673,7 +673,7 @@ public:
                 // on current line,
                 // See if it can still fit on this line, accounting for the current
                 // width used by the text before this inline float (getCurrentLineWidth()
-                // accounts for already positionned floats on this line)
+                // accounts for already positioned floats on this line)
                 if ( currentTextWidth + flt->width <= getCurrentLineWidth() ) {
                     // Call getYWithAvailableWidth() just to get x
                     int x;
@@ -758,7 +758,7 @@ public:
             has_ongoing_float = false;
             for (int i=0; i<m_pbuffer->floatcount; i++) {
                 embedded_float_t * flt = m_pbuffer->floats[i];
-                if (flt->to_position) // ignore not yet positionned floats (even if
+                if (flt->to_position) // ignore not yet positioned floats (even if
                     continue;         // there shouldn't be any when this is called)
                 if (flt->y < m_y && flt->y + flt->height > m_y) {
                     has_ongoing_float = true;
@@ -829,7 +829,7 @@ public:
         m_has_ongoing_float = false;
         for (int i=0; i<m_pbuffer->floatcount; i++) {
             embedded_float_t * flt = m_pbuffer->floats[i];
-            if (flt->to_position) // ignore not yet positionned floats, as they
+            if (flt->to_position) // ignore not yet positioned floats, as they
                 continue;         // are not yet running past m_y
             if (flt->y < m_y && flt->y + flt->height > m_y) {
                 m_has_ongoing_float = true;
@@ -867,7 +867,7 @@ public:
             while (y <= end_y) {
                 for (int i=0; i<m_pbuffer->floatcount; i++) {
                     embedded_float_t * flt = m_pbuffer->floats[i];
-                    if (flt->to_position) // ignore not yet positionned floats
+                    if (flt->to_position) // ignore not yet positioned floats
                         continue;
                     if (flt->y <= y && flt->y + flt->height > y) { // this float is spanning this y
                         if (flt->is_right) {
@@ -1038,7 +1038,7 @@ public:
         lb_init_break_context(&lbCtx, 0x200D, NULL); // ZERO WIDTH JOINER
         #endif
 
-        m_has_bidi = false; // will be set if fribidi detects it is bidirectionnal text
+        m_has_bidi = false; // will be set if fribidi detects it is bidirectional text
         m_para_dir_is_rtl = false;
         #if (USE_FRIBIDI==1)
         bool has_rtl = false; // if no RTL char, no need for expensive bidi processing
@@ -1963,7 +1963,7 @@ public:
                     /* If the following was ever needed, it was wrong to do it at this step
                      * of measureText(), as we then get additional fixed spacing that we may
                      * not need in some contexts. So don't do it: browsers do not.
-                     * We'll handle that if LTEXT_FIT_GLYPHS when positionning words
+                     * We'll handle that if LTEXT_FIT_GLYPHS when positioning words
                      * (not implemented for now.)
 
                     // This checks whether we're the last char of a text node, and if
@@ -1991,7 +1991,7 @@ public:
                     }
                     if ( m_charindex[start] == FLOAT_CHAR_INDEX ) {
                         // Embedded floats can have a zero width in this process of
-                        // text measurement. They'll be measured when positionned.
+                        // text measurement. They'll be measured when positioned.
                         m_widths[start] = lastWidth;
                     }
                     else if ( m_charindex[start] == INLINEBOX_CHAR_INDEX ) {
@@ -2045,7 +2045,7 @@ public:
                             RenderRectAccessor fmt( node );
                             fmt.setBaseline(baseline);
                             RENDER_RECT_SET_FLAG(fmt, BOX_IS_RENDERED);
-                            // We'll have alignLine() do the fmt.setX/Y once it is fully positionned
+                            // We'll have alignLine() do the fmt.setX/Y once it is fully positioned
 
                             // We'd like to gather footnote links accumulated by alt_context
                             // (we do that for floats), but it's quite more complicated:
@@ -2374,7 +2374,7 @@ public:
     void addLine( int start, int end, int x, src_text_fragment_t * para, bool first, bool last, bool preFormattedOnly, bool isLastPara, bool hasInlineBoxes )
     {
         // No need to do some x-alignment work if light formatting, when we
-        // are only interested in computing block height and positionning
+        // are only interested in computing block height and positioning
         // floats: 'is_reusable' will be unset, and any attempt at reusing
         // this formatting for drawing will cause a non-light re-formatting.
         // Except when there are inlineBoxes in the text: we need to correctly
@@ -2702,7 +2702,7 @@ public:
             }
         }
 
-        // Some words vertical-align positionning might need to be fixed
+        // Some words vertical-align positioning might need to be fixed
         // only once the whole line has been laid out
         bool delayed_valign_computation = false;
 
@@ -2848,7 +2848,7 @@ public:
                 #endif
 
                 // Remove any collapsed space at start of word: they
-                // may have a zero width and not influence positionning,
+                // may have a zero width and not influence positioning,
                 // but they will be drawn as a space by Draw(). We need
                 // to increment the start index into the src_text_fragment_t
                 // for Draw() to start rendering the text from this position.
@@ -3037,7 +3037,7 @@ public:
                     // i-1 may be a space, or not (when different html tag/text nodes stuck to each other)
                     word->flags = 0;
 
-                    // Handle vertical positionning of this word
+                    // Handle vertical positioning of this word
                     LVFont * font = (LVFont*)srcline->t.font;
                     int vertical_align_flag = srcline->flags & LTEXT_VALIGN_MASK;
                     int line_height = srcline->interval;
@@ -4316,9 +4316,9 @@ public:
                     // gathered by this sub-context via frmlines.
                     // printf("emb line %d>%d\n", frmline->y, frmline->height);
                     m_y += frmline->height;
-                    // We only check for already positionned floats to ensure
-                    // no page break along them. We'll positionned yet-to-be
-                    // positionned floats only when done with this embedded block.
+                    // We only check for already positioned floats to ensure
+                    // no page break along them. We'll positioned yet-to-be
+                    // positioned floats only when done with this embedded block.
                     checkOngoingFloat();
                 }
             }
@@ -4534,7 +4534,7 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height, int para_dire
         // See FlowState->getFloatFootprint() for details.
         // So, for each of them, just add an embedded_float_t (without
         // a scrtext as they are not ours) to the buffer so our
-        // positionning code can handle them.
+        // positioning code can handle them.
         for (int i=0; i<float_footprint->floats_cnt; i++) {
             embedded_float_t * flt =  lvtextAddEmbeddedFloat( m_pbuffer );
             flt->srctext = NULL; // not our own float
@@ -4695,7 +4695,7 @@ static void getAbsMarksFromMarks(ldomMarkedRangeList * marks, ldomMarkedRangeLis
         newmark->start.x += final_node_rect.left;
         newmark->end.x += final_node_rect.left;
             // (Note: early when developping this, NOT updating x gave the
-            // expected results, althought logically it should be updated...
+            // expected results, although logically it should be updated...
             // But now, it seems to work, and is needed to correctly shift
             // highlight marks in inlineBox by the containing final block's
             // left margin...)

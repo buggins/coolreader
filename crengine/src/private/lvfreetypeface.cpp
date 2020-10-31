@@ -506,7 +506,7 @@ void LVFreeTypeFace::setEmbolden()
     //   advance metrics are increased by the strength of the emboldening".
     //
     // When using Harfbuzz, which uses itself the font metrics, that we
-    // can't tweak at all from outside, we'll get positionning based on
+    // can't tweak at all from outside, we'll get positioning based on
     // the not-bolded font. We can't increase them as that would totally
     // mess HB work.
     // We can only do as MuPDF does (source/fitz/font.c): keep the HB
@@ -1067,7 +1067,7 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
         //     Note that this also transforms the `face.glyph.advance' field,
         //     but *not* the values in `face.glyph.metrics'.
         // So, with such fake italic, the values we'll use below are wrong,
-        // and may cause some wrong glyphs positionning or advance.
+        // and may cause some wrong glyphs positioning or advance.
         FT_GlyphSlot_Oblique(_slot); // This uses FT_Outline_Transform(), see freetype2/src/base/ftsynth.c
         
         // QT has some code that seem to fix these metrics in transformBoundingBox() at

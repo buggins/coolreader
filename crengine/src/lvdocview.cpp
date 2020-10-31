@@ -2670,7 +2670,7 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex) {
     // Note: this may return a range that may not include some parts
     // of the document that are actually displayed on that page, like
     // floats that were in some HTML fragment of the previous page,
-    // but whose positionning has been shifted/delayed and ended up
+    // but whose positioning has been shifted/delayed and ended up
     // on this page (so, getCurrentPageLinks() may miss links from
     // such floats).
     // With floats, a page may actually show more than one range,

@@ -6645,7 +6645,7 @@ void ldomNode::initNodeRendMethod()
     if ( d == css_d_ruby && BLOCK_RENDERING(rend_flags, ENHANCED) ) {
         // Ruby input can be quite loose and have various tag strategies (mono/group,
         // interleaved/tabular, double sided). Moreover, the specs have evolved between
-        // 2001 and 2020 (<rbc> tag no more mentionned in 2020; <rtc> being just another
+        // 2001 and 2020 (<rbc> tag no more mentioned in 2020; <rtc> being just another
         // semantic container for Mozilla, and can be preceded by a bunch of <rt> which
         // are pronunciation containers, that don't have to be in an <rtc>...)
         // Moreover, various samples on the following pages don't close tags, and expect
@@ -12971,7 +12971,7 @@ void ldomDocumentFragmentWriter::OnTagBody()
 
 /////////////////////////////////////////////////////////////////
 /// ldomDocumentWriterFilter
-// Used to parse loosy HTML in formats: HTML, CHM, PDB(html)
+// Used to parse lousy HTML in formats: HTML, CHM, PDB(html)
 // For all these document formats, it is fed by HTMLParser that does
 // convert to lowercase the tag names and attributes.
 // ldomDocumentWriterFilter does then deal with auto-closing unbalanced
@@ -14931,7 +14931,7 @@ lUInt32 tinyNodeCollection::calcStyleHash(bool already_rendered)
     // _maxAddedLetterSpacingPercent does not need to be accounted, as, working
     // only on a laid out line, it does not need a re-rendering, but just
     // a _renderedBlockCache.clear() to reformat paragraphs and have the
-    // word re-positionned (the paragraphs width & height do not change)
+    // word re-positioned (the paragraphs width & height do not change)
 
     // Hanging punctuation does not need to trigger a re-render, as
     // it's now ensured by alignLine() and won't change paragraphs height.

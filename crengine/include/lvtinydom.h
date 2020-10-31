@@ -60,7 +60,7 @@ extern const int gDOMVersionCurrent;
 #define DOC_FLAG_ENABLE_INTERNAL_STYLES 1
 /// docFlag mask, enable paperbook-like footnotes
 #define DOC_FLAG_ENABLE_FOOTNOTES       2
-/// docFlag mask, enable paperbook-like footnotes
+/// docFlag mask, enable preformatted text
 #define DOC_FLAG_PREFORMATTED_TEXT      4
 /// docFlag mask, enable document embedded fonts (EPUB)
 #define DOC_FLAG_ENABLE_DOC_FONTS       8

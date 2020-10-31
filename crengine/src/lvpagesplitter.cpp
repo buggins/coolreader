@@ -355,7 +355,7 @@ public:
         // this 'line' contains (text, image...), so we can't really
         // find a better 'y' to cut at than the page height. We may
         // then cut in the middle of a text line, and have halves
-        // displayed on different pages (althought it seems crengine
+        // displayed on different pages (although it seems crengine
         // deals with displaying the cut line fully at start of
         // next page).
         // we don't take the current footnotes height into account

@@ -2145,7 +2145,7 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                 // But font-variant and font-feature-settings, even if they enable the same
                 // OpenType feature tags, should have each a life (inheritance) of their own,
                 // which we won't really ensure by mapping all of them into style->font_features.
-                // Also, font-feature-settings is quite more complicated to parse (optionnal
+                // Also, font-feature-settings is quite more complicated to parse (optional
                 // arguments, 0|1|2|3|on|off...), and we would only support up to the 31 tags
                 // that can be stored in the bitmap, so ignoring all possible others.
                 // As font-feature-settings is quite new, let's not support it (quite
