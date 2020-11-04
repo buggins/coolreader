@@ -2468,6 +2468,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				log.i("Switched to dictionary: " + Integer.toString(mActivity.mDictionaries.isiDic2IsActive() + 1));
 				mActivity.showToast("Switched to dictionary: " + Integer.toString(mActivity.mDictionaries.isiDic2IsActive() + 1));
 				break;
+			case DCMD_BACKLIGHT_SET_DEFAULT:
+				setSetting(PROP_APP_SCREEN_BACKLIGHT, "-1");		// system default backlight level
+				break;
 			case DCMD_GOOGLEDRIVE_SYNC:
 				if (0 == param) {							// sync to
 					mActivity.forceSyncToGoogleDrive();
@@ -3787,8 +3790,15 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	private void startBrightnessControl(final int startX, final int startY) {
 		currentBrightnessValue = mActivity.getScreenBacklightLevel();
-		if (!DeviceInfo.EINK_SCREEN)
+		if (!DeviceInfo.EINK_SCREEN) {
 			currentBrightnessValueIndex = OptionsDialog.findBacklightSettingIndex(currentBrightnessValue);
+			if (0 == currentBrightnessValueIndex) {		// system backlight level
+				// A trick that allows you to reduce the brightness of the backlight
+				// if the brightness is set to the same as in the system.
+				currentBrightnessValue = 50;
+				currentBrightnessValueIndex = OptionsDialog.findBacklightSettingIndex(currentBrightnessValue);
+			}
+		}
 		else if (DeviceInfo.EINK_HAVE_FRONTLIGHT)
 			currentBrightnessValueIndex = Utils.findNearestIndex(EinkScreen.getFrontLightLevels(mActivity), currentBrightnessValue);
 		currentBrightnessPrevYPos = startY;

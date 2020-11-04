@@ -115,6 +115,7 @@
     <string name="options_controls_enable_volume_keys">Use volume keys for navigation</string>
     <string name="options_app_backlight_screen">Screen backlight brightness</string>
     <string name="options_app_backlight_screen_default">Default</string>
+    <string name="action_backlight_set_default">Set the backlight brightness as in the system</string>
     <string name="options_app_tapzones_normal">Tap zone actions</string>
     <string name="options_app_key_actions">Key actions</string>
     <string name="options_app_trackball_disable">Disable trackball</string>

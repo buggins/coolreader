@@ -107,6 +107,8 @@ public class ReaderAction {
 	public final static ReaderAction PREV_CHAPTER = new ReaderAction("PREV_CHAPTER", R.string.action_chapter_prev, ReaderCommand.DCMD_MOVE_BY_CHAPTER, -1);
 	public final static ReaderAction EXIT = new ReaderAction("EXIT", R.string.action_exit, ReaderCommand.DCMD_EXIT, 0, R.id.cr3_mi_exit ).setIconId(R.drawable.cr3_viewer_exit);
 
+	public final static ReaderAction BACKLIGHT_SET_DEFAULT = new ReaderAction("BACKLIGHT_SET_DEFAULT", R.string.action_backlight_set_default, ReaderCommand.DCMD_BACKLIGHT_SET_DEFAULT, -1);
+
 	public final static ReaderAction GDRIVE_SYNCTO = new ReaderAction("GDRIVE_SYNCTO", R.string.googledrive_sync_to, ReaderCommand.DCMD_GOOGLEDRIVE_SYNC, 0).setIconId(R.drawable.google_drive);
 	public final static ReaderAction GDRIVE_SYNCFROM = new ReaderAction("GDRIVE_SYNCFROM", R.string.googledrive_sync_from, ReaderCommand.DCMD_GOOGLEDRIVE_SYNC, 1).setIconId(R.drawable.google_drive);
 
@@ -160,6 +162,7 @@ public class ReaderAction {
 //		AUTOSCROLL_SPEED_DECREASE,
 		TOGGLE_DICT_ONCE,
 		TOGGLE_DICT,
+		BACKLIGHT_SET_DEFAULT,
 		GDRIVE_SYNCTO,
 		GDRIVE_SYNCFROM
 	};
