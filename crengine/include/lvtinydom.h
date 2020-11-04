@@ -1372,7 +1372,7 @@ protected:
     lUInt16       _nextUnknownElementId; // Next Id for unknown element
     lUInt16       _nextUnknownAttrId;    // Next Id for unknown attribute
     lUInt16       _nextUnknownNsId;      // Next Id for unknown namespace
-    lString16HashedCollection _attrValueTable;
+    lString32HashedCollection _attrValueTable;
     LVHashTable<lUInt32,lInt32> _idNodeMap; // id to data index map
     LVHashTable<lString32,LVImageSourceRef> _urlImageMap; // url to image source map
     lUInt16 _idAttrId; // Id for "id" attribute name

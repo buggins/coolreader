@@ -11,8 +11,7 @@ lString32 qt2cr(QString str)
 
 QString cr2qt(lString32 str)
 {
-    lString8 s8 = UnicodeToUtf8(str);
-    return QString::fromUtf8( s8.c_str(), s8.length() );
+    return QString::fromUcs4(str.c_str(), str.length());
 }
 
 class CRPropsImpl : public Props

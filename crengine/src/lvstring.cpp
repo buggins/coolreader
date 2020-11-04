@@ -1921,7 +1921,7 @@ void lString16::reset( size_type size )
     pchunk->len = 0;
 }
 
-void lString16::resize(size_type n, lChar16 e)
+void lString16::resize(size_type n, value_type e)
 {
     lock( n );
     if (n>=pchunk->size)
@@ -1996,6 +1996,33 @@ lString16 & lString16::append(size_type count, value_type ch)
 {
     reserve( pchunk->len+count );
     _lStr_memset(pchunk->buf16+pchunk->len, ch, count);
+    pchunk->len += count;
+    pchunk->buf16[pchunk->len] = 0;
+    return *this;
+}
+
+lString16 & lString16::insert(size_type p0, const value_type * str)
+{
+    if (p0>pchunk->len)
+        p0 = pchunk->len;
+    int count = lStr_len(str);
+    reserve( pchunk->len+count );
+    for (size_type i=pchunk->len+count; i>p0; i--)
+        pchunk->buf16[i] = pchunk->buf16[i-1];
+    _lStr_memcpy(pchunk->buf16 + p0, str, count);
+    pchunk->len += count;
+    pchunk->buf16[pchunk->len] = 0;
+    return *this;
+}
+
+lString16 & lString16::insert(size_type p0, const value_type * str, size_type count)
+{
+    if (p0>pchunk->len)
+        p0 = pchunk->len;
+    reserve( pchunk->len+count );
+    for (size_type i=pchunk->len+count; i>p0; i--)
+        pchunk->buf16[i] = pchunk->buf16[i-1];
+    _lStr_memcpy(pchunk->buf16 + p0, str, count);
     pchunk->len += count;
     pchunk->buf16[pchunk->len] = 0;
     return *this;
@@ -2561,6 +2588,47 @@ lString8 & lString8::appendHex(lUInt64 n)
     return *this;
 }
 
+lString16 & lString16::appendDecimal(lInt64 n)
+{
+    lChar16 buf[24];
+    int i=0;
+    int negative = 0;
+    if (n==0)
+        return append(1, '0');
+    else if (n<0)
+    {
+        negative = 1;
+        n = -n;
+    }
+    for ( ; n; n/=10 )
+    {
+        buf[i++] = '0' + (n % 10);
+    }
+    reserve(length() + i + negative);
+    if (negative)
+        append(1, '-');
+    for (int j=i-1; j>=0; j--)
+        append(1, buf[j]);
+    return *this;
+}
+
+lString16 & lString16::appendHex(lUInt64 n)
+{
+    if (n == 0)
+        return append(1, '0');
+    reserve(length() + 16);
+    bool foundNz = false;
+    for (int i=0; i<16; i++) {
+        int digit = (n >> 60) & 0x0F;
+        if (digit)
+            foundNz = true;
+        if (foundNz)
+            append(1, toHexDigit(digit));
+        n <<= 4;
+    }
+    return *this;
+}
+
 lString32 & lString32::appendDecimal(lInt64 n)
 {
     lChar32 buf[24];
@@ -3115,9 +3183,71 @@ lString8 lString8::itoa( lInt64 n )
 }
 
 // constructs string representation of integer
+lString16 lString16::itoa( int n )
+{
+    return itoa( (lInt64)n );
+}
+
+// constructs string representation of integer
+lString16 lString16::itoa( unsigned int n )
+{
+    return itoa( (lUInt64) n );
+}
+
+// constructs string representation of integer
+lString16 lString16::itoa( lInt64 n )
+{
+    lChar16 buf[32];
+    int i=0;
+    int negative = 0;
+    if (n==0)
+        return lString16("0");
+    else if (n<0)
+    {
+        negative = 1;
+        n = -n;
+    }
+    for ( ; n && i<30; n/=10 )
+    {
+        buf[i++] = (lChar16)('0' + (n%10));
+    }
+    lString16 res;
+    res.reserve(i+negative);
+    if (negative)
+        res.append(1, L'-');
+    for (int j=i-1; j>=0; j--)
+        res.append(1, buf[j]);
+    return res;
+}
+
+// constructs string representation of integer
+lString16 lString16::itoa( lUInt64 n )
+{
+    lChar16 buf[32];
+    int i=0;
+    if (n==0)
+        return lString16("0");
+    for ( ; n; n/=10 )
+    {
+        buf[i++] = (lChar16)('0' + (n%10));
+    }
+    lString16 res;
+    res.reserve(i);
+    for (int j=i-1; j>=0; j--)
+        res.append(1, buf[j]);
+    return res;
+}
+
+// constructs string representation of integer
 lString32 lString32::itoa( int n )
 {
     return itoa( (lInt64)n );
+}
+
+// constructs string representation of integer
+lString32 lString32::itoa( unsigned int n )
+{
+    return itoa( (lUInt64) n );
 }
 
 // constructs string representation of integer
@@ -3140,7 +3270,25 @@ lString32 lString32::itoa( lInt64 n )
     lString32 res;
     res.reserve(i+negative);
     if (negative)
-        res.append(1, L'-');
+        res.append(1, U'-');
+    for (int j=i-1; j>=0; j--)
+        res.append(1, buf[j]);
+    return res;
+}
+
+// constructs string representation of integer
+lString32 lString32::itoa( lUInt64 n )
+{
+    lChar32 buf[32];
+    int i=0;
+    if (n==0)
+        return cs32("0");
+    for ( ; n; n/=10 )
+    {
+        buf[i++] = (lChar32)('0' + (n%10));
+    }
+    lString32 res;
+    res.reserve(i);
     for (int j=i-1; j>=0; j--)
         res.append(1, buf[j]);
     return res;
@@ -3333,31 +3481,6 @@ lString32 & lString32::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpac
         limit(nlen);
     return *this;
 }
-
-// constructs string representation of integer
-lString32 lString32::itoa( unsigned int n )
-{
-    return itoa( (lUInt64) n );
-}
-
-// constructs string representation of integer
-lString32 lString32::itoa( lUInt64 n )
-{
-    lChar32 buf[24];
-    int i=0;
-    if (n==0)
-        return cs32("0");
-    for ( ; n; n/=10 )
-    {
-        buf[i++] = (lChar32)('0' + (n%10));
-    }
-    lString32 res;
-    res.reserve(i);
-    for (int j=i-1; j>=0; j--)
-        res.append(1, buf[j]);
-    return res;
-}
-
 
 lUInt32 lString8::getHash() const
 {
@@ -5363,6 +5486,15 @@ void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int
     //CRLog::debug("Word bounds: '%s'", LCSTR(lString16(str+start, end-start)));
 }
 
+void  lString16::limit( size_type sz )
+{
+    if ( length() > sz ) {
+        modify();
+        pchunk->len = sz;
+        pchunk->buf16[sz] = 0;
+    }
+}
+
 void  lString32::limit( size_type sz )
 {
     if ( length() > sz ) {
@@ -5431,6 +5563,93 @@ bool lString8::endsWith( const lChar8 * substring ) const
     const lChar8 * s1 = c_str() + (length()-len);
     const lChar8 * s2 = substring;
     return lStr_cmp( s1, s2 )==0;
+}
+
+/// returns true if string ends with specified substring
+bool lString16::endsWith( const lChar16 * substring ) const
+{
+    if ( !substring || !*substring )
+        return true;
+    int len = lStr_len(substring);
+    if ( length() < len )
+        return false;
+    const lChar16 * s1 = c_str() + (length()-len);
+    const lChar16 * s2 = substring;
+    return lStr_cmp( s1, s2 )==0;
+}
+
+/// returns true if string ends with specified substring
+bool lString16::endsWith( const lChar8 * substring ) const
+{
+    if ( !substring || !*substring )
+        return true;
+    int len = lStr_len(substring);
+    if ( length() < len )
+        return false;
+    const lChar16 * s1 = c_str() + (length()-len);
+    const lChar8 * s2 = substring;
+    return lStr_cmp( s1, s2 )==0;
+}
+
+/// returns true if string ends with specified substring
+bool lString16::endsWith ( const lString16 & substring ) const
+{
+    if ( substring.empty() )
+        return true;
+    int len = substring.length();
+    if ( length() < len )
+        return false;
+    const lChar16 * s1 = c_str() + (length()-len);
+    const lChar16 * s2 = substring.c_str();
+    return lStr_cmp( s1, s2 )==0;
+}
+
+/// returns true if string starts with specified substring
+bool lString16::startsWith( const lString16 & substring ) const
+{
+    if ( substring.empty() )
+        return true;
+    int len = substring.length();
+    if ( length() < len )
+        return false;
+    const lChar16 * s1 = c_str();
+    const lChar16 * s2 = substring.c_str();
+    for ( int i=0; i<len; i++ )
+        if ( s1[i]!=s2[i] )
+            return false;
+    return true;
+}
+
+/// returns true if string starts with specified substring
+bool lString16::startsWith(const lChar16 * substring) const
+{
+    if (!substring || !substring[0])
+        return true;
+    int len = _lStr_len(substring);
+    if ( length() < len )
+        return false;
+    const lChar16 * s1 = c_str();
+    const lChar16 * s2 = substring;
+    for ( int i=0; i<len; i++ )
+        if ( s1[i] != s2[i] )
+            return false;
+    return true;
+}
+
+/// returns true if string starts with specified substring
+bool lString16::startsWith(const lChar8 * substring) const
+{
+    if (!substring || !substring[0])
+        return true;
+    int len = _lStr_len(substring);
+    if ( length() < len )
+        return false;
+    const lChar16 * s1 = c_str();
+    const lChar8 * s2 = substring;
+    for ( int i=0; i<len; i++ )
+        if (s1[i] != s2[i])
+            return false;
+    return true;
 }
 
 /// returns true if string ends with specified substring

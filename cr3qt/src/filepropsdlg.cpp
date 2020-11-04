@@ -67,8 +67,8 @@ QString FilePropsDialog::getDocText( const char * path, const char * delim )
     for ( int i=0; i<100; i++ ) {
         lString8 p = lString8(path) + "[" + fmt::decimal(i+1) + "]";
         //CRLog::trace("checking doc path %s", p.c_str() );
-        lString32 p16 = Utf8ToUnicode(p);
-        ldomXPointer ptr = doc->createXPointer( p16 );
+        lString32 p32 = Utf8ToUnicode(p);
+        ldomXPointer ptr = doc->createXPointer( p32 );
         if ( ptr.isNull() )
             break;
         lString32 s = ptr.getText( L' ' );
