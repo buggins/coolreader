@@ -984,7 +984,7 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString32 text
             tabText = text.substr( tabPos+1 );
             text = text.substr( 0, tabPos );
         } else {
-            text[tabPos] = L' ';
+            text[tabPos] = U' ';
         }
     }
     lString32 cr("\n");
@@ -1036,9 +1036,9 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString32 text
             x += dx;
 
 
-        font->DrawTextString( &buf, x, y, s.c_str(), s.length(), L'?', NULL, false, 0 );
+        font->DrawTextString( &buf, x, y, s.c_str(), s.length(), U'?', NULL, false, 0 );
         if ( !tabText.empty() ) {
-            font->DrawTextString( &buf, txtrc.right-ttw, y, tabText.c_str(), tabText.length(), L'?', NULL, false, 0 );
+            font->DrawTextString( &buf, txtrc.right-ttw, y, tabText.c_str(), tabText.length(), U'?', NULL, false, 0 );
             tabText.clear();
         }
         y = y + lh;

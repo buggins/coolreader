@@ -106,7 +106,7 @@ const lString32 & cs32(const char * str) {
             return values_32[index];
         } else if (p == NULL) {
 #if DEBUG_STATIC_STRING_ALLOC == 1
-            CRLog::trace("allocating static string16 %s", str);
+            CRLog::trace("allocating static string32 %s", str);
 #endif
             const_ptrs_32[index] = str;
             size_32++;
@@ -122,7 +122,7 @@ const lString32 & cs32(const char * str) {
     return lString32::empty_str;
 }
 
-/// get reference to atomic constant wide string for string literal e.g. cs32(L"abc") -- fast and memory effective
+/// get reference to atomic constant wide string for string literal e.g. cs32(U"abc") -- fast and memory effective
 const lString32 & cs32(const lChar32 * str) {
     int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
     for (;;) {
@@ -131,7 +131,7 @@ const lString32 & cs32(const lChar32 * str) {
             return values_32[index];
         } else if (p == NULL) {
 #if DEBUG_STATIC_STRING_ALLOC == 1
-            CRLog::trace("allocating static string16 %s", LCSTR(str));
+            CRLog::trace("allocating static string32 %s", LCSTR(str));
 #endif
             const_ptrs_32[index] = str;
             size_32++;
@@ -4260,8 +4260,8 @@ lString32 ByteToUnicode( const lString8 & str, const lChar32 * table )
     buf.reserve( str.length() );
     for (int i=0; i < str.length(); i++) {
         lChar32 ch = (unsigned char)str[i];
-        lChar32 ch16 = ((ch & 0x80) && table) ? table[ (ch&0x7F) ] : ch;
-        buf += ch16;
+        lChar32 ch32 = ((ch & 0x80) && table) ? table[ (ch&0x7F) ] : ch;
+        buf += ch32;
     }
     return buf;
 }
@@ -5483,7 +5483,7 @@ void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int
     }
     start = hwStart;
     end = hwEnd;
-    //CRLog::debug("Word bounds: '%s'", LCSTR(lString16(str+start, end-start)));
+    //CRLog::debug("Word bounds: '%s'", LCSTR(lString32(str+start, end-start)));
 }
 
 void  lString16::limit( size_type sz )

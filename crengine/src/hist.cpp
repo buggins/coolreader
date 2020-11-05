@@ -649,10 +649,10 @@ lString32 CRFileHistRecord::getLastTimeString( bool longFormat )
 #define POS_TEXT_TAG         "POSTEXT"
 #define COMMENT_TEXT_TAG     "COMMENTTEXT"
 
-static lString8 encodeText(lString32 text16) {
-    if (text16.empty())
+static lString8 encodeText(lString32 text32) {
+    if (text32.empty())
         return lString8::empty_str;
-    lString8 text = UnicodeToUtf8(text16);
+    lString8 text = UnicodeToUtf8(text32);
     lString8 buf;
     for (int i=0; i<text.length(); i++) {
         char ch = text[i];

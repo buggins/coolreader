@@ -1930,7 +1930,7 @@ LVImageSourceRef LVCreateNodeImageSource( ldomNode * node )
     if (stream.isNull())
         return ref;
 //    if ( CRLog::isDebugEnabled() ) {
-//        lUInt16 attr_id = node->getDocument()->getAttrNameIndex(L"id");
+//        lUInt16 attr_id = node->getDocument()->getAttrNameIndex(U"id");
 //        lString32 id = node->getAttributeValue(attr_id);
 //        CRLog::debug("Opening node image id=%s", LCSTR(id));
 //    }
@@ -2554,7 +2554,7 @@ void LVDrawBatteryIcon( LVDrawBuf * drawbuf, const lvRect & batteryRc, int perce
         if ( charging )
             txt = "+++";
         else
-            txt = lString32::itoa(percent); // + L"%";
+            txt = lString32::itoa(percent); // + U"%";
         int w = font->getTextWidth(txt.c_str(), txt.length());
         int h = font->getHeight();
         int x = (rc.left + rc.right - w)/2;

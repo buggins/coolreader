@@ -1076,8 +1076,8 @@ bool parse_content_property( const char * & str, lString32 & parsed_content)
     // data: its length (+1 to avoid NULLs in strings) and that data.
     // parsed_content may contain multiple values, in the format
     //   'X' for 'none' (or 'normal', = none with pseudo elements)
-    //   's' + <len> + string16 (string content) for ""
-    //   'a' + <len> + string16 (attribute name) for attr()
+    //   's' + <len> + string32 (string content) for ""
+    //   'a' + <len> + string32 (attribute name) for attr()
     //   'Q' for 'open-quote'
     //   'q' for 'close-quote'
     //   'N' for 'no-open-quote'
@@ -1106,22 +1106,22 @@ bool parse_content_property( const char * & str, lString32 & parsed_content)
             continue; // continue parsing
         }
         else if ( substr_icompare("open-quote", str) ) {
-            parsed_content << L'Q';
+            parsed_content << U'Q';
             needs_processing_when_applying = true;
             continue;
         }
         else if ( substr_icompare("close-quote", str) ) {
-            parsed_content << L'q';
+            parsed_content << U'q';
             needs_processing_when_applying = true;
             continue;
         }
         else if ( substr_icompare("no-open-quote", str) ) {
-            parsed_content << L'N';
+            parsed_content << U'N';
             needs_processing_when_applying = true;
             continue;
         }
         else if ( substr_icompare("no-close-quote", str) ) {
-            parsed_content << L'n';
+            parsed_content << U'n';
             needs_processing_when_applying = true;
             continue;
         }
@@ -1138,7 +1138,7 @@ bool parse_content_property( const char * & str, lString32 & parsed_content)
                     str++;
                     lString32 attr = Utf8ToUnicode(attr8);
                     attr.trim();
-                    parsed_content << L'a';
+                    parsed_content << U'a';
                     parsed_content << lChar32(attr.length() + 1); // (+1 to avoid storing \x00)
                     parsed_content << attr;
                     continue;
@@ -1158,7 +1158,7 @@ bool parse_content_property( const char * & str, lString32 & parsed_content)
                 }
                 if ( *str == ')' ) {
                     str++;
-                    parsed_content << L'u';
+                    parsed_content << U'u';
                     continue;
                 }
                 // No closing ')': invalid
@@ -1226,27 +1226,27 @@ bool parse_content_property( const char * & str, lString32 & parsed_content)
                 // (declaration or rule) in which the string was found."
             }
             if ( *str == quote_ch ) {
-                lString32 str16 = Utf8ToUnicode(str8);
-                parsed_content << L's';
-                parsed_content << lChar32(str16.length() + 1); // (+1 to avoid storing \x00)
-                parsed_content << str16;
+                lString32 str32 = Utf8ToUnicode(str8);
+                parsed_content << U's';
+                parsed_content << lChar32(str32.length() + 1); // (+1 to avoid storing \x00)
+                parsed_content << str32;
                 str++;
                 continue;
             }
         }
         else {
             // Not supported
-            parsed_content << L'z';
+            parsed_content << U'z';
             next_token(str);
         }
     }
     if ( has_none ) {
         // Forget all other tokens parsed
         parsed_content.clear();
-        parsed_content << L'X';
+        parsed_content << U'X';
     }
     else if ( needs_processing_when_applying ) {
-        parsed_content.insert(0, 1, L'$');
+        parsed_content.insert(0, 1, U'$');
     }
     if (*str) // something (;, } or !important) follows
         return true;
@@ -1268,7 +1268,7 @@ void update_style_content_property( css_style_rec_t * style, ldomNode * node ) {
     // But we need to resolve quotes, according to their nesting level,
     // and transform them into a litteral string 's'.
 
-    if ( style->content.empty() || style->content[0] != L'$' ) {
+    if ( style->content.empty() || style->content[0] != U'$' ) {
         // No update needed
         return;
     }
@@ -1328,12 +1328,12 @@ void update_style_content_property( css_style_rec_t * style, ldomNode * node ) {
         }
         else if ( ctype == 'Q' ) { // open-quote
             quote = lang_cfg->getOpeningQuote(visible);
-            res << L's' << quote.length() << quote;
+            res << U's' << quote.length() << quote;
             i += 1;
         }
         else if ( ctype == 'q' ) { // close-quote
             quote = lang_cfg->getClosingQuote(visible);
-            res << L's' << quote.length() << quote;
+            res << U's' << quote.length() << quote;
             i += 1;
         }
         else if ( ctype == 'N' ) { // no-open-quote

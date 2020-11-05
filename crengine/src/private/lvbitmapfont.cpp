@@ -75,7 +75,7 @@ lUInt32 LBitmapFont::getTextWidth( const lChar32 * text, int len, TextLangCfg * 
                     widths,
                     flags,
                     2048, // max_width,
-                    L' ',  // def_char
+                    U' ',  // def_char
                     lang_cfg
                  );
     if ( res>0 && res<MAX_LINE_CHARS )

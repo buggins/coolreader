@@ -71,7 +71,7 @@ QString FilePropsDialog::getDocText( const char * path, const char * delim )
         ldomXPointer ptr = doc->createXPointer( p32 );
         if ( ptr.isNull() )
             break;
-        lString32 s = ptr.getText( L' ' );
+        lString32 s = ptr.getText( U' ' );
         if ( s.empty() )
             continue;
         if ( !res.empty() && delim!=NULL )

@@ -1742,7 +1742,7 @@ lUInt32 LVFreeTypeFace::getTextWidth(const lChar32 *text, int len, TextLangCfg *
             widths,
             flags,
             MAX_LINE_WIDTH,
-            L' ',  // def_char
+            U' ',  // def_char
             lang_cfg,
             0
     );
