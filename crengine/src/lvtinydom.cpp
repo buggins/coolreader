@@ -9626,8 +9626,10 @@ lString32 extractDocSeries( ldomDocument * doc, int * pSeriesNumber )
 lString32 extractDocKeywords( ldomDocument * doc )
 {
     lString32 res;
+#if 0
     // Year
     res << doc->createXPointer(U"/FictionBook/description/title-info/date").getText().trim();
+#endif
     // Genres
     for ( int i=0; i<16; i++) {
         lString32 path = cs32("/FictionBook/description/title-info/genre[") + fmt::decimal(i+1) + "]";

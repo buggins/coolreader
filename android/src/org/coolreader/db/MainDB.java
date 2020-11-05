@@ -14,7 +14,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 31;
+	public final int DB_VERSION = 32;
 	@Override
 	protected boolean upgradeSchema() {
 		// When the database is just created, its version is 0.
@@ -60,6 +60,7 @@ public class MainDB extends BaseDB {
 					"last_access_time INTEGER, " +
 					"flags INTEGER DEFAULT 0, " +
 					"language VARCHAR DEFAULT NULL, " +
+					"keywords VARCHAR DEFAULT NULL, " +
 					"description TEXT DEFAULT NULL, " +
 					"crc32 INTEGER DEFAULT NULL, " +
 					"domVersion INTEGER DEFAULT 0, " +
@@ -77,6 +78,8 @@ public class MainDB extends BaseDB {
 					"book_last_access_time_index ON book (last_access_time) ");
 			execSQL("CREATE INDEX IF NOT EXISTS " +
 					"book_title_index ON book (title) ");
+			execSQL("CREATE INDEX IF NOT EXISTS " +
+					"book_keywords_index ON book (keywords) ");
 			execSQL("CREATE TABLE IF NOT EXISTS book_author (" +
 					"book_fk INTEGER NOT NULL REFERENCES book (id)," +
 					"author_fk INTEGER NOT NULL REFERENCES author (id)," +
@@ -208,6 +211,9 @@ public class MainDB extends BaseDB {
 			}
 			if (currentVersion < 31) {
 				execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN description TEXT DEFAULT NULL");
+			}
+			if (currentVersion < 32) {
+				execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN keywords VARCHAR DEFAULT NULL");
 			}
 
 			//==============================================================
@@ -1363,6 +1369,7 @@ public class MainDB extends BaseDB {
 			add("create_time", (long)newValue.createTime, (long)oldValue.createTime);
 			add("flags", (long)newValue.flags, (long)oldValue.flags);
 			add("language", newValue.language, oldValue.language);
+			add("keywords", newValue.keywords, oldValue.keywords);
 			add("description", newValue.description, oldValue.description);
 			add("crc32", newValue.crc32, oldValue.crc32);
 			add("domVersion", newValue.domVersion, oldValue.domVersion);
@@ -1395,7 +1402,7 @@ public class MainDB extends BaseDB {
 		"s.name as series_name, " +
 		"series_number, " +
 		"format, filesize, arcsize, " +
-		"create_time, last_access_time, flags, language, description, crc32, domVersion, rendFlags ";
+		"create_time, last_access_time, flags, language, keywords, description, crc32, domVersion, rendFlags ";
 	
 	private static final String READ_FILEINFO_SQL = 
 		"SELECT " +
@@ -1424,6 +1431,7 @@ public class MainDB extends BaseDB {
 		fileInfo.lastAccessTime = rs.getInt(i++);
 		fileInfo.flags = rs.getInt(i++);
 		fileInfo.language = rs.getString(i++);
+		fileInfo.keywords = rs.getString(i++);
 		fileInfo.description = rs.getString(i++);
 		fileInfo.crc32 = rs.getLong(i++);
 		fileInfo.domVersion = rs.getInt(i++);

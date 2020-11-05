@@ -1882,6 +1882,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				if (fi.language != null) {
 					items.add("book.language=" + fi.language);
 				}
+				if (fi.format == DocumentFormat.FB2) {
+					if (fi.keywords != null && fi.keywords.length() > 0) {
+						items.add("book.keywords=" + fi.keywords);
+					}
+				}
 				BookInfoDialog dlg = new BookInfoDialog(mActivity, items);
 				dlg.show();
 			}

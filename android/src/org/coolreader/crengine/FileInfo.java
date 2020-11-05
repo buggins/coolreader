@@ -39,6 +39,7 @@ public class FileInfo {
 	public Long id; // db id
 	public String title; // book title
 	public String authors; // authors, delimited with '|'
+	public String keywords; // keywords, genres
 	public String series; // series name w/o number
 	public int seriesNumber; // number of book inside series
 	public String path; // path to directory where file or archive is located
@@ -321,6 +322,7 @@ public class FileInfo {
 		createTime = v.createTime;
 		lastAccessTime = v.lastAccessTime;
 		language = v.language;
+		keywords = v.keywords;
 		description = v.description;
 		username = v.username;
 		password = v.password;
@@ -1177,6 +1179,11 @@ public class FileInfo {
 				return false;
 		} else if (!language.equals(other.language))
 			return false;
+		if (keywords == null) {
+			if (other.keywords != null)
+				return false;
+		} else if (!keywords.equals(other.keywords))
+			return false;
 		if (description == null) {
 			if (other.description != null)
 				return false;
@@ -1256,6 +1263,11 @@ public class FileInfo {
 			if (other.language != null)
 				return false;
 		} else if (!language.equals(other.language))
+			return false;
+		if (keywords == null) {
+			if (other.keywords != null)
+				return false;
+		} else if (!keywords.equals(other.keywords))
 			return false;
 		if (description == null) {
 			if (other.description != null)

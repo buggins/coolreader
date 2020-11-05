@@ -1639,6 +1639,8 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateBookInfoIntern
     CRStringField languageField(fileinfo,"language");
     if (languageField.get().empty())
     	languageField.set(p->_docview->getLanguage());
+    CRStringField keywordsField(fileinfo,"keywords");
+    keywordsField.set(p->_docview->getKeywords());
     CRStringField descriptionField(fileinfo,"description");
     descriptionField.set(p->_docview->getDescription());
     CRLongField crc32Field(fileinfo,"crc32");

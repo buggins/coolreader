@@ -693,4 +693,5 @@
     <string name="bookmarks_keepalive_1quarter">1 quarter</string>
     <string name="bookmarks_keepalive_half_a_year">half a year</string>
     <string name="bookmarks_keepalive_1year">1 year</string>
+    <string name="book_info_genres">Genre(s)</string>
 </resources>
