@@ -1019,16 +1019,21 @@ public class Synchronizer {
 						return;
 					m_currentOperationIndex++;
 					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
-					Date now = new Date();
-					SyncOperation op = DeleteOldBookmarksSyncOperation.this;
-					for (FileMetadata meta : metalist) {
-						if (meta.fileName.endsWith(".bmk.xml.gz")) {
-							if (meta.modifiedDate.getTime() + 86400000*(long)m_bookmarksKeepAlive < now.getTime()) {
-								log.d("scheduling to remove file \"" + meta.fileName +  "\".");
-								String fileName = REMOTE_FOLDER_PATH + "/" + meta.fileName;
-								SyncOperation deleteFileOp = new DeleteFileSyncOperation(fileName);
-								insertOperation(op, deleteFileOp);
-								op = deleteFileOp;
+					if (null == metalist) {
+						// `metalist` can be null, which means that the folder you are looking for was not found.
+						log.d(REMOTE_FOLDER_PATH + " don't exist yet...");
+					} else {
+						Date now = new Date();
+						SyncOperation op = DeleteOldBookmarksSyncOperation.this;
+						for (FileMetadata meta : metalist) {
+							if (meta.fileName.endsWith(".bmk.xml.gz")) {
+								if (meta.modifiedDate.getTime() + 86400000 * (long) m_bookmarksKeepAlive < now.getTime()) {
+									log.d("scheduling to remove file \"" + meta.fileName + "\".");
+									String fileName = REMOTE_FOLDER_PATH + "/" + meta.fileName;
+									SyncOperation deleteFileOp = new DeleteFileSyncOperation(fileName);
+									insertOperation(op, deleteFileOp);
+									op = deleteFileOp;
+								}
 							}
 						}
 					}
