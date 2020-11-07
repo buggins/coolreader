@@ -14,6 +14,7 @@ import java.util.concurrent.Callable;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.InputDialog.InputHandler;
+import org.coolreader.db.CRDBService;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.ContentValues;
@@ -5377,10 +5378,19 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (bmk != null && mBookInfo != null && isBookLoaded()) {
 			//setBookPosition();
 			if (lastSavedBookmark == null || !lastSavedBookmark.getStartPos().equals(bmk.getStartPos())) {
-				Services.getHistory().updateRecentDir();
-				mActivity.getDB().saveBookInfo(mBookInfo);
-				mActivity.getDB().flush();
-				lastSavedBookmark = bmk;
+				History history = Services.getHistory();
+				if (history != null)
+					history.updateRecentDir();
+				else
+					log.e("Services.getHistory() is null!");
+				CRDBService.LocalBinder db = mActivity.getDB();
+				if (db != null) {
+					db.saveBookInfo(mBookInfo);
+					db.flush();
+					lastSavedBookmark = bmk;
+				} else {
+					log.e("getDB() return null!");
+				}
 			}
 		}
 	}
