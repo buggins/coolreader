@@ -129,15 +129,15 @@ public class CoolReader extends BaseActivity {
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 
+		isFirstStart = true;
+		justCreated = true;
+
 		// Can request only one set of permissions at a time
 		// Then request all permission at a time.
 		requestStoragePermissions();
 
 		// apply settings
 		onSettingsChanged(settings(), null);
-
-		isFirstStart = true;
-		justCreated = true;
 
 		mEngine = Engine.getInstance(this);
 
@@ -495,6 +495,20 @@ public class CoolReader extends BaseActivity {
 					}
 				}
 
+				@Override
+				public void onFileNotFound(FileInfo fileInfo) {
+					if (null == fileInfo)
+						return;
+					String docInfo = "Unknown";
+					if (null != fileInfo.title && !fileInfo.authors.isEmpty())
+						docInfo = fileInfo.title;
+					if (null != fileInfo.authors && !fileInfo.authors.isEmpty())
+						docInfo = fileInfo.authors + ", " + docInfo;
+					if (null != fileInfo.filename && !fileInfo.filename.isEmpty())
+						docInfo += " (" + fileInfo.filename + ")";
+					showToast(R.string.sync_info_no_such_document, docInfo);
+				}
+
 			});
 		}
 	}
@@ -526,8 +540,6 @@ public class CoolReader extends BaseActivity {
 						}
 					}, mSyncGoogleDriveAutoSavePeriod * 60000, mSyncGoogleDriveAutoSavePeriod * 60000);
 				}
-				if (!mSyncGoogleDriveEnabledPrev)		// Enables just now
-					mGoogleDriveSync.startSyncFrom(true, true, false);
 			} else {
 				if (null != mGoogleDriveAutoSaveTimer) {
 					mGoogleDriveAutoSaveTimer.cancel();
@@ -1066,10 +1078,20 @@ public class CoolReader extends BaseActivity {
 			String value = (String) entry.getValue();
 			applyAppSetting(key, value);
 		}
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			if (mSyncGoogleDriveEnabled && !mSyncGoogleDriveEnabledPrev && null != mGoogleDriveSync) {
+				// if cloud sync has just been enabled in options dialog
+				if (!justCreated) {
+					// Only after onStart()!
+					mGoogleDriveSync.startSyncFrom(true, false, false);
+					mSyncGoogleDriveEnabledPrev = mSyncGoogleDriveEnabled;
+				}
+			}
+		}
 		// Show/Hide soft navbar after OptionDialog is closed.
 		applyFullscreen(getWindow());
 		if (changedProps.size() > 0) {
-			// After all, sync to the cloud with delay
+			// After all, sync new settings to the cloud with delay
 			BackgroundThread.instance().postGUI(() -> {
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 					if (mSyncGoogleDriveEnabled && mSyncGoogleDriveEnabledSettings && null != mGoogleDriveSync) {

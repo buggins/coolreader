@@ -1450,6 +1450,9 @@ public class Synchronizer {
 							// this book not found in db
 							// find in filesystem?
 							log.e("file \"" + fileInfo.filename + "\" not found in database!");
+							if (null != m_onStatusListener) {
+								m_onStatusListener.onFileNotFound(fileInfo);
+							}
 						} else {
 							if (fileList.size() > 1) {
 								// multiple files found that matches this fileInfo

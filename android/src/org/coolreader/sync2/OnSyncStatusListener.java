@@ -39,4 +39,6 @@ public interface OnSyncStatusListener {
 	void onBookmarksLoaded(BookInfo bookInfo, boolean forced);
 
 	void onCurrentBookInfoLoaded(FileInfo fileInfo, boolean forced);
+
+	void onFileNotFound(FileInfo fileInfo);
 }
