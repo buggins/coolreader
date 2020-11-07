@@ -4,7 +4,7 @@
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, either version 3 of the License, or
+ *   the Free Software Foundation, either version 2 of the License, or
  *   (at your option) any later version.
  *
  *   This program is distributed in the hope that it will be useful,
@@ -1019,16 +1019,21 @@ public class Synchronizer {
 						return;
 					m_currentOperationIndex++;
 					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
-					Date now = new Date();
-					SyncOperation op = DeleteOldBookmarksSyncOperation.this;
-					for (FileMetadata meta : metalist) {
-						if (meta.fileName.endsWith(".bmk.xml.gz")) {
-							if (meta.modifiedDate.getTime() + 86400000*(long)m_bookmarksKeepAlive < now.getTime()) {
-								log.d("scheduling to remove file \"" + meta.fileName +  "\".");
-								String fileName = REMOTE_FOLDER_PATH + "/" + meta.fileName;
-								SyncOperation deleteFileOp = new DeleteFileSyncOperation(fileName);
-								insertOperation(op, deleteFileOp);
-								op = deleteFileOp;
+					if (null == metalist) {
+						// `metalist` can be null, which means that the folder you are looking for was not found.
+						log.d(REMOTE_FOLDER_PATH + " don't exist yet...");
+					} else {
+						Date now = new Date();
+						SyncOperation op = DeleteOldBookmarksSyncOperation.this;
+						for (FileMetadata meta : metalist) {
+							if (meta.fileName.endsWith(".bmk.xml.gz")) {
+								if (meta.modifiedDate.getTime() + 86400000 * (long) m_bookmarksKeepAlive < now.getTime()) {
+									log.d("scheduling to remove file \"" + meta.fileName + "\".");
+									String fileName = REMOTE_FOLDER_PATH + "/" + meta.fileName;
+									SyncOperation deleteFileOp = new DeleteFileSyncOperation(fileName);
+									insertOperation(op, deleteFileOp);
+									op = deleteFileOp;
+								}
 							}
 						}
 					}
@@ -1445,6 +1450,9 @@ public class Synchronizer {
 							// this book not found in db
 							// find in filesystem?
 							log.e("file \"" + fileInfo.filename + "\" not found in database!");
+							if (null != m_onStatusListener) {
+								m_onStatusListener.onFileNotFound(fileInfo);
+							}
 						} else {
 							if (fileList.size() > 1) {
 								// multiple files found that matches this fileInfo

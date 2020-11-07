@@ -4,7 +4,7 @@
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, either version 3 of the License, or
+ *   the Free Software Foundation, either version 2 of the License, or
  *   (at your option) any later version.
  *
  *   This program is distributed in the hope that it will be useful,
@@ -595,12 +595,12 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 				meta = getFileMetadata(file);
 			} else
 				Log.d(TAG, "dir is NULL.");
-			if (null != completeListener)
-				completeListener.onCompleted(meta, meta != null);
 			synchronized (m_cacheLocker) {
-				// clear cache
+				// clear folders list cache before calling `complete' handler.
 				m_folderListCache.update(parentPath, null);
 			}
+			if (null != completeListener)
+				completeListener.onCompleted(meta, meta != null);
 		}).addOnFailureListener(e -> {
 			Log.d(TAG, "mkdir_impl() failed, e=" + e.toString());
 			if (null != completeListener) {
@@ -883,11 +883,11 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		}).addOnSuccessListener(file -> {
 			m_needSignInRepeat = false;
 			boolean result = null != file;
-			if (null != completeListener)
-				completeListener.onCompleted(result, result);
 			synchronized (m_cacheLocker) {
 				m_folderListCache.update(parentPath, null);
 			}
+			if (null != completeListener)
+				completeListener.onCompleted(result, result);
 		}).addOnFailureListener(e -> {
 			if (null != completeListener) {
 				completeListener.onCompleted(false, false);
@@ -909,11 +909,11 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		}).addOnSuccessListener(file -> {
 			m_needSignInRepeat = false;
 			boolean result = null != file;
-			if (null != completeListener)
-				completeListener.onCompleted(result, result);
 			synchronized (m_cacheLocker) {
 				m_folderListCache.update(parentPath, null);
 			}
+			if (null != completeListener)
+				completeListener.onCompleted(result, result);
 		}).addOnFailureListener(e -> {
 			if (null != completeListener) {
 				completeListener.onCompleted(false, false);

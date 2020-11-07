@@ -28,7 +28,7 @@ public class Services {
 		mEngine = Engine.getInstance(activity);
 
        	mScanner = new Scanner(activity, mEngine);
-       	mScanner.initRoots(mEngine.getMountedRootsMap());
+       	mScanner.initRoots(Engine.getMountedRootsMap());
 
        	mHistory = new History(mScanner);
 		mScanner.setDirScanEnabled(activity.settings().getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
@@ -40,7 +40,7 @@ public class Services {
 	// called after user grant permissions for external storage
 	public static void refreshServices(BaseActivity activity) {
 		mEngine.initAgain();
-		mScanner.initRoots(mEngine.getMountedRootsMap());
+		mScanner.initRoots(Engine.getMountedRootsMap());
 	}
 
 	public static void stopServices() {
@@ -61,5 +61,6 @@ public class Services {
 		mHistory = null;
 		mScanner = null;
 		mCoverpageManager = null;
+		mFSFolders = null;
 	}
 }

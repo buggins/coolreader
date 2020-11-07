@@ -629,6 +629,7 @@
     <string name="confirmation_title">Подтверждение</string>
     <string name="sync_confirmation_other_book">На другом устройстве была открыта другая книга (%s), переключиться на неё?</string>
     <string name="sync_confirmation_new_reading_position">Для этой книги найдена новая позиция чтения, обновить?</string>
+    <string name="sync_info_no_such_document">Документ \"%s\" не найден на этом устройстве!</string>
     <string name="autosave_period">Период автосохранения</string>
     <string name="autosave_period_off">"Отключено"</string>
     <string name="autosave_period_1min">"1 минута"</string>
