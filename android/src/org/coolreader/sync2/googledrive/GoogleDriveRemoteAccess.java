@@ -595,12 +595,12 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 				meta = getFileMetadata(file);
 			} else
 				Log.d(TAG, "dir is NULL.");
-			if (null != completeListener)
-				completeListener.onCompleted(meta, meta != null);
 			synchronized (m_cacheLocker) {
-				// clear cache
+				// clear folders list cache before calling `complete' handler.
 				m_folderListCache.update(parentPath, null);
 			}
+			if (null != completeListener)
+				completeListener.onCompleted(meta, meta != null);
 		}).addOnFailureListener(e -> {
 			Log.d(TAG, "mkdir_impl() failed, e=" + e.toString());
 			if (null != completeListener) {
@@ -883,11 +883,11 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		}).addOnSuccessListener(file -> {
 			m_needSignInRepeat = false;
 			boolean result = null != file;
-			if (null != completeListener)
-				completeListener.onCompleted(result, result);
 			synchronized (m_cacheLocker) {
 				m_folderListCache.update(parentPath, null);
 			}
+			if (null != completeListener)
+				completeListener.onCompleted(result, result);
 		}).addOnFailureListener(e -> {
 			if (null != completeListener) {
 				completeListener.onCompleted(false, false);
@@ -909,11 +909,11 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		}).addOnSuccessListener(file -> {
 			m_needSignInRepeat = false;
 			boolean result = null != file;
-			if (null != completeListener)
-				completeListener.onCompleted(result, result);
 			synchronized (m_cacheLocker) {
 				m_folderListCache.update(parentPath, null);
 			}
+			if (null != completeListener)
+				completeListener.onCompleted(result, result);
 		}).addOnFailureListener(e -> {
 			if (null != completeListener) {
 				completeListener.onCompleted(false, false);
