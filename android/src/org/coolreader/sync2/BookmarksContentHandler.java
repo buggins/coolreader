@@ -131,7 +131,7 @@ class BookmarksContentHandler implements ContentHandler {
 		String tag = "";
 		if (!m_tagStack.empty())
 			tag = m_tagStack.pop();
-		if (tag != qName) {
+		if (!tag.equals(qName)) {
 			throw new SAXException("end element '" + qName + "' not equal to start element '" + tag + "'");
 		}
 		switch (tag) {
