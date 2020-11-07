@@ -64,12 +64,15 @@ public class TTSControlService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		log.d("Received start id " + startId + ": " + intent);
-
 		String title = "";
-		Bundle data = intent.getExtras();
-		if (null != data)
-			title = data.getString("bookTitle");
-
+		if (null != intent) {
+			// According to the documentation, intent can be null:
+			// https://developer.android.com/reference/android/app/Service#onStartCommand(android.content.Intent,%20int,%20int)
+			// https://developer.android.com/reference/android/app/Service#START_STICKY
+			Bundle data = intent.getExtras();
+			if (null != data)
+				title = data.getString("bookTitle");
+		}
 		// switch this service to foreground
 		Notification notification = buildNotification(title, null, TTSStatus.PAUSED);
 		if (null != notification) {
