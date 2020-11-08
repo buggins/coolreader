@@ -18,7 +18,7 @@
 class SerialBuf;
 
 /// hashed wide string collection
-class lString16HashedCollection : public lString32Collection
+class lString32HashedCollection : public lString32Collection
 {
 private:
     int hashSize;
@@ -38,9 +38,9 @@ public:
     /// deserialize from byte array (pointer will be incremented by number of bytes read)
     bool deserialize( SerialBuf & buf );
 
-    lString16HashedCollection( lString16HashedCollection & v );
-    lString16HashedCollection( lUInt32 hashSize );
-    ~lString16HashedCollection();
+    lString32HashedCollection( lString32HashedCollection & v );
+    lString32HashedCollection( lUInt32 hashSize );
+    ~lString32HashedCollection();
     int add( const lChar32 * s );
     int find( const lChar32 * s );
 };

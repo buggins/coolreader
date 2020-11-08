@@ -22,7 +22,7 @@ int LVFont::getVisualAligmentWidth() {
     if (_visual_alignment_width == -1) {
         //lChar32 chars[] = { getHyphChar(), ',', '.', '!', ':', ';', 0 };
         lChar32 chars[] = {getHyphChar(), ',', '.', '!', ':', ';',
-                           (lChar32) L'\xff0c', (lChar32) L'\x3302', (lChar32) L'\xff01', 0};
+                           (lChar32) U'\xff0c', (lChar32) U'\x3302', (lChar32) U'\xff01', 0};
         //                  (lChar32)U'，', (lChar32)U'。', (lChar32)U'！', 0 };
         //                  65292 12290 65281
         //                  ff0c 3002 ff01

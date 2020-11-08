@@ -310,7 +310,7 @@ public:
         return _text;
     }
 
-    lString32 getText16()
+    lString32 getText32()
     {
         return Utf8ToUnicode(_text);
     }
@@ -3965,7 +3965,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
             // settings) says hyphenation is allowed.
             // We do that here while we output the text to avoid the need
             // for temporary storage of a string with soft-hyphens added.
-            const lChar32 * text16 = txt.c_str();
+            const lChar32 * text32 = txt.c_str();
             int txtlen = txt.length();
             lUInt8 * flags = (lUInt8*)calloc(txtlen, sizeof(*flags));
             lUInt16 widths[HYPH_MAX_WORD_SIZE] = { 0 }; // array needed by hyphenate()
@@ -3977,7 +3977,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
                 // (or the previous word if wordpos happens to be a space or some
                 // punctuation) by looking only for alpha chars in m_text.
                 int start, end;
-                lStr_findWordBounds( text16, txtlen, wordpos, start, end );
+                lStr_findWordBounds( text32, txtlen, wordpos, start, end );
                 if ( end <= HYPH_MIN_WORD_LEN_TO_HYPHENATE ) {
                     // Too short word at start, we're done
                     break;
@@ -3999,7 +3999,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
                 // Have hyphenate() set flags inside 'flags'
                 // (Fetching the lang_cfg for each text node is not really cheap, but
                 // it's easier than having to pass it to each writeNodeEx())
-                TextLangMan::getTextLangCfg(node)->getHyphMethod()->hyphenate(text16+start, len, widths, flags+start, 0, 0xFFFF, 1);
+                TextLangMan::getTextLangCfg(node)->getHyphMethod()->hyphenate(text32+start, len, widths, flags+start, 0, 0xFFFF, 1);
                 // Continue with previous word
                 wordpos = start - 1;
             }
@@ -5155,7 +5155,7 @@ static lString32 getSectionHeader( ldomNode * section )
     ldomNode * child = section->getChildElementNode(0, U"title");
     if ( !child )
         return header;
-    header = child->getText(L' ', 1024);
+    header = child->getText(U' ', 1024);
     return header;
 }
 
@@ -11946,7 +11946,7 @@ bool ldomXPointerEx::isSentenceStart()
             case '.':
             case '?':
             case '!':
-            case L'\x2026': // horizontal ellypsis
+            case U'\x2026': // horizontal ellypsis
                 return false;
         }
     }
@@ -11957,7 +11957,7 @@ bool ldomXPointerEx::isSentenceStart()
         case '.':
         case '?':
         case '!':
-        case L'\x2026': // horizontal ellypsis
+        case U'\x2026': // horizontal ellypsis
             return true;
         default:
             return false;
@@ -11985,7 +11985,7 @@ bool ldomXPointerEx::isSentenceEnd()
         case '.':
         case '?':
         case '!':
-        case L'\x2026': // horizontal ellypsis
+        case U'\x2026': // horizontal ellypsis
             return true;
         default:
             break;
@@ -16542,7 +16542,7 @@ lString32 ldomNode::getText( lChar32 blockDelimiter, int maxSize ) const
         return Utf8ToUnicode(getDocument()->_textStorage.getText( _data._ptext_addr ));
 #endif
     case NT_TEXT:
-        return _data._text_ptr->getText16();
+        return _data._text_ptr->getText32();
     }
     return lString32::empty_str;
 }

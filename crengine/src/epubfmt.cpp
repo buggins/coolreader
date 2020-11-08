@@ -1392,7 +1392,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         LVStreamRef stream = m_arc->OpenStream(navHref.c_str(), LVOM_READ);
         lString32 codeBase = LVExtractPath( navHref );
         if ( codeBase.length()>0 && codeBase.lastChar()!='/' )
-            codeBase.append(1, L'/');
+            codeBase.append(1, U'/');
         appender.setCodeBase(codeBase);
         if ( !stream.isNull() ) {
             ldomDocument * navDoc = LVParseXMLStream( stream );
@@ -1480,7 +1480,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         LVStreamRef stream = m_arc->OpenStream(ncxHref.c_str(), LVOM_READ);
         lString32 codeBase = LVExtractPath( ncxHref );
         if ( codeBase.length()>0 && codeBase.lastChar()!='/' )
-            codeBase.append(1, L'/');
+            codeBase.append(1, U'/');
         appender.setCodeBase(codeBase);
         if ( !stream.isNull() ) {
             ldomDocument * ncxdoc = LVParseXMLStream( stream );
@@ -1528,7 +1528,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         LVStreamRef stream = m_arc->OpenStream(pageMapHref.c_str(), LVOM_READ);
         lString32 codeBase = LVExtractPath( pageMapHref );
         if ( codeBase.length()>0 && codeBase.lastChar()!='/' )
-            codeBase.append(1, L'/');
+            codeBase.append(1, U'/');
         appender.setCodeBase(codeBase);
         if ( !stream.isNull() ) {
             ldomDocument * pagemapdoc = LVParseXMLStream( stream );

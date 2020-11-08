@@ -28,8 +28,8 @@ public:
         return *this;
     }
 
-    crtrace& operator << (const lString32& ls16) {
-        buffer_.append(UnicodeToUtf8(ls16));
+    crtrace& operator << (const lString32& ls32) {
+        buffer_.append(UnicodeToUtf8(ls32));
         return *this;
     }
 

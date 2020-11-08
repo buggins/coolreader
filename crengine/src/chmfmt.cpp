@@ -965,7 +965,7 @@ class CHMTOCReader {
     ldomDocumentFragmentWriter * _appender;
     ldomDocument * _doc;
     LVTocItem * _toc;
-    lString16HashedCollection _fileList;
+    lString32HashedCollection _fileList;
     lString32 lastFile;
     lString32 _defEncodingName;
     bool _fakeToc;

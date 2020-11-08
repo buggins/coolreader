@@ -1296,7 +1296,7 @@ public:
                             // Note: with a mix of normal spaces and non-break-spaces,
                             // we seem to behave just as Firefox.
                             // Note: for the empty lines or indentation we might add
-                            // with 'txform->AddSourceLine(L" "...)', we need to
+                            // with 'txform->AddSourceLine(U" "...)', we need to
                             // provide LTEXT_FLAG_PREFORMATTED if we don't want them
                             // to be collapsed.
                             m_flags[pos] = LCHAR_IS_COLLAPSED_SPACE | LCHAR_ALLOW_WRAP_AFTER;
@@ -2150,7 +2150,7 @@ public:
 //        // debug dump
 //        lString32 buf;
 //        for ( int i=0; i<m_length; i++ ) {
-//            buf << L" " << lChar32(m_text[i]) << L" " << lString32::itoa(m_widths[i]);
+//            buf << U" " << lChar32(m_text[i]) << U" " << lString32::itoa(m_widths[i]);
 //        }
 //        TR("%s", LCSTR(buf));
     }
@@ -2876,7 +2876,7 @@ public:
                                 // This is a bit hacky, but no other solution: just
                                 // replace that ignorable char with a space in the
                                 // src text
-                                *((lChar32 *) (m_srcs[wstart]->t.text + m_charindex[wstart])) = L' ';
+                                *((lChar32 *) (m_srcs[wstart]->t.text + m_charindex[wstart])) = U' ';
                             }
                         }
                         else { // Last or single para with no word

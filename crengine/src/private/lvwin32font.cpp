@@ -171,7 +171,7 @@ lUInt32 LVWin32DrawFont::getTextWidth( const lChar32 * text, int len, TextLangCf
                     widths,
                     flags,
                     MAX_LINE_WIDTH,
-                    L' ',  // def_char
+                    U' ',  // def_char
                     lang_cfg
                  );
     if ( res>0 && res<MAX_LINE_CHARS )
@@ -311,7 +311,7 @@ int LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
     // substitute soft hyphens with zero width spaces
     if (addHyphen)
         str += UNICODE_SOFT_HYPHEN_CODE;
-    //str += L"       ";
+    //str += U"       ";
     lChar32 * pstr = str.modify();
     for (int i=0; i<len-1; i++)
     {
@@ -542,7 +542,7 @@ lUInt32 LVWin32Font::getTextWidth( const lChar32 * text, int len, TextLangCfg * 
                     widths,
                     flags,
                     MAX_LINE_WIDTH,
-                    L' ',  // def_char
+                    U' ',  // def_char
                     lang_cfg
                  );
     if ( res>0 && res<MAX_LINE_CHARS )

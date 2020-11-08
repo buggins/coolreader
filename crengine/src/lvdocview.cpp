@@ -835,7 +835,7 @@ static lString32 getSectionHeader(ldomNode * section) {
     ldomNode * child = section->getChildElementNode(0, U"title");
     if (!child)
 		return header;
-	header = child->getText(L' ', 1024);
+	header = child->getText(U' ', 1024);
 	return header;
 }
 
@@ -1886,7 +1886,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		if (!pageinfo.empty()) {
 			piw = m_infoFont->getTextWidth(pageinfo.c_str(), pageinfo.length());
 			m_infoFont->DrawTextString(drawbuf, info.right - piw, iy,
-					pageinfo.c_str(), pageinfo.length(), L' ', NULL, false);
+					pageinfo.c_str(), pageinfo.length(), U' ', NULL, false);
 			info.right -= piw + info.height() / 2;
 		}
 		if (phi & PGHDR_CLOCK) {
@@ -1894,7 +1894,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 			m_last_clock = clock;
 			int w = m_infoFont->getTextWidth(clock.c_str(), clock.length()) + 2;
 			m_infoFont->DrawTextString(drawbuf, info.right - w, iy,
-					clock.c_str(), clock.length(), L' ', NULL, false);
+					clock.c_str(), clock.length(), U' ', NULL, false);
 			info.right -= w + info.height() / 2;
 		}
 		int authorsw = 0;
@@ -1914,7 +1914,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		}
 		if (phi & PGHDR_AUTHOR && !authors.empty()) {
 			if (!title.empty())
-				authors += L'.';
+				authors += U'.';
 			authorsw = m_infoFont->getTextWidth(authors.c_str(),
 					authors.length());
 		}
@@ -1937,7 +1937,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	text = fitTextWidthWithEllipsis(text, m_infoFont, newcr.width());
 	if (!text.empty()) {
 		m_infoFont->DrawTextString(drawbuf, info.left, iy, text.c_str(),
-				text.length(), L' ', NULL, false);
+				text.length(), U' ', NULL, false);
 	}
 	drawbuf->SetClipRect(&oldcr);
 	//--------------
@@ -3850,11 +3850,11 @@ bool LVDocView::LoadDocument(const lChar32 * fname, bool metadataOnly) {
     CRLog::debug("LoadDocument(%s) textMode=%s", LCSTR(lString32(fname)), getTextFormatOptions()==txt_format_pre ? "pre" : "autoformat");
 
 	// split file path and name
-	lString32 filename16(fname);
+	lString32 filename32(fname);
 
 	lString32 arcPathName;
 	lString32 arcItemPathName;
-	bool isArchiveFile = LVSplitArcName(filename16, arcPathName,
+	bool isArchiveFile = LVSplitArcName(filename32, arcPathName,
 			arcItemPathName);
 
 	int savedRenderFlags = m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
@@ -3878,7 +3878,7 @@ bool LVDocView::LoadDocument(const lChar32 * fname, bool metadataOnly) {
 		stream = m_container->OpenStream(arcItemPathName.c_str(), LVOM_READ);
 		if (stream.isNull()) {
 			CRLog::error("Cannot open archive file item stream %s", LCSTR(
-					filename16));
+					filename32));
 			return false;
 		}
 
@@ -3892,7 +3892,7 @@ bool LVDocView::LoadDocument(const lChar32 * fname, bool metadataOnly) {
 				(int) stream->GetSize()));
 		m_doc_props->setString(DOC_PROP_FILE_NAME, arcItemPathName);
 		m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
-		CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
+		CRFileHistRecord* record = m_hist.getRecord( filename32, stream->GetSize() );
 		lUInt32 newDOMVersion;
 		lUInt32 domVersionRequested = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
 		bool convertBookmarks = needToConvertBookmarks(record, domVersionRequested) && !metadataOnly;
@@ -3917,10 +3917,10 @@ bool LVDocView::LoadDocument(const lChar32 * fname, bool metadataOnly) {
 		return false;
 	}
 
-	lString32 fn = LVExtractFilename(filename16);
-	lString32 dir = LVExtractPath(filename16);
+	lString32 fn = LVExtractFilename(filename32);
+	lString32 dir = LVExtractPath(filename32);
 
-	CRLog::info("Loading document %s : fn=%s, dir=%s", LCSTR(filename16),
+	CRLog::info("Loading document %s : fn=%s, dir=%s", LCSTR(filename32),
 			LCSTR(fn), LCSTR(dir));
 #if 0
 	int i;
@@ -3954,7 +3954,7 @@ bool LVDocView::LoadDocument(const lChar32 * fname, bool metadataOnly) {
 			(int) stream->GetSize()));
 	m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
 
-	CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
+	CRFileHistRecord* record = m_hist.getRecord( filename32, stream->GetSize() );
 	int newDOMVersion;
 	lUInt32 domVersionRequested = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
 	bool convertBookmarks = needToConvertBookmarks(record, domVersionRequested) && !metadataOnly;
@@ -4881,7 +4881,7 @@ bool LVDocView::ParseDocument() {
 			if (rootNode)
 				el = rootNode->findChildElement(path);
 			if (el != NULL) {
-                lString32 s = el->getText(L' ', 1024);
+                lString32 s = el->getText(U' ', 1024);
 				if (!s.empty()) {
 					m_doc_props->setString(DOC_PROP_TITLE, s);
 				}
@@ -5170,7 +5170,7 @@ bool LVDocView::getBookmarkPosText(ldomXPointer bm, lString32 & titleText,
         posText += txt;
 		el = el->getParentNode();
 	} else {
-        posText = el->getText(L' ', 1024);
+        posText = el->getText(U' ', 1024);
 	}
     bool inTitle = false;
 	do {
@@ -6930,13 +6930,13 @@ bool SimpleTitleFormatter::measure() {
     return _width < _maxWidth && _height < _maxHeight;
 }
 bool SimpleTitleFormatter::splitLines(const char * delimiter) {
-    lString32 delim16(delimiter);
+    lString32 delim32(delimiter);
     int bestpos = -1;
     int bestdist = -1;
     int start = 0;
     bool skipDelimiter = *delimiter == '|';
     for (;;) {
-        int p = _text.pos(delim16, start);
+        int p = _text.pos(delim32, start);
         if (p < 0)
             break;
         int dist = _text.length() / 2 - p;
@@ -6950,8 +6950,8 @@ bool SimpleTitleFormatter::splitLines(const char * delimiter) {
     }
     if (bestpos < 0)
         return false;
-    _lines.add(_text.substr(0, bestpos + (skipDelimiter ? 0 : delim16.length())).trim());
-    _lines.add(_text.substr(bestpos + delim16.length()).trim());
+    _lines.add(_text.substr(0, bestpos + (skipDelimiter ? 0 : delim32.length())).trim());
+    _lines.add(_text.substr(bestpos + delim32.length()).trim());
     return measure();
 }
 bool SimpleTitleFormatter::format(int fontSize) {
