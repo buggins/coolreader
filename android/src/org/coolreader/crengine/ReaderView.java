@@ -4986,10 +4986,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		public void done() {
 			BackgroundThread.ensureGUI();
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
-			if (Services.getHistory() != null) {
+			if (!Services.isStopped()) {
 				Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
-				mActivity.waitForCRDBService(() -> mActivity.getDB().saveBookInfo(mBookInfo));
-				if (coverPageBytes != null && mBookInfo != null && mBookInfo.getFileInfo() != null) {
+				final BookInfo finalBookInfo = new BookInfo(mBookInfo);
+				mActivity.waitForCRDBService(() -> mActivity.getDB().saveBookInfo(finalBookInfo));
+				if (coverPageBytes != null && mBookInfo.getFileInfo() != null) {
 					// TODO: fix it
 					/*
 					DocumentFormat format = mBookInfo.getFileInfo().format;
@@ -5033,9 +5034,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			BackgroundThread.ensureGUI();
 			close();
 			log.v("LoadDocumentTask failed for " + mBookInfo, e);
+			final FileInfo finalFileInfo = new FileInfo(mBookInfo.getFileInfo());
 			mActivity.waitForCRDBService(() -> {
-				if (Services.getHistory() != null)
-					Services.getHistory().removeBookInfo(mActivity.getDB(), mBookInfo.getFileInfo(), true, false);
+				if (!Services.isStopped())
+					Services.getHistory().removeBookInfo(mActivity.getDB(), finalFileInfo, true, false);
 			});
 			mBookInfo = null;
 			log.d("LoadDocumentTask is finished with exception " + e.getMessage());
@@ -5289,7 +5291,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 						if (mylastSavePositionTaskId == lastSavePositionTaskId) {
 							if (bookInfo != null) {
 								log.v("saving last position");
-								if (Services.getHistory() != null) {
+								if (!Services.isStopped()) {
+									// this delayed task can be completed after calling CoolReader.onDestroy(),
+									// which in turn calls Services.stopServices().
 									savePositionBookmark(bmk);
 									Services.getHistory().updateBookAccess(bookInfo, getTimeElapsed());
 								}
@@ -5388,18 +5392,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (bmk != null && mBookInfo != null && isBookLoaded()) {
 			//setBookPosition();
 			if (lastSavedBookmark == null || !lastSavedBookmark.getStartPos().equals(bmk.getStartPos())) {
-				History history = Services.getHistory();
-				if (history != null)
-					history.updateRecentDir();
-				else
-					log.e("Services.getHistory() is null!");
-				CRDBService.LocalBinder db = mActivity.getDB();
-				if (db != null) {
-					db.saveBookInfo(mBookInfo);
-					db.flush();
+				if (!Services.isStopped()) {
+					Services.getHistory().updateRecentDir();
+					mActivity.getDB().saveBookInfo(mBookInfo);
+					mActivity.getDB().flush();
 					lastSavedBookmark = bmk;
-				} else {
-					log.e("getDB() return null!");
 				}
 			}
 		}
@@ -5434,13 +5431,15 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		mActivity.einkRefresh();
 		BackgroundThread.ensureGUI();
 		if (isBookLoaded() && mBookInfo != null) {
-			log.v("saving last immediately");
-			log.d("bookmark count 1 = " + mBookInfo.getBookmarkCount());
-			Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
-			log.d("bookmark count 2 = " + mBookInfo.getBookmarkCount());
-			mActivity.getDB().saveBookInfo(mBookInfo);
-			log.d("bookmark count 3 = " + mBookInfo.getBookmarkCount());
-			mActivity.getDB().flush();
+			if (!Services.isStopped()) {
+				log.v("saving last immediately");
+				log.d("bookmark count 1 = " + mBookInfo.getBookmarkCount());
+				Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
+				log.d("bookmark count 2 = " + mBookInfo.getBookmarkCount());
+				mActivity.getDB().saveBookInfo(mBookInfo);
+				log.d("bookmark count 3 = " + mBookInfo.getBookmarkCount());
+				mActivity.getDB().flush();
+			}
 		}
 		//scheduleSaveCurrentPositionBookmark(0);
 		//post( new SavePositionTask() );
