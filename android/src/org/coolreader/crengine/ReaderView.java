@@ -4988,8 +4988,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
 			if (Services.getHistory() != null) {
 				Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
-				mActivity.waitForCRDBService(() -> mActivity.getDB().saveBookInfo(mBookInfo));
-				if (coverPageBytes != null && mBookInfo != null && mBookInfo.getFileInfo() != null) {
+				final BookInfo finalBookInfo = new BookInfo(mBookInfo);
+				mActivity.waitForCRDBService(() -> mActivity.getDB().saveBookInfo(finalBookInfo));
+				if (coverPageBytes != null && mBookInfo.getFileInfo() != null) {
 					// TODO: fix it
 					/*
 					DocumentFormat format = mBookInfo.getFileInfo().format;
@@ -5033,9 +5034,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			BackgroundThread.ensureGUI();
 			close();
 			log.v("LoadDocumentTask failed for " + mBookInfo, e);
+			final FileInfo finalFileInfo = new FileInfo(mBookInfo.getFileInfo());
 			mActivity.waitForCRDBService(() -> {
 				if (Services.getHistory() != null)
-					Services.getHistory().removeBookInfo(mActivity.getDB(), mBookInfo.getFileInfo(), true, false);
+					Services.getHistory().removeBookInfo(mActivity.getDB(), finalFileInfo, true, false);
 			});
 			mBookInfo = null;
 			log.d("LoadDocumentTask is finished with exception " + e.getMessage());
