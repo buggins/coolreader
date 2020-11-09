@@ -265,6 +265,12 @@ public class Scanner extends FileInfoChangeSource {
 					if (fromDB.crc32 == 0 || fromDB.size != item.size || fromDB.arcsize != item.arcsize ) {
 						// to force rescan and update data in DB
 						fromDB = null;
+						log.v("The found entry in the database is outdated (crc32=0), need to rescan " + fromDB.toString());
+					}
+					if (DocumentFormat.FB2 == fromDB.format && null == fromDB.keywords) {
+						// to force rescan and update data in DB
+						fromDB = null;
+						log.v("The found entry in the database is outdated (keywords=null), need to rescan " + fromDB.toString());
 					}
 				} else {
 					// not found in DB

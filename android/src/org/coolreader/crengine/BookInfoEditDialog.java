@@ -29,6 +29,7 @@ import android.widget.TextView;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.genrescollection.GenresCollection;
 
 import java.util.ArrayList;
 
@@ -313,7 +314,17 @@ public class BookInfoEditDialog extends BaseDialog {
             edSeriesNumber.setText("");
         if (DocumentFormat.FB2 == file.format) {
             if (file.keywords != null && file.keywords.length() > 0) {
-                edGenres.setText(file.keywords);
+                StringBuilder genres = new StringBuilder();
+                String[] parts = file.keywords.split("\n");
+                for (String genre_code : parts) {
+                    genre_code = genre_code.trim();
+                    if (genre_code.length() > 0) {
+                        if (genres.length() > 0)
+                            genres.append("\n");
+                        genres.append(GenresCollection.getInstance(mActivity).translate(genre_code));
+                    }
+                }
+                edGenres.setText(genres.toString());
                 lblGenres.setVisibility(View.VISIBLE);
                 edGenres.setVisibility(View.VISIBLE);
             }

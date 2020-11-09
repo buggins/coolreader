@@ -35,6 +35,7 @@ import org.coolreader.Dictionaries.DictInfo;
 import org.coolreader.R;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBServiceAccessor;
+import org.coolreader.genrescollection.GenresCollection;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -1193,6 +1194,8 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void setLanguage(String lang) {
 		setLanguage(Lang.byCode(lang));
+		// reload Genres Collection
+		GenresCollection.reloadGenresFromResource(this);
 	}
 
 	public void setLanguage(Lang lang) {

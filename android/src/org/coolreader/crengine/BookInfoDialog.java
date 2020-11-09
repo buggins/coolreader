@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.coolreader.R;
+import org.coolreader.genrescollection.GenresCollection;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -60,6 +61,22 @@ public class BookInfoDialog extends BaseDialog {
 			if ( section!=null )
 				value = section;
 			isSection = true;
+		} else if ("book.keywords".equals(name)) {
+			StringBuilder genres = new StringBuilder();
+			String[] parts = value.split("\n");
+			for (String genre_code : parts) {
+				genre_code = genre_code.trim();
+				if (genre_code.length() > 0) {
+					if (genres.length() > 0)
+						genres.append("\n");
+					genres.append(GenresCollection.getInstance(mCoolReader).translate(genre_code));
+				}
+			}
+			value = genres.toString();
+			Integer id = mLabelMap.get(name);
+			String title = id!=null ? getContext().getString(id) : name;
+			if ( title!=null )
+				name = title;
 		} else {
 			Integer id = mLabelMap.get(name);
 			String title = id!=null ? getContext().getString(id) : name;
