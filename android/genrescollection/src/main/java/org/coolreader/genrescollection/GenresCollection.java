@@ -51,6 +51,16 @@ public class GenresCollection {
 		public boolean hasChilds() {
 			return !m_childs.isEmpty();
 		}
+
+		public boolean contain(String code) {
+			if (m_code.equals(code))
+				return true;
+			for (GenreRecord record : m_childs) {
+				if (record.getCode().equals(code))
+					return true;
+			}
+			return false;
+		}
 	}
 
 	// main container

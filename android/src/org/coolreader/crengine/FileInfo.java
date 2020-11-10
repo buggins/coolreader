@@ -20,6 +20,9 @@ public class FileInfo {
 	public final static String OPDS_LIST_TAG = "@opds";
 	public final static String OPDS_DIR_PREFIX = "@opds:";
 	public final static String ONLINE_CATALOG_PLUGIN_PREFIX = "@plugin:";
+	public final static String GENRES_TAG = "@genresRoot";
+	public final static String GENRES_GROUP_PREFIX = "@genresGroup:";
+	public final static String GENRES_PREFIX = "@genre:";
 	public final static String AUTHORS_TAG = "@authorsRoot";
 	public final static String AUTHOR_GROUP_PREFIX = "@authorGroup:";
 	public final static String AUTHOR_PREFIX = "@author:";
@@ -411,7 +414,12 @@ public class FileInfo {
 	{
 		return SEARCH_SHORTCUT_TAG.equals(pathname);
 	}
-	
+
+	public boolean isBooksByGenreRoot()
+	{
+		return GENRES_TAG.equals(pathname);
+	}
+
 	public boolean isBooksByAuthorRoot()
 	{
 		return AUTHORS_TAG.equals(pathname);
@@ -446,7 +454,12 @@ public class FileInfo {
 	{
 		return TITLE_TAG.equals(pathname);
 	}
-	
+
+	public boolean isBooksByGenreDir()
+	{
+		return pathname!=null && pathname.startsWith(GENRES_PREFIX);
+	}
+
 	public boolean isBooksByAuthorDir()
 	{
 		return pathname!=null && pathname.startsWith(AUTHOR_PREFIX);
@@ -466,6 +479,13 @@ public class FileInfo {
 				ROOT_DIR_TAG.equals(parent.pathname) )
 			return true;
 		return parent.isOnSDCard();
+	}
+
+	public String getGenreCode() {
+		if (pathname.startsWith(GENRES_PREFIX)) {
+			return pathname.substring(GENRES_PREFIX.length());
+		}
+		return "";
 	}
 
 	public long getAuthorId()

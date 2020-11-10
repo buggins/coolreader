@@ -805,6 +805,12 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				showFindBookDialog();
 				return;
 			}
+			if (fileOrDir.isBooksByGenreRoot()) {
+				// Display genres list
+				log.d("Show genres list");
+				mActivity.getDB().loadGenresList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				return;
+			}
 			if (fileOrDir.isBooksByAuthorRoot()) {
 				// refresh authors list
 				log.d("Updating authors list");
@@ -841,6 +847,11 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				// refresh authors list
 				log.d("Updating title list");
 				mActivity.getDB().loadTitleList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				return;
+			}
+			if (fileOrDir.isBooksByGenreDir()) {
+				log.d("Updating genres book list");
+				mActivity.getDB().loadGenresBooks(fileOrDir.getGenreCode(), new FileInfoLoadingCallback(fileOrDir));
 				return;
 			}
 			if (fileOrDir.isBooksByAuthorDir()) {
@@ -1015,7 +1026,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					return;
 				}
 				if ( item.isDirectory ) {
-					if (item.isBooksByAuthorRoot())
+					if (item.isBooksByGenreRoot() || item.isBooksByGenreDir())
+						image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_authors_drawable, R.drawable.cr3_browser_folder_authors));
+					else if (item.isBooksByAuthorRoot())
 						image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_authors_drawable, R.drawable.cr3_browser_folder_authors));
 					else if (item.isBooksBySeriesRoot())
 						image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_authors_drawable, R.drawable.cr3_browser_folder_authors));
@@ -1043,7 +1056,14 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					
 					setText(name, title);
 
-					if ( item.isBooksByAuthorDir() ) {
+					if ( item.isBooksByGenreDir() ) {
+						if (item.tag instanceof String && "special".equals(item.tag.toString())) {
+							setText(field1, mActivity.getString(R.string.including_subgenres));
+						} else {
+							setText(field1, "");
+						}
+						setText(field2, "");
+					} else if ( item.isBooksByAuthorDir() ) {
 						int bookCount = 0;
 						if (item.fileCount() > 0)
 							bookCount = item.fileCount();

@@ -5,9 +5,25 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
-import org.coolreader.crengine.*;
 
-import java.util.*;
+import org.coolreader.crengine.BookInfo;
+import org.coolreader.crengine.Bookmark;
+import org.coolreader.crengine.DocumentFormat;
+import org.coolreader.crengine.FileInfo;
+import org.coolreader.crengine.L;
+import org.coolreader.crengine.Logger;
+import org.coolreader.crengine.MountPathCorrector;
+import org.coolreader.crengine.OPDSConst;
+import org.coolreader.crengine.Services;
+import org.coolreader.crengine.Utils;
+import org.coolreader.genrescollection.GenresCollection;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MainDB extends BaseDB {
 	public static final Logger log = L.create("mdb");
@@ -522,7 +538,7 @@ public class MainDB extends BaseDB {
 		"id, type, percent, shortcut, time_stamp, " + 
 		"start_pos, end_pos, title_text, pos_text, comment_text, time_elapsed " +
 		"FROM bookmark b ";
-	private void readBookmarkFromCursor( Bookmark v, Cursor rs )
+	private void readBookmarkFromCursor(Bookmark v, Cursor rs )
 	{
 		int i=0;
 		v.setId( rs.getLong(i++) );
@@ -703,7 +719,31 @@ public class MainDB extends BaseDB {
 		sortItems(list, new ItemGroupFilenameExtractor());
 		return found;
 	}
-	
+
+	public boolean loadGenresList(FileInfo parent) {
+		Log.i("cr3", "loadGenresList()");
+		parent.clear();
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		GenresCollection genresCollection = Services.getGenresCollection();
+		List<String> groups = genresCollection.getGroups();
+		for (String group : groups) {
+			//String name = genresCollection.translate(group);
+			GenresCollection.GenreRecord genre = genresCollection.byCode(group);
+			FileInfo item = new FileInfo();
+			item.isDirectory = true;
+			item.pathname = FileInfo.GENRES_PREFIX + group;
+			item.filename = genre.getName();
+			item.isListed = true;
+			item.isScanned = true;
+			item.id = (long)-1;			// fake id
+			item.tag = genre.getChilds().size();
+			list.add(item);
+		}
+		addItems(parent, list, 0, list.size());
+		return true;
+	}
+
+
 	public boolean loadAuthorsList(FileInfo parent) {
 		Log.i("cr3", "loadAuthorsList()");
 		beginReading();
@@ -751,7 +791,7 @@ public class MainDB extends BaseDB {
 		endReading();
 		return found;
 	}
-	
+
 	public boolean findAuthorBooks(ArrayList<FileInfo> list, long authorId)
 	{
 		if (!isOpened())
@@ -1536,6 +1576,76 @@ public class MainDB extends BaseDB {
 			}
 		}
 		endReading();
+		return list;
+	}
+
+	public ArrayList<FileInfo> findByGenre(String genreCode)
+	{
+		ArrayList<FileInfo> list = new ArrayList<>();
+		boolean OutpuSubGenres = true;
+		if (genreCode.endsWith(":all")) {
+			OutpuSubGenres = false;
+			genreCode = genreCode.substring(0, genreCode.length() - 4);
+		}
+		GenresCollection.GenreRecord genreRecord = Services.getGenresCollection().byCode(genreCode);
+		if (null == genreRecord)
+			return list;
+		if (genreRecord.getLevel() == 0 && OutpuSubGenres) {
+			// special item to include all child genres
+			FileInfo item = new FileInfo();
+			item.isDirectory = true;
+			item.pathname = FileInfo.GENRES_PREFIX + genreRecord.getCode() + ":all";
+			item.filename = genreRecord.getName();
+			item.isListed = true;
+			item.isScanned = true;
+			item.id = (long)-1;			// fake id
+			item.tag = "special";
+			list.add(item);
+			// child genres
+			List<GenresCollection.GenreRecord> genres = genreRecord.getChilds();
+			for (GenresCollection.GenreRecord genre : genres) {
+				item = new FileInfo();
+				item.isDirectory = true;
+				item.pathname = FileInfo.GENRES_PREFIX + genre.getCode();
+				item.filename = genre.getName();
+				item.isListed = true;
+				item.isScanned = true;
+				item.id = (long)-1;			// fake id
+				list.add(item);
+			}
+		} else {
+			beginReading();
+			String sql = READ_FILEINFO_SQL + " WHERE keywords NOT NULL";
+			Log.d("cr3", "sql: " + sql );
+			try (Cursor rs = mDB.rawQuery(sql, null)) {
+				if (rs.moveToFirst()) {
+					int count = 0;
+					do {
+						boolean hasGenre = false;
+						FileInfo fi = new FileInfo();
+						readFileInfoFromCursor(fi, rs);
+						if (null != fi.keywords) {
+							// separated by "\n", see lvtinydom.cpp:
+							//    lString32 extractDocKeywords( ldomDocument * doc )
+							String[] fileGenres = fi.keywords.split("\n");
+							for (String genre : fileGenres) {
+								genre = genre.trim();
+								if (genreRecord.contain(genre)) {
+									hasGenre = true;
+									break;
+								}
+							}
+						}
+						if (hasGenre) {
+							list.add(fi);
+							count++;
+						}
+						fileInfoCache.put(fi);
+					} while (rs.moveToNext());
+				}
+			}
+			endReading();
+		}
 		return list;
 	}
 

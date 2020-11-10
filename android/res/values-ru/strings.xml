@@ -306,6 +306,7 @@
     <string name="options_controls_tap_type_double">Двойное нажатие</string>
     <string name="options_controls_tap_type_long">Длинное нажатие</string>
     <string name="mi_bookmark_send">Отправить</string>
+    <string name="folder_name_books_by_genre">Жанры</string>
     <string name="folder_name_books_by_author">Авторы</string>
     <string name="folder_name_books_by_rating">По рейтингу</string>
     <string name="folder_name_books_by_state_to_read">К прочтению</string>
@@ -659,4 +660,5 @@
     <string name="bookmarks_keepalive_half_a_year">полгода</string>
     <string name="bookmarks_keepalive_1year">1 год</string>
     <string name="book_info_genres">Жанр(ы)</string>
+    <string name="including_subgenres">Включая поджанры</string>
 </resources>

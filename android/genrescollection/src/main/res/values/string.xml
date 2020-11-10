@@ -355,7 +355,7 @@
     <!-- Romance novels genres -->
     <string name="genre_love_history">Historical romance novels</string>
     <string name="genre_love_short">Short romance novels</string>
-    <string name="genre_love_sf">Love fiction, love fantasy</string>
+    <string name="genre_love_sf">Love fiction</string>
     <string name="genre_love_detective">Love detectives</string>
     <string name="genre_love">Romance novels</string>
     <string name="genre_love_hard">Porn</string>
