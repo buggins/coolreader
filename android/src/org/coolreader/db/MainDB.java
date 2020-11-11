@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -1615,31 +1616,39 @@ public class MainDB extends BaseDB {
 			}
 		} else {
 			beginReading();
-			String sql = READ_FILEINFO_SQL + " WHERE keywords NOT NULL";
+			// keywords separated by "\n", see lvtinydom.cpp:
+			//    lString32 extractDocKeywords( ldomDocument * doc )
+			String sep = "\n";
+			String where_clause = " WHERE ";
+			String key_match;
+			if (genreRecord.hasChilds()) {
+				List<GenresCollection.GenreRecord> childs = genreRecord.getChilds();
+				Iterator<GenresCollection.GenreRecord> it = childs.iterator();
+				while (it.hasNext()) {
+					GenresCollection.GenreRecord genre = it.next();
+					key_match = genre.getCode().replace("_", "\\_");
+					where_clause += " keywords LIKE '" + key_match + "' ESCAPE '\\' OR " +
+							"keywords LIKE '" + key_match + sep + "%' ESCAPE '\\' OR " +
+							"keywords LIKE '%" + sep + key_match + "' ESCAPE '\\' OR " +
+							"keywords LIKE '%" + sep + key_match + sep + "%' ESCAPE '\\'";
+					if (it.hasNext())
+						where_clause += " OR ";
+				}
+			} else {
+				key_match = genreRecord.getCode().replace("_", "\\_");
+				where_clause += " keywords LIKE '" + key_match + "' ESCAPE '\\' OR " +
+						"keywords LIKE '" + key_match + sep + "%' ESCAPE '\\' OR " +
+						"keywords LIKE '%" + sep + key_match + "' ESCAPE '\\' OR " +
+						"keywords LIKE '%" + sep + key_match + sep + "%' ESCAPE '\\'";
+			}
+			String sql = READ_FILEINFO_SQL + where_clause;
 			Log.d("cr3", "sql: " + sql );
 			try (Cursor rs = mDB.rawQuery(sql, null)) {
 				if (rs.moveToFirst()) {
-					int count = 0;
 					do {
-						boolean hasGenre = false;
 						FileInfo fi = new FileInfo();
 						readFileInfoFromCursor(fi, rs);
-						if (null != fi.keywords) {
-							// separated by "\n", see lvtinydom.cpp:
-							//    lString32 extractDocKeywords( ldomDocument * doc )
-							String[] fileGenres = fi.keywords.split("\n");
-							for (String genre : fileGenres) {
-								genre = genre.trim();
-								if (genreRecord.contain(genre)) {
-									hasGenre = true;
-									break;
-								}
-							}
-						}
-						if (hasGenre) {
-							list.add(fi);
-							count++;
-						}
+						list.add(fi);
 						fileInfoCache.put(fi);
 					} while (rs.moveToNext());
 				}
