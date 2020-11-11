@@ -314,6 +314,8 @@ public class BookInfoEditDialog extends BaseDialog {
             edSeriesNumber.setText("");
         if (DocumentFormat.FB2 == file.format) {
             if (file.keywords != null && file.keywords.length() > 0) {
+                // keywords separated by "\n", see lvtinydom.cpp:
+                //    lString32 extractDocKeywords( ldomDocument * doc )
                 StringBuilder genres = new StringBuilder();
                 String[] parts = file.keywords.split("\n");
                 for (String genre_code : parts) {

@@ -62,6 +62,8 @@ public class BookInfoDialog extends BaseDialog {
 				value = section;
 			isSection = true;
 		} else if ("book.keywords".equals(name)) {
+			// keywords separated by "\n", see lvtinydom.cpp:
+			//    lString32 extractDocKeywords( ldomDocument * doc )
 			StringBuilder genres = new StringBuilder();
 			String[] parts = value.split("\n");
 			for (String genre_code : parts) {
