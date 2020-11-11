@@ -728,7 +728,6 @@ public class MainDB extends BaseDB {
 		GenresCollection genresCollection = Services.getGenresCollection();
 		List<String> groups = genresCollection.getGroups();
 		for (String group : groups) {
-			//String name = genresCollection.translate(group);
 			GenresCollection.GenreRecord genre = genresCollection.byCode(group);
 			FileInfo item = new FileInfo();
 			item.isDirectory = true;
@@ -737,7 +736,7 @@ public class MainDB extends BaseDB {
 			item.isListed = true;
 			item.isScanned = true;
 			item.id = (long)-1;			// fake id
-			item.tag = genre.getChilds().size();
+			item.tag = 0x10000000 | genre.getChilds().size();
 			list.add(item);
 		}
 		addItems(parent, list, 0, list.size());
@@ -1591,6 +1590,14 @@ public class MainDB extends BaseDB {
 		GenresCollection.GenreRecord genreRecord = Services.getGenresCollection().byCode(genreCode);
 		if (null == genreRecord)
 			return list;
+		String where_clause;
+		String key_match;
+		int book_count = 0;
+		String sql;
+		// keywords separated by "\n", see lvtinydom.cpp:
+		//    lString32 extractDocKeywords( ldomDocument * doc )
+		String sep = "\n";
+		beginReading();
 		if (genreRecord.getLevel() == 0 && OutpuSubGenres) {
 			// special item to include all child genres
 			FileInfo item = new FileInfo();
@@ -1600,7 +1607,29 @@ public class MainDB extends BaseDB {
 			item.isListed = true;
 			item.isScanned = true;
 			item.id = (long)-1;			// fake id
-			item.tag = "special";
+			// get books count
+			where_clause = " WHERE ";
+			List<GenresCollection.GenreRecord> childs = genreRecord.getChilds();
+			Iterator<GenresCollection.GenreRecord> it = childs.iterator();
+			while (it.hasNext()) {
+				GenresCollection.GenreRecord genre = it.next();
+				key_match = genre.getCode().replace("_", "\\_");
+				where_clause += " keywords LIKE '" + key_match + "' ESCAPE '\\' OR " +
+						"keywords LIKE '" + key_match + sep + "%' ESCAPE '\\' OR " +
+						"keywords LIKE '%" + sep + key_match + "' ESCAPE '\\' OR " +
+						"keywords LIKE '%" + sep + key_match + sep + "%' ESCAPE '\\'";
+				if (it.hasNext())
+					where_clause += " OR ";
+			}
+			sql = "SELECT count(id) as book_count FROM book " + where_clause;
+			try (Cursor rs = mDB.rawQuery(sql, null)) {
+				if (rs.moveToFirst()) {
+					do {
+						book_count = rs.getInt(0);
+					} while (rs.moveToNext());
+				}
+			}
+			item.tag = 0x20000000 | book_count;
 			list.add(item);
 			// child genres
 			List<GenresCollection.GenreRecord> genres = genreRecord.getChilds();
@@ -1612,15 +1641,27 @@ public class MainDB extends BaseDB {
 				item.isListed = true;
 				item.isScanned = true;
 				item.id = (long)-1;			// fake id
+				// get books count
+				book_count = 0;
+				key_match = genre.getCode().replace("_", "\\_");
+				where_clause = " WHERE keywords LIKE '" + key_match + "' ESCAPE '\\' OR " +
+						"keywords LIKE '" + key_match + sep + "%' ESCAPE '\\' OR " +
+						"keywords LIKE '%" + sep + key_match + "' ESCAPE '\\' OR " +
+						"keywords LIKE '%" + sep + key_match + sep + "%' ESCAPE '\\'";
+				sql = "SELECT count(id) as book_count FROM book " + where_clause;
+				try (Cursor rs = mDB.rawQuery(sql, null)) {
+					if (rs.moveToFirst()) {
+						do {
+							book_count = rs.getInt(0);
+						} while (rs.moveToNext());
+					}
+				}
+				item.tag = book_count;
 				list.add(item);
 			}
 		} else {
-			beginReading();
-			// keywords separated by "\n", see lvtinydom.cpp:
-			//    lString32 extractDocKeywords( ldomDocument * doc )
-			String sep = "\n";
-			String where_clause = " WHERE ";
-			String key_match;
+			// Find all books for this genre (genre group)
+			where_clause = " WHERE ";
 			if (genreRecord.hasChilds()) {
 				List<GenresCollection.GenreRecord> childs = genreRecord.getChilds();
 				Iterator<GenresCollection.GenreRecord> it = childs.iterator();
@@ -1641,7 +1682,7 @@ public class MainDB extends BaseDB {
 						"keywords LIKE '%" + sep + key_match + "' ESCAPE '\\' OR " +
 						"keywords LIKE '%" + sep + key_match + sep + "%' ESCAPE '\\'";
 			}
-			String sql = READ_FILEINFO_SQL + where_clause;
+			sql = READ_FILEINFO_SQL + where_clause;
 			Log.d("cr3", "sql: " + sql );
 			try (Cursor rs = mDB.rawQuery(sql, null)) {
 				if (rs.moveToFirst()) {
@@ -1653,8 +1694,8 @@ public class MainDB extends BaseDB {
 					} while (rs.moveToNext());
 				}
 			}
-			endReading();
 		}
+		endReading();
 		return list;
 	}
 
