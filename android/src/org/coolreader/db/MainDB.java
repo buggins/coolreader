@@ -1579,8 +1579,47 @@ public class MainDB extends BaseDB {
 		return list;
 	}
 
-	public ArrayList<FileInfo> findByGenre(String genreCode)
-	{
+	private StringBuilder buildConditionClauseForGenre(GenresCollection.GenreRecord genre, String sep) {
+		StringBuilder where_clause = new StringBuilder();
+		String key_match;
+		// escape symbol '_' in genre code
+		key_match = genre.getCode().replace("_", "\\_");
+		where_clause.append(" keywords LIKE '").append(key_match).append("' ESCAPE '\\' OR ");
+		where_clause.append(" keywords LIKE '").append(key_match).append(sep).append("%' ESCAPE '\\' OR ");
+		where_clause.append(" keywords LIKE '%").append(sep).append(key_match).append("' ESCAPE '\\' OR ");
+		where_clause.append(" keywords LIKE '%").append(sep).append(key_match).append(sep).append("%' ESCAPE '\\'");
+		if (genre.hasAliases()) {
+			List<String> aliases = genre.getAliases();
+			for (String alias : aliases) {
+				key_match = alias.replace("_", "\\_");
+				where_clause.append(" OR ");
+				where_clause.append(" keywords LIKE '").append(key_match).append("' ESCAPE '\\' OR ");
+				where_clause.append(" keywords LIKE '").append(key_match).append(sep).append("%' ESCAPE '\\' OR ");
+				where_clause.append(" keywords LIKE '%").append(sep).append(key_match).append("' ESCAPE '\\' OR ");
+				where_clause.append(" keywords LIKE '%").append(sep).append(key_match).append(sep).append("%' ESCAPE '\\'");
+			}
+		}
+		return where_clause;
+	}
+
+	private String buildWhereClauseForGenre(GenresCollection.GenreRecord genreRecord, String sep) {
+		StringBuilder where_clause = new StringBuilder(" WHERE ");
+		if (genreRecord.hasChilds()) {
+			List<GenresCollection.GenreRecord> childs = genreRecord.getChilds();
+			Iterator<GenresCollection.GenreRecord> it = childs.iterator();
+			while (it.hasNext()) {
+				GenresCollection.GenreRecord genre = it.next();
+				where_clause.append(buildConditionClauseForGenre(genre, sep).toString());
+				if (it.hasNext())
+					where_clause.append(" OR ");
+			}
+		} else {
+			where_clause.append(buildConditionClauseForGenre(genreRecord, sep).toString());
+		}
+		return where_clause.toString();
+	}
+
+	public ArrayList<FileInfo> findByGenre(String genreCode) {
 		ArrayList<FileInfo> list = new ArrayList<>();
 		boolean OutpuSubGenres = true;
 		if (genreCode.endsWith(":all")) {
@@ -1591,7 +1630,6 @@ public class MainDB extends BaseDB {
 		if (null == genreRecord)
 			return list;
 		String where_clause;
-		String key_match;
 		int book_count = 0;
 		String sql;
 		// keywords separated by "\n", see lvtinydom.cpp:
@@ -1608,20 +1646,9 @@ public class MainDB extends BaseDB {
 			item.isScanned = true;
 			item.id = (long)-1;			// fake id
 			// get books count
-			where_clause = " WHERE ";
-			List<GenresCollection.GenreRecord> childs = genreRecord.getChilds();
-			Iterator<GenresCollection.GenreRecord> it = childs.iterator();
-			while (it.hasNext()) {
-				GenresCollection.GenreRecord genre = it.next();
-				key_match = genre.getCode().replace("_", "\\_");
-				where_clause += " keywords LIKE '" + key_match + "' ESCAPE '\\' OR " +
-						"keywords LIKE '" + key_match + sep + "%' ESCAPE '\\' OR " +
-						"keywords LIKE '%" + sep + key_match + "' ESCAPE '\\' OR " +
-						"keywords LIKE '%" + sep + key_match + sep + "%' ESCAPE '\\'";
-				if (it.hasNext())
-					where_clause += " OR ";
-			}
+			where_clause = buildWhereClauseForGenre(genreRecord, sep);
 			sql = "SELECT count(id) as book_count FROM book " + where_clause;
+			Log.d("cr3", "sql: " + sql );
 			try (Cursor rs = mDB.rawQuery(sql, null)) {
 				if (rs.moveToFirst()) {
 					do {
@@ -1643,12 +1670,9 @@ public class MainDB extends BaseDB {
 				item.id = (long)-1;			// fake id
 				// get books count
 				book_count = 0;
-				key_match = genre.getCode().replace("_", "\\_");
-				where_clause = " WHERE keywords LIKE '" + key_match + "' ESCAPE '\\' OR " +
-						"keywords LIKE '" + key_match + sep + "%' ESCAPE '\\' OR " +
-						"keywords LIKE '%" + sep + key_match + "' ESCAPE '\\' OR " +
-						"keywords LIKE '%" + sep + key_match + sep + "%' ESCAPE '\\'";
+				where_clause = buildWhereClauseForGenre(genre, sep);
 				sql = "SELECT count(id) as book_count FROM book " + where_clause;
+				Log.d("cr3", "sql: " + sql );
 				try (Cursor rs = mDB.rawQuery(sql, null)) {
 					if (rs.moveToFirst()) {
 						do {
@@ -1661,27 +1685,7 @@ public class MainDB extends BaseDB {
 			}
 		} else {
 			// Find all books for this genre (genre group)
-			where_clause = " WHERE ";
-			if (genreRecord.hasChilds()) {
-				List<GenresCollection.GenreRecord> childs = genreRecord.getChilds();
-				Iterator<GenresCollection.GenreRecord> it = childs.iterator();
-				while (it.hasNext()) {
-					GenresCollection.GenreRecord genre = it.next();
-					key_match = genre.getCode().replace("_", "\\_");
-					where_clause += " keywords LIKE '" + key_match + "' ESCAPE '\\' OR " +
-							"keywords LIKE '" + key_match + sep + "%' ESCAPE '\\' OR " +
-							"keywords LIKE '%" + sep + key_match + "' ESCAPE '\\' OR " +
-							"keywords LIKE '%" + sep + key_match + sep + "%' ESCAPE '\\'";
-					if (it.hasNext())
-						where_clause += " OR ";
-				}
-			} else {
-				key_match = genreRecord.getCode().replace("_", "\\_");
-				where_clause += " keywords LIKE '" + key_match + "' ESCAPE '\\' OR " +
-						"keywords LIKE '" + key_match + sep + "%' ESCAPE '\\' OR " +
-						"keywords LIKE '%" + sep + key_match + "' ESCAPE '\\' OR " +
-						"keywords LIKE '%" + sep + key_match + sep + "%' ESCAPE '\\'";
-			}
+			where_clause = buildWhereClauseForGenre(genreRecord, sep);
 			sql = READ_FILEINFO_SQL + where_clause;
 			Log.d("cr3", "sql: " + sql );
 			try (Cursor rs = mDB.rawQuery(sql, null)) {
