@@ -321,12 +321,12 @@ public class CRDBService extends Service {
     	void onBooksFound(ArrayList<FileInfo> fileList);
     }
 
-	public void loadGenresList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
+	public void loadGenresList(FileInfo parent, boolean showEmptyGenres, final ItemGroupsLoadingCallback callback, final Handler handler) {
 		final FileInfo p = new FileInfo(parent);
 		execTask(new Task("loadGenresList") {
 			@Override
 			public void work() {
-				mainDB.loadGenresList(p);
+				mainDB.loadGenresList(p, showEmptyGenres);
 				sendTask(handler, () -> callback.onItemGroupsLoaded(p));
 			}
 		});
@@ -365,11 +365,11 @@ public class CRDBService extends Service {
 		});
 	}
 
-	public void findGenresBooks(final String genreCode, final FileInfoLoadingCallback callback, final Handler handler) {
+	public void findGenresBooks(final String genreCode, boolean showEmptyGenres, final FileInfoLoadingCallback callback, final Handler handler) {
 		execTask(new Task("findGenresBooks") {
 			@Override
 			public void work() {
-				final ArrayList<FileInfo> list = mainDB.findByGenre(genreCode);
+				final ArrayList<FileInfo> list = mainDB.findByGenre(genreCode, showEmptyGenres);
 				sendTask(handler, () -> callback.onFileInfoListLoaded(list));
 			}
 		});
@@ -691,8 +691,8 @@ public class CRDBService extends Service {
     		getService().removeOPDSCatalog(id);
     	}
 
-		public void loadGenresList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
-			getService().loadGenresList(parent, callback, new Handler());
+		public void loadGenresList(FileInfo parent, boolean showEmptyGenres, final ItemGroupsLoadingCallback callback) {
+			getService().loadGenresList(parent, showEmptyGenres, callback, new Handler());
 		}
 
 		public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
@@ -707,8 +707,8 @@ public class CRDBService extends Service {
     		getService().loadTitleList(parent, callback, new Handler());
     	}
 
-		public void loadGenresBooks(String genreCode, FileInfoLoadingCallback callback) {
-			getService().findGenresBooks(genreCode, callback, new Handler());
+		public void loadGenresBooks(String genreCode, boolean showEmptyGenres, FileInfoLoadingCallback callback) {
+			getService().findGenresBooks(genreCode, showEmptyGenres, callback, new Handler());
 		}
 
     	public void loadAuthorBooks(long authorId, FileInfoLoadingCallback callback) {

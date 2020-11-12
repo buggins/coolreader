@@ -2838,6 +2838,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					|| PROP_APP_DOUBLE_TAP_SELECTION.equals(key)
 					|| PROP_APP_FLICK_BACKLIGHT_CONTROL.equals(key)
 					|| PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS.equals(key)
+					|| PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES.equals(key)
 					|| PROP_APP_SELECTION_ACTION.equals(key)
 					|| PROP_APP_FILE_BROWSER_SIMPLE_MODE.equals(key)
 					|| PROP_APP_GESTURE_PAGE_FLIPPING.equals(key)

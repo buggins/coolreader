@@ -721,7 +721,7 @@ public class MainDB extends BaseDB {
 		return found;
 	}
 
-	public boolean loadGenresList(FileInfo parent) {
+	public boolean loadGenresList(FileInfo parent, boolean showEmptyGenres) {
 		Log.i("cr3", "loadGenresList()");
 		parent.clear();
 		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
@@ -736,7 +736,8 @@ public class MainDB extends BaseDB {
 			item.isListed = true;
 			item.isScanned = true;
 			item.id = (long)-1;			// fake id
-			item.tag = 0x10000000 | genre.getChilds().size();
+			if (showEmptyGenres)
+				item.tag = 0x10000000 | genre.getChilds().size();
 			list.add(item);
 		}
 		addItems(parent, list, 0, list.size());
@@ -1619,7 +1620,7 @@ public class MainDB extends BaseDB {
 		return where_clause.toString();
 	}
 
-	public ArrayList<FileInfo> findByGenre(String genreCode) {
+	public ArrayList<FileInfo> findByGenre(String genreCode, boolean showEmptyGenres) {
 		ArrayList<FileInfo> list = new ArrayList<>();
 		boolean OutpuSubGenres = true;
 		if (genreCode.endsWith(":all")) {
@@ -1661,13 +1662,6 @@ public class MainDB extends BaseDB {
 			// child genres
 			List<GenresCollection.GenreRecord> genres = genreRecord.getChilds();
 			for (GenresCollection.GenreRecord genre : genres) {
-				item = new FileInfo();
-				item.isDirectory = true;
-				item.pathname = FileInfo.GENRES_PREFIX + genre.getCode();
-				item.filename = genre.getName();
-				item.isListed = true;
-				item.isScanned = true;
-				item.id = (long)-1;			// fake id
 				// get books count
 				book_count = 0;
 				where_clause = buildWhereClauseForGenre(genre, sep);
@@ -1680,8 +1674,17 @@ public class MainDB extends BaseDB {
 						} while (rs.moveToNext());
 					}
 				}
-				item.tag = book_count;
-				list.add(item);
+				if (book_count > 0 || showEmptyGenres) {
+					item = new FileInfo();
+					item.isDirectory = true;
+					item.pathname = FileInfo.GENRES_PREFIX + genre.getCode();
+					item.filename = genre.getName();
+					item.isListed = true;
+					item.isScanned = true;
+					item.id = (long) -1;            // fake id
+					item.tag = book_count;
+					list.add(item);
+				}
 			}
 		} else {
 			// Find all books for this genre (genre group)

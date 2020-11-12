@@ -194,6 +194,7 @@
     <string name="options_selection_action_dictionary">Найти в словаре</string>
     <string name="options_selection_action_copy">Копировать</string>
     <string name="options_app_browser_hide_empty_dirs">Прятать директории без книг</string>
+    <string name="options_app_browser_hide_empty_genres">Скрывать жанры без книг</string>
     <string name="dlg_about">О программе</string>
     <string name="dlg_book_info">О книге</string>
     <string name="mi_book_styles_enable">Разрешить встроенные стили документа</string>

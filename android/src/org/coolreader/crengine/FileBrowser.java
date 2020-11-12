@@ -48,6 +48,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	LayoutInflater mInflater;
 	History mHistory;
 	ListView mListView;
+	boolean mHideEmptyGenres;
 
 	public static final int MAX_SUBDIR_LEN = 32;
 	
@@ -174,7 +175,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	}
 	
 	CoverpageManager.CoverpageReadyListener coverpageListener;
-	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner, History history) {
+	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner, History history, boolean hideEmptyGenres) {
 		super(activity);
 		this.mActivity = activity;
 		this.mEngine = engine;
@@ -182,6 +183,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		this.mInflater = LayoutInflater.from(activity);// activity.getLayoutInflater();
 		this.mHistory = history;
 		this.mCoverpageManager = Services.getCoverpageManager();
+		this.mHideEmptyGenres = hideEmptyGenres;
 
 		coverpageListener = files -> {
 			if (currDirectory == null)
@@ -204,7 +206,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		showDirectory( null, null );
 
 	}
-	
+
+	public void setHideEmptyGenres(boolean value) {
+		mHideEmptyGenres = value;
+		if (null != currDirectory && (currDirectory.isBooksByGenreDir() || currDirectory.isBooksByGenreRoot())) {
+			// update
+			showDirectory(currDirectory, null);
+		}
+	}
+
 	public void onClose() {
 		this.mCoverpageManager.removeCoverpageReadyListener(coverpageListener);
 		coverpageListener = null;
@@ -808,7 +818,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			if (fileOrDir.isBooksByGenreRoot()) {
 				// Display genres list
 				log.d("Show genres list");
-				mActivity.getDB().loadGenresList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				mActivity.getDB().loadGenresList(fileOrDir, !mHideEmptyGenres, new ItemGroupsLoadingCallback(fileOrDir));
 				return;
 			}
 			if (fileOrDir.isBooksByAuthorRoot()) {
@@ -851,7 +861,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			}
 			if (fileOrDir.isBooksByGenreDir()) {
 				log.d("Updating genres book list");
-				mActivity.getDB().loadGenresBooks(fileOrDir.getGenreCode(), new FileInfoLoadingCallback(fileOrDir));
+				mActivity.getDB().loadGenresBooks(fileOrDir.getGenreCode(), !mHideEmptyGenres, new FileInfoLoadingCallback(fileOrDir));
 				return;
 			}
 			if (fileOrDir.isBooksByAuthorDir()) {
