@@ -279,7 +279,6 @@
         <genre name="@string/genre_sf_history" code="sf_history" />
         <genre name="@string/genre_sf_action" code="sf_action" />
         <genre name="@string/genre_sf_heroic" code="sf_heroic" />
-        <genre name="@string/genre_sf_fantasy_city" code="sf_fantasy_city" />
         <genre name="@string/genre_gothic_novel" code="gothic_novel" />
         <genre name="@string/genre_sf_detective" code="sf_detective" />
         <genre name="@string/genre_child_sf" code="child_sf" />
@@ -307,7 +306,7 @@
         <genre name="@string/genre_sf_fantasy" code="sf_fantasy" />
         <genre name="@string/genre_fantasy_fight" code="fantasy_fight"/>
         <genre name="@string/genre_sf_technofantasy" code="sf_technofantasy" />
-        <genre name="@string/genre_sf_fantasy_city" code="city_fantasy"/>
+        <genre name="@string/genre_sf_fantasy_city" code="sf_fantasy_city"/>
         <genre name="@string/genre_foreign_fantasy" code="foreign_fantasy"/>
         <genre name="@string/genre_historical_fantasy" code="historical_fantasy"/>
         <genre name="@string/genre_vampire_book" code="vampire_book"/>
@@ -368,4 +367,8 @@
         <genre name="@string/genre_network_literature" code="network_literature" />
         <genre name="@string/genre_fanfiction" code="fanfiction" />
     </group>
+    <aliases>
+        <!-- Multiple aliases are allowed for the same code. -->
+        <alias code="sf_fantasy_city">city_fantasy</alias>
+    </aliases>
 </genres>

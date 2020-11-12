@@ -3,6 +3,7 @@ package org.coolreader.genrescollection;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
+import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -21,15 +22,17 @@ public class GenresCollection {
 
 	static public final class GenreRecord {
 		public String m_code;
-		private final String m_name;
+		private String m_name;
 		private List<GenreRecord> m_childs;
-		private final int m_level;
+		private int m_level;
+		private List<String> m_aliases;
 
 		private GenreRecord(String code, String name, int level) {
 			m_code = code;
 			m_name = name;
 			m_level = level;
 			m_childs = new ArrayList<>();
+			m_aliases = new ArrayList<>();
 		}
 
 		public String getCode() {
@@ -38,6 +41,10 @@ public class GenresCollection {
 
 		public String getName() {
 			return m_name;
+		}
+
+		public void setName(String name) {
+			m_name = name;
 		}
 
 		public int getLevel() {
@@ -49,7 +56,7 @@ public class GenresCollection {
 		}
 
 		public boolean hasChilds() {
-			return !m_childs.isEmpty();
+			return null != m_childs && !m_childs.isEmpty();
 		}
 
 		public boolean contain(String code) {
@@ -60,6 +67,27 @@ public class GenresCollection {
 					return true;
 			}
 			return false;
+		}
+
+		public boolean hasAliases() {
+			return null != m_aliases && !m_aliases.isEmpty();
+		}
+
+		public List<String> getAliases() {
+			return m_aliases;
+		}
+
+		private void addAlias(String alias) {
+			boolean exist = false;
+			for (String a : m_aliases) {
+				if (a.equals(alias)) {
+					exist = true;
+					break;
+				}
+			}
+			if (!exist) {
+				m_aliases.add(alias);
+			}
 		}
 	}
 
@@ -84,9 +112,23 @@ public class GenresCollection {
 			m_allGenres.put(groupCode, group);
 		}
 		List<GenreRecord> groupChilds = group.getChilds();
-		GenreRecord record = new GenreRecord(code, name, 1);
-		groupChilds.add(record);
-		m_allGenres.put(code, record);
+		// Check if already exist in this group
+		GenreRecord exist = null;
+		for (GenreRecord rec : groupChilds) {
+			if (rec.getCode().equals(code)) {
+				exist = rec;
+				break;
+			}
+		}
+		if (null == exist) {
+			// add new
+			GenreRecord record = new GenreRecord(code, name, 1);
+			groupChilds.add(record);
+			m_allGenres.put(code, record);
+		} else {
+			// update existing
+			exist.setName(name);
+		}
 	}
 
 	public GenreRecord byCode(String code) {
@@ -136,12 +178,17 @@ public class GenresCollection {
 			// parser data
 			Stack<String> tagStack = new Stack<>();
 			String tag;
+			String text = null;
 			String parentTag;
 			String groupCode = null;
 			String groupName = null;
 			String genreCode = null;
 			String genreName = null;
 			int count = 0;
+			// genre aliases
+			String aliasForCode = null;
+			String aliasCode;
+			HashMap<String, ArrayList<String>> allAliases = new HashMap<>();
 
 			// start to parse
 			parser.next();
@@ -186,7 +233,20 @@ public class GenresCollection {
 							} else {
 								throw new XmlPullParserException("the 'genre' element must only be inside the 'group' element!");
 							}
+						} else if ("aliases".equals(tag)) {
+							if ("genres".equals(parentTag)) {
+								aliasForCode = null;
+							} else {
+								throw new XmlPullParserException("the 'aliases' element must only be inside the 'genres' element!");
+							}
+						} else if ("alias".equals(tag)) {
+							if ("aliases".equals(parentTag)) {
+								aliasForCode = parser.getAttributeValue(null, "code");
+							} else {
+								throw new XmlPullParserException("the 'alias' element must only be inside the 'aliases' element!");
+							}
 						}
+						text = "";
 						break;
 					case XmlPullParser.END_TAG:
 						//Log.d(TAG, "END_TAG: " + parser.getName());
@@ -210,14 +270,42 @@ public class GenresCollection {
 						} else if ("group".equals(tag)) {
 							groupCode = null;
 							groupName = null;
+						} else if ("alias".equals(tag)) {
+							// save alias to temporary container
+							aliasCode = text;
+							if (null != aliasForCode && aliasForCode.length() > 0 &&
+									null != aliasCode && aliasCode.length() > 0) {
+								ArrayList<String> aliases = allAliases.get(aliasForCode);
+								if (null == aliases) {
+									aliases = new ArrayList<>();
+									allAliases.put(aliasForCode, aliases);
+								}
+								// don't check already exist aliases here
+								// checked in GenreRecord.addAlias()
+								aliases.add(aliasCode);
+							}
+							aliasForCode = null;
 						}
 						break;
 					case XmlPullParser.TEXT:
 						//Log.d(TAG, "TEXT: " + parser.getText());
-						// ignored
+						text = parser.getText();
 						break;
 				}
 				eventType = parser.next();
+			}
+			// Only after all genres are registered, add aliases
+			for (Map.Entry<String, ArrayList<String>> entry : allAliases.entrySet()) {
+				GenreRecord genre = byCode(entry.getKey());
+				if (null != genre) {
+					for (String alias : entry.getValue()) {
+						genre.addAlias(alias);
+					}
+				} else {
+					// do nothing
+					// skip aliases for non-existent genres
+					Log.w(TAG, "No such genre '" + entry.getKey() + "' to register aliases!");
+				}
 			}
 			res = count > 0;
 		} catch (IndexOutOfBoundsException e) {
