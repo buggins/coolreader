@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.coolreader.R;
+import org.coolreader.genrescollection.GenresCollection;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +39,7 @@ public class BookInfoDialog extends BaseDialog {
 		mLabelMap.put("book.authors", R.string.book_info_book_authors);
 		mLabelMap.put("book.title", R.string.book_info_book_title);
 		mLabelMap.put("book.series", R.string.book_info_book_series_name);
+		mLabelMap.put("book.keywords", R.string.book_info_genres);
 		mLabelMap.put("book.language", R.string.book_info_book_language);
 	}
 	
@@ -59,6 +61,24 @@ public class BookInfoDialog extends BaseDialog {
 			if ( section!=null )
 				value = section;
 			isSection = true;
+		} else if ("book.keywords".equals(name)) {
+			// keywords separated by "\n", see lvtinydom.cpp:
+			//    lString32 extractDocKeywords( ldomDocument * doc )
+			StringBuilder genres = new StringBuilder();
+			String[] parts = value.split("\n");
+			for (String genre_code : parts) {
+				genre_code = genre_code.trim();
+				if (genre_code.length() > 0) {
+					if (genres.length() > 0)
+						genres.append("\n");
+					genres.append(GenresCollection.getInstance(mCoolReader).translate(genre_code));
+				}
+			}
+			value = genres.toString();
+			Integer id = mLabelMap.get(name);
+			String title = id!=null ? getContext().getString(id) : name;
+			if ( title!=null )
+				name = title;
 		} else {
 			Integer id = mLabelMap.get(name);
 			String title = id!=null ? getContext().getString(id) : name;

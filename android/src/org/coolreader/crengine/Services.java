@@ -2,6 +2,8 @@ package org.coolreader.crengine;
 
 import android.os.Handler;
 
+import org.coolreader.genrescollection.GenresCollection;
+
 public class Services {
 
 	public static final Logger log = L.create("sv");
@@ -11,6 +13,7 @@ public class Services {
 	private static History mHistory;
 	private static CoverpageManager mCoverpageManager;
 	private static FileSystemFolders mFSFolders;
+	private static GenresCollection mGenresCollection;
 
 	public static Engine getEngine() {
 		if (null != mEngine)
@@ -42,8 +45,14 @@ public class Services {
 		throw new RuntimeException("Services.getFileSystemFolders(): trying to get null object");
 	}
 
+	public static GenresCollection getGenresCollection() {
+		if (null != mGenresCollection)
+			return mGenresCollection;
+		throw new RuntimeException("Services.getGenresCollection(): trying to get null object");
+	}
+
 	public static boolean isStopped() {
-		return null == mEngine || null == mScanner || null == mHistory || null == mCoverpageManager || null == mFSFolders;
+		return null == mEngine || null == mScanner || null == mHistory || null == mCoverpageManager || null == mFSFolders || null == mGenresCollection;
 	}
 
 	public static void startServices(BaseActivity activity) {
@@ -63,6 +72,8 @@ public class Services {
 		mCoverpageManager = new CoverpageManager();
 
 		mFSFolders = new FileSystemFolders(mScanner);
+
+		mGenresCollection = GenresCollection.getInstance(activity);
 	}
 
 	// called after user grant permissions for external storage
@@ -90,5 +101,6 @@ public class Services {
 		mScanner = null;
 		mCoverpageManager = null;
 		mFSFolders = null;
+		mGenresCollection = null;
 	}
 }

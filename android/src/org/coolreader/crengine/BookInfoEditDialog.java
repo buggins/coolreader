@@ -25,9 +25,11 @@ import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.RatingBar;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.genrescollection.GenresCollection;
 
 import java.util.ArrayList;
 
@@ -230,6 +232,8 @@ public class BookInfoEditDialog extends BaseDialog {
     EditText edTitle;
     EditText edSeriesName;
     EditText edSeriesNumber;
+    TextView lblGenres;
+	EditText edGenres;
     EditText edDescription;
 	AuthorList authors;
 	RatingBar rbBookRating;
@@ -256,6 +260,8 @@ public class BookInfoEditDialog extends BaseDialog {
         edTitle = mainView.findViewById(R.id.book_title);
         edSeriesName = mainView.findViewById(R.id.book_series_name);
         edSeriesNumber = mainView.findViewById(R.id.book_series_number);
+        lblGenres = mainView.findViewById(R.id.lbl_book_genres);
+        edGenres = mainView.findViewById(R.id.book_genres);
         edDescription = mainView.findViewById(R.id.book_description);
 
         rbBookRating = mainView.findViewById(R.id.book_rating);
@@ -306,10 +312,29 @@ public class BookInfoEditDialog extends BaseDialog {
         	edSeriesNumber.setText(String.valueOf(file.seriesNumber));
         else
             edSeriesNumber.setText("");
-        if (file.description != null && file.description.length() > 0)
+        if (DocumentFormat.FB2 == file.format) {
+            if (file.keywords != null && file.keywords.length() > 0) {
+                // keywords separated by "\n", see lvtinydom.cpp:
+                //    lString32 extractDocKeywords( ldomDocument * doc )
+                StringBuilder genres = new StringBuilder();
+                String[] parts = file.keywords.split("\n");
+                for (String genre_code : parts) {
+                    genre_code = genre_code.trim();
+                    if (genre_code.length() > 0) {
+                        if (genres.length() > 0)
+                            genres.append("\n");
+                        genres.append(GenresCollection.getInstance(mActivity).translate(genre_code));
+                    }
+                }
+                edGenres.setText(genres.toString());
+                lblGenres.setVisibility(View.VISIBLE);
+                edGenres.setVisibility(View.VISIBLE);
+            }
+        }
+        if (file.description != null && file.description.length() > 0) {
             edDescription.setText(file.description);
-        else
-            edDescription.setVisibility(View.INVISIBLE);
+            edDescription.setVisibility(View.VISIBLE);
+        }
         LinearLayout llBookAuthorsList = mainView.findViewById(R.id.book_authors_list);
         authors = new AuthorList(llBookAuthorsList, file.authors);
         rbBookRating.setRating(file.getRate());

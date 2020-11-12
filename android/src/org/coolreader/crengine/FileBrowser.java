@@ -48,6 +48,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	LayoutInflater mInflater;
 	History mHistory;
 	ListView mListView;
+	boolean mHideEmptyGenres;
 
 	public static final int MAX_SUBDIR_LEN = 32;
 	
@@ -174,7 +175,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	}
 	
 	CoverpageManager.CoverpageReadyListener coverpageListener;
-	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner, History history) {
+	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner, History history, boolean hideEmptyGenres) {
 		super(activity);
 		this.mActivity = activity;
 		this.mEngine = engine;
@@ -182,6 +183,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		this.mInflater = LayoutInflater.from(activity);// activity.getLayoutInflater();
 		this.mHistory = history;
 		this.mCoverpageManager = Services.getCoverpageManager();
+		this.mHideEmptyGenres = hideEmptyGenres;
 
 		coverpageListener = files -> {
 			if (currDirectory == null)
@@ -204,7 +206,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		showDirectory( null, null );
 
 	}
-	
+
+	public void setHideEmptyGenres(boolean value) {
+		mHideEmptyGenres = value;
+		if (null != currDirectory && (currDirectory.isBooksByGenreDir() || currDirectory.isBooksByGenreRoot())) {
+			// update
+			showDirectory(currDirectory, null);
+		}
+	}
+
 	public void onClose() {
 		this.mCoverpageManager.removeCoverpageReadyListener(coverpageListener);
 		coverpageListener = null;
@@ -805,6 +815,12 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				showFindBookDialog();
 				return;
 			}
+			if (fileOrDir.isBooksByGenreRoot()) {
+				// Display genres list
+				log.d("Show genres list");
+				mActivity.getDB().loadGenresList(fileOrDir, !mHideEmptyGenres, new ItemGroupsLoadingCallback(fileOrDir));
+				return;
+			}
 			if (fileOrDir.isBooksByAuthorRoot()) {
 				// refresh authors list
 				log.d("Updating authors list");
@@ -841,6 +857,11 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				// refresh authors list
 				log.d("Updating title list");
 				mActivity.getDB().loadTitleList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				return;
+			}
+			if (fileOrDir.isBooksByGenreDir()) {
+				log.d("Updating genres book list");
+				mActivity.getDB().loadGenresBooks(fileOrDir.getGenreCode(), !mHideEmptyGenres, new FileInfoLoadingCallback(fileOrDir));
 				return;
 			}
 			if (fileOrDir.isBooksByAuthorDir()) {
@@ -1015,7 +1036,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					return;
 				}
 				if ( item.isDirectory ) {
-					if (item.isBooksByAuthorRoot())
+					if (item.isBooksByGenreRoot() || item.isBooksByGenreDir())
+						image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_authors_drawable, R.drawable.cr3_browser_folder_authors));
+					else if (item.isBooksByAuthorRoot())
 						image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_authors_drawable, R.drawable.cr3_browser_folder_authors));
 					else if (item.isBooksBySeriesRoot())
 						image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_authors_drawable, R.drawable.cr3_browser_folder_authors));
@@ -1043,7 +1066,28 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					
 					setText(name, title);
 
-					if ( item.isBooksByAuthorDir() ) {
+					if ( item.isBooksByGenreDir() ) {
+						int genresCount = 0;
+						int bookCount = 0;
+						if (item.tag instanceof Integer) {
+							int code = (Integer) item.tag;
+							if ((code & 0x20000000) == 0x20000000) {
+								setText(field1, mActivity.getString(R.string.including_subgenres));
+								setText(field2, "books: " + (code & 0x1FFFFFFF));
+							} else if ((code & 0x10000000) == 0x10000000) {
+								genresCount = code & 0xFFFFFFF;
+								setText(field1, "genres: " + genresCount);
+								setText(field2, "");
+							} else {
+								bookCount = code;
+								setText(field1, "books: " + bookCount);
+								setText(field2, "");
+							}
+						} else {
+							setText(field1, "");
+							setText(field2, "");
+						}
+					} else if ( item.isBooksByAuthorDir() ) {
 						int bookCount = 0;
 						if (item.fileCount() > 0)
 							bookCount = item.fileCount();

@@ -194,6 +194,7 @@
     <string name="options_selection_action_dictionary">Найти в словаре</string>
     <string name="options_selection_action_copy">Копировать</string>
     <string name="options_app_browser_hide_empty_dirs">Прятать директории без книг</string>
+    <string name="options_app_browser_hide_empty_genres">Скрывать жанры без книг</string>
     <string name="dlg_about">О программе</string>
     <string name="dlg_book_info">О книге</string>
     <string name="mi_book_styles_enable">Разрешить встроенные стили документа</string>
@@ -306,6 +307,7 @@
     <string name="options_controls_tap_type_double">Двойное нажатие</string>
     <string name="options_controls_tap_type_long">Длинное нажатие</string>
     <string name="mi_bookmark_send">Отправить</string>
+    <string name="folder_name_books_by_genre">Жанры</string>
     <string name="folder_name_books_by_author">Авторы</string>
     <string name="folder_name_books_by_rating">По рейтингу</string>
     <string name="folder_name_books_by_state_to_read">К прочтению</string>
@@ -462,7 +464,7 @@
     <string name="dlg_goto_current_position">Текущая страница:</string>
     <string name="dlg_goto_input_page_number">Введите номер страницы для перехода:</string>
     <string name="dlg_goto_input_percent">Введите процент для перехода:</string>
-    <string name="book_info_book_language">Language</string>
+    <string name="book_info_book_language">Язык</string>
     <string name="book_state_toread">К прочтению</string>
     <string name="book_state_reading">Читаю</string>
     <string name="book_state_none">Нет пометки</string>
@@ -658,4 +660,6 @@
     <string name="bookmarks_keepalive_1quarter">1 квартал</string>
     <string name="bookmarks_keepalive_half_a_year">полгода</string>
     <string name="bookmarks_keepalive_1year">1 год</string>
+    <string name="book_info_genres">Жанр(ы)</string>
+    <string name="including_subgenres">Включая поджанры</string>
 </resources>

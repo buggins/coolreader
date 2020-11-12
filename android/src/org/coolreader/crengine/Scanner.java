@@ -7,7 +7,11 @@ import org.coolreader.plugins.OnlineStorePluginManager;
 import org.coolreader.plugins.OnlineStoreWrapper;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 
 public class Scanner extends FileInfoChangeSource {
@@ -264,6 +268,12 @@ public class Scanner extends FileInfoChangeSource {
 				if (fromDB != null) {
 					if (fromDB.crc32 == 0 || fromDB.size != item.size || fromDB.arcsize != item.arcsize ) {
 						// to force rescan and update data in DB
+						log.v("The found entry in the database is outdated (crc32=0), need to rescan " + fromDB.toString());
+						fromDB = null;
+					}
+					if (null != fromDB && DocumentFormat.FB2 == fromDB.format && null == fromDB.keywords) {
+						// to force rescan and update data in DB
+						log.v("The found entry in the database is outdated (keywords=null), need to rescan " + fromDB.toString());
 						fromDB = null;
 					}
 				} else {
@@ -454,6 +464,8 @@ public class Scanner extends FileInfoChangeSource {
 			return createSearchRoot();
 		else if (FileInfo.RECENT_DIR_TAG.equals(path))
 			return getRecentDir();
+		else if (FileInfo.GENRES_TAG.equals(path))
+			return createGenresRoot();
 		else if (FileInfo.AUTHORS_TAG.equals(path))
 			return createAuthorsRoot();
 		else if (FileInfo.TITLE_TAG.equals(path))
@@ -534,7 +546,17 @@ public class Scanner extends FileInfoChangeSource {
 	private void addSearchRoot() {
 		addRoot(createSearchRoot());
 	}
-	
+
+	public FileInfo createGenresRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.GENRES_TAG;
+		dir.filename = mActivity.getString(R.string.folder_name_books_by_genre);
+		dir.isListed = true;
+		dir.isScanned = true;
+		return dir;
+	}
+
 	public FileInfo createAuthorsRoot() {
 		FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
@@ -826,6 +848,7 @@ public class Scanner extends FileInfoChangeSource {
 	public ArrayList<FileInfo> getLibraryItems() {
 		ArrayList<FileInfo> result = new ArrayList<FileInfo>();
 		result.add(pathToFileInfo(FileInfo.SEARCH_SHORTCUT_TAG));
+		result.add(pathToFileInfo(FileInfo.GENRES_TAG));
 		result.add(pathToFileInfo(FileInfo.AUTHORS_TAG));
 		result.add(pathToFileInfo(FileInfo.TITLE_TAG));
 		result.add(pathToFileInfo(FileInfo.SERIES_TAG));

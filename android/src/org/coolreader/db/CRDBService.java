@@ -7,7 +7,15 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
-import org.coolreader.crengine.*;
+
+import org.coolreader.crengine.BookInfo;
+import org.coolreader.crengine.Bookmark;
+import org.coolreader.crengine.DeviceInfo;
+import org.coolreader.crengine.FileInfo;
+import org.coolreader.crengine.L;
+import org.coolreader.crengine.Logger;
+import org.coolreader.crengine.MountPathCorrector;
+import org.coolreader.crengine.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -312,7 +320,18 @@ public class CRDBService extends Service {
     public interface BookSearchCallback {
     	void onBooksFound(ArrayList<FileInfo> fileList);
     }
-    
+
+	public void loadGenresList(FileInfo parent, boolean showEmptyGenres, final ItemGroupsLoadingCallback callback, final Handler handler) {
+		final FileInfo p = new FileInfo(parent);
+		execTask(new Task("loadGenresList") {
+			@Override
+			public void work() {
+				mainDB.loadGenresList(p, showEmptyGenres);
+				sendTask(handler, () -> callback.onItemGroupsLoaded(p));
+			}
+		});
+	}
+
 	public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
 		final FileInfo p = new FileInfo(parent); 
 		execTask(new Task("loadAuthorsList") {
@@ -342,6 +361,16 @@ public class CRDBService extends Service {
 			public void work() {
 				mainDB.loadTitleList(p);
 				sendTask(handler, () -> callback.onItemGroupsLoaded(p));
+			}
+		});
+	}
+
+	public void findGenresBooks(final String genreCode, boolean showEmptyGenres, final FileInfoLoadingCallback callback, final Handler handler) {
+		execTask(new Task("findGenresBooks") {
+			@Override
+			public void work() {
+				final ArrayList<FileInfo> list = mainDB.findByGenre(genreCode, showEmptyGenres);
+				sendTask(handler, () -> callback.onFileInfoListLoaded(list));
 			}
 		});
 	}
@@ -662,7 +691,11 @@ public class CRDBService extends Service {
     		getService().removeOPDSCatalog(id);
     	}
 
-    	public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
+		public void loadGenresList(FileInfo parent, boolean showEmptyGenres, final ItemGroupsLoadingCallback callback) {
+			getService().loadGenresList(parent, showEmptyGenres, callback, new Handler());
+		}
+
+		public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
     		getService().loadAuthorsList(parent, callback, new Handler());
     	}
 
@@ -673,6 +706,10 @@ public class CRDBService extends Service {
     	public void loadTitleList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
     		getService().loadTitleList(parent, callback, new Handler());
     	}
+
+		public void loadGenresBooks(String genreCode, boolean showEmptyGenres, FileInfoLoadingCallback callback) {
+			getService().findGenresBooks(genreCode, showEmptyGenres, callback, new Handler());
+		}
 
     	public void loadAuthorBooks(long authorId, FileInfoLoadingCallback callback) {
     		getService().findAuthorBooks(authorId, callback, new Handler());

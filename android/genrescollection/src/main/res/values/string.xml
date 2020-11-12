@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Genre groups -->
+    <string name="genre_group_business">Business literature</string>
+    <string name="genre_group_detectives">Detectives and Thrillers</string>
+    <string name="genre_group_children">Children\'s books</string>
+    <string name="genre_group_documentary">Documentary literature</string>
+    <string name="genre_group_housekeeping">Housekeeping (Home and Family)</string>
+    <string name="genre_group_dramaturgy">Dramaturgy</string>
+    <string name="genre_group_art">Art, Design</string>
+    <string name="genre_group_it">Computers and the Internet</string>
+    <string name="genre_group_scince">Science, Education</string>
+    <string name="genre_group_poetry">Poetry</string>
+    <string name="genre_group_adventures">Adventures</string>
+    <string name="genre_group_prose">Prose</string>
+    <string name="genre_group_religion">Religion and spirituality</string>
+    <string name="genre_group_reference">Reference literature</string>
+    <string name="genre_group_antique">Antique</string>
+    <string name="genre_group_technics">Technics</string>
+    <string name="genre_group_textbooks">Textbooks and tutorials</string>
+    <string name="genre_group_fiction">Fiction</string>
+    <string name="genre_group_fantasy">Fantasy</string>
+    <string name="genre_group_folklore">Folklore</string>
+    <string name="genre_group_humor">Humor</string>
+    <string name="genre_group_romance">Romance novels</string>
+    <string name="genre_group_warfare">Warfare</string>
+    <string name="genre_group_other">Other</string>
+
+    <!-- Business literature genres -->
+    <string name="genre_banking">Banking, Finance</string>
+    <string name="genre_accounting">Accounting and audit</string>
+    <string name="genre_global_economy">International trade</string>
+    <string name="genre_economics_ref">Business literature</string>
+    <string name="genre_paper_work">Office work</string>
+    <string name="genre_org_behavior">Corporate culture</string>
+    <string name="genre_personal_finance">Personal finance</string>
+    <string name="genre_small_business">Small business</string>
+    <string name="genre_marketing">Marketing, PR, advertising</string>
+    <string name="genre_real_estate">Real estate</string>
+    <string name="genre_popular_business">About business popular</string>
+    <string name="genre_industries">Industry publications</string>
+    <string name="genre_job_hunting">Job search, career</string>
+    <string name="genre_trade">Trade</string>
+    <string name="genre_management">Management, recruitment</string>
+    <string name="genre_stock">Securities, investments</string>
+    <string name="genre_economics">Economics</string>
+
+    <!-- Detectives genres -->
+    <string name="genre_det_action">Action</string>
+    <string name="genre_det_cozy">Ladies\' detective novel</string>
+    <string name="genre_detective">Detectives</string>
+    <string name="genre_det_irony">Ironic detective</string>
+    <string name="genre_det_history">Historical detective</string>
+    <string name="genre_det_classic">Classic detective</string>
+    <string name="genre_det_crime">Crime detective</string>
+    <string name="genre_det_hard">Cool detective</string>
+    <string name="genre_det_maniac">Maniacs</string>
+    <string name="genre_thriller_medical">Medical thriller</string>
+    <string name="genre_det_political">Political detective</string>
+    <string name="genre_det_police">Police detective</string>
+    <string name="genre_det_su">Soviet detective</string>
+    <string name="genre_thriller_techno">Techno thriller</string>
+    <string name="genre_thriller">Thriller</string>
+    <string name="genre_det_espionage">Spy detective</string>
+    <string name="genre_thriller_legal">Legal thriller</string>
+
+    <!-- Children\'s genres  -->
+    <string name="genre_children">Children\'s literature</string>
+    <string name="genre_child_prose">Children\'s prose</string>
+    <string name="genre_child_sf">Children\'s fiction</string>
+    <string name="genre_child_det">Children\'s action</string>
+    <string name="genre_child_adv">Children\'s adventures</string>
+    <string name="genre_child_verse">Children\'s poems</string>
+    <string name="genre_child_folklore">Children\'s folklore</string>
+    <string name="genre_foreign_children">Foreign literature for children</string>
+    <string name="genre_prose_game">Games, exercises for children</string>
+    <string name="genre_child_classical">Classic children\'s literature</string>
+    <string name="genre_child_education">Educational literature</string>
+    <string name="genre_child_tale_rus">Russian tales</string>
+    <string name="genre_ya">Teen literature</string>
+    <string name="genre_child_tale">Fairy tales</string>
+
+    <!-- Documentary literature genres  -->
+    <string name="genre_nonf_biography">Biographies and Memoirs</string>
+    <string name="genre_nonf_military">Military Documentary and Analytics</string>
+    <string name="genre_travel_notes">Geography, travel notes</string>
+    <string name="genre_nonfiction">Documentary literature</string>
+    <string name="genre_nonf_criticism">Criticism</string>
+    <string name="genre_nonf_publicism">Publicism</string>
+
+    <!-- Housekeeping (Home and Family) genres  -->
+    <string name="genre_home_pets">Pets</string>
+    <string name="genre_home">Housekeeping</string>
+    <string name="genre_home_health">Health</string>
+    <string name="genre_home_collecting">Collecting</string>
+    <string name="genre_home_cooking">Cooking</string>
+    <string name="genre_home_entertain">Entertainment</string>
+    <string name="genre_home_garden">Garden</string>
+    <string name="genre_home_diy">Do it yourself</string>
+    <string name="genre_home_sex">Sexual relationship</string>
+    <string name="genre_family">Family relationships</string>
+    <string name="genre_home_sport">Physical exercise, sports</string>
+    <string name="genre_home_crafts">Hobbies and crafts</string>
+
+    <!-- Dramaturgy genres -->
+    <string name="genre_drama_antique">Antique drama</string>
+    <string name="genre_vaudeville">Vaudeville, buffoonery, mystery</string>
+    <string name="genre_drama">Драма</string>
+    <string name="genre_dramaturgy">Dramaturgy</string>
+    <string name="genre_screenplays">Screenplays</string>
+    <string name="genre_comedy">Comedy</string>
+    <string name="genre_mystery">Mystery</string>
+    <string name="genre_scenarios">Scenarios</string>
+    <string name="genre_tragedy">Tragedy</string>
+
+    <!-- Art, Design genres -->
+    <string name="genre_architecture_book">Architecture and sculpture</string>
+    <string name="genre_painting">Painting, albums, illustrated catalogs</string>
+    <string name="genre_visual_arts">Fine arts, photography</string>
+    <string name="genre_design">Art &amp; Design</string>
+    <string name="genre_art_criticism">Art history</string>
+    <string name="genre_cine">Cinema</string>
+    <string name="genre_music">Music</string>
+    <string name="genre_notes">Notes</string>
+    <string name="genre_theatre">Theatre</string>
+
+    <!-- Computers and the Internet genres -->
+    <string name="genre_comp_hard">Hardware</string>
+    <string name="genre_comp_db">Database</string>
+    <string name="genre_comp_www">Internet</string>
+    <string name="genre_comp_osnet">OS and Networks</string>
+    <string name="genre_computers">Near-computer literature</string>
+    <string name="genre_comp_programming">Programming</string>
+    <string name="genre_comp_soft">Programs</string>
+    <string name="genre_comp_dsp">Digital signal processing</string>
+    <string name="genre_tbg_computers">Tutorials</string>
+
+    <!-- Science, Education genres -->
+    <string name="genre_sci_medicine_alternative">Alternative medicine</string>
+    <string name="genre_sci_theories">Alternative sciences and scientific theories</string>
+    <string name="genre_sci_anachem">Analytical chemistry</string>
+    <string name="genre_science_archaeology">Archeology</string>
+    <string name="genre_sci_cosmos">Astronomy and Space</string>
+    <string name="genre_sci_biology">Biology</string>
+    <string name="genre_sci_biophys">Biophysics</string>
+    <string name="genre_sci_biochem">Biochemistry</string>
+    <string name="genre_sci_botany">Botany</string>
+    <string name="genre_sci_veterinary">Veterinary</string>
+    <string name="genre_sci_oriental">Oriental studies</string>
+    <string name="genre_sci_geo">Geology and geography</string>
+    <string name="genre_sci_state">State and law</string>
+    <string name="genre_sci_business">Business literature</string>
+    <string name="genre_psy_childs">Child psychology</string>
+    <string name="genre_sci_zoo">Zoology</string>
+    <string name="genre_foreign_language">Foreign languages</string>
+    <string name="genre_sci_history">History</string>
+    <string name="genre_sci_culture">Culturology</string>
+    <string name="genre_sci_philology">Literary criticism</string>
+    <string name="genre_sci_math">Mathematics</string>
+    <string name="genre_sci_medicine">Medicine</string>
+    <string name="genre_science">Scientific literature</string>
+    <string name="genre_sci_popular">Popular science literature</string>
+    <string name="genre_sci_social_studies">Social Science, Sociology</string>
+    <string name="genre_sci_orgchem">Organic chemistry</string>
+    <string name="genre_sci_pedagogy">Pedagogy</string>
+    <string name="genre_sci_politics">Politics</string>
+    <string name="genre_sci_psychology">Psychology</string>
+    <string name="genre_psy_theraphy">Psychotherapy and counseling</string>
+    <string name="genre_sci_abstract">Abstracts</string>
+    <string name="genre_psy_sex_and_family">Sex and family psychology</string>
+    <string name="genre_sci_tech">Technical science</string>
+    <string name="genre_sci_phys">Physics</string>
+    <string name="genre_sci_physchem">Physical chemistry</string>
+    <string name="genre_sci_philosophy">Philosophy</string>
+    <string name="genre_sci_chem">Chemistry</string>
+    <string name="genre_sci_ecology">Ecology</string>
+    <string name="genre_sci_economy">Economy</string>
+    <string name="genre_sci_juris">Jurisprudence</string>
+    <string name="genre_sci_linguistic">Linguistics, foreign languages</string>
+
+    <!-- Poetry genres -->
+    <string name="genre_in_verse">In verse</string>
+    <string name="genre_vers_libre">Vers libre</string>
+    <string name="genre_visual_poetry">Visual poetry</string>
+    <string name="genre_poetry_for_classical">Classical foreign poetry</string>
+    <string name="genre_poetry_classical">Classical poetry</string>
+    <string name="genre_poetry_rus_classical">Classical Russian poetry</string>
+    <string name="genre_lyrics">Lyrics</string>
+    <string name="genre_palindromes">Palindromes</string>
+    <string name="genre_song_poetry">Song poetry</string>
+    <string name="genre_poetry_east">Poetry of the East</string>
+    <string name="genre_poem">Poem, epic poetry</string>
+    <string name="genre_poetry_for_modern">Contemporary foreign poetry</string>
+    <string name="genre_poetry_modern">Contemporary poetry</string>
+    <string name="genre_poetry_rus_modern">Contemporary Russian poetry</string>
+    <string name="genre_experimental_poetry">Experimental poetry</string>
+    <string name="genre_epic_poetry">Epic poetry</string>
+    <string name="genre_humor_verse">Humorous poems</string>
+    <string name="genre_poetry">Poetry</string>
+
+    <!-- Adventures genres -->
+    <string name="genre_adv_story">Adventure romance</string>
+    <string name="genre_adv_western">Western film</string>
+    <string name="genre_adv_history">Historical adventures</string>
+    <string name="genre_adv_maritime">Nautical adventures</string>
+    <string name="genre_adv_indian">Adventures about Indians</string>
+    <string name="genre_adventure">Adventures</string>
+    <string name="genre_adv_modern">Adventures in the modern world</string>
+    <string name="genre_adv_animal">Nature and animals</string>
+    <string name="genre_adv_geo">Travel and geography</string>
+    <string name="genre_tale_chivalry">Romance</string>
+
+    <!-- Prose genres -->
+    <string name="genre_dissident">Anti-Soviet literature</string>
+    <string name="genre_aphorisms">Aphorisms</string>
+    <string name="genre_gothic_novel">Gothic novel</string>
+    <string name="genre_foreign_prose">Foreign classical prose</string>
+    <string name="genre_prose_history">Historical prose</string>
+    <string name="genre_prose_classic">Classical prose</string>
+    <string name="genre_literature_18">Classical prose of the 17th-18th centuries</string>
+    <string name="genre_literature_19">Classical prose of the 19th century</string>
+    <string name="genre_literature_20">Classical prose of the 20th century</string>
+    <string name="genre_prose_counter">Counterculture</string>
+    <string name="genre_prose_magic">Magical realism</string>
+    <string name="genre_story">Novella</string>
+    <string name="genre_prose_military">About war</string>
+    <string name="genre_great_story">Story</string>
+    <string name="genre_prose">Prose</string>
+    <string name="genre_short_story">Short story</string>
+    <string name="genre_roman">Novel</string>
+    <string name="genre_prose_rus_classic">Russian classical prose</string>
+    <string name="genre_sagas">Family Romance/Family Saga</string>
+    <string name="genre_prose_sentimental">Sentimental prose</string>
+    <string name="genre_prose_su_classics">Soviet classical prose</string>
+    <string name="genre_prose_contemporary">Contemporary prose</string>
+    <string name="genre_foreign_antique">Medieval classical prose</string>
+    <string name="genre_prose_abs">Phantasmagoria, absurdist prose</string>
+    <string name="genre_extravaganza">Extravaganza</string>
+    <string name="genre_prose_neformatny">Experimental, non-formatted prose</string>
+    <string name="genre_epistolary_fiction">Epistolary prose</string>
+    <string name="genre_prose_epic">Epic</string>
+    <string name="genre_essay">Essay, sketch, study</string>
+    <string name="genre_humor_prose">Humorous prose</string>
+
+    <!-- Religion and spirituality genres -->
+    <string name="genre_astrology">Astrology</string>
+    <string name="genre_religion_budda">Buddhism</string>
+    <string name="genre_religion_hinduism">Hinduism</string>
+    <string name="genre_religion_islam">Islam</string>
+    <string name="genre_religion_judaism">Judaism</string>
+    <string name="genre_religion_catholicism">Catholicism</string>
+    <string name="genre_religion_occult">Occultism</string>
+    <string name="genre_religion_orthodoxy">Orthodoxy</string>
+    <string name="genre_religion_protestantism">Protestantism</string>
+    <string name="genre_sci_religion">Religious Studies</string>
+    <string name="genre_religion">Religious literature</string>
+    <string name="genre_religion_rel">Religion</string>
+    <string name="genre_religion_self">Self improvement</string>
+    <string name="genre_palmistry">Palmistry</string>
+    <string name="genre_religion_christianity">Christianity</string>
+    <string name="genre_religion_esoterics">Esoterics</string>
+    <string name="genre_religion_paganism">Paganism</string>
+
+    <!-- Reference literature genres -->
+    <string name="genre_geo_guides">Guides, maps, atlases</string>
+    <string name="genre_ref_guide">Manuals</string>
+    <string name="genre_ref_dict">Dictionaries</string>
+    <string name="genre_reference">Reference literature</string>
+    <string name="genre_ref_ref">Handbooks</string>
+    <string name="genre_ref_encyc">Encyclopedias</string>
+
+    <!-- Antique genres -->
+    <string name="genre_antique_ant">Ancient literature</string>
+    <string name="genre_antique_east">Ancient oriental literature</string>
+    <string name="genre_antique_european">Ancient European literature</string>
+    <string name="genre_antique_russian">Old Russian literature</string>
+    <string name="genre_antique">Ancient literature</string>
+
+    <!-- Technics genres -->
+    <string name="genre_auto_business">Autodelo</string>
+    <string name="genre_auto_regulations">Cars and traffic rules</string>
+    <string name="genre_military_weapon">Military equipment and weapons</string>
+    <string name="genre_equ_history">History of technology</string>
+    <string name="genre_sci_metal">Metallurgy</string>
+    <string name="genre_sci_radio">Radio electronics</string>
+    <string name="genre_sci_build">Construction and resistance</string>
+    <string name="genre_sci_transport">Transport and aviation</string>
+
+    <!-- Textbooks and tutorials genres -->
+    <string name="genre_sci_textbook">Textbooks</string>
+    <string name="genre_tbg_higher">Textbooks and manuals of universities</string>
+    <string name="genre_tbg_secondary">Textbooks and manuals for secondary and special education</string>
+    <string name="genre_tbg_school">School textbooks and manuals, abstracts, cheat sheets</string>
+    <string name="genre_sci_crib">Cheat sheets</string>
+
+    <!-- Fiction genres -->
+    <string name="genre_sf_history">Alternative history</string>
+    <string name="genre_sf_action">Combat fiction</string>
+    <string name="genre_sf_heroic">Heroic fiction</string>
+    <string name="genre_sf_fantasy_city">Urban fantasy</string>
+    <string name="genre_sf_detective">Detective fiction</string>
+    <string name="genre_sf_irony">Ironic fiction</string>
+    <string name="genre_sf_cyberpunk">Cyberpunk</string>
+    <string name="genre_sf_space">Space fiction</string>
+    <string name="genre_sf_space_opera">Cosmoopera</string>
+    <string name="genre_sf_litrpg">LITRPG</string>
+    <string name="genre_sf_mystic">Mystic</string>
+    <string name="genre_fairy_fantasy">Mythological fiction</string>
+    <string name="genre_sf">Science fiction</string>
+    <string name="genre_nsf">Unscientific fiction</string>
+    <string name="genre_popadanec">Popadantsy</string>
+    <string name="genre_sf_postapocalyptic">Post apocalypse</string>
+    <string name="genre_modern_tale">Modern fairy tale</string>
+    <string name="genre_sf_social">Social fiction</string>
+    <string name="genre_sf_stimpank">Steampunk</string>
+    <string name="genre_sf_etc">Fiction</string>
+    <string name="genre_hronoopera">Chronopera</string>
+    <string name="genre_sf_epic">Epic fiction</string>
+    <string name="genre_sf_humor">Humorous fiction</string>
+
+    <!-- Fantasy genres -->
+    <string name="genre_sf_fantasy">Fantasy</string>
+    <string name="genre_fantasy_fight">Combat fantasy</string>
+    <string name="genre_sf_technofantasy">Techno fantasy</string>
+    <!-- дубль genre_sf_fantasy_city -->
+    <string name="genre_city_fantasy">Urban fantasy</string>
+    <string name="genre_foreign_fantasy">Foreign fantasy</string>
+    <string name="genre_historical_fantasy">Historical fantasy</string>
+    <string name="genre_vampire_book">Vampire books</string>
+    <string name="genre_magician_book">Books about wizards</string>
+    <string name="genre_love_fantasy">Love fantasy</string>
+    <string name="genre_russian_fantasy">Slavic fantasy</string>
+    <string name="genre_sf_horror">Horror</string>
+    <string name="genre_dragon_fantasy">Dragon fantasy</string>
+    <string name="genre_humor_fantasy">Humorous fantasy</string>
+    <string name="genre_sf_fantasy_irony">Ironic fantasy</string>
+
+    <!-- Folklore genres -->
+    <string name="genre_humor_anecdote">Jokes</string>
+    <string name="genre_fable">Fables</string>
+    <string name="genre_epic">Epics</string>
+    <string name="genre_riddles">Puzzles</string>
+    <string name="genre_folk_songs">Folk songs</string>
+    <string name="genre_folk_tale">Folk tales</string>
+    <string name="genre_proverbs">Proverbs, sayings</string>
+    <string name="genre_antique_myths">Myths. Legends. Epos</string>
+    <string name="genre_folklore">Folklore</string>
+    <string name="genre_limerick">Ditties, jokes, nursery rhymes</string>
+
+    <!-- Humor genres -->
+    <string name="genre_humor_satire">Satire</string>
+    <string name="genre_humor">Humor</string>
+
+    <!-- Romance novels genres -->
+    <string name="genre_love_history">Historical romance novels</string>
+    <string name="genre_love_short">Short romance novels</string>
+    <string name="genre_love_sf">Love fiction</string>
+    <string name="genre_love_detective">Love detectives</string>
+    <string name="genre_love">Romance novels</string>
+    <string name="genre_love_hard">Porn</string>
+    <string name="genre_love_contemporary">Modern romance novels</string>
+    <string name="genre_love_erotica">Erotic</string>
+
+    <!-- Warfare genres -->
+    <string name="genre_military_arts">Martial arts</string>
+    <string name="genre_military_history">Military history</string>
+    <string name="genre_military">Warfare</string>
+    <string name="genre_military_special">Special services</string>
+
+    <!-- Other genres -->
+    <string name="genre_periodic">Newspapers and magazines</string>
+    <string name="genre_comics">Comics</string>
+    <string name="genre_art_world_culture">World Art</string>
+    <string name="genre_unfinished">Unfinished</string>
+    <string name="genre_other">Unsorted</string>
+    <string name="genre_network_literature">Samizdat, network literature</string>
+    <string name="genre_fanfiction">Fanfiction</string>
+
+</resources>

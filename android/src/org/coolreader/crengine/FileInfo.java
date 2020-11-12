@@ -20,6 +20,9 @@ public class FileInfo {
 	public final static String OPDS_LIST_TAG = "@opds";
 	public final static String OPDS_DIR_PREFIX = "@opds:";
 	public final static String ONLINE_CATALOG_PLUGIN_PREFIX = "@plugin:";
+	public final static String GENRES_TAG = "@genresRoot";
+	public final static String GENRES_GROUP_PREFIX = "@genresGroup:";
+	public final static String GENRES_PREFIX = "@genre:";
 	public final static String AUTHORS_TAG = "@authorsRoot";
 	public final static String AUTHOR_GROUP_PREFIX = "@authorGroup:";
 	public final static String AUTHOR_PREFIX = "@author:";
@@ -39,6 +42,7 @@ public class FileInfo {
 	public Long id; // db id
 	public String title; // book title
 	public String authors; // authors, delimited with '|'
+	public String keywords; // keywords, genres
 	public String series; // series name w/o number
 	public int seriesNumber; // number of book inside series
 	public String path; // path to directory where file or archive is located
@@ -321,6 +325,7 @@ public class FileInfo {
 		createTime = v.createTime;
 		lastAccessTime = v.lastAccessTime;
 		language = v.language;
+		keywords = v.keywords;
 		description = v.description;
 		username = v.username;
 		password = v.password;
@@ -409,7 +414,12 @@ public class FileInfo {
 	{
 		return SEARCH_SHORTCUT_TAG.equals(pathname);
 	}
-	
+
+	public boolean isBooksByGenreRoot()
+	{
+		return GENRES_TAG.equals(pathname);
+	}
+
 	public boolean isBooksByAuthorRoot()
 	{
 		return AUTHORS_TAG.equals(pathname);
@@ -444,7 +454,12 @@ public class FileInfo {
 	{
 		return TITLE_TAG.equals(pathname);
 	}
-	
+
+	public boolean isBooksByGenreDir()
+	{
+		return pathname!=null && pathname.startsWith(GENRES_PREFIX);
+	}
+
 	public boolean isBooksByAuthorDir()
 	{
 		return pathname!=null && pathname.startsWith(AUTHOR_PREFIX);
@@ -464,6 +479,13 @@ public class FileInfo {
 				ROOT_DIR_TAG.equals(parent.pathname) )
 			return true;
 		return parent.isOnSDCard();
+	}
+
+	public String getGenreCode() {
+		if (pathname.startsWith(GENRES_PREFIX)) {
+			return pathname.substring(GENRES_PREFIX.length());
+		}
+		return "";
 	}
 
 	public long getAuthorId()
@@ -1177,6 +1199,11 @@ public class FileInfo {
 				return false;
 		} else if (!language.equals(other.language))
 			return false;
+		if (keywords == null) {
+			if (other.keywords != null)
+				return false;
+		} else if (!keywords.equals(other.keywords))
+			return false;
 		if (description == null) {
 			if (other.description != null)
 				return false;
@@ -1256,6 +1283,11 @@ public class FileInfo {
 			if (other.language != null)
 				return false;
 		} else if (!language.equals(other.language))
+			return false;
+		if (keywords == null) {
+			if (other.keywords != null)
+				return false;
+		} else if (!keywords.equals(other.keywords))
 			return false;
 		if (description == null) {
 			if (other.description != null)

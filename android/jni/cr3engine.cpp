@@ -109,6 +109,7 @@ public:
     int seriesNumber;
     lString32 language;
     lUInt32 crc32;
+    lString32 keywords;
     lString32 description;
 };
 
@@ -143,11 +144,27 @@ static bool GetEPUBBookProperties(const char *name, LVStreamRef stream, BookProp
     lString32 author = doc->textFromXPath( lString32("package/metadata/creator")).trim();
     lString32 title = doc->textFromXPath( lString32("package/metadata/title")).trim();
     lString32 language = doc->textFromXPath( lString32("package/metadata/language")).trim();
+	// There may be multiple <dc:subject> tags, which are usually used for keywords, categories
+	bool subjects_set = false;
+	lString32 subjects;
+	for ( size_t i=1; i<=EPUB_META_MAX_ITER; i++ ) {
+		ldomNode * item = doc->nodeFromXPath(lString32("package/metadata/subject[") << fmt::decimal(i) << "]");
+		if (!item)
+			break;
+		lString32 subject = item->getText().trim();
+		if (subjects_set) {
+			subjects << "\n" << subject;
+		}
+		else {
+			subjects << subject;
+			subjects_set = true;
+		}
+	}
     lString32 description = doc->textFromXPath( cs32("package/metadata/description")).trim();
-
     pBookProps->author = author;
     pBookProps->title = title;
     pBookProps->language = language;
+    pBookProps->keywords = subjects;
     pBookProps->description = description;
 
     for ( int i=1; i<20; i++ ) {
@@ -361,6 +378,7 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
     lString32 title = extractDocTitle( &doc );
     lString32 language = extractDocLanguage( &doc );
     lString32 series = extractDocSeries( &doc, &pBookProps->seriesNumber );
+    lString32 keywords = extractDocKeywords( &doc );
     lString32 description = extractDocDescription( &doc );
 #if SERIES_IN_AUTHORS==1
     if ( !series.empty() )
@@ -373,6 +391,7 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
     pBookProps->filename = lString32(name);
     pBookProps->filedate = getDateTimeString( t );
     pBookProps->language = language;
+    pBookProps->keywords = keywords;
     pBookProps->description = description;
     pBookProps->crc32 = stream->getcrc32();
     return true;
@@ -424,6 +443,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertie
 	SET_INT_FLD("seriesNumber",props.seriesNumber);
 	SET_STR_FLD("language",props.language);
 	SET_LONG_FLD("crc32",props.crc32);
+	SET_STR_FLD("keywords",props.keywords);
 	SET_STR_FLD("description",props.description);
 
 	return JNI_TRUE;

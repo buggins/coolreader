@@ -344,6 +344,10 @@ public class CoolReader extends BaseActivity {
 				n = 365;
 			mCloudSyncBookmarksKeepAlive = n;
 			updateGoogleDriveSynchronizer();
+		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES)) {
+			if (null != mBrowser) {
+				mBrowser.setHideEmptyGenres(flg);
+			}
 		}
 		//
 	}
@@ -1185,7 +1189,7 @@ public class CoolReader extends BaseActivity {
 	private void runInBrowser(final Runnable task) {
 		waitForCRDBService(() -> {
 			if (mBrowserFrame == null) {
-				mBrowser = new FileBrowser(CoolReader.this, Services.getEngine(), Services.getScanner(), Services.getHistory());
+				mBrowser = new FileBrowser(CoolReader.this, Services.getEngine(), Services.getScanner(), Services.getHistory(), settings().getBool(PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES, false));
 				mBrowser.setCoverPagesEnabled(settings().getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
 				mBrowser.setCoverPageFontFace(settings().getProperty(ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE));
 				mBrowser.setCoverPageSizeOption(settings().getInt(ReaderView.PROP_APP_COVERPAGE_SIZE, 1));

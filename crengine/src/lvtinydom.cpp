@@ -9626,18 +9626,25 @@ lString32 extractDocSeries( ldomDocument * doc, int * pSeriesNumber )
 lString32 extractDocKeywords( ldomDocument * doc )
 {
     lString32 res;
+#if 0
     // Year
     res << doc->createXPointer(U"/FictionBook/description/title-info/date").getText().trim();
+#endif
     // Genres
+    // We use "\n" as a separator here, so if you change it here, you must also change it in
+    // BookInfoDialog.addItem(), BookInfoEditDialog.onCreate(), MainDB.findByGenre().
     for ( int i=0; i<16; i++) {
         lString32 path = cs32("/FictionBook/description/title-info/genre[") + fmt::decimal(i+1) + "]";
         ldomXPointer genre = doc->createXPointer(path);
         if ( !genre ) {
             break;
         }
-        if ( !res.empty() )
-            res << "\n";
-        res << genre.getText().trim();
+        lString32 text = genre.getText().trim();
+        if (!text.empty()) {
+            if (!res.empty())
+                res << "\n";
+            res << text;
+        }
     }
     return res;
 }
