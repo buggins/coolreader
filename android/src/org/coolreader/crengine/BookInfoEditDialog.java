@@ -426,6 +426,17 @@ public class BookInfoEditDialog extends BaseDialog {
 		} else if (KeyEvent.KEYCODE_PAGE_UP == keyCode) {
 			scrollView.pageScroll(View.FOCUS_UP);
 			return true;
+		} else if (KeyEvent.KEYCODE_BACK == keyCode) {
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		if (KeyEvent.KEYCODE_BACK == keyCode) {
+			dismiss();
+			return true;
 		}
 		return super.onKeyDown(keyCode, event);
 	}

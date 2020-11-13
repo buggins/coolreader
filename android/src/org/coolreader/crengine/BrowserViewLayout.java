@@ -155,11 +155,10 @@ public class BrowserViewLayout extends ViewGroup {
 			L.v("BrowserViewLayout.onKeyUp(" + keyCode + ") duration = " + duration);
 			if (duration > 700 && duration < 10000) {
 				activity.finish();
-				return true;
 			} else {
 				contentView.showParentDirectory();
-				return true;
 			}
+			return true;
 		}
 		if (contentView.onKeyUp(keyCode, event))
 			return true;
