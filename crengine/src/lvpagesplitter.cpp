@@ -184,6 +184,7 @@ public:
     int nb_lines_rtl;
     int nb_footnotes_lines;
     int nb_footnotes_lines_rtl;
+    int current_flow;
 
     PageSplitState(LVRendPageList * pl, int pageHeight)
         : page_h(pageHeight)
@@ -202,6 +203,7 @@ public:
         , nb_lines_rtl(0)
         , nb_footnotes_lines(0)
         , nb_footnotes_lines_rtl(0)
+        , current_flow(0)
     {
     }
 
@@ -314,8 +316,6 @@ public:
             printf(" [rtl l:%d/%d fl:%d/%d]\n", nb_lines_rtl, nb_lines, nb_footnotes_lines_rtl, nb_footnotes_lines);
         #endif
         LVRendPageInfo * page = new LVRendPageInfo(start, h, page_list->length());
-        if (pagestart)
-            page->flow = pagestart->flow;
         lastpageend = start + h;
         if ( footnotes.length()>0 ) {
             page->footnotes.add( footnotes );
@@ -333,6 +333,9 @@ public:
             page_footnotes.add(footnote);
         }
         page->flags |= getLineTypeFlags();
+        if (pagestart)
+            current_flow = pagestart->flow;
+        page->flow = current_flow;
         ResetLineAccount(true);
         page_list->add(page);
     }
