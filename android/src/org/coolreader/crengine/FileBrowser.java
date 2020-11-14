@@ -732,25 +732,29 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	
 	private class ItemGroupsLoadingCallback implements CRDBService.ItemGroupsLoadingCallback {
 		private final FileInfo baseDir;
-		public ItemGroupsLoadingCallback(FileInfo baseDir) {
+		private final FileInfo itemToSelect;
+		public ItemGroupsLoadingCallback(FileInfo baseDir, FileInfo itemToSelect) {
 			this.baseDir = baseDir;
+			this.itemToSelect = itemToSelect;
 		}
 		@Override
 		public void onItemGroupsLoaded(FileInfo parent) {
 			baseDir.setItems(parent);
-			showDirectoryInternal(baseDir, null);
+			showDirectoryInternal(baseDir, itemToSelect);
 		}
 	};
 	
 	private class FileInfoLoadingCallback implements CRDBService.FileInfoLoadingCallback {
 		private final FileInfo baseDir;
-		public FileInfoLoadingCallback(FileInfo baseDir) {
+		private final FileInfo itemToSelect;
+		public FileInfoLoadingCallback(FileInfo baseDir, FileInfo itemToSelect) {
 			this.baseDir = baseDir;
+			this.itemToSelect = itemToSelect;
 		}
 		@Override
 		public void onFileInfoListLoaded(ArrayList<FileInfo> list) {
 			baseDir.setItems(list);
-			showDirectoryInternal(baseDir, null);
+			showDirectoryInternal(baseDir, itemToSelect);
 		}
 	};
 	
@@ -818,60 +822,60 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			if (fileOrDir.isBooksByGenreRoot()) {
 				// Display genres list
 				log.d("Show genres list");
-				mActivity.getDB().loadGenresList(fileOrDir, !mHideEmptyGenres, new ItemGroupsLoadingCallback(fileOrDir));
+				mActivity.getDB().loadGenresList(fileOrDir, !mHideEmptyGenres, new ItemGroupsLoadingCallback(fileOrDir, itemToSelect));
 				return;
 			}
 			if (fileOrDir.isBooksByAuthorRoot()) {
 				// refresh authors list
 				log.d("Updating authors list");
-				mActivity.getDB().loadAuthorsList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				mActivity.getDB().loadAuthorsList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir, itemToSelect));
 				return;
 			}
 			if (fileOrDir.isBooksBySeriesRoot()) {
 				// refresh authors list
 				log.d("Updating series list");
-				mActivity.getDB().loadSeriesList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				mActivity.getDB().loadSeriesList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir, itemToSelect));
 				return;
 			}
 			if (fileOrDir.isBooksByRatingRoot()) {
 				log.d("Updating rated books list");
-				mActivity.getDB().loadBooksByRating(1, 10, new FileInfoLoadingCallback(fileOrDir));
+				mActivity.getDB().loadBooksByRating(1, 10, new FileInfoLoadingCallback(fileOrDir, itemToSelect));
 				return;
 			}
 			if (fileOrDir.isBooksByStateFinishedRoot()) {
 				log.d("Updating books by state=finished");
-				mActivity.getDB().loadBooksByState(FileInfo.STATE_FINISHED, new FileInfoLoadingCallback(fileOrDir));
+				mActivity.getDB().loadBooksByState(FileInfo.STATE_FINISHED, new FileInfoLoadingCallback(fileOrDir, itemToSelect));
 				return;
 			}
 			if (fileOrDir.isBooksByStateReadingRoot()) {
 				log.d("Updating books by state=reading");
-				mActivity.getDB().loadBooksByState(FileInfo.STATE_READING, new FileInfoLoadingCallback(fileOrDir));
+				mActivity.getDB().loadBooksByState(FileInfo.STATE_READING, new FileInfoLoadingCallback(fileOrDir, itemToSelect));
 				return;
 			}
 			if (fileOrDir.isBooksByStateToReadRoot()) {
 				log.d("Updating books by state=toRead");
-				mActivity.getDB().loadBooksByState(FileInfo.STATE_TO_READ, new FileInfoLoadingCallback(fileOrDir));
+				mActivity.getDB().loadBooksByState(FileInfo.STATE_TO_READ, new FileInfoLoadingCallback(fileOrDir, itemToSelect));
 				return;
 			}
 			if (fileOrDir.isBooksByTitleRoot()) {
 				// refresh authors list
 				log.d("Updating title list");
-				mActivity.getDB().loadTitleList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				mActivity.getDB().loadTitleList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir, itemToSelect));
 				return;
 			}
 			if (fileOrDir.isBooksByGenreDir()) {
 				log.d("Updating genres book list");
-				mActivity.getDB().loadGenresBooks(fileOrDir.getGenreCode(), !mHideEmptyGenres, new FileInfoLoadingCallback(fileOrDir));
+				mActivity.getDB().loadGenresBooks(fileOrDir.getGenreCode(), !mHideEmptyGenres, new FileInfoLoadingCallback(fileOrDir, itemToSelect));
 				return;
 			}
 			if (fileOrDir.isBooksByAuthorDir()) {
 				log.d("Updating author book list");
-				mActivity.getDB().loadAuthorBooks(fileOrDir.getAuthorId(), new FileInfoLoadingCallback(fileOrDir));
+				mActivity.getDB().loadAuthorBooks(fileOrDir.getAuthorId(), new FileInfoLoadingCallback(fileOrDir, itemToSelect));
 				return;
 			}
 			if (fileOrDir.isBooksBySeriesDir()) {
 				log.d("Updating series book list");
-				mActivity.getDB().loadSeriesBooks(fileOrDir.getSeriesId(), new FileInfoLoadingCallback(fileOrDir));
+				mActivity.getDB().loadSeriesBooks(fileOrDir.getSeriesId(), new FileInfoLoadingCallback(fileOrDir, itemToSelect));
 				return;
 			}
 		} else {
@@ -1291,9 +1295,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		if ( !BackgroundThread.isGUIThread() )
 			throw new IllegalStateException("showDirectoryInternal should be called from GUI thread!");
 		int index = dir!=null ? dir.getItemIndex(file) : -1;
-		if ( dir!=null && !dir.isRootDir() )
-			index++;
-		
+
 		String title = "";
 		if (dir != null) {
 			title = dir.filename;
