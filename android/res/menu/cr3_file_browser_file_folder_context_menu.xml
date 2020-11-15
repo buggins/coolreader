@@ -5,4 +5,5 @@
 <item android:title="@string/mi_folder_open" android:titleCondensed="@string/mi_folder_open" android:id="@+id/folder_open"></item>
 <item android:title="@string/mi_folder_to_favorites" android:titleCondensed="@string/mi_folder_to_favorites" android:id="@+id/folder_to_favorites"></item>
 <item android:title="@string/mi_book_root" android:titleCondensed="@string/mi_book_root" android:id="@+id/book_root"></item>
+<item android:title="@string/mi_folder_delete" android:titleCondensed="@string/mi_book_root" android:id="@+id/folder_delete"></item>
 </menu>

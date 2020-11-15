@@ -1,21 +1,6 @@
 package org.coolreader.crengine;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.TimeZone;
-
-import org.coolreader.R;
-import org.coolreader.crengine.FileInfo.SortOrder;
-
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -31,8 +16,23 @@ import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 
-import androidx.annotation.RequiresApi;
 import androidx.documentfile.provider.DocumentFile;
+
+import org.coolreader.R;
+import org.coolreader.crengine.FileInfo.SortOrder;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.TimeZone;
 
 public class Utils {
 	public static long timeStamp() {
@@ -165,28 +165,108 @@ public class Utils {
 		return f2;
 	}
 
-	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	public static DocumentFile getDocumentFile(FileInfo fi, Context context, Uri sdCardUri) {
 		DocumentFile docFile = null;
-		String filePath = null;
-		if (!fi.isDirectory) {
-			if (fi.isArchive && fi.arcname != null) {
-				filePath = fi.arcname;
-			} else
-				filePath = fi.pathname;
-		}
+		String filePath;
+		if (fi.isArchive && fi.arcname != null)
+			filePath = fi.arcname;
+		else
+			filePath = fi.pathname;
 		if (null != filePath) {
 			File f = new File(filePath);
 			filePath = f.getAbsolutePath();
 			docFile = DocumentFile.fromTreeUri(context, sdCardUri);
-			String[] parts = filePath.split("\\/");
-			for (int i = 3; i < parts.length; i++) {
-				if (docFile != null) {
+			if (null != docFile) {
+				String[] parts = filePath.split("\\/");
+				for (int i = 3; i < parts.length; i++) {
 					docFile = docFile.findFile(parts[i]);
+					if (null == docFile)
+						break;
 				}
 			}
 		}
 		return docFile;
+	}
+
+	public static boolean deleteFolder(FileInfo folder, FileInfoOperationListener bookDeleteCallback, FileInfoOperationListener readyCallback) {
+		boolean res = deleteFolder_impl(new FileInfo(folder), bookDeleteCallback);
+		readyCallback.onStatus(folder, res ? 0 : -1);
+		return res;
+	}
+
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+	public static boolean deleteFolderDocTree(FileInfo folder, Context context, Uri sdCardUri, FileInfoOperationListener bookDeleteCallback, FileInfoOperationListener readyCallback) {
+		boolean res = deleteFolderDocTree_impl(new FileInfo(folder), context, sdCardUri, bookDeleteCallback);
+		readyCallback.onStatus(folder, res ? 0 : -1);
+		return res;
+	}
+
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+	private static boolean deleteFolderDocTree_impl(FileInfo folder, Context context, Uri sdCardUri, FileInfoOperationListener bookDeleteCallback) {
+		boolean res = true;
+		Scanner scanner = Services.getScanner();
+		scanner.listDirectory(folder, false);
+		DocumentFile documentFile;
+		int i;
+		for (i = 0; i < folder.dirCount(); i++) {
+			res = deleteFolderDocTree_impl(folder.getDir(i), context, sdCardUri, bookDeleteCallback);
+			if (!res)
+				break;
+		}
+		if (res) {
+			for (i = 0; i < folder.fileCount(); i++) {
+				FileInfo fi = folder.getFile(i);
+				documentFile = getDocumentFile(fi, context, sdCardUri);
+				if (null != documentFile) {
+					res = documentFile.delete();
+					bookDeleteCallback.onStatus(fi, res ? 0 : -1);
+					if (!res) {
+						break;
+					}
+				} else {
+					bookDeleteCallback.onStatus(fi, -2);
+					break;
+				}
+			}
+		}
+		if (res) {
+			documentFile = getDocumentFile(folder, context, sdCardUri);
+			if (null != documentFile) {
+				res = documentFile.delete();
+			}
+		}
+		return res;
+	}
+
+	private static boolean deleteFolder_impl(FileInfo folder, FileInfoOperationListener bookDeleteCallback) {
+		boolean res = true;
+		Scanner scanner = Services.getScanner();
+		scanner.listDirectory(folder, false);
+		int i;
+		// delete recursively all child folders
+		for (i = 0; i < folder.dirCount(); i++) {
+			res = deleteFolder_impl(folder.getDir(i), bookDeleteCallback);
+			if (!res)
+				break;
+		}
+		if (res) {
+			// if successfully -> delete files
+			while (folder.fileCount() > 0) {
+				FileInfo fi = folder.getFile(0);
+				res = fi.deleteFile();
+				bookDeleteCallback.onStatus(fi, res ? 0 : -1);
+				if (!res) {
+					break;
+				}
+			}
+		}
+		if (res) {
+			// and if all previous successfully -> delete this folder.
+			File fld = new File(folder.pathname);
+			res = fld.delete();
+		}
+		return res;
 	}
 
 	private final static String LATIN_C0 =

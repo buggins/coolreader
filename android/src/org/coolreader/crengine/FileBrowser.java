@@ -330,6 +330,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
             log.d("folder_to_favorites menu item selected");
             addToFavorites(selectedItem);
             return true;
+		case R.id.folder_delete:
+			mActivity.askDeleteFolder(selectedItem);
+			return true;
 		}
 		return false;
 	}

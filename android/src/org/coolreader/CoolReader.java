@@ -32,12 +32,12 @@ import org.coolreader.crengine.BookmarksDlg;
 import org.coolreader.crengine.BrowserViewLayout;
 import org.coolreader.crengine.CRRootView;
 import org.coolreader.crengine.CRToolBar;
-import org.coolreader.crengine.CoverpageManager;
 import org.coolreader.crengine.DeviceInfo;
 import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.ErrorDialog;
 import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
+import org.coolreader.crengine.FileInfoOperationListener;
 import org.coolreader.crengine.InterfaceTheme;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
@@ -51,11 +51,11 @@ import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
 import org.coolreader.crengine.Utils;
-import org.coolreader.tts.TTS;
 import org.coolreader.donations.CRDonationService;
 import org.coolreader.sync2.OnSyncStatusListener;
 import org.coolreader.sync2.Synchronizer;
 import org.coolreader.sync2.googledrive.GoogleDriveRemoteAccess;
+import org.coolreader.tts.TTS;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import java.io.File;
@@ -103,6 +103,7 @@ public class CoolReader extends BaseActivity {
 	private String mFileToOpenFromExt = null;
 
 	private FileInfo mFileToDelete = null;
+	private FileInfo mFolderToDelete = null;
 
 	private boolean isFirstStart = true;
 	private boolean phoneStateChangeHandlerInstalled = false;
@@ -1428,8 +1429,22 @@ public class CoolReader extends BaseActivity {
 						} else {
 							showToast(R.string.could_not_delete_on_sd);
 						}
+					} else if (mFolderToDelete != null && mFolderToDelete.isDirectory) {
+						Uri sdCardUri = intent.getData();
+						DocumentFile documentFile = null;
+						if (null != sdCardUri)
+							documentFile = Utils.getDocumentFile(mFolderToDelete, this, sdCardUri);
+						if (null != documentFile) {
+							if (documentFile.exists()) {
+								updateExtSDURI(mFolderToDelete, sdCardUri);
+								deleteFolder(mFolderToDelete);
+							}
+						} else {
+							showToast(R.string.could_not_delete_on_sd);
+						}
 					}
 					mFileToDelete = null;
+					mFolderToDelete = null;
 				}
 			}
 		} //if (requestCode == REQUEST_CODE_OPEN_DOCUMENT_TREE)
@@ -1723,6 +1738,58 @@ public class CoolReader extends BaseActivity {
 		});
 	}
 
+	int mFolderDeleteRetryCount = 0;
+	public void askDeleteFolder(final FileInfo item) {
+		askConfirmation(R.string.win_title_confirm_folder_delete, () -> {
+			mFolderDeleteRetryCount = 0;
+			deleteFolder(item);
+		});
+	}
+
+	private void deleteFolder(final FileInfo item) {
+		if (mFolderDeleteRetryCount > 3)
+			return;
+		if (item != null && item.isDirectory && !item.isOPDSDir() && !item.isOnlineCatalogPluginDir()) {
+			FileInfoOperationListener bookDeleteCallback = (fileInfo, errorStatus) -> {
+				if (0 == errorStatus && null != fileInfo.format) {
+					BackgroundThread.instance().postGUI(() -> {
+						waitForCRDBService(() -> Services.getHistory().removeBookInfo(getDB(), fileInfo, true, true));
+					});
+				}
+			};
+			BackgroundThread.instance().postBackground(() -> Utils.deleteFolder(item, bookDeleteCallback, (fileInfo, errorStatus) -> {
+				if (0 == errorStatus) {
+					BackgroundThread.instance().postGUI(() -> directoryUpdated(fileInfo.parent));
+				} else {
+					// Can't be deleted using standard Java I/O,
+					// Try DocumentFile interface...
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+						Uri sdCardUri = getExtSDURIByFileInfo(item);
+						if (null != sdCardUri) {
+							BackgroundThread.instance().postBackground(() -> Utils.deleteFolderDocTree(item, this, sdCardUri, bookDeleteCallback, (fileInfo2, errorStatus2) -> {
+								if (0 == errorStatus2) {
+									BackgroundThread.instance().postGUI(() -> directoryUpdated(fileInfo2.parent));
+								} else {
+									showToast(R.string.choose_root_sd);
+									mFolderDeleteRetryCount++;
+									mFolderToDelete = item;
+									Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+									startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE);
+								}
+							}));
+						} else {
+							showToast(R.string.choose_root_sd);
+							mFolderDeleteRetryCount++;
+							mFolderToDelete = item;
+							Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+							startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE);
+						}
+					}
+				}
+			}));
+		}
+	}
+
 	public void saveSetting(String name, String value) {
 		if (mReaderView != null)
 			mReaderView.saveSetting(name, value);
@@ -1910,12 +1977,10 @@ public class CoolReader extends BaseActivity {
 	private boolean updateExtSDURI(FileInfo fi, Uri extSDUri) {
 		String prefKey = null;
 		String filePath = null;
-		if (!fi.isDirectory) {
-			if (fi.isArchive && fi.arcname != null) {
-				filePath = fi.arcname;
-			} else
-				filePath = fi.pathname;
-		}
+		if (fi.isArchive && fi.arcname != null) {
+			filePath = fi.arcname;
+		} else
+			filePath = fi.pathname;
 		if (null != filePath) {
 			File f = new File(filePath);
 			filePath = f.getAbsolutePath();
@@ -1940,12 +2005,10 @@ public class CoolReader extends BaseActivity {
 		Uri uri = null;
 		String prefKey = null;
 		String filePath = null;
-		if (!fi.isDirectory) {
-			if (fi.isArchive && fi.arcname != null) {
-				filePath = fi.arcname;
-			} else
-				filePath = fi.pathname;
-		}
+		if (fi.isArchive && fi.arcname != null) {
+			filePath = fi.arcname;
+		} else
+			filePath = fi.pathname;
 		if (null != filePath) {
 			File f = new File(filePath);
 			filePath = f.getAbsolutePath();
