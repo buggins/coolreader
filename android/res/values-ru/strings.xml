@@ -663,5 +663,5 @@
     <string name="bookmarks_keepalive_half_a_year">полгода</string>
     <string name="bookmarks_keepalive_1year">1 год</string>
     <string name="book_info_genres">Жанр(ы)</string>
-    <string name="including_subgenres">Включая поджанры</string>
+    <string name="including_subgenres">(Включая поджанры)</string>
 </resources>

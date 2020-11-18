@@ -1080,20 +1080,12 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					setText(name, title);
 
 					if ( item.isBooksByGenreDir() ) {
-						int genresCount = 0;
-						int bookCount = 0;
 						if (item.tag instanceof Integer) {
 							int code = (Integer) item.tag;
-							if ((code & 0x20000000) == 0x20000000) {
-								setText(field1, mActivity.getString(R.string.including_subgenres));
-								setText(field2, "books: " + (code & 0x1FFFFFFF));
-							} else if ((code & 0x10000000) == 0x10000000) {
-								genresCount = code & 0xFFFFFFF;
-								setText(field1, "genres: " + genresCount);
-								setText(field2, "");
+							setText(field1, "books: " + (code & FileInfo.GENRE_DATA_BOOKCOUNT_MASK));
+							if ((code & FileInfo.GENRE_DATA_INCCHILD_MASK) == FileInfo.GENRE_DATA_INCCHILD_MASK) {
+								setText(field2, mActivity.getString(R.string.including_subgenres));
 							} else {
-								bookCount = code;
-								setText(field1, "books: " + bookCount);
 								setText(field2, "");
 							}
 						} else {

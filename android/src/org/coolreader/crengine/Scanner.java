@@ -275,7 +275,7 @@ public class Scanner extends FileInfoChangeSource {
 						log.v("The found entry in the database is outdated (crc32=0), need to rescan " + fromDB.toString());
 						fromDB = null;
 					}
-					if (null != fromDB && DocumentFormat.FB2 == fromDB.format && null == fromDB.keywords) {
+					if (null != fromDB && DocumentFormat.FB2 == fromDB.format && null == fromDB.genres) {
 						// to force rescan and update data in DB
 						log.v("The found entry in the database is outdated (keywords=null), need to rescan " + fromDB.toString());
 						fromDB = null;

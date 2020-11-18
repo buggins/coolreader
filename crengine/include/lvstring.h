@@ -924,6 +924,10 @@ public:
     /// replaces first found occurence of "$N" pattern with itoa of integer, where N=index
     bool replaceIntParam(int index, int replaceNumber);
 
+    /// find position of char inside string, -1 if not found
+    int pos(lChar32 ch) const;
+    /// find position of char inside string starting from specified position, -1 if not found
+    int pos(lChar32 ch, int start) const;
     /// find position of substring inside string, -1 if not found
     int pos(lString32 subStr) const;
     /// find position of substring inside string starting from specified position, -1 if not found
