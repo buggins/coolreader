@@ -40,9 +40,9 @@
   <string name="mi_goto_toc">תוכן עניינים</string>
   <string name="mi_folder_open">פתח תיקייה</string>
   <string name="mi_folder_to_favorites">הוסף למועדפים</string>
-  <string name="mi_folder_left">הזז שמאלה</string>
-  <string name="mi_folder_right">הזז ימינה</string>
-  <string name="mi_folder_remove">הסר</string>
+  <string name="mi_folder_fav_left">הזז שמאלה</string>
+  <string name="mi_folder_fav_right">הזז ימינה</string>
+  <string name="mi_folder_fav_remove">הסר</string>
   <string name="dir_recent_books">ספרים אחרונים</string>
   <string name="dir_sd_card">כרטיס SD</string>
   <string name="dir_internal_sd_card">כרטיס SD פנימי</string>

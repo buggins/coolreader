@@ -41,9 +41,9 @@
     <string name="mi_goto_toc">目次</string>
     <string name="mi_folder_open">フォルダーを開く</string>
     <string name="mi_folder_to_favorites">お気に入りに追加</string>
-    <string name="mi_folder_left">左に移動</string>
-    <string name="mi_folder_right">右に移動</string>
-    <string name="mi_folder_remove">削除</string>
+    <string name="mi_folder_fav_left">左に移動</string>
+    <string name="mi_folder_fav_right">右に移動</string>
+    <string name="mi_folder_fav_remove">削除</string>
     <string name="dir_recent_books">最近開いたブック</string>
     <string name="dir_sd_card">SD カード</string>
     <string name="dir_internal_sd_card">内部 SD カード</string>

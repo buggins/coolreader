@@ -93,13 +93,17 @@ public class Scanner extends FileInfoChangeSource {
 		}
 		return null;
 	}
-	
+
+	public boolean listDirectory(FileInfo baseDir) {
+		return listDirectory(baseDir, true);
+	}
+
 	/**
 	 * Adds dir and file children to directory FileInfo item.
 	 * @param baseDir is directory to list files and dirs for
 	 * @return true if successful.
 	 */
-	public boolean listDirectory(FileInfo baseDir)
+	public boolean listDirectory(FileInfo baseDir, boolean onlySupportedFormats)
 	{
 		Set<String> knownItems = null;
 		if ( baseDir.isListed ) {
@@ -172,7 +176,7 @@ public class Scanner extends FileInfoChangeSource {
 							}
 							isNew = true;
 						}
-						if ( item.format!=null ) {
+						if ( !onlySupportedFormats || item.format!=null ) {
 							item.parent = baseDir;
 							baseDir.addFile(item);
 							if ( isNew )

@@ -39,9 +39,10 @@
     <string name="mi_goto_toc">Содержание</string>
     <string name="mi_folder_open">Открыть папку</string>
     <string name="mi_folder_to_favorites">Добавить в избранное</string>
-    <string name="mi_folder_left">Сдвинуть влево</string>
-    <string name="mi_folder_right">Сдвинуть вправо</string>
-    <string name="mi_folder_remove">Убрать</string>
+    <string name="mi_folder_fav_left">Сдвинуть влево</string>
+    <string name="mi_folder_fav_right">Сдвинуть вправо</string>
+    <string name="mi_folder_fav_remove">Убрать</string>
+    <string name="mi_folder_delete">Удалить…</string>
     <string name="dir_recent_books">Последние книги</string>
     <string name="dir_sd_card">SD карта</string>
     <string name="dir_internal_sd_card">Внутр. SD карта</string>
@@ -418,6 +419,7 @@
     <string name="win_title_confirm_catalog_delete">Вы действительно хотите удалить этот каталог?</string>
     <string name="win_title_confirm_history_record_delete">Вы действительно хотите удалить эту книгу из списка последних книг?</string>
     <string name="win_title_confirm_book_delete">Вы действительно хотите удалить эту книгу / архив ?</string>
+    <string name="win_title_confirm_folder_delete">Вы действительно хотите удалить эту папку вместе со всеми книгами?</string>
     <string name="folder_name_books_by_series">Серии</string>
     <string name="folder_name_books_by_title">Названия</string>
     <string name="dlg_about_donation_platinum">$30: купить Платиновую монету Cool Reader</string>

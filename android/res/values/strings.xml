@@ -43,9 +43,10 @@
     <string name="mi_goto_toc">Table of Contents</string>
     <string name="mi_folder_open">Open folder</string>
     <string name="mi_folder_to_favorites">Add to favorites</string>
-    <string name="mi_folder_left">Move left</string>
-    <string name="mi_folder_right">Move right</string>
-    <string name="mi_folder_remove">Remove</string>
+    <string name="mi_folder_fav_left">Move left</string>
+    <string name="mi_folder_fav_right">Move right</string>
+    <string name="mi_folder_fav_remove">Remove</string>
+    <string name="mi_folder_delete">Delete…</string>
     <string name="dir_recent_books">Recent Books</string>
     <string name="dir_sd_card">SD Card</string>
     <string name="dir_internal_sd_card">Internal SD Card</string>
@@ -429,6 +430,7 @@
     <string name="win_title_confirm_catalog_delete">Do you really want to delete this catalog?</string>
     <string name="win_title_confirm_history_record_delete">Do you really want to remove this book from recent list?</string>
     <string name="win_title_confirm_book_delete">Do you really want to delete this book / archive ?</string>
+    <string name="win_title_confirm_folder_delete">Do you really want to delete this folder along with all the books?</string>
     <string name="book_info_book_language">Language</string>
     <string name="folder_name_books_by_series">Series</string>
     <string name="folder_name_books_by_title">Titles</string>
