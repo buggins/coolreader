@@ -14,11 +14,9 @@
 bool SearchDialog::showDlg( QWidget * parent, CR3View * docView )
 {
     SearchDialog * dlg = new SearchDialog( parent, docView );
-    dlg->setModal( true );
     dlg->show();
     dlg->raise();
     dlg->activateWindow();
-    //dlg->
     return true;
 }
 
