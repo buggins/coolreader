@@ -1752,37 +1752,41 @@ public class CoolReader extends BaseActivity {
 		if (item != null && item.isDirectory && !item.isOPDSDir() && !item.isOnlineCatalogPluginDir()) {
 			FileInfoOperationListener bookDeleteCallback = (fileInfo, errorStatus) -> {
 				if (0 == errorStatus && null != fileInfo.format) {
-					BackgroundThread.instance().postGUI(() -> {
+					BackgroundThread.instance().executeGUI(() -> {
 						waitForCRDBService(() -> Services.getHistory().removeBookInfo(getDB(), fileInfo, true, true));
 					});
 				}
 			};
 			BackgroundThread.instance().postBackground(() -> Utils.deleteFolder(item, bookDeleteCallback, (fileInfo, errorStatus) -> {
 				if (0 == errorStatus) {
-					BackgroundThread.instance().postGUI(() -> directoryUpdated(fileInfo.parent));
+					BackgroundThread.instance().executeGUI(() -> directoryUpdated(fileInfo.parent));
 				} else {
 					// Can't be deleted using standard Java I/O,
 					// Try DocumentFile interface...
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 						Uri sdCardUri = getExtSDURIByFileInfo(item);
 						if (null != sdCardUri) {
-							BackgroundThread.instance().postBackground(() -> Utils.deleteFolderDocTree(item, this, sdCardUri, bookDeleteCallback, (fileInfo2, errorStatus2) -> {
-								if (0 == errorStatus2) {
-									BackgroundThread.instance().postGUI(() -> directoryUpdated(fileInfo2.parent));
-								} else {
-									showToast(R.string.choose_root_sd);
-									mFolderDeleteRetryCount++;
-									mFolderToDelete = item;
-									Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-									startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE);
-								}
-							}));
+							Utils.deleteFolderDocTree(item, this, sdCardUri, bookDeleteCallback, (fileInfo2, errorStatus2) -> {
+								BackgroundThread.instance().executeGUI(() -> {
+									if (0 == errorStatus2) {
+										directoryUpdated(fileInfo2.parent);
+									} else {
+										showToast(R.string.choose_root_sd);
+										mFolderDeleteRetryCount++;
+										mFolderToDelete = item;
+										Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+										startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE);
+									}
+								});
+							});
 						} else {
-							showToast(R.string.choose_root_sd);
-							mFolderDeleteRetryCount++;
-							mFolderToDelete = item;
-							Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-							startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE);
+							BackgroundThread.instance().executeGUI(() -> {
+								showToast(R.string.choose_root_sd);
+								mFolderDeleteRetryCount++;
+								mFolderToDelete = item;
+								Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+								startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE);
+							});
 						}
 					}
 				}
