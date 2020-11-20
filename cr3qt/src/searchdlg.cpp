@@ -11,12 +11,16 @@
 #include "searchdlg.h"
 #include "ui_searchdlg.h"
 
+SearchDialog* SearchDialog::_instance = NULL;
+
 bool SearchDialog::showDlg( QWidget * parent, CR3View * docView )
 {
-    SearchDialog * dlg = new SearchDialog( parent, docView );
-    dlg->show();
-    dlg->raise();
-    dlg->activateWindow();
+    if (NULL == _instance) {
+        _instance = new SearchDialog( parent, docView );
+    }
+    _instance->show();
+    _instance->raise();
+    _instance->activateWindow();
     return true;
 }
 
@@ -25,6 +29,7 @@ SearchDialog::SearchDialog(QWidget *parent, CR3View * docView) :
     ui(new Ui::SearchDialog),
     _docview( docView )
 {
+    setAttribute(Qt::WA_DeleteOnClose, true);
     ui->setupUi(this);
     ui->cbCaseSensitive->setCheckState(Qt::Unchecked);
     ui->rbForward->toggle();
@@ -45,6 +50,13 @@ void SearchDialog::changeEvent(QEvent *e)
     default:
         break;
     }
+}
+
+void SearchDialog::closeEvent(QCloseEvent* e) {
+    QDialog::closeEvent(e);
+    // this dialog instance will be deleted by Qt because
+    // we set the WA_DeleteOnClose attribute for this window to true.
+    SearchDialog::_instance = NULL;
 }
 
 bool SearchDialog::findText( lString32 pattern, int origin, bool reverse, bool caseInsensitive )
