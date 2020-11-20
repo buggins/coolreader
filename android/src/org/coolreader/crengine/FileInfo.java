@@ -42,9 +42,9 @@ public class FileInfo {
 	public Long id; // db id
 	public String title; // book title
 	public String authors; // authors, delimited with '|'
-	public String keywords; // keywords, genres
 	public String series; // series name w/o number
 	public int seriesNumber; // number of book inside series
+	public String genres; // genre codes, delimited with '|'
 	public String path; // path to directory where file or archive is located
 	public String filename; // file name w/o path for normal file, with optional path for file inside archive 
 	public String pathname; // full path+arcname+filename
@@ -105,6 +105,10 @@ public class FileInfo {
     // bits 26..29 - profile id (0..15 max)
 	public static final int PROFILE_ID_SHIFT = 26;
 	public static final int PROFILE_ID_MASK = 0x0F;
+
+	// bitmask for field 'tag' when obtained genres list as special folders
+	public static final int GENRE_DATA_INCCHILD_MASK = 0x80000000;
+	public static final int GENRE_DATA_BOOKCOUNT_MASK = 0x00FFFFFF;
 
 	/**
 	 * Get book reading state. 
@@ -325,7 +329,7 @@ public class FileInfo {
 		createTime = v.createTime;
 		lastAccessTime = v.lastAccessTime;
 		language = v.language;
-		keywords = v.keywords;
+		genres = v.genres;
 		description = v.description;
 		username = v.username;
 		password = v.password;
@@ -1199,10 +1203,10 @@ public class FileInfo {
 				return false;
 		} else if (!language.equals(other.language))
 			return false;
-		if (keywords == null) {
-			if (other.keywords != null)
+		if (genres == null) {
+			if (other.genres != null)
 				return false;
-		} else if (!keywords.equals(other.keywords))
+		} else if (!genres.equals(other.genres))
 			return false;
 		if (description == null) {
 			if (other.description != null)
@@ -1284,10 +1288,10 @@ public class FileInfo {
 				return false;
 		} else if (!language.equals(other.language))
 			return false;
-		if (keywords == null) {
-			if (other.keywords != null)
+		if (genres == null) {
+			if (other.genres != null)
 				return false;
-		} else if (!keywords.equals(other.keywords))
+		} else if (!genres.equals(other.genres))
 			return false;
 		if (description == null) {
 			if (other.description != null)

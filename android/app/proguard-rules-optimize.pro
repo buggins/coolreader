@@ -109,7 +109,7 @@
 	java.lang.String series;
 	int seriesNumber;
 	java.lang.String language;
-	java.lang.String keywords;
+	java.lang.String genres;
 	java.lang.String description;
 	long crc32;
 }

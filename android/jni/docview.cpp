@@ -1639,8 +1639,19 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateBookInfoIntern
     CRStringField languageField(fileinfo,"language");
     if (languageField.get().empty())
     	languageField.set(p->_docview->getLanguage());
-    CRStringField keywordsField(fileinfo,"keywords");
-    keywordsField.set(p->_docview->getKeywords());
+    if (doc_format_fb2 == p->_docview->getDocFormat()) {
+        // TODO: may be fb3 too...
+        CRStringField genresField(fileinfo, "genres");
+        lString32 genres = p->_docview->getKeywords();
+        // keywords separated by "\n", see lvtinydom.cpp:
+        //    lString32 extractDocKeywords( ldomDocument * doc )
+        int pos = genres.pos('\n');
+        while (pos > 0) {
+            genres[pos] = '|';
+            pos = genres.pos('\n', pos + 1);
+        }
+        genresField.set(genres);
+    }
     CRStringField descriptionField(fileinfo,"description");
     descriptionField.set(p->_docview->getDescription());
     CRLongField crc32Field(fileinfo,"crc32");

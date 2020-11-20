@@ -61,17 +61,17 @@ public class BookInfoDialog extends BaseDialog {
 			if ( section!=null )
 				value = section;
 			isSection = true;
-		} else if ("book.keywords".equals(name)) {
-			// keywords separated by "\n", see lvtinydom.cpp:
-			//    lString32 extractDocKeywords( ldomDocument * doc )
+		} else if ("book.genres".equals(name)) {
+			// genres ids separated by "|", see MainDB.READ_FILEINFO_FIELDS:
 			StringBuilder genres = new StringBuilder();
-			String[] parts = value.split("\n");
-			for (String genre_code : parts) {
-				genre_code = genre_code.trim();
-				if (genre_code.length() > 0) {
+			String[] parts = value.split("\\|");
+			for (String code : parts) {
+				code = code.trim();
+				if (code.length() > 0) {
 					if (genres.length() > 0)
 						genres.append("\n");
-					genres.append(GenresCollection.getInstance(mCoolReader).translate(genre_code));
+					GenresCollection.GenreRecord genre = Services.getGenresCollection().byCode(code);
+					genres.append(genre.getName());
 				}
 			}
 			value = genres.toString();

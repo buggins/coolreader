@@ -1,371 +1,372 @@
 <?xml version="1.0" encoding="utf-8"?>
-<genres type="union">
-    <group name="@string/genre_group_business" code="group_business" >
-        <genre name="@string/genre_banking" code="banking" />
-        <genre name="@string/genre_accounting" code="accounting" />
-        <genre name="@string/genre_global_economy" code="global_economy" />
-        <genre name="@string/genre_economics_ref" code="economics_ref" />
-        <genre name="@string/genre_paper_work" code="paper_work" />
-        <genre name="@string/genre_org_behavior" code="org_behavior" />
-        <genre name="@string/genre_personal_finance" code="personal_finance" />
-        <genre name="@string/genre_small_business" code="small_business" />
-        <genre name="@string/genre_marketing" code="marketing" />
-        <genre name="@string/genre_real_estate" code="real_estate" />
-        <genre name="@string/genre_popular_business" code="popular_business" />
-        <genre name="@string/genre_industries" code="industries" />
-        <genre name="@string/genre_job_hunting" code="job_hunting" />
-        <genre name="@string/genre_trade" code="trade" />
-        <genre name="@string/genre_management" code="management" />
-        <genre name="@string/genre_stock" code="stock" />
-        <genre name="@string/genre_economics" code="economics" />
+<!-- When editing, do not change the identifiers of existing records under any circumstances! -->
+<genres type="union" version="1">
+    <group id="1000" name="@string/genre_group_business" code="group_business" >
+        <genre id="1001" name="@string/genre_banking" code="banking" />
+        <genre id="1002" name="@string/genre_accounting" code="accounting" />
+        <genre id="1003" name="@string/genre_global_economy" code="global_economy" />
+        <genre id="1004" name="@string/genre_economics_ref" code="economics_ref" />
+        <genre id="1005" name="@string/genre_paper_work" code="paper_work" />
+        <genre id="1006" name="@string/genre_org_behavior" code="org_behavior" />
+        <genre id="1007" name="@string/genre_personal_finance" code="personal_finance" />
+        <genre id="1008" name="@string/genre_small_business" code="small_business" />
+        <genre id="1009" name="@string/genre_marketing" code="marketing" />
+        <genre id="1010" name="@string/genre_real_estate" code="real_estate" />
+        <genre id="1011" name="@string/genre_popular_business" code="popular_business" />
+        <genre id="1012" name="@string/genre_industries" code="industries" />
+        <genre id="1013" name="@string/genre_job_hunting" code="job_hunting" />
+        <genre id="1014" name="@string/genre_trade" code="trade" />
+        <genre id="1015" name="@string/genre_management" code="management" />
+        <genre id="1016" name="@string/genre_stock" code="stock" />
+        <genre id="1017" name="@string/genre_economics" code="economics" />
     </group>
-    <group name="@string/genre_group_detectives" code="group_detectives" >
-        <genre name="@string/genre_det_action" code="det_action" />
-        <genre name="@string/genre_det_cozy" code="det_cozy" />
-        <genre name="@string/genre_sf_detective" code="sf_detective" />
-        <genre name="@string/genre_detective" code="detective" />
-        <genre name="@string/genre_det_irony" code="det_irony" />
-        <genre name="@string/genre_det_history" code="det_history" />
-        <genre name="@string/genre_det_classic" code="det_classic" />
-        <genre name="@string/genre_det_crime" code="det_crime" />
-        <genre name="@string/genre_det_hard" code="det_hard" />
-        <genre name="@string/genre_love_detective" code="love_detective" />
-        <genre name="@string/genre_det_maniac" code="det_maniac" />
-        <genre name="@string/genre_thriller_medical" code="thriller_medical" />
-        <genre name="@string/genre_det_political" code="det_political" />
-        <genre name="@string/genre_det_police" code="det_police" />
-        <genre name="@string/genre_det_su" code="det_su" />
-        <genre name="@string/genre_thriller_techno" code="thriller_techno" />
-        <genre name="@string/genre_thriller" code="thriller" />
-        <genre name="@string/genre_det_espionage" code="det_espionage" />
-        <genre name="@string/genre_thriller_legal" code="thriller_legal" />
+    <group id="2000" name="@string/genre_group_detectives" code="group_detectives" >
+        <genre id="2001" name="@string/genre_det_action" code="det_action" />
+        <genre id="2002" name="@string/genre_det_cozy" code="det_cozy" />
+        <genre id="2003" name="@string/genre_sf_detective" code="sf_detective" />
+        <genre id="2004" name="@string/genre_detective" code="detective" />
+        <genre id="2005" name="@string/genre_det_irony" code="det_irony" />
+        <genre id="2006" name="@string/genre_det_history" code="det_history" />
+        <genre id="2007" name="@string/genre_det_classic" code="det_classic" />
+        <genre id="2008" name="@string/genre_det_crime" code="det_crime" />
+        <genre id="2009" name="@string/genre_det_hard" code="det_hard" />
+        <genre id="2010" name="@string/genre_love_detective" code="love_detective" />
+        <genre id="2011" name="@string/genre_det_maniac" code="det_maniac" />
+        <genre id="2012" name="@string/genre_thriller_medical" code="thriller_medical" />
+        <genre id="2013" name="@string/genre_det_political" code="det_political" />
+        <genre id="2014" name="@string/genre_det_police" code="det_police" />
+        <genre id="2015" name="@string/genre_det_su" code="det_su" />
+        <genre id="2016" name="@string/genre_thriller_techno" code="thriller_techno" />
+        <genre id="2017" name="@string/genre_thriller" code="thriller" />
+        <genre id="2018" name="@string/genre_det_espionage" code="det_espionage" />
+        <genre id="2019" name="@string/genre_thriller_legal" code="thriller_legal" />
     </group>
-    <group name="@string/genre_group_children" code="group_children" >
-        <genre name="@string/genre_children" code="children" />
-        <genre name="@string/genre_child_prose" code="child_prose" />
-        <genre name="@string/genre_child_sf" code="child_sf" />
-        <genre name="@string/genre_child_det" code="child_det" />
-        <genre name="@string/genre_child_adv" code="child_adv" />
-        <genre name="@string/genre_child_verse" code="child_verse" />
-        <genre name="@string/genre_child_folklore" code="child_folklore" />
-        <genre name="@string/genre_foreign_children" code="foreign_children" />
-        <genre name="@string/genre_prose_game" code="prose_game" />
-        <genre name="@string/genre_child_classical" code="child_classical" />
-        <genre name="@string/genre_child_education" code="child_education" />
-        <genre name="@string/genre_child_tale_rus" code="child_tale_rus" />
-        <genre name="@string/genre_ya" code="ya" />
-        <genre name="@string/genre_child_tale" code="child_tale" />
+    <group id="3000" name="@string/genre_group_children" code="group_children" >
+        <genre id="3001" name="@string/genre_children" code="children" />
+        <genre id="3002" name="@string/genre_child_prose" code="child_prose" />
+        <genre id="3003" name="@string/genre_child_sf" code="child_sf" />
+        <genre id="3004" name="@string/genre_child_det" code="child_det" />
+        <genre id="3005" name="@string/genre_child_adv" code="child_adv" />
+        <genre id="3006" name="@string/genre_child_verse" code="child_verse" />
+        <genre id="3007" name="@string/genre_child_folklore" code="child_folklore" />
+        <genre id="3008" name="@string/genre_foreign_children" code="foreign_children" />
+        <genre id="3009" name="@string/genre_prose_game" code="prose_game" />
+        <genre id="3010" name="@string/genre_child_classical" code="child_classical" />
+        <genre id="3011" name="@string/genre_child_education" code="child_education" />
+        <genre id="3012" name="@string/genre_child_tale_rus" code="child_tale_rus" />
+        <genre id="3013" name="@string/genre_ya" code="ya" />
+        <genre id="3014" name="@string/genre_child_tale" code="child_tale" />
     </group>
-    <group name="@string/genre_group_documentary" code="group_documentary" >
-        <genre name="@string/genre_nonf_biography" code="nonf_biography" />
-        <genre name="@string/genre_nonf_military" code="nonf_military" />
-        <genre name="@string/genre_travel_notes" code="travel_notes" />
-        <genre name="@string/genre_nonfiction" code="nonfiction" />
-        <genre name="@string/genre_nonf_criticism" code="nonf_criticism" />
-        <genre name="@string/genre_nonf_publicism" code="nonf_publicism" />
+    <group id="4000" name="@string/genre_group_documentary" code="group_documentary" >
+        <genre id="4001" name="@string/genre_nonf_biography" code="nonf_biography" />
+        <genre id="4002" name="@string/genre_nonf_military" code="nonf_military" />
+        <genre id="4003" name="@string/genre_travel_notes" code="travel_notes" />
+        <genre id="4004" name="@string/genre_nonfiction" code="nonfiction" />
+        <genre id="4005" name="@string/genre_nonf_criticism" code="nonf_criticism" />
+        <genre id="4006" name="@string/genre_nonf_publicism" code="nonf_publicism" />
     </group>
-    <group name="@string/genre_group_housekeeping" code="group_housekeeping" >
-        <genre name="@string/genre_psy_childs" code="psy_childs" />
-        <genre name="@string/genre_home_pets" code="home_pets" />
-        <genre name="@string/genre_home" code="home" />
-        <genre name="@string/genre_home_health" code="home_health" />
-        <genre name="@string/genre_home_collecting" code="home_collecting" />
-        <genre name="@string/genre_home_cooking" code="home_cooking" />
-        <genre name="@string/genre_home_entertain" code="home_entertain" />
-        <genre name="@string/genre_home_garden" code="home_garden" />
-        <genre name="@string/genre_home_diy" code="home_diy" />
-        <genre name="@string/genre_home_sex" code="home_sex" />
-        <genre name="@string/genre_family" code="family" />
-        <genre name="@string/genre_home_sport" code="home_sport" />
-        <genre name="@string/genre_home_crafts" code="home_crafts" />
+    <group id="5000" name="@string/genre_group_housekeeping" code="group_housekeeping" >
+        <genre id="5001" name="@string/genre_psy_childs" code="psy_childs" />
+        <genre id="5002" name="@string/genre_home_pets" code="home_pets" />
+        <genre id="5003" name="@string/genre_home" code="home" />
+        <genre id="5004" name="@string/genre_home_health" code="home_health" />
+        <genre id="5005" name="@string/genre_home_collecting" code="home_collecting" />
+        <genre id="5006" name="@string/genre_home_cooking" code="home_cooking" />
+        <genre id="5007" name="@string/genre_home_entertain" code="home_entertain" />
+        <genre id="5008" name="@string/genre_home_garden" code="home_garden" />
+        <genre id="5009" name="@string/genre_home_diy" code="home_diy" />
+        <genre id="5010" name="@string/genre_home_sex" code="home_sex" />
+        <genre id="5011" name="@string/genre_family" code="family" />
+        <genre id="5012" name="@string/genre_home_sport" code="home_sport" />
+        <genre id="5013" name="@string/genre_home_crafts" code="home_crafts" />
     </group>
-    <group name="@string/genre_group_dramaturgy" code="group_dramaturgy" >
-        <genre name="@string/genre_drama_antique" code="drama_antique" />
-        <genre name="@string/genre_vaudeville" code="vaudeville" />
-        <genre name="@string/genre_drama" code="drama" />
-        <genre name="@string/genre_dramaturgy" code="dramaturgy" />
-        <genre name="@string/genre_screenplays" code="screenplays" />
-        <genre name="@string/genre_comedy" code="comedy" />
-        <genre name="@string/genre_mystery" code="mystery" />
-        <genre name="@string/genre_scenarios" code="scenarios" />
-        <genre name="@string/genre_tragedy" code="tragedy" />
+    <group id="6000" name="@string/genre_group_dramaturgy" code="group_dramaturgy" >
+        <genre id="6001" name="@string/genre_drama_antique" code="drama_antique" />
+        <genre id="6002" name="@string/genre_vaudeville" code="vaudeville" />
+        <genre id="6003" name="@string/genre_drama" code="drama" />
+        <genre id="6004" name="@string/genre_dramaturgy" code="dramaturgy" />
+        <genre id="6005" name="@string/genre_screenplays" code="screenplays" />
+        <genre id="6006" name="@string/genre_comedy" code="comedy" />
+        <genre id="6007" name="@string/genre_mystery" code="mystery" />
+        <genre id="6008" name="@string/genre_scenarios" code="scenarios" />
+        <genre id="6009" name="@string/genre_tragedy" code="tragedy" />
     </group>
-    <group name="@string/genre_group_art" code="group_art" >
-        <genre name="@string/genre_architecture_book" code="architecture_book" />
-        <genre name="@string/genre_painting" code="painting" />
-        <genre name="@string/genre_visual_arts" code="visual_arts" />
-        <genre name="@string/genre_design" code="design" />
-        <genre name="@string/genre_art_criticism" code="art_criticism" />
-        <genre name="@string/genre_cine" code="cine" />
-        <genre name="@string/genre_music" code="music" />
-        <genre name="@string/genre_notes" code="notes" />
-        <genre name="@string/genre_theatre" code="theatre" />
+    <group id="7000" name="@string/genre_group_art" code="group_art" >
+        <genre id="7001" name="@string/genre_architecture_book" code="architecture_book" />
+        <genre id="7002" name="@string/genre_painting" code="painting" />
+        <genre id="7003" name="@string/genre_visual_arts" code="visual_arts" />
+        <genre id="7004" name="@string/genre_design" code="design" />
+        <genre id="7005" name="@string/genre_art_criticism" code="art_criticism" />
+        <genre id="7006" name="@string/genre_cine" code="cine" />
+        <genre id="7007" name="@string/genre_music" code="music" />
+        <genre id="7008" name="@string/genre_notes" code="notes" />
+        <genre id="7009" name="@string/genre_theatre" code="theatre" />
     </group>
-    <group name="@string/genre_group_it" code="group_it" >
-        <genre name="@string/genre_comp_hard" code="comp_hard" />
-        <genre name="@string/genre_comp_db" code="comp_db" />
-        <genre name="@string/genre_comp_www" code="comp_www" />
-        <genre name="@string/genre_comp_osnet" code="comp_osnet" />
-        <genre name="@string/genre_computers" code="computers" />
-        <genre name="@string/genre_comp_programming" code="comp_programming" />
-        <genre name="@string/genre_comp_soft" code="comp_soft" />
-        <genre name="@string/genre_comp_dsp" code="comp_dsp" />
-        <genre name="@string/genre_tbg_computers" code="tbg_computers" />
+    <group id="8000" name="@string/genre_group_it" code="group_it" >
+        <genre id="8001" name="@string/genre_comp_hard" code="comp_hard" />
+        <genre id="8002" name="@string/genre_comp_db" code="comp_db" />
+        <genre id="8003" name="@string/genre_comp_www" code="comp_www" />
+        <genre id="8004" name="@string/genre_comp_osnet" code="comp_osnet" />
+        <genre id="8005" name="@string/genre_computers" code="computers" />
+        <genre id="8006" name="@string/genre_comp_programming" code="comp_programming" />
+        <genre id="8007" name="@string/genre_comp_soft" code="comp_soft" />
+        <genre id="8008" name="@string/genre_comp_dsp" code="comp_dsp" />
+        <genre id="8009" name="@string/genre_tbg_computers" code="tbg_computers" />
     </group>
-    <group name="@string/genre_group_scince" code="group_scince" >
-        <genre name="@string/genre_sci_medicine_alternative" code="sci_medicine_alternative" />
-        <genre name="@string/genre_sci_theories" code="sci_theories" />
-        <genre name="@string/genre_sci_anachem" code="sci_anachem" />
-        <genre name="@string/genre_science_archaeology" code="science_archaeology" />
-        <genre name="@string/genre_sci_cosmos" code="sci_cosmos" />
-        <genre name="@string/genre_sci_biology" code="sci_biology" />
-        <genre name="@string/genre_sci_biophys" code="sci_biophys" />
-        <genre name="@string/genre_sci_biochem" code="sci_biochem" />
-        <genre name="@string/genre_sci_botany" code="sci_botany" />
-        <genre name="@string/genre_sci_veterinary" code="sci_veterinary" />
-        <genre name="@string/genre_military_history" code="military_history" />
-        <genre name="@string/genre_sci_oriental" code="sci_oriental" />
-        <genre name="@string/genre_sci_geo" code="sci_geo" />
-        <genre name="@string/genre_sci_state" code="sci_state" />
-        <genre name="@string/genre_sci_business" code="sci_business" />
-        <genre name="@string/genre_psy_childs" code="psy_childs" />
-        <genre name="@string/genre_sci_zoo" code="sci_zoo" />
-        <genre name="@string/genre_foreign_language" code="foreign_language" />
-        <genre name="@string/genre_sci_history" code="sci_history" />
-        <genre name="@string/genre_sci_culture" code="sci_culture" />
-        <genre name="@string/genre_sci_philology" code="sci_philology" />
-        <genre name="@string/genre_sci_math" code="sci_math" />
-        <genre name="@string/genre_sci_medicine" code="sci_medicine" />
-        <genre name="@string/genre_science" code="science" />
-        <genre name="@string/genre_sci_popular" code="sci_popular" />
-        <genre name="@string/genre_sci_social_studies" code="sci_social_studies" />
-        <genre name="@string/genre_sci_orgchem" code="sci_orgchem" />
-        <genre name="@string/genre_sci_pedagogy" code="sci_pedagogy" />
-        <genre name="@string/genre_sci_politics" code="sci_politics" />
-        <genre name="@string/genre_sci_psychology" code="sci_psychology" />
-        <genre name="@string/genre_psy_theraphy" code="psy_theraphy" />
-        <genre name="@string/genre_sci_abstract" code="sci_abstract" />
-        <genre name="@string/genre_psy_sex_and_family" code="psy_sex_and_family" />
-        <genre name="@string/genre_sci_tech" code="sci_tech" />
-        <genre name="@string/genre_sci_phys" code="sci_phys" />
-        <genre name="@string/genre_sci_physchem" code="sci_physchem" />
-        <genre name="@string/genre_sci_philosophy" code="sci_philosophy" />
-        <genre name="@string/genre_sci_chem" code="sci_chem" />
-        <genre name="@string/genre_sci_ecology" code="sci_ecology" />
-        <genre name="@string/genre_sci_economy" code="sci_economy" />
-        <genre name="@string/genre_sci_juris" code="sci_juris" />
-        <genre name="@string/genre_sci_linguistic" code="sci_linguistic" />
+    <group id="9000" name="@string/genre_group_scince" code="group_scince" >
+        <genre id="9001" name="@string/genre_sci_medicine_alternative" code="sci_medicine_alternative" />
+        <genre id="9002" name="@string/genre_sci_theories" code="sci_theories" />
+        <genre id="9003" name="@string/genre_sci_anachem" code="sci_anachem" />
+        <genre id="9004" name="@string/genre_science_archaeology" code="science_archaeology" />
+        <genre id="9005" name="@string/genre_sci_cosmos" code="sci_cosmos" />
+        <genre id="9006" name="@string/genre_sci_biology" code="sci_biology" />
+        <genre id="9007" name="@string/genre_sci_biophys" code="sci_biophys" />
+        <genre id="9008" name="@string/genre_sci_biochem" code="sci_biochem" />
+        <genre id="9009" name="@string/genre_sci_botany" code="sci_botany" />
+        <genre id="9010" name="@string/genre_sci_veterinary" code="sci_veterinary" />
+        <genre id="9011" name="@string/genre_military_history" code="military_history" />
+        <genre id="9012" name="@string/genre_sci_oriental" code="sci_oriental" />
+        <genre id="9013" name="@string/genre_sci_geo" code="sci_geo" />
+        <genre id="9014" name="@string/genre_sci_state" code="sci_state" />
+        <genre id="9015" name="@string/genre_sci_business" code="sci_business" />
+        <genre id="5001" name="@string/genre_psy_childs" code="psy_childs" />
+        <genre id="9017" name="@string/genre_sci_zoo" code="sci_zoo" />
+        <genre id="9018" name="@string/genre_foreign_language" code="foreign_language" />
+        <genre id="9019" name="@string/genre_sci_history" code="sci_history" />
+        <genre id="9020" name="@string/genre_sci_culture" code="sci_culture" />
+        <genre id="9021" name="@string/genre_sci_philology" code="sci_philology" />
+        <genre id="9022" name="@string/genre_sci_math" code="sci_math" />
+        <genre id="9023" name="@string/genre_sci_medicine" code="sci_medicine" />
+        <genre id="9024" name="@string/genre_science" code="science" />
+        <genre id="9025" name="@string/genre_sci_popular" code="sci_popular" />
+        <genre id="9026" name="@string/genre_sci_social_studies" code="sci_social_studies" />
+        <genre id="9027" name="@string/genre_sci_orgchem" code="sci_orgchem" />
+        <genre id="9028" name="@string/genre_sci_pedagogy" code="sci_pedagogy" />
+        <genre id="9029" name="@string/genre_sci_politics" code="sci_politics" />
+        <genre id="9030" name="@string/genre_sci_psychology" code="sci_psychology" />
+        <genre id="9031" name="@string/genre_psy_theraphy" code="psy_theraphy" />
+        <genre id="9032" name="@string/genre_sci_abstract" code="sci_abstract" />
+        <genre id="9033" name="@string/genre_psy_sex_and_family" code="psy_sex_and_family" />
+        <genre id="9034" name="@string/genre_sci_tech" code="sci_tech" />
+        <genre id="9035" name="@string/genre_sci_phys" code="sci_phys" />
+        <genre id="9036" name="@string/genre_sci_physchem" code="sci_physchem" />
+        <genre id="9037" name="@string/genre_sci_philosophy" code="sci_philosophy" />
+        <genre id="9038" name="@string/genre_sci_chem" code="sci_chem" />
+        <genre id="9039" name="@string/genre_sci_ecology" code="sci_ecology" />
+        <genre id="9040" name="@string/genre_sci_economy" code="sci_economy" />
+        <genre id="9041" name="@string/genre_sci_juris" code="sci_juris" />
+        <genre id="9042" name="@string/genre_sci_linguistic" code="sci_linguistic" />
     </group>
-    <group name="@string/genre_group_poetry" code="group_poetry" >
-        <genre name="@string/genre_fable" code="fable" />
-        <genre name="@string/genre_in_verse" code="in_verse" />
-        <genre name="@string/genre_vers_libre" code="vers_libre" />
-        <genre name="@string/genre_visual_poetry" code="visual_poetry" />
-        <genre name="@string/genre_child_verse" code="child_verse" />
-        <genre name="@string/genre_poetry_for_classical" code="poetry_for_classical" />
-        <genre name="@string/genre_poetry_classical" code="poetry_classical" />
-        <genre name="@string/genre_poetry_rus_classical" code="poetry_rus_classical" />
-        <genre name="@string/genre_lyrics" code="lyrics" />
-        <genre name="@string/genre_palindromes" code="palindromes" />
-        <genre name="@string/genre_song_poetry" code="song_poetry" />
-        <genre name="@string/genre_poetry_east" code="poetry_east" />
-        <genre name="@string/genre_poem" code="poem" />
-        <genre name="@string/genre_poetry_for_modern" code="poetry_for_modern" />
-        <genre name="@string/genre_poetry_modern" code="poetry_modern" />
-        <genre name="@string/genre_poetry_rus_modern" code="poetry_rus_modern" />
-        <genre name="@string/genre_experimental_poetry" code="experimental_poetry" />
-        <genre name="@string/genre_epic_poetry" code="epic_poetry" />
-        <genre name="@string/genre_humor_verse" code="humor_verse" />
-        <genre name="@string/genre_poetry" code="poetry" />
+    <group id="10000" name="@string/genre_group_poetry" code="group_poetry" >
+        <genre id="10001" name="@string/genre_fable" code="fable" />
+        <genre id="10002" name="@string/genre_in_verse" code="in_verse" />
+        <genre id="10003" name="@string/genre_vers_libre" code="vers_libre" />
+        <genre id="10004" name="@string/genre_visual_poetry" code="visual_poetry" />
+        <genre id="3006" name="@string/genre_child_verse" code="child_verse" />
+        <genre id="10006" name="@string/genre_poetry_for_classical" code="poetry_for_classical" />
+        <genre id="10007" name="@string/genre_poetry_classical" code="poetry_classical" />
+        <genre id="10008" name="@string/genre_poetry_rus_classical" code="poetry_rus_classical" />
+        <genre id="10009" name="@string/genre_lyrics" code="lyrics" />
+        <genre id="10010" name="@string/genre_palindromes" code="palindromes" />
+        <genre id="10011" name="@string/genre_song_poetry" code="song_poetry" />
+        <genre id="10012" name="@string/genre_poetry_east" code="poetry_east" />
+        <genre id="10013" name="@string/genre_poem" code="poem" />
+        <genre id="10014" name="@string/genre_poetry_for_modern" code="poetry_for_modern" />
+        <genre id="10015" name="@string/genre_poetry_modern" code="poetry_modern" />
+        <genre id="10016" name="@string/genre_poetry_rus_modern" code="poetry_rus_modern" />
+        <genre id="10017" name="@string/genre_experimental_poetry" code="experimental_poetry" />
+        <genre id="10018" name="@string/genre_epic_poetry" code="epic_poetry" />
+        <genre id="10019" name="@string/genre_humor_verse" code="humor_verse" />
+        <genre id="10020" name="@string/genre_poetry" code="poetry" />
     </group>
-    <group name="@string/genre_group_adventures" code="group_adventures" >
-        <genre name="@string/genre_adv_story" code="adv_story" />
-        <genre name="@string/genre_adv_western" code="adv_western" />
-        <genre name="@string/genre_adv_history" code="adv_history" />
-        <genre name="@string/genre_adv_maritime" code="adv_maritime" />
-        <genre name="@string/genre_adv_indian" code="adv_indian" />
-        <genre name="@string/genre_adventure" code="adventure" />
-        <genre name="@string/genre_adv_modern" code="adv_modern" />
-        <genre name="@string/genre_adv_animal" code="adv_animal" />
-        <genre name="@string/genre_adv_geo" code="adv_geo" />
-        <genre name="@string/genre_tale_chivalry" code="tale_chivalry" />
+    <group id="11000" name="@string/genre_group_adventures" code="group_adventures" >
+        <genre id="11001" name="@string/genre_adv_story" code="adv_story" />
+        <genre id="11002" name="@string/genre_adv_western" code="adv_western" />
+        <genre id="11003" name="@string/genre_adv_history" code="adv_history" />
+        <genre id="11004" name="@string/genre_adv_maritime" code="adv_maritime" />
+        <genre id="11005" name="@string/genre_adv_indian" code="adv_indian" />
+        <genre id="11006" name="@string/genre_adventure" code="adventure" />
+        <genre id="11007" name="@string/genre_adv_modern" code="adv_modern" />
+        <genre id="11008" name="@string/genre_adv_animal" code="adv_animal" />
+        <genre id="11009" name="@string/genre_adv_geo" code="adv_geo" />
+        <genre id="11010" name="@string/genre_tale_chivalry" code="tale_chivalry" />
     </group>
-    <group name="@string/genre_group_prose" code="group_prose" >
-        <genre name="@string/genre_dissident" code="dissident" />
-        <genre name="@string/genre_aphorisms" code="aphorisms" />
-        <genre name="@string/genre_gothic_novel" code="gothic_novel" />
-        <genre name="@string/genre_foreign_prose" code="foreign_prose" />
-        <genre name="@string/genre_prose_history" code="prose_history" />
-        <genre name="@string/genre_prose_classic" code="prose_classic" />
-        <genre name="@string/genre_literature_18" code="literature_18" />
-        <genre name="@string/genre_literature_19" code="literature_19" />
-        <genre name="@string/genre_literature_20" code="literature_20" />
-        <genre name="@string/genre_prose_counter" code="prose_counter" />
-        <genre name="@string/genre_prose_magic" code="prose_magic" />
-        <genre name="@string/genre_story" code="story" />
-        <genre name="@string/genre_prose_military" code="prose_military" />
-        <genre name="@string/genre_great_story" code="great_story" />
-        <genre name="@string/genre_prose" code="prose" />
-        <genre name="@string/genre_short_story" code="short_story" />
-        <genre name="@string/genre_roman" code="roman" />
-        <genre name="@string/genre_prose_rus_classic" code="prose_rus_classic" />
-        <genre name="@string/genre_sagas" code="sagas" />
-        <genre name="@string/genre_prose_sentimental" code="prose_sentimental" />
-        <genre name="@string/genre_prose_su_classics" code="prose_su_classics" />
-        <genre name="@string/genre_prose_contemporary" code="prose_contemporary" />
-        <genre name="@string/genre_foreign_antique" code="foreign_antique" />
-        <genre name="@string/genre_prose_abs" code="prose_abs" />
-        <genre name="@string/genre_extravaganza" code="extravaganza" />
-        <genre name="@string/genre_prose_neformatny" code="prose_neformatny" />
-        <genre name="@string/genre_epistolary_fiction" code="epistolary_fiction" />
-        <genre name="@string/genre_prose_epic" code="prose_epic" />
-        <genre name="@string/genre_essay" code="essay" />
-        <genre name="@string/genre_humor_prose" code="humor_prose" />
+    <group id="12000" name="@string/genre_group_prose" code="group_prose" >
+        <genre id="12001" name="@string/genre_dissident" code="dissident" />
+        <genre id="12002" name="@string/genre_aphorisms" code="aphorisms" />
+        <genre id="12003" name="@string/genre_gothic_novel" code="gothic_novel" />
+        <genre id="12004" name="@string/genre_foreign_prose" code="foreign_prose" />
+        <genre id="12005" name="@string/genre_prose_history" code="prose_history" />
+        <genre id="12006" name="@string/genre_prose_classic" code="prose_classic" />
+        <genre id="12007" name="@string/genre_literature_18" code="literature_18" />
+        <genre id="12008" name="@string/genre_literature_19" code="literature_19" />
+        <genre id="12009" name="@string/genre_literature_20" code="literature_20" />
+        <genre id="12010" name="@string/genre_prose_counter" code="prose_counter" />
+        <genre id="12011" name="@string/genre_prose_magic" code="prose_magic" />
+        <genre id="12012" name="@string/genre_story" code="story" />
+        <genre id="12013" name="@string/genre_prose_military" code="prose_military" />
+        <genre id="12014" name="@string/genre_great_story" code="great_story" />
+        <genre id="12015" name="@string/genre_prose" code="prose" />
+        <genre id="12016" name="@string/genre_short_story" code="short_story" />
+        <genre id="12017" name="@string/genre_roman" code="roman" />
+        <genre id="12018" name="@string/genre_prose_rus_classic" code="prose_rus_classic" />
+        <genre id="12019" name="@string/genre_sagas" code="sagas" />
+        <genre id="12020" name="@string/genre_prose_sentimental" code="prose_sentimental" />
+        <genre id="12021" name="@string/genre_prose_su_classics" code="prose_su_classics" />
+        <genre id="12022" name="@string/genre_prose_contemporary" code="prose_contemporary" />
+        <genre id="12023" name="@string/genre_foreign_antique" code="foreign_antique" />
+        <genre id="12024" name="@string/genre_prose_abs" code="prose_abs" />
+        <genre id="12025" name="@string/genre_extravaganza" code="extravaganza" />
+        <genre id="12026" name="@string/genre_prose_neformatny" code="prose_neformatny" />
+        <genre id="12027" name="@string/genre_epistolary_fiction" code="epistolary_fiction" />
+        <genre id="12028" name="@string/genre_prose_epic" code="prose_epic" />
+        <genre id="12029" name="@string/genre_essay" code="essay" />
+        <genre id="12030" name="@string/genre_humor_prose" code="humor_prose" />
     </group>
-    <group name="@string/genre_group_religion" code="group_religion" >
-        <genre name="@string/genre_astrology" code="astrology" />
-        <genre name="@string/genre_religion_budda" code="religion_budda" />
-        <genre name="@string/genre_religion_hinduism" code="religion_hinduism" />
-        <genre name="@string/genre_religion_islam" code="religion_islam" />
-        <genre name="@string/genre_religion_judaism" code="religion_judaism" />
-        <genre name="@string/genre_religion_catholicism" code="religion_catholicism" />
-        <genre name="@string/genre_religion_occult" code="religion_occult" />
-        <genre name="@string/genre_religion_orthodoxy" code="religion_orthodoxy" />
-        <genre name="@string/genre_religion_protestantism" code="religion_protestantism" />
-        <genre name="@string/genre_sci_religion" code="sci_religion" />
-        <genre name="@string/genre_religion" code="religion" />
-        <genre name="@string/genre_religion_rel" code="religion_rel" />
-        <genre name="@string/genre_religion_self" code="religion_self" />
-        <genre name="@string/genre_palmistry" code="palmistry" />
-        <genre name="@string/genre_religion_christianity" code="religion_christianity" />
-        <genre name="@string/genre_religion_esoterics" code="religion_esoterics" />
-        <genre name="@string/genre_religion_paganism" code="religion_paganism" />
+    <group id="13000" name="@string/genre_group_religion" code="group_religion" >
+        <genre id="13001" name="@string/genre_astrology" code="astrology" />
+        <genre id="13002" name="@string/genre_religion_budda" code="religion_budda" />
+        <genre id="13003" name="@string/genre_religion_hinduism" code="religion_hinduism" />
+        <genre id="13004" name="@string/genre_religion_islam" code="religion_islam" />
+        <genre id="13005" name="@string/genre_religion_judaism" code="religion_judaism" />
+        <genre id="13006" name="@string/genre_religion_catholicism" code="religion_catholicism" />
+        <genre id="13007" name="@string/genre_religion_occult" code="religion_occult" />
+        <genre id="13008" name="@string/genre_religion_orthodoxy" code="religion_orthodoxy" />
+        <genre id="13009" name="@string/genre_religion_protestantism" code="religion_protestantism" />
+        <genre id="13010" name="@string/genre_sci_religion" code="sci_religion" />
+        <genre id="13011" name="@string/genre_religion" code="religion" />
+        <genre id="13012" name="@string/genre_religion_rel" code="religion_rel" />
+        <genre id="13013" name="@string/genre_religion_self" code="religion_self" />
+        <genre id="13014" name="@string/genre_palmistry" code="palmistry" />
+        <genre id="13015" name="@string/genre_religion_christianity" code="religion_christianity" />
+        <genre id="13016" name="@string/genre_religion_esoterics" code="religion_esoterics" />
+        <genre id="13017" name="@string/genre_religion_paganism" code="religion_paganism" />
     </group>
-    <group name="@string/genre_group_reference" code="group_reference" >
-        <genre name="@string/genre_geo_guides" code="geo_guides" />
-        <genre name="@string/genre_ref_guide" code="ref_guide" />
-        <genre name="@string/genre_ref_dict" code="ref_dict" />
-        <genre name="@string/genre_reference" code="reference" />
-        <genre name="@string/genre_ref_ref" code="ref_ref" />
-        <genre name="@string/genre_ref_encyc" code="ref_encyc" />
+    <group id="14000" name="@string/genre_group_reference" code="group_reference" >
+        <genre id="14001" name="@string/genre_geo_guides" code="geo_guides" />
+        <genre id="14002" name="@string/genre_ref_guide" code="ref_guide" />
+        <genre id="14003" name="@string/genre_ref_dict" code="ref_dict" />
+        <genre id="14004" name="@string/genre_reference" code="reference" />
+        <genre id="14005" name="@string/genre_ref_ref" code="ref_ref" />
+        <genre id="14006" name="@string/genre_ref_encyc" code="ref_encyc" />
     </group>
-    <group name="@string/genre_group_antique" code="group_antique" >
-        <genre name="@string/genre_antique_ant" code="antique_ant" />
-        <genre name="@string/genre_antique_east" code="antique_east" />
-        <genre name="@string/genre_antique_european" code="antique_european" />
-        <genre name="@string/genre_antique_russian" code="antique_russian" />
-        <genre name="@string/genre_antique_myths" code="antique_myths" />
-        <genre name="@string/genre_antique" code="antique" />
+    <group id="15000" name="@string/genre_group_antique" code="group_antique" >
+        <genre id="15001" name="@string/genre_antique_ant" code="antique_ant" />
+        <genre id="15002" name="@string/genre_antique_east" code="antique_east" />
+        <genre id="15003" name="@string/genre_antique_european" code="antique_european" />
+        <genre id="15004" name="@string/genre_antique_russian" code="antique_russian" />
+        <genre id="15005" name="@string/genre_antique_myths" code="antique_myths" />
+        <genre id="15006" name="@string/genre_antique" code="antique" />
     </group>
-    <group name="@string/genre_group_technics" code="group_technics" >
-        <genre name="@string/genre_auto_business" code="auto_business" />
-        <genre name="@string/genre_auto_regulations" code="auto_regulations" />
-        <genre name="@string/genre_military_weapon" code="military_weapon" />
-        <genre name="@string/genre_equ_history" code="equ_history" />
-        <genre name="@string/genre_sci_metal" code="sci_metal" />
-        <genre name="@string/genre_sci_radio" code="sci_radio" />
-        <genre name="@string/genre_sci_build" code="sci_build" />
-        <genre name="@string/genre_sci_tech" code="sci_tech" />
-        <genre name="@string/genre_sci_transport" code="sci_transport" />
+    <group id="16000" name="@string/genre_group_technics" code="group_technics" >
+        <genre id="16001" name="@string/genre_auto_business" code="auto_business" />
+        <genre id="16002" name="@string/genre_auto_regulations" code="auto_regulations" />
+        <genre id="16003" name="@string/genre_military_weapon" code="military_weapon" />
+        <genre id="16004" name="@string/genre_equ_history" code="equ_history" />
+        <genre id="16005" name="@string/genre_sci_metal" code="sci_metal" />
+        <genre id="16006" name="@string/genre_sci_radio" code="sci_radio" />
+        <genre id="16007" name="@string/genre_sci_build" code="sci_build" />
+        <genre id="9034" name="@string/genre_sci_tech" code="sci_tech" />
+        <genre id="16009" name="@string/genre_sci_transport" code="sci_transport" />
     </group>
-    <group name="@string/genre_group_textbooks" code="group_textbooks" >
-        <genre name="@string/genre_sci_textbook" code="sci_textbook" />
-        <genre name="@string/genre_tbg_higher" code="tbg_higher" />
-        <genre name="@string/genre_tbg_secondary" code="tbg_secondary" />
-        <genre name="@string/genre_tbg_school" code="tbg_school" />
-        <genre name="@string/genre_sci_crib" code="sci_crib" />
+    <group id="17000" name="@string/genre_group_textbooks" code="group_textbooks" >
+        <genre id="17001" name="@string/genre_sci_textbook" code="sci_textbook" />
+        <genre id="17002" name="@string/genre_tbg_higher" code="tbg_higher" />
+        <genre id="17003" name="@string/genre_tbg_secondary" code="tbg_secondary" />
+        <genre id="17004" name="@string/genre_tbg_school" code="tbg_school" />
+        <genre id="17005" name="@string/genre_sci_crib" code="sci_crib" />
     </group>
-    <group name="@string/genre_group_fiction" code="group_fiction" >
-        <genre name="@string/genre_sf_history" code="sf_history" />
-        <genre name="@string/genre_sf_action" code="sf_action" />
-        <genre name="@string/genre_sf_heroic" code="sf_heroic" />
-        <genre name="@string/genre_gothic_novel" code="gothic_novel" />
-        <genre name="@string/genre_sf_detective" code="sf_detective" />
-        <genre name="@string/genre_child_sf" code="child_sf" />
-        <genre name="@string/genre_sf_irony" code="sf_irony" />
-        <genre name="@string/genre_sf_cyberpunk" code="sf_cyberpunk" />
-        <genre name="@string/genre_sf_space" code="sf_space" />
-        <genre name="@string/genre_sf_space_opera" code="sf_space_opera" />
-        <genre name="@string/genre_sf_litrpg" code="sf_litrpg" />
-        <genre name="@string/genre_love_sf" code="love_sf" />
-        <genre name="@string/genre_sf_mystic" code="sf_mystic" />
-        <genre name="@string/genre_fairy_fantasy" code="fairy_fantasy" />
-        <genre name="@string/genre_sf" code="sf" />
-        <genre name="@string/genre_nsf" code="nsf" />
-        <genre name="@string/genre_popadanec" code="popadanec" />
-        <genre name="@string/genre_sf_postapocalyptic" code="sf_postapocalyptic" />
-        <genre name="@string/genre_modern_tale" code="modern_tale" />
-        <genre name="@string/genre_sf_social" code="sf_social" />
-        <genre name="@string/genre_sf_stimpank" code="sf_stimpank" />
-        <genre name="@string/genre_sf_etc" code="sf_etc" />
-        <genre name="@string/genre_hronoopera" code="hronoopera" />
-        <genre name="@string/genre_sf_epic" code="sf_epic" />
-        <genre name="@string/genre_sf_humor" code="sf_humor" />
+    <group id="18000" name="@string/genre_group_fiction" code="group_fiction" >
+        <genre id="18001" name="@string/genre_sf_history" code="sf_history" />
+        <genre id="18002" name="@string/genre_sf_action" code="sf_action" />
+        <genre id="18003" name="@string/genre_sf_heroic" code="sf_heroic" />
+        <genre id="12003" name="@string/genre_gothic_novel" code="gothic_novel" />
+        <genre id="2003" name="@string/genre_sf_detective" code="sf_detective" />
+        <genre id="3003" name="@string/genre_child_sf" code="child_sf" />
+        <genre id="18007" name="@string/genre_sf_irony" code="sf_irony" />
+        <genre id="18008" name="@string/genre_sf_cyberpunk" code="sf_cyberpunk" />
+        <genre id="18009" name="@string/genre_sf_space" code="sf_space" />
+        <genre id="18010" name="@string/genre_sf_space_opera" code="sf_space_opera" />
+        <genre id="18011" name="@string/genre_sf_litrpg" code="sf_litrpg" />
+        <genre id="18012" name="@string/genre_love_sf" code="love_sf" />
+        <genre id="18013" name="@string/genre_sf_mystic" code="sf_mystic" />
+        <genre id="18014" name="@string/genre_fairy_fantasy" code="fairy_fantasy" />
+        <genre id="18015" name="@string/genre_sf" code="sf" />
+        <genre id="18016" name="@string/genre_nsf" code="nsf" />
+        <genre id="18017" name="@string/genre_popadanec" code="popadanec" />
+        <genre id="18018" name="@string/genre_sf_postapocalyptic" code="sf_postapocalyptic" />
+        <genre id="18019" name="@string/genre_modern_tale" code="modern_tale" />
+        <genre id="18020" name="@string/genre_sf_social" code="sf_social" />
+        <genre id="18021" name="@string/genre_sf_stimpank" code="sf_stimpank" />
+        <genre id="18022" name="@string/genre_sf_etc" code="sf_etc" />
+        <genre id="18023" name="@string/genre_hronoopera" code="hronoopera" />
+        <genre id="18024" name="@string/genre_sf_epic" code="sf_epic" />
+        <genre id="18025" name="@string/genre_sf_humor" code="sf_humor" />
     </group>
-    <group name="@string/genre_group_fantasy" code="group_fantasy" >
-        <genre name="@string/genre_sf_fantasy" code="sf_fantasy" />
-        <genre name="@string/genre_fantasy_fight" code="fantasy_fight"/>
-        <genre name="@string/genre_sf_technofantasy" code="sf_technofantasy" />
-        <genre name="@string/genre_sf_fantasy_city" code="sf_fantasy_city"/>
-        <genre name="@string/genre_foreign_fantasy" code="foreign_fantasy"/>
-        <genre name="@string/genre_historical_fantasy" code="historical_fantasy"/>
-        <genre name="@string/genre_vampire_book" code="vampire_book"/>
-        <genre name="@string/genre_magician_book" code="magician_book"/>
-        <genre name="@string/genre_love_fantasy" code="love_fantasy"/>
-        <genre name="@string/genre_russian_fantasy" code="russian_fantasy"/>
-        <genre name="@string/genre_sf_horror" code="sf_horror"/>
-        <genre name="@string/genre_dragon_fantasy" code="dragon_fantasy"/>
-        <genre name="@string/genre_humor_fantasy" code="humor_fantasy"/>
-        <genre name="@string/genre_sf_fantasy_irony" code="sf_fantasy_irony" />
+    <group id="19000" name="@string/genre_group_fantasy" code="group_fantasy" >
+        <genre id="19001" name="@string/genre_sf_fantasy" code="sf_fantasy" />
+        <genre id="19002" name="@string/genre_fantasy_fight" code="fantasy_fight"/>
+        <genre id="19003" name="@string/genre_sf_technofantasy" code="sf_technofantasy" />
+        <genre id="19004" name="@string/genre_sf_fantasy_city" code="sf_fantasy_city"/>
+        <genre id="19005" name="@string/genre_foreign_fantasy" code="foreign_fantasy"/>
+        <genre id="19006" name="@string/genre_historical_fantasy" code="historical_fantasy"/>
+        <genre id="19007" name="@string/genre_vampire_book" code="vampire_book"/>
+        <genre id="19008" name="@string/genre_magician_book" code="magician_book"/>
+        <genre id="19009" name="@string/genre_love_fantasy" code="love_fantasy"/>
+        <genre id="19010" name="@string/genre_russian_fantasy" code="russian_fantasy"/>
+        <genre id="19011" name="@string/genre_sf_horror" code="sf_horror"/>
+        <genre id="19012" name="@string/genre_dragon_fantasy" code="dragon_fantasy"/>
+        <genre id="19013" name="@string/genre_humor_fantasy" code="humor_fantasy"/>
+        <genre id="19014" name="@string/genre_sf_fantasy_irony" code="sf_fantasy_irony" />
     </group>
-    <group name="@string/genre_group_folklore" code="group_folklore" >
-        <genre name="@string/genre_humor_anecdote" code="humor_anecdote" />
-        <genre name="@string/genre_fable" code="fable" />
-        <genre name="@string/genre_epic" code="epic" />
-        <genre name="@string/genre_child_folklore" code="child_folklore" />
-        <genre name="@string/genre_riddles" code="riddles" />
-        <genre name="@string/genre_folk_songs" code="folk_songs" />
-        <genre name="@string/genre_folk_tale" code="folk_tale" />
-        <genre name="@string/genre_proverbs" code="proverbs" />
-        <genre name="@string/genre_antique_myths" code="antique_myths" />
-        <genre name="@string/genre_folklore" code="folklore" />
-        <genre name="@string/genre_limerick" code="limerick" />
+    <group id="20000" name="@string/genre_group_folklore" code="group_folklore" >
+        <genre id="20001" name="@string/genre_humor_anecdote" code="humor_anecdote" />
+        <genre id="10001" name="@string/genre_fable" code="fable" />
+        <genre id="20003" name="@string/genre_epic" code="epic" />
+        <genre id="3007" name="@string/genre_child_folklore" code="child_folklore" />
+        <genre id="20005" name="@string/genre_riddles" code="riddles" />
+        <genre id="20006" name="@string/genre_folk_songs" code="folk_songs" />
+        <genre id="20007" name="@string/genre_folk_tale" code="folk_tale" />
+        <genre id="20008" name="@string/genre_proverbs" code="proverbs" />
+        <genre id="15005" name="@string/genre_antique_myths" code="antique_myths" />
+        <genre id="20010" name="@string/genre_folklore" code="folklore" />
+        <genre id="20011" name="@string/genre_limerick" code="limerick" />
     </group>
-    <group name="@string/genre_group_humor" code="group_humor" >
-        <genre name="@string/genre_humor_anecdote" code="humor_anecdote" />
-        <genre name="@string/genre_comedy" code="comedy" />
-        <genre name="@string/genre_humor_satire" code="humor_satire" />
-        <genre name="@string/genre_humor" code="humor" />
-        <genre name="@string/genre_humor_prose" code="humor_prose" />
-        <genre name="@string/genre_humor_verse" code="humor_verse" />
+    <group id="21000" name="@string/genre_group_humor" code="group_humor" >
+        <genre id="20001" name="@string/genre_humor_anecdote" code="humor_anecdote" />
+        <genre id="6006" name="@string/genre_comedy" code="comedy" />
+        <genre id="21003" name="@string/genre_humor_satire" code="humor_satire" />
+        <genre id="21004" name="@string/genre_humor" code="humor" />
+        <genre id="12030" name="@string/genre_humor_prose" code="humor_prose" />
+        <genre id="10019" name="@string/genre_humor_verse" code="humor_verse" />
     </group>
-    <group name="@string/genre_group_romance" code="group_romance" >
-        <genre name="@string/genre_det_cozy" code="det_cozy" />
-        <genre name="@string/genre_love_history" code="love_history" />
-        <genre name="@string/genre_love_short" code="love_short" />
-        <genre name="@string/genre_love_sf" code="love_sf" />
-        <genre name="@string/genre_love_detective" code="love_detective" />
-        <genre name="@string/genre_love" code="love" />
-        <genre name="@string/genre_love_hard" code="love_hard" />
-        <genre name="@string/genre_love_contemporary" code="love_contemporary" />
-        <genre name="@string/genre_love_erotica" code="love_erotica" />
+    <group id="22000" name="@string/genre_group_romance" code="group_romance" >
+        <genre id="2002" name="@string/genre_det_cozy" code="det_cozy" />
+        <genre id="22002" name="@string/genre_love_history" code="love_history" />
+        <genre id="22003" name="@string/genre_love_short" code="love_short" />
+        <genre id="18012" name="@string/genre_love_sf" code="love_sf" />
+        <genre id="2010" name="@string/genre_love_detective" code="love_detective" />
+        <genre id="22006" name="@string/genre_love" code="love" />
+        <genre id="22007" name="@string/genre_love_hard" code="love_hard" />
+        <genre id="22008" name="@string/genre_love_contemporary" code="love_contemporary" />
+        <genre id="22009" name="@string/genre_love_erotica" code="love_erotica" />
     </group>
-    <group name="@string/genre_group_warfare" code="group_warfare" >
-        <genre name="@string/genre_military_arts" code="military_arts" />
-        <genre name="@string/genre_nonf_military" code="nonf_military" />
-        <genre name="@string/genre_military_history" code="military_history" />
-        <genre name="@string/genre_military_weapon" code="military_weapon" />
-        <genre name="@string/genre_military" code="military" />
-        <genre name="@string/genre_military_special" code="military_special" />
+    <group id="23000" name="@string/genre_group_warfare" code="group_warfare" >
+        <genre id="23001" name="@string/genre_military_arts" code="military_arts" />
+        <genre id="4002" name="@string/genre_nonf_military" code="nonf_military" />
+        <genre id="9011" name="@string/genre_military_history" code="military_history" />
+        <genre id="16003" name="@string/genre_military_weapon" code="military_weapon" />
+        <genre id="23005" name="@string/genre_military" code="military" />
+        <genre id="23006" name="@string/genre_military_special" code="military_special" />
     </group>
-    <group name="@string/genre_group_other" code="group_other" >
-        <genre name="@string/genre_periodic" code="periodic" />
-        <genre name="@string/genre_comics" code="comics" />
-        <genre name="@string/genre_art_world_culture" code="art_world_culture" />
-        <genre name="@string/genre_unfinished" code="unfinished" />
-        <genre name="@string/genre_other" code="other" />
-        <genre name="@string/genre_network_literature" code="network_literature" />
-        <genre name="@string/genre_fanfiction" code="fanfiction" />
+    <group id="24000" name="@string/genre_group_other" code="group_other" >
+        <genre id="24001" name="@string/genre_periodic" code="periodic" />
+        <genre id="24002" name="@string/genre_comics" code="comics" />
+        <genre id="24003" name="@string/genre_art_world_culture" code="art_world_culture" />
+        <genre id="24004" name="@string/genre_unfinished" code="unfinished" />
+        <genre id="24005" name="@string/genre_other" code="other" />
+        <genre id="24006" name="@string/genre_network_literature" code="network_literature" />
+        <genre id="24007" name="@string/genre_fanfiction" code="fanfiction" />
     </group>
     <aliases>
         <!-- Multiple aliases are allowed for the same code. -->

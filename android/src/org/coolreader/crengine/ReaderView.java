@@ -14,7 +14,6 @@ import java.util.concurrent.Callable;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.InputDialog.InputHandler;
-import org.coolreader.db.CRDBService;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.ContentValues;
@@ -1883,8 +1882,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					items.add("book.language=" + fi.language);
 				}
 				if (fi.format == DocumentFormat.FB2) {
-					if (fi.keywords != null && fi.keywords.length() > 0) {
-						items.add("book.keywords=" + fi.keywords);
+					if (fi.genres != null && fi.genres.length() > 0) {
+						items.add("book.genres=" + fi.genres);
 					}
 				}
 				BookInfoDialog dlg = new BookInfoDialog(mActivity, items);
@@ -2588,7 +2587,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	private void updateLoadedBookInfo() {
 		BackgroundThread.ensureBackground();
-		// get title, authors, etc.
+		// get title, authors, genres, etc.
 		doc.updateBookInfo(mBookInfo);
 		updateCurrentPositionStatus();
 		// check whether current book properties updated on another devices

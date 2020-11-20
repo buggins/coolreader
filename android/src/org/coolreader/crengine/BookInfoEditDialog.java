@@ -313,17 +313,16 @@ public class BookInfoEditDialog extends BaseDialog {
         else
             edSeriesNumber.setText("");
         if (DocumentFormat.FB2 == file.format) {
-            if (file.keywords != null && file.keywords.length() > 0) {
-                // keywords separated by "\n", see lvtinydom.cpp:
-                //    lString32 extractDocKeywords( ldomDocument * doc )
+            if (file.genres != null && file.genres.length() > 0) {
+                // genre codes separated by "|", see MainDB.READ_FILEINFO_FIELDS:
                 StringBuilder genres = new StringBuilder();
-                String[] parts = file.keywords.split("\n");
-                for (String genre_code : parts) {
-                    genre_code = genre_code.trim();
-                    if (genre_code.length() > 0) {
+                String[] parts = file.genres.split("\\|");
+                for (String code : parts) {
+                    code = code.trim();
+                    if (code.length() > 0) {
                         if (genres.length() > 0)
                             genres.append("\n");
-                        genres.append(GenresCollection.getInstance(mActivity).translate(genre_code));
+                        genres.append(Services.getGenresCollection().translate(code));
                     }
                 }
                 edGenres.setText(genres.toString());
