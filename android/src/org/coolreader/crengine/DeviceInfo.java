@@ -1,9 +1,5 @@
 package org.coolreader.crengine;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.List;
-
 import android.app.Application;
 import android.graphics.PixelFormat;
 import android.os.Build;
@@ -11,6 +7,10 @@ import android.util.Log;
 
 import com.onyx.android.sdk.device.Device;
 import com.onyx.android.sdk.utils.ReflectUtil;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.List;
 
 public class DeviceInfo {
 
@@ -146,12 +146,23 @@ public class DeviceInfo {
 			Method method = ReflectUtil.getMethodSafely(clazz, "currentApplication");
 			Application app = (Application) ReflectUtil.invokeMethodSafely(method, null);
 			if (null != app) {
-				onyx_have_frontlight = Device.currentDevice().hasFrontLight(app);
-				if (!onyx_have_frontlight) {
-					List<Integer> list = Device.currentDevice().getFrontLightValueList(app);
-					onyx_have_frontlight = list != null;
+				onyx_have_frontlight = Device.currentDevice().hasFLBrightness(app);
+				List<Integer> list = Device.currentDevice().getFrontLightValueList(app);
+				if (list != null && list.size() > 0) {
+					max_screen_brightness_value = list.get(list.size() - 1);
+					if (!onyx_have_frontlight) {
+						// For ONYX BOOX MC3 and may be other too...
+						onyx_have_frontlight = true;
+					}
 				}
-				max_screen_brightness_value = Device.currentDevice().getFrontLightBrightnessMaximum(app);
+				if (!onyx_have_frontlight) {
+					// natural (cold & warm) backlight support
+					onyx_have_frontlight = Device.currentDevice().hasCTMBrightness(app);
+					Integer[] values = Device.currentDevice().getColdLightValues(app);
+					if (values != null && values.length > 0) {
+						max_screen_brightness_value = values[values.length - 1];
+					}
+				}
 			}
 		}
 		ONYX_HAVE_FRONTLIGHT = onyx_have_frontlight;

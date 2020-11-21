@@ -1,2 +1,3 @@
 include ':genrescollection'
+include ':onyxsdk-device-1.1.3-lt-r1'
 include ':app'
