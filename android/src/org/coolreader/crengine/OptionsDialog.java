@@ -106,7 +106,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 1.9
 		};
 	int[] mScreenFullUpdateInterval = new int[] {
-			0, 2, 3, 4, 5, 7, 10, 15, 20
+			0, 1, 2, 3, 4, 5, 7, 10, 15, 20
 		};
 	int[] mScreenUpdateModes = new int[] {
 			0, 1, 2//, 2, 3
