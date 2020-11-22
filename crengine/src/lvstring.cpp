@@ -2825,7 +2825,7 @@ int lString8::pos(const lString8 & subStr, int startPos) const
 }
 
 int lString32::pos(lChar32 ch) const {
-    for (int i = 0; i <= length(); i++)
+    for (int i = 0; i < length(); i++)
     {
         if (pchunk->buf32[i] == ch)
         {
@@ -2839,7 +2839,7 @@ int lString32::pos(lChar32 ch, int start) const
 {
     if (length() - start < 1)
         return -1;
-    for (int i = start; i <= length(); i++)
+    for (int i = start; i < length(); i++)
     {
         if (pchunk->buf32[i] == ch)
         {
