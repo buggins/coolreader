@@ -21,9 +21,11 @@ public class DeviceInfo {
 	public final static String BRAND;
 	public final static int MIN_SCREEN_BRIGHTNESS_VALUE;
 	public final static int MAX_SCREEN_BRIGHTNESS_VALUE;
+	public final static int MAX_SCREEN_BRIGHTNESS_WARM_VALUE;
 	public final static boolean SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 	public final static boolean EINK_SCREEN;
 	public final static boolean EINK_HAVE_FRONTLIGHT;
+	public final static boolean EINK_HAVE_NATURAL_BACKLIGHT;
 	public final static boolean EINK_SCREEN_UPDATE_MODES_SUPPORTED;
 	public final static boolean NOOK_NAVIGATION_KEYS;
 	public final static boolean EINK_NOOK;
@@ -40,6 +42,7 @@ public class DeviceInfo {
 	public final static boolean POCKETBOOK;
 	public final static boolean ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE;
 	public final static boolean ONYX_HAVE_FRONTLIGHT;
+	public final static boolean ONYX_HAVE_NATURAL_BACKLIGHT;
 	public final static boolean NOFLIBUSTA;
 	public final static boolean NAVIGATE_LEFTRIGHT; // map left/right keys to single page flip
 	public final static boolean REVERT_LANDSCAPE_VOLUME_KEYS; // revert volume keys in landscape mode
@@ -140,7 +143,9 @@ public class DeviceInfo {
 		// TODO: check this on other ONYX BOOX Readers
 		ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE = EINK_ONYX && MODEL.toLowerCase().startsWith("mc_kepler");
 		boolean onyx_have_frontlight = false;
-		int max_screen_brightness_value = 100;
+		boolean onyx_have_natural_backlight = false;
+		int onyx_max_screen_brightness_value = 100;
+		int onyx_max_screen_brightness_warm_value = 100;
 		if (EINK_ONYX) {
 			Class<?> clazz = ReflectUtil.classForName("android.app.ActivityThread");
 			Method method = ReflectUtil.getMethodSafely(clazz, "currentApplication");
@@ -149,26 +154,36 @@ public class DeviceInfo {
 				onyx_have_frontlight = Device.currentDevice().hasFLBrightness(app);
 				List<Integer> list = Device.currentDevice().getFrontLightValueList(app);
 				if (list != null && list.size() > 0) {
-					max_screen_brightness_value = list.get(list.size() - 1);
+					onyx_max_screen_brightness_value = list.get(list.size() - 1);
 					if (!onyx_have_frontlight) {
 						// For ONYX BOOX MC3 and may be other too...
 						onyx_have_frontlight = true;
 					}
 				}
-				if (!onyx_have_frontlight) {
-					// natural (cold & warm) backlight support
-					onyx_have_frontlight = Device.currentDevice().hasCTMBrightness(app);
+				// natural (cold & warm) backlight support
+				onyx_have_natural_backlight = Device.currentDevice().hasCTMBrightness(app);
+				if (onyx_have_natural_backlight) {
+					Integer[] values = Device.currentDevice().getWarmLightValues(app);
+					if (values != null && values.length > 0) {
+						onyx_max_screen_brightness_warm_value = values[values.length - 1];
+					}
+				}
+				if (!onyx_have_frontlight && onyx_have_natural_backlight) {
+					onyx_have_frontlight = true;
 					Integer[] values = Device.currentDevice().getColdLightValues(app);
 					if (values != null && values.length > 0) {
-						max_screen_brightness_value = values[values.length - 1];
+						onyx_max_screen_brightness_value = values[values.length - 1];
 					}
 				}
 			}
 		}
 		ONYX_HAVE_FRONTLIGHT = onyx_have_frontlight;
-		MAX_SCREEN_BRIGHTNESS_VALUE = max_screen_brightness_value;
+		ONYX_HAVE_NATURAL_BACKLIGHT = onyx_have_natural_backlight;
+		MAX_SCREEN_BRIGHTNESS_VALUE = onyx_max_screen_brightness_value;
+		MAX_SCREEN_BRIGHTNESS_WARM_VALUE = onyx_max_screen_brightness_warm_value;
 
 		EINK_HAVE_FRONTLIGHT = ONYX_HAVE_FRONTLIGHT; // TODO: add other e-ink devices with frontlight support
+		EINK_HAVE_NATURAL_BACKLIGHT = ONYX_HAVE_NATURAL_BACKLIGHT;	// TODO: add other e-ink devices with natural backlight support
 
 		POCKETBOOK = MODEL.toLowerCase().startsWith("pocketbook") || MODEL.toLowerCase().startsWith("obreey");
 		

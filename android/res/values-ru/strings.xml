@@ -109,6 +109,7 @@
     <string name="options_page_animation">Анимация листания</string>
     <string name="options_controls_enable_volume_keys">Листание кнопками громкости</string>
     <string name="options_app_backlight_screen">Яркость подсветки экрана</string>
+    <string name="options_app_warm_backlight_screen">Яркость тёплой подсветки экрана</string>
     <string name="options_app_backlight_screen_default">Установленная в системе</string>
     <string name="action_backlight_set_default">Яркость подсветки установленная в системе</string>
     <string name="options_app_tapzones_normal">Сенсорный экран</string>

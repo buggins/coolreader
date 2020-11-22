@@ -10,6 +10,7 @@ import com.onyx.android.sdk.device.Device;
 
 import org.coolreader.CoolReader;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class EinkScreen {
@@ -31,6 +32,7 @@ public class EinkScreen {
 	public final static int CMODE_ACTIVE = 2;
 	// Front light levels
 	private static List<Integer> mFrontLineLevels = null;
+	private static List<Integer> mWarmLightLevels = null;
 
 	public static void Refresh() {
 		mRefreshNumber = -1;
@@ -268,8 +270,29 @@ public class EinkScreen {
 				if (value >= 0) {
 					Integer alignedValue = Utils.findNearestValue(getFrontLightLevels(context), value);
 					if (null != alignedValue) {
-						if (Device.currentDevice().setFrontLightDeviceValue(context, alignedValue))
-							res = Device.currentDevice().setFrontLightConfigValue(context, alignedValue);
+						if (DeviceInfo.ONYX_HAVE_NATURAL_BACKLIGHT) {
+							res = Device.currentDevice().setColdLightDeviceValue(context, alignedValue);
+						} else {
+							if (Device.currentDevice().setFrontLightDeviceValue(context, alignedValue))
+								res = Device.currentDevice().setFrontLightConfigValue(context, alignedValue);
+						}
+					}
+				} else {
+					// system default, just ignore
+				}
+			}
+		}
+		return res;
+	}
+
+	public static boolean setWarmLightValue(Context context, int value) {
+		boolean res = false;
+		if (DeviceInfo.EINK_ONYX) {
+			if (DeviceInfo.ONYX_HAVE_NATURAL_BACKLIGHT) {
+				if (value >= 0) {
+					Integer alignedValue = Utils.findNearestValue(getWarmLightLevels(context), value);
+					if (null != alignedValue) {
+						res = Device.currentDevice().setWarmLightDeviceValue(context, alignedValue);
 					}
 				} else {
 					// system default, just ignore
@@ -284,10 +307,31 @@ public class EinkScreen {
 			if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
 				if (DeviceInfo.ONYX_HAVE_FRONTLIGHT) {
 					mFrontLineLevels = Device.currentDevice().getFrontLightValueList(context);
+					if (null == mFrontLineLevels) {
+						Integer[] values = Device.currentDevice().getColdLightValues(context);
+						if (null != values) {
+							mFrontLineLevels = Arrays.asList(values);
+						}
+					}
 				}
 				// TODO: other e-ink devices with front light support...
 			}
 		}
 		return mFrontLineLevels;
+	}
+
+	public static List<Integer> getWarmLightLevels(Context context) {
+		if (null == mWarmLightLevels) {
+			if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT) {
+				if (DeviceInfo.ONYX_HAVE_NATURAL_BACKLIGHT) {
+					Integer[] values = Device.currentDevice().getWarmLightValues(context);
+					if (null != values) {
+						mWarmLightLevels = Arrays.asList(values);
+					}
+				}
+				// TODO: other e-ink devices with front light support...
+			}
+		}
+		return mWarmLightLevels;
 	}
 }

@@ -122,6 +122,7 @@ public interface Settings {
     public static final String PROP_APP_COVERPAGE_SIZE     ="app.browser.coverpage.size"; // 0==small, 2==BIG
     public static final String PROP_APP_SCREEN_ORIENTATION  ="app.screen.orientation";
     public static final String PROP_APP_SCREEN_BACKLIGHT    ="app.screen.backlight";
+    public static final String PROP_APP_SCREEN_WARM_BACKLIGHT    ="app.screen.warm.backlight";
     public static final String PROP_APP_MOTION_TIMEOUT    ="app.motion.timeout";
     public static final String PROP_APP_SCREEN_BACKLIGHT_DAY   ="app.screen.backlight.day";
     public static final String PROP_APP_SCREEN_BACKLIGHT_NIGHT ="app.screen.backlight.night";

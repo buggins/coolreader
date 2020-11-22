@@ -2840,6 +2840,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					|| PROP_APP_SHOW_COVERPAGES.equals(key)
 					|| PROP_APP_COVERPAGE_SIZE.equals(key)
 					|| PROP_APP_SCREEN_BACKLIGHT.equals(key)
+					|| PROP_APP_SCREEN_WARM_BACKLIGHT.equals(key)
 					|| PROP_APP_BOOK_PROPERTY_SCAN_ENABLED.equals(key)
 					|| PROP_APP_SCREEN_BACKLIGHT_LOCK.equals(key)
 					|| PROP_APP_TAP_ZONE_HILIGHT.equals(key)
