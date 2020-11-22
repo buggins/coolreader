@@ -699,4 +699,5 @@
     <string name="bookmarks_keepalive_1year">1 year</string>
     <string name="book_info_genres">Genre(s)</string>
     <string name="including_subgenres">(Including subgenres)</string>
+    <string name="action_show_onyx_backlight_system_dialog">Show the system dialog for setting the backlight</string>
 </resources>

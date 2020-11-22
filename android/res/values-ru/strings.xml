@@ -664,4 +664,5 @@
     <string name="bookmarks_keepalive_1year">1 год</string>
     <string name="book_info_genres">Жанр(ы)</string>
     <string name="including_subgenres">(Включая поджанры)</string>
+    <string name="action_show_onyx_backlight_system_dialog">Показать системный диалог для настройки подсветки</string>
 </resources>

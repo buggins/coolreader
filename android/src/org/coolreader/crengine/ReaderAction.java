@@ -108,64 +108,12 @@ public class ReaderAction {
 	public final static ReaderAction EXIT = new ReaderAction("EXIT", R.string.action_exit, ReaderCommand.DCMD_EXIT, 0, R.id.cr3_mi_exit ).setIconId(R.drawable.cr3_viewer_exit);
 
 	public final static ReaderAction BACKLIGHT_SET_DEFAULT = new ReaderAction("BACKLIGHT_SET_DEFAULT", R.string.action_backlight_set_default, ReaderCommand.DCMD_BACKLIGHT_SET_DEFAULT, -1);
+	public final static ReaderAction SHOW_SYSTEM_BACKLIGHT_DIALOG = new ReaderAction("SHOW_SYSTEM_BACKLIGHT_DIALOG", R.string.action_show_onyx_backlight_system_dialog, ReaderCommand.DCMD_SHOW_SYSTEM_BACKLIGHT_DIALOG, -1);
 
 	public final static ReaderAction GDRIVE_SYNCTO = new ReaderAction("GDRIVE_SYNCTO", R.string.googledrive_sync_to, ReaderCommand.DCMD_GOOGLEDRIVE_SYNC, 0).setIconId(R.drawable.google_drive);
 	public final static ReaderAction GDRIVE_SYNCFROM = new ReaderAction("GDRIVE_SYNCFROM", R.string.googledrive_sync_from, ReaderCommand.DCMD_GOOGLEDRIVE_SYNC, 1).setIconId(R.drawable.google_drive);
 
-	public final static ReaderAction[] AVAILABLE_ACTIONS = {
-		NONE,
-		PAGE_DOWN,
-		PAGE_UP,
-		PAGE_DOWN_10,
-		PAGE_UP_10,
-		FIRST_PAGE,
-		LAST_PAGE,
-		NEXT_CHAPTER,
-		PREV_CHAPTER,
-		TOC,
-		GO_PAGE,
-		GO_PERCENT,
-		BOOKMARKS,
-		SEARCH,
-		OPTIONS,
-		EXIT,
-		TOGGLE_DAY_NIGHT,
-		RECENT_BOOKS,
-		FILE_BROWSER,
-		FILE_BROWSER_ROOT,
-		CURRENT_BOOK_DIRECTORY,
-		READER_MENU,
-		TOGGLE_TOUCH_SCREEN_LOCK,
-		TOGGLE_SELECTION_MODE,
-		TOGGLE_ORIENTATION,
-		TOGGLE_FULLSCREEN,
-		GO_BACK,
-		GO_FORWARD,
-		HOME_SCREEN,
-		ZOOM_IN,
-		ZOOM_OUT,
-		FONT_PREVIOUS,
-		FONT_NEXT,
-		DOCUMENT_STYLES,
-		ABOUT,
-		BOOK_INFO,
-		TTS_PLAY,
-		TOGGLE_TITLEBAR,
-		SHOW_POSITION_INFO_POPUP,
-		SHOW_DICTIONARY,
-		OPEN_PREVIOUS_BOOK,
-		TOGGLE_AUTOSCROLL,
-		SWITCH_PROFILE,
-		TEXT_AUTOFORMAT,
-		USER_MANUAL,
-//		AUTOSCROLL_SPEED_INCREASE,
-//		AUTOSCROLL_SPEED_DECREASE,
-		TOGGLE_DICT_ONCE,
-		TOGGLE_DICT,
-		BACKLIGHT_SET_DEFAULT,
-		GDRIVE_SYNCTO,
-		GDRIVE_SYNCFROM
-	};
+	public final static ReaderAction[] AVAILABLE_ACTIONS;
 
 	public boolean isNone() {
 		return cmd == NONE.cmd;
@@ -245,5 +193,72 @@ public class ReaderAction {
 			list.add(item);
 		return list;
 	}
-	
+
+	static {
+		ReaderAction[] BASE_ACTIONS = new ReaderAction[]{
+				NONE,
+				PAGE_DOWN,
+				PAGE_UP,
+				PAGE_DOWN_10,
+				PAGE_UP_10,
+				FIRST_PAGE,
+				LAST_PAGE,
+				NEXT_CHAPTER,
+				PREV_CHAPTER,
+				TOC,
+				GO_PAGE,
+				GO_PERCENT,
+				BOOKMARKS,
+				SEARCH,
+				OPTIONS,
+				EXIT,
+				TOGGLE_DAY_NIGHT,
+				RECENT_BOOKS,
+				FILE_BROWSER,
+				FILE_BROWSER_ROOT,
+				CURRENT_BOOK_DIRECTORY,
+				READER_MENU,
+				TOGGLE_TOUCH_SCREEN_LOCK,
+				TOGGLE_SELECTION_MODE,
+				TOGGLE_ORIENTATION,
+				TOGGLE_FULLSCREEN,
+				GO_BACK,
+				GO_FORWARD,
+				HOME_SCREEN,
+				ZOOM_IN,
+				ZOOM_OUT,
+				FONT_PREVIOUS,
+				FONT_NEXT,
+				DOCUMENT_STYLES,
+				ABOUT,
+				BOOK_INFO,
+				TTS_PLAY,
+				TOGGLE_TITLEBAR,
+				SHOW_POSITION_INFO_POPUP,
+				SHOW_DICTIONARY,
+				OPEN_PREVIOUS_BOOK,
+				TOGGLE_AUTOSCROLL,
+				SWITCH_PROFILE,
+				TEXT_AUTOFORMAT,
+				USER_MANUAL,
+//				AUTOSCROLL_SPEED_INCREASE,
+//				AUTOSCROLL_SPEED_DECREASE,
+				TOGGLE_DICT_ONCE,
+				TOGGLE_DICT,
+				BACKLIGHT_SET_DEFAULT,
+				GDRIVE_SYNCTO,
+				GDRIVE_SYNCFROM
+		};
+		if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
+			// TODO: and may be other eink devices with frontlight...
+			if (DeviceInfo.EINK_ONYX) {
+				int count = BASE_ACTIONS.length;
+				ReaderAction[] new_array = new ReaderAction[count + 1];
+				System.arraycopy(BASE_ACTIONS, 0, new_array, 0, count);
+				new_array[count] = SHOW_SYSTEM_BACKLIGHT_DIALOG;
+				BASE_ACTIONS = new_array;
+			}
+		}
+		AVAILABLE_ACTIONS = BASE_ACTIONS;
+	}
 }

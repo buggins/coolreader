@@ -18,6 +18,7 @@ import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -2475,6 +2476,15 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				break;
 			case DCMD_BACKLIGHT_SET_DEFAULT:
 				setSetting(PROP_APP_SCREEN_BACKLIGHT, "-1");		// system default backlight level
+				break;
+			case DCMD_SHOW_SYSTEM_BACKLIGHT_DIALOG:
+				if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
+					if (DeviceInfo.EINK_ONYX) {
+						mActivity.sendBroadcast(new Intent("action.show.brightness.dialog"));
+					} else {
+						// TODO: other eink devices with frontlight
+					}
+				}
 				break;
 			case DCMD_GOOGLEDRIVE_SYNC:
 				if (0 == param) {							// sync to
