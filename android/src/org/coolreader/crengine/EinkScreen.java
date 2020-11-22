@@ -102,14 +102,14 @@ public class EinkScreen {
 		} else if (DeviceInfo.EINK_ONYX) {
 			if (mRefreshNumber == -1) {
 				mRefreshNumber = 0;
-				EpdController.setViewDefaultUpdateMode(view, UpdateMode.GC);
+				onyxRepaintEveryThing(view);
 				return;
 			}
 			if (mUpdateInterval > 0) {
 				mRefreshNumber++;
 				if (mRefreshNumber >= mUpdateInterval) {
 					mRefreshNumber = 0;
-					EpdController.setViewDefaultUpdateMode(view, UpdateMode.GC);
+					onyxRepaintEveryThing(view);
 				}
 			}
 		}
@@ -127,7 +127,24 @@ public class EinkScreen {
 						break;
 					default:
 				}
+				// I don't know what exactly this line does, but without it, the image on rk3288 will not updated.
+				// Found by brute force.
+				EpdController.byPass(0);
 			}
+		}
+	}
+
+	private static void onyxRepaintEveryThing(View view) {
+		switch (Device.currentDeviceIndex) {
+			case Rk31xx:
+			case Rk32xx:
+			case Rk33xx:
+			case SDM:
+				EpdController.repaintEveryThing(UpdateMode.GC);
+				break;
+			default:
+				EpdController.setViewDefaultUpdateMode(view, UpdateMode.GC);
+				break;
 		}
 	}
 
@@ -154,10 +171,12 @@ public class EinkScreen {
 					mRefreshNumber = -1;
 			}
 		} else if (DeviceInfo.EINK_ONYX) {
+			EpdController.enableScreenUpdate(view, true);
 			mIsSupportRegal = EpdController.supportRegal();
 			mRefreshNumber = 0;
 			if (mUpdateInterval == 0)
-				EpdController.setViewDefaultUpdateMode(view, UpdateMode.GC);
+				onyxRepaintEveryThing(view);
+			EpdController.clearApplicationFastMode();
 			switch (mode) {
 				case CMODE_CLEAR:			// Quality
 					if (mInA2Mode) {
@@ -180,7 +199,7 @@ public class EinkScreen {
 						mInFastMode = true;
 					}
 					break;
-				case CMODE_ACTIVE:			// Fast 2
+				case CMODE_ACTIVE:			// Fast 2 (A2 mode)
 					if (mInFastMode) {
 						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
 						mInFastMode = false;

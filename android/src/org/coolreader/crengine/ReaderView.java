@@ -4122,10 +4122,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				//log.v("before draw(canvas)");
 				if (canvas != null) {
 					if (DeviceInfo.EINK_SCREEN) {
+						// pre draw update
 						EinkScreen.PrepareController(surface, isPartially);
 					}
 					callback.drawTo(canvas);
 					if (DeviceInfo.EINK_SCREEN) {
+						// post draw update
 						EinkScreen.UpdateController(surface, isPartially);
 					}
 				}
