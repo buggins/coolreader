@@ -79,6 +79,8 @@ static lChar32 getReplacementChar(lUInt32 code) {
             return 0x0435; // CYRILLIC SMALL LETTER IE
         case UNICODE_NO_BREAK_SPACE:
             return ' ';
+        case UNICODE_WORD_JOINER:
+            return UNICODE_ZERO_WIDTH_SPACE;
         case UNICODE_ZERO_WIDTH_SPACE:
             // If the font lacks a zero-width breaking space glyph (like
             // some Kindle built-ins) substitute a different zero-width
@@ -866,7 +868,11 @@ FT_UInt LVFreeTypeFace::getCharIndex(lUInt32 code, lChar32 def_char) {
         lUInt32 replacement = getReplacementChar( code );
         if ( replacement )
             ch_glyph_index = FT_Get_Char_Index( _face, replacement );
-        if ( ch_glyph_index==0 && def_char )
+        if ( ch_glyph_index==0 && UNICODE_WORD_JOINER == code )
+            // if neither char index nor replacement char for 0x2060 (WORD JOINER) is found,
+            // just skip it so as not to draw the replacement char
+            ;
+        else if ( ch_glyph_index==0 && def_char )
             ch_glyph_index = FT_Get_Char_Index( _face, def_char );
     }
     return ch_glyph_index;
