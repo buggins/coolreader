@@ -783,6 +783,10 @@ public class BaseActivity extends Activity implements Settings {
 		return screenBacklightBrightness;
 	}
 
+	public int getWarmBacklightLevel() {
+		return screenWarmBacklightBrightness;
+	}
+
 	public void setScreenBacklightLevel(int value) {
 		if (value < -1)
 			value = -1;

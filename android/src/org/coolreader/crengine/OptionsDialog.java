@@ -2118,6 +2118,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
 		if ( !DeviceInfo.EINK_SCREEN || DeviceInfo.EINK_HAVE_FRONTLIGHT )
 			mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
+		if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT)
+			mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_flick_warm), PROP_APP_FLICK_WARMLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("2"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.option_controls_gesture_page_flipping_enabled), PROP_APP_GESTURE_PAGE_FLIPPING).add(mPagesPerFullSwipe, mPagesPerFullSwipeTitles).setDefaultValue("1"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_selection_action), PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_multi_selection_action), PROP_APP_MULTI_SELECTION_ACTION).add(mMultiSelectionAction, mMultiSelectionActionTitles).setDefaultValue("0"));

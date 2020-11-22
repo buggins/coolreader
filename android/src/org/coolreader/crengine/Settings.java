@@ -133,6 +133,7 @@ public interface Settings {
     public static final String PROP_APP_SCREEN_BACKLIGHT_LOCK    ="app.screen.backlight.lock.enabled";
     public static final String PROP_APP_TAP_ZONE_HILIGHT     ="app.tapzone.hilight";
     public static final String PROP_APP_FLICK_BACKLIGHT_CONTROL = "app.screen.backlight.control.flick";
+    public static final String PROP_APP_FLICK_WARMLIGHT_CONTROL = "app.screen.warmlight.control.flick";
     public static final String PROP_APP_BOOK_SORT_ORDER = "app.browser.sort.order";
     public static final String PROP_APP_DICTIONARY = "app.dictionary.current";
     public static final String PROP_APP_DICTIONARY_2 = "app.dictionary2.current";
