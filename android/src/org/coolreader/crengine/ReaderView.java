@@ -182,14 +182,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, src, dst);
 					if (isCloudSyncProgressActive()) {
 						// draw progressbar on top
-						doDrawProgress(canvas, currentCloudSyncProgressPosition, currentCloudSyncProgressTitle, true);
+						doDrawProgress(canvas, currentCloudSyncProgressPosition, currentCloudSyncProgressTitle, !DeviceInfo.EINK_SCREEN);
 					}
 				} else {
 					log.d("onDraw() -- drawing empty screen");
 					drawPageBackground(canvas);
 					if (isCloudSyncProgressActive()) {
 						// draw progressbar on top
-						doDrawProgress(canvas, currentCloudSyncProgressPosition, currentCloudSyncProgressTitle, true);
+						doDrawProgress(canvas, currentCloudSyncProgressPosition, currentCloudSyncProgressTitle, !DeviceInfo.EINK_SCREEN);
 					}
 				}
 			} catch (Exception e) {
@@ -3149,8 +3149,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			currentCloudSyncProgressPosition = progress;
 			update = true;
 		}
-		if (update)
+		if (update) {
+			if (DeviceInfo.EINK_SCREEN && -1 == savedEinkUpdateMode) {
+				savedEinkUpdateMode = EinkScreen.getUpdateMode();
+				savedEinkUpdateInterval = EinkScreen.getUpdateInterval();
+				EinkScreen.ResetController(EinkScreen.CMODE_ONESHOT, 0, surface);
+			}
 			bookView.draw(true);
+		}
 	}
 
 	public void hideSyncProgress() {
@@ -3159,6 +3165,13 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (currentCloudSyncProgressTitle != null || currentCloudSyncProgressPosition != -1) {
 			currentCloudSyncProgressPosition = -1;
 			currentCloudSyncProgressTitle = null;
+			if (DeviceInfo.EINK_SCREEN) {
+				if (!isProgressActive()) {
+					EinkScreen.ResetController(savedEinkUpdateMode, savedEinkUpdateInterval, surface);
+					savedEinkUpdateMode = -1;
+					savedEinkUpdateInterval = -1;
+				}
+			}
 			bookView.draw(false);
 		}
 	}
@@ -4847,6 +4860,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	private int currentProgressPosition = 1;
 	private int currentProgressTitleId = R.string.progress_loading;
 	private String currentProgressTitle = null;
+	private int savedEinkUpdateMode = -1;
+	private int savedEinkUpdateInterval = -1;
 
 	private void showProgress(int position, int titleResource) {
 		log.v("showProgress(" + position + ")");
@@ -4861,8 +4876,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			currentProgressPosition = position;
 			update = true;
 		}
-		if (update)
+		if (update) {
+			if (DeviceInfo.EINK_SCREEN && -1 == savedEinkUpdateMode) {
+				savedEinkUpdateMode = EinkScreen.getUpdateMode();
+				savedEinkUpdateInterval = EinkScreen.getUpdateInterval();
+				EinkScreen.ResetController(EinkScreen.CMODE_ONESHOT, 0, surface);
+			}
 			bookView.draw(!first);
+		}
 	}
 
 	private void hideProgress() {
@@ -4871,6 +4892,13 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			currentProgressPosition = -1;
 			currentProgressTitleId = 0;
 			currentProgressTitle = null;
+			if (DeviceInfo.EINK_SCREEN) {
+				if (!isCloudSyncProgressActive()) {
+					EinkScreen.ResetController(savedEinkUpdateMode, savedEinkUpdateInterval, surface);
+					savedEinkUpdateMode = -1;
+					savedEinkUpdateInterval = -1;
+				}
+			}
 			bookView.draw(false);
 		}
 	}
