@@ -26,6 +26,7 @@
 /// Unicode spaces
 #define UNICODE_NO_BREAK_SPACE            0x00A0
 #define UNICODE_ZERO_WIDTH_NO_BREAK_SPACE 0xfeff
+#define UNICODE_WORD_JOINER      0x2060
 // All chars from U+2000 to U+200B allow wrap after, except U+2007
 #define UNICODE_EN_QUAD          0x2000
 #define UNICODE_FIGURE_SPACE     0x2007

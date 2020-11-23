@@ -69,7 +69,7 @@ extern lString8 familyName(FT_Face face);
 
 inline int myabs(int n) { return n < 0 ? -n : n; }
 
-static lChar32 getReplacementChar(lUInt32 code) {
+static lChar32 getReplacementChar(lUInt32 code, bool * can_be_ignored = NULL) {
     switch (code) {
         case UNICODE_SOFT_HYPHEN_CODE:
             return '-';
@@ -79,7 +79,13 @@ static lChar32 getReplacementChar(lUInt32 code) {
             return 0x0435; // CYRILLIC SMALL LETTER IE
         case UNICODE_NO_BREAK_SPACE:
             return ' ';
+        case UNICODE_WORD_JOINER:
+            if (can_be_ignored)
+                *can_be_ignored = true;
+            return UNICODE_ZERO_WIDTH_SPACE;
         case UNICODE_ZERO_WIDTH_SPACE:
+            if (can_be_ignored)
+                *can_be_ignored = true;
             // If the font lacks a zero-width breaking space glyph (like
             // some Kindle built-ins) substitute a different zero-width
             // character instead of one with width.
@@ -863,11 +869,16 @@ FT_UInt LVFreeTypeFace::getCharIndex(lUInt32 code, lChar32 def_char) {
         }
     }
     if ( ch_glyph_index==0 ) {
-        lUInt32 replacement = getReplacementChar( code );
+        bool can_be_ignored = false;
+        lUInt32 replacement = getReplacementChar( code, &can_be_ignored );
         if ( replacement )
             ch_glyph_index = FT_Get_Char_Index( _face, replacement );
-        if ( ch_glyph_index==0 && def_char )
+        if ( ch_glyph_index==0 && def_char && !can_be_ignored ) {
+            // if neither the index of this character nor the index of the replacement character is found,
+            // and if this character can be safely ignored,
+            // we simply skip it so as not to draw the unnecessary replacement character.
             ch_glyph_index = FT_Get_Char_Index( _face, def_char );
+        }
     }
     return ch_glyph_index;
 }
