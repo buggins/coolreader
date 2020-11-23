@@ -106,7 +106,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 1.9
 		};
 	int[] mScreenFullUpdateInterval = new int[] {
-			0, 2, 3, 4, 5, 7, 10, 15, 20
+			0, 1, 2, 3, 4, 5, 7, 10, 15, 20
 		};
 	int[] mScreenUpdateModes = new int[] {
 			0, 1, 2//, 2, 3
@@ -2118,6 +2118,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
 		if ( !DeviceInfo.EINK_SCREEN || DeviceInfo.EINK_HAVE_FRONTLIGHT )
 			mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
+		if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT)
+			mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_flick_warm), PROP_APP_FLICK_WARMLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("2"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.option_controls_gesture_page_flipping_enabled), PROP_APP_GESTURE_PAGE_FLIPPING).add(mPagesPerFullSwipe, mPagesPerFullSwipeTitles).setDefaultValue("1"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_selection_action), PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_multi_selection_action), PROP_APP_MULTI_SELECTION_ACTION).add(mMultiSelectionAction, mMultiSelectionActionTitles).setDefaultValue("0"));
@@ -2148,6 +2150,24 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 					levels.add(level);
 				}
 				mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(levels, levelsTitles).setDefaultValue("-1").noIcon());
+			}
+			if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT) {
+				List<Integer> warmLightLevels = EinkScreen.getWarmLightLevels(mActivity);
+				if (null != warmLightLevels && warmLightLevels.size() > 0) {
+					ArrayList<String> levelsTitles = new ArrayList<>();
+					ArrayList<Integer> levels = new ArrayList<>();
+					levels.add(-1);
+					levelsTitles.add(getString(R.string.options_app_backlight_screen_default));
+					for (Integer level : warmLightLevels) {
+						float percentLevel = 100 * level / (float) DeviceInfo.MAX_SCREEN_BRIGHTNESS_WARM_VALUE;
+						if (percentLevel < 10)
+							levelsTitles.add(String.format("%1$.1f%%", percentLevel));
+						else
+							levelsTitles.add(String.format("%1$.0f%%", percentLevel));
+						levels.add(level);
+					}
+					mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_warm_backlight_screen), PROP_APP_SCREEN_WARM_BACKLIGHT).add(levels, levelsTitles).setDefaultValue("-1").noIcon());
+				}
 			}
 		}
 		mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_tts_stop_motion_timeout), PROP_APP_MOTION_TIMEOUT).add(mMotionTimeouts, mMotionTimeoutsTitles).setDefaultValue(Integer.toString(mMotionTimeouts[0])).noIcon());

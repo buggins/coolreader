@@ -783,6 +783,10 @@ public class BaseActivity extends Activity implements Settings {
 		return screenBacklightBrightness;
 	}
 
+	public int getWarmBacklightLevel() {
+		return screenWarmBacklightBrightness;
+	}
+
 	public void setScreenBacklightLevel(int value) {
 		if (value < -1)
 			value = -1;
@@ -795,7 +799,19 @@ public class BaseActivity extends Activity implements Settings {
 			EinkScreen.setFrontLightValue(this, value);
 	}
 
+	public void setScreenWarmBacklightLevel(int value) {
+		if (value < -1)
+			value = -1;
+		else if (value > DeviceInfo.MAX_SCREEN_BRIGHTNESS_WARM_VALUE)
+			value = -1;
+		if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT) {
+			screenWarmBacklightBrightness = value;
+			EinkScreen.setWarmLightValue(this, value);
+		}
+	}
+
 	private int screenBacklightBrightness = -1; // use default
+	private int screenWarmBacklightBrightness = -1; // use default
 	//private boolean brightnessHackError = false;
 	private boolean brightnessHackError = DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 
@@ -1267,6 +1283,12 @@ public class BaseActivity extends Activity implements Settings {
 								.postGUI(() -> setScreenBacklightLevel(n))), 100);
 			} catch (Exception e) {
 				// ignore
+			}
+		} else if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT && PROP_APP_SCREEN_WARM_BACKLIGHT.equals(key)) {
+			try {
+				int n = Integer.parseInt(value);
+				setScreenWarmBacklightLevel(n);
+			} catch (Exception ignored) {
 			}
 		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS)) {
 			Services.getScanner().setHideEmptyDirs(flg);
@@ -1821,6 +1843,7 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_FULLSCREEN, "0");
 			props.applyDefault(ReaderView.PROP_APP_VIEW_AUTOSCROLL_SPEED, "1500");
 			props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT, "-1");
+			props.applyDefault(ReaderView.PROP_APP_SCREEN_WARM_BACKLIGHT, "-1");
 			props.applyDefault(ReaderView.PROP_SHOW_BATTERY, "1");
 			props.applyDefault(ReaderView.PROP_SHOW_POS_PERCENT, "0");
 			props.applyDefault(ReaderView.PROP_SHOW_PAGE_COUNT, "1");

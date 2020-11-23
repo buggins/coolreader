@@ -13,6 +13,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/genrescollection" />
+            <option value="$PROJECT_DIR$/onyxsdk-device-1.1.3-lt-r1" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

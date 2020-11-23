@@ -109,6 +109,7 @@
     <string name="options_page_animation">Анимация листания</string>
     <string name="options_controls_enable_volume_keys">Листание кнопками громкости</string>
     <string name="options_app_backlight_screen">Яркость подсветки экрана</string>
+    <string name="options_app_warm_backlight_screen">Яркость тёплой подсветки экрана</string>
     <string name="options_app_backlight_screen_default">Установленная в системе</string>
     <string name="action_backlight_set_default">Яркость подсветки установленная в системе</string>
     <string name="options_app_tapzones_normal">Сенсорный экран</string>
@@ -172,6 +173,7 @@
     <string name="options_page_show_titlebar_page_count">Всего страниц</string>
     <string name="options_show_titlebar_page_number">Новер страницы</string>
     <string name="options_controls_flick_brightness">Управление яркостью скольжением по экрану</string>
+    <string name="options_controls_flick_warm">Управление яркостью теплой подсветки скольжением по экрану</string>
     <string name="options_controls_flick_brightness_right">Правый край</string>
     <string name="options_controls_flick_brightness_left">Левый край</string>
     <string name="options_controls_flick_brightness_none">Отключено</string>
@@ -664,4 +666,5 @@
     <string name="bookmarks_keepalive_1year">1 год</string>
     <string name="book_info_genres">Жанр(ы)</string>
     <string name="including_subgenres">(Включая поджанры)</string>
+    <string name="action_show_onyx_backlight_system_dialog">Показать системный диалог для настройки подсветки</string>
 </resources>
