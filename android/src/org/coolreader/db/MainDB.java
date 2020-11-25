@@ -31,7 +31,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 33;
+	public final int DB_VERSION = 34;
 	@Override
 	protected boolean upgradeSchema() {
 		// When the database is just created, its version is 0.
@@ -127,12 +127,14 @@ public class MainDB extends BaseDB {
 			execSQL("CREATE INDEX IF NOT EXISTS " +
 					"genre_group_code_index ON genre_group (code) ");
 			execSQL("CREATE TABLE IF NOT EXISTS genre (" +
-					"id INTEGER NOT NULL, " +
-					"parent INTEGER NOT NULL REFERENCES genre_group(id), " +
-					"code VARCHAR NOT NULL, " +
-					"PRIMARY KEY (id, parent))");
+					"id INTEGER NOT NULL PRIMARY KEY, " +
+					"code VARCHAR NOT NULL)");
 			execSQL("CREATE INDEX IF NOT EXISTS " +
 					"genre_code_index ON genre (code) ");
+			execSQL("CREATE TABLE IF NOT EXISTS genre_hier (" +
+					"group_fk INTEGER NOT NULL REFERENCES genre_group(id), " +
+					"genre_fk INTEGER NOT NULL REFERENCES genre(id), " +
+					"UNIQUE (group_fk, genre_fk))");
 			execSQL("CREATE TABLE IF NOT EXISTS book_genre (" +
 					"book_fk INTEGER NOT NULL REFERENCES book(id), " +
 					"genre_fk INTEGER NOT NULL REFERENCES genre(id), " +
@@ -271,6 +273,25 @@ public class MainDB extends BaseDB {
 				execSQLIgnoreErrors("CREATE UNIQUE INDEX IF NOT EXISTS " +
 						"book_genre_index ON book_genre (book_fk, genre_fk) ");
 			}
+			if (currentVersion < 34) {
+				execSQLIgnoreErrors("CREATE TABLE IF NOT EXISTS genre_hier (" +
+						"group_fk INTEGER NOT NULL REFERENCES genre_group(id), " +
+						"genre_fk INTEGER NOT NULL REFERENCES genre(id) )");
+				execSQLIgnoreErrors("INSERT INTO genre_hier (group_fk, genre_fk) SELECT parent as group_fk, id as genre_fk FROM genre ORDER BY parent, id");
+				execSQLIgnoreErrors("CREATE TABLE IF NOT EXISTS genre_new (" +
+						"id INTEGER NOT NULL PRIMARY KEY," +
+						"code VARCHAR NOT NULL UNIQUE)");
+				execSQLIgnoreErrors("INSERT INTO genre_new (id, code) SELECT id, code FROM genre GROUP BY id");
+				Long pragma_foreign_keys = longQuery("PRAGMA foreign_keys");
+				if (null == pragma_foreign_keys)
+					pragma_foreign_keys = 0L;
+				if (pragma_foreign_keys != 0L)
+					execSQLIgnoreErrors("PRAGMA foreign_keys=OFF");
+				execSQLIgnoreErrors("DROP TABLE genre");
+				execSQLIgnoreErrors("ALTER TABLE genre_new RENAME TO genre");
+				if (pragma_foreign_keys != 0L)
+					execSQLIgnoreErrors("PRAGMA foreign_keys=ON");
+			}
 
 			//==============================================================
 			// add more updates above this line
@@ -304,7 +325,7 @@ public class MainDB extends BaseDB {
 		if (needUpgrade) {
 			mDB.beginTransaction();
 			try {
-				// fill table "genre_group"
+				// fill/append table "genre_group"
 				SQLiteStatement stmt = mDB.compileStatement("INSERT OR IGNORE INTO genre_group (id, code) VALUES (?,?)");
 				Map<String, GenresCollection.GenreRecord> collection = Services.getGenresCollection().getCollection();
 				for (Map.Entry<String, GenresCollection.GenreRecord> entry : collection.entrySet()) {
@@ -315,15 +336,26 @@ public class MainDB extends BaseDB {
 						stmt.executeInsert();
 					}
 				}
-				// fill table "genre"
-				stmt = mDB.compileStatement("INSERT OR IGNORE INTO genre (id, parent, code) VALUES (?,?,?)");
+				// fill/append table "genre"
+				stmt = mDB.compileStatement("INSERT OR IGNORE INTO genre (id, code) VALUES (?,?)");
 				for (Map.Entry<String, GenresCollection.GenreRecord> entry : collection.entrySet()) {
 					GenresCollection.GenreRecord group = entry.getValue();
 					if (group.hasChilds()) {
 						for (GenresCollection.GenreRecord genre : group.getChilds()) {
 							stmt.bindLong(1, genre.getId());
-							stmt.bindLong(2, group.getId());
-							stmt.bindString(3, genre.getCode());
+							stmt.bindString(2, genre.getCode());
+							stmt.executeInsert();
+						}
+					}
+				}
+				// fill/append table "genre_hier"
+				stmt = mDB.compileStatement("INSERT OR IGNORE INTO genre_hier (group_fk, genre_fk) VALUES (?,?)");
+				for (Map.Entry<String, GenresCollection.GenreRecord> entry : collection.entrySet()) {
+					GenresCollection.GenreRecord group = entry.getValue();
+					if (group.hasChilds()) {
+						for (GenresCollection.GenreRecord genre : group.getChilds()) {
+							stmt.bindLong(1, group.getId());
+							stmt.bindLong(2, genre.getId());
 							stmt.executeInsert();
 						}
 					}
@@ -814,12 +846,8 @@ public class MainDB extends BaseDB {
 		beginReading();
 		parent.clear();
 		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
-		try (Cursor rs = mDB.rawQuery("SELECT code, " +
-				"(SELECT COUNT(DISTINCT book_fk) FROM book_genre " +
-				"  JOIN genre ON genre.id=book_genre.genre_fk " +
-				"  WHERE genre.parent=genre_group.id " +
-				") as book_count " +
-				"FROM genre_group", null)) {
+		String sql = "SELECT code, (SELECT COUNT(DISTINCT book_fk) FROM book_genre bg JOIN genre g ON g.id=bg.genre_fk JOIN genre_hier gh ON gh.genre_fk = g.id WHERE gh.group_fk=gg.id) as book_count FROM genre_group gg";
+		try (Cursor rs = mDB.rawQuery(sql, null)) {
 			if (rs.moveToFirst()) {
 				// read DB
 				do {
@@ -1766,11 +1794,12 @@ public class MainDB extends BaseDB {
 
 			// child genres
 			sql = "SELECT code, " +
-					"(SELECT COUNT(DISTINCT book_fk) FROM book_genre " +
-					"  WHERE book_genre.genre_fk=genre.id " +
+					"(SELECT COUNT(DISTINCT book_fk) FROM book_genre bg " +
+					"  WHERE bg.genre_fk=g.id " +
 					") as book_count " +
-					"FROM genre " +
-					"WHERE parent=" + genreRecord.getId();
+					"FROM genre g " +
+					"INNER JOIN genre_hier gh ON gh.genre_fk = g.id " +
+					"WHERE gh.group_fk=" + genreRecord.getId();
 			Log.d("cr3", "sql: " + sql );
 			try (Cursor rs = mDB.rawQuery(sql, null)) {
 				if (rs.moveToFirst()) {
