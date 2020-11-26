@@ -175,6 +175,22 @@
         "aliases": ["ita"]
     },
     {
+        "name": "Latin (liturgical)",
+        "filename": "Latin_liturgical.pattern",
+        "language": "la-lit",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2,
+        "aliases": ["lat-lit"]
+    },
+    {
+        "name": "Latin",
+        "filename": "Latin.pattern",
+        "language": "la",
+        "left_hyphen_min": 2,
+        "right_hyphen_min": 2,
+        "aliases": ["lat"]
+    },
+    {
         "name": "Latvian",
         "filename": "Latvian.pattern",
         "language": "lv",
