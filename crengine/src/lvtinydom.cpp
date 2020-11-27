@@ -12722,6 +12722,8 @@ lString32 ldomDocumentFragmentWriter::convertHref( lString32 href )
 {
     if ( href.pos("://")>=0 )
         return href; // fully qualified href: no conversion
+    if ( href.length() > 10 && href[4] == ':' && href.startsWith(lString32("data:image/")) )
+        return href; // base64 encoded image (<img src="data:image/png;base64,iVBORw0KG...>): no conversion
 
     //CRLog::trace("convertHref(%s, codeBase=%s, filePathName=%s)", LCSTR(href), LCSTR(codeBase), LCSTR(filePathName));
 
