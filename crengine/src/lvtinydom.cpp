@@ -5094,6 +5094,14 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
                 // Add FB2 2nd++ BODYs' titles (footnotes and endnotes) in the TOC
                 // (but not their own children that are <section>)
                 _isSection = true; // this is just to have updateTocItem() called
+                // Also add the "NonLinear" attribute so these other BODYs are flagged
+                // as non-linear and can be hidden by frontend code that handles this
+                // (this is actually suggested by the FB2 specs: "... multiple
+                // bodies are used for additional information, like footnotes,
+                // that do not appear in the main book flow. The first body is
+                // presented to the reader by default, and content in the other
+                // bodies should be accessible by hyperlinks.")
+                addAttribute( 0, attr_NonLinear, U"" );
             }
         }
     }

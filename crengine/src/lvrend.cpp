@@ -6324,13 +6324,23 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     // this is necessary for non-linear fragments if we want the
     // possibility of hiding them from the normal paging flow
     bool force_pb = false;
-    if ( enode->getNodeId() == el_DocFragment) {
+    if ( nodeElementId == el_DocFragment) {
         if ( enode->hasAttribute( attr_NonLinear ) ) {
             flow->newSequence(true);
             force_pb = enode->getDocument()->getDocFlag(DOC_FLAG_NONLINEAR_PAGEBREAK);
         }
         else {
             flow->newSequence(false);
+        }
+    }
+    else if ( nodeElementId == el_body ) {
+        // We also set this attribute on 2nd++ BODYs in FB2 documents
+        // (as this attribute is only set on FB2 documents, and all
+        // 2nd++ BODYs get it, no need to check for the doc format and
+        // no need to reset flow sequence when BODY without met.)
+        if ( enode->hasAttribute( attr_NonLinear ) ) {
+            flow->newSequence(true);
+            force_pb = enode->getDocument()->getDocFlag(DOC_FLAG_NONLINEAR_PAGEBREAK);
         }
     }
 
