@@ -653,7 +653,7 @@
     <string name="options_app_cloudsync_confirmations">Ask for confirmation before updating</string>
     <string name="options_app_googledrive_sync_settings">Settings on Drive</string>
     <string name="options_app_googledrive_sync_bookmarks">Bookmarks and reading position on Drive</string>
-    <string name="options_app_googledrive_sync_currentbook">Current reading book info on Drive</string>
+    <string name="options_app_googledrive_sync_currentbook_info">Current reading book info on Drive</string>
     <string name="googledrive_disabled_cleanup_question">You have disabled automatic syncing with Google Drive, delete all application files on Google Drive?"</string>
     <string name="googledrive_sync_completed">Synchronization with Google Drive successfully completed.</string>
     <string name="googledrive_sync_failed_with">Synchronization with Google Drive failed with error: %s</string>
@@ -685,7 +685,7 @@
     <string name="choose_root_sd">Could not delete file, if the file is on External SD, choose ExtSD root in the dialog</string>
     <string name="could_not_delete_on_sd">Could not find file, make sure the root of ExtSD was selected</string>
     <string name="could_not_delete_file">Could not delete file \"%s\"</string>
-    <string name="bookmarks_keepalive_">Delete copies of bookmarks older than…</string>
+    <string name="sync_data_keepalive_">Delete sync data older than…</string>
     <string name="bookmarks_keepalive_off">Off</string>
     <string name="bookmarks_keepalive_1day">1 day</string>
     <string name="bookmarks_keepalive_2days">2 days</string>

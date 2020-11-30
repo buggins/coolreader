@@ -18,12 +18,11 @@
 
 package org.coolreader.sync2;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Xml;
-
-import androidx.annotation.RequiresApi;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
@@ -34,7 +33,6 @@ import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.Properties;
-import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Settings;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
@@ -54,7 +52,7 @@ import java.util.zip.GZIPOutputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-@RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
+@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 public class Synchronizer {
 
 	public static final Logger log = L.create("sync2");
@@ -77,7 +75,7 @@ public class Synchronizer {
 	private int m_signInRequestCode;
 	private String m_appName;
 	private boolean m_isBusy;
-	private boolean m_askAbort;
+	private boolean m_isAbortRequested;
 	private SyncDirection m_syncDirection;
 	private int m_currentOperationIndex;
 	private int m_totalOperationsCount;
@@ -86,7 +84,7 @@ public class Synchronizer {
 	private OnSyncStatusListener m_onStatusListener;
 	private Runnable m_onAbortedListener;
 	private HashMap<SyncTarget, Boolean> m_syncTargets;
-	private int m_bookmarksKeepAlive = 14;
+	private int m_dataKeepAlive = 14;
 	private boolean m_forcedOperations;			// forced all sync operations regardless of specified sync targets
 
 	private static final String[] ALLOWED_OPTIONS_PROP_NAMES = {
@@ -165,7 +163,7 @@ public class Synchronizer {
 			days = 0;
 		else if (days > 365)
 			days = 365;
-		m_bookmarksKeepAlive = days;
+		m_dataKeepAlive = days;
 	}
 
 	public void setSignInRequestCode(int requestCode) {
@@ -197,7 +195,7 @@ public class Synchronizer {
 
 	public void abort(Runnable onAborted) {
 		if (m_isBusy) {
-			m_askAbort = true;
+			m_isAbortRequested = true;
 			m_onAbortedListener = onAborted;
 		} else {
 			if (null != onAborted) {
@@ -243,14 +241,14 @@ public class Synchronizer {
 	}
 
 	protected boolean checkAbort() {
-		if (m_askAbort) {
+		if (m_isAbortRequested) {
 			if (null != m_onAbortedListener) {
 				m_onAbortedListener.run();
 				m_onAbortedListener = null;
 			}
 			doneAborted();
 		}
-		return m_askAbort;
+		return m_isAbortRequested;
 	}
 
 	protected void clearOperation() {
@@ -693,69 +691,47 @@ public class Synchronizer {
 
 	// upload bookmarks for currently opened book
 	protected class UploadBookmarksSyncOperation extends SyncOperation {
+		private final BookInfo bookInfo;
+
+		UploadBookmarksSyncOperation(BookInfo bookInfo) {
+			this.bookInfo = new BookInfo(bookInfo);		// make a copy
+		}
+
 		@Override
 		void call(Runnable onContinue) {
 			log.d("Starting UploadBookmarksSyncOperation operation...");
-
-			BookInfo bookInfo = null;
-			ReaderView readerView = m_coolReader.getReaderView();
-			if (null != readerView) {
-				BookInfo bi = readerView.getBookInfo();
-				if (null != bi)
-					bookInfo = new BookInfo(bi);
-			}
-			if (null == bookInfo)
-				bookInfo = m_coolReader.getBookInfoToSync();
-			if (null != bookInfo) {
-				// make copy
-				bookInfo = new BookInfo(bookInfo);
-				FileInfo fileInfo = bookInfo.getFileInfo();
-				if (null != fileInfo) {
-					byte[] data = getCurrentBookBookmarksData(bookInfo);
-					if (null != data) {
-						// TODO: replace crc32 with sha512 and remove filename from this
-						String fileName = fileInfo.filename + "_" + fileInfo.crc32 + ".bmk.xml.gz";
-						m_remoteAccess.writeFile(REMOTE_FOLDER_PATH + "/" + fileName, data, new OnOperationCompleteListener<Boolean>() {
-							@Override
-							public void onCompleted(Boolean result, boolean ok) {
-								if (!ok)
-									return;		// onFailed() will be called
-								if (checkAbort())
-									return;
-								m_currentOperationIndex++;
-								setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
-								if (null != result && result) {
-									log.d("file created or updated.");
-									onContinue.run();
-								} else {
-									log.e("UploadBookmarksSyncOperation: file NOT created!");
-									doneFailed("file NOT created");
-								}
-							}
-
-							@Override
-							public void onFailed(Exception e) {
-								log.e("UploadBookmarksSyncOperation: write failed: " + e.toString());
-								doneFailed(e.toString());
-							}
-						});
-					} else {
-						// bookmarks data is null, continue with next operation
-						log.d("bookmarks data is null, continue with next operation");
+			FileInfo fileInfo = bookInfo.getFileInfo();
+			byte[] data = getCurrentBookBookmarksData(bookInfo);
+			if (null != data) {
+				// TODO: replace crc32 with sha512 and remove filename from this
+				String fileName = fileInfo.filename + "_" + fileInfo.crc32 + ".bmk.xml.gz";
+				m_remoteAccess.writeFile(REMOTE_FOLDER_PATH + "/" + fileName, data, new OnOperationCompleteListener<Boolean>() {
+					@Override
+					public void onCompleted(Boolean result, boolean ok) {
+						if (!ok)
+							return;        // onFailed() will be called
+						if (checkAbort())
+							return;
 						m_currentOperationIndex++;
 						setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
-						onContinue.run();
+						if (null != result && result) {
+							log.d("file created or updated.");
+							onContinue.run();
+						} else {
+							log.e("UploadBookmarksSyncOperation: file NOT created!");
+							doneFailed("file NOT created");
+						}
 					}
-				} else {
-					// fileInfo is null, continue with next operation
-					log.d("fileInfo is null, continue with next operation");
-					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
-					onContinue.run();
-				}
+
+					@Override
+					public void onFailed(Exception e) {
+						log.e("UploadBookmarksSyncOperation: write failed: " + e.toString());
+						doneFailed(e.toString());
+					}
+				});
 			} else {
-				// bookInfo is null, continue with next operation
-				log.d("bookInfo is null, continue with next operation");
+				// bookmarks data is null, continue with next operation
+				log.d("bookmarks data is null, continue with next operation");
 				m_currentOperationIndex++;
 				setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 				onContinue.run();
@@ -844,78 +820,59 @@ public class Synchronizer {
 	}
 
 	protected class UploadCurrentBookInfoSyncOperation extends SyncOperation {
+		private final BookInfo bookInfo;
+
+		UploadCurrentBookInfoSyncOperation(BookInfo bookInfo) {
+			this.bookInfo = new BookInfo(bookInfo);		// make a copy
+		}
+
 		@Override
 		void call(Runnable onContinue) {
 			log.d("Starting UploadCurrentBookInfoSyncOperation operation...");
 
-			BookInfo bookInfo = null;
-			ReaderView readerView = m_coolReader.getReaderView();
-			if (null != readerView) {
-				BookInfo bi = readerView.getBookInfo();
-				if (null != bi)
-					bookInfo = new BookInfo(bi);
-			}
-			if (null == bookInfo)
-				bookInfo = m_coolReader.getBookInfoToSync();
-			if (null != bookInfo) {
-				FileInfo fileInfo = bookInfo.getFileInfo();
-				if (null != fileInfo) {
-					try {
-						ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-						GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream);
-						Properties props = new Properties();
-						props.setInt("version", CURRENTBOOKINFO_BUNDLE_VERSION);
-						props.setProperty("filename", fileInfo.filename);
-						props.setProperty("authors", fileInfo.authors);
-						props.setProperty("title", fileInfo.title);
-						props.setProperty("series", fileInfo.series);
-						props.setInt("seriesNumber", fileInfo.seriesNumber);
-						props.setInt("size", fileInfo.size);
-						props.setLong("crc32", fileInfo.crc32);
-						props.storeToXML(gzipOutputStream, "CoolReader current document info");
-						gzipOutputStream.close();
-						outputStream.close();
-						m_remoteAccess.writeFile(REMOTE_FOLDER_PATH + "/current.xml.gz", outputStream.toByteArray(), new OnOperationCompleteListener<Boolean>() {
-							@Override
-							public void onCompleted(Boolean result, boolean ok) {
-								if (!ok)
-									return;		// onFailed() will be called
-								if (checkAbort())
-									return;
-								m_currentOperationIndex++;
-								setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
-								if (null != result && result) {
-									log.d("file created or updated.");
-									onContinue.run();
-								} else {
-									log.e("UploadCurrentBookInfoSyncOperation: failed to save current book info");
-									doneFailed("Failed to save current book info");
-								}
-							}
+			FileInfo fileInfo = bookInfo.getFileInfo();
+			try {
+				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+				GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream);
+				Properties props = new Properties();
+				props.setInt("version", CURRENTBOOKINFO_BUNDLE_VERSION);
+				props.setProperty("filename", fileInfo.filename);
+				props.setProperty("authors", fileInfo.authors);
+				props.setProperty("title", fileInfo.title);
+				props.setProperty("series", fileInfo.series);
+				props.setInt("seriesNumber", fileInfo.seriesNumber);
+				props.setInt("size", fileInfo.size);
+				props.setLong("crc32", fileInfo.crc32);
+				props.storeToXML(gzipOutputStream, "CoolReader current document info");
+				gzipOutputStream.close();
+				outputStream.close();
+				m_remoteAccess.writeFile(REMOTE_FOLDER_PATH + "/current.xml.gz", outputStream.toByteArray(), new OnOperationCompleteListener<Boolean>() {
+					@Override
+					public void onCompleted(Boolean result, boolean ok) {
+						if (!ok)
+							return;        // onFailed() will be called
+						if (checkAbort())
+							return;
+						m_currentOperationIndex++;
+						setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+						if (null != result && result) {
+							log.d("file created or updated.");
+							onContinue.run();
+						} else {
+							log.e("UploadCurrentBookInfoSyncOperation: failed to save current book info");
+							doneFailed("Failed to save current book info");
+						}
+					}
 
-							@Override
-							public void onFailed(Exception e) {
-								log.e("UploadCurrentBookInfoSyncOperation: write failed: " + e.toString());
-								doneFailed(e.toString());
-							}
-						});
-					} catch (Exception e) {
-						log.e("UploadCurrentBookInfoSyncOperation: " + e.toString());
+					@Override
+					public void onFailed(Exception e) {
+						log.e("UploadCurrentBookInfoSyncOperation: write failed: " + e.toString());
 						doneFailed(e.toString());
 					}
-				} else {
-					// fileInfo is null, continue with next operation
-					log.d("fileInfo is null, continue with next operation");
-					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
-					onContinue.run();
-				}
-			} else {
-				// bookInfo is null, continue with next operation
-				log.d("bookInfo is null, continue with next operation");
-				m_currentOperationIndex++;
-				setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
-				onContinue.run();
+				});
+			} catch (Exception e) {
+				log.e("UploadCurrentBookInfoSyncOperation: " + e.toString());
+				doneFailed(e.toString());
 			}
 		}
 	}
@@ -1006,10 +963,10 @@ public class Synchronizer {
 		}
 	}
 
-	protected class DeleteOldBookmarksSyncOperation extends SyncOperation {
+	protected class DeleteOldDataSyncOperation extends SyncOperation {
 		@Override
 		void call(Runnable onContinue) {
-			log.d("Starting DeleteOldBookmarksOperation operation...");
+			log.d("Starting DeleteOldDataSyncOperation operation...");
 			m_remoteAccess.list(REMOTE_FOLDER_PATH, new OnOperationCompleteListener<FileMetadataList>() {
 				@Override
 				public void onCompleted(FileMetadataList metalist, boolean ok) {
@@ -1024,10 +981,11 @@ public class Synchronizer {
 						log.d(REMOTE_FOLDER_PATH + " don't exist yet...");
 					} else {
 						Date now = new Date();
-						SyncOperation op = DeleteOldBookmarksSyncOperation.this;
+						SyncOperation op = DeleteOldDataSyncOperation.this;
 						for (FileMetadata meta : metalist) {
-							if (meta.fileName.endsWith(".bmk.xml.gz")) {
-								if (meta.modifiedDate.getTime() + 86400000 * (long) m_bookmarksKeepAlive < now.getTime()) {
+							if (meta.fileName.endsWith(".bmk.xml.gz") ||
+									meta.fileName.endsWith(".data.gz")) {
+								if (meta.modifiedDate.getTime() + 86400000 * (long) m_dataKeepAlive < now.getTime()) {
 									log.d("scheduling to remove file \"" + meta.fileName + "\".");
 									String fileName = REMOTE_FOLDER_PATH + "/" + meta.fileName;
 									SyncOperation deleteFileOp = new DeleteFileSyncOperation(fileName);
@@ -1101,7 +1059,7 @@ public class Synchronizer {
 		if (m_isBusy)
 			return;
 		// make "Sync From" operations chain and run it
-		m_askAbort = false;
+		m_isAbortRequested = false;
 		m_forcedOperations = force;
 		setSyncStarted(SyncDirection.SyncFrom);
 
@@ -1119,8 +1077,8 @@ public class Synchronizer {
 		}
 		if (force || hasTarget(SyncTarget.BOOKMARKS))
 			addOperation(new DownloadAllBookmarksSyncOperation());
-		if (m_bookmarksKeepAlive > 0)		// if equals 0 -> disabled
-			addOperation(new DeleteOldBookmarksSyncOperation());
+		if (m_dataKeepAlive > 0)		// if equals 0 -> disabled
+			addOperation(new DeleteOldDataSyncOperation());
 		if (force || hasTarget(SyncTarget.CURRENTBOOKINFO))
 			addOperation(new DownloadCurrentBookInfoSyncOperation());
 		addOperation(m_doneOp);
@@ -1133,11 +1091,11 @@ public class Synchronizer {
 	 * @param quietly    if true - quiet mode, do not ask the user for anything.
 	 * @param force      if true - force all operation perform everything, even disabled operations.
 	 */
-	public void startSyncTo(boolean showSignIn, boolean quietly, boolean force) {
+	public void startSyncTo(BookInfo bookInfo, boolean showSignIn, boolean quietly, boolean force) {
 		if (m_isBusy)
 			return;
 		// make "Sync To" operations chain and run it
-		m_askAbort = false;
+		m_isAbortRequested = false;
 		m_forcedOperations = force;
 		setSyncStarted(SyncDirection.SyncTo);
 
@@ -1154,10 +1112,15 @@ public class Synchronizer {
 				addOperation(new CheckUploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
 			}
 		}
-		if (force || hasTarget(SyncTarget.BOOKMARKS))
-			addOperation(new UploadBookmarksSyncOperation());
-		if (force || hasTarget(SyncTarget.CURRENTBOOKINFO))
-			addOperation(new UploadCurrentBookInfoSyncOperation());
+		if (null != bookInfo && null != bookInfo.getFileInfo()) {
+			if (force || hasTarget(SyncTarget.BOOKMARKS))
+				addOperation(new UploadBookmarksSyncOperation(bookInfo));
+			if (force || hasTarget(SyncTarget.CURRENTBOOKINFO))
+				addOperation(new UploadCurrentBookInfoSyncOperation(bookInfo));
+		} else {
+			// bookInfo of fileInfo is null, skipping all operations related to the current book
+			log.d("bookInfo or fileInfo is null, skipping all operations related to the current book");
+		}
 		addOperation(m_doneOp);
 		startOperations();
 	}
@@ -1176,7 +1139,7 @@ public class Synchronizer {
 		if (all_disabled)
 			return;
 		// make "Sync From" operations chain and run it
-		m_askAbort = false;
+		m_isAbortRequested = false;
 		setSyncStarted(SyncDirection.SyncFrom);
 
 		clearOperation();
@@ -1205,7 +1168,7 @@ public class Synchronizer {
 		startOperations();
 	}
 
-	public void startSyncToOnly(boolean quietly, SyncTarget... targets) {
+	public void startSyncToOnly(BookInfo bookInfo, boolean quietly, SyncTarget... targets) {
 		if (m_isBusy)
 			return;
 		// check target
@@ -1219,7 +1182,7 @@ public class Synchronizer {
 		if (all_disabled)
 			return;
 		// make "Sync To" operations chain and run it
-		m_askAbort = false;
+		m_isAbortRequested = false;
 		setSyncStarted(SyncDirection.SyncTo);
 
 		clearOperation();
@@ -1237,10 +1200,12 @@ public class Synchronizer {
 						addOperation(new CheckUploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
 					break;
 				case BOOKMARKS:
-					addOperation(new UploadBookmarksSyncOperation());
+					if (null != bookInfo && null != bookInfo.getFileInfo())
+						addOperation(new UploadBookmarksSyncOperation(bookInfo));
 					break;
 				case CURRENTBOOKINFO:
-					addOperation(new UploadCurrentBookInfoSyncOperation());
+					if (null != bookInfo && null != bookInfo.getFileInfo())
+						addOperation(new UploadCurrentBookInfoSyncOperation(bookInfo));
 					break;
 			}
 		}
@@ -1252,7 +1217,7 @@ public class Synchronizer {
 		if (m_isBusy)
 			return;
 		// make "Cleanup & Sign out" operations chain and run it
-		m_askAbort = false;
+		m_isAbortRequested = false;
 		setSyncStarted(SyncDirection.SyncTo);
 
 		clearOperation();
@@ -1267,7 +1232,7 @@ public class Synchronizer {
 		if (m_isBusy)
 			return;
 		// make "Sign Out" operations chain and run it
-		m_askAbort = false;
+		m_isAbortRequested = false;
 		setSyncStarted(SyncDirection.SyncTo);
 
 		clearOperation();
