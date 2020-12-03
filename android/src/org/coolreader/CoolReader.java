@@ -447,25 +447,28 @@ public class CoolReader extends BaseActivity {
 				public void onBookmarksLoaded(BookInfo bookInfo, boolean forced) {
 					waitForCRDBService(() -> {
 						// TODO: ask the user whether to import new bookmarks.
+						BookInfo currentBook = null;
+						int currentPos = -1;
+						if (null != mReaderView) {
+							currentBook = mReaderView.getBookInfo();
+							if (null != currentBook)
+								currentPos = currentBook.getLastPosition().getPercent();
+						}
 						Services.getHistory().updateBookInfo(bookInfo);
 						getDB().saveBookInfo(bookInfo);
-						if (null != mReaderView) {
-							BookInfo currentBook = mReaderView.getBookInfo();
-							if (null != currentBook) {
-								FileInfo currentFileInfo = currentBook.getFileInfo();
-								if (null != currentFileInfo) {
-									if (currentFileInfo.baseEquals((bookInfo.getFileInfo()))) {
-										// if the book indicated by the bookInfo is currently open.
-										Bookmark lastPos = bookInfo.getLastPosition();
-										if (null != lastPos) {
-											if (forced || !mCloudSyncAskConfirmations) {
-												mReaderView.goToBookmark(lastPos);
-											} else {
-												int currentPos = currentBook.getLastPosition().getPercent();
-												if (Math.abs(currentPos - lastPos.getPercent()) > 10) {		// 0.1%
-													askQuestion(R.string.cloud_synchronization_, R.string.sync_confirmation_new_reading_position,
-															() -> mReaderView.goToBookmark(lastPos), null);
-												}
+						if (null != currentBook) {
+							FileInfo currentFileInfo = currentBook.getFileInfo();
+							if (null != currentFileInfo) {
+								if (currentFileInfo.baseEquals((bookInfo.getFileInfo()))) {
+									// if the book indicated by the bookInfo is currently open.
+									Bookmark lastPos = bookInfo.getLastPosition();
+									if (null != lastPos) {
+										if (forced || !mCloudSyncAskConfirmations) {
+											mReaderView.goToBookmark(lastPos);
+										} else {
+											if (Math.abs(currentPos - lastPos.getPercent()) > 10) {		// 0.1%
+												askQuestion(R.string.cloud_synchronization_, R.string.sync_confirmation_new_reading_position,
+														() -> mReaderView.goToBookmark(lastPos), null);
 											}
 										}
 									}
