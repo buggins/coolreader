@@ -619,6 +619,7 @@
     <string name="options_app_googledrive_sync_settings">Настройки на Диске</string>
     <string name="options_app_googledrive_sync_bookmarks">Закладки и текущая позиция чтения на Диске</string>
     <string name="options_app_googledrive_sync_currentbook_info">Информация о читаемой в данный момент книге на Диске</string>
+    <string name="options_app_googledrive_sync_currentbook_body">Читаемая в данный момент книга на Диске</string>
     <string name="googledrive_disabled_cleanup_question">Вы отключили автоматическую синхронизацию с Google Диском, удалить все данные приложения на Google Диске?"</string>
     <string name="googledrive_sync_completed">Синхронизация с Google Диском успешно завершена.</string>
     <string name="googledrive_sync_failed_with">Произошел сбой при синхронизация с Google Диском: %s</string>

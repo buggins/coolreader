@@ -654,6 +654,7 @@
     <string name="options_app_googledrive_sync_settings">Settings on Drive</string>
     <string name="options_app_googledrive_sync_bookmarks">Bookmarks and reading position on Drive</string>
     <string name="options_app_googledrive_sync_currentbook_info">Current reading book info on Drive</string>
+    <string name="options_app_googledrive_sync_currentbook_body">Current reading book on Drive</string>
     <string name="googledrive_disabled_cleanup_question">You have disabled automatic syncing with Google Drive, delete all application files on Google Drive?"</string>
     <string name="googledrive_sync_completed">Synchronization with Google Drive successfully completed.</string>
     <string name="googledrive_sync_failed_with">Synchronization with Google Drive failed with error: %s</string>

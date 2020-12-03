@@ -29,11 +29,16 @@ import org.coolreader.R;
 import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.Bookmark;
+import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.Properties;
+import org.coolreader.crengine.Scanner;
+import org.coolreader.crengine.Services;
 import org.coolreader.crengine.Settings;
+import org.coolreader.crengine.Utils;
+import org.coolreader.db.CRDBService;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 import org.xmlpull.v1.XmlSerializer;
@@ -41,7 +46,10 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -61,13 +69,28 @@ public class Synchronizer {
 		NONE,
 		SETTINGS,
 		BOOKMARKS,
-		CURRENTBOOKINFO
+		CURRENTBOOKINFO,
+		CURRENTBOOKBODY
 	}
 
 	public enum SyncDirection {
 		None,
 		SyncTo,
 		SyncFrom
+	}
+
+	private class DownloadInfo implements Cloneable {
+		public String m_filepath;		// full path to file on the cloud
+		public FileMetadata m_meta;		// file metadata
+
+		public DownloadInfo(String filepath, FileMetadata meta) {
+			m_filepath = filepath;
+			m_meta = (FileMetadata) meta.clone();
+		}
+
+		public Object clone() {
+			return new DownloadInfo(m_filepath, m_meta);
+		}
 	}
 
 	private RemoteAccess m_remoteAccess;
@@ -514,7 +537,7 @@ public class Synchronizer {
 				}
 				gzipOutputStream.close();
 				outputStream.close();
-				m_remoteAccess.writeFile(remoteFilePath, outputStream.toByteArray(), new OnOperationCompleteListener<Boolean>() {
+				m_remoteAccess.writeFile(remoteFilePath, outputStream.toByteArray(), null, new OnOperationCompleteListener<Boolean>() {
 					@Override
 					public void onCompleted(Boolean result, boolean ok) {
 						if (!ok)
@@ -705,7 +728,7 @@ public class Synchronizer {
 			if (null != data) {
 				// TODO: replace crc32 with sha512 and remove filename from this
 				String fileName = fileInfo.filename + "_" + fileInfo.crc32 + ".bmk.xml.gz";
-				m_remoteAccess.writeFile(REMOTE_FOLDER_PATH + "/" + fileName, data, new OnOperationCompleteListener<Boolean>() {
+				m_remoteAccess.writeFile(REMOTE_FOLDER_PATH + "/" + fileName, data, null, new OnOperationCompleteListener<Boolean>() {
 					@Override
 					public void onCompleted(Boolean result, boolean ok) {
 						if (!ok)
@@ -846,7 +869,7 @@ public class Synchronizer {
 				props.storeToXML(gzipOutputStream, "CoolReader current document info");
 				gzipOutputStream.close();
 				outputStream.close();
-				m_remoteAccess.writeFile(REMOTE_FOLDER_PATH + "/current.xml.gz", outputStream.toByteArray(), new OnOperationCompleteListener<Boolean>() {
+				m_remoteAccess.writeFile(REMOTE_FOLDER_PATH + "/current.xml.gz", outputStream.toByteArray(), null, new OnOperationCompleteListener<Boolean>() {
 					@Override
 					public void onCompleted(Boolean result, boolean ok) {
 						if (!ok)
@@ -924,6 +947,293 @@ public class Synchronizer {
 				@Override
 				public void onFailed(Exception e) {
 					log.e("DownloadCurrentBookInfoSyncOperation: read failed: " + e.toString());
+					doneFailed(e.toString());
+				}
+			});
+		}
+	}
+
+	protected class UploadCurrentBookBodySyncOperation extends SyncOperation {
+		private final BookInfo bookInfo;
+
+		UploadCurrentBookBodySyncOperation(BookInfo bookInfo) {
+			this.bookInfo = new BookInfo(bookInfo);
+		}
+
+		@Override
+		void call(Runnable onContinue) {
+			log.d("Starting UploadCurrentBookBodySyncOperation operation...");
+
+			FileInfo fileInfo = bookInfo.getFileInfo();
+			// 1. Check if file already exist on Drive
+			// TODO: replace CRC32 with SHA512
+			// TODO: check if CRC32 on arcname != fileInfo.crc32
+			String fingerprint = Long.toString(fileInfo.crc32, 10);
+			String bookFilePath = (fileInfo.isArchive && null != fileInfo.arcname) ? fileInfo.arcname : fileInfo.pathname;
+			int bookFileSize = (fileInfo.isArchive && null != fileInfo.arcname) ? fileInfo.arcsize : fileInfo.size;
+			File bookFile = new File(bookFilePath);
+			String bookFileName = bookFile.getName();
+			// ".cr3/some_file.fb2.123456.data.gz"
+			// ".cr3/some_file.fb2.zip.123456.data.gz"
+			String cloudFilePath = REMOTE_FOLDER_PATH + "/" + bookFileName + "." + fingerprint + ".data.gz";
+			m_remoteAccess.stat(cloudFilePath, new OnOperationCompleteListener<FileMetadata>() {
+				@Override
+				public void onCompleted(FileMetadata metadata, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
+					if (checkAbort())
+						return;
+					boolean needUpload = false;
+					if (null != metadata) {
+						// OK, remote file exists, compare them
+						if (bookFileSize != metadata.getCustomPropSourceSize() || !fingerprint.equals(metadata.getCustomPropFingerprint()) || !bookFileName.equals(metadata.getCustomPropSourceName()))
+							needUpload = true;
+					} else {
+						// remote file not exists
+						needUpload = true;
+					}
+					if (needUpload) {
+						// Upload file content
+						try {
+							byte[] buff = new byte[4096];
+							FileInputStream inputStream = new FileInputStream(bookFile);
+							ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+							GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream);
+							int rb;
+							while ((rb = inputStream.read(buff)) > 0) {
+								gzipOutputStream.write(buff, 0, rb);
+							}
+							gzipOutputStream.close();
+							outputStream.close();
+							HashMap<String, String> customProps = new HashMap<String, String>(2);
+							customProps.put(FileMetadata.CUSTOM_PROP_FINGERPRINT, fingerprint);
+							customProps.put(FileMetadata.CUSTOM_PROP_SOURCE_SIZE, Integer.toString(bookFileSize, 10));
+							customProps.put(FileMetadata.CUSTOM_PROP_SOURCE_NAME, bookFileName);
+							customProps.put(FileMetadata.CUSTOM_PROP_AUTHORS, fileInfo.authors);
+							log.d("UploadCurrentBookBodySyncOperation: starting to upload file: " + bookFileName);
+							m_remoteAccess.writeFile(cloudFilePath, outputStream.toByteArray(), customProps, new OnOperationCompleteListener<Boolean>() {
+								@Override
+								public void onCompleted(Boolean result, boolean ok) {
+									if (!ok)
+										return;        // onFailed() will be called
+									if (checkAbort())
+										return;
+									m_currentOperationIndex++;
+									setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+									if (null != result && result) {
+										log.d("file created or updated.");
+										onContinue.run();
+									} else {
+										log.e("UploadCurrentBookInfoSyncOperation: failed to save current book info");
+										doneFailed("Failed to save current book info");
+									}
+								}
+
+								@Override
+								public void onFailed(Exception e) {
+									log.e("UploadCurrentBookBodySyncOperation: upload failed: " + e.toString());
+									doneFailed(e.toString());
+								}
+							});
+						} catch (Exception e) {
+							log.e("UploadCurrentBookBodySyncOperation: file read failed: " + e.toString());
+							doneFailed(e.toString());
+						}
+					} else {
+						log.d("book data file already exist on the cloud.");
+						m_currentOperationIndex++;
+						setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+						onContinue.run();
+					}
+				}
+
+				@Override
+				public void onFailed(Exception e) {
+					log.e("UploadCurrentBookBodySyncOperation: stat failed: " + e.toString());
+					doneFailed(e.toString());
+				}
+			});
+		}
+	}
+
+	protected class DownloadAllBooksBodySyncOperation extends SyncOperation {
+		@Override
+		void call(Runnable onContinue) {
+			log.d("Starting DownloadAllBooksBodySyncOperation operation...");
+
+			m_remoteAccess.list(REMOTE_FOLDER_PATH, new OnOperationCompleteListener<FileMetadataList>() {
+				@Override
+				public void onCompleted(FileMetadataList metalist, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
+					if (checkAbort())
+						return;
+					m_currentOperationIndex++;
+					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					if (null != metalist) {
+						ArrayList<DownloadInfo> filesToCheck = new ArrayList<DownloadInfo>();
+						for (FileMetadata meta : metalist) {
+							if (meta.fileName.endsWith(".data.gz")) {
+								String fingerprint = meta.getCustomPropFingerprint();
+								int sourceSize = meta.getCustomPropSourceSize();
+								String sourceName = meta.getCustomPropSourceName();
+								if (fingerprint.length() > 0 && sourceName.length() > 0 && sourceSize > 0) {
+									String cloudFileName = REMOTE_FOLDER_PATH + "/" + meta.fileName;
+									filesToCheck.add(new DownloadInfo(cloudFileName, meta));
+								} else {
+									log.d("Found unsuitable file for synchronization: " + meta.fileName);
+								}
+							}
+						}
+						if (filesToCheck.size() > 0) {
+							// check if files already exist in DB on this device...
+							BackgroundThread.instance().executeGUI(() -> m_coolReader.waitForCRDBService(() -> {
+								// GUI thread
+								CRDBService.LocalBinder db = m_coolReader.getDB();
+								ArrayList<DownloadInfo> filesToDownload = new ArrayList<DownloadInfo>();
+								ArrayList<String> fingerprints = new ArrayList<String>(filesToCheck.size());
+								for (DownloadInfo info : filesToCheck) {
+									fingerprints.add(info.m_meta.getCustomPropFingerprint());
+								}
+								db.findByFingerprints(fingerprints.size() + 1, fingerprints, fileList -> {
+									// db service thread
+									for (DownloadInfo reqinfo : filesToCheck) {
+										boolean found = false;
+										for (FileInfo fileInfo : fileList) {
+											long req_crc32 = -1;
+											try {
+												req_crc32 = Long.parseLong(reqinfo.m_meta.getCustomPropFingerprint());
+											} catch (Exception ignored) {}
+											if (fileInfo.crc32 == req_crc32 && fileInfo.exists()) {
+												found = true;
+												break;
+											}
+										}
+										if (!found)
+											filesToDownload.add(reqinfo);
+									}
+									SyncOperation op = DownloadAllBooksBodySyncOperation.this;
+									if (filesToDownload.size() > 0) {
+										for (DownloadInfo info : filesToDownload) {
+											log.d("scheduling book loading from file: \"" + info.m_filepath + "\"");
+											SyncOperation downloadBookBody = new DownloadBookBodySyncOperation(info);
+											insertOperation(op, downloadBookBody);
+											op = downloadBookBody;
+										}
+									}
+									onContinue.run();
+								});
+							}));
+						} else {
+							log.d("No files to download from cloud...");
+							onContinue.run();
+						}
+					} else {
+						log.e("DownloadAllBooksBodySyncOperation: list return null");
+						doneFailed("list return null");
+					}
+				}
+
+				@Override
+				public void onFailed(Exception e) {
+					log.e("DownloadAllBooksBodySyncOperation: list failed: " + e.toString());
+					doneFailed(e.toString());
+				}
+			});
+		}
+	}
+
+	protected class DownloadBookBodySyncOperation extends SyncOperation {
+		DownloadInfo downloadInfo;
+
+		DownloadBookBodySyncOperation(DownloadInfo downloadInfo) {
+			this.downloadInfo = downloadInfo;
+		}
+
+		@Override
+		void call(Runnable onContinue) {
+			log.d("Starting DownloadBookBodySyncOperation operation...");
+
+			m_remoteAccess.readFile(downloadInfo.m_filepath, new OnOperationCompleteListener<InputStream>() {
+				@Override
+				public void onCompleted(InputStream inputStream, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
+					if (checkAbort())
+						return;
+					m_currentOperationIndex++;
+					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					if (null != inputStream) {
+						String authors = downloadInfo.m_meta.getCustomPropAuthors();
+						String sourceName = downloadInfo.m_meta.getCustomPropSourceName();
+						int sourceSize = downloadInfo.m_meta.getCustomPropSourceSize();
+						if (sourceName.length() > 0) {
+							String fingerprint = downloadInfo.m_meta.getCustomPropFingerprint();
+							if (fingerprint.length() > 0) {
+								File outDir = getDownloadDir(authors);
+								if (outDir.exists()) {
+									File file = new File(outDir.getAbsolutePath(), sourceName);
+									if (file.exists()) {
+										// TODO: add an extra check to see if these two files match
+										if (file.length() != sourceSize) {
+											log.d("DownloadBookBodySyncOperation: file \"" + sourceName + "\" already exists, finding new name...");
+											file = Utils.getReplacementFile(file);
+										}
+									}
+									if (null != file) {
+										// Save to file
+										try {
+											GZIPInputStream gzipInputStream = new GZIPInputStream(inputStream);
+											FileOutputStream outputStream = new FileOutputStream(file);
+											byte[] buff = new byte[4096];
+											int totalSize = 0;
+											int rb;
+											while ((rb = gzipInputStream.read(buff)) > 0) {
+												outputStream.write(buff, 0, rb);
+												totalSize += rb;
+											}
+											gzipInputStream.close();
+											inputStream.close();
+											outputStream.close();
+											if (totalSize != sourceSize)
+												throw new IOException("Invalid size of file, saved " + totalSize + ", must be " + sourceSize);
+											// scan file
+											FileInfo fileInfo = new FileInfo(file);
+											Services.getEngine().scanBookProperties(fileInfo);
+											// parse & save in DB
+											BackgroundThread.instance().executeGUI(() -> m_coolReader.waitForCRDBService(() -> {
+												Services.getScanner().scanDirectory(m_coolReader.getDB(), new FileInfo(outDir), () -> onContinue.run(), false, new Scanner.ScanControl());
+											}));
+										} catch (Exception e) {
+											log.e("DownloadBookBodySyncOperation: failed to save file: " + e.toString());
+											// ignoring, goto next task
+											onContinue.run();
+										}
+									} else {
+										log.e("DownloadBookBodySyncOperation: failed to generate replacement file name for \"" + sourceName + "\"!");
+										onContinue.run();
+									}
+								} else {
+									log.e("DownloadBookBodySyncOperation: outdir not exits: \"" + outDir.getAbsolutePath() + "\"!");
+									onContinue.run();
+								}
+							} else {
+								log.e("DownloadBookBodySyncOperation: fingerprint is empty!");
+								onContinue.run();
+							}
+						} else {
+							log.e("DownloadBookBodySyncOperation: source file name is empty!");
+							onContinue.run();
+						}
+					} else {
+						log.e("DownloadBookBodySyncOperation: can't read book data!");
+						doneFailed("Can't read bookmarks bundle");
+					}
+				}
+
+				@Override
+				public void onFailed(Exception e) {
+					log.e("DownloadBookBodySyncOperation: readFile failed: " + e.toString());
 					doneFailed(e.toString());
 				}
 			});
@@ -1075,6 +1385,8 @@ public class Synchronizer {
 			else
 				addOperation(new CheckDownloadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
 		}
+		if (force || hasTarget(SyncTarget.CURRENTBOOKBODY))
+			addOperation(new DownloadAllBooksBodySyncOperation());
 		if (force || hasTarget(SyncTarget.BOOKMARKS))
 			addOperation(new DownloadAllBookmarksSyncOperation());
 		if (m_dataKeepAlive > 0)		// if equals 0 -> disabled
@@ -1117,6 +1429,8 @@ public class Synchronizer {
 				addOperation(new UploadBookmarksSyncOperation(bookInfo));
 			if (force || hasTarget(SyncTarget.CURRENTBOOKINFO))
 				addOperation(new UploadCurrentBookInfoSyncOperation(bookInfo));
+			if (force || hasTarget(SyncTarget.CURRENTBOOKBODY))
+				addOperation(new UploadCurrentBookBodySyncOperation(bookInfo));
 		} else {
 			// bookInfo of fileInfo is null, skipping all operations related to the current book
 			log.d("bookInfo or fileInfo is null, skipping all operations related to the current book");
@@ -1162,6 +1476,9 @@ public class Synchronizer {
 				case CURRENTBOOKINFO:
 					addOperation(new DownloadCurrentBookInfoSyncOperation());
 					break;
+				case CURRENTBOOKBODY:
+					addOperation(new DownloadAllBooksBodySyncOperation());
+					break;
 			}
 		}
 		addOperation(m_doneOp);
@@ -1206,6 +1523,10 @@ public class Synchronizer {
 				case CURRENTBOOKINFO:
 					if (null != bookInfo && null != bookInfo.getFileInfo())
 						addOperation(new UploadCurrentBookInfoSyncOperation(bookInfo));
+					break;
+				case CURRENTBOOKBODY:
+					if (null != bookInfo && null != bookInfo.getFileInfo())
+						addOperation(new UploadCurrentBookBodySyncOperation(bookInfo));
 					break;
 			}
 		}
@@ -1433,6 +1754,26 @@ public class Synchronizer {
 						}
 					});
 		}));
+	}
+
+	private File getDownloadDir(String authors) {
+		FileInfo downloadDir = Services.getScanner().getDownloadDirectory();
+		String subdir = null;
+		if ( authors!=null && authors.length() > 0 ) {
+			subdir = Utils.transcribeFileName(authors);
+			if ( subdir.length() > FileBrowser.MAX_SUBDIR_LEN )
+				subdir = subdir.substring(0, FileBrowser.MAX_SUBDIR_LEN);
+		} else {
+			subdir = "NoAuthor";
+		}
+		if ( downloadDir==null )
+			return null;
+		File result = new File(downloadDir.getPathName());
+		result = new File(result, subdir);
+		result.mkdirs();
+		downloadDir.findItemByPathName(result.getAbsolutePath());
+		log.d("getDownloadDir(): returning " + result.getAbsolutePath());
+		return result;
 	}
 
 }

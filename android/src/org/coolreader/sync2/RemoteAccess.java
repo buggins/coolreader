@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.util.Pair;
 
 import java.io.InputStream;
+import java.util.Map;
 
 public interface RemoteAccess {
 	/**
@@ -96,7 +97,7 @@ public interface RemoteAccess {
 	 * @param data             Data to write.
 	 * @param completeListener
 	 */
-	void writeFile(String filePath, byte[] data, OnOperationCompleteListener<Boolean> completeListener);
+	void writeFile(String filePath, byte[] data, Map<String, String> customProps, OnOperationCompleteListener<Boolean> completeListener);
 
 	/**
 	 * Move file or directory to trash.

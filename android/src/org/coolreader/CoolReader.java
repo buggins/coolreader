@@ -89,6 +89,7 @@ public class CoolReader extends BaseActivity {
 	private boolean mSyncGoogleDriveEnabledSettings = false;
 	private boolean mSyncGoogleDriveEnabledBookmarks = false;
 	private boolean mSyncGoogleDriveEnabledCurrentBookInfo = false;
+	private boolean mSyncGoogleDriveEnabledCurrentBookBody = false;
 	private int mCloudSyncBookmarksKeepAlive = 14;
 	private int mSyncGoogleDriveAutoSavePeriod = 0;
 	private int mSyncGoogleDriveErrorsCount = 0;
@@ -316,6 +317,11 @@ public class CoolReader extends BaseActivity {
 				mSyncGoogleDriveEnabledCurrentBookInfo = flg;
 				updateGoogleDriveSynchronizer();
 			}
+		} else if (key.equals(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_BODY)) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+				mSyncGoogleDriveEnabledCurrentBookBody = flg;
+				updateGoogleDriveSynchronizer();
+			}
 		} else if (key.equals(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD)) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				int n = 0;
@@ -531,6 +537,7 @@ public class CoolReader extends BaseActivity {
 				mGoogleDriveSync.setTarget(Synchronizer.SyncTarget.SETTINGS, mSyncGoogleDriveEnabledSettings);
 				mGoogleDriveSync.setTarget(Synchronizer.SyncTarget.BOOKMARKS, mSyncGoogleDriveEnabledBookmarks);
 				mGoogleDriveSync.setTarget(Synchronizer.SyncTarget.CURRENTBOOKINFO, mSyncGoogleDriveEnabledCurrentBookInfo);
+				mGoogleDriveSync.setTarget(Synchronizer.SyncTarget.CURRENTBOOKBODY, mSyncGoogleDriveEnabledCurrentBookBody);
 				mGoogleDriveSync.setBookmarksKeepAlive(mCloudSyncBookmarksKeepAlive);
 				if (null != mGoogleDriveAutoSaveTimer) {
 					mGoogleDriveAutoSaveTimer.cancel();
@@ -1293,6 +1300,8 @@ public class CoolReader extends BaseActivity {
 					ArrayList<Synchronizer.SyncTarget> targets = new ArrayList<Synchronizer.SyncTarget>();
 					if (mSyncGoogleDriveEnabledCurrentBookInfo)
 						targets.add(Synchronizer.SyncTarget.CURRENTBOOKINFO);
+					if (mSyncGoogleDriveEnabledCurrentBookBody)
+						targets.add(Synchronizer.SyncTarget.CURRENTBOOKBODY);
 					if (!targets.isEmpty())
 						mGoogleDriveSync.startSyncToOnly(getCurrentBookInfo(), false, targets.toArray(new Synchronizer.SyncTarget[0]));
 				}

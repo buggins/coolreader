@@ -334,6 +334,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionBase mGoogleDriveEnableSettingsOption;
 	OptionBase mGoogleDriveEnableBookmarksOption;
 	OptionBase mGoogleDriveEnableCurrentBookInfoOption;
+	OptionBase mGoogleDriveEnableCurrentBookBodyOption;
 	OptionBase mCloudSyncAskConfirmationsOption;
 	OptionBase mGoogleDriveAutoSavePeriodOption;
 	OptionBase mCloudSyncDataKeepAliveOptions;
@@ -2183,14 +2184,17 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.mi_book_browser_simple_mode), PROP_APP_FILE_BROWSER_SIMPLE_MODE).noIcon());
 		if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			boolean gdriveSyncEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, false);
+			boolean gdriveSyncBookInfoEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO, false);
 			mOptionsCloudSync = new OptionsListView(getContext());
 			mOptionsCloudSync.add(new BoolOption(this, getString(R.string.options_app_googledrive_sync_auto), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED).setDefaultValue("0").noIcon()
 				.setOnChangeHandler(() -> {
 					boolean syncEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, false);
+					boolean syncBookInfoEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO, false);
 					mCloudSyncAskConfirmationsOption.setEnabled(syncEnabled);
 					mGoogleDriveEnableSettingsOption.setEnabled(syncEnabled);
 					mGoogleDriveEnableBookmarksOption.setEnabled(syncEnabled);
 					mGoogleDriveEnableCurrentBookInfoOption.setEnabled(syncEnabled);
+					mGoogleDriveEnableCurrentBookBodyOption.setEnabled(syncEnabled && syncBookInfoEnabled);
 					mGoogleDriveAutoSavePeriodOption.setEnabled(syncEnabled);
 					// mCloudSyncBookmarksKeepAliveOptions should be enabled regardless of PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED
 				}));
@@ -2202,6 +2206,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mGoogleDriveEnableBookmarksOption.enabled = gdriveSyncEnabled;
 			mGoogleDriveEnableCurrentBookInfoOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_currentbook_info), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO).setDefaultValue("0").noIcon();
 			mGoogleDriveEnableCurrentBookInfoOption.enabled = gdriveSyncEnabled;
+			mGoogleDriveEnableCurrentBookInfoOption.setOnChangeHandler(() -> {
+				boolean syncBookInfoEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO, false);
+				mGoogleDriveEnableCurrentBookBodyOption.setEnabled(syncBookInfoEnabled);
+			});
+			mGoogleDriveEnableCurrentBookBodyOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_currentbook_body), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_BODY).setDefaultValue("0").noIcon();
+			mGoogleDriveEnableCurrentBookBodyOption.enabled = gdriveSyncEnabled && gdriveSyncBookInfoEnabled;
 			mGoogleDriveAutoSavePeriodOption = new ListOption(this, getString(R.string.autosave_period), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD).add(mGoogleDriveAutoSavePeriod, mGoogleDriveAutoSavePeriodTitles).setDefaultValue(Integer.valueOf(5).toString()).noIcon();
 			mGoogleDriveAutoSavePeriodOption.enabled = gdriveSyncEnabled;
 			mCloudSyncDataKeepAliveOptions = new ListOption(this, getString(R.string.sync_data_keepalive_), PROP_APP_CLOUDSYNC_DATA_KEEPALIVE).add(mCloudBookmarksKeepAlive, mCloudBookmarksKeepAliveTitles).setDefaultValue(Integer.valueOf(14).toString()).noIcon();
@@ -2210,6 +2220,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsCloudSync.add(mGoogleDriveEnableSettingsOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableBookmarksOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableCurrentBookInfoOption);
+			mOptionsCloudSync.add(mGoogleDriveEnableCurrentBookBodyOption);
 			mOptionsCloudSync.add(mGoogleDriveAutoSavePeriodOption);
 			mOptionsCloudSync.add(mCloudSyncDataKeepAliveOptions);
 		}
