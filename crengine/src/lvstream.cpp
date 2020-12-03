@@ -2152,12 +2152,13 @@ private:
     lUInt8 *    m_outbuf;
     lUInt32     m_CRC;
     lUInt32     m_originalCRC;
+    lUInt32     m_decodedCRC;
 
 
     LVZipDecodeStream( LVStreamRef stream, lvsize_t start, lvsize_t packsize, lvsize_t unpacksize, lUInt32 crc )
         : m_stream(stream), m_start(start), m_packsize(packsize), m_unpacksize(unpacksize),
         m_inbytesleft(0), m_outbytesleft(0), m_zInitialized(false), m_decodedpos(0),
-        m_inbuf(NULL), m_outbuf(NULL), m_CRC(0), m_originalCRC(crc)
+        m_inbuf(NULL), m_outbuf(NULL), m_CRC(0), m_originalCRC(crc), m_decodedCRC(0)
     {
         m_inbuf = new lUInt8[ARC_INBUF_SIZE];
         m_outbuf = new lUInt8[ARC_OUTBUF_SIZE];
@@ -2373,7 +2374,33 @@ public:
     /// fastly return already known CRC
     virtual lverror_t getcrc32( lUInt32 & dst )
     {
-        dst = m_originalCRC;
+        if (m_originalCRC != 0)
+            dst = m_originalCRC;
+        else {
+            // invalid CRC in zip header, try to recalc CRC32
+            if (m_decodedCRC != 0)
+                dst = m_decodedCRC;
+            else {
+                lUInt8* tmp_buff = (lUInt8*)malloc(ARC_OUTBUF_SIZE);
+                if (!tmp_buff) {
+                    dst = 0;
+                    return LVERR_FAIL;
+                }
+                lvpos_t curr_pos;
+                Seek(0, LVSEEK_CUR, &curr_pos);
+                Seek(0, LVSEEK_SET, 0);
+                lvsize_t bytesRead = 0;
+                while (Read(tmp_buff, ARC_OUTBUF_SIZE, &bytesRead) == LVERR_OK) {
+                    if (bytesRead > 0)
+                        m_decodedCRC = lStr_crc32(m_decodedCRC, tmp_buff, bytesRead);
+                    else
+                        break;
+                }
+                free(tmp_buff);
+                Seek((lvoffset_t)curr_pos, LVSEEK_SET, 0);
+                dst = m_decodedCRC;
+            }
+        }
         return LVERR_OK;
     }
 
