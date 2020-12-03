@@ -1159,6 +1159,14 @@ public class CoolReader extends BaseActivity {
 
 	public void showRootWindow() {
 		setCurrentFrame(mHomeFrame);
+		if (!justCreated) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+				// Save bookmarks and current reading position on the cloud
+				if (mSyncGoogleDriveEnabled && null != mGoogleDriveSync && !mGoogleDriveSync.isBusy()) {
+					mGoogleDriveSync.startSyncToOnly(getCurrentBookInfo(), true, Synchronizer.SyncTarget.BOOKMARKS);
+				}
+			}
+		}
 	}
 
 	private void runInReader(final Runnable task) {
