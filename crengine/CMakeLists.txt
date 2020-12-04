@@ -23,7 +23,6 @@ SET (CRENGINE_SOURCES
     src/txtselector.cpp
     #src/xutils.cpp
     src/crtest.cpp
-    src/xxhash.c
     src/textlang.cpp
     src/lvstream/lvdefstreambuffer.cpp
     src/lvstream/lvfilemappedstream.cpp

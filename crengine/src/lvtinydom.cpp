@@ -238,6 +238,7 @@ enum CacheFileBlockType {
 #include <stddef.h>
 #include <math.h>
 #include <zlib.h>
+#define XXH_INLINE_ALL
 #include <xxhash.h>
 #include <lvtextfm.h>
 
