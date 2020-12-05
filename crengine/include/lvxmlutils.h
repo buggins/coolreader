@@ -24,8 +24,8 @@
 
 /// don't treat CR/LF and TAB characters as space nor remove duplicate spaces
 #define TXTFLG_PRE        1
-/// last character of previous text was space
-#define TXTFLG_LASTSPACE  2
+/// text is to be interpreted literally, as textual data, not as marked up or entity references
+#define TXTFLG_CDATA      2
 
 #define TXTFLG_TRIM                         4
 #define TXTFLG_TRIM_ALLOW_START_SPACE       8

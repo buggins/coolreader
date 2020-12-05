@@ -98,6 +98,7 @@ void LVXMLParser::Reset()
     //CRLog::trace("LVXMLParser::Reset()");
     LVTextFileBase::Reset();
     m_state = ps_bof;
+    m_in_cdata = false;
 }
 
 LVXMLParser::LVXMLParser( LVStreamRef stream, LVXMLParserCallback * callback, bool allowHtml, bool fb2Only )
@@ -105,6 +106,7 @@ LVXMLParser::LVXMLParser( LVStreamRef stream, LVXMLParserCallback * callback, bo
     , m_callback(callback)
     , m_trimspaces(true)
     , m_state(0)
+    , m_in_cdata(false)
     , m_citags(false)
     , m_allowHtml(allowHtml)
     , m_fb2Only(fb2Only)
@@ -236,10 +238,17 @@ bool LVXMLParser::Parse()
                         m_state = ps_text;
                         break;
                     }
-                    //bypass <![CDATA] in <style type="text/css">
-                    if (PeekCharFromBuffer(1)=='['&&tagname.compare("style")==0&&attrvalue.compare("text/css")==0){
+                    // <![CDATA[ ... ]]>:
+                    if ( PeekCharFromBuffer(1)=='[' && PeekCharFromBuffer(2)=='C' &&
+                                                       PeekCharFromBuffer(3)=='D' &&
+                                                       PeekCharFromBuffer(4)=='A' &&
+                                                       PeekCharFromBuffer(5)=='T' &&
+                                                       PeekCharFromBuffer(6)=='A' && PeekCharFromBuffer(7)=='[' ) {
                         PeekNextCharFromBuffer(7);
-                        m_state =ps_text;
+                        // Handled as text, but don't decode HTML entities (&blah; &#123;),
+                        // and stop after ']]>' instead of before '<'
+                        m_state = ps_text;
+                        m_in_cdata = true;
                         break;
                     }
                 }
@@ -393,6 +402,12 @@ bool LVXMLParser::Parse()
                 if ( bodyStarted )
                     updateProgress();
                 m_state = ps_lt;
+                if (m_in_cdata) {
+                    m_in_cdata = false;
+                    // Get back in ps_text state: there may be some
+                    // regular text after ']]>' until the next '<tag>'
+                    m_state = ps_text;
+                }
             }
             break;
         default:
@@ -448,9 +463,23 @@ bool LVXMLParser::ReadText()
         for ( ; m_read_buffer_pos+i<m_read_buffer_len; i++ ) {
             lChar32 ch = m_read_buffer[m_read_buffer_pos + i];
             lChar32 nextch = m_read_buffer_pos + i + 1 < m_read_buffer_len ? m_read_buffer[m_read_buffer_pos + i + 1] : 0;
-            flgBreak = ch=='<' || m_eof;
+            flgBreak = m_eof;
+            if ( m_in_cdata ) { // we're done only when we meet ']]>'
+                if ( ch==']' && nextch==']') {
+                    lChar32 nextnextch = m_read_buffer_pos + i + 2 < m_read_buffer_len ? m_read_buffer[m_read_buffer_pos + i + 2] : 0;
+                    if ( nextnextch=='>' ) {
+                        flgBreak = true;
+                    }
+                }
+            }
+            else if ( ch=='<' ) {
+                flgBreak = true;
+            }
             if ( flgBreak && !tlen ) {
                 m_read_buffer_pos++;
+                if ( m_in_cdata ) {
+                    m_read_buffer_pos+=2;
+                }
                 return false;
             }
             splitParas = false;
@@ -488,7 +517,10 @@ bool LVXMLParser::ReadText()
             if ( flags & TXTFLG_CONVERT_8BIT_ENTITY_ENCODING )
                 enc_table = this->m_conv_table;
 
+            if ( m_in_cdata )
+                flags |= TXTFLG_CDATA;
             int nlen = PreProcessXmlString(buf, last_split_txtlen, flags, enc_table);
+
             if ( (flags & TXTFLG_TRIM) && (!(flags & TXTFLG_PRE) || (flags & TXTFLG_PRE_PARA_SPLITTING)) ) {
                 nlen = TrimDoubleSpaces(buf, nlen,
                     ((flags & TXTFLG_TRIM_ALLOW_START_SPACE) || pre_para_splitting)?true:false,
@@ -522,6 +554,8 @@ bool LVXMLParser::ReadText()
                 // TODO:LVE???
                 if ( PeekCharFromBuffer()=='<' )
                     m_read_buffer_pos++;
+                else if ( m_in_cdata && PeekCharFromBuffer()==']' )
+                    m_read_buffer_pos += 3; // skip ']]>'
                 //if ( m_read_buffer_pos < m_read_buffer_len )
                 //    m_read_buffer_pos++;
                 break;
