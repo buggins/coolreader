@@ -79,6 +79,16 @@ public class Synchronizer {
 		SyncFrom
 	}
 
+	public final static int SYNC_FLAG_NONE = 0x00;
+	// force all operation perform everything, even disabled operations (regardless of specified sync targets).
+	public final static int SYNC_FLAG_FORCE = 0x01;
+	/// quiet mode, do not ask the user for anything.
+	public final static int SYNC_FLAG_QUIETLY = 0x02;
+	/// when required - show activity to log into account, otherwise try quietly (non-interactive) variant.
+	public final static int SYNC_FLAG_SHOW_SIGN_IN = 0x04;
+	/// show progress bar for sync process
+	public final static int SYNC_FLAG_SHOW_PROGRESS = 0x08;
+
 	private class DownloadInfo implements Cloneable {
 		public String m_filepath;		// full path to file on the cloud
 		public FileMetadata m_meta;		// file metadata
@@ -108,7 +118,8 @@ public class Synchronizer {
 	private Runnable m_onAbortedListener;
 	private HashMap<SyncTarget, Boolean> m_syncTargets;
 	private int m_dataKeepAlive = 14;
-	private boolean m_forcedOperations;			// forced all sync operations regardless of specified sync targets
+	private int m_flags = 0;
+	private int m_lockTryCount = 0;
 
 	private static final String[] ALLOWED_OPTIONS_PROP_NAMES = {
 			Settings.PROP_FALLBACK_FONT_FACE,
@@ -153,6 +164,9 @@ public class Synchronizer {
 
 	private static final String REMOTE_FOLDER_PATH = "/.cr3";
 	private static final String REMOTE_SETTINGS_FILE_PATH = REMOTE_FOLDER_PATH + "/cr3.ini.gz";
+	private static final String LOCK_FILE_PATH = REMOTE_FOLDER_PATH + "/.lock";
+	private static final int LOCK_FILE_CHECK_PERIOD = 500;			// ms
+	private static final int LOCK_FILE_CHECK_MAX_COUNT = 120;		// total wait 60 sec.
 
 	private static final int BOOKMARKS_BUNDLE_VERSION = 3;
 	private static final int CURRENTBOOKINFO_BUNDLE_VERSION = 3;
@@ -233,7 +247,7 @@ public class Synchronizer {
 
 	protected void doneSuccessfully() {
 		if (null != m_onStatusListener)
-			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSyncCompleted(m_syncDirection, m_forcedOperations));
+			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSyncCompleted(m_syncDirection, (m_flags & SYNC_FLAG_SHOW_PROGRESS) != 0, (m_flags & SYNC_FLAG_FORCE) != 0));
 		m_isBusy = false;
 	}
 
@@ -253,13 +267,13 @@ public class Synchronizer {
 		m_isBusy = true;
 		m_syncDirection = dir;
 		if (null != m_onStatusListener) {
-			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSyncStarted(m_syncDirection, m_forcedOperations));
+			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSyncStarted(m_syncDirection, (m_flags & SYNC_FLAG_SHOW_PROGRESS) != 0, (m_flags & SYNC_FLAG_FORCE) != 0));
 		}
 	}
 
 	protected void setSyncProgress(int current, int total) {
 		if (null != m_onStatusListener) {
-			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.OnSyncProgress(m_syncDirection, current, total, m_forcedOperations));
+			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.OnSyncProgress(m_syncDirection, (m_flags & SYNC_FLAG_SHOW_PROGRESS) != 0, current, total, (m_flags & SYNC_FLAG_FORCE) != 0));
 		}
 	}
 
@@ -326,6 +340,7 @@ public class Synchronizer {
 	}
 
 	protected void startOperations() {
+		m_lockTryCount = 0;
 		if (null != m_startOp)
 			m_startOp.exec();
 	}
@@ -432,6 +447,120 @@ public class Synchronizer {
 		}
 	}
 
+	protected class CheckLockFileSyncOperation extends SyncOperation {
+		@Override
+		void call(Runnable onContinue) {
+			log.d("Starting CheckLockFileSyncOperation operation...");
+
+			// 1. Check if lock file is exists
+			m_remoteAccess.stat(LOCK_FILE_PATH, false, new OnOperationCompleteListener<FileMetadata>() {
+				@Override
+				public void onCompleted(FileMetadata meta, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
+					if (checkAbort())
+						return;
+					if (null == meta) {
+						// 2. Create lock file
+						String contents = "lock file";
+						m_remoteAccess.writeFile(LOCK_FILE_PATH, contents.getBytes(), null, new OnOperationCompleteListener<Boolean>() {
+							@Override
+							public void onCompleted(Boolean result, boolean ok) {
+								if (!ok)
+									return;		// onFailed() will be called
+								if (checkAbort())
+									return;
+								log.d("lock file created, continue.");
+								m_currentOperationIndex++;
+								setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+								onContinue.run();
+							}
+
+							@Override
+							public void onFailed(Exception e) {
+								log.e("CheckSyncLockerSyncOperation: write lock file failed: " + e.toString());
+								doneFailed(e.toString());
+							}
+						});
+					} else {
+						// 3. Wait while lock file exist
+						m_lockTryCount++;
+						if (m_lockTryCount < LOCK_FILE_CHECK_MAX_COUNT) {
+							log.d("lock file exists, waiting...");
+							SyncOperation this_op = CheckLockFileSyncOperation.this;
+							BackgroundThread.instance().postBackground(() -> {
+								insertOperation(this_op, new CheckLockFileSyncOperation());
+								// update progress bar on screen
+								m_currentOperationIndex++;
+								setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+								onContinue.run();
+							}, LOCK_FILE_CHECK_PERIOD);
+						} else {
+							log.d("lock file still exists after waiting " + (LOCK_FILE_CHECK_MAX_COUNT*LOCK_FILE_CHECK_PERIOD)/1000 + " seconds, ignore ..." );
+							m_currentOperationIndex++;
+							setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+							onContinue.run();
+						}
+					}
+				}
+
+				@Override
+				public void onFailed(Exception e) {
+					log.e("CheckSyncLockerSyncOperation: stat failed: " + e.toString());
+					doneFailed(e.toString());
+				}
+			});
+		}
+	}
+
+	protected class RemoveLockFileSyncOperation extends SyncOperation {
+		@Override
+		void call(Runnable onContinue) {
+			log.d("Starting RemoveLockFileSyncOperation operation...");
+
+			m_remoteAccess.stat(LOCK_FILE_PATH, false, new OnOperationCompleteListener<FileMetadata>() {
+				@Override
+				public void onCompleted(FileMetadata meta, boolean ok) {
+					if (!ok)
+						return;		// onFailed() will be called
+					if (checkAbort())
+						return;
+					if (null != meta) {
+						// file exist
+						m_remoteAccess.delete(LOCK_FILE_PATH, new OnOperationCompleteListener<Boolean>() {
+							@Override
+							public void onCompleted(Boolean result, boolean ok) {
+								//if (!ok)
+								//	return;        // onFailed() will be called
+								if (checkAbort())
+									return;
+								m_currentOperationIndex++;
+								setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+								onContinue.run();
+							}
+
+							@Override
+							public void onFailed(Exception e) {
+								log.d("RemoveLockFileSyncOperation: delete failed: " + e.toString());
+								// ignore this
+							}
+						});
+					} else {
+						m_currentOperationIndex++;
+						setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+						onContinue.run();
+					}
+				}
+
+				@Override
+				public void onFailed(Exception e) {
+					log.e("RemoveLockFileSyncOperation: stat failed: " + e.toString());
+					doneFailed(e.toString());
+				}
+			});
+		}
+	}
+
 	// Check remote settings file modification operation
 	protected class CheckUploadSettingsSyncOperation extends SyncOperation {
 		private final String localFilePath;
@@ -447,7 +576,7 @@ public class Synchronizer {
 			log.d("Starting CheckUploadSettingsSyncOperation operation...");
 
 			// 1. Check remote file modification file
-			m_remoteAccess.stat(remoteFilePath, new OnOperationCompleteListener<FileMetadata>() {
+			m_remoteAccess.stat(remoteFilePath, true, new OnOperationCompleteListener<FileMetadata>() {
 				@Override
 				public void onCompleted(FileMetadata meta, boolean ok) {
 					if (!ok)
@@ -583,7 +712,7 @@ public class Synchronizer {
 			log.d("Starting CheckDownloadSettingsSyncOperation operation...");
 
 			// 1. Check remote file modification file
-			m_remoteAccess.stat(remoteFilePath, new OnOperationCompleteListener<FileMetadata>() {
+			m_remoteAccess.stat(remoteFilePath, true, new OnOperationCompleteListener<FileMetadata>() {
 				@Override
 				public void onCompleted(FileMetadata meta, boolean ok) {
 					if (!ok)
@@ -688,7 +817,7 @@ public class Synchronizer {
 									props.put(key, allProps.get(key));
 							}
 							if (null != m_onStatusListener) {
-								BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSettingsLoaded(props, m_forcedOperations));
+								BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSettingsLoaded(props, (m_flags & SYNC_FLAG_FORCE) != 0));
 							}
 							log.d(" ... done.");
 						} catch (Exception e) {
@@ -806,7 +935,7 @@ public class Synchronizer {
 		void call(Runnable onContinue) {
 			log.d("Starting DownloadAllBookmarksSyncOperation operation...");
 
-			m_remoteAccess.list(REMOTE_FOLDER_PATH, new OnOperationCompleteListener<FileMetadataList>() {
+			m_remoteAccess.list(REMOTE_FOLDER_PATH, true, new OnOperationCompleteListener<FileMetadataList>() {
 				@Override
 				public void onCompleted(FileMetadataList metalist, boolean ok) {
 					if (!ok)
@@ -976,7 +1105,7 @@ public class Synchronizer {
 			// ".cr3/some_file.fb2.123456.data.gz"
 			// ".cr3/some_file.fb2.zip.123456.data.gz"
 			String cloudFilePath = REMOTE_FOLDER_PATH + "/" + bookFileName + "." + fingerprint + ".data.gz";
-			m_remoteAccess.stat(cloudFilePath, new OnOperationCompleteListener<FileMetadata>() {
+			m_remoteAccess.stat(cloudFilePath, true, new OnOperationCompleteListener<FileMetadata>() {
 				@Override
 				public void onCompleted(FileMetadata metadata, boolean ok) {
 					if (!ok)
@@ -1061,7 +1190,7 @@ public class Synchronizer {
 		void call(Runnable onContinue) {
 			log.d("Starting DownloadAllBooksBodySyncOperation operation...");
 
-			m_remoteAccess.list(REMOTE_FOLDER_PATH, new OnOperationCompleteListener<FileMetadataList>() {
+			m_remoteAccess.list(REMOTE_FOLDER_PATH, true, new OnOperationCompleteListener<FileMetadataList>() {
 				@Override
 				public void onCompleted(FileMetadataList metalist, boolean ok) {
 					if (!ok)
@@ -1277,7 +1406,7 @@ public class Synchronizer {
 		@Override
 		void call(Runnable onContinue) {
 			log.d("Starting DeleteOldDataSyncOperation operation...");
-			m_remoteAccess.list(REMOTE_FOLDER_PATH, new OnOperationCompleteListener<FileMetadataList>() {
+			m_remoteAccess.list(REMOTE_FOLDER_PATH, true, new OnOperationCompleteListener<FileMetadataList>() {
 				@Override
 				public void onCompleted(FileMetadataList metalist, boolean ok) {
 					if (!ok)
@@ -1361,85 +1490,86 @@ public class Synchronizer {
 
 	/**
 	 * Starts the process of data synchronization - downloading from a remote service.
-	 * @param showSignIn if true - when required show activity to log into account.
-	 * @param quietly    if true - quiet mode, do not ask the user for anything.
-	 * @param force      if true - force all operation perform everything, even disabled operations.
+	 * @param flags Synchtonization flags, @see SYNC_FLAG_*.
 	 */
-	public void startSyncFrom(boolean showSignIn, boolean quietly, boolean force) {
+	public void startSyncFrom(int flags) {
 		if (m_isBusy)
 			return;
+		m_flags = flags;
 		// make "Sync From" operations chain and run it
 		m_isAbortRequested = false;
-		m_forcedOperations = force;
 		setSyncStarted(SyncDirection.SyncFrom);
 
 		clearOperation();
-		if (showSignIn || m_remoteAccess.needSignInRepeat())
+		if ((m_flags & SYNC_FLAG_SHOW_SIGN_IN) != 0 || m_remoteAccess.needSignInRepeat())
 			addOperation(new SignInSyncOperation());
 		else
 			addOperation(new SignInQuietlySyncOperation());
 		addOperation(new CheckAppFolderSyncOperation());
-		if (force || hasTarget(SyncTarget.SETTINGS)) {
-			if (quietly)
+		addOperation(new CheckLockFileSyncOperation());
+		if ((m_flags & SYNC_FLAG_FORCE) != 0 || hasTarget(SyncTarget.SETTINGS)) {
+			if ((m_flags & SYNC_FLAG_QUIETLY) != 0)
 				addOperation(new DownloadSettingsSyncOperation(REMOTE_SETTINGS_FILE_PATH));
 			else
 				addOperation(new CheckDownloadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
 		}
-		if (force || hasTarget(SyncTarget.CURRENTBOOKBODY))
+		if ((m_flags & SYNC_FLAG_FORCE) != 0 || hasTarget(SyncTarget.CURRENTBOOKBODY))
 			addOperation(new DownloadAllBooksBodySyncOperation());
-		if (force || hasTarget(SyncTarget.BOOKMARKS))
+		if ((m_flags & SYNC_FLAG_FORCE) != 0 || hasTarget(SyncTarget.BOOKMARKS))
 			addOperation(new DownloadAllBookmarksSyncOperation());
 		if (m_dataKeepAlive > 0)		// if equals 0 -> disabled
 			addOperation(new DeleteOldDataSyncOperation());
-		if (force || hasTarget(SyncTarget.CURRENTBOOKINFO))
+		if ((m_flags & SYNC_FLAG_FORCE) != 0 || hasTarget(SyncTarget.CURRENTBOOKINFO))
 			addOperation(new DownloadCurrentBookInfoSyncOperation());
+		addOperation(new RemoveLockFileSyncOperation());
 		addOperation(m_doneOp);
 		startOperations();
 	}
 
 	/**
 	 * Starts the process of data synchronization - uploading to a remote service.
-	 * @param showSignIn if true - when required show activity to log into account
-	 * @param quietly    if true - quiet mode, do not ask the user for anything.
-	 * @param force      if true - force all operation perform everything, even disabled operations.
+	 * @param bookInfo book information to synchronize.
+	 * @param flags Synchtonization flags, @see SYNC_FLAG_*.
 	 */
-	public void startSyncTo(BookInfo bookInfo, boolean showSignIn, boolean quietly, boolean force) {
+	public void startSyncTo(BookInfo bookInfo, int flags) {
 		if (m_isBusy)
 			return;
 		// make "Sync To" operations chain and run it
 		m_isAbortRequested = false;
-		m_forcedOperations = force;
+		m_flags = flags;
 		setSyncStarted(SyncDirection.SyncTo);
 
 		clearOperation();
-		if (showSignIn || m_remoteAccess.needSignInRepeat())
+		if ((m_flags & SYNC_FLAG_SHOW_SIGN_IN) != 0 || m_remoteAccess.needSignInRepeat())
 			addOperation(new SignInSyncOperation());
 		else
 			addOperation(new SignInQuietlySyncOperation());
 		addOperation(new CheckAppFolderSyncOperation());
-		if (force || hasTarget(SyncTarget.SETTINGS)) {
-			if (quietly) {
+		addOperation(new CheckLockFileSyncOperation());
+		if ((m_flags & SYNC_FLAG_FORCE) != 0 || hasTarget(SyncTarget.SETTINGS)) {
+			if ((m_flags & SYNC_FLAG_QUIETLY) != 0) {
 				addOperation(new UploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
 			} else {
 				addOperation(new CheckUploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
 			}
 		}
 		if (null != bookInfo && null != bookInfo.getFileInfo()) {
-			if (force || hasTarget(SyncTarget.BOOKMARKS))
+			if ((m_flags & SYNC_FLAG_FORCE) != 0 || hasTarget(SyncTarget.BOOKMARKS))
 				addOperation(new UploadBookmarksSyncOperation(bookInfo));
-			if (force || hasTarget(SyncTarget.CURRENTBOOKINFO))
+			if ((m_flags & SYNC_FLAG_FORCE) != 0 || hasTarget(SyncTarget.CURRENTBOOKINFO))
 				addOperation(new UploadCurrentBookInfoSyncOperation(bookInfo));
-			if (force || hasTarget(SyncTarget.CURRENTBOOKBODY))
+			if ((m_flags & SYNC_FLAG_FORCE) != 0 || hasTarget(SyncTarget.CURRENTBOOKBODY))
 				addOperation(new UploadCurrentBookBodySyncOperation(bookInfo));
 		} else {
 			// bookInfo of fileInfo is null, skipping all operations related to the current book
 			log.d("bookInfo or fileInfo is null, skipping all operations related to the current book");
 		}
+		addOperation(new RemoveLockFileSyncOperation());
 		addOperation(m_doneOp);
 		startOperations();
 	}
 
-	public void startSyncFromOnly(boolean quietly, SyncTarget... targets) {
+	public void startSyncFromOnly(int flags, SyncTarget... targets) {
 		if (m_isBusy)
 			return;
 		// check target
@@ -1452,20 +1582,22 @@ public class Synchronizer {
 		}
 		if (all_disabled)
 			return;
+		m_flags = flags;
 		// make "Sync From" operations chain and run it
 		m_isAbortRequested = false;
 		setSyncStarted(SyncDirection.SyncFrom);
 
 		clearOperation();
-		if (!quietly || m_remoteAccess.needSignInRepeat())
+		if ((m_flags & SYNC_FLAG_SHOW_SIGN_IN) != 0 || m_remoteAccess.needSignInRepeat())
 			addOperation(new SignInSyncOperation());
 		else
 			addOperation(new SignInQuietlySyncOperation());
 		addOperation(new CheckAppFolderSyncOperation());
+		addOperation(new CheckLockFileSyncOperation());
 		for (SyncTarget target : targets) {
 			switch (target) {
 				case SETTINGS:
-					if (quietly)
+					if ((m_flags & SYNC_FLAG_QUIETLY) != 0)
 						addOperation(new DownloadSettingsSyncOperation(REMOTE_SETTINGS_FILE_PATH));
 					else
 						addOperation(new CheckDownloadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
@@ -1481,11 +1613,12 @@ public class Synchronizer {
 					break;
 			}
 		}
+		addOperation(new RemoveLockFileSyncOperation());
 		addOperation(m_doneOp);
 		startOperations();
 	}
 
-	public void startSyncToOnly(BookInfo bookInfo, boolean quietly, SyncTarget... targets) {
+	public void startSyncToOnly(BookInfo bookInfo, int flags, SyncTarget... targets) {
 		if (m_isBusy)
 			return;
 		// check target
@@ -1498,20 +1631,22 @@ public class Synchronizer {
 		}
 		if (all_disabled)
 			return;
+		m_flags = flags;
 		// make "Sync To" operations chain and run it
 		m_isAbortRequested = false;
 		setSyncStarted(SyncDirection.SyncTo);
 
 		clearOperation();
-		if (!quietly || m_remoteAccess.needSignInRepeat())
+		if ((m_flags & SYNC_FLAG_SHOW_SIGN_IN) != 0 || m_remoteAccess.needSignInRepeat())
 			addOperation(new SignInSyncOperation());
 		else
 			addOperation(new SignInQuietlySyncOperation());
 		addOperation(new CheckAppFolderSyncOperation());
+		addOperation(new CheckLockFileSyncOperation());
 		for (SyncTarget target : targets) {
 			switch (target) {
 				case SETTINGS:
-					if (quietly)
+					if ((m_flags & SYNC_FLAG_QUIETLY) != 0)
 						addOperation(new UploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
 					else
 						addOperation(new CheckUploadSettingsSyncOperation(m_coolReader.getSettingsFile(0), REMOTE_SETTINGS_FILE_PATH));
@@ -1530,6 +1665,7 @@ public class Synchronizer {
 					break;
 			}
 		}
+		addOperation(new RemoveLockFileSyncOperation());
 		addOperation(m_doneOp);
 		startOperations();
 	}
@@ -1718,7 +1854,7 @@ public class Synchronizer {
 								}
 								log.d("Book \"" + dbFileInfo + "\" found, syncing...");
 								if (null != m_onStatusListener)
-									m_onStatusListener.onBookmarksLoaded(bookInfo, m_forcedOperations);
+									m_onStatusListener.onBookmarksLoaded(bookInfo, (m_flags & SYNC_FLAG_FORCE) != 0);
 							}
 						});
 
@@ -1749,7 +1885,7 @@ public class Synchronizer {
 							FileInfo dbFileInfo = fileList.get(0);
 							if (null != m_onStatusListener) {
 								log.d("Book \"" + dbFileInfo + "\" found, call listener to load this book...");
-								m_onStatusListener.onCurrentBookInfoLoaded(fileList.get(0), m_forcedOperations);
+								m_onStatusListener.onCurrentBookInfoLoaded(fileList.get(0), (m_flags & SYNC_FLAG_FORCE) != 0);
 							}
 						}
 					});

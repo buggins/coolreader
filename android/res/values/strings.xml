@@ -665,7 +665,8 @@
     <string name="googledrive_load_remote">Load remote</string>
     <string name="googledrive_upload_local">Upload local to Drive</string>
     <string name="googledrive_remotefile_is_newer_confirm">Remote file \"%s\" on Google Drive is newer that local file, whatever save local to Drive or load remote?</string>
-    <string name="cloud_synchronization_">Cloud synchronizing…</string>
+    <string name="cloud_synchronization_to_">Synchronizing to cloud…</string>
+    <string name="cloud_synchronization_from_">Synchronizing from cloud…</string>
     <string name="googledrive_sync_to">Sync to Drive</string>
     <string name="googledrive_sync_from">Sync from Drive</string>
     <string name="confirmation_title">Confirmation</string>

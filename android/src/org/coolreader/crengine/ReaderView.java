@@ -3169,11 +3169,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	private int currentCloudSyncProgressPosition = -1;
 	private String currentCloudSyncProgressTitle;
 
-	public void showCloudSyncProgress(int progress) {
+	public void showCloudSyncProgress(int progress, String title) {
 		log.v("showClodSyncProgress(" + progress + ")");
 		boolean update = false;
-		if (null == currentCloudSyncProgressTitle) {
-			currentCloudSyncProgressTitle = mActivity.getString(R.string.cloud_synchronization_);
+		if (null == currentCloudSyncProgressTitle || !currentCloudSyncProgressTitle.equals(title)) {
+			currentCloudSyncProgressTitle = title;
 			update = true;
 		}
 		if (currentCloudSyncProgressPosition != progress) {

@@ -630,7 +630,8 @@
     <string name="googledrive_load_remote">Скачать удаленный</string>
     <string name="googledrive_upload_local">Загрузить локальный на Диск</string>
     <string name="googledrive_remotefile_is_newer_confirm">Удаленный файл \"%s\" на Google Диске новее чем локальный файл, загрузить локальный на Диск или скачать удаленный?</string>
-    <string name="cloud_synchronization_">Облачная синхронизация…</string>
+    <string name="cloud_synchronization_to_">Синхронизация в облако…</string>
+    <string name="cloud_synchronization_from_">Синхронизация с облака…</string>
     <string name="googledrive_sync_to">Синх. на Диск</string>
     <string name="googledrive_sync_from">Синх. с Диска</string>
     <string name="confirmation_title">Подтверждение</string>

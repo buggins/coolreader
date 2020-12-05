@@ -24,11 +24,11 @@ import org.coolreader.crengine.Properties;
 
 // Synchronization status listener interface
 public interface OnSyncStatusListener {
-	void onSyncStarted(Synchronizer.SyncDirection direction, boolean forced);
+	void onSyncStarted(Synchronizer.SyncDirection direction, boolean showProgress, boolean forced);
 
-	void OnSyncProgress(Synchronizer.SyncDirection direction, int current, int total, boolean forced);
+	void OnSyncProgress(Synchronizer.SyncDirection direction, boolean showProgress, int current, int total, boolean forced);
 
-	void onSyncCompleted(Synchronizer.SyncDirection direction, boolean forced);
+	void onSyncCompleted(Synchronizer.SyncDirection direction, boolean showProgress, boolean forced);
 
 	void onSyncError(Synchronizer.SyncDirection direction, String errorString);
 
