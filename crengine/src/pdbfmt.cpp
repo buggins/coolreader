@@ -293,9 +293,6 @@ struct PluckerPreamble {
 //    smIcon 	2 * smIconWords 	Image 	Small image (15x9) in Palm image format to be used as an icon to represent the document on a desktop-style display. The image may not use a custom color map.
 };
 
-/// unpack data from _compbuf to _buf
-bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  );
-
 class PDBFile;
 
 class LVPDBContainerItem : public LVContainerItemInfo {
@@ -420,6 +417,50 @@ private:
     lvpos_t _pos;
     lUInt16 _mobiExtraDataFlags;
     CRPropRef m_doc_props;
+
+    // c.f., lvtinydom.cpp's legacy ldomUnpack
+    bool zlibUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  )
+    {
+        lUInt8 tmp[UNPACK_BUF_SIZE]; // 256K buffer for uncompressed data
+        int ret;
+        z_stream z = { 0 };
+        z.zalloc = Z_NULL;
+        z.zfree = Z_NULL;
+        z.opaque = Z_NULL;
+        ret = inflateInit( &z );
+        if ( ret != Z_OK )
+            return false;
+        z.avail_in = compsize;
+        z.next_in = (unsigned char *)compbuf;
+        lUInt32 uncompressed_size = 0;
+        lUInt8 *uncompressed_buf = NULL;
+        while (true) {
+            z.avail_out = UNPACK_BUF_SIZE;
+            z.next_out = tmp;
+            ret = inflate( &z, Z_SYNC_FLUSH );
+            if (ret != Z_OK && ret != Z_STREAM_END) { // some error occured while unpacking
+                inflateEnd(&z);
+                if (uncompressed_buf)
+                    free(uncompressed_buf);
+                // printf("inflate() error: %d (%d > %d)\n", ret, compsize, uncompressed_size);
+                return false;
+            }
+            lUInt32 have = UNPACK_BUF_SIZE - z.avail_out;
+            uncompressed_buf = cr_realloc(uncompressed_buf, uncompressed_size + have);
+            memcpy(uncompressed_buf + uncompressed_size, tmp, have );
+            uncompressed_size += have;
+            if (ret == Z_STREAM_END) {
+                break;
+            }
+            // printf("inflate() additional call needed (%d > %d)\n", compsize, uncompressed_size);
+        }
+        inflateEnd(&z);
+        dstsize = uncompressed_size;
+        dstbuf = uncompressed_buf;
+        // printf("inflate() done %d > %d\n", compsize, uncompressed_size);
+        return true;
+    }
+
     //LVPDBContainer * _container;
     bool unpack( LVArray<lUInt8> & dst, LVArray<lUInt8> & src ) {
         int srclen = src.length();
@@ -466,20 +507,20 @@ private:
             }
         } else if ( _compression==10 ) {
             // zlib
-            /// unpack data from _compbuf to _buf
+            /// unpack data from src to dst
             lUInt8 * dstbuf;
             lUInt32 dstsize;
-            if ( !ldomUnpack( src.get(), src.size(), dstbuf, dstsize ) )
+            if ( !zlibUnpack( src.get(), src.size(), dstbuf, dstsize ) )
                 return false;
             dst.add(dstbuf, dstsize);
             free(dstbuf);
         } else if ( _compression==17480 ) {
             // zlib
             // TODO: shouldn't it be HUFFMAN unpacker?
-            /// unpack data from _compbuf to _buf
+            /// unpack data from src to dst
             lUInt8 * dstbuf;
             lUInt32 dstsize;
-            if ( !ldomUnpack( src.get(), src.size(), dstbuf, dstsize ) )
+            if ( !zlibUnpack( src.get(), src.size(), dstbuf, dstsize ) )
                 return false;
             dst.add(dstbuf, dstsize);
             free(dstbuf);

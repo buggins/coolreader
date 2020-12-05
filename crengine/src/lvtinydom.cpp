@@ -160,9 +160,6 @@ extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 #define WRITE_CACHE_BLOCK_COUNT (WRITE_CACHE_TOTAL_SIZE/WRITE_CACHE_BLOCK_SIZE)
 #define TEST_BLOCK_STREAM 0
 
-#define PACK_BUF_SIZE 0x10000
-#define UNPACK_BUF_SIZE 0x40000
-
 #define RECT_DATA_CHUNK_ITEMS (1<<RECT_DATA_CHUNK_ITEMS_SHIFT)
 #define RECT_DATA_CHUNK_SIZE (RECT_DATA_CHUNK_ITEMS*sizeof(lvdomElementFormatRec))
 #define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
@@ -237,7 +234,13 @@ enum CacheFileBlockType {
 
 #include <stddef.h>
 #include <math.h>
+#if (USE_ZSTD == 1)
+#include <zstd.h>
+#else
 #include <zlib.h>
+#define PACK_BUF_SIZE 0x10000
+#define UNPACK_BUF_SIZE 0x40000
+#endif
 #define XXH_INLINE_ALL
 #include "xxhash.h"
 #include <lvtextfm.h>
@@ -346,12 +349,6 @@ public:
 //#define INDEX1 105
 //#define INDEX2 106
 
-/// pack data from _buf to _compbuf
-bool ldomPack( const lUInt8 * buf, int bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize );
-/// unpack data from _compbuf to _buf
-bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  );
-
-
 #if BUILD_LITE!=1
 
 //static lUInt32 calcHash32( const lUInt8 * s, int len )
@@ -387,7 +384,7 @@ static lUInt64 calcHash64( const lUInt8 * s, int len )
 }*/
 static lUInt32 calcHash(const lUInt8 * s, int len)
 {
-return XXH32(s,len,0);
+    return XXH32(s, len, 0);
 }
 lUInt32 calcGlobalSettingsHash(int documentId, bool already_rendered)
 {
@@ -539,6 +536,20 @@ struct CacheFileHeader : public SimpleCacheFileHeader
 /**
  * Cache file implementation.
  */
+#if (USE_ZSTD == 1)
+typedef struct {
+    void* buffOut;
+    size_t buffOutSize;
+    ZSTD_CCtx* cctx;
+} zstd_comp_ress_t;
+
+typedef struct {
+    void* buffOut;
+    size_t buffOutSize;
+    ZSTD_DCtx* dctx;
+} zstd_decomp_ress_t;
+#endif
+
 class CacheFile
 {
     int _sectorSize; // block position and size granularity
@@ -551,6 +562,10 @@ class CacheFile
     LVPtrVector<CacheFileItem, true> _index; // full file block index
     LVPtrVector<CacheFileItem, false> _freeIndex; // free file block index
     LVHashTable<lUInt32, CacheFileItem*> _map; // hash map for fast search
+#if (USE_ZSTD == 1)
+    zstd_comp_ress_t* _comp_ress;
+    zstd_decomp_ress_t* _decomp_ress;
+#endif
     // searches for existing block
     CacheFileItem * findBlock( lUInt16 type, lUInt16 index );
     // alocates block at index, reuses existing one, if possible
@@ -603,6 +618,17 @@ public:
     /// reads block as a stream
     LVStreamRef readStream(lUInt16 type, lUInt16 index);
 
+#if (USE_ZSTD == 1)
+    bool allocCompRess(void);
+    bool freeCompRess(void);
+    bool allocDecompRess(void);
+    bool freeDecompRess(void);
+#endif
+    /// pack data from buf to dstbuf
+    bool ldomPack( const lUInt8 * buf, size_t bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize );
+    /// unpack data from compbuf to dstbuf
+    bool ldomUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize );
+
     /// sets dirty flag value, returns true if value is changed
     bool setDirtyFlag( bool dirty );
     /// sets DOM version value, returns true if value is changed
@@ -628,6 +654,9 @@ public:
 // create uninitialized cache file, call open or create to initialize
 CacheFile::CacheFile(lUInt32 domVersion)
 : _sectorSize( CACHE_FILE_SECTOR_SIZE ), _size(0), _indexChanged(false), _dirty(true), _domVersion(domVersion), _map(1024), _cachePath(lString32::empty_str)
+#if (USE_ZSTD == 1)
+    , _comp_ress(nullptr), _decomp_ress(nullptr)
+#endif
 {
 }
 
@@ -639,6 +668,10 @@ CacheFile::~CacheFile()
         //CRTimerUtil infinite;
         //flush( true, infinite );
     }
+#if (USE_ZSTD == 1)
+    freeCompRess();
+    freeDecompRess();
+#endif
 }
 
 /// sets dirty flag value, returns true if value is changed
@@ -1234,6 +1267,304 @@ bool CacheFile::create( LVStreamRef stream )
     return true;
 }
 
+#if (USE_ZSTD == 1)
+bool CacheFile::allocCompRess(void)
+{
+    // printf("CacheFile::allocCompRess\n");
+    _comp_ress = new zstd_comp_ress_t;
+    _comp_ress->buffOut = nullptr;
+    _comp_ress->cctx = nullptr;
+
+    _comp_ress->buffOutSize = ZSTD_CStreamOutSize();
+    _comp_ress->buffOut = malloc(_comp_ress->buffOutSize);
+    if (!_comp_ress->buffOut) {
+        return false;
+    }
+    _comp_ress->cctx = ZSTD_createCCtx();
+    if (_comp_ress->cctx == nullptr) {
+        return false;
+    }
+
+    // Parameters are sticky
+    // NOTE: ZSTD_CLEVEL_DEFAULT is currently 3, sane range is 1-19
+    ZSTD_CCtx_setParameter(_comp_ress->cctx, ZSTD_c_compressionLevel, ZSTD_CLEVEL_DEFAULT);
+    // This would be redundant with CRe's own calcHash, AFAICT?
+    //ZSTD_CCtx_setParameter(_comp_ress->cctx, ZSTD_c_checksumFlag, 1);
+
+    // Threading? (Requires libzstd built w/ threading support)
+    // NOTE: Since we always use ZSTD_e_end, which basically defers to ZSTD_compress2(), this will *not* make it async,
+    //       it'll still block.
+    //ZSTD_CCtx_setParameter(_comp_ress->cctx, ZSTD_c_nbWorkers, 4);
+
+    return true;
+}
+
+bool CacheFile::freeCompRess(void)
+{
+    // printf("CacheFile::freeCompRess\n");
+    if (_comp_ress) {
+        ZSTD_freeCCtx(_comp_ress->cctx);
+        _comp_ress->cctx = nullptr;
+        free(_comp_ress->buffOut);
+        _comp_ress->buffOut = nullptr;
+        delete _comp_ress;
+        _comp_ress = nullptr;
+
+        return true;
+    }
+
+    return false;
+}
+
+/// pack data from buf to dstbuf
+bool CacheFile::ldomPack( const lUInt8 * buf, size_t bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize )
+{
+    // printf("ldomPack() <- %p (%zu)\n", buf, bufsize);
+
+    // Lazy init our ressources, and keep 'em around
+    if (!_comp_ress) {
+        if(!allocCompRess()) {
+            CRLog::error("ldomPack() failed to allocate ressources");
+            return false;
+        }
+    }
+
+    // c.f., ZSTD's examples/streaming_compression.c
+    // NOTE: We could probably gain much by training zstd and using a dictionary, here ;).
+    size_t const buffOutSize = _comp_ress->buffOutSize;
+    void*  const buffOut = _comp_ress->buffOut;
+    ZSTD_CCtx* const cctx = _comp_ress->cctx;
+
+    // Reset the context
+    size_t const err = ZSTD_CCtx_reset(cctx, ZSTD_reset_session_only);
+    if (ZSTD_isError(err)) {
+        CRLog::error("ZSTD_CCtx_reset() error: %s", ZSTD_getErrorName(err));
+        return false;
+    }
+
+    // Tell the compressor just how much data we need to compress
+    ZSTD_CCtx_setPledgedSrcSize(cctx, bufsize);
+
+    // Debug: compare current buffOutSize against the worst-case
+    // printf("ZSTD_compressBound(): %zu\n", ZSTD_compressBound(bufsize));
+
+    size_t compressed_size = 0;
+    lUInt8 *compressed_buf = NULL;
+
+    ZSTD_EndDirective const mode = ZSTD_e_end;
+    ZSTD_inBuffer input = { buf, bufsize, 0 };
+    int finished = 0;
+    do {
+        ZSTD_outBuffer output = { buffOut, buffOutSize, 0 };
+        size_t const remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
+        if (ZSTD_isError(remaining)) {
+            CRLog::error("ZSTD_compressStream2() error: %s (%zu -> %zu)", ZSTD_getErrorName(remaining), bufsize, compressed_size);
+            if (compressed_buf) {
+                free(compressed_buf);
+            }
+            return false;
+        }
+
+        compressed_buf = cr_realloc(compressed_buf, compressed_size + output.pos);
+        memcpy(compressed_buf + compressed_size, buffOut, output.pos);
+        compressed_size += output.pos;
+
+        finished = (remaining == 0);
+        // printf("ldomPack(): finished? %d (current chunk: %zu/%zu; total in: %zu; total out: %zu)\n", finished, output.pos, output.size, bufsize, compressed_size);
+    } while (!finished);
+
+    dstsize = compressed_size;
+    dstbuf = compressed_buf;
+    // printf("ldomPack() done: %zu -> %zu\n", bufsize, compressed_size);
+    return true;
+}
+
+bool CacheFile::allocDecompRess(void)
+{
+    // printf("CacheFile::allocDecompRess\n");
+    _decomp_ress = new zstd_decomp_ress_t;
+    _decomp_ress->buffOut = nullptr;
+    _decomp_ress->dctx = nullptr;
+
+    _decomp_ress->buffOutSize = ZSTD_DStreamOutSize();
+    _decomp_ress->buffOut = malloc(_decomp_ress->buffOutSize);
+    if (!_decomp_ress->buffOut) {
+        return false;
+    }
+    _decomp_ress->dctx = ZSTD_createDCtx();
+    if (_decomp_ress->dctx == nullptr) {
+        return false;
+    }
+
+    return true;
+}
+
+bool CacheFile::freeDecompRess(void)
+{
+    // printf("CacheFile::freeDecompRess\n");
+    if (_decomp_ress) {
+        ZSTD_freeDCtx(_decomp_ress->dctx);
+        _decomp_ress->dctx = nullptr;
+        free(_decomp_ress->buffOut);
+        _decomp_ress->buffOut = nullptr;
+        delete _decomp_ress;
+        _decomp_ress = nullptr;
+
+        return true;
+    }
+
+    return false;
+}
+
+/// unpack data from compbuf to dstbuf
+bool CacheFile::ldomUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  )
+{
+    // printf("ldomUnpack() <- %p (%zu)\n", compbuf, compsize);
+
+    // Lazy init our ressources, and keep 'em around
+    if (!_decomp_ress) {
+        if(!allocDecompRess()) {
+            CRLog::error("ldomUnpack() failed to allocate ressources");
+            return false;
+        }
+    }
+
+    // c.f., ZSTD's examples/streaming_decompression.c
+    size_t const buffOutSize = _decomp_ress->buffOutSize;
+    void*  const buffOut = _decomp_ress->buffOut;
+    ZSTD_DCtx* const dctx = _decomp_ress->dctx;
+
+    // Reset the context
+    size_t const err = ZSTD_DCtx_reset(dctx, ZSTD_reset_session_only);
+    if (ZSTD_isError(err)) {
+        CRLog::error("ZSTD_DCtx_reset() error: %s", ZSTD_getErrorName(err));
+        return false;
+    }
+
+    size_t uncompressed_size = 0;
+    lUInt8 *uncompressed_buf = NULL;
+
+    size_t lastRet = 0;
+    ZSTD_inBuffer input = { compbuf, compsize, 0 };
+    while (input.pos < input.size) {
+        ZSTD_outBuffer output = { buffOut, buffOutSize, 0 };
+        size_t const ret = ZSTD_decompressStream(dctx, &output , &input);
+        if (ZSTD_isError(ret)) {
+            CRLog::error("ZSTD_decompressStream() error: %s (%zu -> %zu)", ZSTD_getErrorName(ret), compsize, uncompressed_size);
+            if (uncompressed_buf) {
+                free(uncompressed_buf);
+            }
+            return false;
+        }
+
+        uncompressed_buf = cr_realloc(uncompressed_buf, uncompressed_size + output.pos);
+        memcpy(uncompressed_buf + uncompressed_size, buffOut, output.pos);
+        uncompressed_size += output.pos;
+
+        lastRet = ret;
+        // printf("ldomUnpack(): ret: %zu (current chunk: %zu/%zu)\n", ret, output.pos, output.size);
+    }
+
+    if (lastRet != 0) {
+        CRLog::error("ldomUnpack(): EOF before end of stream: %zu", lastRet);
+        if (uncompressed_buf) {
+            free(uncompressed_buf);
+        }
+        return false;
+    }
+
+    dstsize = uncompressed_size;
+    dstbuf = uncompressed_buf;
+    // printf("ldomUnpack() done: %zu -> %zu\n", compsize, uncompressed_size);
+    return true;
+}
+#else
+/// pack data from buf to dstbuf
+bool CacheFile::ldomPack( const lUInt8 * buf, size_t bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize )
+{
+    lUInt8 tmp[PACK_BUF_SIZE]; // 64K buffer for compressed data
+    int ret;
+    z_stream z;
+    z.zalloc = Z_NULL;
+    z.zfree = Z_NULL;
+    z.opaque = Z_NULL;
+    ret = deflateInit( &z, DOC_DATA_COMPRESSION_LEVEL );
+    if ( ret != Z_OK )
+        return false;
+    z.avail_in = bufsize;
+    z.next_in = (unsigned char *)buf;
+    int compressed_size = 0;
+    lUInt8 *compressed_buf = NULL;
+    while (true) {
+        z.avail_out = PACK_BUF_SIZE;
+        z.next_out = tmp;
+        ret = deflate( &z, Z_FINISH );
+        if (ret == Z_STREAM_ERROR) { // some error occured while packing
+            deflateEnd(&z);
+            if (compressed_buf)
+                free(compressed_buf);
+            // printf("deflate() error: %d (%d > %d)\n", ret, bufsize, compressed_size);
+            return false;
+        }
+        int have = PACK_BUF_SIZE - z.avail_out;
+        compressed_buf = cr_realloc(compressed_buf, compressed_size + have);
+        memcpy(compressed_buf + compressed_size, tmp, have );
+        compressed_size += have;
+        if (z.avail_out != 0) // buffer not fully filled = deflate is done
+            break;
+        // printf("deflate() additional call needed (%d > %d)\n", bufsize, compressed_size);
+    }
+    deflateEnd(&z);
+    dstsize = compressed_size;
+    dstbuf = compressed_buf;
+    // printf("deflate() done: %d > %d\n", bufsize, compressed_size);
+    return true;
+}
+
+/// unpack data from compbuf to dstbuf
+bool CacheFile::ldomUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  )
+{
+    lUInt8 tmp[UNPACK_BUF_SIZE]; // 256K buffer for uncompressed data
+    int ret;
+    z_stream z = { 0 };
+    z.zalloc = Z_NULL;
+    z.zfree = Z_NULL;
+    z.opaque = Z_NULL;
+    ret = inflateInit( &z );
+    if ( ret != Z_OK )
+        return false;
+    z.avail_in = compsize;
+    z.next_in = (unsigned char *)compbuf;
+    lUInt32 uncompressed_size = 0;
+    lUInt8 *uncompressed_buf = NULL;
+    while (true) {
+        z.avail_out = UNPACK_BUF_SIZE;
+        z.next_out = tmp;
+        ret = inflate( &z, Z_SYNC_FLUSH );
+        if (ret != Z_OK && ret != Z_STREAM_END) { // some error occured while unpacking
+            inflateEnd(&z);
+            if (uncompressed_buf)
+                free(uncompressed_buf);
+            // printf("inflate() error: %d (%d > %d)\n", ret, compsize, uncompressed_size);
+            return false;
+        }
+        lUInt32 have = UNPACK_BUF_SIZE - z.avail_out;
+        uncompressed_buf = cr_realloc(uncompressed_buf, uncompressed_size + have);
+        memcpy(uncompressed_buf + uncompressed_size, tmp, have );
+        uncompressed_size += have;
+        if (ret == Z_STREAM_END) {
+            break;
+        }
+        // printf("inflate() additional call needed (%d > %d)\n", compsize, uncompressed_size);
+    }
+    inflateEnd(&z);
+    dstsize = uncompressed_size;
+    dstbuf = uncompressed_buf;
+    // printf("inflate() done %d > %d\n", compsize, uncompressed_size);
+    return true;
+}
+#endif
+
 // BLOB storage
 
 class ldomBlobItem {
@@ -1284,7 +1615,7 @@ ldomBlobCache::ldomBlobCache() : _cacheFile(NULL), _changed(false)
 bool ldomBlobCache::loadIndex()
 {
     bool res;
-    SerialBuf buf(0,true);
+    SerialBuf buf(0, true);
     res = _cacheFile->read(CBT_BLOB_INDEX, buf);
     if (!res) {
         _list.clear();
@@ -1312,7 +1643,7 @@ bool ldomBlobCache::loadIndex()
 bool ldomBlobCache::saveIndex()
 {
     bool res;
-    SerialBuf buf(0,true);
+    SerialBuf buf(0, true);
     buf.putMagic(BLOB_INDEX_MAGIC);
     lUInt32 len = _list.length();
     buf << len;
@@ -2214,11 +2545,13 @@ bool tinyNodeCollection::createCacheFile()
     lString32 cache_path;
     LVStreamRef map = ldomDocCache::createNew( fname, crc, getPersistenceFlags(), sz, cache_path );
     if ( map.isNull() ) {
+        CRLog::error("Cannot swap: failed to allocate cache map");
         delete f;
         return false;
     }
 
     if ( !f->create( map ) ) {
+        CRLog::error("Cannot swap: failed to create map file");
         delete f;
         return false;
     }
@@ -3260,92 +3593,6 @@ lString8 ldomTextStorageChunk::getText( int offset )
 }
 #endif
 
-
-/// pack data from _buf to _compbuf
-bool ldomPack( const lUInt8 * buf, int bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize )
-{
-    lUInt8 tmp[PACK_BUF_SIZE]; // 64K buffer for compressed data
-    int ret;
-    z_stream z;
-    z.zalloc = Z_NULL;
-    z.zfree = Z_NULL;
-    z.opaque = Z_NULL;
-    ret = deflateInit( &z, DOC_DATA_COMPRESSION_LEVEL );
-    if ( ret != Z_OK )
-        return false;
-    z.avail_in = bufsize;
-    z.next_in = (unsigned char *)buf;
-    int compressed_size = 0;
-    lUInt8 *compressed_buf = NULL;
-    while (true) {
-        z.avail_out = PACK_BUF_SIZE;
-        z.next_out = tmp;
-        ret = deflate( &z, Z_FINISH );
-        if (ret == Z_STREAM_ERROR) { // some error occured while packing
-            deflateEnd(&z);
-            if (compressed_buf)
-                free(compressed_buf);
-            // printf("deflate() error: %d (%d > %d)\n", ret, bufsize, compressed_size);
-            return false;
-        }
-        int have = PACK_BUF_SIZE - z.avail_out;
-        compressed_buf = cr_realloc(compressed_buf, compressed_size + have);
-        memcpy(compressed_buf + compressed_size, tmp, have );
-        compressed_size += have;
-        if (z.avail_out != 0) // buffer not fully filled = deflate is done
-            break;
-        // printf("deflate() additional call needed (%d > %d)\n", bufsize, compressed_size);
-    }
-    deflateEnd(&z);
-    dstsize = compressed_size;
-    dstbuf = compressed_buf;
-    // printf("deflate() done: %d > %d\n", bufsize, compressed_size);
-    return true;
-}
-
-/// unpack data from _compbuf to _buf
-bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  )
-{
-    lUInt8 tmp[UNPACK_BUF_SIZE]; // 256K buffer for uncompressed data
-    int ret;
-    z_stream z = { 0 };
-    z.zalloc = Z_NULL;
-    z.zfree = Z_NULL;
-    z.opaque = Z_NULL;
-    ret = inflateInit( &z );
-    if ( ret != Z_OK )
-        return false;
-    z.avail_in = compsize;
-    z.next_in = (unsigned char *)compbuf;
-    lUInt32 uncompressed_size = 0;
-    lUInt8 *uncompressed_buf = NULL;
-    while (true) {
-        z.avail_out = UNPACK_BUF_SIZE;
-        z.next_out = tmp;
-        ret = inflate( &z, Z_SYNC_FLUSH );
-        if (ret != Z_OK && ret != Z_STREAM_END) { // some error occured while unpacking
-            inflateEnd(&z);
-            if (uncompressed_buf)
-                free(uncompressed_buf);
-            // printf("inflate() error: %d (%d > %d)\n", ret, compsize, uncompressed_size);
-            return false;
-        }
-        lUInt32 have = UNPACK_BUF_SIZE - z.avail_out;
-        uncompressed_buf = cr_realloc(uncompressed_buf, uncompressed_size + have);
-        memcpy(uncompressed_buf + uncompressed_size, tmp, have );
-        uncompressed_size += have;
-        if (ret == Z_STREAM_END) {
-            break;
-        }
-        // printf("inflate() additional call needed (%d > %d)\n", compsize, uncompressed_size);
-    }
-    inflateEnd(&z);
-    dstsize = uncompressed_size;
-    dstbuf = uncompressed_buf;
-    // printf("inflate() done %d > %d\n", compsize, uncompressed_size);
-    return true;
-}
-
 void ldomTextStorageChunk::setunpacked( const lUInt8 * buf, int bufsize )
 {
     if ( _buf ) {
@@ -3373,7 +3620,7 @@ void ldomTextStorageChunk::ensureUnpacked()
                 CRTimerUtil timer;
                 timer.infinite();
                 _manager->_cache->flush(false,timer);
-                CRLog::warn( "restoreFromCache() failed for chunk %c%d,will try after flush", _type, _index);
+                CRLog::warn( "restoreFromCache() failed for chunk %c%d, will try after flush", _type, _index);
             if ( !restoreFromCache() ) {
                 CRLog::error( "restoreFromCache() failed for chunk %c%d", _type, _index);
                 crFatalError( 111, "restoreFromCache() failed for chunk");
@@ -14543,6 +14790,12 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback, L
     CRLog::trace("ldomDocument::loadCacheFileContent() - completed successfully");
     if (progressCallback) progressCallback->OnLoadFileProgress(95);
 
+#if (USE_ZSTD == 1)
+    // NOTE: And now might have been a good place to release ZSTD uncompression resources...
+    //       Except not quite... There are roughly four more bursts of ldomUnpack via getElem left...
+    //_cacheFile->freeDecompRess();
+#endif
+
     return true;
 }
 
@@ -14791,6 +15044,12 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime, LVDo
     }
     CRLog::trace("ldomDocument::saveChanges() - done");
     if (progressCallback) progressCallback->OnSaveCacheFileEnd();
+
+#if (USE_ZSTD == 1)
+    // And now should be a good place to release ZSTD compression resources...
+    _cacheFile->freeCompRess();
+#endif
+
     return CR_DONE;
 }
 
@@ -15141,11 +15400,13 @@ ContinuousOperationResult ldomDocument::swapToCache( CRTimerUtil & maxTime )
 /// saves recent changes to mapped file
 ContinuousOperationResult ldomDocument::updateMap(CRTimerUtil & maxTime, LVDocViewCallback * progressCallback)
 {
-    if ( !_cacheFile || !_mapped )
+    if ( !_cacheFile || !_mapped ) {
+        CRLog::info("No cache file or not mapped");
         return CR_DONE;
+    }
 
     if ( _cacheFileLeaveAsDirty ) {
-        CRLog::info("requested to set cache file as dirty without any update");
+        CRLog::info("Requested to set cache file as dirty without any update");
         _cacheFile->setDirtyFlag(true);
         return CR_DONE;
     }
@@ -15157,8 +15418,7 @@ ContinuousOperationResult ldomDocument::updateMap(CRTimerUtil & maxTime, LVDocVi
     CRLog::info("Updating cache file");
 
     ContinuousOperationResult res = saveChanges(maxTime, progressCallback); // NOLINT: Call to virtual function during destruction
-    if ( res==CR_ERROR )
-    {
+    if ( res==CR_ERROR ) {
         CRLog::error("Error while saving changes to cache file");
         return CR_ERROR;
     }

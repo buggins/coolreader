@@ -291,7 +291,7 @@ public:
     /// return true if some chunks have been allocated
     bool hasChunks() { return _chunks.length() > 0; }
 #endif
-    
+
     /// get or allocate space for rect data item
     void getRendRectData( lUInt32 elemDataIndex, lvdomElementFormatRec * dst );
     /// set rect data item
@@ -1376,7 +1376,7 @@ class ldomDocument;
 
 /**
  * @brief XPointer/XPath object with reference counting.
- * 
+ *
  */
 class ldomXPointer
 {
@@ -2479,7 +2479,7 @@ public:
 #if BUILD_LITE!=1
     /// return selections collection
     ldomXRangeList & getSelections() { return _selections; }
-    
+
     /// get full document height
     int getFullHeight();
     /// returns page height setting

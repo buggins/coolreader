@@ -4,6 +4,12 @@
 #include "../include/crsetup.h"
 #include "../include/lvtinydom.h"
 
+// Same as lvtinydom...
+#if (USE_ZSTD == 1)
+#include "zlib.h"
+#define UNPACK_BUF_SIZE 0x40000
+#endif
+
 // creates PDB decoder stream for stream
 //LVStreamRef LVOpenPDBStream( LVStreamRef srcstream, int &format );
 

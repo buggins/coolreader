@@ -886,6 +886,8 @@ TextLangCfg::TextLangCfg( lString32 lang_tag ) {
 }
 
 TextLangCfg::~TextLangCfg() {
+    // NOTE: _hyph_method may be dangling now, not *quite* sure what it points to,
+    //       and how it relates to HyphMan::uninit & TextLangMan::uninit
 }
 
 void TextLangCfg::resetCounters() {
