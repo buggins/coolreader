@@ -54,9 +54,10 @@ public interface RemoteAccess {
 	 * Fetch list of child item in specified path.
 	 *
 	 * @param filePath         Full file path to folder content to get.
+	 * @param useCache         specifies whether to use the directory contents cache.
 	 * @param completeListener
 	 */
-	void list(String filePath, OnOperationCompleteListener<FileMetadataList> completeListener);
+	void list(String filePath, boolean useCache, OnOperationCompleteListener<FileMetadataList> completeListener);
 
 	/**
 	 * Create directory on remove service.
@@ -78,9 +79,10 @@ public interface RemoteAccess {
 	 * Retrieve information about file or directory on remote service.
 	 *
 	 * @param filePath         full file path to file or directory.
+	 * @param useCache         specifies whether to use the directory contents cache.
 	 * @param completeListener
 	 */
-	void stat(String filePath, OnOperationCompleteListener<FileMetadata> completeListener);
+	void stat(String filePath, boolean useCache, OnOperationCompleteListener<FileMetadata> completeListener);
 
 	/**
 	 * Read file content from file on remote service.
