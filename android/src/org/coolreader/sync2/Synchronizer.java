@@ -1835,6 +1835,14 @@ public class Synchronizer {
 				//m_coolReader.getDB().findByFingerprint(2, finalFileInfo.filename, finalFileInfo.crc32,
 				m_coolReader.getDB().findByPatterns(2, finalFileInfo.authors, finalFileInfo.title, finalFileInfo.series, finalFileInfo.filename,
 						fileList -> {
+							// Check this files for existence
+							ArrayList<FileInfo> newList = new ArrayList<FileInfo>();
+							for (FileInfo fi : fileList) {
+								if (fi.exists())
+									newList.add(fi);
+							}
+							if (fileList.size() != newList.size())
+								fileList = newList;
 							if (0 == fileList.size()) {
 								// this book not found in db
 								// find in filesystem?
@@ -1856,7 +1864,6 @@ public class Synchronizer {
 									m_onStatusListener.onBookmarksLoaded(bookInfo, (m_flags & SYNC_FLAG_FORCE) != 0);
 							}
 						});
-
 			}));
 		}
 	}
@@ -1867,6 +1874,14 @@ public class Synchronizer {
 			//m_coolReader.getDB().findByFingerprint(2, fileName, crc32,
 			m_coolReader.getDB().findByPatterns(2, fileInfo.authors, fileInfo.title, fileInfo.series, fileInfo.filename,
 					fileList -> {
+						// Check this files for existence
+						ArrayList<FileInfo> newList = new ArrayList<FileInfo>();
+						for (FileInfo fi : fileList) {
+							if (fi.exists())
+								newList.add(fi);
+						}
+						if (fileList.size() != newList.size())
+							fileList = newList;
 						if (0 == fileList.size()) {
 							// this book not found in db
 							// find in filesystem?
