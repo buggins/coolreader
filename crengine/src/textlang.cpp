@@ -55,6 +55,8 @@ static struct {
     { "is",    "Icelandic",     "Icelandic.pattern",     2, 2 },
     { "ga",    "Irish",         "Irish.pattern",         2, 3 },
     { "it",    "Italian",       "Italian.pattern",       2, 2 },
+    { "la-lit","Latin_liturgical","Latin_liturgical.pattern",2, 2 },
+    { "la",    "Latin",         "Latin.pattern",         2, 2 },
     { "lv",    "Latvian",       "Latvian.pattern",       2, 2 },
     { "lt",    "Lithuanian",    "Lithuanian.pattern",    2, 2 },
     { "mk",    "Macedonian",    "Macedonian.pattern",    2, 2 },
@@ -408,6 +410,8 @@ static quotes_spec _quotes_spec_table[] = {
     { "ksb",      U"\x201c", U"\x201d", U"\x2018", U"\x2019" }, /* “ ” ‘ ’ */
     { "ksf",      U"\x00ab", U"\x00bb", U"\x2018", U"\x2019" }, /* « » ‘ ’ */
     { "ky",       U"\x00ab", U"\x00bb", U"\x201e", U"\x201c" }, /* « » „ “ */
+    { "la-lit",   U"\x00ab", U"\x00bb", U"\x201c", U"\x201d" }, /* « » “ ” */  /* "la" just as "it" */
+    { "la",       U"\x00ab", U"\x00bb", U"\x201c", U"\x201d" }, /* « » “ ” */  /* "la" just as "it" */
     { "lag",      U"\x201d", U"\x201d", U"\x2019", U"\x2019" }, /* ” ” ’ ’ */
     { "lb",       U"\x201e", U"\x201c", U"\x201a", U"\x2018" }, /* „ “ ‚ ‘ */
     { "lg",       U"\x201c", U"\x201d", U"\x2018", U"\x2019" }, /* “ ” ‘ ’ */

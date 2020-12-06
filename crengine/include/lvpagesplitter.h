@@ -223,20 +223,25 @@ public:
     lInt16 height; /// height of page, does not include footnotes
     lInt8 flags;   /// RN_PAGE_*
     CompactArray<LVPageFootNoteInfo, 1, 4> footnotes; /// footnote fragment list for page
+    lUInt16 flow;
     LVRendPageInfo(int pageStart, lUInt16 pageHeight, int pageIndex)
-    : start(pageStart), index(pageIndex), height(pageHeight), flags(RN_PAGE_TYPE_NORMAL) {}
+    : start(pageStart), index(pageIndex), height(pageHeight), flags(RN_PAGE_TYPE_NORMAL), flow(0) {}
     LVRendPageInfo(lUInt16 coverHeight)
-    : start(0), index(0), height(coverHeight), flags(RN_PAGE_TYPE_COVER) {}
+    : start(0), index(0), height(coverHeight), flags(RN_PAGE_TYPE_COVER), flow(0) {}
     LVRendPageInfo() 
-    : start(0), index(0), height(0), flags(RN_PAGE_TYPE_NORMAL) { }
+    : start(0), index(0), height(0), flags(RN_PAGE_TYPE_NORMAL), flow(0) {}
     bool serialize( SerialBuf & buf );
     bool deserialize( SerialBuf & buf );
 };
 
 class LVRendPageList : public LVPtrVector<LVRendPageInfo>
 {
+    bool has_nonlinear_flows;
 public:
+    LVRendPageList() : has_nonlinear_flows(false) {}
     int FindNearestPage( int y, int direction );
+    void setHasNonLinearFlows() { has_nonlinear_flows=true; }
+    bool hasNonLinearFlows() { return has_nonlinear_flows; }
     bool serialize( SerialBuf & buf );
     bool deserialize( SerialBuf & buf );
 };
@@ -258,6 +263,7 @@ class LVRendLineInfo {
     int height;             // 4 bytes (we may get extra tall lines with tables TR)
 public:
     lUInt16 flags;          // 2 bytes
+    lUInt16 flow;           // 2 bytes (should be enough)
     int getSplitBefore() const { return (flags>>RN_SPLIT_BEFORE)&7; }
     int getSplitAfter() const { return (flags>>RN_SPLIT_AFTER)&7; }
 /*
@@ -286,9 +292,13 @@ public:
     inline int getHeight() const { return height; }
     inline lUInt16 getFlags() const { return flags; }
 
-    LVRendLineInfo() : links(NULL), start(-1), height(0), flags(0) { }
+    LVRendLineInfo() : links(NULL), start(-1), height(0), flags(0), flow(0) { }
     LVRendLineInfo( int line_start, int line_end, lUInt16 line_flags )
-    : links(NULL), start(line_start), height(line_end-line_start), flags(line_flags)
+    : links(NULL), start(line_start), height(line_end-line_start), flags(line_flags), flow(0)
+    {
+    }
+    LVRendLineInfo( int line_start, int line_end, lUInt16 line_flags, int flow )
+    : links(NULL), start(line_start), height(line_end-line_start), flags(line_flags), flow(flow)
     {
     }
     LVFootNoteList * getLinks() { return links; }
@@ -365,6 +375,10 @@ class LVRendPageContext
     bool gather_lines;
     // Links gathered when !gather_lines
     lString32Collection link_ids;
+    // current flow being processed
+    int current_flow;
+    // maximum flow encountered so far
+    int max_flow;
 
     LVHashTable<lString32, LVFootNoteRef> footNotes;
 
@@ -391,6 +405,8 @@ public:
     bool updateRenderProgress( int numFinalBlocksRendered );
 
     bool wantsLines() { return gather_lines; }
+
+    void newFlow( bool nonlinear );
 
     /// Get the number of links in the current line links list, or
     // in link_ids when !gather_lines

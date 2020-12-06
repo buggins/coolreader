@@ -85,10 +85,10 @@ extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.12.73"
+#define CACHE_FILE_FORMAT_VERSION "3.12.74"
 
 /// increment following value to force re-formatting of old book after load
-#define FORMATTING_VERSION_ID 0x0025
+#define FORMATTING_VERSION_ID 0x0026
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -4217,7 +4217,9 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
                 *stream << " ";
                 if ( nsName.length() > 0 )
                     *stream << nsName << ":";
-                *stream << attrName << "=\"" << attrValue << "\"";
+                *stream << attrName;
+                if ( !attrValue.empty() ) // don't show ="" if empty
+                    *stream << "=\"" << attrValue << "\"";
                 if ( attrName == "StyleSheet" ) { // gather linked css files
                     lString32 cssFile = node->getDocument()->getAttrValue(attr->index);
                     if (!cssFiles.contains(cssFile))
@@ -5092,6 +5094,14 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
                 // Add FB2 2nd++ BODYs' titles (footnotes and endnotes) in the TOC
                 // (but not their own children that are <section>)
                 _isSection = true; // this is just to have updateTocItem() called
+                // Also add the "NonLinear" attribute so these other BODYs are flagged
+                // as non-linear and can be hidden by frontend code that handles this
+                // (this is actually suggested by the FB2 specs: "... multiple
+                // bodies are used for additional information, like footnotes,
+                // that do not appear in the main book flow. The first body is
+                // presented to the reader by default, and content in the other
+                // bodies should be accessible by hyperlinks.")
+                addAttribute( 0, attr_NonLinear, U"" );
             }
         }
     }
@@ -6643,7 +6653,7 @@ void ldomNode::initNodeRendMethod()
     if ( d == css_d_ruby && BLOCK_RENDERING(rend_flags, ENHANCED) ) {
         // Ruby input can be quite loose and have various tag strategies (mono/group,
         // interleaved/tabular, double sided). Moreover, the specs have evolved between
-        // 2001 and 2020 (<rbc> tag no more mentionned in 2020; <rtc> being just another
+        // 2001 and 2020 (<rbc> tag no more mentioned in 2020; <rtc> being just another
         // semantic container for Mozilla, and can be preceded by a bunch of <rt> which
         // are pronunciation containers, that don't have to be in an <rtc>...)
         // Moreover, various samples on the following pages don't close tags, and expect
@@ -12712,6 +12722,8 @@ lString32 ldomDocumentFragmentWriter::convertHref( lString32 href )
 {
     if ( href.pos("://")>=0 )
         return href; // fully qualified href: no conversion
+    if ( href.length() > 10 && href[4] == ':' && href.startsWith(lString32("data:image/")) )
+        return href; // base64 encoded image (<img src="data:image/png;base64,iVBORw0KG...>): no conversion
 
     //CRLog::trace("convertHref(%s, codeBase=%s, filePathName=%s)", LCSTR(href), LCSTR(codeBase), LCSTR(filePathName));
 
@@ -12887,6 +12899,8 @@ ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar32 * nsname, const 
                 parent->OnAttribute(U"", U"dir", htmlDir.c_str() );
             if ( !htmlLang.empty() ) // add attribute <DocFragment lang="ar" from <html lang="ar"> tag
                 parent->OnAttribute(U"", U"lang", htmlLang.c_str() );
+            if (this->m_nonlinear)
+                parent->OnAttribute(U"", U"NonLinear", U"" );
 
             parent->OnTagBody(); // inside <DocFragment>
             if ( !headStyleText.empty() || stylesheetLinks.length() > 0 ) {
@@ -12969,7 +12983,7 @@ void ldomDocumentFragmentWriter::OnTagBody()
 
 /////////////////////////////////////////////////////////////////
 /// ldomDocumentWriterFilter
-// Used to parse loosy HTML in formats: HTML, CHM, PDB(html)
+// Used to parse lousy HTML in formats: HTML, CHM, PDB(html)
 // For all these document formats, it is fed by HTMLParser that does
 // convert to lowercase the tag names and attributes.
 // ldomDocumentWriterFilter does then deal with auto-closing unbalanced
@@ -14929,7 +14943,7 @@ lUInt32 tinyNodeCollection::calcStyleHash(bool already_rendered)
     // _maxAddedLetterSpacingPercent does not need to be accounted, as, working
     // only on a laid out line, it does not need a re-rendering, but just
     // a _renderedBlockCache.clear() to reformat paragraphs and have the
-    // word re-positionned (the paragraphs width & height do not change)
+    // word re-positioned (the paragraphs width & height do not change)
 
     // Hanging punctuation does not need to trigger a re-render, as
     // it's now ensured by alignLine() and won't change paragraphs height.

@@ -60,10 +60,12 @@ extern const int gDOMVersionCurrent;
 #define DOC_FLAG_ENABLE_INTERNAL_STYLES 1
 /// docFlag mask, enable paperbook-like footnotes
 #define DOC_FLAG_ENABLE_FOOTNOTES       2
-/// docFlag mask, enable paperbook-like footnotes
+/// docFlag mask, enable preformatted text
 #define DOC_FLAG_PREFORMATTED_TEXT      4
 /// docFlag mask, enable document embedded fonts (EPUB)
 #define DOC_FLAG_ENABLE_DOC_FONTS       8
+/// docFlag mask, force page breaks on non-linear fragments (EPUB)
+#define DOC_FLAG_NONLINEAR_PAGEBREAK   16
 /// default docFlag set
 #define DOC_FLAG_DEFAULTS (DOC_FLAG_ENABLE_INTERNAL_STYLES|DOC_FLAG_ENABLE_FOOTNOTES|DOC_FLAG_ENABLE_DOC_FONTS)
 
@@ -2774,6 +2776,8 @@ private:
     lString32 htmlLang;
     bool insideHtmlTag;
 
+    bool m_nonlinear = false;
+
 public:
 
     /// return content of html/head/style element
@@ -2843,6 +2847,8 @@ public:
     virtual bool OnBlob(lString32 name, const lUInt8 * data, int size) { return parent->OnBlob(name, data, size); }
     /// set document property
     virtual void OnDocProperty(const char * name, lString8 value) { parent->OnDocProperty(name, value); }
+    // set non-linear flag
+    virtual void setNonLinearFlag( bool nonlinear ) { m_nonlinear = nonlinear; }
     /// constructor
     ldomDocumentFragmentWriter( LVXMLParserCallback * parentWriter, lString32 baseTagName, lString32 baseTagReplacementName, lString32 fragmentFilePath )
     : parent(parentWriter), baseTag(baseTagName), baseTagReplacement(baseTagReplacementName),

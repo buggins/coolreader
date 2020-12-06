@@ -382,7 +382,7 @@ public:
                         RenderRectAccessor fmt = RenderRectAccessor( item );
                         fmt.setHeight( 15 ); // not squared, so it does not look
                         fmt.setWidth( 10 );  // like a list square bullet
-                        fmt.setX( 0 );       // positionned at top left of its container
+                        fmt.setX( 0 );       // positioned at top left of its container
                         fmt.setY( 0 );       // (which ought to be a proper table element)
                     }
                     break;
@@ -419,7 +419,7 @@ public:
                         }
                         rows.add( row );
                         // What could <tr link="number"> have been in the past ?
-                        // It's not mentionned in any HTML or FB2 spec,
+                        // It's not mentioned in any HTML or FB2 spec,
                         // and row->linkindex is never used.
                         if (row->elem->hasAttribute(LXML_NS_ANY, attr_link)) {
                             lString32 lnk=row->elem->getAttributeValue(attr_link);
@@ -1431,7 +1431,7 @@ public:
         int nb_rows = rows.length();
 
         // We will context.AddLine() for page splitting the elements
-        // (caption, rows) as soon as we meet them and their y-positionnings
+        // (caption, rows) as soon as we meet them and their y-positionings
         // inside the tables are known and won't change.
         // (This would need that rowgroups be dealt with in this flow (and
         // not at the end) if we change the fact that we ignore their
@@ -2099,7 +2099,7 @@ public:
         // relative to its container: RenderRectAccessor X & Y are relative to
         // the parent container top left corner)
         //
-        // As mentionned above, rowgroups' margins and paddings should be
+        // As mentioned above, rowgroups' margins and paddings should be
         // ignored, and their borders are only used with border-collapse,
         // and we collapsed them to the cells when we had to.
         // So, we ignore them here, and DrawDocument() will NOT draw their
@@ -3849,7 +3849,7 @@ int measureBorder(ldomNode *enode,int border) {
         // fmt.setWidth() has not yet been called and fmt.getWidth() would
         // return 0. Later, at drawing time, fmt.getWidth() will return the real
         // width, which could cause rendering of borders over child elements,
-        // as these were positionned with a border=0.)
+        // as these were positioned with a border=0.)
         css_style_ref_t style = enode->getStyle();
         if (border==0){
                 bool hastopBorder = (style->border_style_top >= css_border_solid &&
@@ -3892,7 +3892,7 @@ int measureBorder(ldomNode *enode,int border) {
 }
 
 // Only used by renderBlockElementLegacy()
-//calculate total margin+padding before node,if >0 don't do campulsory page split
+//calculate total margin+padding before node,if >0 don't do compulsory page split
 int pagebreakhelper(ldomNode *enode,int width)
 {
     int flag=css_pb_auto;
@@ -3922,7 +3922,7 @@ int pagebreakhelper(ldomNode *enode,int width)
 //=======================================================================
 // Render block element
 //=======================================================================
-// renderBlockElement() aimed at positionning the node provided: setting
+// renderBlockElement() aimed at positioning the node provided: setting
 // its width and height, and its (x,y) in the coordinates of its parent
 // element's border box (so, including parent's paddings and borders
 // top/left, but not its margins).
@@ -3933,8 +3933,8 @@ int pagebreakhelper(ldomNode *enode,int width)
 // its parent coordinates.
 // So, it just shift coordinates and adjust widths of imbricated block nodes,
 // until it meets a "final" node (a node with text or image content), which
-// will then have been sized and positionned.
-// After the initial rendering, we mostly only care about these positionned
+// will then have been sized and positioned.
+// After the initial rendering, we mostly only care about these positioned
 // final nodes (for text rendering, text selection, text search, links...).
 // We still walk the block nodes when we need absolute coordinates, computed
 // from all the relative shifts of the containing block nodes boxes up to the
@@ -4567,13 +4567,13 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
 // real non-margin content is added.
 // It also forwards lines/spaces to lvpagesplitter's "context", ensuring
 // proper page split flags (and avoiding unwelcome ones).
-// Floats are added to it for positionning along this height
+// Floats are added to it for positioning along this height
 // depending on other floats.
 // It then can provide a "float footprint" to final nodes, so they can
 // lay out their text (and own embedded floats) alongside block floats.
 //
 // Some initial limitations with floats had later found some solutions,
-// which can be enabled by setting some flags. Mentionning them because
+// which can be enabled by setting some flags. Mentioning them because
 // the code might be a bit rooted around these early limitations:
 // - Floats added by a block element are "clear"'ed when leaving
 //   this block: some blank height is added if necessary, so they are
@@ -4816,6 +4816,12 @@ public:
     }
     int getUsableRightOverflow() {
         return usable_overflow_x_max - x_max;
+    }
+    // "sequence" is what elsewhere we've called "flow",
+    // just changing the name here to make it clear that
+    // this is not the "flow" of FlowState
+    void newSequence( int nonlinear ) {
+        context.newFlow( nonlinear ) ;
     }
 
     void setRequestedBaselineType(int baseline_req_type) {
@@ -5155,7 +5161,7 @@ public:
                 vm_target_avoid_pb_inside = avoid_pb_inside;
                 if ( BLOCK_RENDERING(rend_flags, DO_NOT_CLEAR_OWN_FLOATS) && _floats.length()>0 ) {
                     // Reset level of all previous floats as they are
-                    // correctly positionned and should not be moved
+                    // correctly positioned and should not be moved
                     // if this (new) vm_target_node get some margin
                     // and is moved down.
                     resetFloatsLevelToTopLevel();
@@ -5480,14 +5486,14 @@ public:
                     BlockFloat * flt = _floats[i];
                     if ( flt->level > vm_target_level ) {
                         if ( flt->final_pos ) {
-                            // Float already absolutely positionned (block float):
+                            // Float already absolutely positioned (block float):
                             // adjust its relative y to its container's top to
                             // counteract the margin shift
                             RenderRectAccessor fmt( flt->node );
                             fmt.setY( fmt.getY() - margin );
                         }
                         else {
-                            // Float not absolutely positionned (forwarded embedded float):
+                            // Float not absolutely positioned (forwarded embedded float):
                             // update its absolute coordinates as its container will be
                             // moved by this margin, so will its floats.
                             flt->top += margin;
@@ -5752,14 +5758,14 @@ public:
         }
     }
 
-    // Floats positionning helpers. These work in absolute coordinates (relative
+    // Floats positioning helpers. These work in absolute coordinates (relative
     // to flow state initial top)
     // Returns min y for next float
     int getNextFloatMinY(css_clear_t clear) {
         int y = c_y; // current line y
         for (int i=0; i<_floats.length(); i++) {
             BlockFloat * flt = _floats[i];
-            // A later float should never be positionned above an earlier float
+            // A later float should never be positioned above an earlier float
             if ( flt->top > y )
                 y = flt->top;
             if ( clear > css_c_none) {
@@ -5899,9 +5905,9 @@ public:
             in_y_max = fy + height + fmt.getBottomOverflow();
     }
 
-    void addPositionnedFloat( int rel_x, int rel_y, int width, int height, int is_right, ldomNode * node ) {
+    void addPositionedFloat( int rel_x, int rel_y, int width, int height, int is_right, ldomNode * node ) {
         int fx = x_min + rel_x;
-        // Where addPositionnedFloat is used (rendering erm_final), c_y has not
+        // Where addPositionedFloat is used (rendering erm_final), c_y has not
         // yet been updated, so it is still the base for rel_y.
         int fy = c_y + rel_y;
         // These embedded floats are kind of in a sublevel of current level
@@ -5980,7 +5986,7 @@ public:
         int flprint_right_x = right_x;
         int flprint_right_y = top_y;
         // Bottomest top of all our current floats (needed to know the absolute
-        // minimal y at which next left or right float can be positionned)
+        // minimal y at which next left or right float can be positioned)
         int flprint_left_min_y = top_y;
         int flprint_right_min_y = top_y;
         // Extend them to include any part of floats that overlap it.
@@ -6101,7 +6107,7 @@ void BlockFloatFootprint::forwardOverflowingFloat( int x, int y, int w, int h, b
 {
     if ( flow == NULL )
         return;
-    flow->addPositionnedFloat( d_left + x, d_top + y, w, h, r, node );
+    flow->addPositionedFloat( d_left + x, d_top + y, w, h, r, node );
     // Also update used_min_y and used_max_y, so they can be fetched
     // to update erm_final block's top_overflow and bottom_overflow
     // if some floats did overflow
@@ -6313,6 +6319,30 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
     css_style_ref_t style = enode->getStyle();
     lUInt16 nodeElementId = enode->getNodeId();
+
+    // force_pb will force a page break before and after the fragment
+    // this is necessary for non-linear fragments if we want the
+    // possibility of hiding them from the normal paging flow
+    bool force_pb = false;
+    if ( nodeElementId == el_DocFragment) {
+        if ( enode->hasAttribute( attr_NonLinear ) ) {
+            flow->newSequence(true);
+            force_pb = enode->getDocument()->getDocFlag(DOC_FLAG_NONLINEAR_PAGEBREAK);
+        }
+        else {
+            flow->newSequence(false);
+        }
+    }
+    else if ( nodeElementId == el_body ) {
+        // We also set this attribute on 2nd++ BODYs in FB2 documents
+        // (as this attribute is only set on FB2 documents, and all
+        // 2nd++ BODYs get it, no need to check for the doc format and
+        // no need to reset flow sequence when BODY without met.)
+        if ( enode->hasAttribute( attr_NonLinear ) ) {
+            flow->newSequence(true);
+            force_pb = enode->getDocument()->getDocFlag(DOC_FLAG_NONLINEAR_PAGEBREAK);
+        }
+    }
 
     // See if dir= attribute or CSS specified direction
     int direction = flow->getDirection();
@@ -6913,6 +6943,12 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     // Note: some test suites seem to indicate that an inner "break-inside: auto"
     // can override an outer "break-inside: avoid". We don't ensure that.
 
+    // enforce page breaks if needed
+    if (force_pb) {
+        break_before = RN_SPLIT_ALWAYS;
+        break_after = RN_SPLIT_ALWAYS;
+    }
+
     if ( no_margin_collapse ) {
         // Push any earlier margin so it does not get collapsed with this one
         flow->pushVerticalMargin();
@@ -7128,7 +7164,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 // But each child x and y (set by renderBlockElement() below) must
                 // include padding_top and padding_left. So we keep providing these
                 // to renderBlockElement() even if it feels a bit out of place,
-                // notably in the float positionning code. But it works...
+                // notably in the float positioning code. But it works...
 
                 // Update left and right overflows (usable by glyphs) if this node
                 // has some background or borders, to be given below to 'flow'.
@@ -7167,8 +7203,15 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
                 // Enter footnote body only after padding, to get rid of it
                 // and have lean in-page footnotes
-                if ( isFootNoteBody )
+                if ( isFootNoteBody ) {
+                    // If no padding were added, add an explicite 0-padding so that
+                    // any accumulated vertical margin is pushed here, and not
+                    // part of the footnote
+                    if (padding_top==0) {
+                        flow->addContentLine(0, RN_SPLIT_AFTER_AVOID, 0, true);
+                    }
                     flow->getPageContext()->enterFootNote( footnoteId );
+                }
 
                 // recurse all sub-blocks for blocks
                 int cnt = enode->getChildCount();
@@ -7197,7 +7240,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     // todo: if needed, implement float: and clear: inline-start / inline-end
 
                     if ( child->isFloatingBox() ) {
-                        // Block floats are positionned respecting the current collapsed
+                        // Block floats are positioned respecting the current collapsed
                         // margin, without actually globally pushing it, and without
                         // collapsing with it.
                         int flt_vertical_margin = flow->getCurrentVerticalMargin();
@@ -7215,7 +7258,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                         // padding-left/right) for the flow to correctly position inner floats
                         // (but we don't provide padding_top, as if non-zero, we already
                         // flow->addContentLine() it above, so the flow is already aware of it):
-                        // flow->addFloat() will additionally shift its positionning by the
+                        // flow->addFloat() will additionally shift its positioning by the
                         // child x/y set by this renderBlockElement().
                         // We provide 0,0 as the usable left/right overflows, so no glyph/hanging
                         // punctuation will leak outside the floatBox - but the floatBox contains
@@ -7602,8 +7645,15 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
                 // Enter footnote body after padding, to get rid of it
                 // and have lean in-page footnotes
-                if ( isFootNoteBody )
+                if ( isFootNoteBody ) {
+                    // If no padding were added, add an explicite 0-padding so that
+                    // any accumulated vertical margin is pushed here, and not
+                    // part of the footnote
+                    if (padding_top==0) {
+                        flow->addContentLine(0, RN_SPLIT_AFTER_AVOID, 0, true);
+                    }
                     flow->getPageContext()->enterFootNote( footnoteId );
+                }
 
                 // We have lines of text in 'txform', that we should register
                 // into flow/context for later page splitting.
@@ -8675,19 +8725,23 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     lUInt32 txt_flags = is_rtl ? LTEXT_ALIGN_RIGHT : 0;
                     int list_marker_width;
                     lString32 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, txt_flags);
+                    /*
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
                     lvRect clip;
                     drawbuf.GetClipRect( &clip );
                     if (doc_y + y0 + h <= clip.bottom) { // draw only if marker fully fits on page
-                        // In both LTR and RTL, for erm_block, we draw the marker inside 'width',
-                        // (only the child elements got their width shrinked by list_marker_width).
-                        if ( is_rtl ) {
-                            txform->Draw( &drawbuf, doc_x+x0 + width + shift_x - list_marker_width, doc_y+y0 + padding_top );
-                        }
-                        else {
-                            // (Don't shift by padding left, the list marker is outside padding left)
-                            txform->Draw( &drawbuf, doc_x+x0 + shift_x, doc_y+y0 + padding_top );
-                        }
+                    */
+                    // Better to draw it, even if it slightly overflows, or we might lose some
+                    // list item number for no real reason
+                    txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
+                    // In both LTR and RTL, for erm_block, we draw the marker inside 'width',
+                    // (only the child elements got their width shrinked by list_marker_width).
+                    if ( is_rtl ) {
+                        txform->Draw( &drawbuf, doc_x+x0 + width + shift_x - list_marker_width, doc_y+y0 + padding_top );
+                    }
+                    else {
+                        // (Don't shift by padding left, the list marker is outside padding left)
+                        txform->Draw( &drawbuf, doc_x+x0 + shift_x, doc_y+y0 + padding_top );
                     }
                 }
 
@@ -8846,18 +8900,22 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     lUInt32 txt_flags = is_rtl ? LTEXT_ALIGN_RIGHT : 0;
                     int list_marker_width;
                     lString32 marker = renderListItemMarker( enode, list_marker_width, txform.get(), -1, txt_flags);
+                    /*
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
                     lvRect clip;
                     drawbuf.GetClipRect( &clip );
                     if (doc_y + y0 + h <= clip.bottom) { // draw only if marker fully fits on page
-                        // In both LTR and RTL, for erm_final, we draw the marker outside 'width',
-                        // as 'width' has already been shrinked by list_marker_width.
-                        if ( is_rtl ) {
-                            txform->Draw( &drawbuf, doc_x+x0 + width + shift_x, doc_y+y0 + padding_top, NULL, NULL );
-                        }
-                        else {
-                            txform->Draw( &drawbuf, doc_x+x0 + shift_x - list_marker_width, doc_y+y0 + padding_top, NULL, NULL );
-                        }
+                    */
+                    // Better to draw it, even if it slightly overflows, or we might lose some
+                    // list item number for no real reason
+                    txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
+                    // In both LTR and RTL, for erm_final, we draw the marker outside 'width',
+                    // as 'width' has already been shrinked by list_marker_width.
+                    if ( is_rtl ) {
+                        txform->Draw( &drawbuf, doc_x+x0 + width + shift_x, doc_y+y0 + padding_top, NULL, NULL );
+                    }
+                    else {
+                        txform->Draw( &drawbuf, doc_x+x0 + shift_x - list_marker_width, doc_y+y0 + padding_top, NULL, NULL );
                     }
                     // Note: if there's a float on the left of the list item, we let
                     // the marker where it would be if there were no float, while Firefox

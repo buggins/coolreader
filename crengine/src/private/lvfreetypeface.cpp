@@ -380,10 +380,6 @@ LVFreeTypeFace::LVFreeTypeFace(LVMutex &mutex, FT_Library library,
           _width_cache2(1024)
 #endif
 {
-    _matrix.xx = 0x10000;
-    _matrix.yy = 0x10000;
-    _matrix.xy = 0;
-    _matrix.yx = 0;
     _hintingMode = fontMan->GetHintingMode();
 #if USE_HARFBUZZ == 1
     _hb_font = 0;
@@ -510,7 +506,7 @@ void LVFreeTypeFace::setEmbolden()
     //   advance metrics are increased by the strength of the emboldening".
     //
     // When using Harfbuzz, which uses itself the font metrics, that we
-    // can't tweak at all from outside, we'll get positionning based on
+    // can't tweak at all from outside, we'll get positioning based on
     // the not-bolded font. We can't increase them as that would totally
     // mess HB work.
     // We can only do as MuPDF does (source/fitz/font.c): keep the HB
@@ -620,16 +616,12 @@ bool LVFreeTypeFace::loadFromBuffer(LVByteArrayRef buf, int index, int size,
 
     if (!error && italicize && !_italic) {
         _italic = 2;
-        // We'll use FT_GlyphSlot_Oblique(), with this additional
-        // matrix to fix up fake italic glyph metrics.
-        // Values from https://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/text/freetype/qfontengine_ft.cpp#n1014
-        _matrix2 = _matrix;
-        FT_Matrix m;
-        m.xx = 0x10000;
-        m.yx = 0x0;
-        m.xy = 0x6000;
-        m.yy = 0x10000;
-        FT_Matrix_Multiply(&m, &_matrix2);
+        // We must use the same matrix values as FT_GlyphSlot_Oblique()
+        // (see freetype2/src/base/ftsynth.c)
+        _matrix.xx = 0x10000L;
+        _matrix.yx = 0x00000L;
+        _matrix.xy = 0x0366AL;
+        _matrix.yy = 0x10000L;
     }
 
     if (error) {
@@ -735,13 +727,12 @@ LVFreeTypeFace::loadFromFile(const char *fname, int index, int size, css_font_fa
         _italic = 2;
         // We'll use FT_GlyphSlot_Oblique(), with this additional
         // matrix to fix up fake italic glyph metrics.
-        _matrix2 = _matrix;
-        FT_Matrix m;
-        m.xx = 0x10000;
-        m.yx = 0x0;
-        m.xy = 0x6000;
-        m.yy = 0x10000;
-        FT_Matrix_Multiply(&m, &_matrix2);
+        // We must use the same matrix values as FT_GlyphSlot_Oblique()
+        // (see freetype2/src/base/ftsynth.c)
+        _matrix.xx = 0x10000L;
+        _matrix.yx = 0x00000L;
+        _matrix.xy = 0x0366AL;
+        _matrix.yy = 0x10000L;
     }
 
     if (error) {
@@ -1076,12 +1067,11 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
         //     Note that this also transforms the `face.glyph.advance' field,
         //     but *not* the values in `face.glyph.metrics'.
         // So, with such fake italic, the values we'll use below are wrong,
-        // and may cause some wrong glyphs positionning or advance.
+        // and may cause some wrong glyphs positioning or advance.
         FT_GlyphSlot_Oblique(_slot); // This uses FT_Outline_Transform(), see freetype2/src/base/ftsynth.c
         
         // QT has some code that seem to fix these metrics in transformBoundingBox() at
         // https://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/text/freetype/qfontengine_ft.cpp#n909
-        // (while possibly still having a bit too much positive side bearings on some glyphs).
         // So let's use it:
         if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
             int left   = _slot->metrics.horiBearingX;
@@ -1092,26 +1082,26 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
             FT_Vector vector;
             vector.x = left;
             vector.y = top;
-            FT_Vector_Transform(&vector, &_matrix2);
+            FT_Vector_Transform(&vector, &_matrix);
             l = r = vector.x;
             t = b = vector.y;
             vector.x = right;
             vector.y = top;
-            FT_Vector_Transform(&vector, &_matrix2);
+            FT_Vector_Transform(&vector, &_matrix);
             if (l > vector.x) l = vector.x;
             if (r < vector.x) r = vector.x;
             if (t < vector.y) t = vector.y;
             if (b > vector.y) b = vector.y;
             vector.x = right;
             vector.y = bottom;
-            FT_Vector_Transform(&vector, &_matrix2);
+            FT_Vector_Transform(&vector, &_matrix);
             if (l > vector.x) l = vector.x;
             if (r < vector.x) r = vector.x;
             if (t < vector.y) t = vector.y;
             if (b > vector.y) b = vector.y;
             vector.x = left;
             vector.y = bottom;
-            FT_Vector_Transform(&vector, &_matrix2);
+            FT_Vector_Transform(&vector, &_matrix);
             if (l > vector.x) l = vector.x;
             if (r < vector.x) r = vector.x;
             if (t < vector.y) t = vector.y;
@@ -1815,13 +1805,14 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar32 def_char, lUI
             return NULL;  /* ignore errors */
         }
 
-        if (_embolden) { // Embolden and render
-            // See setEmbolden() for details
-            FT_GlyphSlot_Embolden(_slot);
-            FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
+        if (_embolden) {
+            FT_GlyphSlot_Embolden(_slot); // See setEmbolden() for details
         }
-        if (_italic == 2) { // Obliquen and render
+        if (_italic == 2) {
             FT_GlyphSlot_Oblique(_slot);
+        }
+        if (_embolden || _italic==2) {
+            // Render now that transformations are applied
             FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
         }
 
@@ -1871,16 +1862,18 @@ LVFontGlyphCacheItem* LVFreeTypeFace::getGlyphByIndex(lUInt32 index) {
             return NULL;  /* ignore errors */
         }
 
-        if (_embolden) { // Embolden and render
-            // See setEmbolden() for details
+        if (_embolden) {
             if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
+                // See setEmbolden() for details
                 FT_Outline_Embolden(&_slot->outline, 2*_embolden_half_strength);
                 FT_Outline_Translate(&_slot->outline, -_embolden_half_strength, -_embolden_half_strength);
             }
-            FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
         }
-        if (_italic==2) { // Obliquen and render
+        if (_italic==2) {
             FT_GlyphSlot_Oblique(_slot);
+        }
+        if (_embolden || _italic==2) {
+            // Render now that transformations are applied
             FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
         }
 

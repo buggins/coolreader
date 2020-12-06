@@ -153,7 +153,7 @@ XS_TAG1D( xmp, true, css_d_block, css_ws_pre ) // similar to "pre"
 XS_TAG1T( details )
 XS_TAG1T( dialog )
 XS_TAG1T( summary )
-// Additional "special" elements mentionned in the HTML standard,
+// Additional "special" elements mentioned in the HTML standard,
 // not supposed to close any P, but let's consider them similarly,
 // and be block elements, so their content is shown.
 XS_TAG1T( frame )
@@ -354,6 +354,7 @@ XS_ATTR( T )      // to flag subtype of boxing internal elements if needed
 XS_ATTR( Before ) // for pseudoElem internal element
 XS_ATTR( After )  // for pseudoElem internal element
 XS_ATTR( ParserHint )   // HTML parser hints (used for Lib.ru support)
+XS_ATTR( NonLinear )    // for non-linear items in EPUB
 // Other classic attributes present in html5.css
 XS_ATTR2( accept_charset, "accept-charset" )
 XS_ATTR( alt )
