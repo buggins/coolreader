@@ -26,7 +26,7 @@
 #include <stdio.h>
 #endif
 
-#if (USE_FREETYPE == 1)
+#ifdef USE_FREETYPE
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -142,6 +142,6 @@ public:
     virtual bool SetAsPreferredFontWithBias( lString8 face, int bias, bool clearOthersBias );
 };
 
-#endif  // (USE_FREETYPE==1)
+#endif  // USE_FREETYPE=1
 
 #endif  // __LV_FREETYPEFONTMAN_H_INCLUDED__

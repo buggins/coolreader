@@ -34,7 +34,7 @@
 //#define DEBUG_FONT_MAN_LOG_FILE "/tmp/font_man.log"
 #endif
 
-#if (USE_FREETYPE == 1)
+#ifdef USE_FREETYPE
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -396,6 +396,6 @@ protected:
 #endif
 };
 
-#endif  // (USE_FREETYPE==1)
+#endif  // USE_FREETYPE=1
 
 #endif  // __LV_FREETYPEFACE_H_INCLUDED__

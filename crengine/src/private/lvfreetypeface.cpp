@@ -35,7 +35,7 @@
 
 //DEFINE_NULL_REF( LVFont )
 
-#if (USE_FREETYPE == 1)
+#ifdef USE_FREETYPE
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -2402,4 +2402,4 @@ void LVFreeTypeFace::Clear() {
     }
 }
 
-#endif  // (USE_FREETYPE==1)
+#endif  // USE_FREETYPE=1

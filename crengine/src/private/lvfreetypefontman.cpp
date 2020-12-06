@@ -21,7 +21,7 @@
 #include <fontconfig/fontconfig.h>
 #endif
 
-#if (USE_FREETYPE == 1)
+#ifdef USE_FREETYPE
 
 lString8 familyName(FT_Face face) {
     lString8 faceName(face->family_name);
@@ -1220,4 +1220,4 @@ bool LVFreeTypeFontManager::SetAsPreferredFontWithBias(lString8 face, int bias, 
     return _cache.setAsPreferredFontWithBias(face, bias, clearOthersBias);
 }
 
-#endif  // (USE_FREETYPE==1)
+#endif  // USE_FREETYPE=1

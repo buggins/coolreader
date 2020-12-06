@@ -270,7 +270,7 @@ int main( int argc, const char * argv[] )
     // init bitmap font manager
     InitFontManager( fontDir );
 
-#if (USE_FREETYPE==1)
+#ifdef USE_FREETYPE
         LVContainerRef dir = LVOpenDirectory( LocalToUnicode(fontDir).c_str() );
         if ( !dir.isNull() )
         for ( int i=0; i<dir->GetObjectCount(); i++ ) {
