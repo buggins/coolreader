@@ -304,6 +304,13 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 	// RemoteAccess implementation
 
 	@Override
+	public void discardDirCache() {
+		synchronized (m_cacheLocker) {
+			m_folderListCache.clear();
+		}
+	}
+
+	@Override
 	public void list(String filePath, boolean useCache, OnOperationCompleteListener<FileMetadataList> completeListener) {
 		list_wrapper(filePath, useCache, completeListener);
 	}

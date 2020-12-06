@@ -51,6 +51,11 @@ public interface RemoteAccess {
 	void signOut(Bundle params, OnSignOutListener completedListener);
 
 	/**
+	 * Discard the directory contents cache.
+	 */
+	void discardDirCache();
+
+	/**
 	 * Fetch list of child item in specified path.
 	 *
 	 * @param filePath         Full file path to folder content to get.

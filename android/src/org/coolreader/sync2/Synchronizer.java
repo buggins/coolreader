@@ -460,7 +460,7 @@ public class Synchronizer {
 					if (checkAbort())
 						return;
 					if (null == meta) {
-						// 2. Create lock file
+						// 2. Lock file not exist, creating...
 						String contents = "lock file";
 						m_remoteAccess.writeFile(LOCK_FILE_PATH, contents.getBytes(), null, new OnOperationCompleteListener<Boolean>() {
 							@Override
@@ -469,6 +469,9 @@ public class Synchronizer {
 									return;		// onFailed() will be called
 								if (checkAbort())
 									return;
+								// After the other device syncs, new files may appear in Drive,
+								// so we must clear the directory cache to re-read the directory contents in the next sync step.
+								m_remoteAccess.discardDirCache();
 								log.d("lock file created, continue.");
 								m_currentOperationIndex++;
 								setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
@@ -495,6 +498,8 @@ public class Synchronizer {
 								onContinue.run();
 							}, LOCK_FILE_CHECK_PERIOD);
 						} else {
+							// stale lock file?
+							m_remoteAccess.discardDirCache();
 							log.d("lock file still exists after waiting " + (LOCK_FILE_CHECK_MAX_COUNT*LOCK_FILE_CHECK_PERIOD)/1000 + " seconds, ignore ..." );
 							m_currentOperationIndex++;
 							setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
