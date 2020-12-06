@@ -26,8 +26,6 @@ public final class FileMetadata implements Cloneable {
 
 	public static final String CUSTOM_PROP_FINGERPRINT = "cr3.fingerprint";
 	public static final String CUSTOM_PROP_SOURCE_SIZE = "cr3.filesize";
-	public static final String CUSTOM_PROP_SOURCE_NAME = "cr3.filename";
-	public static final String CUSTOM_PROP_AUTHORS = "cr3.authors";
 
 	public String id;
 	public String fileName;
@@ -90,40 +88,6 @@ public final class FileMetadata implements Cloneable {
 		if (null == appProperties)
 			appProperties = new HashMap<String, String>();
 		appProperties.put(CUSTOM_PROP_SOURCE_SIZE, Integer.toString(size, 10));
-	}
-
-	public String getCustomPropSourceName() {
-		String name = "";
-		if (null != appProperties) {
-			String str = appProperties.get(CUSTOM_PROP_SOURCE_NAME);
-			if (null != str) {
-				name = str;
-			}
-		}
-		return name;
-	}
-
-	public void setCustomPropSourceName(String name) {
-		if (null == appProperties)
-			appProperties = new HashMap<String, String>();
-		appProperties.put(CUSTOM_PROP_SOURCE_NAME, name);
-	}
-
-	public String getCustomPropAuthors() {
-		String authors = "";
-		if (null != appProperties) {
-			String str = appProperties.get(CUSTOM_PROP_AUTHORS);
-			if (null != str) {
-				authors = str;
-			}
-		}
-		return authors;
-	}
-
-	public void setCustomPropAuthors(String authors) {
-		if (null == appProperties)
-			appProperties = new HashMap<String, String>();
-		appProperties.put(CUSTOM_PROP_AUTHORS, authors);
 	}
 
 	public Object clone() {

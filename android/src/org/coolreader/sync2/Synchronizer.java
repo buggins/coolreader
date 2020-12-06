@@ -1119,7 +1119,7 @@ public class Synchronizer {
 					boolean needUpload = false;
 					if (null != metadata) {
 						// OK, remote file exists, compare them
-						if (bookFileSize != metadata.getCustomPropSourceSize() || !fingerprint.equals(metadata.getCustomPropFingerprint()) || !bookFileName.equals(metadata.getCustomPropSourceName()))
+						if (bookFileSize != metadata.getCustomPropSourceSize() || !fingerprint.equals(metadata.getCustomPropFingerprint()))
 							needUpload = true;
 					} else {
 						// remote file not exists
@@ -1141,8 +1141,6 @@ public class Synchronizer {
 							HashMap<String, String> customProps = new HashMap<String, String>(2);
 							customProps.put(FileMetadata.CUSTOM_PROP_FINGERPRINT, fingerprint);
 							customProps.put(FileMetadata.CUSTOM_PROP_SOURCE_SIZE, Integer.toString(bookFileSize, 10));
-							customProps.put(FileMetadata.CUSTOM_PROP_SOURCE_NAME, bookFileName);
-							customProps.put(FileMetadata.CUSTOM_PROP_AUTHORS, fileInfo.authors);
 							log.d("UploadCurrentBookBodySyncOperation: starting to upload file: " + bookFileName);
 							m_remoteAccess.writeFile(cloudFilePath, outputStream.toByteArray(), customProps, new OnOperationCompleteListener<Boolean>() {
 								@Override
@@ -1206,15 +1204,23 @@ public class Synchronizer {
 					if (null != metalist) {
 						ArrayList<DownloadInfo> filesToCheck = new ArrayList<DownloadInfo>();
 						for (FileMetadata meta : metalist) {
-							if (meta.fileName.endsWith(".data.gz")) {
+							if (meta.fileName.length() > 8 && meta.fileName.endsWith(".data.gz")) {
 								String fingerprint = meta.getCustomPropFingerprint();
 								int sourceSize = meta.getCustomPropSourceSize();
-								String sourceName = meta.getCustomPropSourceName();
-								if (fingerprint.length() > 0 && sourceName.length() > 0 && sourceSize > 0) {
-									String cloudFileName = REMOTE_FOLDER_PATH + "/" + meta.fileName;
-									filesToCheck.add(new DownloadInfo(cloudFileName, meta));
-								} else {
-									log.d("Found unsuitable file for synchronization: " + meta.fileName);
+								String sourceName = meta.fileName;
+								// drop ".data.gz"
+								sourceName = sourceName.substring(0, sourceName.length() - 8);
+								int dotPos = sourceName.lastIndexOf('.');
+								if (dotPos > 0) {
+									// drop <fingerprint>
+									// When changing the type of fingerprint, symbols '.' may appear in it,
+									//  accordingly this will require changes.
+									if (fingerprint.length() > 0 && sourceSize > 0) {
+										String cloudFileName = REMOTE_FOLDER_PATH + "/" + meta.fileName;
+										filesToCheck.add(new DownloadInfo(cloudFileName, meta));
+									} else {
+										log.d("Found unsuitable file for synchronization: " + meta.fileName);
+									}
 								}
 							}
 						}
@@ -1253,12 +1259,14 @@ public class Synchronizer {
 											insertOperation(op, downloadBookBody);
 											op = downloadBookBody;
 										}
+									} else {
+										log.d("No files to download from cloud...");
 									}
 									onContinue.run();
 								});
 							}));
 						} else {
-							log.d("No files to download from cloud...");
+							log.d("No files found for downloading from cloud...");
 							onContinue.run();
 						}
 					} else {
@@ -1297,65 +1305,82 @@ public class Synchronizer {
 					m_currentOperationIndex++;
 					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 					if (null != inputStream) {
-						String authors = downloadInfo.m_meta.getCustomPropAuthors();
-						String sourceName = downloadInfo.m_meta.getCustomPropSourceName();
+						String sourceName = downloadInfo.m_meta.fileName;
 						int sourceSize = downloadInfo.m_meta.getCustomPropSourceSize();
-						if (sourceName.length() > 0) {
-							String fingerprint = downloadInfo.m_meta.getCustomPropFingerprint();
-							if (fingerprint.length() > 0) {
-								File outDir = getDownloadDir(authors);
-								if (outDir.exists()) {
-									File file = new File(outDir.getAbsolutePath(), sourceName);
-									if (file.exists()) {
-										// TODO: add an extra check to see if these two files match
-										if (file.length() != sourceSize) {
-											log.d("DownloadBookBodySyncOperation: file \"" + sourceName + "\" already exists, finding new name...");
-											file = Utils.getReplacementFile(file);
-										}
-									}
-									if (null != file) {
-										// Save to file
-										try {
-											GZIPInputStream gzipInputStream = new GZIPInputStream(inputStream);
-											FileOutputStream outputStream = new FileOutputStream(file);
-											byte[] buff = new byte[4096];
-											int totalSize = 0;
-											int rb;
-											while ((rb = gzipInputStream.read(buff)) > 0) {
-												outputStream.write(buff, 0, rb);
-												totalSize += rb;
+						if (sourceName.length() > 8) {
+							// drop ".data.gz"
+							sourceName = sourceName.substring(0, sourceName.length() - 8);
+							int dotPos = sourceName.lastIndexOf('.');
+							if (dotPos > 0) {
+								// drop <fingerprint>
+								// When changing the type of fingerprint, symbols '.' may appear in it,
+								//  accordingly this will require changes.
+								sourceName = sourceName.substring(0, dotPos);
+								String fingerprint = downloadInfo.m_meta.getCustomPropFingerprint();
+								if (fingerprint.length() > 0) {
+									File outDir = getDownloadDir();
+									if (null != outDir && outDir.exists()) {
+										File file = new File(outDir.getAbsolutePath(), sourceName);
+										boolean skipDownloading = false;
+										if (file.exists()) {
+											// TODO: add an extra check to see if these two files match
+											if (file.length() == sourceSize) {
+												log.d("DownloadBookBodySyncOperation: file \"" + sourceName + "\" already exists, the size is the same");
+												skipDownloading = true;
+											} else {
+												log.d("DownloadBookBodySyncOperation: file \"" + sourceName + "\" already exists, the size varies, finding new name...");
+												file = Utils.getReplacementFile(file);
+												if (null == file) {
+													log.e("DownloadBookBodySyncOperation: failed to generate replacement file name for \"" + sourceName + "\"!");
+													skipDownloading = true;
+												}
 											}
-											gzipInputStream.close();
-											inputStream.close();
-											outputStream.close();
-											if (totalSize != sourceSize)
-												throw new IOException("Invalid size of file, saved " + totalSize + ", must be " + sourceSize);
-											// scan file
-											FileInfo fileInfo = new FileInfo(file);
-											Services.getEngine().scanBookProperties(fileInfo);
-											// parse & save in DB
-											BackgroundThread.instance().executeGUI(() -> m_coolReader.waitForCRDBService(() -> {
-												Services.getScanner().scanDirectory(m_coolReader.getDB(), new FileInfo(outDir), () -> onContinue.run(), false, new Scanner.ScanControl());
-											}));
-										} catch (Exception e) {
-											log.e("DownloadBookBodySyncOperation: failed to save file: " + e.toString());
-											// ignoring, goto next task
+										}
+										if (!skipDownloading) {
+											// Save to file
+											try {
+												GZIPInputStream gzipInputStream = new GZIPInputStream(inputStream);
+												FileOutputStream outputStream = new FileOutputStream(file);
+												byte[] buff = new byte[4096];
+												int totalSize = 0;
+												int rb;
+												while ((rb = gzipInputStream.read(buff)) > 0) {
+													outputStream.write(buff, 0, rb);
+													totalSize += rb;
+												}
+												gzipInputStream.close();
+												inputStream.close();
+												outputStream.close();
+												if (totalSize != sourceSize)
+													throw new IOException("Invalid size of file, saved " + totalSize + ", must be " + sourceSize);
+												// parse & save in DB
+												BackgroundThread.instance().executeGUI(() -> m_coolReader.waitForCRDBService(() -> {
+													Services.getScanner().scanDirectory(m_coolReader.getDB(), new FileInfo(outDir), () -> onContinue.run(), false, new Scanner.ScanControl());
+												}));
+												log.d("File \"" + file.getAbsolutePath() + "\" successfully saved.");
+											} catch (Exception e) {
+												log.e("DownloadBookBodySyncOperation: failed to save file: " + e.toString());
+												// ignoring, goto next task
+												onContinue.run();
+											}
+										} else {
+											log.d("DownloadBookBodySyncOperation: skipping downloading file \"" + sourceName + "\"");
 											onContinue.run();
 										}
 									} else {
-										log.e("DownloadBookBodySyncOperation: failed to generate replacement file name for \"" + sourceName + "\"!");
+										log.e("DownloadBookBodySyncOperation: outdir not exits: \"" + outDir + "\"!");
 										onContinue.run();
 									}
 								} else {
-									log.e("DownloadBookBodySyncOperation: outdir not exits: \"" + outDir.getAbsolutePath() + "\"!");
+									log.e("DownloadBookBodySyncOperation: fingerprint is empty!");
 									onContinue.run();
 								}
 							} else {
-								log.e("DownloadBookBodySyncOperation: fingerprint is empty!");
+								log.e("DownloadBookBodySyncOperation: Invalid file name!");
 								onContinue.run();
 							}
 						} else {
-							log.e("DownloadBookBodySyncOperation: source file name is empty!");
+							log.e("DownloadBookBodySyncOperation: source file name too short!");
 							onContinue.run();
 						}
 					} else {
@@ -1911,23 +1936,15 @@ public class Synchronizer {
 		}));
 	}
 
-	private File getDownloadDir(String authors) {
+	private File getDownloadDir() {
 		FileInfo downloadDir = Services.getScanner().getDownloadDirectory();
-		String subdir = null;
-		if ( authors!=null && authors.length() > 0 ) {
-			subdir = Utils.transcribeFileName(authors);
-			if ( subdir.length() > FileBrowser.MAX_SUBDIR_LEN )
-				subdir = subdir.substring(0, FileBrowser.MAX_SUBDIR_LEN);
-		} else {
-			subdir = "NoAuthor";
-		}
-		if ( downloadDir==null )
+		if (null == downloadDir)
 			return null;
-		File result = new File(downloadDir.getPathName());
-		result = new File(result, subdir);
+		String subdir = "cloud-sync";
+		File result = new File(downloadDir.getPathName(), subdir);
 		result.mkdirs();
 		downloadDir.findItemByPathName(result.getAbsolutePath());
-		log.d("getDownloadDir(): returning " + result.getAbsolutePath());
+		//log.d("getDownloadDir(): returning " + result.getAbsolutePath());
 		return result;
 	}
 
