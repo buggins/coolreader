@@ -113,7 +113,7 @@ bool InitFontManager(lString8 path) {
     }
 #if (USE_WIN32_FONTS == 1)
     fontMan = new LVWin32FontManager;
-#elif USE_FREETYPE
+#elif defined(USE_FREETYPE)
     fontMan = new LVFreeTypeFontManager;
 #else
     fontMan = new LVBitmapFontManager;
