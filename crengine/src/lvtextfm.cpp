@@ -73,7 +73,9 @@
 #define FLT_ALLOC_SIZE 4
 
 // lvfreetypeface.cpp
+#if USE_HARFBUZZ==1
 extern bool isHBScriptCursive( hb_script_t script );
+#endif
 
 formatted_line_t * lvtextAllocFormattedLine( )
 {

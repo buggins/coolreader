@@ -4300,8 +4300,8 @@ lString8 UnicodeToLocal( const lString32 & str )
    if (str.empty())
       return dst;
    lString16 utf16 = UnicodeToUtf16(str);
-   char def_char[]="?";
-   int usedDefChar = false;
+   CHAR def_char = '?';
+   BOOL usedDefChar = FALSE;
    int len = WideCharToMultiByte(
       CP_ACP,
       WC_COMPOSITECHECK | WC_DISCARDNS
@@ -4310,7 +4310,7 @@ lString8 UnicodeToLocal( const lString32 & str )
       utf16.length(),
       NULL,
       0,
-      def_char,
+      &def_char,
       &usedDefChar
       );
    if (len)
@@ -4324,7 +4324,7 @@ lString8 UnicodeToLocal( const lString32 & str )
          utf16.length(),
          dst.modify(),
          len,
-         def_char,
+         &def_char,
          &usedDefChar
          );
    }

@@ -1198,7 +1198,7 @@ bool parse_content_property( const char * & str, lString32 & parsed_content)
                         // Serialize it as UTF-8
                         lString32 c;
                         c << (lChar32)codepoint;
-                        str8 << UnicodeToLocal(c);
+                        str8 << UnicodeToUtf8(c);
                     }
                     else if ( *str == '\r' && *(str+1) == '\n' ) {
                         // Ignore \ at end of CRLF line

@@ -319,7 +319,7 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
     }
     if ( DetectFb3Format( stream ) ) {
         CRLog::trace("GetBookProperties() : fb3 format detected");
-        pBookProps->format = doc_format_fb2;
+        pBookProps->format = doc_format_fb3;
         return GetFB3BookProperties( name, stream, pBookProps );
     }
 	if ( DetectDocXFormat( stream ) ) {

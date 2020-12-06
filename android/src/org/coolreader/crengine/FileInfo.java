@@ -7,6 +7,7 @@ import org.coolreader.plugins.OnlineStoreBook;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -1203,11 +1204,12 @@ public class FileInfo {
 				return false;
 		} else if (!language.equals(other.language))
 			return false;
-		if (genres == null) {
-			if (other.genres != null)
-				return false;
-		} else if (!genres.equals(other.genres))
+		// do not compare genres of books, because in the absence of certain genres in the handbook,
+		// the 'genres' field obtained from the database will not be equal to the field obtained when parsing the book file.
+		/*
+		if (!eqGenre(genres, other.genres))
 			return false;
+		*/
 		if (description == null) {
 			if (other.description != null)
 				return false;
@@ -1288,11 +1290,12 @@ public class FileInfo {
 				return false;
 		} else if (!language.equals(other.language))
 			return false;
-		if (genres == null) {
-			if (other.genres != null)
-				return false;
-		} else if (!genres.equals(other.genres))
+		// do not compare genres of books, because in the absence of certain genres in the handbook,
+		// the 'genres' field obtained from the database will not be equal to the field obtained when parsing the book file.
+		/*
+		if (!eqGenre(genres, other.genres))
 			return false;
+		*/
 		if (description == null) {
 			if (other.description != null)
 				return false;
@@ -1325,6 +1328,23 @@ public class FileInfo {
 		if (crc32 != other.crc32)
 			return false;
 		return true;
+	}
+
+	private static boolean eqGenre(String g1, String g2) {
+		if (g1 == null) {
+			if (g2 != null && g2.length() != 0)
+				return false;
+		}
+		if (g1.equals(g2))
+			return true;
+		String[] g1_array = g1.split("\\|");
+		String[] g2_array = g2.split("\\|");
+		if (g1_array.length == g2_array.length) {
+			Arrays.sort(g1_array);
+			Arrays.sort(g2_array);
+			return Arrays.equals(g1_array, g2_array);
+		}
+		return false;
 	}
 
 	@Override
