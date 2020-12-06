@@ -111,7 +111,7 @@ public class CoolReader extends BaseActivity {
 	private BroadcastReceiver intentReceiver;
 
 	private boolean justCreated = false;
-	private boolean activityPaused = false;
+	private boolean activityIsRunning = false;
 
 	private boolean dataDirIsRemoved = false;
 
@@ -132,6 +132,7 @@ public class CoolReader extends BaseActivity {
 
 		isFirstStart = true;
 		justCreated = true;
+		activityIsRunning = false;
 
 		// Can request only one set of permissions at a time
 		// Then request all permission at a time.
@@ -545,7 +546,7 @@ public class CoolReader extends BaseActivity {
 					mGoogleDriveAutoSaveTimer.schedule(new TimerTask() {
 						@Override
 						public void run() {
-							if (!activityPaused && null != mGoogleDriveSync) {
+							if (activityIsRunning && null != mGoogleDriveSync) {
 								mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY);
 							}
 						}
@@ -753,6 +754,7 @@ public class CoolReader extends BaseActivity {
 
 	@Override
 	protected void onPause() {
+		activityIsRunning = false;
 		super.onPause();
 		if (mReaderView != null) {
 			mReaderView.onAppPause();
@@ -763,7 +765,6 @@ public class CoolReader extends BaseActivity {
 				mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
 			}
 		}
-		activityPaused = true;
 	}
 
 	@Override
@@ -828,10 +829,12 @@ public class CoolReader extends BaseActivity {
 						mGoogleDriveSync.startSyncFrom(Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
 					else
 						mGoogleDriveSync.startSyncFromOnly(Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS, Synchronizer.SyncTarget.SETTINGS, Synchronizer.SyncTarget.BOOKMARKS);
+				} else {
+					log.d("Synchronizer is busy!");
 				}
 			}
 		}
-		activityPaused = false;
+		activityIsRunning = true;
 	}
 
 	@Override
@@ -1157,7 +1160,7 @@ public class CoolReader extends BaseActivity {
 
 	public void showRootWindow() {
 		setCurrentFrame(mHomeFrame);
-		if (!justCreated) {
+		if (activityIsRunning) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				// Save bookmarks and current reading position on the cloud
 				if (mSyncGoogleDriveEnabled && null != mGoogleDriveSync && !mGoogleDriveSync.isBusy()) {
