@@ -618,7 +618,8 @@
     <string name="options_app_cloudsync_confirmations">Запрашивать подтверждение перед обновлением</string>
     <string name="options_app_googledrive_sync_settings">Настройки на Диске</string>
     <string name="options_app_googledrive_sync_bookmarks">Закладки и текущая позиция чтения на Диске</string>
-    <string name="options_app_googledrive_sync_currentbook">Информация о читаемой в данный момент книге на Диске</string>
+    <string name="options_app_googledrive_sync_currentbook_info">Информация о читаемой в данный момент книге на Диске</string>
+    <string name="options_app_googledrive_sync_currentbook_body">Читаемая в данный момент книга на Диске</string>
     <string name="googledrive_disabled_cleanup_question">Вы отключили автоматическую синхронизацию с Google Диском, удалить все данные приложения на Google Диске?"</string>
     <string name="googledrive_sync_completed">Синхронизация с Google Диском успешно завершена.</string>
     <string name="googledrive_sync_failed_with">Произошел сбой при синхронизация с Google Диском: %s</string>
@@ -629,7 +630,8 @@
     <string name="googledrive_load_remote">Скачать удаленный</string>
     <string name="googledrive_upload_local">Загрузить локальный на Диск</string>
     <string name="googledrive_remotefile_is_newer_confirm">Удаленный файл \"%s\" на Google Диске новее чем локальный файл, загрузить локальный на Диск или скачать удаленный?</string>
-    <string name="cloud_synchronization_">Облачная синхронизация…</string>
+    <string name="cloud_synchronization_to_">Синхронизация в облако…</string>
+    <string name="cloud_synchronization_from_">Синхронизация с облака…</string>
     <string name="googledrive_sync_to">Синх. на Диск</string>
     <string name="googledrive_sync_from">Синх. с Диска</string>
     <string name="confirmation_title">Подтверждение</string>
@@ -650,7 +652,7 @@
     <string name="choose_root_sd">Невозможно удалить файл, если файл находится на внешней SD карте, выберите корень внешней SD карты в диалоге</string>
     <string name="could_not_delete_on_sd">Невозможно найти файл, убедитесь, что был выбран корень внешней SD карты</string>
     <string name="could_not_delete_file">Невозможно удалить файл \"%s\"</string>
-    <string name="bookmarks_keepalive_">Удалять копии закладок старее чем…</string>
+    <string name="sync_data_keepalive_">Удалять данные синхронизации старее чем…</string>
     <string name="bookmarks_keepalive_off">Отключено</string>
     <string name="bookmarks_keepalive_1day">1 день</string>
     <string name="bookmarks_keepalive_2days">2 дня</string>

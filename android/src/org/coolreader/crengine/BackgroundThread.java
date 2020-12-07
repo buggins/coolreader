@@ -146,6 +146,16 @@ public class BackgroundThread extends Thread {
 	 */
 	public void postBackground( Runnable task )
 	{
+		postBackground(task, 0);
+	}
+
+	/**
+	 * Post runnable to be executed in background thread.
+	 * @param task is runnable to execute in background thread.
+	 * @param delay is delay before running task, in millis
+	 */
+	public void postBackground( Runnable task, long delay )
+	{
 		Engine.suspendLongOperation();
 		if ( mStopped ) {
 			L.i("Posting task " + task + " to GUI queue since background thread is stopped");
@@ -159,7 +169,17 @@ public class BackgroundThread extends Thread {
 				posted.add(task);
 			}
 		} else {
-			handler.post(task);
+			if (delay > 0) {
+				Runnable finalTask = task;
+				handler.postDelayed(() -> {
+					try {
+						finalTask.run();
+					} catch (Throwable e) {
+						Log.e("cr3", "Exception while processing task in Background thread: " + finalTask, e);
+					}
+				}, delay);
+			} else
+				handler.post(task);
 		}
 	}
 

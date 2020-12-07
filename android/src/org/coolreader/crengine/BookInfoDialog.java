@@ -39,7 +39,7 @@ public class BookInfoDialog extends BaseDialog {
 		mLabelMap.put("book.authors", R.string.book_info_book_authors);
 		mLabelMap.put("book.title", R.string.book_info_book_title);
 		mLabelMap.put("book.series", R.string.book_info_book_series_name);
-		mLabelMap.put("book.keywords", R.string.book_info_genres);
+		mLabelMap.put("book.genres", R.string.book_info_genres);
 		mLabelMap.put("book.language", R.string.book_info_book_language);
 	}
 	
@@ -70,8 +70,7 @@ public class BookInfoDialog extends BaseDialog {
 				if (code.length() > 0) {
 					if (genres.length() > 0)
 						genres.append("\n");
-					GenresCollection.GenreRecord genre = Services.getGenresCollection().byCode(code);
-					genres.append(genre.getName());
+					genres.append(Services.getGenresCollection().translate(code));
 				}
 			}
 			value = genres.toString();

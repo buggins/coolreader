@@ -1916,10 +1916,11 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, "0");
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_SETTINGS, "0");
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_BOOKMARKS, "0");
-			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK, "0");
+			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO, "0");
+			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_BODY, "0");
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD, "5");		// 5 min.
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_CONFIRMATIONS, "1");
-			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_BOOKMARKS_KEEPALIVE, "14");				// 2 weeks
+			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_DATA_KEEPALIVE, "14");				// 2 weeks
 
 			if (!DeviceInfo.EINK_SCREEN) {
 				props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "1");

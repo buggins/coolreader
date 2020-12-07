@@ -19,8 +19,13 @@
 package org.coolreader.sync2;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class FileMetadata implements Cloneable {
+
+	public static final String CUSTOM_PROP_FINGERPRINT = "cr3.fingerprint";
+	public static final String CUSTOM_PROP_SOURCE_SIZE = "cr3.filesize";
 
 	public String id;
 	public String fileName;
@@ -32,6 +37,7 @@ public final class FileMetadata implements Cloneable {
 	public boolean isFolder;
 	public boolean isTrashed;
 	public boolean isShared;
+	public Map<String, String> appProperties;
 	public FileMetadata parent;
 
 	public FileMetadata() {
@@ -47,8 +53,58 @@ public final class FileMetadata implements Cloneable {
 		return null == fileName;
 	}
 
-	public Object clone() throws CloneNotSupportedException {
-		return super.clone();
+	public String getCustomPropFingerprint() {
+		String fingerprint = "";
+		if (null != appProperties) {
+			String str = appProperties.get(CUSTOM_PROP_FINGERPRINT);
+			if (null != str) {
+				fingerprint = str;
+			}
+		}
+		return fingerprint;
+	}
+
+	public void setCustomPropFingerprint(String fingerprint) {
+		if (null == appProperties)
+			appProperties = new HashMap<String, String>();
+		appProperties.put(CUSTOM_PROP_FINGERPRINT, fingerprint);
+	}
+
+	public int getCustomPropSourceSize() {
+		int size = -1;
+		if (null != appProperties) {
+			String str = appProperties.get(CUSTOM_PROP_SOURCE_SIZE);
+			if (null != str) {
+				try {
+					size = Integer.parseInt(str, 10);
+				} catch (Exception ignored) {
+				}
+			}
+		}
+		return size;
+	}
+
+	public void setCustomPropSourceSize(int size) {
+		if (null == appProperties)
+			appProperties = new HashMap<String, String>();
+		appProperties.put(CUSTOM_PROP_SOURCE_SIZE, Integer.toString(size, 10));
+	}
+
+	public Object clone() {
+		FileMetadata meta = new FileMetadata();
+		meta.id = id;
+		meta.fileName = fileName;
+		meta.description = description;
+		meta.fileSize = fileSize;
+		meta.createdDate = createdDate;
+		meta.modifiedDate = modifiedDate;
+		meta.mimeType = mimeType;
+		meta.isFolder = isFolder;
+		meta.isTrashed = isTrashed;
+		meta.isShared = isShared;
+		meta.appProperties = appProperties;
+		meta.parent = parent;
+		return meta;
 	}
 
 	public String toString() {

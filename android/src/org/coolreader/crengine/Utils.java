@@ -165,6 +165,40 @@ public class Utils {
 		return f2;
 	}
 
+	public static File getReplacementFile(File f) {
+		if (!f.exists())
+			return f;
+		String name = f.getName();
+		// get extension
+		String ext = DocumentFormat.getSupportedExtension(name);
+		if (null == ext) {
+			// unsupported file format
+			int pos = name.lastIndexOf('.');
+			if (pos > 0 && pos < name.length() - 1)
+				ext = name.substring(pos + 1);
+		}
+		int number = 1;
+		boolean found = false;
+		File file = null;
+		String basename;
+		if (null != ext)
+			basename = name.substring(0, name.length() - ext.length() - 1);
+		else
+			basename = name;
+		while (number < 100) {
+			if (null != ext)
+				file = new File(f.getParent(), basename + " (" + number + ")." + ext);
+			else
+				file = new File(f.getParent(), basename + " (" + number + ")");
+			if (!file.exists()) {
+				found = true;
+				break;
+			}
+			number++;
+		}
+		return found ? file : null;
+	}
+
 	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	public static DocumentFile getDocumentFile(FileInfo fi, Context context, Uri sdCardUri) {
 		DocumentFile docFile = null;

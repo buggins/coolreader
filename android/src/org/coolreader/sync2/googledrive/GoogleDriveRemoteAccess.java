@@ -18,14 +18,13 @@
 
 package org.coolreader.sync2.googledrive;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
-
-import androidx.annotation.RequiresApi;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -36,7 +35,6 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.RuntimeExecutionException;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -63,10 +61,11 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-@RequiresApi(api = Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class GoogleDriveRemoteAccess implements RemoteAccess {
 
 	private final static String TAG = "GoogleDriveRemoteAccess";
@@ -234,7 +233,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			Log.d(TAG, "Google Play Services are not available!");
 		// check if already signed
 		if (m_needSignInRepeat)
-			m_account = null;		// forced skip getLastSignedInAccount
+			m_account = null;        // forced skip getLastSignedInAccount
 		else
 			m_account = GoogleSignIn.getLastSignedInAccount(m_activity);
 		if (null != m_account) {
@@ -305,8 +304,15 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 	// RemoteAccess implementation
 
 	@Override
-	public void list(String filePath, OnOperationCompleteListener<FileMetadataList> completeListener) {
-		list_wrapper(filePath, completeListener);
+	public void discardDirCache() {
+		synchronized (m_cacheLocker) {
+			m_folderListCache.clear();
+		}
+	}
+
+	@Override
+	public void list(String filePath, boolean useCache, OnOperationCompleteListener<FileMetadataList> completeListener) {
+		list_wrapper(filePath, useCache, completeListener);
 	}
 
 	@Override
@@ -320,8 +326,8 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 	}
 
 	@Override
-	public void stat(String filePath, OnOperationCompleteListener<FileMetadata> completeListener) {
-		stat_wrapper(filePath, completeListener);
+	public void stat(String filePath, boolean useCache, OnOperationCompleteListener<FileMetadata> completeListener) {
+		stat_wrapper(filePath, useCache, completeListener);
 	}
 
 	@Override
@@ -330,8 +336,8 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 	}
 
 	@Override
-	public void writeFile(String filePath, byte[] data, OnOperationCompleteListener<Boolean> completeListener) {
-		writeFile_wrapper(filePath, data, completeListener);
+	public void writeFile(String filePath, byte[] data, Map<String, String> customProps, OnOperationCompleteListener<Boolean> completeListener) {
+		writeFile_wrapper(filePath, data, customProps, completeListener);
 	}
 
 	@Override
@@ -470,6 +476,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			metadata.isFolder = "application/vnd.google-apps.folder".equals(metadata.mimeType);
 			metadata.isTrashed = null != file.getTrashed() && file.getTrashed();
 			metadata.isShared = null != file.getShared() && file.getShared();
+			metadata.appProperties = file.getAppProperties();
 			//java.util.List<String> parents = file.getParents();
 			return metadata;
 		}
@@ -533,7 +540,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 
 	// private implementations
 
-	private void stat_wrapper(String filePath, final OnOperationCompleteListener<FileMetadata> completeListener) {
+	private void stat_wrapper(String filePath, boolean useCache, final OnOperationCompleteListener<FileMetadata> completeListener) {
 		filePath = simplifyFilePath(filePath);
 		if (filePath.isEmpty()) {
 			Log.d(TAG, "Attempting to stat root folder, skipping.");
@@ -543,7 +550,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		}
 		String dirPath = dirname(filePath);
 		final String fileName = basename(filePath);
-		list_wrapper(dirPath, new OnOperationCompleteListener<FileMetadataList>() {
+		list_wrapper(dirPath, useCache, new OnOperationCompleteListener<FileMetadataList>() {
 			@Override
 			public void onCompleted(FileMetadataList metalist, boolean ok) {
 				if (ok) {
@@ -621,7 +628,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			return;
 		}
 		// 1. Check if this folder already exist.
-		stat_wrapper(finalFilePath, new OnOperationCompleteListener<FileMetadata>() {
+		stat_wrapper(finalFilePath, true, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
 			public void onCompleted(FileMetadata meta, boolean ok) {
 				if (ok) {
@@ -634,7 +641,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 						// 2. Check if parent folder is exist
 						final String dirPath = dirname(finalFilePath);
 						final String fileName = basename(finalFilePath);
-						stat_wrapper(dirPath, new OnOperationCompleteListener<FileMetadata>() {
+						stat_wrapper(dirPath, true, new OnOperationCompleteListener<FileMetadata>() {
 							@Override
 							public void onCompleted(FileMetadata meta, boolean ok) {
 								if (ok) {
@@ -686,7 +693,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			return;
 		}
 		// 1. Check if this folder already exist.
-		stat_wrapper(finalFilePath, new OnOperationCompleteListener<FileMetadata>() {
+		stat_wrapper(finalFilePath, true, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
 			public void onCompleted(FileMetadata meta, boolean ok) {
 				if (ok) {
@@ -772,16 +779,18 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		});
 	}
 
-	private void list_wrapper(String filePath, final OnOperationCompleteListener<FileMetadataList> completeListener) {
+	private void list_wrapper(String filePath, boolean useCache, final OnOperationCompleteListener<FileMetadataList> completeListener) {
 		filePath = simplifyFilePath(filePath);
-		FileMetadataList cachedList;
-		synchronized (m_cacheLocker) {
-			cachedList = m_folderListCache.get(filePath);
-		}
-		if (null != cachedList) {
-			if (null != completeListener)
-				completeListener.onCompleted(cachedList, true);
-			return;
+		if (useCache) {
+			FileMetadataList cachedList;
+			synchronized (m_cacheLocker) {
+				cachedList = m_folderListCache.get(filePath);
+			}
+			if (null != cachedList) {
+				if (null != completeListener)
+					completeListener.onCompleted(cachedList, true);
+				return;
+			}
 		}
 		final String finalFilePath = filePath;
 		if (finalFilePath.isEmpty()) {
@@ -811,7 +820,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			});
 		} else {
 			// 1. firstly get requested folder id
-			stat_wrapper(filePath, new OnOperationCompleteListener<FileMetadata>() {
+			stat_wrapper(filePath, true, new OnOperationCompleteListener<FileMetadata>() {
 				@Override
 				public void onCompleted(FileMetadata meta, boolean ok) {
 					if (ok) {
@@ -861,7 +870,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		}
 	}
 
-	private void createFile_impl(final String fileName, final String parentPath, String parentId, final byte[] data, final OnOperationCompleteListener<Boolean> completeListener) {
+	private void createFile_impl(final String fileName, final String parentPath, String parentId, final byte[] data, Map<String, String> customProps, final OnOperationCompleteListener<Boolean> completeListener) {
 		if (null == parentId || parentId.isEmpty())
 			parentId = "root";
 		final String finalParentId = parentId;
@@ -872,7 +881,8 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 			File file = new File()
 					.setParents(Collections.singletonList(finalParentId))
 					.setName(fileName)
-					.setMimeType(mimeType);
+					.setMimeType(mimeType)
+					.setAppProperties(customProps);
 			ByteArrayContent content = null;
 			if (null != data)
 				content = new ByteArrayContent(null, data);
@@ -898,11 +908,12 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		});
 	}
 
-	private void updateFile_impl(final FileMetadata meta, final String parentPath, final byte[] data, final OnOperationCompleteListener<Boolean> completeListener) {
+	private void updateFile_impl(final FileMetadata meta, final String parentPath, final byte[] data, Map<String, String> customProps, final OnOperationCompleteListener<Boolean> completeListener) {
 		Tasks.call(m_executor, () -> {
 			// metadata can be 'application/octet-stream', 'application/vnd.google-apps.file'
 			ByteArrayContent content = new ByteArrayContent(null, data);
-			File googleFile = m_googleDriveService.files().update(meta.id, null, content).execute();
+			File file = new File().setAppProperties(customProps);
+			File googleFile = m_googleDriveService.files().update(meta.id, file, content).execute();
 			if (null == googleFile)
 				throw new IOException("Null result when requesting file creation.");
 			return googleFile;
@@ -924,28 +935,28 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		});
 	}
 
-	private void writeFile_wrapper(final String filePath, final byte[] data, final OnOperationCompleteListener<Boolean> completeListener) {
+	private void writeFile_wrapper(final String filePath, final byte[] data, Map<String, String> customProps, final OnOperationCompleteListener<Boolean> completeListener) {
 		// 1. Check if file already exist
 		final String finalFilePath = simplifyFilePath(filePath);
-		stat_wrapper(finalFilePath, new OnOperationCompleteListener<FileMetadata>() {
+		stat_wrapper(finalFilePath, true, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
 			public void onCompleted(final FileMetadata meta, boolean ok) {
 				if (ok) {
 					if (null != meta) {
 						// 2. file exist, update content
-						updateFile_impl(meta, dirname(filePath), data, completeListener);
+						updateFile_impl(meta, dirname(filePath), data, customProps, completeListener);
 					} else {
 						// 3. file don't exist, create file with data if parent folder is exist
 						final String dirPath = dirname(finalFilePath);
 						final String fileName = basename(finalFilePath);
 						if (!dirPath.isEmpty()) {
-							stat_wrapper(dirPath, new OnOperationCompleteListener<FileMetadata>() {
+							stat_wrapper(dirPath, true, new OnOperationCompleteListener<FileMetadata>() {
 								@Override
 								public void onCompleted(FileMetadata meta, boolean ok) {
 									if (ok) {
 										if (null != meta) {
 											// 4. parent folder exist, create file inside they
-											createFile_impl(fileName, dirPath, meta.id, data, completeListener);
+											createFile_impl(fileName, dirPath, meta.id, data, customProps, completeListener);
 										} else {
 											if (null != completeListener) {
 												// 4.1 parent folder not exist, done.
@@ -968,7 +979,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 							});
 						} else {
 							// 5. In file path no parent folders, create file explicitly
-							createFile_impl(finalFilePath, dirPath, "root", data, completeListener);
+							createFile_impl(finalFilePath, dirPath, "root", data, customProps, completeListener);
 						}
 					}
 				} else {
@@ -987,7 +998,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 	}
 
 	private void readFile_wrapper(final String filePath, final OnOperationCompleteListener<InputStream> completeListener) {
-		stat_wrapper(filePath, new OnOperationCompleteListener<FileMetadata>() {
+		stat_wrapper(filePath, true, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
 			public void onCompleted(final FileMetadata meta, boolean ok) {
 				if (ok) {
@@ -1053,7 +1064,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 
 	private void trash_wrapper(final String filePath, final OnOperationCompleteListener<Boolean> completeListener) {
 		// Find file or folder
-		stat_wrapper(filePath, new OnOperationCompleteListener<FileMetadata>() {
+		stat_wrapper(filePath, true, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
 			public void onCompleted(FileMetadata meta, boolean ok) {
 				if (ok) {
@@ -1103,7 +1114,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 
 	private void delete_wrapper(final String filePath, final OnOperationCompleteListener<Boolean> completeListener) {
 		// Find file or folder
-		stat_wrapper(filePath, new OnOperationCompleteListener<FileMetadata>() {
+		stat_wrapper(filePath, true, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
 			public void onCompleted(FileMetadata meta, boolean ok) {
 				if (ok) {
@@ -1133,7 +1144,7 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 	}
 
 	public void getFile_wrapper(final String filePath, final OnOperationCompleteListener<Pair<FileMetadata, InputStream>> completeListener) {
-		stat_wrapper(filePath, new OnOperationCompleteListener<FileMetadata>() {
+		stat_wrapper(filePath, true, new OnOperationCompleteListener<FileMetadata>() {
 			@Override
 			public void onCompleted(final FileMetadata meta, boolean ok) {
 				if (ok) {

@@ -1,6 +1,5 @@
 package org.coolreader.crengine;
 
-import android.app.SearchManager;
 import android.util.Log;
 
 import org.coolreader.R;
@@ -179,10 +178,11 @@ public interface Settings {
     String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED = "app.cloudsync.googledrive.enabled";
     String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_SETTINGS = "app.cloudsync.googledrive.settings";
     String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_BOOKMARKS = "app.cloudsync.googledrive.bookmarks";
-    String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK = "app.cloudsync.googledrive.currentbook";
+    String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO = "app.cloudsync.googledrive.currentbook";
+    String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_BODY = "app.cloudsync.googledrive.currentbook.body";
     String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD = "app.cloudsync.googledrive.autosaveperiod";
     String PROP_APP_CLOUDSYNC_CONFIRMATIONS = "app.cloudsync.confirmations";
-    String PROP_APP_CLOUDSYNC_BOOKMARKS_KEEPALIVE = "app.cloudsync.bookmarks.keepalive";		// days
+    String PROP_APP_CLOUDSYNC_DATA_KEEPALIVE = "app.cloudsync.bookmarks.keepalive";		// days
 
     // available options for PROP_APP_SELECTION_ACTION setting
     public static final int SELECTION_ACTION_TOOLBAR = 0;

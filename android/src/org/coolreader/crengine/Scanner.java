@@ -277,7 +277,7 @@ public class Scanner extends FileInfoChangeSource {
 					}
 					if (null != fromDB && DocumentFormat.FB2 == fromDB.format && null == fromDB.genres) {
 						// to force rescan and update data in DB
-						log.v("The found entry in the database is outdated (keywords=null), need to rescan " + fromDB.toString());
+						log.v("The found entry in the database is outdated (genres=null), need to rescan " + fromDB.toString());
 						fromDB = null;
 					}
 				} else {

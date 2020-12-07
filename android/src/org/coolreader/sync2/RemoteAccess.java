@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.util.Pair;
 
 import java.io.InputStream;
+import java.util.Map;
 
 public interface RemoteAccess {
 	/**
@@ -50,12 +51,18 @@ public interface RemoteAccess {
 	void signOut(Bundle params, OnSignOutListener completedListener);
 
 	/**
+	 * Discard the directory contents cache.
+	 */
+	void discardDirCache();
+
+	/**
 	 * Fetch list of child item in specified path.
 	 *
 	 * @param filePath         Full file path to folder content to get.
+	 * @param useCache         specifies whether to use the directory contents cache.
 	 * @param completeListener
 	 */
-	void list(String filePath, OnOperationCompleteListener<FileMetadataList> completeListener);
+	void list(String filePath, boolean useCache, OnOperationCompleteListener<FileMetadataList> completeListener);
 
 	/**
 	 * Create directory on remove service.
@@ -77,9 +84,10 @@ public interface RemoteAccess {
 	 * Retrieve information about file or directory on remote service.
 	 *
 	 * @param filePath         full file path to file or directory.
+	 * @param useCache         specifies whether to use the directory contents cache.
 	 * @param completeListener
 	 */
-	void stat(String filePath, OnOperationCompleteListener<FileMetadata> completeListener);
+	void stat(String filePath, boolean useCache, OnOperationCompleteListener<FileMetadata> completeListener);
 
 	/**
 	 * Read file content from file on remote service.
@@ -96,7 +104,7 @@ public interface RemoteAccess {
 	 * @param data             Data to write.
 	 * @param completeListener
 	 */
-	void writeFile(String filePath, byte[] data, OnOperationCompleteListener<Boolean> completeListener);
+	void writeFile(String filePath, byte[] data, Map<String, String> customProps, OnOperationCompleteListener<Boolean> completeListener);
 
 	/**
 	 * Move file or directory to trash.

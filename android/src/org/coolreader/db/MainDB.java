@@ -1850,24 +1850,28 @@ public class MainDB extends BaseDB {
 		return list;
 	}
 
-	/*
-	public ArrayList<FileInfo> findByFingerprint (int maxCount, String filename, int crc32)
+	public ArrayList<FileInfo> findByFingerprints(int maxCount, Collection<String> fingerprints)
 	{
-		// TODO: replace crc32 with sha512, remove filename as search criteria
+		// TODO: replace crc32 with sha512
+
+		ArrayList<FileInfo> list = new ArrayList<>();
+		if (fingerprints.size() < 1)
+			return list;
 
 		beginReading();
-		ArrayList<FileInfo> list = new ArrayList<>();
-
-		String condition = " WHERE b.crc32=" + crc32;
-		String sql = READ_FILEINFO_SQL + condition;
+		StringBuilder condition = new StringBuilder(" WHERE ");
+		Iterator<String> it = fingerprints.iterator();
+		while (it.hasNext()) {
+			condition.append("b.crc32=").append(it.next());
+			if (it.hasNext())
+				condition.append(" OR ");
+		}
+		String sql = READ_FILEINFO_SQL + condition.toString();
 		Log.d("cr3", "sql: " + sql );
 		try (Cursor rs = mDB.rawQuery(sql, null)) {
 			if (rs.moveToFirst()) {
 				int count = 0;
 				do {
-					if (filename != null && filename.length() > 0)
-						if (!Utils.matchPattern(rs.getString(3), filename))
-							continue;
 					FileInfo fi = new FileInfo();
 					readFileInfoFromCursor(fi, rs);
 					list.add(fi);
@@ -1879,7 +1883,6 @@ public class MainDB extends BaseDB {
 		endReading();
 		return list;
 	}
-	*/
 
 	public ArrayList<FileInfo> loadFileInfos(ArrayList<String> pathNames) {
 		ArrayList<FileInfo> list = new ArrayList<>();
