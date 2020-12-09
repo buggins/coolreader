@@ -52,7 +52,7 @@
 #define ODT_TAG_NAME(itm) odt_el_##itm##_name
 #define ODT_TAG_ID(itm) odt_el_##itm
 #define ODT_TAG_CHILD(itm) { ODT_TAG_ID(itm), ODT_TAG_NAME(itm) }
-#define ODT_TAG_CHILD2(itm, name) { ODT_TAG_ID(itm), L ## name }
+#define ODT_TAG_CHILD2(itm, name) { ODT_TAG_ID(itm), U ## name }
 #define ODT_LAST_ITEM { -1, NULL }
 
 enum {
@@ -339,8 +339,8 @@ private:
         ldomNode* notes = m_writer->OnTagOpen(U"", U"body");
         m_writer->OnAttribute(U"", U"name", notesKind);
 #else
-        ldomNode* notes = m_writer->OnTagOpen(L"", U"div");
-        m_writer->OnAttribute(L"", U"style", U"page-break-before: always");
+        ldomNode* notes = m_writer->OnTagOpen(U"", U"div");
+        m_writer->OnAttribute(U"", U"style", U"page-break-before: always");
 #endif
         m_writer->OnTagBody();
         return notes;
@@ -351,7 +351,7 @@ private:
 #ifdef ODX_CRENGINE_IN_PAGE_FOOTNOTES
         writer.OnTagClose(U"", U"body");
 #else
-        writer.OnTagClose(L"", U"div");
+        writer.OnTagClose(U"", U"div");
 #endif
         writer.OnStop();
         parent->moveItemsTo(m_body->getParentNode(), index, index);
@@ -502,10 +502,10 @@ void odt_documentHandler::startParagraph()
     m_writer->OnTagBody();
 #ifndef DOCX_FB2_DOM_STRUCTURE
     if(m_state == odt_el_noteBody) {
-        m_writer->OnTagOpen(L"", U"sup");
+        m_writer->OnTagOpen(U"", U"sup");
         m_writer->OnTagBody();
         m_writer->OnText(m_noteRefText.c_str(), m_noteRefText.length(), 0);
-        m_writer->OnTagClose(L"", U"sup");
+        m_writer->OnTagClose(U"", U"sup");
     }
 #endif
     m_paragraphStarted = true;

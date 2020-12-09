@@ -41,9 +41,9 @@
     <string name="mi_goto_toc">Obsah</string>
     <string name="mi_folder_open">Otvoriť priečinok</string>
     <string name="mi_folder_to_favorites">Pridať do obľúbených</string>
-    <string name="mi_folder_left">Presunúť doľava</string>
-    <string name="mi_folder_right">Presunúť doprava</string>
-    <string name="mi_folder_remove">Odstrániť</string>
+    <string name="mi_folder_fav_left">Presunúť doľava</string>
+    <string name="mi_folder_fav_right">Presunúť doprava</string>
+    <string name="mi_folder_fav_remove">Odstrániť</string>
     <string name="dir_recent_books">Posledné knihy</string>
     <string name="dir_sd_card">SD karta</string>
     <string name="dir_internal_sd_card">Interná SD karta</string>

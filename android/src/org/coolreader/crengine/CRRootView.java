@@ -186,7 +186,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			cover.setMaxHeight(coverHeight);
 			cover.setMaxWidth(coverWidth);
 			if (item.isRecentDir()) {
-				cover.setImageResource(R.drawable.cr3_button_next);
+				cover.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_button_next_drawable, R.drawable.cr3_button_next));
 				if (label != null) {
 					label.setText("More...");
 				}
@@ -409,7 +409,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			TextView label = view.findViewById(R.id.item_name);
 			if (item.isSearchShortcut())
 				image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_find_drawable, R.drawable.cr3_browser_find));
-			else if (item.isBooksByAuthorRoot() || item.isBooksByTitleRoot() || item.isBooksBySeriesRoot())
+			else if (item.isBooksByGenreRoot() || item.isBooksByAuthorRoot() || item.isBooksByTitleRoot() || item.isBooksBySeriesRoot())
 				image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_authors_drawable, R.drawable.cr3_browser_folder_authors));
 			if (label != null) {
 				label.setText(item.filename);

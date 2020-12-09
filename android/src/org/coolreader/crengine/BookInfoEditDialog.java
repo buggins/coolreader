@@ -25,9 +25,11 @@ import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.RatingBar;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.genrescollection.GenresCollection;
 
 import java.util.ArrayList;
 
@@ -230,6 +232,8 @@ public class BookInfoEditDialog extends BaseDialog {
     EditText edTitle;
     EditText edSeriesName;
     EditText edSeriesNumber;
+    TextView lblGenres;
+	EditText edGenres;
     EditText edDescription;
 	AuthorList authors;
 	RatingBar rbBookRating;
@@ -256,6 +260,8 @@ public class BookInfoEditDialog extends BaseDialog {
         edTitle = mainView.findViewById(R.id.book_title);
         edSeriesName = mainView.findViewById(R.id.book_series_name);
         edSeriesNumber = mainView.findViewById(R.id.book_series_number);
+        lblGenres = mainView.findViewById(R.id.lbl_book_genres);
+        edGenres = mainView.findViewById(R.id.book_genres);
         edDescription = mainView.findViewById(R.id.book_description);
 
         rbBookRating = mainView.findViewById(R.id.book_rating);
@@ -306,10 +312,28 @@ public class BookInfoEditDialog extends BaseDialog {
         	edSeriesNumber.setText(String.valueOf(file.seriesNumber));
         else
             edSeriesNumber.setText("");
-        if (file.description != null && file.description.length() > 0)
+        if (DocumentFormat.FB2 == file.format) {
+            if (file.genres != null && file.genres.length() > 0) {
+                // genre codes separated by "|", see MainDB.READ_FILEINFO_FIELDS:
+                StringBuilder genres = new StringBuilder();
+                String[] parts = file.genres.split("\\|");
+                for (String code : parts) {
+                    code = code.trim();
+                    if (code.length() > 0) {
+                        if (genres.length() > 0)
+                            genres.append("\n");
+                        genres.append(Services.getGenresCollection().translate(code));
+                    }
+                }
+                edGenres.setText(genres.toString());
+                lblGenres.setVisibility(View.VISIBLE);
+                edGenres.setVisibility(View.VISIBLE);
+            }
+        }
+        if (file.description != null && file.description.length() > 0) {
             edDescription.setText(file.description);
-        else
-            edDescription.setVisibility(View.INVISIBLE);
+            edDescription.setVisibility(View.VISIBLE);
+        }
         LinearLayout llBookAuthorsList = mainView.findViewById(R.id.book_authors_list);
         authors = new AuthorList(llBookAuthorsList, file.authors);
         rbBookRating.setRating(file.getRate());
@@ -400,6 +424,17 @@ public class BookInfoEditDialog extends BaseDialog {
 			return true;
 		} else if (KeyEvent.KEYCODE_PAGE_UP == keyCode) {
 			scrollView.pageScroll(View.FOCUS_UP);
+			return true;
+		} else if (KeyEvent.KEYCODE_BACK == keyCode) {
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		if (KeyEvent.KEYCODE_BACK == keyCode) {
+			dismiss();
 			return true;
 		}
 		return super.onKeyDown(keyCode, event);

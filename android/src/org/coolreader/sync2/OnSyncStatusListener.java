@@ -4,7 +4,7 @@
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, either version 3 of the License, or
+ *   the Free Software Foundation, either version 2 of the License, or
  *   (at your option) any later version.
  *
  *   This program is distributed in the hope that it will be useful,
@@ -24,11 +24,11 @@ import org.coolreader.crengine.Properties;
 
 // Synchronization status listener interface
 public interface OnSyncStatusListener {
-	void onSyncStarted(Synchronizer.SyncDirection direction, boolean forced);
+	void onSyncStarted(Synchronizer.SyncDirection direction, boolean showProgress, boolean forced);
 
-	void OnSyncProgress(Synchronizer.SyncDirection direction, int current, int total, boolean forced);
+	void OnSyncProgress(Synchronizer.SyncDirection direction, boolean showProgress, int current, int total, boolean forced);
 
-	void onSyncCompleted(Synchronizer.SyncDirection direction, boolean forced);
+	void onSyncCompleted(Synchronizer.SyncDirection direction, boolean showProgress, boolean forced);
 
 	void onSyncError(Synchronizer.SyncDirection direction, String errorString);
 
@@ -39,4 +39,6 @@ public interface OnSyncStatusListener {
 	void onBookmarksLoaded(BookInfo bookInfo, boolean forced);
 
 	void onCurrentBookInfoLoaded(FileInfo fileInfo, boolean forced);
+
+	void onFileNotFound(FileInfo fileInfo);
 }

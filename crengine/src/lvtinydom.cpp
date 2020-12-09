@@ -85,10 +85,10 @@ extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.12.73"
+#define CACHE_FILE_FORMAT_VERSION "3.12.74"
 
 /// increment following value to force re-formatting of old book after load
-#define FORMATTING_VERSION_ID 0x0025
+#define FORMATTING_VERSION_ID 0x0026
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -310,7 +310,7 @@ public:
         return _text;
     }
 
-    lString32 getText16()
+    lString32 getText32()
     {
         return Utf8ToUnicode(_text);
     }
@@ -3965,7 +3965,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
             // settings) says hyphenation is allowed.
             // We do that here while we output the text to avoid the need
             // for temporary storage of a string with soft-hyphens added.
-            const lChar32 * text16 = txt.c_str();
+            const lChar32 * text32 = txt.c_str();
             int txtlen = txt.length();
             lUInt8 * flags = (lUInt8*)calloc(txtlen, sizeof(*flags));
             lUInt16 widths[HYPH_MAX_WORD_SIZE] = { 0 }; // array needed by hyphenate()
@@ -3977,7 +3977,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
                 // (or the previous word if wordpos happens to be a space or some
                 // punctuation) by looking only for alpha chars in m_text.
                 int start, end;
-                lStr_findWordBounds( text16, txtlen, wordpos, start, end );
+                lStr_findWordBounds( text32, txtlen, wordpos, start, end );
                 if ( end <= HYPH_MIN_WORD_LEN_TO_HYPHENATE ) {
                     // Too short word at start, we're done
                     break;
@@ -3999,7 +3999,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
                 // Have hyphenate() set flags inside 'flags'
                 // (Fetching the lang_cfg for each text node is not really cheap, but
                 // it's easier than having to pass it to each writeNodeEx())
-                TextLangMan::getTextLangCfg(node)->getHyphMethod()->hyphenate(text16+start, len, widths, flags+start, 0, 0xFFFF, 1);
+                TextLangMan::getTextLangCfg(node)->getHyphMethod()->hyphenate(text32+start, len, widths, flags+start, 0, 0xFFFF, 1);
                 // Continue with previous word
                 wordpos = start - 1;
             }
@@ -4217,7 +4217,9 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
                 *stream << " ";
                 if ( nsName.length() > 0 )
                     *stream << nsName << ":";
-                *stream << attrName << "=\"" << attrValue << "\"";
+                *stream << attrName;
+                if ( !attrValue.empty() ) // don't show ="" if empty
+                    *stream << "=\"" << attrValue << "\"";
                 if ( attrName == "StyleSheet" ) { // gather linked css files
                     lString32 cssFile = node->getDocument()->getAttrValue(attr->index);
                     if (!cssFiles.contains(cssFile))
@@ -5092,6 +5094,14 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
                 // Add FB2 2nd++ BODYs' titles (footnotes and endnotes) in the TOC
                 // (but not their own children that are <section>)
                 _isSection = true; // this is just to have updateTocItem() called
+                // Also add the "NonLinear" attribute so these other BODYs are flagged
+                // as non-linear and can be hidden by frontend code that handles this
+                // (this is actually suggested by the FB2 specs: "... multiple
+                // bodies are used for additional information, like footnotes,
+                // that do not appear in the main book flow. The first body is
+                // presented to the reader by default, and content in the other
+                // bodies should be accessible by hyperlinks.")
+                addAttribute( 0, attr_NonLinear, U"" );
             }
         }
     }
@@ -5155,7 +5165,7 @@ static lString32 getSectionHeader( ldomNode * section )
     ldomNode * child = section->getChildElementNode(0, U"title");
     if ( !child )
         return header;
-    header = child->getText(L' ', 1024);
+    header = child->getText(U' ', 1024);
     return header;
 }
 
@@ -6643,7 +6653,7 @@ void ldomNode::initNodeRendMethod()
     if ( d == css_d_ruby && BLOCK_RENDERING(rend_flags, ENHANCED) ) {
         // Ruby input can be quite loose and have various tag strategies (mono/group,
         // interleaved/tabular, double sided). Moreover, the specs have evolved between
-        // 2001 and 2020 (<rbc> tag no more mentionned in 2020; <rtc> being just another
+        // 2001 and 2020 (<rbc> tag no more mentioned in 2020; <rtc> being just another
         // semantic container for Mozilla, and can be preceded by a bunch of <rt> which
         // are pronunciation containers, that don't have to be in an <rtc>...)
         // Moreover, various samples on the following pages don't close tags, and expect
@@ -9626,18 +9636,25 @@ lString32 extractDocSeries( ldomDocument * doc, int * pSeriesNumber )
 lString32 extractDocKeywords( ldomDocument * doc )
 {
     lString32 res;
+#if 0
     // Year
     res << doc->createXPointer(U"/FictionBook/description/title-info/date").getText().trim();
+#endif
     // Genres
+    // We use "\n" as a separator here, so if you change it here, you must also change it in
+    // Engine.scanBookPropertiesInternal(), DocView.updateBookInfoInternal().
     for ( int i=0; i<16; i++) {
         lString32 path = cs32("/FictionBook/description/title-info/genre[") + fmt::decimal(i+1) + "]";
         ldomXPointer genre = doc->createXPointer(path);
         if ( !genre ) {
             break;
         }
-        if ( !res.empty() )
-            res << "\n";
-        res << genre.getText().trim();
+        lString32 text = genre.getText().trim();
+        if (!text.empty()) {
+            if (!res.empty())
+                res << "\n";
+            res << text;
+        }
     }
     return res;
 }
@@ -11946,7 +11963,7 @@ bool ldomXPointerEx::isSentenceStart()
             case '.':
             case '?':
             case '!':
-            case L'\x2026': // horizontal ellypsis
+            case U'\x2026': // horizontal ellypsis
                 return false;
         }
     }
@@ -11957,7 +11974,7 @@ bool ldomXPointerEx::isSentenceStart()
         case '.':
         case '?':
         case '!':
-        case L'\x2026': // horizontal ellypsis
+        case U'\x2026': // horizontal ellypsis
             return true;
         default:
             return false;
@@ -11985,7 +12002,7 @@ bool ldomXPointerEx::isSentenceEnd()
         case '.':
         case '?':
         case '!':
-        case L'\x2026': // horizontal ellypsis
+        case U'\x2026': // horizontal ellypsis
             return true;
         default:
             break;
@@ -12705,6 +12722,8 @@ lString32 ldomDocumentFragmentWriter::convertHref( lString32 href )
 {
     if ( href.pos("://")>=0 )
         return href; // fully qualified href: no conversion
+    if ( href.length() > 10 && href[4] == ':' && href.startsWith(lString32("data:image/")) )
+        return href; // base64 encoded image (<img src="data:image/png;base64,iVBORw0KG...>): no conversion
 
     //CRLog::trace("convertHref(%s, codeBase=%s, filePathName=%s)", LCSTR(href), LCSTR(codeBase), LCSTR(filePathName));
 
@@ -12880,6 +12899,8 @@ ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar32 * nsname, const 
                 parent->OnAttribute(U"", U"dir", htmlDir.c_str() );
             if ( !htmlLang.empty() ) // add attribute <DocFragment lang="ar" from <html lang="ar"> tag
                 parent->OnAttribute(U"", U"lang", htmlLang.c_str() );
+            if (this->m_nonlinear)
+                parent->OnAttribute(U"", U"NonLinear", U"" );
 
             parent->OnTagBody(); // inside <DocFragment>
             if ( !headStyleText.empty() || stylesheetLinks.length() > 0 ) {
@@ -12962,7 +12983,7 @@ void ldomDocumentFragmentWriter::OnTagBody()
 
 /////////////////////////////////////////////////////////////////
 /// ldomDocumentWriterFilter
-// Used to parse loosy HTML in formats: HTML, CHM, PDB(html)
+// Used to parse lousy HTML in formats: HTML, CHM, PDB(html)
 // For all these document formats, it is fed by HTMLParser that does
 // convert to lowercase the tag names and attributes.
 // ldomDocumentWriterFilter does then deal with auto-closing unbalanced
@@ -14922,7 +14943,7 @@ lUInt32 tinyNodeCollection::calcStyleHash(bool already_rendered)
     // _maxAddedLetterSpacingPercent does not need to be accounted, as, working
     // only on a laid out line, it does not need a re-rendering, but just
     // a _renderedBlockCache.clear() to reformat paragraphs and have the
-    // word re-positionned (the paragraphs width & height do not change)
+    // word re-positioned (the paragraphs width & height do not change)
 
     // Hanging punctuation does not need to trigger a re-render, as
     // it's now ensured by alignLine() and won't change paragraphs height.
@@ -16542,7 +16563,7 @@ lString32 ldomNode::getText( lChar32 blockDelimiter, int maxSize ) const
         return Utf8ToUnicode(getDocument()->_textStorage.getText( _data._ptext_addr ));
 #endif
     case NT_TEXT:
-        return _data._text_ptr->getText16();
+        return _data._text_ptr->getText32();
     }
     return lString32::empty_str;
 }

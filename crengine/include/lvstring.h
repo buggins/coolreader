@@ -26,6 +26,7 @@
 /// Unicode spaces
 #define UNICODE_NO_BREAK_SPACE            0x00A0
 #define UNICODE_ZERO_WIDTH_NO_BREAK_SPACE 0xfeff
+#define UNICODE_WORD_JOINER      0x2060
 // All chars from U+2000 to U+200B allow wrap after, except U+2007
 #define UNICODE_EN_QUAD          0x2000
 #define UNICODE_FIGURE_SPACE     0x2007
@@ -644,39 +645,11 @@ public:
     lString16 & insert(size_type p0, const value_type * str);
     lString16 & insert(size_type p0, const value_type * str, size_type count);
     lString16 & insert(size_type p0, const lString16 & str);
-    lString16 & insert(size_type p0, const lString16 & str, size_type offset, size_type count);
     lString16 & insert(size_type p0, size_type count, value_type ch);
-    lString16 & replace(size_type p0, size_type n0, const value_type * str);
-    lString16 & replace(size_type p0, size_type n0, const value_type * str, size_type count);
-    lString16 & replace(size_type p0, size_type n0, const lString16 & str);
-    lString16 & replace(size_type p0, size_type n0, const lString16 & str, size_type offset, size_type count);
-    /// replace range of string with character ch repeated count times
-    lString16 & replace(size_type p0, size_type n0, size_type count, value_type ch);
-    /// make string uppercase
-    lString16 & uppercase();
-    /// make string lowercase
-    lString16 & lowercase();
-    /// make string capitalized
-    lString16 & capitalize();
-    /// make string use full width chars
-    lString16 & fullWidthChars();
     /// compare with another string
     int compare(const lString16& str) const { return lStr_cmp(pchunk->buf16, str.pchunk->buf16); }
-    /// compare subrange with another string
-    int compare(size_type p0, size_type n0, const lString16& str) const;
-    /// compare subrange with substring of another string
-    int compare(size_type p0, size_type n0, const lString16& str, size_type pos, size_type n) const;
     int compare(const value_type *s) const  { return lStr_cmp(pchunk->buf16, s); }
     int compare(const lChar8 *s) const  { return lStr_cmp(pchunk->buf16, s); }
-    int compare(size_type p0, size_type n0, const value_type *s) const;
-    int compare(size_type p0, size_type n0, const value_type *s, size_type pos) const;
-
-    /// split string into two strings using delimiter
-    bool split2( const lString16 & delim, lString16 & value1, lString16 & value2 );
-    /// split string into two strings using delimiter
-    bool split2( const lChar16 * delim, lString16 & value1, lString16 & value2 );
-    /// split string into two strings using delimiter
-    bool split2( const lChar8 * delim, lString16 & value1, lString16 & value2 );
 
     /// returns n characters beginning with pos
     lString16 substr(size_type pos, size_type n) const;
@@ -688,22 +661,6 @@ public:
     bool replaceParam(int index, const lString16 & replaceStr);
     /// replaces first found occurence of "$N" pattern with itoa of integer, where N=index
     bool replaceIntParam(int index, int replaceNumber);
-
-    /// find position of substring inside string, -1 if not found
-    int pos(lString16 subStr) const;
-    /// find position of substring inside string starting from specified position, -1 if not found
-    int pos(const lString16 & subStr, int start) const;
-    /// find position of substring inside string, -1 if not found
-    int pos(const lChar16 * subStr) const;
-    /// find position of substring inside string (8bit ASCII only), -1 if not found
-    int pos(const lChar8 * subStr) const;
-    /// find position of substring inside string starting from specified position, -1 if not found
-    int pos(const lChar16 * subStr, int start) const;
-    /// find position of substring inside string (8bit ASCII only) starting from specified position, -1 if not found
-    int pos(const lChar8 * subStr, int start) const;
-
-    /// find position of substring inside string, right to left, return -1 if not found
-    int rpos(lString16 subStr) const;
 
     /// append single character
     lString16 & operator << (value_type ch) { return append(1, ch); }
@@ -778,8 +735,6 @@ public:
     lString16 & trimNonAlpha();
     /// trims spaces at beginning and end of string
     lString16 & trim();
-    /// trims duplicate space characters inside string and (optionally) at end and beginning of string
-    lString16 & trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens=false );
     /// converts to integer
     int atoi() const;
     /// converts to integer, returns true if success
@@ -970,6 +925,10 @@ public:
     /// replaces first found occurence of "$N" pattern with itoa of integer, where N=index
     bool replaceIntParam(int index, int replaceNumber);
 
+    /// find position of char inside string, -1 if not found
+    int pos(lChar32 ch) const;
+    /// find position of char inside string starting from specified position, -1 if not found
+    int pos(lChar32 ch, int start) const;
     /// find position of substring inside string, -1 if not found
     int pos(lString32 subStr) const;
     /// find position of substring inside string starting from specified position, -1 if not found

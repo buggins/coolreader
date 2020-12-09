@@ -49,6 +49,7 @@ LVRendPageContext::LVRendPageContext(LVRendPageList * pageList, int pageHeight, 
     : callback(NULL), totalFinalBlocks(0)
     , renderedFinalBlocks(0), lastPercent(-1), page_list(pageList), page_h(pageHeight)
     , gather_lines(gatherLines), footNotes(64), curr_note(NULL)
+    , current_flow(0), max_flow(0)
 {
     if ( callback ) {
         callback->OnFormatStart();
@@ -127,6 +128,19 @@ void LVRendPageContext::leaveFootNote()
     curr_note = NULL;
 }
 
+void LVRendPageContext::newFlow( bool nonlinear )
+{
+    /// A new non-linear flow gets the next number
+    /// A new linear flow simply gets appended to flow 0
+    if (nonlinear) {
+       max_flow++;
+       current_flow = max_flow;
+       page_list->setHasNonLinearFlows();
+    } else {
+       current_flow = 0;
+    }
+}
+
 
 void LVRendPageContext::AddLine( int starty, int endy, int flags )
 {
@@ -135,7 +149,7 @@ void LVRendPageContext::AddLine( int starty, int endy, int flags )
     #endif
     if ( curr_note!=NULL )
         flags |= RN_SPLIT_FOOT_NOTE;
-    LVRendLineInfo * line = new LVRendLineInfo(starty, endy, flags);
+    LVRendLineInfo * line = new LVRendLineInfo(starty, endy, flags, current_flow);
     lines.add( line );
     if ( curr_note != NULL ) {
         //CRLog::trace("adding line to note (%d)", line->start);
@@ -170,6 +184,7 @@ public:
     int nb_lines_rtl;
     int nb_footnotes_lines;
     int nb_footnotes_lines_rtl;
+    int current_flow;
 
     PageSplitState(LVRendPageList * pl, int pageHeight)
         : page_h(pageHeight)
@@ -188,6 +203,7 @@ public:
         , nb_lines_rtl(0)
         , nb_footnotes_lines(0)
         , nb_footnotes_lines_rtl(0)
+        , current_flow(0)
     {
     }
 
@@ -317,6 +333,9 @@ public:
             page_footnotes.add(footnote);
         }
         page->flags |= getLineTypeFlags();
+        if (pagestart)
+            current_flow = pagestart->flow;
+        page->flow = current_flow;
         ResetLineAccount(true);
         page_list->add(page);
     }
@@ -355,7 +374,7 @@ public:
         // this 'line' contains (text, image...), so we can't really
         // find a better 'y' to cut at than the page height. We may
         // then cut in the middle of a text line, and have halves
-        // displayed on different pages (althought it seems crengine
+        // displayed on different pages (although it seems crengine
         // deals with displaying the cut line fully at start of
         // next page).
         // we don't take the current footnotes height into account
@@ -385,11 +404,12 @@ public:
                     page_list->length(), slice_start, slice_start+page_h, page_h);
             #endif
             page->flags |= getLineTypeFlags();
+            page->flow = line->flow;
             ResetLineAccount();
             page_list->add(page);
             slice_start += page_h;
             lastpageend = slice_start;
-            last = new LVRendLineInfo(slice_start, line->getEnd(), line->flags);
+            last = new LVRendLineInfo(slice_start, line->getEnd(), line->flags, line->flow);
             own_lines.add( last ); // so we can have it 'delete'd in Finalize()
             pageend = last;
             did_slice = true;
@@ -822,6 +842,8 @@ bool LVRendPageList::deserialize( SerialBuf & buf )
         item->deserialize( buf );
         item->index = i;
         add( item );
+        if (item->flow > 0)
+            has_nonlinear_flows = true;
     }
     if ( !buf.checkMagic( pagelist_magic ) )
         return false;
@@ -836,6 +858,7 @@ bool LVRendPageInfo::serialize( SerialBuf & buf )
     buf << (lUInt32)start;  /// start of page
     buf << (lUInt16)height; /// height of page, does not include footnotes
     buf << (lUInt8) flags;  /// RN_PAGE_*
+    buf << (lUInt16)flow;   /// flow the page belongs to
     lUInt16 len = footnotes.length();
     buf << len;
     for ( int i=0; i<len; i++ ) {
@@ -850,14 +873,16 @@ bool LVRendPageInfo::deserialize( SerialBuf & buf )
     if ( buf.error() )
         return false;
     lUInt32 n1;
-	lUInt16 n2;
+    lUInt16 n2;
     lUInt8 n3;
+    lUInt16 n4;
 
-    buf >> n1 >> n2 >> n3; /// start of page
+    buf >> n1 >> n2 >> n3 >> n4; /// start of page
 
     start = n1;
     height = n2;
     flags = n3;
+    flow = n4;
 
     lUInt16 len;
     buf >> len;

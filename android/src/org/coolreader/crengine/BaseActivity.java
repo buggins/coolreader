@@ -35,6 +35,7 @@ import org.coolreader.Dictionaries.DictInfo;
 import org.coolreader.R;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBServiceAccessor;
+import org.coolreader.genrescollection.GenresCollection;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -782,6 +783,10 @@ public class BaseActivity extends Activity implements Settings {
 		return screenBacklightBrightness;
 	}
 
+	public int getWarmBacklightLevel() {
+		return screenWarmBacklightBrightness;
+	}
+
 	public void setScreenBacklightLevel(int value) {
 		if (value < -1)
 			value = -1;
@@ -794,7 +799,19 @@ public class BaseActivity extends Activity implements Settings {
 			EinkScreen.setFrontLightValue(this, value);
 	}
 
+	public void setScreenWarmBacklightLevel(int value) {
+		if (value < -1)
+			value = -1;
+		else if (value > DeviceInfo.MAX_SCREEN_BRIGHTNESS_WARM_VALUE)
+			value = -1;
+		if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT) {
+			screenWarmBacklightBrightness = value;
+			EinkScreen.setWarmLightValue(this, value);
+		}
+	}
+
 	private int screenBacklightBrightness = -1; // use default
+	private int screenWarmBacklightBrightness = -1; // use default
 	//private boolean brightnessHackError = false;
 	private boolean brightnessHackError = DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 
@@ -1193,6 +1210,8 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void setLanguage(String lang) {
 		setLanguage(Lang.byCode(lang));
+		// reload Genres Collection
+		GenresCollection.reloadGenresFromResource(this);
 	}
 
 	public void setLanguage(Lang lang) {
@@ -1264,6 +1283,12 @@ public class BaseActivity extends Activity implements Settings {
 								.postGUI(() -> setScreenBacklightLevel(n))), 100);
 			} catch (Exception e) {
 				// ignore
+			}
+		} else if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT && PROP_APP_SCREEN_WARM_BACKLIGHT.equals(key)) {
+			try {
+				int n = Integer.parseInt(value);
+				setScreenWarmBacklightLevel(n);
+			} catch (Exception ignored) {
 			}
 		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS)) {
 			Services.getScanner().setHideEmptyDirs(flg);
@@ -1818,6 +1843,7 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_FULLSCREEN, "0");
 			props.applyDefault(ReaderView.PROP_APP_VIEW_AUTOSCROLL_SPEED, "1500");
 			props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT, "-1");
+			props.applyDefault(ReaderView.PROP_APP_SCREEN_WARM_BACKLIGHT, "-1");
 			props.applyDefault(ReaderView.PROP_SHOW_BATTERY, "1");
 			props.applyDefault(ReaderView.PROP_SHOW_POS_PERCENT, "0");
 			props.applyDefault(ReaderView.PROP_SHOW_PAGE_COUNT, "1");
@@ -1834,6 +1860,7 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
 			props.applyDefault(ReaderView.PROP_APP_DICTIONARY, Dictionaries.DEFAULT_DICTIONARY_ID);
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS, "0");
+			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES, "0");
 			props.applyDefault(ReaderView.PROP_APP_SELECTION_ACTION, "0");
 			props.applyDefault(ReaderView.PROP_APP_MULTI_SELECTION_ACTION, "0");
 
@@ -1889,10 +1916,11 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, "0");
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_SETTINGS, "0");
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_BOOKMARKS, "0");
-			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK, "0");
+			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO, "0");
+			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_BODY, "0");
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD, "5");		// 5 min.
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_CONFIRMATIONS, "1");
-			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_BOOKMARKS_KEEPALIVE, "14");				// 2 weeks
+			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_DATA_KEEPALIVE, "14");				// 2 weeks
 
 			if (!DeviceInfo.EINK_SCREEN) {
 				props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "1");

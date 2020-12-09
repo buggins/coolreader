@@ -43,9 +43,10 @@
     <string name="mi_goto_toc">Table of Contents</string>
     <string name="mi_folder_open">Open folder</string>
     <string name="mi_folder_to_favorites">Add to favorites</string>
-    <string name="mi_folder_left">Move left</string>
-    <string name="mi_folder_right">Move right</string>
-    <string name="mi_folder_remove">Remove</string>
+    <string name="mi_folder_fav_left">Move left</string>
+    <string name="mi_folder_fav_right">Move right</string>
+    <string name="mi_folder_fav_remove">Remove</string>
+    <string name="mi_folder_delete">Delete…</string>
     <string name="dir_recent_books">Recent Books</string>
     <string name="dir_sd_card">SD Card</string>
     <string name="dir_internal_sd_card">Internal SD Card</string>
@@ -114,7 +115,9 @@
     <string name="options_page_animation">Page animation</string>
     <string name="options_controls_enable_volume_keys">Use volume keys for navigation</string>
     <string name="options_app_backlight_screen">Screen backlight brightness</string>
+    <string name="options_app_warm_backlight_screen">Warm Screen backlight brightness</string>
     <string name="options_app_backlight_screen_default">Default</string>
+    <string name="action_backlight_set_default">Set the backlight brightness as in the system</string>
     <string name="options_app_tapzones_normal">Tap zone actions</string>
     <string name="options_app_key_actions">Key actions</string>
     <string name="options_app_trackball_disable">Disable trackball</string>
@@ -176,6 +179,7 @@
     <string name="options_page_show_titlebar_page_count">Page count</string>
     <string name="options_show_titlebar_page_number">Page number</string>
     <string name="options_controls_flick_brightness">Brightness control by flick</string>
+    <string name="options_controls_flick_warm">Warm backlight control by flick</string>
     <string name="options_controls_flick_brightness_right">Right edge</string>
     <string name="options_controls_flick_brightness_left">Left edge</string>
     <string name="options_controls_flick_brightness_none">Disabled</string>
@@ -200,6 +204,7 @@
     <string name="options_selection_action_dictionary">Find in dictionary</string>
     <string name="options_selection_action_copy">Copy to clipboard</string>
     <string name="options_app_browser_hide_empty_dirs">Hide directories without books</string>
+    <string name="options_app_browser_hide_empty_genres">Hide genres without books</string>
     <string name="dlg_about">About CoolReader</string>
     <string name="dlg_book_info">Book Info</string>
     <string name="mi_book_styles_enable">Enable document internal styles</string>
@@ -314,6 +319,7 @@
     <string name="options_controls_tap_type_double">Double tap</string>
     <string name="options_controls_tap_type_long">Long tap</string>
     <string name="mi_bookmark_send">Send</string>
+    <string name="folder_name_books_by_genre">Genres</string>
     <string name="folder_name_books_by_author">Authors</string>
     <string name="folder_name_books_by_rating">By Rating</string>
     <string name="folder_name_books_by_state_to_read">To Read</string>
@@ -426,6 +432,7 @@
     <string name="win_title_confirm_catalog_delete">Do you really want to delete this catalog?</string>
     <string name="win_title_confirm_history_record_delete">Do you really want to remove this book from recent list?</string>
     <string name="win_title_confirm_book_delete">Do you really want to delete this book / archive ?</string>
+    <string name="win_title_confirm_folder_delete">Do you really want to delete this folder along with all the books?</string>
     <string name="book_info_book_language">Language</string>
     <string name="folder_name_books_by_series">Series</string>
     <string name="folder_name_books_by_title">Titles</string>
@@ -646,7 +653,8 @@
     <string name="options_app_cloudsync_confirmations">Ask for confirmation before updating</string>
     <string name="options_app_googledrive_sync_settings">Settings on Drive</string>
     <string name="options_app_googledrive_sync_bookmarks">Bookmarks and reading position on Drive</string>
-    <string name="options_app_googledrive_sync_currentbook">Current reading book info on Drive</string>
+    <string name="options_app_googledrive_sync_currentbook_info">Current reading book info on Drive</string>
+    <string name="options_app_googledrive_sync_currentbook_body">Current reading book on Drive</string>
     <string name="googledrive_disabled_cleanup_question">You have disabled automatic syncing with Google Drive, delete all application files on Google Drive?"</string>
     <string name="googledrive_sync_completed">Synchronization with Google Drive successfully completed.</string>
     <string name="googledrive_sync_failed_with">Synchronization with Google Drive failed with error: %s</string>
@@ -657,12 +665,14 @@
     <string name="googledrive_load_remote">Load remote</string>
     <string name="googledrive_upload_local">Upload local to Drive</string>
     <string name="googledrive_remotefile_is_newer_confirm">Remote file \"%s\" on Google Drive is newer that local file, whatever save local to Drive or load remote?</string>
-    <string name="cloud_synchronization_">Cloud synchronizing…</string>
+    <string name="cloud_synchronization_to_">Synchronizing to cloud…</string>
+    <string name="cloud_synchronization_from_">Synchronizing from cloud…</string>
     <string name="googledrive_sync_to">Sync to Drive</string>
     <string name="googledrive_sync_from">Sync from Drive</string>
     <string name="confirmation_title">Confirmation</string>
     <string name="sync_confirmation_other_book">Another book (%s) was opened on another device, switch to it?</string>
     <string name="sync_confirmation_new_reading_position">New reading position found for this book, update?</string>
+    <string name="sync_info_no_such_document">No document \"%s\" was found on this device!</string>
     <string name="autosave_period">Autosave period</string>
     <string name="autosave_period_off">Off</string>
     <string name="autosave_period_1min">1 minute</string>
@@ -677,7 +687,7 @@
     <string name="choose_root_sd">Could not delete file, if the file is on External SD, choose ExtSD root in the dialog</string>
     <string name="could_not_delete_on_sd">Could not find file, make sure the root of ExtSD was selected</string>
     <string name="could_not_delete_file">Could not delete file \"%s\"</string>
-    <string name="bookmarks_keepalive_">Delete copies of bookmarks older than…</string>
+    <string name="sync_data_keepalive_">Delete sync data older than…</string>
     <string name="bookmarks_keepalive_off">Off</string>
     <string name="bookmarks_keepalive_1day">1 day</string>
     <string name="bookmarks_keepalive_2days">2 days</string>
@@ -691,4 +701,7 @@
     <string name="bookmarks_keepalive_1quarter">1 quarter</string>
     <string name="bookmarks_keepalive_half_a_year">half a year</string>
     <string name="bookmarks_keepalive_1year">1 year</string>
+    <string name="book_info_genres">Genre(s)</string>
+    <string name="including_subgenres">(Including subgenres)</string>
+    <string name="action_show_onyx_backlight_system_dialog">Show the system dialog for setting the backlight</string>
 </resources>

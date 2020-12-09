@@ -430,9 +430,9 @@ void LVRtfParser::CommitText()
 
 void LVRtfParser::AddChar8( lUInt8 ch )
 {
-    lChar32 ch16 = m_stack.byteToUnicode(ch);
-    if ( ch16 )
-        AddChar( ch16 );
+    lChar32 ch32 = m_stack.byteToUnicode(ch);
+    if ( ch32 )
+        AddChar( ch32 );
 }
 
 // m_buf_pos points to first byte of char
@@ -463,7 +463,7 @@ static int charToHex( lUInt8 ch )
 /// parses input stream
 bool LVRtfParser::Parse()
 {
-    //m_conv_table = GetCharsetByte2UnicodeTable( L"cp1251" );
+    //m_conv_table = GetCharsetByte2UnicodeTable( U"cp1251" );
 
     bool errorFlag = false;
     m_callback->OnStart(this);

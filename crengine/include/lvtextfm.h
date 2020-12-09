@@ -216,7 +216,7 @@ typedef struct
    lUInt16               inward_margin; /**< inward margin */
    css_clear_t           clear;       /**< clear: css property value */
    bool                  is_right;    /**< is float: right */
-   bool                  to_position; /**< not yet positionned */
+   bool                  to_position; /**< not yet positioned */
    lString32Collection * links;       /** footnote links found in this float text */
 } embedded_float_t;
 

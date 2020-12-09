@@ -41,9 +41,9 @@
     <string name="mi_goto_toc">Зміст</string>
     <string name="mi_folder_open">Відкрити теку</string>
     <string name="mi_folder_to_favorites">Додати до улюблених</string>
-    <string name="mi_folder_left">Посунути ліворуч</string>
-    <string name="mi_folder_right">Посунути праворуч</string>
-    <string name="mi_folder_remove">Вилучити</string>
+    <string name="mi_folder_fav_left">Посунути ліворуч</string>
+    <string name="mi_folder_fav_right">Посунути праворуч</string>
+    <string name="mi_folder_fav_remove">Вилучити</string>
     <string name="dir_recent_books">Останні книги</string>
     <string name="dir_sd_card">SD-картка</string>
     <string name="dir_internal_sd_card">Внутр. SD-картка</string>

@@ -39,9 +39,10 @@
     <string name="mi_goto_toc">Содержание</string>
     <string name="mi_folder_open">Открыть папку</string>
     <string name="mi_folder_to_favorites">Добавить в избранное</string>
-    <string name="mi_folder_left">Сдвинуть влево</string>
-    <string name="mi_folder_right">Сдвинуть вправо</string>
-    <string name="mi_folder_remove">Убрать</string>
+    <string name="mi_folder_fav_left">Сдвинуть влево</string>
+    <string name="mi_folder_fav_right">Сдвинуть вправо</string>
+    <string name="mi_folder_fav_remove">Убрать</string>
+    <string name="mi_folder_delete">Удалить…</string>
     <string name="dir_recent_books">Последние книги</string>
     <string name="dir_sd_card">SD карта</string>
     <string name="dir_internal_sd_card">Внутр. SD карта</string>
@@ -108,7 +109,9 @@
     <string name="options_page_animation">Анимация листания</string>
     <string name="options_controls_enable_volume_keys">Листание кнопками громкости</string>
     <string name="options_app_backlight_screen">Яркость подсветки экрана</string>
+    <string name="options_app_warm_backlight_screen">Яркость тёплой подсветки экрана</string>
     <string name="options_app_backlight_screen_default">Установленная в системе</string>
+    <string name="action_backlight_set_default">Яркость подсветки установленная в системе</string>
     <string name="options_app_tapzones_normal">Сенсорный экран</string>
     <string name="options_app_key_actions">Кнопки</string>
     <string name="options_app_trackball_disable">Отключить трэкболл</string>
@@ -170,6 +173,7 @@
     <string name="options_page_show_titlebar_page_count">Всего страниц</string>
     <string name="options_show_titlebar_page_number">Новер страницы</string>
     <string name="options_controls_flick_brightness">Управление яркостью скольжением по экрану</string>
+    <string name="options_controls_flick_warm">Управление яркостью теплой подсветки скольжением по экрану</string>
     <string name="options_controls_flick_brightness_right">Правый край</string>
     <string name="options_controls_flick_brightness_left">Левый край</string>
     <string name="options_controls_flick_brightness_none">Отключено</string>
@@ -193,6 +197,7 @@
     <string name="options_selection_action_dictionary">Найти в словаре</string>
     <string name="options_selection_action_copy">Копировать</string>
     <string name="options_app_browser_hide_empty_dirs">Прятать директории без книг</string>
+    <string name="options_app_browser_hide_empty_genres">Скрывать жанры без книг</string>
     <string name="dlg_about">О программе</string>
     <string name="dlg_book_info">О книге</string>
     <string name="mi_book_styles_enable">Разрешить встроенные стили документа</string>
@@ -305,6 +310,7 @@
     <string name="options_controls_tap_type_double">Двойное нажатие</string>
     <string name="options_controls_tap_type_long">Длинное нажатие</string>
     <string name="mi_bookmark_send">Отправить</string>
+    <string name="folder_name_books_by_genre">Жанры</string>
     <string name="folder_name_books_by_author">Авторы</string>
     <string name="folder_name_books_by_rating">По рейтингу</string>
     <string name="folder_name_books_by_state_to_read">К прочтению</string>
@@ -415,6 +421,7 @@
     <string name="win_title_confirm_catalog_delete">Вы действительно хотите удалить этот каталог?</string>
     <string name="win_title_confirm_history_record_delete">Вы действительно хотите удалить эту книгу из списка последних книг?</string>
     <string name="win_title_confirm_book_delete">Вы действительно хотите удалить эту книгу / архив ?</string>
+    <string name="win_title_confirm_folder_delete">Вы действительно хотите удалить эту папку вместе со всеми книгами?</string>
     <string name="folder_name_books_by_series">Серии</string>
     <string name="folder_name_books_by_title">Названия</string>
     <string name="dlg_about_donation_platinum">$30: купить Платиновую монету Cool Reader</string>
@@ -461,7 +468,7 @@
     <string name="dlg_goto_current_position">Текущая страница:</string>
     <string name="dlg_goto_input_page_number">Введите номер страницы для перехода:</string>
     <string name="dlg_goto_input_percent">Введите процент для перехода:</string>
-    <string name="book_info_book_language">Language</string>
+    <string name="book_info_book_language">Язык</string>
     <string name="book_state_toread">К прочтению</string>
     <string name="book_state_reading">Читаю</string>
     <string name="book_state_none">Нет пометки</string>
@@ -611,7 +618,8 @@
     <string name="options_app_cloudsync_confirmations">Запрашивать подтверждение перед обновлением</string>
     <string name="options_app_googledrive_sync_settings">Настройки на Диске</string>
     <string name="options_app_googledrive_sync_bookmarks">Закладки и текущая позиция чтения на Диске</string>
-    <string name="options_app_googledrive_sync_currentbook">Информация о читаемой в данный момент книге на Диске</string>
+    <string name="options_app_googledrive_sync_currentbook_info">Информация о читаемой в данный момент книге на Диске</string>
+    <string name="options_app_googledrive_sync_currentbook_body">Читаемая в данный момент книга на Диске</string>
     <string name="googledrive_disabled_cleanup_question">Вы отключили автоматическую синхронизацию с Google Диском, удалить все данные приложения на Google Диске?"</string>
     <string name="googledrive_sync_completed">Синхронизация с Google Диском успешно завершена.</string>
     <string name="googledrive_sync_failed_with">Произошел сбой при синхронизация с Google Диском: %s</string>
@@ -622,12 +630,14 @@
     <string name="googledrive_load_remote">Скачать удаленный</string>
     <string name="googledrive_upload_local">Загрузить локальный на Диск</string>
     <string name="googledrive_remotefile_is_newer_confirm">Удаленный файл \"%s\" на Google Диске новее чем локальный файл, загрузить локальный на Диск или скачать удаленный?</string>
-    <string name="cloud_synchronization_">Облачная синхронизация…</string>
+    <string name="cloud_synchronization_to_">Синхронизация в облако…</string>
+    <string name="cloud_synchronization_from_">Синхронизация с облака…</string>
     <string name="googledrive_sync_to">Синх. на Диск</string>
     <string name="googledrive_sync_from">Синх. с Диска</string>
     <string name="confirmation_title">Подтверждение</string>
     <string name="sync_confirmation_other_book">На другом устройстве была открыта другая книга (%s), переключиться на неё?</string>
     <string name="sync_confirmation_new_reading_position">Для этой книги найдена новая позиция чтения, обновить?</string>
+    <string name="sync_info_no_such_document">Документ \"%s\" не найден на этом устройстве!</string>
     <string name="autosave_period">Период автосохранения</string>
     <string name="autosave_period_off">"Отключено"</string>
     <string name="autosave_period_1min">"1 минута"</string>
@@ -642,7 +652,7 @@
     <string name="choose_root_sd">Невозможно удалить файл, если файл находится на внешней SD карте, выберите корень внешней SD карты в диалоге</string>
     <string name="could_not_delete_on_sd">Невозможно найти файл, убедитесь, что был выбран корень внешней SD карты</string>
     <string name="could_not_delete_file">Невозможно удалить файл \"%s\"</string>
-    <string name="bookmarks_keepalive_">Удалять копии закладок старее чем…</string>
+    <string name="sync_data_keepalive_">Удалять данные синхронизации старее чем…</string>
     <string name="bookmarks_keepalive_off">Отключено</string>
     <string name="bookmarks_keepalive_1day">1 день</string>
     <string name="bookmarks_keepalive_2days">2 дня</string>
@@ -656,4 +666,7 @@
     <string name="bookmarks_keepalive_1quarter">1 квартал</string>
     <string name="bookmarks_keepalive_half_a_year">полгода</string>
     <string name="bookmarks_keepalive_1year">1 год</string>
+    <string name="book_info_genres">Жанр(ы)</string>
+    <string name="including_subgenres">(Включая поджанры)</string>
+    <string name="action_show_onyx_backlight_system_dialog">Показать системный диалог для настройки подсветки</string>
 </resources>

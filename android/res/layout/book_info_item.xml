@@ -13,11 +13,14 @@
         android:layout_marginRight="5dip"
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"/>
-	<TextView 
+	<TextView
 	    android:id="@+id/value"
         style="@style/TextAppearance.Small"
         android:singleLine="false"
         android:maxLines="3"
+        android:layout_weight="1"
+        android:ellipsize="none"
+        android:scrollHorizontally="false"
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"/>
 </TableRow>

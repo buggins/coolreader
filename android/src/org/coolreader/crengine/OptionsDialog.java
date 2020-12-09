@@ -106,7 +106,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 1.9
 		};
 	int[] mScreenFullUpdateInterval = new int[] {
-			0, 2, 3, 4, 5, 7, 10, 15, 20
+			0, 1, 2, 3, 4, 5, 7, 10, 15, 20
 		};
 	int[] mScreenUpdateModes = new int[] {
 			0, 1, 2//, 2, 3
@@ -333,10 +333,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionBase mEnableHyphOption;
 	OptionBase mGoogleDriveEnableSettingsOption;
 	OptionBase mGoogleDriveEnableBookmarksOption;
-	OptionBase mGoogleDriveEnableCurrentBookOption;
+	OptionBase mGoogleDriveEnableCurrentBookInfoOption;
+	OptionBase mGoogleDriveEnableCurrentBookBodyOption;
 	OptionBase mCloudSyncAskConfirmationsOption;
 	OptionBase mGoogleDriveAutoSavePeriodOption;
-	OptionBase mCloudSyncBookmarksKeepAliveOptions;
+	OptionBase mCloudSyncDataKeepAliveOptions;
 
 	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
 	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
@@ -1995,6 +1996,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsBrowser.add(new ListOption(this, getString(R.string.options_app_cover_page_size), PROP_APP_COVERPAGE_SIZE).add(mCoverPageSizes, mCoverPageSizeTitles).setDefaultValue("1").noIcon());
 		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1").noIcon());
 		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0").noIcon());
+		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_genres), PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES).setDefaultValue("0").noIcon());
 		mOptionsBrowser.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1").noIcon());
 		mOptionsBrowser.add(new LangOption(this).noIcon());
 		mOptionsBrowser.add(new PluginsOption(this, getString(R.string.options_app_plugins)).noIcon());
@@ -2117,6 +2119,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
 		if ( !DeviceInfo.EINK_SCREEN || DeviceInfo.EINK_HAVE_FRONTLIGHT )
 			mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
+		if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT)
+			mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_flick_warm), PROP_APP_FLICK_WARMLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("2"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.option_controls_gesture_page_flipping_enabled), PROP_APP_GESTURE_PAGE_FLIPPING).add(mPagesPerFullSwipe, mPagesPerFullSwipeTitles).setDefaultValue("1"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_selection_action), PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_multi_selection_action), PROP_APP_MULTI_SELECTION_ACTION).add(mMultiSelectionAction, mMultiSelectionActionTitles).setDefaultValue("0"));
@@ -2148,6 +2152,24 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				}
 				mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(levels, levelsTitles).setDefaultValue("-1").noIcon());
 			}
+			if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT) {
+				List<Integer> warmLightLevels = EinkScreen.getWarmLightLevels(mActivity);
+				if (null != warmLightLevels && warmLightLevels.size() > 0) {
+					ArrayList<String> levelsTitles = new ArrayList<>();
+					ArrayList<Integer> levels = new ArrayList<>();
+					levels.add(-1);
+					levelsTitles.add(getString(R.string.options_app_backlight_screen_default));
+					for (Integer level : warmLightLevels) {
+						float percentLevel = 100 * level / (float) DeviceInfo.MAX_SCREEN_BRIGHTNESS_WARM_VALUE;
+						if (percentLevel < 10)
+							levelsTitles.add(String.format("%1$.1f%%", percentLevel));
+						else
+							levelsTitles.add(String.format("%1$.0f%%", percentLevel));
+						levels.add(level);
+					}
+					mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_warm_backlight_screen), PROP_APP_SCREEN_WARM_BACKLIGHT).add(levels, levelsTitles).setDefaultValue("-1").noIcon());
+				}
+			}
 		}
 		mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_tts_stop_motion_timeout), PROP_APP_MOTION_TIMEOUT).add(mMotionTimeouts, mMotionTimeoutsTitles).setDefaultValue(Integer.toString(mMotionTimeouts[0])).noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_key_backlight_off), PROP_APP_KEY_BACKLIGHT_OFF).setDefaultValue("1").noIcon());
@@ -2158,17 +2180,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_cover_page_size), PROP_APP_COVERPAGE_SIZE).add(mCoverPageSizes, mCoverPageSizeTitles).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0").noIcon());
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_genres), PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES).setDefaultValue("0").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.mi_book_browser_simple_mode), PROP_APP_FILE_BROWSER_SIMPLE_MODE).noIcon());
 		if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			boolean gdriveSyncEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, false);
+			boolean gdriveSyncBookInfoEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO, false);
 			mOptionsCloudSync = new OptionsListView(getContext());
 			mOptionsCloudSync.add(new BoolOption(this, getString(R.string.options_app_googledrive_sync_auto), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED).setDefaultValue("0").noIcon()
 				.setOnChangeHandler(() -> {
 					boolean syncEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, false);
+					boolean syncBookInfoEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO, false);
 					mCloudSyncAskConfirmationsOption.setEnabled(syncEnabled);
 					mGoogleDriveEnableSettingsOption.setEnabled(syncEnabled);
 					mGoogleDriveEnableBookmarksOption.setEnabled(syncEnabled);
-					mGoogleDriveEnableCurrentBookOption.setEnabled(syncEnabled);
+					mGoogleDriveEnableCurrentBookInfoOption.setEnabled(syncEnabled);
+					mGoogleDriveEnableCurrentBookBodyOption.setEnabled(syncEnabled && syncBookInfoEnabled);
 					mGoogleDriveAutoSavePeriodOption.setEnabled(syncEnabled);
 					// mCloudSyncBookmarksKeepAliveOptions should be enabled regardless of PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED
 				}));
@@ -2178,18 +2204,25 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mGoogleDriveEnableSettingsOption.enabled = gdriveSyncEnabled;
 			mGoogleDriveEnableBookmarksOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_bookmarks), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_BOOKMARKS).setDefaultValue("0").noIcon();
 			mGoogleDriveEnableBookmarksOption.enabled = gdriveSyncEnabled;
-			mGoogleDriveEnableCurrentBookOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_currentbook), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK).setDefaultValue("0").noIcon();
-			mGoogleDriveEnableCurrentBookOption.enabled = gdriveSyncEnabled;
+			mGoogleDriveEnableCurrentBookInfoOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_currentbook_info), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO).setDefaultValue("0").noIcon();
+			mGoogleDriveEnableCurrentBookInfoOption.enabled = gdriveSyncEnabled;
+			mGoogleDriveEnableCurrentBookInfoOption.setOnChangeHandler(() -> {
+				boolean syncBookInfoEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO, false);
+				mGoogleDriveEnableCurrentBookBodyOption.setEnabled(syncBookInfoEnabled);
+			});
+			mGoogleDriveEnableCurrentBookBodyOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_currentbook_body), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_BODY).setDefaultValue("0").noIcon();
+			mGoogleDriveEnableCurrentBookBodyOption.enabled = gdriveSyncEnabled && gdriveSyncBookInfoEnabled;
 			mGoogleDriveAutoSavePeriodOption = new ListOption(this, getString(R.string.autosave_period), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD).add(mGoogleDriveAutoSavePeriod, mGoogleDriveAutoSavePeriodTitles).setDefaultValue(Integer.valueOf(5).toString()).noIcon();
 			mGoogleDriveAutoSavePeriodOption.enabled = gdriveSyncEnabled;
-			mCloudSyncBookmarksKeepAliveOptions = new ListOption(this, getString(R.string.bookmarks_keepalive_), PROP_APP_CLOUDSYNC_BOOKMARKS_KEEPALIVE).add(mCloudBookmarksKeepAlive, mCloudBookmarksKeepAliveTitles).setDefaultValue(Integer.valueOf(14).toString()).noIcon();
+			mCloudSyncDataKeepAliveOptions = new ListOption(this, getString(R.string.sync_data_keepalive_), PROP_APP_CLOUDSYNC_DATA_KEEPALIVE).add(mCloudBookmarksKeepAlive, mCloudBookmarksKeepAliveTitles).setDefaultValue(Integer.valueOf(14).toString()).noIcon();
 			// mCloudSyncBookmarksKeepAliveOptions should be enabled regardless of PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED
 			mOptionsCloudSync.add(mCloudSyncAskConfirmationsOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableSettingsOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableBookmarksOption);
-			mOptionsCloudSync.add(mGoogleDriveEnableCurrentBookOption);
+			mOptionsCloudSync.add(mGoogleDriveEnableCurrentBookInfoOption);
+			mOptionsCloudSync.add(mGoogleDriveEnableCurrentBookBodyOption);
 			mOptionsCloudSync.add(mGoogleDriveAutoSavePeriodOption);
-			mOptionsCloudSync.add(mCloudSyncBookmarksKeepAliveOptions);
+			mOptionsCloudSync.add(mCloudSyncDataKeepAliveOptions);
 		}
 
 		fillStyleEditorOptions();

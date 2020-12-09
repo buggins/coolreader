@@ -10,6 +10,7 @@ import com.onyx.android.sdk.device.Device;
 
 import org.coolreader.CoolReader;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class EinkScreen {
@@ -31,6 +32,7 @@ public class EinkScreen {
 	public final static int CMODE_ACTIVE = 2;
 	// Front light levels
 	private static List<Integer> mFrontLineLevels = null;
+	private static List<Integer> mWarmLightLevels = null;
 
 	public static void Refresh() {
 		mRefreshNumber = -1;
@@ -100,14 +102,14 @@ public class EinkScreen {
 		} else if (DeviceInfo.EINK_ONYX) {
 			if (mRefreshNumber == -1) {
 				mRefreshNumber = 0;
-				EpdController.setViewDefaultUpdateMode(view, UpdateMode.GC);
+				onyxRepaintEveryThing(view);
 				return;
 			}
 			if (mUpdateInterval > 0) {
 				mRefreshNumber++;
 				if (mRefreshNumber >= mUpdateInterval) {
 					mRefreshNumber = 0;
-					EpdController.setViewDefaultUpdateMode(view, UpdateMode.GC);
+					onyxRepaintEveryThing(view);
 				}
 			}
 		}
@@ -125,7 +127,24 @@ public class EinkScreen {
 						break;
 					default:
 				}
+				// I don't know what exactly this line does, but without it, the image on rk3288 will not updated.
+				// Found by brute force.
+				EpdController.byPass(0);
 			}
+		}
+	}
+
+	private static void onyxRepaintEveryThing(View view) {
+		switch (Device.currentDeviceIndex) {
+			case Rk31xx:
+			case Rk32xx:
+			case Rk33xx:
+			case SDM:
+				EpdController.repaintEveryThing(UpdateMode.GC);
+				break;
+			default:
+				EpdController.setViewDefaultUpdateMode(view, UpdateMode.GC);
+				break;
 		}
 	}
 
@@ -152,10 +171,12 @@ public class EinkScreen {
 					mRefreshNumber = -1;
 			}
 		} else if (DeviceInfo.EINK_ONYX) {
+			EpdController.enableScreenUpdate(view, true);
 			mIsSupportRegal = EpdController.supportRegal();
 			mRefreshNumber = 0;
 			if (mUpdateInterval == 0)
-				EpdController.setViewDefaultUpdateMode(view, UpdateMode.GC);
+				onyxRepaintEveryThing(view);
+			EpdController.clearApplicationFastMode();
 			switch (mode) {
 				case CMODE_CLEAR:			// Quality
 					if (mInA2Mode) {
@@ -178,7 +199,7 @@ public class EinkScreen {
 						mInFastMode = true;
 					}
 					break;
-				case CMODE_ACTIVE:			// Fast 2
+				case CMODE_ACTIVE:			// Fast 2 (A2 mode)
 					if (mInFastMode) {
 						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
 						mInFastMode = false;
@@ -268,8 +289,29 @@ public class EinkScreen {
 				if (value >= 0) {
 					Integer alignedValue = Utils.findNearestValue(getFrontLightLevels(context), value);
 					if (null != alignedValue) {
-						if (Device.currentDevice().setFrontLightDeviceValue(context, alignedValue))
-							res = Device.currentDevice().setFrontLightConfigValue(context, alignedValue);
+						if (DeviceInfo.ONYX_HAVE_NATURAL_BACKLIGHT) {
+							res = Device.currentDevice().setColdLightDeviceValue(context, alignedValue);
+						} else {
+							if (Device.currentDevice().setFrontLightDeviceValue(context, alignedValue))
+								res = Device.currentDevice().setFrontLightConfigValue(context, alignedValue);
+						}
+					}
+				} else {
+					// system default, just ignore
+				}
+			}
+		}
+		return res;
+	}
+
+	public static boolean setWarmLightValue(Context context, int value) {
+		boolean res = false;
+		if (DeviceInfo.EINK_ONYX) {
+			if (DeviceInfo.ONYX_HAVE_NATURAL_BACKLIGHT) {
+				if (value >= 0) {
+					Integer alignedValue = Utils.findNearestValue(getWarmLightLevels(context), value);
+					if (null != alignedValue) {
+						res = Device.currentDevice().setWarmLightDeviceValue(context, alignedValue);
 					}
 				} else {
 					// system default, just ignore
@@ -284,10 +326,31 @@ public class EinkScreen {
 			if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
 				if (DeviceInfo.ONYX_HAVE_FRONTLIGHT) {
 					mFrontLineLevels = Device.currentDevice().getFrontLightValueList(context);
+					if (null == mFrontLineLevels) {
+						Integer[] values = Device.currentDevice().getColdLightValues(context);
+						if (null != values) {
+							mFrontLineLevels = Arrays.asList(values);
+						}
+					}
 				}
 				// TODO: other e-ink devices with front light support...
 			}
 		}
 		return mFrontLineLevels;
+	}
+
+	public static List<Integer> getWarmLightLevels(Context context) {
+		if (null == mWarmLightLevels) {
+			if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT) {
+				if (DeviceInfo.ONYX_HAVE_NATURAL_BACKLIGHT) {
+					Integer[] values = Device.currentDevice().getWarmLightValues(context);
+					if (null != values) {
+						mWarmLightLevels = Arrays.asList(values);
+					}
+				}
+				// TODO: other e-ink devices with front light support...
+			}
+		}
+		return mWarmLightLevels;
 	}
 }

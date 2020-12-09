@@ -87,7 +87,7 @@ lUInt32 LVFontBoldTransform::getTextWidth(const lChar32 *text, int len, TextLang
             widths,
             flags,
             2048, // max_width,
-            L' ',  // def_char
+            U' ',  // def_char
             0
     );
     if (res > 0 && res < MAX_LINE_CHARS)

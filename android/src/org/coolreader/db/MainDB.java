@@ -2,23 +2,41 @@ package org.coolreader.db;
 
 import android.database.Cursor;
 import android.database.DatabaseUtils;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
-import org.coolreader.crengine.*;
 
-import java.util.*;
+import org.coolreader.crengine.BookInfo;
+import org.coolreader.crengine.Bookmark;
+import org.coolreader.crengine.DocumentFormat;
+import org.coolreader.crengine.FileInfo;
+import org.coolreader.crengine.L;
+import org.coolreader.crengine.Logger;
+import org.coolreader.crengine.MountPathCorrector;
+import org.coolreader.crengine.OPDSConst;
+import org.coolreader.crengine.Services;
+import org.coolreader.crengine.Utils;
+import org.coolreader.genrescollection.GenresCollection;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class MainDB extends BaseDB {
 	public static final Logger log = L.create("mdb");
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 31;
+	public final int DB_VERSION = 34;
 	@Override
 	protected boolean upgradeSchema() {
 		// When the database is just created, its version is 0.
 		int currentVersion = mDB.getVersion();
+		//int currentVersion = 32;
 		// TODO: check database structure consistency regardless of its version.
 		if (currentVersion > DB_VERSION) {
 			// trying to update the structure of a database that has been modified by some kind of inconsistent fork of the program.
@@ -100,6 +118,29 @@ public class MainDB extends BaseDB {
 					")");
 			execSQL("CREATE INDEX IF NOT EXISTS " +
 			"bookmark_book_index ON bookmark (book_fk) ");
+			execSQL("CREATE TABLE IF NOT EXISTS metadata (" +
+					"param VARCHAR NOT NULL PRIMARY KEY, " +
+					"value VARCHAR NOT NULL)");
+			execSQL("CREATE TABLE IF NOT EXISTS genre_group (" +
+					"id INTEGER NOT NULL PRIMARY KEY, " +
+					"code VARCHAR NOT NULL)");
+			execSQL("CREATE INDEX IF NOT EXISTS " +
+					"genre_group_code_index ON genre_group (code) ");
+			execSQL("CREATE TABLE IF NOT EXISTS genre (" +
+					"id INTEGER NOT NULL PRIMARY KEY, " +
+					"code VARCHAR NOT NULL)");
+			execSQL("CREATE INDEX IF NOT EXISTS " +
+					"genre_code_index ON genre (code) ");
+			execSQL("CREATE TABLE IF NOT EXISTS genre_hier (" +
+					"group_fk INTEGER NOT NULL REFERENCES genre_group(id), " +
+					"genre_fk INTEGER NOT NULL REFERENCES genre(id), " +
+					"UNIQUE (group_fk, genre_fk))");
+			execSQL("CREATE TABLE IF NOT EXISTS book_genre (" +
+					"book_fk INTEGER NOT NULL REFERENCES book(id), " +
+					"genre_fk INTEGER NOT NULL REFERENCES genre(id), " +
+					"UNIQUE (book_fk, genre_fk))");
+			execSQL("CREATE UNIQUE INDEX IF NOT EXISTS " +
+					"book_genre_index ON book_genre (book_fk, genre_fk) ");
 			// ====================================================================
 			if ( currentVersion<1 )
 				execSQLIgnoreErrors("ALTER TABLE bookmark ADD COLUMN shortcut INTEGER DEFAULT 0");
@@ -209,6 +250,48 @@ public class MainDB extends BaseDB {
 			if (currentVersion < 31) {
 				execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN description TEXT DEFAULT NULL");
 			}
+			if (currentVersion < 33) {
+				execSQLIgnoreErrors("CREATE TABLE IF NOT EXISTS metadata (" +
+						"param VARCHAR NOT NULL PRIMARY KEY, " +
+						"value VARCHAR NOT NULL)");
+				execSQLIgnoreErrors("CREATE TABLE IF NOT EXISTS genre_group (" +
+						"id INTEGER NOT NULL PRIMARY KEY, " +
+						"code VARCHAR NOT NULL");
+				execSQLIgnoreErrors("CREATE TABLE IF NOT EXISTS genre (" +
+						"id INTEGER NOT NULL, " +
+						"parent INTEGER NOT NULL REFERENCES genre_group(id), " +
+						"code VARCHAR NOT NULL, " +
+						"PRIMARY KEY (id, parent))");
+				execSQLIgnoreErrors("CREATE TABLE IF NOT EXISTS book_genre (" +
+						"book_fk INTEGER NOT NULL REFERENCES book(id), " +
+						"genre_fk INTEGER NOT NULL REFERENCES genre(id), " +
+						"UNIQUE (book_fk, genre_fk))");
+				execSQLIgnoreErrors("CREATE INDEX IF NOT EXISTS " +
+						"genre_group_code_index ON genre_group (code) ");
+				execSQLIgnoreErrors("CREATE INDEX IF NOT EXISTS " +
+						"genre_code_index ON genre (code) ");
+				execSQLIgnoreErrors("CREATE UNIQUE INDEX IF NOT EXISTS " +
+						"book_genre_index ON book_genre (book_fk, genre_fk) ");
+			}
+			if (currentVersion < 34) {
+				execSQLIgnoreErrors("CREATE TABLE IF NOT EXISTS genre_hier (" +
+						"group_fk INTEGER NOT NULL REFERENCES genre_group(id), " +
+						"genre_fk INTEGER NOT NULL REFERENCES genre(id) )");
+				execSQLIgnoreErrors("INSERT INTO genre_hier (group_fk, genre_fk) SELECT parent as group_fk, id as genre_fk FROM genre ORDER BY parent, id");
+				execSQLIgnoreErrors("CREATE TABLE IF NOT EXISTS genre_new (" +
+						"id INTEGER NOT NULL PRIMARY KEY," +
+						"code VARCHAR NOT NULL UNIQUE)");
+				execSQLIgnoreErrors("INSERT INTO genre_new (id, code) SELECT id, code FROM genre GROUP BY id");
+				Long pragma_foreign_keys = longQuery("PRAGMA foreign_keys");
+				if (null == pragma_foreign_keys)
+					pragma_foreign_keys = 0L;
+				if (pragma_foreign_keys != 0L)
+					execSQLIgnoreErrors("PRAGMA foreign_keys=OFF");
+				execSQLIgnoreErrors("DROP TABLE genre");
+				execSQLIgnoreErrors("ALTER TABLE genre_new RENAME TO genre");
+				if (pragma_foreign_keys != 0L)
+					execSQLIgnoreErrors("PRAGMA foreign_keys=ON");
+			}
 
 			//==============================================================
 			// add more updates above this line
@@ -216,6 +299,8 @@ public class MainDB extends BaseDB {
 			// set current version
 			mDB.setVersion(DB_VERSION);
 		}
+
+		checkOrUpgradeGenresHandbook();
 
 		dumpStatistics();
 		
@@ -229,6 +314,64 @@ public class MainDB extends BaseDB {
 				 + longQuery("SELECT count(*) FROM bookmark") + " bookmarks, "
 				 + longQuery("SELECT count(*) FROM folder") + " folders"
 		);
+	}
+
+	private boolean checkOrUpgradeGenresHandbook() {
+		boolean res = true;
+		boolean needUpgrade = false;
+		Long version = longQuery("SELECT value FROM metadata WHERE param='genre_version'");
+		if (null == version || version != Services.getGenresCollection().getVersion())
+			needUpgrade = true;
+		if (needUpgrade) {
+			mDB.beginTransaction();
+			try {
+				// fill/append table "genre_group"
+				SQLiteStatement stmt = mDB.compileStatement("INSERT OR IGNORE INTO genre_group (id, code) VALUES (?,?)");
+				Map<String, GenresCollection.GenreRecord> collection = Services.getGenresCollection().getCollection();
+				for (Map.Entry<String, GenresCollection.GenreRecord> entry : collection.entrySet()) {
+					GenresCollection.GenreRecord group = entry.getValue();
+					if (group.getLevel() == 0) {
+						stmt.bindLong(1, group.getId());
+						stmt.bindString(2, group.getCode());
+						stmt.executeInsert();
+					}
+				}
+				// fill/append table "genre"
+				stmt = mDB.compileStatement("INSERT OR IGNORE INTO genre (id, code) VALUES (?,?)");
+				for (Map.Entry<String, GenresCollection.GenreRecord> entry : collection.entrySet()) {
+					GenresCollection.GenreRecord group = entry.getValue();
+					if (group.hasChilds()) {
+						for (GenresCollection.GenreRecord genre : group.getChilds()) {
+							stmt.bindLong(1, genre.getId());
+							stmt.bindString(2, genre.getCode());
+							stmt.executeInsert();
+						}
+					}
+				}
+				// fill/append table "genre_hier"
+				stmt = mDB.compileStatement("INSERT OR IGNORE INTO genre_hier (group_fk, genre_fk) VALUES (?,?)");
+				for (Map.Entry<String, GenresCollection.GenreRecord> entry : collection.entrySet()) {
+					GenresCollection.GenreRecord group = entry.getValue();
+					if (group.hasChilds()) {
+						for (GenresCollection.GenreRecord genre : group.getChilds()) {
+							stmt.bindLong(1, group.getId());
+							stmt.bindLong(2, genre.getId());
+							stmt.executeInsert();
+						}
+					}
+				}
+				// Update genres data version in metadata
+				stmt = mDB.compileStatement("INSERT OR REPLACE INTO metadata (param, value) VALUES ('genre_version', ?)");
+				stmt.bindLong(1, Services.getGenresCollection().getVersion());
+				stmt.executeInsert();
+				mDB.setTransactionSuccessful();
+			} catch (SQLException e) {
+				res = false;
+				e.printStackTrace();
+			}
+			mDB.endTransaction();
+		}
+		return res;
 	}
 
 	@Override
@@ -516,7 +659,7 @@ public class MainDB extends BaseDB {
 		"id, type, percent, shortcut, time_stamp, " + 
 		"start_pos, end_pos, title_text, pos_text, comment_text, time_elapsed " +
 		"FROM bookmark b ";
-	private void readBookmarkFromCursor( Bookmark v, Cursor rs )
+	private void readBookmarkFromCursor(Bookmark v, Cursor rs )
 	{
 		int i=0;
 		v.setId( rs.getLong(i++) );
@@ -697,7 +840,41 @@ public class MainDB extends BaseDB {
 		sortItems(list, new ItemGroupFilenameExtractor());
 		return found;
 	}
-	
+
+	public boolean loadGenresList(FileInfo parent, boolean showEmptyGenres) {
+		Log.i("cr3", "loadGenresList()");
+		beginReading();
+		parent.clear();
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		String sql = "SELECT code, (SELECT COUNT(DISTINCT book_fk) FROM book_genre bg JOIN genre g ON g.id=bg.genre_fk JOIN genre_hier gh ON gh.genre_fk = g.id WHERE gh.group_fk=gg.id) as book_count FROM genre_group gg";
+		try (Cursor rs = mDB.rawQuery(sql, null)) {
+			if (rs.moveToFirst()) {
+				// read DB
+				do {
+					String code = rs.getString(0);
+					int bookCount = rs.getInt(1);
+					if (bookCount > 0 || showEmptyGenres) {
+						FileInfo item = new FileInfo();
+						item.isDirectory = true;
+						item.pathname = FileInfo.GENRES_PREFIX + code;
+						item.filename = Services.getGenresCollection().translate(code);
+						item.isListed = true;
+						item.isScanned = true;
+						item.id = (long) -1;        // fake id
+						item.tag = bookCount;
+						list.add(item);
+					}
+				} while (rs.moveToNext());
+			}
+		} catch (Exception e) {
+			Log.e("cr3", "exception while loading list of authors", e);
+		}
+		endReading();
+		addItems(parent, list, 0, list.size());
+		return true;
+	}
+
+
 	public boolean loadAuthorsList(FileInfo parent) {
 		Log.i("cr3", "loadAuthorsList()");
 		beginReading();
@@ -745,7 +922,7 @@ public class MainDB extends BaseDB {
 		endReading();
 		return found;
 	}
-	
+
 	public boolean findAuthorBooks(ArrayList<FileInfo> list, long authorId)
 	{
 		if (!isOpened())
@@ -914,6 +1091,37 @@ public class MainDB extends BaseDB {
 		String insertQuery = "INSERT OR IGNORE INTO book_author (book_fk,author_fk) VALUES ";
 		for ( Long id : authors ) {
 			String sql = insertQuery + "(" + bookId + "," + id + ")"; 
+			//Log.v("cr3", "executing: " + sql);
+			mDB.execSQL(sql);
+		}
+	}
+
+	private Integer[] getGenresIds( String keywords ) {
+		if ( keywords==null || keywords.trim().length()==0 )
+			return null;
+		String[] codes = keywords.split("\\|");
+		if ( codes==null || codes.length==0 )
+			return null;
+		GenresCollection genresCollection = Services.getGenresCollection();
+		ArrayList<Integer> ids = new ArrayList<Integer>(codes.length);
+		for ( String code : codes ) {
+			GenresCollection.GenreRecord genre = genresCollection.byCode(code);
+			if (null != genre) {
+				int id = genre.getId();
+				ids.add(id);
+			}
+		}
+		if ( ids.size()>0 )
+			return ids.toArray(new Integer[0]);
+		return null;
+	}
+
+	public void saveBookGenres( Long bookId, Integer[] genres) {
+		if ( genres==null || genres.length==0 )
+			return;
+		String insertQuery = "INSERT OR IGNORE INTO book_genre (book_fk,genre_fk) VALUES ";
+		for ( Integer id : genres ) {
+			String sql = insertQuery + "(" + bookId + "," + id + ")";
 			//Log.v("cr3", "executing: " + sql);
 			mDB.execSQL(sql);
 		}
@@ -1124,6 +1332,7 @@ public class MainDB extends BaseDB {
 
 	private boolean save(FileInfo fileInfo)	{
 		boolean authorsChanged = true;
+		boolean genresChanged = true;
 		try {
 			FileInfo oldValue = findFileInfoByPathname(fileInfo.getPathName(), false);
 			if (oldValue == null && fileInfo.id != null)
@@ -1139,6 +1348,7 @@ public class MainDB extends BaseDB {
 					h.update(fileInfo.id);
 				}
 				authorsChanged = !eq(fileInfo.authors, oldValue.authors);
+				genresChanged = !eq(fileInfo.genres, oldValue.genres);
 			} else {
 				// inserting
 				vlog.d("inserting new file " + fileInfo.getPathName());
@@ -1146,6 +1356,7 @@ public class MainDB extends BaseDB {
 				QueryHelper h = new QueryHelper(fileInfo, new FileInfo());
 				fileInfo.id = h.insert();
 				authorsChanged = true;
+				genresChanged = true;
 			}
 			
 			fileInfoCache.put(fileInfo);
@@ -1155,6 +1366,12 @@ public class MainDB extends BaseDB {
 					beginChanges();
 					Long[] authorIds = getAuthorIds(fileInfo.authors);
 					saveBookAuthors(fileInfo.id, authorIds);
+				}
+				if (genresChanged) {
+					vlog.d("updating genres for file " + fileInfo.getPathName());
+					beginChanges();
+					Integer[] genresIds = getGenresIds(fileInfo.genres);
+					saveBookGenres(fileInfo.id, genresIds);
 				}
 				return true;
 			}
@@ -1392,6 +1609,7 @@ public class MainDB extends BaseDB {
 		"f.name as path, " +
 		"filename, arcname, title, " +
 		"(SELECT GROUP_CONCAT(a.name,'|') FROM author a JOIN book_author ba ON a.id=ba.author_fk WHERE ba.book_fk=b.id) as authors, " +
+		"(SELECT GROUP_CONCAT(g.code,'|') FROM genre g JOIN book_genre bg ON g.id=bg.genre_fk WHERE bg.book_fk=b.id) as genres, " +
 		"s.name as series_name, " +
 		"series_number, " +
 		"format, filesize, arcsize, " +
@@ -1415,6 +1633,7 @@ public class MainDB extends BaseDB {
 		fileInfo.arcname = rs.getString(i++);
 		fileInfo.title = rs.getString(i++);
 		fileInfo.authors = rs.getString(i++);
+		fileInfo.genres = rs.getString(i++);
 		fileInfo.series = rs.getString(i++);
 		fileInfo.seriesNumber = rs.getInt(i++);
 		fileInfo.format = DocumentFormat.byId(rs.getInt(i++));
@@ -1531,24 +1750,128 @@ public class MainDB extends BaseDB {
 		return list;
 	}
 
-	/*
-	public ArrayList<FileInfo> findByFingerprint (int maxCount, String filename, int crc32)
+	public ArrayList<FileInfo> findByGenre(String genreCode, boolean showEmptyGenres) {
+		ArrayList<FileInfo> list = new ArrayList<>();
+		boolean OutpuSubGenres = true;
+		if (genreCode.endsWith(":all")) {
+			OutpuSubGenres = false;
+			genreCode = genreCode.substring(0, genreCode.length() - 4);
+		}
+		GenresCollection.GenreRecord genreRecord = Services.getGenresCollection().byCode(genreCode);
+		if (null == genreRecord)
+			return list;
+		int book_count = 0;
+		String sql;
+		beginReading();
+		if (genreRecord.getLevel() == 0 && OutpuSubGenres) {
+			// special item to include all child genres
+			FileInfo item = new FileInfo();
+			item.isDirectory = true;
+			item.pathname = FileInfo.GENRES_PREFIX + genreRecord.getCode() + ":all";
+			item.filename = genreRecord.getName();
+			item.isListed = true;
+			item.isScanned = true;
+			item.id = (long)-1;			// fake id
+			// get books count
+			StringBuilder where_clause = new StringBuilder(" WHERE ");
+			Iterator<GenresCollection.GenreRecord> it = genreRecord.getChilds().iterator();
+			while (it.hasNext()) {
+				where_clause.append("bg.genre_fk=").append(it.next().getId());
+				if (it.hasNext())
+					where_clause.append(" OR ");
+			}
+			sql = "SELECT count(DISTINCT book_fk) as book_count FROM book_genre bg " + where_clause.toString();
+			Log.d("cr3", "sql: " + sql );
+			try (Cursor rs = mDB.rawQuery(sql, null)) {
+				if (rs.moveToFirst()) {
+					do {
+						book_count = rs.getInt(0);
+					} while (rs.moveToNext());
+				}
+			}
+			item.tag = FileInfo.GENRE_DATA_INCCHILD_MASK | book_count;
+			list.add(item);
+
+			// child genres
+			sql = "SELECT code, " +
+					"(SELECT COUNT(DISTINCT book_fk) FROM book_genre bg " +
+					"  WHERE bg.genre_fk=g.id " +
+					") as book_count " +
+					"FROM genre g " +
+					"INNER JOIN genre_hier gh ON gh.genre_fk = g.id " +
+					"WHERE gh.group_fk=" + genreRecord.getId();
+			Log.d("cr3", "sql: " + sql );
+			try (Cursor rs = mDB.rawQuery(sql, null)) {
+				if (rs.moveToFirst()) {
+					do {
+						String code = rs.getString(0);
+						book_count = rs.getInt(1);
+						if (book_count > 0 || showEmptyGenres) {
+							item = new FileInfo();
+							item.isDirectory = true;
+							item.pathname = FileInfo.GENRES_PREFIX + code;
+							item.filename = Services.getGenresCollection().translate(code);
+							item.isListed = true;
+							item.isScanned = true;
+							item.id = (long) -1;            // fake id
+							item.tag = book_count;
+							list.add(item);
+						}
+					} while (rs.moveToNext());
+				}
+			}
+		} else {
+			// Find all books for this genre (or genre group)
+			StringBuilder where_clause = new StringBuilder(" WHERE ");
+			if (genreRecord.hasChilds()) {
+				Iterator<GenresCollection.GenreRecord> it = genreRecord.getChilds().iterator();
+				while (it.hasNext()) {
+					where_clause.append("bg.genre_fk=").append(it.next().getId());
+					if (it.hasNext())
+						where_clause.append(" OR ");
+				}
+			} else {
+				where_clause.append("bg.genre_fk=").append(genreRecord.getId());
+			}
+			sql = READ_FILEINFO_SQL + " JOIN book_genre bg ON (bg.book_fk=b.id)" + where_clause.toString();
+			Log.d("cr3", "sql: " + sql );
+			try (Cursor rs = mDB.rawQuery(sql, null)) {
+				if (rs.moveToFirst()) {
+					do {
+						FileInfo fi = new FileInfo();
+						readFileInfoFromCursor(fi, rs);
+						list.add(fi);
+						fileInfoCache.put(fi);
+					} while (rs.moveToNext());
+				}
+			}
+		}
+		endReading();
+		return list;
+	}
+
+	public ArrayList<FileInfo> findByFingerprints(int maxCount, Collection<String> fingerprints)
 	{
-		// TODO: replace crc32 with sha512, remove filename as search criteria
+		// TODO: replace crc32 with sha512
+
+		ArrayList<FileInfo> list = new ArrayList<>();
+		if (fingerprints.size() < 1)
+			return list;
 
 		beginReading();
-		ArrayList<FileInfo> list = new ArrayList<>();
-
-		String condition = " WHERE b.crc32=" + crc32;
-		String sql = READ_FILEINFO_SQL + condition;
+		StringBuilder condition = new StringBuilder(" WHERE ");
+		Iterator<String> it = fingerprints.iterator();
+		while (it.hasNext()) {
+			condition.append("b.crc32=").append(it.next());
+			if (it.hasNext())
+				condition.append(" OR ");
+		}
+		String sql = READ_FILEINFO_SQL + condition.toString();
 		Log.d("cr3", "sql: " + sql );
 		try (Cursor rs = mDB.rawQuery(sql, null)) {
 			if (rs.moveToFirst()) {
 				int count = 0;
 				do {
-					if (filename != null && filename.length() > 0)
-						if (!Utils.matchPattern(rs.getString(3), filename))
-							continue;
 					FileInfo fi = new FileInfo();
 					readFileInfoFromCursor(fi, rs);
 					list.add(fi);
@@ -1560,7 +1883,6 @@ public class MainDB extends BaseDB {
 		endReading();
 		return list;
 	}
-	*/
 
 	public ArrayList<FileInfo> loadFileInfos(ArrayList<String> pathNames) {
 		ArrayList<FileInfo> list = new ArrayList<>();
@@ -1677,6 +1999,8 @@ public class MainDB extends BaseDB {
 		if (bookId == null)
 			return null;
 		execSQLIgnoreErrors("DELETE FROM bookmark WHERE book_fk=" + bookId);
+		execSQLIgnoreErrors("DELETE FROM book_author WHERE book_fk=" + bookId);
+		execSQLIgnoreErrors("DELETE FROM book_genre WHERE book_fk=" + bookId);
 		execSQLIgnoreErrors("DELETE FROM book WHERE id=" + bookId);
 		return bookId;
 	}

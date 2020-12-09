@@ -296,6 +296,28 @@
                 </TableRow>
             </TableLayout>
 
+            <TextView
+                    android:id="@+id/lbl_book_genres"
+                    style="@style/TextAppearance.Medium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginLeft="4dp"
+                    android:singleLine="true"
+                    android:text="@string/book_info_genres"
+                    android:visibility="gone" />
+
+            <EditText
+                    android:id="@+id/book_genres"
+                    style="@style/TextAppearance.Widget.EditText"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:singleLine="false"
+                    android:editable="false"
+                    android:inputType="none"
+                    android:text=""
+                    android:visibility="gone" />
+
             <EditText
                     android:id="@+id/book_description"
                     style="@style/TextAppearance.Widget.EditText"

@@ -1267,7 +1267,7 @@ public class Engine {
 		final HashSet<String> out = new HashSet<String>();
 		try {
 			String reg = "(?i).*vold.*(vfat|ntfs|exfat|fat32|ext3|ext4).*rw.*";
-			String reg2 = "(?i).*fuse.*(vfat|ntfs|exfat|fat32|ext3|ext4).*rw.*";
+			String reg2 = "(?i).*fuse.*(vfat|ntfs|exfat|fat32|ext3|ext4|fuse).*rw.*";
 			StringBuilder s = new StringBuilder();
 			try {
 				final Process process = new ProcessBuilder().command("mount")

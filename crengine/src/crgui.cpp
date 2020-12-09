@@ -1034,7 +1034,7 @@ void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinR
             rc2.top += rc2.height()*3/8;
             int hh = rc2.height();
             buf.SetTextColor( skin->getTextColor() );
-            _valueFont->DrawTextString( &buf, rc2.right - w - ITEM_MARGIN, rc2.top + hh/2 - _valueFont->getHeight()/2, s.c_str(), s.length(), L'?', NULL, false, 0 );
+            _valueFont->DrawTextString( &buf, rc2.right - w - ITEM_MARGIN, rc2.top + hh/2 - _valueFont->getHeight()/2, s.c_str(), s.length(), U'?', NULL, false, 0 );
         } else {
             valueSkin->drawText( buf, valueRect, s );
         }
@@ -2012,7 +2012,7 @@ bool CRKeyboardLayoutList::openFromFile( const char  * layoutFile )
             lString32 value;
             if ( splitLine( line, cs32("="), name, value ) ) {
                 if (name == "enabled") {
-					//if ( value == L"0" )
+					//if ( value == U"0" )
 					//	; //TODO:set disabled flag
 					continue;
 				}

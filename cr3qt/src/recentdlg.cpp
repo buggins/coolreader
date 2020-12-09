@@ -29,15 +29,19 @@ RecentBooksDlg::RecentBooksDlg(QWidget *parent, CR3View * docView ) :
     m_ui->tableWidget->setEditTriggers( QAbstractItemView::NoEditTriggers );
     //m_ui->tableWidget->setVerticalHeader( NULL );
     //m_ui->tableWidget->setHorizontalHeader(new QHeaderView(;
-    docView->getDocView()->savePosition(); // to move current file to top
-    LVPtrVector<CRFileHistRecord> & files = docView->getDocView()->getHistory()->getRecords();
+    LVDocView* lvdocview = docView->getDocView();
+    lvdocview->savePosition(); // to move current file to top
+    LVPtrVector<CRFileHistRecord> & files = lvdocview->getHistory()->getRecords();
     // skip Null
-    m_ui->tableWidget->setRowCount(files.length()-1);
+    int firstItem = lvdocview->isDocumentOpened() ? 1 : 0;
+    int rowCount = files.length() - firstItem;
+    if (rowCount < 0)
+        rowCount = 0;
+    m_ui->tableWidget->setRowCount(rowCount);
     m_ui->tableWidget->setWordWrap(false);
     m_ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     m_ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_ui->tableWidget->setSortingEnabled(true);
-    int firstItem = docView->getDocView()->isDocumentOpened() ? 1 : 0;
     for ( int i=firstItem; i<files.length(); i++ ) {
         CRFileHistRecord * book = files.get( i );
         lString32 author = book->getAuthor();

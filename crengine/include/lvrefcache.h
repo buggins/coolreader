@@ -263,7 +263,7 @@ public:
             // This returned boolean seems not used anywhere, so it's not
             // clear whether we should return true or false when the
             // item was not in the cache, and thus created - but the
-            // indexholder (althought not existing) stayed unchanged.
+            // indexholder (although not existing) stayed unchanged.
         }
     }
 

@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Genre groups -->
+    <string name="genre_group_business">Ділова література</string>
+    <string name="genre_group_detectives">Детективи і Трилери</string>
+    <string name="genre_group_children">Дитяче</string>
+    <string name="genre_group_documentary">Документальна література</string>
+    <string name="genre_group_housekeeping">Домоводство (Будинок і сім\'я)</string>
+    <string name="genre_group_dramaturgy">Драматургія</string>
+    <string name="genre_group_art">Мистецтво, Дизайн</string>
+    <string name="genre_group_it">Комп\'ютери і Інтернет</string>
+    <string name="genre_group_scince">Наука, Освіта</string>
+    <string name="genre_group_poetry">Поезія</string>
+    <string name="genre_group_adventures">Пригоди</string>
+    <string name="genre_group_prose">Проза</string>
+    <string name="genre_group_religion">Релігія і духовність</string>
+    <string name="genre_group_reference">Довідкова література</string>
+    <string name="genre_group_antique">Старовинне</string>
+    <string name="genre_group_technics">Техніка</string>
+    <string name="genre_group_textbooks">Підручники і посібники</string>
+    <string name="genre_group_fiction">Фантастика</string>
+    <string name="genre_group_fantasy">Фэнтези</string>
+    <string name="genre_group_folklore">Фольклор</string>
+    <string name="genre_group_humor">Гумор</string>
+    <string name="genre_group_romance">Любовні романи</string>
+    <string name="genre_group_warfare">Військова справа</string>
+    <string name="genre_group_other">Інше</string>
+
+    <!-- Business literature genres -->
+    <string name="genre_banking">Банківська справа</string>
+    <string name="genre_accounting">Бухоблік і аудит</string>
+    <string name="genre_global_economy">Зовнішня торгівля</string>
+    <string name="genre_economics_ref">Ділова література</string>
+    <string name="genre_paper_work">Діловодство</string>
+    <string name="genre_org_behavior">Корпоративна культура</string>
+    <string name="genre_personal_finance">Особисті фінанси</string>
+    <string name="genre_small_business">Малий бізнес</string>
+    <string name="genre_marketing">Маркетинг, PR, реклама</string>
+    <string name="genre_real_estate">Нерухомість</string>
+    <string name="genre_popular_business">Про бізнес популярно</string>
+    <string name="genre_industries">Галузеві видання</string>
+    <string name="genre_job_hunting">Пошук роботи, кар\'єра</string>
+    <string name="genre_trade">Торгівля</string>
+    <string name="genre_management">Управління, підбір персоналу</string>
+    <string name="genre_stock">Цінні папери, інвестиції</string>
+    <string name="genre_economics">Економіка</string>
+
+    <!-- Detectives genres -->
+    <string name="genre_det_action">Бойовик</string>
+    <string name="genre_det_cozy">Дамський детективний роман</string>
+    <string name="genre_detective">Детективи: інше</string>
+    <string name="genre_det_irony">Іронічний детектив</string>
+    <string name="genre_det_history">Історичний детектив</string>
+    <string name="genre_det_classic">Класичний детектив</string>
+    <string name="genre_det_crime">Кримінальний детектив</string>
+    <string name="genre_det_hard">Крутий детектив</string>
+    <string name="genre_det_maniac">Маніяки</string>
+    <string name="genre_thriller_medical">Медичний трилер</string>
+    <string name="genre_det_political">Політичний детектив</string>
+    <string name="genre_det_police">Поліцейський детектив</string>
+    <string name="genre_det_su">Радянський детектив</string>
+    <string name="genre_thriller_techno">Техно триллер</string>
+    <string name="genre_thriller">Триллер</string>
+    <string name="genre_det_espionage">Шпигунський детектив</string>
+    <string name="genre_thriller_legal">Юридичний трилер</string>
+
+    <!-- Children\'s genres  -->
+    <string name="genre_children">Дитяча література: інше</string>
+    <string name="genre_child_prose">Дитяча проза</string>
+    <string name="genre_child_sf">Дитяча фантастика</string>
+    <string name="genre_child_det">Дитячі гостросюжетні</string>
+    <string name="genre_child_adv">Дитячі пригоди</string>
+    <string name="genre_child_verse">Дитячі вірші</string>
+    <string name="genre_child_folklore">Дитячий фольклор</string>
+    <string name="genre_foreign_children">Зарубіжна література для дітей</string>
+    <string name="genre_prose_game">Книга-гра</string>
+    <string name="genre_child_classical">Класична дитяча література</string>
+    <string name="genre_child_education">Дитяча освітня література</string>
+    <string name="genre_child_tale_rus">Російські казки</string>
+    <string name="genre_ya">Підліткова література</string>
+    <string name="genre_child_tale">Казка</string>
+
+    <!-- Documentary literature genres  -->
+    <string name="genre_nonf_biography">Біографії і Мемуари</string>
+    <string name="genre_nonf_military">Військова документалістика</string>
+    <string name="genre_travel_notes">География, путевые заметки</string>
+    <string name="genre_nonfiction">Документальна література</string>
+    <string name="genre_nonf_criticism">Критика</string>
+    <string name="genre_nonf_publicism">Публіцистика</string>
+
+    <!-- Housekeeping (Home and Family) genres  -->
+    <string name="genre_home_pets">Домашні тварини</string>
+    <string name="genre_home">Домоводство</string>
+    <string name="genre_home_health">Здоров\'я</string>
+    <string name="genre_home_collecting">Колекціонування</string>
+    <string name="genre_home_cooking">Кулінарія</string>
+    <string name="genre_home_entertain">Розваги</string>
+    <string name="genre_home_garden">Сад і город</string>
+    <string name="genre_home_diy">Зроби сам</string>
+    <string name="genre_home_sex">Сексуальні стосунки</string>
+    <string name="genre_family">Сімейні відносини</string>
+    <string name="genre_home_sport">Спорт</string>
+    <string name="genre_home_crafts">Хобі і ремесла</string>
+
+    <!-- Dramaturgy genres -->
+    <string name="genre_drama_antique">Антична драма</string>
+    <string name="genre_vaudeville">Водевіль</string>
+    <string name="genre_drama">Драма</string>
+    <string name="genre_dramaturgy">Драматургія: інше</string>
+    <string name="genre_screenplays">Кіносценарії</string>
+    <string name="genre_comedy">Комедія</string>
+    <string name="genre_mystery">Містерія</string>
+    <string name="genre_scenarios">Сценарії</string>
+    <string name="genre_tragedy">Трагедія</string>
+
+    <!-- Art, Design genres -->
+    <string name="genre_architecture_book">Архітектура</string>
+    <string name="genre_painting">Живопись, альбомы, иллюстрированные каталоги</string>
+    <string name="genre_visual_arts">Образотворче мистецтво, фотографія</string>
+    <string name="genre_design">Мистецтво і Дизайн</string>
+    <string name="genre_art_criticism">Мистецтвознавство</string>
+    <string name="genre_cine">Кіно</string>
+    <string name="genre_music">Музика</string>
+    <string name="genre_notes">Партитури</string>
+    <string name="genre_theatre">Театр</string>
+
+    <!-- Computers and the Internet genres -->
+    <string name="genre_comp_hard">Апаратне забезпечення</string>
+    <string name="genre_comp_db">Бази даних</string>
+    <string name="genre_comp_www">Інтернет</string>
+    <string name="genre_comp_osnet">ОС і Мережі</string>
+    <string name="genre_computers">Навколокомпьютерна література</string>
+    <string name="genre_comp_programming">Програмування</string>
+    <string name="genre_comp_soft">Програми</string>
+    <string name="genre_comp_dsp">Цифрова обробка сигналів</string>
+    <string name="genre_tbg_computers">Навчальні посібники, самовчителі</string>
+
+    <!-- Science, Education genres -->
+    <string name="genre_sci_medicine_alternative">Альтернативна медицина</string>
+    <string name="genre_sci_theories">Альтернативні науки і наукові теорії</string>
+    <string name="genre_sci_anachem">Аналітична хімія</string>
+    <string name="genre_science_archaeology">Археологія</string>
+    <string name="genre_sci_cosmos">Астрономія і Космос</string>
+    <string name="genre_sci_biology">Біологія</string>
+    <string name="genre_sci_biophys">Біофізика</string>
+    <string name="genre_sci_biochem">Біохімія</string>
+    <string name="genre_sci_botany">Ботаніка</string>
+    <string name="genre_sci_veterinary">Ветеринарія</string>
+    <string name="genre_sci_oriental">Сходознавство</string>
+    <string name="genre_sci_geo">Геологія і географія</string>
+    <string name="genre_sci_state">Держава і право</string>
+    <string name="genre_sci_business">Ділова література</string>
+    <string name="genre_psy_childs">Дитяча психологія</string>
+    <string name="genre_sci_zoo">Зоологія</string>
+    <string name="genre_foreign_language">Іноземні мови</string>
+    <string name="genre_sci_history">Історія</string>
+    <string name="genre_sci_culture">Культурологія</string>
+    <string name="genre_sci_philology">Літературознавство</string>
+    <string name="genre_sci_math">Математика</string>
+    <string name="genre_sci_medicine">Медицина</string>
+    <string name="genre_science">Наукова література: інше</string>
+    <string name="genre_sci_popular">Науково-популярна література</string>
+    <string name="genre_sci_social_studies">Суспільствознавство</string>
+    <string name="genre_sci_orgchem">Органічна хімія</string>
+    <string name="genre_sci_pedagogy">Педагогіка</string>
+    <string name="genre_sci_politics">Політика</string>
+    <string name="genre_sci_psychology">Психологія</string>
+    <string name="genre_psy_theraphy">Психотерапія і консультування</string>
+    <string name="genre_sci_abstract">Реферати</string>
+    <string name="genre_psy_sex_and_family">Секс і сімейна психологія</string>
+    <string name="genre_sci_tech">Технічні науки</string>
+    <string name="genre_sci_phys">Фізика</string>
+    <string name="genre_sci_physchem">Фізична хімія</string>
+    <string name="genre_sci_philosophy">Філософія</string>
+    <string name="genre_sci_chem">Хімія</string>
+    <string name="genre_sci_ecology">Екологія</string>
+    <string name="genre_sci_economy">Економіка</string>
+    <string name="genre_sci_juris">Юриспруденція</string>
+    <string name="genre_sci_linguistic">Мовознавство</string>
+
+    <!-- Poetry genres -->
+    <string name="genre_in_verse">У віршах</string>
+    <string name="genre_vers_libre">Верлібри</string>
+    <string name="genre_visual_poetry">Візуальна поезія</string>
+    <string name="genre_poetry_for_classical">Класична зарубіжна поезія</string>
+    <string name="genre_poetry_classical">Класична поезія</string>
+    <string name="genre_poetry_rus_classical">Класична російська поезія</string>
+    <string name="genre_lyrics">Лірика</string>
+    <string name="genre_palindromes">Паліндроми</string>
+    <string name="genre_song_poetry">Пісенна поезія</string>
+    <string name="genre_poetry_east">Поезія Сходу</string>
+    <string name="genre_poem">Поема, епічна поезія</string>
+    <string name="genre_poetry_for_modern">Сучасна зарубіжна поезія</string>
+    <string name="genre_poetry_modern">сучасна поезія</string>
+    <string name="genre_poetry_rus_modern">Сучасна російська поезія</string>
+    <string name="genre_experimental_poetry">Експериментальна поезія</string>
+    <string name="genre_epic_poetry">Епічна поезія</string>
+    <string name="genre_humor_verse">Гумористичні вірші</string>
+    <string name="genre_poetry">Поезія: інше</string>
+
+    <!-- Adventures genres -->
+    <string name="genre_adv_story">Авантюрний роман</string>
+    <string name="genre_adv_western">Вестерн</string>
+    <string name="genre_adv_history">Історичні пригоди</string>
+    <string name="genre_adv_maritime">Морські пригоди</string>
+    <string name="genre_adv_indian">Пригоди про індійців</string>
+    <string name="genre_adventure">Пригоди: інше</string>
+    <string name="genre_adv_modern">Пригоди в сучасному світі</string>
+    <string name="genre_adv_animal">Природа і тварини</string>
+    <string name="genre_adv_geo">Подорожі і географія</string>
+    <string name="genre_tale_chivalry">Лицарський роман</string>
+
+    <!-- Prose genres -->
+    <string name="genre_dissident">Антирадянська література</string>
+    <string name="genre_aphorisms">Афоризми</string>
+    <string name="genre_gothic_novel">Готичний роман</string>
+    <string name="genre_foreign_prose">Зарубіжна класична проза</string>
+    <string name="genre_prose_history">Історична проза</string>
+    <string name="genre_prose_classic">Класична проза</string>
+    <string name="genre_literature_18">Класична проза XVII-XVIII століть</string>
+    <string name="genre_literature_19">Класична проза ХIX століття</string>
+    <string name="genre_literature_20">Класична проза ХX століття</string>
+    <string name="genre_prose_counter">Контркультура</string>
+    <string name="genre_prose_magic">Магічний реалізм</string>
+    <string name="genre_story">Новела</string>
+    <string name="genre_prose_military">Про війну</string>
+    <string name="genre_great_story">Повість</string>
+    <string name="genre_prose">Проза</string>
+    <string name="genre_short_story">Розповідь</string>
+    <string name="genre_roman">Роман</string>
+    <string name="genre_prose_rus_classic">Російська класична проза</string>
+    <string name="genre_sagas">Сімейний роман/Сімейна сага</string>
+    <string name="genre_prose_sentimental">Сентиментальна проза</string>
+    <string name="genre_prose_su_classics">Радянська класична проза</string>
+    <string name="genre_prose_contemporary">Сучасна проза</string>
+    <string name="genre_foreign_antique">Середньовічна класична проза</string>
+    <string name="genre_prose_abs">Фантасмагорія, абсурдистская проза</string>
+    <string name="genre_extravaganza">Феєрія</string>
+    <string name="genre_prose_neformatny">Експериментальна, неформат проза</string>
+    <string name="genre_epistolary_fiction">Епістолярна проза</string>
+    <string name="genre_prose_epic">Епопея</string>
+    <string name="genre_essay">Есе, нарис, етюд, начерк</string>
+    <string name="genre_humor_prose">Гумористична проза</string>
+
+    <!-- Religion and spirituality genres -->
+    <string name="genre_astrology">Астрологія</string>
+    <string name="genre_religion_budda">Буддизм</string>
+    <string name="genre_religion_hinduism">Індуїзм</string>
+    <string name="genre_religion_islam">Іслам</string>
+    <string name="genre_religion_judaism">Іудаїзм</string>
+    <string name="genre_religion_catholicism">Католицизм</string>
+    <string name="genre_religion_occult">Окультизм</string>
+    <string name="genre_religion_orthodoxy">Православ\'я</string>
+    <string name="genre_religion_protestantism">Протестантизм</string>
+    <string name="genre_sci_religion">Релігієзнавство</string>
+    <string name="genre_religion">Релігійна література: інше</string>
+    <string name="genre_religion_rel">Релігія</string>
+    <string name="genre_religion_self">Самоудосконалення</string>
+    <string name="genre_palmistry">Хіромантія</string>
+    <string name="genre_religion_christianity">Християнство</string>
+    <string name="genre_religion_esoterics">Езотерика</string>
+    <string name="genre_religion_paganism">Язичництво</string>
+
+    <!-- Reference literature genres -->
+    <string name="genre_geo_guides">Путівники</string>
+    <string name="genre_ref_guide">Керівництва</string>
+    <string name="genre_ref_dict">Словники</string>
+    <string name="genre_reference">Довідкова література</string>
+    <string name="genre_ref_ref">Довідники</string>
+    <string name="genre_ref_encyc">Енциклопедії</string>
+
+    <!-- Antique genres -->
+    <string name="genre_antique_ant">Антична література</string>
+    <string name="genre_antique_east">Давньосхідна література</string>
+    <string name="genre_antique_european">Європейська старовинна література</string>
+    <string name="genre_antique_russian">Староруська література</string>
+    <string name="genre_antique">Старовинна література: інше</string>
+
+    <!-- Technics genres -->
+    <string name="genre_auto_business">Автодело</string>
+    <string name="genre_auto_regulations">Автомобілі і ПДР</string>
+    <string name="genre_military_weapon">Військова техніка та озброєння</string>
+    <string name="genre_equ_history">Історія техніки</string>
+    <string name="genre_sci_metal">Металургія</string>
+    <string name="genre_sci_radio">Радіоелектроніка</string>
+    <string name="genre_sci_build">Будівництво і сопромат</string>
+    <string name="genre_sci_transport">Технічні науки</string>
+
+    <!-- Textbooks and tutorials genres -->
+    <string name="genre_sci_textbook">Підручники</string>
+    <string name="genre_tbg_higher">Підручники і посібники ВНЗ</string>
+    <string name="genre_tbg_secondary">Підручники і посібники для середнього та спеціальної освіти</string>
+    <string name="genre_tbg_school">Шкільні підручники та посібники, реферати, шпаргалки</string>
+    <string name="genre_sci_crib">Шпаргалки</string>
+
+    <!-- Fiction genres -->
+    <string name="genre_sf_history">Альтернативна історія</string>
+    <string name="genre_sf_action">Бойова фантастика</string>
+    <string name="genre_sf_heroic">Героїчна фантастика</string>
+    <string name="genre_sf_fantasy_city">Міське фентезі</string>
+    <string name="genre_sf_detective">Детективна фантастика</string>
+    <string name="genre_sf_irony">Іронічна фантастика</string>
+    <string name="genre_sf_cyberpunk">Кіберпанк</string>
+    <string name="genre_sf_space">Космічна фантастика</string>
+    <string name="genre_sf_space_opera">Космоопера</string>
+    <string name="genre_sf_litrpg">ЛитРПГ</string>
+    <string name="genre_sf_mystic">Містика</string>
+    <string name="genre_fairy_fantasy">Казкова фантастика</string>
+    <string name="genre_sf">Наукова фантастика</string>
+    <string name="genre_nsf">Ненаукова фантастика</string>
+    <string name="genre_popadanec">Попаданці</string>
+    <string name="genre_sf_postapocalyptic">Постапокаліпсис</string>
+    <string name="genre_modern_tale">Сучасна казка</string>
+    <string name="genre_sf_social">Соціальна фантастика</string>
+    <string name="genre_sf_stimpank">Стімпанк</string>
+    <string name="genre_sf_etc">Фантастика: інше</string>
+    <string name="genre_hronoopera">Хроноопера</string>
+    <string name="genre_sf_epic">Епічна фантастика</string>
+    <string name="genre_sf_humor">Гумористична фантастика</string>
+
+    <!-- Fantasy genres -->
+    <string name="genre_sf_fantasy">Фентезі</string>
+    <string name="genre_fantasy_fight">Бойове фентезі</string>
+    <string name="genre_sf_technofantasy">Технофентезі</string>
+    <string name="genre_city_fantasy">Міське фентезі</string>
+    <string name="genre_foreign_fantasy">Іноземні фентезі</string>
+    <string name="genre_historical_fantasy">Історичне фентезі</string>
+    <string name="genre_vampire_book">Книги про вампірів</string>
+    <string name="genre_magician_book">Книги про чарівників</string>
+    <string name="genre_love_fantasy">Любовний фентезі</string>
+    <string name="genre_russian_fantasy">Слов\'янське фентезі</string>
+    <string name="genre_sf_horror">Жахи</string>
+    <string name="genre_dragon_fantasy">Фентезі про драконів</string>
+    <string name="genre_humor_fantasy">Гумористичне фентезі</string>
+    <string name="genre_sf_fantasy_irony">Іронічне фентезі</string>
+
+    <!-- Folklore genres -->
+    <string name="genre_humor_anecdote">Анекдоти</string>
+    <string name="genre_fable">Байки</string>
+    <string name="genre_epic">Билини</string>
+    <string name="genre_riddles">Загадки</string>
+    <string name="genre_folk_songs">Народні пісні</string>
+    <string name="genre_folk_tale">Народні казки</string>
+    <string name="genre_proverbs">Прислів\'я, приказки</string>
+    <string name="genre_antique_myths">Міфи. Легенди. Епос</string>
+    <string name="genre_folklore">Фольклор: інше</string>
+    <string name="genre_limerick">Частівки, примовки, потешки</string>
+
+    <!-- Humor genres -->
+    <string name="genre_humor_satire">Сатира</string>
+    <string name="genre_humor">Гумор: інше</string>
+
+    <!-- Romance novels genres -->
+    <string name="genre_love_history">Історичні любовні романи</string>
+    <string name="genre_love_short">Короткі любовні романи</string>
+    <string name="genre_love_sf">Любовна фантастика</string>
+    <string name="genre_love_detective">Любовні детективи</string>
+    <string name="genre_love">Любовні романи</string>
+    <string name="genre_love_hard">Порно</string>
+    <string name="genre_love_contemporary">Сучасні любовні романи</string>
+    <string name="genre_love_erotica">Еротика</string>
+
+    <!-- Warfare genres -->
+    <string name="genre_military_arts">Бойові мистецтва</string>
+    <string name="genre_military_history">Військова історія</string>
+    <string name="genre_military">Військова справа: інше</string>
+    <string name="genre_military_special">Cпецслужби</string>
+
+    <!-- Other genres -->
+    <string name="genre_periodic">Газети і журнали</string>
+    <string name="genre_comics">Комікси</string>
+    <string name="genre_art_world_culture">Світова художня культура</string>
+    <string name="genre_unfinished">Недописане</string>
+    <string name="genre_other">Невідсортоване</string>
+    <string name="genre_network_literature">Самвидав, мережева література</string>
+    <string name="genre_fanfiction">Фанфік</string>
+
+</resources>

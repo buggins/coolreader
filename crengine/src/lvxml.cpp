@@ -5496,7 +5496,7 @@ void ExpandTabs(lString32 & buf, const lChar32 * str, int len)
             int delta = 8 - (x & 7);
             x += delta;
             while ( delta-- )
-                buf << L' ';
+                buf << U' ';
         } else {
             buf << ch;
             x++;
@@ -5929,7 +5929,7 @@ lString32 LVReadTextFile( LVStreamRef stream )
     while ( !reader.Eof() ) {
         lString32 line = reader.ReadLine( 4096, flags );
         if ( !buf.empty() )
-            buf << L'\n';
+            buf << U'\n';
         if ( !line.empty() ) {
             buf << line;
         }

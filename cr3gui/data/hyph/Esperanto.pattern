@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf8"?>
 <!--
   Taken from: https://github.com/pok49/vortodivido/blob/master/eo.pattern
-  Version: 2020-02-17
+  Version: 2020-10-02
 -->
 <HyphenationDescription>
 <pattern>1ŝ2tejn</pattern>
@@ -38,8 +38,10 @@
 <pattern>1a2du </pattern>
 <pattern>1a2ĉe </pattern>
 <pattern>1a2ĵe </pattern>
+<pattern>1a2er</pattern>
 <pattern>1a2f3rik</pattern>
 <pattern>1a2fabl</pattern>
+<pattern>1a2fiŝ</pattern>
 <pattern>1a2gra</pattern>
 <pattern>1a2kir1</pattern>
 <pattern>1a2kr</pattern>
@@ -885,7 +887,7 @@
 <pattern>4v1f</pattern>
 <pattern>4v1g</pattern>
 <pattern>4v1h4</pattern>
-<pattern>4v1k</pattern>
+<pattern>4v1k2</pattern>
 <pattern>4v1l</pattern>
 <pattern>4v1m</pattern>
 <pattern>4v1n</pattern>
@@ -902,7 +904,7 @@
 <pattern>4z1b</pattern>
 <pattern>4z1c</pattern>
 <pattern>4z1d</pattern>
-<pattern>4z1f</pattern>
+<pattern>4z1f4</pattern>
 <pattern>4z1g</pattern>
 <pattern>4z1h4</pattern>
 <pattern>4z1j2</pattern>
@@ -1065,8 +1067,10 @@
 <pattern>bur2g</pattern>
 <pattern>c2i3d</pattern>
 <pattern> ced2i3l</pattern>
+<pattern> cen2t</pattern>
 <pattern>cen2t3o2n</pattern>
 <pattern>cen2t3o2p</pattern>
+<pattern>cen3t2r</pattern>
 <pattern> cez2a3r</pattern>
 <pattern> ci3d2a3r</pattern>
 <pattern> ci3r2i3l</pattern>
@@ -1849,6 +1853,7 @@
 <pattern> son2a3t</pattern>
 <pattern> son2e3t</pattern>
 <pattern> sov2e3t</pattern>
+<pattern>sove4t1u2ni</pattern>
 <pattern> sp2i3t</pattern>
 <pattern> sp4</pattern>
 <pattern>spag2e3t</pattern>
@@ -1984,6 +1989,7 @@
 <pattern> vi4a3</pattern>
 <pattern> vi4st2ul</pattern>
 <pattern>vi5a4nd</pattern>
+<pattern>vi5atik</pattern>
 <pattern> vin3d</pattern>
 <pattern>vinj2et</pattern>
 <pattern>vir2g</pattern>

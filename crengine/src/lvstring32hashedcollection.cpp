@@ -17,7 +17,7 @@
 static const char * str_hash_magic="STRS";
 
 /// serialize to byte array (pointer will be incremented by number of bytes written)
-void lString16HashedCollection::serialize( SerialBuf & buf )
+void lString32HashedCollection::serialize( SerialBuf & buf )
 {
     if ( buf.error() )
         return;
@@ -33,7 +33,7 @@ void lString16HashedCollection::serialize( SerialBuf & buf )
 }
 
 /// deserialize from byte array (pointer will be incremented by number of bytes read)
-bool lString16HashedCollection::deserialize( SerialBuf & buf )
+bool lString32HashedCollection::deserialize( SerialBuf & buf )
 {
     if ( buf.error() )
         return false;
@@ -53,7 +53,7 @@ bool lString16HashedCollection::deserialize( SerialBuf & buf )
     return !buf.error();
 }
 
-lString16HashedCollection::lString16HashedCollection( lString16HashedCollection & v )
+lString32HashedCollection::lString32HashedCollection( lString32HashedCollection & v )
 : lString32Collection( v )
 , hashSize( v.hashSize )
 , hash( NULL )
@@ -70,7 +70,7 @@ lString16HashedCollection::lString16HashedCollection( lString16HashedCollection 
     }
 }
 
-void lString16HashedCollection::addHashItem( int hashIndex, int storageIndex )
+void lString32HashedCollection::addHashItem( int hashIndex, int storageIndex )
 {
     if ( hash[ hashIndex ].index == -1 ) {
         hash[hashIndex].index = storageIndex;
@@ -82,7 +82,7 @@ void lString16HashedCollection::addHashItem( int hashIndex, int storageIndex )
     }
 }
 
-void lString16HashedCollection::clearHash()
+void lString32HashedCollection::clearHash()
 {
     if ( hash ) {
         for ( int i=0; i<hashSize; i++) {
@@ -98,7 +98,7 @@ void lString16HashedCollection::clearHash()
     hash = NULL;
 }
 
-lString16HashedCollection::lString16HashedCollection( lUInt32 hash_size )
+lString32HashedCollection::lString32HashedCollection( lUInt32 hash_size )
 : hashSize(hash_size), hash(NULL)
 {
 
@@ -107,12 +107,12 @@ lString16HashedCollection::lString16HashedCollection( lUInt32 hash_size )
         hash[i].clear();
 }
 
-lString16HashedCollection::~lString16HashedCollection()
+lString32HashedCollection::~lString32HashedCollection()
 {
     clearHash();
 }
 
-int lString16HashedCollection::find( const lChar32 * s )
+int lString32HashedCollection::find( const lChar32 * s )
 {
     if ( !hash || !length() )
         return -1;
@@ -133,7 +133,7 @@ int lString16HashedCollection::find( const lChar32 * s )
     return -1;
 }
 
-void lString16HashedCollection::reHash( int newSize )
+void lString32HashedCollection::reHash( int newSize )
 {
     if (hashSize == newSize)
         return;
@@ -151,7 +151,7 @@ void lString16HashedCollection::reHash( int newSize )
     }
 }
 
-int lString16HashedCollection::add( const lChar32 * s )
+int lString32HashedCollection::add( const lChar32 * s )
 {
     if ( !hash || hashSize < length()*2 ) {
         int sz = 16;
