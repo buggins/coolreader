@@ -1173,9 +1173,7 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
         if (dst_dy > rc.height() * 6 / 8)
 			dst_dy = imgrc.height();
 		//CRLog::trace("drawCoverTo() - drawing image");
-        // It's best to use a 16bpp LVColorDrawBuf as the intermediate buffer,
-        // as using 32bpp would mess colors up when drawBuf is itself 32bpp.
-        LVColorDrawBuf buf2(src_dx, src_dy, 16);
+        LVColorDrawBuf buf2(src_dx, src_dy, 32);
         buf2.Draw(imgsrc, 0, 0, src_dx, src_dy, true);
         drawBuf->DrawRescaled(&buf2, imgrc.left + (imgrc.width() - dst_dx) / 2,
                 imgrc.top + (imgrc.height() - dst_dy) / 2, dst_dx, dst_dy, 0);

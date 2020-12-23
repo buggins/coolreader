@@ -239,14 +239,14 @@ bool LVImageScaledDrawCallback::OnLineDecoded(LVImageSource *, int y, lUInt32 *d
                     }
                 } else if ( alpha == 0 ) {
                     // Fully opaque, plot it as-is
-                    row[ x ] = RevRGB(cl) ^ rgba_invert;
+                    row[ x ] = cl ^ rgba_invert;
                 } else {
                     if ((row[x] & 0xFF000000) == 0xFF000000) {
                         // Plot it as-is if *buffer* pixel is transparent
-                        row[ x ] = RevRGBA(cl) ^ rgba_invert;
+                        row[ x ] = cl ^ rgba_invert;
                     } else {
                         // NOTE: This *also* has a "fully opaque" shortcut... :/
-                        ApplyAlphaRGB( row[x], RevRGB(cl), alpha );
+                        ApplyAlphaRGB( row[x], cl, alpha );
                         // Invert post-blending to avoid potential stupidity...
                         row[ x ] ^= rgba_invert;
                     }

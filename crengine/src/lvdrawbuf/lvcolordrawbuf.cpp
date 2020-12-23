@@ -606,7 +606,7 @@ void LVColorDrawBuf::Clear( lUInt32 color )
             }
         }
     } else {
-        lUInt32 cl32 = RevRGBA(color);
+        lUInt32 cl32 = color;
         for (int y=0; y<_dy; y++)
         {
             lUInt32 * dst = (lUInt32 *)GetScanLine(y);
@@ -664,9 +664,9 @@ void LVColorDrawBuf::FillRect( int x0, int y0, int x1, int y1, lUInt32 color )
             for (int x=x0; x<x1; x++)
             {
                 if (alpha)
-                    ApplyAlphaRGB(line[x], RevRGB(color), alpha);
+                    ApplyAlphaRGB(line[x], color, alpha);
                 else
-                    line[x] = RevRGBA(color);
+                    line[x] = color;
             }
         }
     }
@@ -701,8 +701,8 @@ void LVColorDrawBuf::DrawLine(int x0,int y0,int x1,int y1,lUInt32 color0 ,int le
             lUInt32 * line = (lUInt32 *)GetScanLine(y);
             for (int x=x0; x<x1; x++)
             {
-                if (direction==0 &&x%(length1+length2)<length1)line[x] = RevRGBA(color0);
-                if (direction==1 &&y%(length1+length2)<length1)line[x] = RevRGBA(color0);
+                if (direction==0 &&x%(length1+length2)<length1)line[x] = color0;
+                if (direction==1 &&y%(length1+length2)<length1)line[x] = color0;
             }
         }
     }
@@ -742,7 +742,7 @@ void LVColorDrawBuf::FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 co
             for (int x=x0; x<x1; x++)
             {
                 lUInt8 patternBit = (patternMask << (x&7)) & 0x80;
-                line[x] = patternBit ? RevRGBA(color1) : RevRGBA(color0);
+                line[x] = patternBit ? color1 : color0;
             }
         }
     }
@@ -923,10 +923,10 @@ void LVColorDrawBuf::BlendBitmap(int x, int y, const lUInt8 * bitmap, FontBmpPix
     } else {
         switch (bitmap_fmt) {
         case BMP_PIXEL_FORMAT_MONO:
-            blendBitmap_monoTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, RevRGBA(bmpcl));
+            blendBitmap_monoTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, bmpcl);
             break;
         case BMP_PIXEL_FORMAT_GRAY:
-            blendBitmap_grayTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, RevRGBA(bmpcl));
+            blendBitmap_grayTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, bmpcl);
             break;
         case BMP_PIXEL_FORMAT_GRAY2:
             // TODO: implement this
@@ -935,16 +935,16 @@ void LVColorDrawBuf::BlendBitmap(int x, int y, const lUInt8 * bitmap, FontBmpPix
             // TODO: implement this
             break;
         case BMP_PIXEL_FORMAT_RGB:
-            blendBitmap_rgbTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, RevRGBA(bmpcl));
+            blendBitmap_rgbTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, bmpcl);
             break;
         case BMP_PIXEL_FORMAT_BGR:
-            blendBitmap_bgrTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, RevRGBA(bmpcl));
+            blendBitmap_bgrTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, bmpcl);
             break;
         case BMP_PIXEL_FORMAT_RGB_V:
-            blendBitmap_rgbvTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, RevRGBA(bmpcl));
+            blendBitmap_rgbvTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, bmpcl);
             break;
         case BMP_PIXEL_FORMAT_BGR_V:
-            blendBitmap_bgrvTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, RevRGBA(bmpcl));
+            blendBitmap_bgrvTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, bmpcl);
             break;
         case BMP_PIXEL_FORMAT_BGRA:
             blendBitmap_bgraTo32bpp(this, x, y, bitmap, width, height, bmp_pitch);
@@ -1090,7 +1090,7 @@ void LVColorDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32
                     lUInt32 * dst = ((lUInt32 *)buf->GetScanLine(y + yy)) + x;
                     for (int xx = 0; xx < _dx; xx++) {
                         if (x+xx >= clip.left && x + xx < clip.right) {
-                            *dst = RevRGBA(*src);
+                            *dst = *src;
                         }
                         dst++;
                         src++;
@@ -1235,7 +1235,7 @@ void LVColorDrawBuf::DrawOnTop( LVDrawBuf * buf, int x, int y)
                     lUInt32 * dst = ((lUInt32 *)buf->GetScanLine(y + yy)) + x;
                     for (int xx = 0; xx < _dx; xx++) {
                         if (x+xx >= clip.left && x + xx < clip.right) {
-                            if(*src!=0) *dst = RevRGBA(*src);
+                            if(*src!=0) *dst = *src;
                         }
                         dst++;
                         src++;
@@ -1271,7 +1271,7 @@ void LVColorDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy,
 							dst[x + xx] = rgb888to565(cl);
 						} else {
 							lUInt32 * dst = (lUInt32 *)GetScanLine(y + yy);
-							dst[x + xx] = RevRGBA(cl);
+							dst[x + xx] = cl;
 						}
 					}
 				}
@@ -1290,7 +1290,7 @@ void LVColorDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy,
 							dst[x + xx] = rgb888to565(cl);
 						} else {
 							lUInt32 * dst = (lUInt32 *)GetScanLine(y + yy);
-							dst[x + xx] = RevRGBA(cl);
+							dst[x + xx] = cl;
 						}
 					}
 				}

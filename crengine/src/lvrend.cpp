@@ -8478,10 +8478,9 @@ void DrawBackgroundImage(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int d
             // Ready to have crengine do all the work.
             /* Looks like we don't need that:
 
-                // (Inspired from LVDocView::drawPageBackground(), we have to do it that complex
-                // way to avoid memory leaks; and we have to use a 16bpp LVColorDrawBuf,
-                // 32bpp would mess colors up).
-                LVRef<LVColorDrawBuf> buf = LVRef<LVColorDrawBuf>( new LVColorDrawBuf(img_w, img_h, 16) );
+                // (Inspired from LVDocView::drawPageBackground(),
+                // we have to do it the complex way to avoid memory leaks
+                LVRef<LVColorDrawBuf> buf = LVRef<LVColorDrawBuf>( new LVColorDrawBuf(img_w, img_h, 32) );
                 buf->Draw(img, 0, 0, img_w, img_h, false); // (dither=false doesn't matter with a color buffer)
                 LVImageSourceRef src = LVCreateDrawBufImageSource(buf.get(), false);
                 LVImageSourceRef transformed = LVCreateStretchFilledTransform(src, transform_w, transform_h,

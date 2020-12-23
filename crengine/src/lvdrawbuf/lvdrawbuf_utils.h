@@ -22,28 +22,9 @@
         if (_ownData && _data && _data[_rowsize * _dy] != GUARD_BYTE) crFatalError(-5, "corrupted bitmap buffer"); \
     }
 
-// NOTE: By default, CRe assumes RGB (array order) actually means BGR
-//       We don't, so, instead of fixing this at the root (i.e., in a *lot* of places),
-//       we simply swap R<->B when rendering to 32bpp, limiting the tweaks to lvdrawbuf
-//       c.f., https://github.com/koreader/koreader-base/pull/878#issuecomment-476723747
-#ifdef CR_RENDER_32BPP_RGB_PXFMT
 inline lUInt32 RevRGB( lUInt32 cl ) {
     return ((cl<<16)&0xFF0000) | ((cl>>16)&0x0000FF) | (cl&0x00FF00);
 }
-
-inline lUInt32 RevRGBA( lUInt32 cl ) {
-    // Swap B <-> R, keep G & A
-    return ((cl<<16)&0x00FF0000) | ((cl>>16)&0x000000FF) | (cl&0xFF00FF00);
-}
-#else
-inline lUInt32 RevRGB( lUInt32 cl ) {
-    return cl;
-}
-
-inline lUInt32 RevRGBA( lUInt32 cl ) {
-    return cl;
-}
-#endif
 
 inline lUInt32 rgb565to888( lUInt32 cl ) {
     return ((cl & 0xF800)<<8) | ((cl & 0x07E0)<<5) | ((cl & 0x001F)<<3);
