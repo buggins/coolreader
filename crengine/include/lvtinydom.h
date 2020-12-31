@@ -2790,7 +2790,7 @@ public:
     virtual void OnText( const lChar32 * text, int len, lUInt32 flags )
     {
         if (headStyleState == 1) {
-            headStyleText << UnicodeToUtf8(lString32(text).substr(0,len-1));
+            headStyleText << UnicodeToUtf8(lString32(text, len));
             return;
         }
         if ( insideTag )
