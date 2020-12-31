@@ -99,6 +99,7 @@ void LVXMLParser::Reset()
     LVTextFileBase::Reset();
     m_state = ps_bof;
     m_in_cdata = false;
+    m_in_html_script_tag = false;
 }
 
 LVXMLParser::LVXMLParser( LVStreamRef stream, LVXMLParserCallback * callback, bool allowHtml, bool fb2Only )
@@ -107,6 +108,7 @@ LVXMLParser::LVXMLParser( LVStreamRef stream, LVXMLParserCallback * callback, bo
     , m_trimspaces(true)
     , m_state(0)
     , m_in_cdata(false)
+    , m_in_html_script_tag(false)
     , m_citags(false)
     , m_allowHtml(allowHtml)
     , m_fb2Only(fb2Only)
@@ -295,6 +297,17 @@ bool LVXMLParser::Parse()
 //                    CRLog::trace("<%s>", LCSTR(tagname) );
                 if (!bodyStarted && tagname == "body")
                     bodyStarted = true;
+                else if ( tagname.length() == 6 &&
+                          ( tagname[0] == U'S' || tagname[0] == U's') &&
+                          ( tagname[1] == U'C' || tagname[1] == U'c') &&
+                          ( tagname[2] == U'R' || tagname[2] == U'r') &&
+                          ( tagname[3] == U'I' || tagname[3] == U'i') &&
+                          ( tagname[4] == U'P' || tagname[4] == U'p') &&
+                          ( tagname[5] == U'T' || tagname[5] == U't') ) {
+                    // Handle content as text, but don't stop just at any '<',
+                    // only at '</script>', as <script> may contain tags
+                    m_in_html_script_tag = true;
+                }
 
                 m_state = ps_attr;
             }
@@ -309,8 +322,11 @@ bool LVXMLParser::Parse()
                 {
                     m_callback->OnTagBody();
                     // end of tag
-                    if ( ch!='>' ) // '/' in '<hr/>' : self closing tag
+                    if ( ch!='>' ) { // '/' in '<hr/>' : self closing tag
                         m_callback->OnTagClose(tagns.c_str(), tagname.c_str(), true);
+                        if ( m_in_html_script_tag )
+                            m_in_html_script_tag = false;
+                    }
                     if ( ch=='>' )
                         PeekNextCharFromBuffer();
                     else
@@ -402,11 +418,14 @@ bool LVXMLParser::Parse()
                 if ( bodyStarted )
                     updateProgress();
                 m_state = ps_lt;
-                if (m_in_cdata) {
+                if ( m_in_cdata ) {
                     m_in_cdata = false;
                     // Get back in ps_text state: there may be some
                     // regular text after ']]>' until the next '<tag>'
                     m_state = ps_text;
+                }
+                else if ( m_in_html_script_tag ) {
+                    m_in_html_script_tag = false;
                 }
             }
             break;
@@ -473,7 +492,18 @@ bool LVXMLParser::ReadText()
                 }
             }
             else if ( ch=='<' ) {
-                flgBreak = true;
+                if ( m_in_html_script_tag ) { // we're done only when we meet </script>
+                    if ( nextch=='/' && m_read_buffer_pos + i + 7 < m_read_buffer_len ) {
+                        const lChar32 * buf = (const lChar32 *)(m_read_buffer + m_read_buffer_pos + i + 2);
+                        lString32 tag(buf, 6);
+                        if ( tag.lowercase() == U"script" ) {
+                            flgBreak = true;
+                        }
+                    }
+                }
+                else {
+                    flgBreak = true;
+                }
             }
             if ( flgBreak && !tlen ) {
                 m_read_buffer_pos++;
