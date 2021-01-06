@@ -127,9 +127,11 @@ public class EinkScreen {
 						break;
 					default:
 				}
-				// I don't know what exactly this line does, but without it, the image on rk3288 will not updated.
-				// Found by brute force.
-				EpdController.byPass(0);
+				if (Device.DeviceIndex.Rk32xx == Device.currentDeviceIndex) {
+					// I don't know what exactly this line does, but without it, the image on rk3288 will not updated.
+					// Found by brute force.
+					EpdController.byPass(0);
+				}
 			}
 		}
 	}
