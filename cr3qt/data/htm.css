@@ -49,12 +49,37 @@ h4 { font-size: 125% }
 h5 { font-size: 115% } 
 h6 { font-size: 105% } 
 
-ul, ol, dl { 
+/* Lists */
+ul {
    display: block; 
-   margin-left: 1em; 
+   list-style-type: disc;
+   margin-left: 1em;
    margin-top:0.3em; 
    margin-bottom: 0.3em; 
-   } 
+}
+ol {
+   display: block;
+   list-style-type: decimal;
+   margin-left: 1em;
+   margin-top:0.3em;
+   margin-bottom: 0.3em;
+}
+
+ol[type=1], li[type=1] {
+  list-style-type: decimal;
+}
+ol[type=a], li[type=a] {
+  list-style-type: lower-alpha;
+}
+ol[type=A], li[type=A] {
+  list-style-type: upper-alpha;
+}
+ol[type=i], li[type=i] {
+  list-style-type: lower-roman;
+}
+ol[type=I], li[type=I] {
+  list-style-type: upper-roman;
+}
 
 li { 
    display: list-item; 
