@@ -116,14 +116,18 @@ static lChar32 getReplacementChar(lUInt32 code, bool * can_be_ignored = NULL) {
         case 0x2044:
             return '/';
         case 0x2022: // css_lst_disc:
-            return '*';
-        case 0x26AA: // css_lst_disc:
-        case 0x25E6: // css_lst_disc:
+        case 0x26AB: // css_lst_disc:
+        case 0x2981: // css_lst_disc:
         case 0x25CF: // css_lst_disc:
-            return 'o';
-        case 0x25CB: // css_lst_circle:
             return '*';
+        case 0x26AA: // css_lst_circle:
+        case 0x25E6: // css_lst_circle:
+        case 0x26AC: // css_lst_circle:
+        case 0x25CB: // css_lst_circle:
+            return 'o';
         case 0x25A0: // css_lst_square:
+        case 0x25AA: // css_lst_square:
+        case 0x25FE: // css_lst_square:
             return '-';
         default:
             break;
