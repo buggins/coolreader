@@ -92,6 +92,14 @@ ol[type=I], li[type=I] {
   list-style-type: upper-roman;
 }
 
+ul ul, ol ul {
+   list-style-type: circle;
+}
+
+ol ol ul, ol ul ul, ul ol ul, ul ul ul {
+   list-style-type: square;
+}
+
 li { 
    display: list-item; 
    text-indent: 0em;
