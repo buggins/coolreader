@@ -235,6 +235,17 @@ tt, samp, kbd { font-family: "Liberation Mono", "DeJaVu Sans Mono", monospace; }
 nobr { display: inline; hyphenate: none; white-space: nowrap; } 
 
 ul { display: block; list-style-type: disc; margin-left: 1em }
+
+ul[type=disc], li[type=disc] {
+  list-style-type: disc;
+}
+ul[type=circle], li[type=circle] {
+  list-style-type: circle;
+}
+ul[type=square], li[type=square] {
+  list-style-type: square;
+}
+
 ol { display: block; list-style-type: decimal; margin-left: 1em }
 
 ol[type=1], li[type=1] {
