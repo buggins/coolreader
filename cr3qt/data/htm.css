@@ -80,6 +80,9 @@ blockquote { display: block;
    margin-top: 0.5em; 
    margin-bottom: 0.5em; 
    } 
+/* No support for the "quotes:" property, these will use default quote chars */
+q::before               { content: open-quote; }
+q::after                { content: close-quote; }
 
 img { 
    margin: 0.5em; 

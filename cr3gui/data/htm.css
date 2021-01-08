@@ -244,3 +244,7 @@ table { font-size: 100% }
 td, th { text-indent: 0px; padding: 3px } 
 th { font-weight: bold; text-align: center } 
 table caption { text-indent: 0px; padding: 4px }
+
+/* No support for the "quotes:" property, these will use default quote chars */
+q::before               { content: open-quote; }
+q::after                { content: close-quote; }
