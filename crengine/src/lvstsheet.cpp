@@ -1328,12 +1328,14 @@ void update_style_content_property( css_style_rec_t * style, ldomNode * node ) {
         }
         else if ( ctype == 'Q' ) { // open-quote
             quote = lang_cfg->getOpeningQuote(visible);
-            res << U's' << quote.length() << quote;
+            // length+1 as expected with 's' by get_applied_content_property()
+            res << U's' << lChar32(quote.length() + 1) << quote;
             i += 1;
         }
         else if ( ctype == 'q' ) { // close-quote
             quote = lang_cfg->getClosingQuote(visible);
-            res << U's' << quote.length() << quote;
+            // length+1 as expected with 's' by get_applied_content_property()
+            res << U's' << lChar32(quote.length() + 1) << quote;
             i += 1;
         }
         else if ( ctype == 'N' ) { // no-open-quote
