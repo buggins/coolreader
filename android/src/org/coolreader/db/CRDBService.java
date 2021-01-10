@@ -438,11 +438,11 @@ public class CRDBService extends Service {
 		});
 	}
 	
-	public void findByPatterns(final int maxCount, final String author, final String title, final String series, final String filename, final BookSearchCallback callback, final Handler handler) {
+	public void findByPatterns(final int maxCount, final String authors, final String title, final String series, final String filename, final BookSearchCallback callback, final Handler handler) {
 		execTask(new Task("findByPatterns") {
 			@Override
 			public void work() {
-				final ArrayList<FileInfo> list = mainDB.findByPatterns(maxCount, author, title, series, filename);
+				final ArrayList<FileInfo> list = mainDB.findByPatterns(maxCount, authors, title, series, filename);
 				sendTask(handler, () -> callback.onBooksFound(list));
 			}
 		});
@@ -745,8 +745,8 @@ public class CRDBService extends Service {
     		getService().findByFingerprints(maxCount, fingerprints, callback, new Handler());
     	}
 
-		public void findByPatterns(final int maxCount, final String author, final String title, final String series, final String filename, final BookSearchCallback callback) {
-			getService().findByPatterns(maxCount, author, title, series, filename, callback, new Handler());
+		public void findByPatterns(final int maxCount, final String authors, final String title, final String series, final String filename, final BookSearchCallback callback) {
+			getService().findByPatterns(maxCount, authors, title, series, filename, callback, new Handler());
 		}
 
 		public void loadFileInfos(final ArrayList<String> pathNames, final FileInfoLoadingCallback callback) {
