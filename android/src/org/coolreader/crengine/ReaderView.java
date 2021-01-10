@@ -2629,6 +2629,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		props.remove(PROP_EMBEDDED_FONTS);
 		props.remove(PROP_REQUESTED_DOM_VERSION);
 		props.remove(PROP_RENDER_BLOCK_RENDERING_FLAGS);
+
+		// If a fallback font face is defined then set it in the font
+		// faces, otherwise the font faces may override the font face
+		// depending on which is applied first.
+		String fallbackFontFace = props.getProperty(PROP_FALLBACK_FONT_FACE);
+		if (fallbackFontFace.length() > 0)
+			props.setProperty(PROP_FALLBACK_FONT_FACES, fallbackFontFace);
+
 		BackgroundThread.ensureBackground();
 		log.v("applySettings()");
 		boolean isFullScreen = props.getBool(PROP_APP_FULLSCREEN, false);
