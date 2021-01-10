@@ -38,29 +38,16 @@ lUInt32 LVFreeTypeFontManager::GetFontListHash(int documentId) {
     return _cache.GetFontListHash(documentId) * 75 + _fallbackFontFaces.getHash();
 }
 
+void LVFreeTypeFontManager::SetDefaultFallbackFontFaces(lString8 faces)
+{
+    fprintf(stderr, "SetDefaultFallbackFontFaces1: '%s'\n", faces.c_str());
+    _defaultFallbackFontFaces = faces;
+}
+
+// Sets the first fallback font in the fallback list, plus the default fallback fonts.
 bool LVFreeTypeFontManager::SetFallbackFontFace(lString8 face) {
-    FONT_MAN_GUARD
-    lString8 oldFace = _fallbackFontFaces.length() > 0 ? _fallbackFontFaces[0] : lString8();
-    if (face != oldFace) {
-        CRLog::trace("Looking for fallback font %s", face.c_str());
-        LVFontCacheItem *item = _cache.findFallback(face, -1);
-        if (!item) {
-            face.clear();
-            // Don't reset previous fallback if this one is not found/valid
-            return false;
-        }
-        _cache.clearFallbackFonts();
-        if (_fallbackFontFaces.empty())
-            _fallbackFontFaces.add(face);
-        else
-            _fallbackFontFaces[0] = face;
-        // Somehow, with Fedra Serif (only!), changing the fallback font does
-        // not prevent glyphs from previous fallback font to be re-used...
-        // So let's clear glyphs caches too.
-        gc();
-        clearGlyphCache();
-    }
-    return _fallbackFontFaces.length() > 0;
+    lString8 faces = face + "; " + _defaultFallbackFontFaces;
+    return SetFallbackFontFaces(faces);
 }
 
 bool LVFreeTypeFontManager::SetFallbackFontFaces(lString8 facesStr)
@@ -73,7 +60,7 @@ bool LVFreeTypeFontManager::SetFallbackFontFaces(lString8 facesStr)
         for (int i = 0; i < faces.length(); i++) {
             lString8 face = faces[i];
             face.trim();
-            CRLog::trace("Looking for fallback font %s", face.c_str());
+            CRLog::trace("Looking for fallback font '%s'", face.c_str());
             LVFontCacheItem *item = _cache.findFallback(face, -1);
             if (item) {
                 bool exist = false;
@@ -1210,6 +1197,7 @@ bool LVFreeTypeFontManager::RegisterFont(lString8 name) {
 
 bool LVFreeTypeFontManager::Init(lString8 path) {
     _path = path;
+    _defaultFallbackFontFaces = lString8::empty_str;
     initSystemFonts();
     return (_library != NULL);
 }

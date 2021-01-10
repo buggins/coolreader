@@ -6315,9 +6315,9 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	if (list.length() > 0 && !list.contains(props->getStringDef(PROP_FONT_FACE,
 			defFontFace.c_str())))
 		props->setString(PROP_FONT_FACE, list[0]);
-	//props->setStringDef(PROP_FALLBACK_FONT_FACE, props->getStringDef(PROP_FONT_FACE,
-    //                    defFontFace.c_str()));
-	props->setStringDef(PROP_FALLBACK_FONT_FACES, fallbackFonts);
+	props->setStringDef(PROP_DEFAULT_FALLBACK_FONT_FACES, fallbackFonts);
+	props->setStringDef(PROP_FALLBACK_FONT_FACE, props->getStringDef(PROP_FONT_FACE,
+                                                                         defFontFace.c_str()));
 
 	props->setIntDef(PROP_FONT_SIZE,
 			m_font_sizes[m_font_sizes.length() * 2 / 3]);
@@ -6603,20 +6603,14 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         } else if (name == PROP_FONT_FACE) {
             setDefaultFontFace(UnicodeToUtf8(value));
             needUpdateMargins = true;
+        } else if (name == PROP_DEFAULT_FALLBACK_FONT_FACES) {
+            fontMan->SetDefaultFallbackFontFaces(UnicodeToUtf8(value));
         } else if (name == PROP_FALLBACK_FONT_FACE) {
             lString8 oldFace = fontMan->GetFallbackFontFace();
             if ( UnicodeToUtf8(value)!=oldFace )
                 fontMan->SetFallbackFontFace(UnicodeToUtf8(value));
             value = Utf8ToUnicode(fontMan->GetFallbackFontFace());
             if ( UnicodeToUtf8(value) != oldFace ) {
-                REQUEST_RENDER("propsApply  fallback font face")
-            }
-        } else if (name == PROP_FALLBACK_FONT_FACES) {
-            lString8 oldFaces = fontMan->GetFallbackFontFaces();
-            if ( UnicodeToUtf8(value)!=oldFaces )
-                fontMan->SetFallbackFontFaces(UnicodeToUtf8(value));
-            value = Utf8ToUnicode(fontMan->GetFallbackFontFaces());
-            if ( UnicodeToUtf8(value) != oldFaces ) {
                 REQUEST_RENDER("propsApply  fallback font face")
             }
         } else if (name == PROP_STATUS_FONT_FACE) {

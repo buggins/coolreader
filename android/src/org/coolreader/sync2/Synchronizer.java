@@ -123,7 +123,6 @@ public class Synchronizer {
 
 	private static final String[] ALLOWED_OPTIONS_PROP_NAMES = {
 			Settings.PROP_FALLBACK_FONT_FACE,
-			Settings.PROP_FALLBACK_FONT_FACES,
 			Settings.PROP_FOOTNOTES,
 			Settings.PROP_APP_HIGHLIGHT_BOOKMARKS,
 			Settings.PROP_HYPHENATION_DICT,

@@ -35,6 +35,7 @@ class LVFreeTypeFontManager : public LVFontManager {
 private:
     lString8 _path;
     lString8Collection _fallbackFontFaces;
+    lString8 _defaultFallbackFontFaces;
     LVFontCache _cache;
     FT_Library _library;
     LVFontGlobalGlyphCache _globalCache;
@@ -47,7 +48,12 @@ public:
     /// get hash of installed fonts and fallback font
     virtual lUInt32 GetFontListHash(int documentId);
 
+    /// set default fallback font face list semicolon separated (returns true if any font is found)
+    /// this list is appended to the fonts on calls to SetFallbackFontFace()
+    virtual void SetDefaultFallbackFontFaces(lString8 faces);
+
     /// set fallback font
+    /// Updated the fallback font faces list, appending the given 'face and the default list.
     virtual bool SetFallbackFontFace(lString8 face);
 
     /// set fallback font face list semicolon separated (returns true if any font is found)

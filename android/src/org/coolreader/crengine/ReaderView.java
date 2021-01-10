@@ -2629,6 +2629,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		props.remove(PROP_EMBEDDED_FONTS);
 		props.remove(PROP_REQUESTED_DOM_VERSION);
 		props.remove(PROP_RENDER_BLOCK_RENDERING_FLAGS);
+
 		BackgroundThread.ensureBackground();
 		log.v("applySettings()");
 		boolean isFullScreen = props.getBool(PROP_APP_FULLSCREEN, false);
