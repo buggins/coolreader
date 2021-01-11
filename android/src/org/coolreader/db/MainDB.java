@@ -1691,25 +1691,35 @@ public class MainDB extends BaseDB {
 		return buf.toString();
 	}
 	
-	public ArrayList<FileInfo> findByPatterns(int maxCount, String author, String title, String series, String filename)
+	public ArrayList<FileInfo> findByPatterns(int maxCount, String authors, String title, String series, String filename)
 	{
 		beginReading();
 		ArrayList<FileInfo> list = new ArrayList<>();
-		
 		StringBuilder buf = new StringBuilder();
 		boolean hasCondition = false;
-		if ( author!=null && author.length()>0 ) {
-			String authorIds = findAuthors(maxCount, author);
-			if (authorIds == null || authorIds.length() == 0)
+		if ( authors!=null && authors.length()>0 ) {
+			// When synchronizing from the cloud, the 'authors' variable can contain multiple authors separated by '|'.
+			// See MainDB.READ_FILEINFO_FIELDS
+			String[] authorsArray = authors.split("\\|");
+			StringBuilder authorIds = new StringBuilder();
+			for (String author : authorsArray) {
+				String ids = findAuthors(maxCount, author);
+				if (ids.length() > 0) {
+					if (authorIds.length() > 0)
+						authorIds.append(",");
+					authorIds.append(ids);
+				}
+			}
+			if (authorIds.length() == 0)
 				return list;
-			if ( buf.length()>0 )
+			if (buf.length() > 0)
 				buf.append(" AND ");
 			buf.append(" b.id IN (SELECT ba.book_fk FROM book_author ba WHERE ba.author_fk IN (").append(authorIds).append(")) ");
 			hasCondition = true;
 		}
 		if ( series!=null && series.length()>0 ) {
 			String seriesIds = findSeries(maxCount, series);
-			if (seriesIds == null || seriesIds.length() == 0)
+			if (seriesIds.length() == 0)
 				return list;
 			if ( buf.length()>0 )
 				buf.append(" AND ");
