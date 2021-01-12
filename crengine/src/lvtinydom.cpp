@@ -5236,6 +5236,18 @@ void ldomElementWriter::onBodyEnter()
                 }
             }
         }
+
+        // Add img alt text as a child. This will only be used by the
+        // graphical renderer if there is no image, but is needed for the text
+        // selection which is in turn used by Read-Aloud. This approach works
+        // simply with ::before and ::after pseudo elements which should be
+        // applied when the alternate text is emitted.
+        if ( _element->getNodeId() == el_img ) {
+            lString32 alt = _element->getAttributeValue( attr_alt );
+            if (!alt.empty())
+                _element->insertChildText(alt);
+        }
+
         _isBlock = isBlockNode(_element);
         // If initNodeStyle() has set "white-space: pre" or alike, update _flags
         if ( _element->getStyle()->white_space >= css_ws_pre_line) {
