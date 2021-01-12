@@ -85,7 +85,7 @@ extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.12.74"
+#define CACHE_FILE_FORMAT_VERSION "3.12.75"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0026
@@ -17553,21 +17553,69 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & 
     case css_lst_upper_roman:
     case css_lst_lower_alpha:
     case css_lst_upper_alpha:
-        if ( counterValue<=0 ) {
-            // calculate counter
+        do {
+            // If this element has a valid value then use it avoiding a walk.
+            lString32 el_value = getAttributeValue(attr_value);
+            if ( !el_value.empty() ) {
+                int el_ivalue;
+                if ( el_value.atoi(el_ivalue) ) {
+                    counterValue = el_ivalue;
+                    break;
+                }
+            }
+
             // The UL > LI parent-child chain may have had some of our Boxing elements inserted
             ldomNode * parent = getUnboxedParent();
-            counterValue = 0;
-            // See if parent has a 'start' attribute that overrides this 0
+
+            // See if parent has a 'reversed' attribute.
+            int increment = parent->getAttributeValue(attr_reversed).empty() ? +1 : -1;
+
+            // If the caller passes in a non-zero counter then it is assumed
+            // have been already calculated and have the value of the prior
+            // element of a walk. There may be a redundant recalculation in
+            // the case of zero.
+            if ( counterValue != 0 ) {
+                counterValue += increment;
+                break;
+            }
+
+            // See if parent has a valid 'start' attribute.
             // https://www.w3.org/TR/html5/grouping-content.html#the-ol-element
             // "The start attribute, if present, must be a valid integer giving the ordinal value of the first list item."
-            lString32 value = parent->getAttributeValue(attr_start);
-            if ( !value.empty() ) {
-                int ivalue;
-                if (value.atoi(ivalue))
-                    counterValue = ivalue - 1;
+            lString32 start_value = parent->getAttributeValue(attr_start);
+            int istart;
+            if ( !start_value.empty() && start_value.atoi(istart) )
+                counterValue = istart;
+            else if ( increment > 0 )
+                counterValue = 1;
+            else  {
+                // For a reversed ordering the default start is equal to the
+                // number of child elements.
+                counterValue = 0;
+
+                ldomNode * sibling = parent->getUnboxedFirstChild(true);
+                while ( sibling ) {
+                    css_style_ref_t cs = sibling->getStyle();
+                    if ( cs.isNull() ) { // Should not happen, but let's be sure
+                        if ( sibling == this )
+                            break;
+                        sibling = sibling->getUnboxedNextSibling(true);
+                        continue;
+                    }
+                    if ( cs->display != css_d_list_item_block && cs->display != css_d_list_item_legacy) {
+                        // Alien element among list item nodes, skip it to not mess numbering
+                        if ( sibling == this ) // Should not happen, but let's be sure
+                            break;
+                        sibling = sibling->getUnboxedNextSibling(true);
+                        continue;
+                    }
+                    counterValue++;
+                    sibling = sibling->getUnboxedNextSibling(true); // skip text nodes
+                }
             }
+
             // iterate parent's real children from start up to this node
+            counterValue -= increment;
             ldomNode * sibling = parent->getUnboxedFirstChild(true);
             while ( sibling ) {
                 css_style_ref_t cs = sibling->getStyle();
@@ -17584,18 +17632,10 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & 
                     sibling = sibling->getUnboxedNextSibling(true);
                     continue;
                 }
-                switch ( cs->list_style_type ) {
-                    case css_lst_decimal:
-                    case css_lst_lower_roman:
-                    case css_lst_upper_roman:
-                    case css_lst_lower_alpha:
-                    case css_lst_upper_alpha:
-                        counterValue++;
-                        break;
-                    default:
-                        // do nothing
-                        ;
-                }
+
+                // Count advances irrespective of the list style.
+                counterValue += increment;
+
                 // See if it has a 'value' attribute that overrides the incremented value
                 // https://www.w3.org/TR/html5/grouping-content.html#the-li-element
                 // "The value attribute, if present, must be a valid integer giving the ordinal value of the list item."
@@ -17609,51 +17649,49 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & 
                     break;
                 sibling = sibling->getUnboxedNextSibling(true); // skip text nodes
             }
-        }
-        else {
-            counterValue++;
-        }
+        } while (0);
+
         static const char * lower_roman[] = {"i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix",
                                              "x", "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix",
                                          "xx", "xxi", "xxii", "xxiii"};
-        if (counterValue > 0 || st == css_lst_decimal) {
-            switch (st) {
-            case css_lst_decimal:
-                marker = lString32::itoa(counterValue);
-                break;
-            case css_lst_lower_roman:
-                if (counterValue - 1 < (int)(sizeof(lower_roman) / sizeof(lower_roman[0])))
-                    marker = lString32(lower_roman[counterValue-1]);
-                else
-                    marker = lString32::itoa(counterValue); // fallback to simple counter
-                break;
-            case css_lst_upper_roman:
-                if (counterValue - 1 < (int)(sizeof(lower_roman) / sizeof(lower_roman[0])))
-                    marker = lString32(lower_roman[counterValue-1]);
-                else
-                    marker = lString32::itoa(counterValue); // fallback to simple digital counter
-                marker.uppercase();
-                break;
-            case css_lst_lower_alpha:
-                if ( counterValue<=26 )
-                    marker.append(1, (lChar32)('a' + counterValue - 1));
-                else
-                    marker = lString32::itoa(counterValue); // fallback to simple digital counter
-                break;
-            case css_lst_upper_alpha:
-                if ( counterValue<=26 )
-                    marker.append(1, (lChar32)('A' + counterValue - 1));
-                else
-                    marker = lString32::itoa(counterValue); // fallback to simple digital counter
-                break;
-            case css_lst_disc:
-            case css_lst_circle:
-            case css_lst_square:
-            case css_lst_none:
-            case css_lst_inherit:
-                // do nothing
-                break;
-            }
+        switch (st) {
+        case css_lst_decimal:
+            marker = lString32::itoa(counterValue);
+            break;
+        case css_lst_lower_roman:
+            if (counterValue > 0 &&
+                counterValue - 1 < (int)(sizeof(lower_roman) / sizeof(lower_roman[0])))
+                marker = lString32(lower_roman[counterValue-1]);
+            else
+                marker = lString32::itoa(counterValue); // fallback to simple counter
+            break;
+        case css_lst_upper_roman:
+            if (counterValue > 0 &&
+                counterValue - 1 < (int)(sizeof(lower_roman) / sizeof(lower_roman[0])))
+                marker = lString32(lower_roman[counterValue-1]);
+            else
+                marker = lString32::itoa(counterValue); // fallback to simple digital counter
+            marker.uppercase();
+            break;
+        case css_lst_lower_alpha:
+            if ( counterValue > 0 && counterValue<=26 )
+                marker.append(1, (lChar32)('a' + counterValue - 1));
+            else
+                marker = lString32::itoa(counterValue); // fallback to simple digital counter
+            break;
+        case css_lst_upper_alpha:
+            if ( counterValue > 0 && counterValue<=26 )
+                marker.append(1, (lChar32)('A' + counterValue - 1));
+            else
+                marker = lString32::itoa(counterValue); // fallback to simple digital counter
+            break;
+        case css_lst_disc:
+        case css_lst_circle:
+        case css_lst_square:
+        case css_lst_none:
+        case css_lst_inherit:
+            // do nothing
+            break;
         }
         break;
     }
