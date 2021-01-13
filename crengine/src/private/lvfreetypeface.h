@@ -234,9 +234,17 @@ public:
 
     /** \brief get glyph info
         \param glyph is pointer to glyph_info_t struct to place retrieved info
+        \param replace_missing internal use for recursive search
         \return true if glyh was found
     */
-    virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar32 def_char = 0, lUInt32 fallbackPassMask = 0);
+    virtual bool getGlyphInfo(
+            lUInt32 code,
+            glyph_info_t *glyph,
+            lChar32 def_char = 0,
+            lUInt32 fallbackPassMask = 0,
+            bool replace_missing = false
+    );
+
 /*
   // USE GET_CHAR_FLAGS instead
     inline int calcCharFlags( lChar32 ch )
@@ -293,9 +301,15 @@ public:
 
     /** \brief get glyph item
         \param code is unicode character
+        \param replace_missing internal use for recursive search
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar32 def_char = 0, lUInt32 fallbackPassMask = 0);
+    virtual LVFontGlyphCacheItem *getGlyph(
+            lUInt32 ch,
+            lChar32 def_char = 0,
+            lUInt32 fallbackPassMask = 0,
+            bool replace_missing = false
+    );
 
 //    /** \brief get glyph image in 1 byte per pixel format
 //        \param code is unicode character
@@ -382,7 +396,7 @@ public:
     virtual void Clear();
 protected:
     void updateTransform();
-    FT_UInt getCharIndex(lUInt32 code, lChar32 def_char);
+    FT_UInt getCharIndex(lUInt32 code, bool replace_missing, lChar32 def_char = 0);
 #if USE_HARFBUZZ==1
     LVFontGlyphCacheItem *getGlyphByIndex(lUInt32 index);
     lChar32 filterChar(lChar32 code, lChar32 def_char=0);

@@ -67,7 +67,7 @@ public:
     virtual int getCharWidth( lChar32 ch, lChar32 def_char=0 )
     {
         glyph_info_t glyph;
-        if ( getGlyphInfo(ch, &glyph, def_char) )
+        if ( getGlyphInfoSearch(ch, &glyph, def_char) )
             return glyph.width;
         return 0;
     }
@@ -104,7 +104,8 @@ public:
         return css_ff_inherit;
     }
 
-    virtual LVFontGlyphCacheItem * getGlyph(lUInt32 ch, lChar32 def_char=0, lUInt32 fallbackPassMask = 0) {
+    virtual LVFontGlyphCacheItem * getGlyph(lUInt32 ch, lChar32 def_char=0, lUInt32 fallbackPassMask = 0
+                                            bool replace_missing = false) {
         return NULL;
     }
 
@@ -127,7 +128,12 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found
     */
-    virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar32 def_char=0, lUInt32 fallbackPassMask = 0 );
+    virtual bool getGlyphInfo(
+                        lUInt32 code,
+                        glyph_info_t * glyph,
+                        lChar32 def_char=0,
+                        lUInt32 fallbackPassMask = 0,
+                        bool replace_missing = false);
 
     /** \brief measure text
         \param glyph is pointer to glyph_info_t struct to place retrieved info
@@ -309,7 +315,12 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found
     */
-    virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar32 def_char=0, lUInt32 fallbackPassMask = 0 );
+    virtual bool getGlyphInfo(
+                        lUInt32 code,
+                        glyph_info_t * glyph,
+                        lChar32 def_char=0,
+                        lUInt32 fallbackPassMask = 0,
+                        bool replace_missing = false);
 
     /** \brief measure text
         \param glyph is pointer to glyph_info_t struct to place retrieved info
