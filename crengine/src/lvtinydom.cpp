@@ -5255,7 +5255,7 @@ void ldomElementWriter::onBodyEnter()
 #endif
 }
 
-void ldomNode::ensurePseudoElement( bool is_before ) {
+void ldomNode::ensurePseudoElement( lUInt16 attribute_id ) {
 #if BUILD_LITE!=1
     // This node should have that pseudoElement, but it might already be there,
     // so check if there is already one, and if not, create it.
@@ -5264,10 +5264,12 @@ void ldomNode::ensurePseudoElement( bool is_before ) {
     // styles (we won't be able to create a node if there's a cache file).
     int insertChildIndex = -1;
     int nb_children = getChildCount();
-    if ( is_before ) { // ::before
-        insertChildIndex = 0; // always to be inserted first, if not already there
+    if ( attribute_id == attr_Before ) { // ::before
+        // always to be inserted first, if not already there
+        insertChildIndex = 0;
         if ( nb_children > 0 ) {
-            ldomNode * child = getChildNode(0); // should always be found as the first node
+            // should always be found as the first node
+            ldomNode * child = getChildNode(0);
             // pseudoElem might have been wrapped by a inlineBox, autoBoxing, floatBox...
             while ( child && child->isBoxingNode() && child->getChildCount()>0 )
                 child = child->getChildNode(0);
@@ -5276,15 +5278,15 @@ void ldomNode::ensurePseudoElement( bool is_before ) {
                 insertChildIndex = -1;
             }
         }
-    }
-    else { // ::after
+    } else if ( attribute_id == attr_After) { // ::after
         // In the XML loading phase, this one might be either first,
         // or second if there's already a Before. In the re-rendering
         // phase, it would have been moved as the last node. In all these
         // cases, it is always the last at the moment we are checking.
         insertChildIndex = nb_children; // always to be inserted last, if not already there
         if ( nb_children > 0 ) {
-            ldomNode * child = getChildNode(nb_children-1); // should always be found as the last node
+            // should always be found as the last node
+            ldomNode * child = getChildNode(nb_children-1);
             // pseudoElem might have been wrapped by a inlineBox, autoBoxing, floatBox...
             while ( child && child->isBoxingNode() && child->getChildCount()>0 )
                 child = child->getChildNode(0);
@@ -5296,7 +5298,6 @@ void ldomNode::ensurePseudoElement( bool is_before ) {
     }
     if ( insertChildIndex >= 0 ) {
         ldomNode * pseudo = insertChildElement( insertChildIndex, LXML_NS_NONE, el_pseudoElem );
-        lUInt16 attribute_id = is_before ? attr_Before : attr_After;
         pseudo->setAttributeValue(LXML_NS_NONE, attribute_id, U"");
         // We are called by lvrend.cpp setNodeStyle(), after the parent
         // style and font have been fully set up. We could set this pseudo

@@ -882,9 +882,9 @@ public:
     // the wrapping element.
     ldomNode * boxWrapChildren( int startIndex, int endIndex, lUInt16 elementId );
 
-    // Ensure this node has a ::before/::after pseudo element as
+    // Ensure this node has a ::marker/::before/::after pseudo element as
     // child, creating it if needed and possible
-    void ensurePseudoElement( bool is_before );
+    void ensurePseudoElement( lUInt16 attribute_id );
 
     /// if stylesheet file name is set, and file is found, set stylesheet to its value
     bool applyNodeStylesheet();
