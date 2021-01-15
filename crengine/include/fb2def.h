@@ -352,6 +352,7 @@ XS_ATTR( recindex ) // used with mobi images
 // needs, let's use some uppercase to avoid conflicts with HTML content
 // and the risk to have them matched by publishers CSS selectors.
 XS_ATTR( T )      // to flag subtype of boxing internal elements if needed
+XS_ATTR( Marker ) // for pseudoElem internal element
 XS_ATTR( Before ) // for pseudoElem internal element
 XS_ATTR( After )  // for pseudoElem internal element
 XS_ATTR( ParserHint )   // HTML parser hints (used for Lib.ru support)
