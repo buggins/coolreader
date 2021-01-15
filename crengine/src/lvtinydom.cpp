@@ -17521,12 +17521,11 @@ ldomNode * ldomNode::getUnboxedPrevSibling( bool skip_text_nodes ) const
 }
 
 /// for display:list-item node, get marker
-bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & markerWidth )
+bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker)
 {
 #if BUILD_LITE!=1
     css_style_ref_t s = getStyle();
     marker.clear();
-    markerWidth = 0;
     if ( s.isNull() )
         return false;
     css_list_style_type_t st = s->list_style_type;
@@ -17695,22 +17694,10 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & 
         }
         break;
     }
-    bool res = false;
-    if ( !marker.empty() ) {
-        LVFontRef font = getFont();
-        if ( !font.isNull() ) {
-            TextLangCfg * lang_cfg = TextLangMan::getTextLangCfg( this );
-            markerWidth = font->getTextWidth((marker + "  ").c_str(), marker.length()+2, lang_cfg) + font->getSize()/8;
-            res = true;
-        } else {
-            marker.clear();
-        }
-    }
-    return res;
 #else
     marker = cs32("*");
-    return true;
 #endif
+    return true;
 }
 
 

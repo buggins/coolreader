@@ -1106,7 +1106,7 @@ public:
     ldomNode * modify();
 
     /// for display:list-item node, get marker
-    bool getNodeListMarker( int & counterValue, lString32 & marker, int & markerWidth );
+    bool getNodeListMarker( int & counterValue, lString32 & marker );
     /// is node a floating floatBox
     bool isFloatingBox() const;
     /// is node an inlineBox that has not been re-inlined by having
