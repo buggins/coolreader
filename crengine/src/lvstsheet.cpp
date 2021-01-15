@@ -1075,7 +1075,8 @@ bool parse_content_property( const char * & str, lString32 & parsed_content)
     // consisting of a first letter, indicating its type, and if some
     // data: its length (+1 to avoid NULLs in strings) and that data.
     // parsed_content may contain multiple values, in the format
-    //   'X' for 'none' (or 'normal', = none with pseudo elements)
+    //   'X' for 'none'
+    //   'A' for 'normal'
     //   's' + <len> + string32 (string content) for ""
     //   'a' + <len> + string32 (attribute name) for attr()
     //   'Q' for 'open-quote'
@@ -1092,8 +1093,9 @@ bool parse_content_property( const char * & str, lString32 & parsed_content)
     parsed_content.clear();
     const char * orig_pos = str;
     // The presence of a single 'none' or 'normal' among multiple
-    // values make the whole thing 'none'.
+    // values make the whole thing 'none' or 'normal'.
     bool has_none = false;
+    bool has_normal = false;
     bool needs_processing_when_applying = false;
     while ( skip_spaces( str ) && *str!=';' && *str!='}' && *str!='!' ) {
         if ( substr_icompare("none", str) ) {
@@ -1101,8 +1103,9 @@ bool parse_content_property( const char * & str, lString32 & parsed_content)
             continue; // continue parsing
         }
         else if ( substr_icompare("normal", str) ) {
-            // Computes to 'none' for pseudo elements
-            has_none = true;
+            // Computes to 'none' for ::before and :after pseudo elements,
+            // but not for ::marker pseudo elements.
+            has_normal = true;
             continue; // continue parsing
         }
         else if ( substr_icompare("open-quote", str) ) {
@@ -1244,6 +1247,10 @@ bool parse_content_property( const char * & str, lString32 & parsed_content)
         // Forget all other tokens parsed
         parsed_content.clear();
         parsed_content << U'X';
+    } else if ( has_normal ) {
+        // Forget all other tokens parsed
+        parsed_content.clear();
+        parsed_content << U'A';
     }
     else if ( needs_processing_when_applying ) {
         parsed_content.insert(0, 1, U'$');
@@ -1397,6 +1404,10 @@ lString32 get_applied_content_property( ldomNode * node ) {
             res << 0x2B26; // WHITE MEDIUM DIAMOND
         }
         else if ( ctype == 'X' ) { // 'none'
+            res.clear(); // should be standalone, but let's be sure
+            break;
+        }
+        else if ( ctype == 'A' ) { // 'normal'
             res.clear(); // should be standalone, but let's be sure
             break;
         }
