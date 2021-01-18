@@ -2450,6 +2450,181 @@ int lengthToPx( css_length_t val, int base_px, int base_em, bool unspecified_as_
     return px;
 }
 
+#define DUMMY_IMAGE_SIZE 16
+bool getStyledImageSize( ldomNode * enode, int & img_width, int & img_height, int container_width, int container_height ) {
+    if ( enode->getNodeId() != el_img )
+        return false;
+    LVImageSourceRef img = enode->getObjectImageSource();
+    if ( img.isNull() )
+        img = LVCreateDummyImageSource( enode, DUMMY_IMAGE_SIZE, DUMMY_IMAGE_SIZE );
+
+    // Get native image size
+    int native_width = img->GetWidth();
+    int native_height = img->GetHeight();
+    if ( native_width < 0 || native_height < 0 ) {
+        // Just to be sure we have positive sizes
+        return false;
+    }
+    // Scale image native size according to gRenderDPI
+    native_width = scaleForRenderDPI(native_width);
+    native_height = scaleForRenderDPI(native_height);
+
+    // Look at style widths/heights
+    int em = enode->getFont()->getSize();
+    css_style_ref_t style = enode->getStyle();
+
+    // These will stay -1 when the CSS property is not specified or ignored
+    // Below, for checks against min_width/height, this works literally,
+    // but for max_width/height, we need to check they are >= 0 before
+    // ensuring them.
+    int width = -1;
+    int height = -1;
+    int min_width = -1;
+    int min_height = -1;
+    int max_width = -1;
+    int max_height = -1;
+    // We don't apply values in % when no container width or height is provided
+    // which is what's suggested when they are not yet known:
+    // https://drafts.csswg.org/css-sizing-3/#cyclic-percentage-contribution
+    if ( style->width.type != css_val_unspecified && (container_width >= 0 || style->width.type != css_val_percent) )
+        width = lengthToPx(style->width, container_width, em);
+    if ( style->min_width.type != css_val_unspecified && (container_width >= 0 || style->min_width.type != css_val_percent) )
+        min_width = lengthToPx(style->min_width, container_width, em);
+    if ( style->max_width.type != css_val_unspecified && (container_width >= 0 || style->max_width.type != css_val_percent) )
+        max_width = lengthToPx(style->max_width, container_width, em);
+    if ( style->height.type != css_val_unspecified && (container_height >= 0 || style->height.type != css_val_percent) )
+        height = lengthToPx(style->height, container_height, em);
+    if ( style->min_height.type != css_val_unspecified && (container_height >= 0 || style->min_height.type != css_val_percent) )
+        min_height = lengthToPx(style->min_height, container_height, em);
+    if ( style->max_height.type != css_val_unspecified && (container_height >= 0 || style->max_height.type != css_val_percent) )
+        max_height = lengthToPx(style->max_height, container_height, em);
+
+    // Note: we are usually not provided a container_height.
+    // If we get above a *height with a value in %, we could think about doing
+    // the expensive job of walking the image parents to find a block container
+    // with an explicite CSS height not-in-%. We then could use that, removing
+    // all intermediate padding/margin/border, to get this image container height.
+    // But this parent container height might not even be enforced, and it feels
+    // really tedious - so let's think about that when if feels really needed.
+
+    // Get the width and height to use (the "used values" in the specs)
+    int w;
+    int h;
+    // This follows the specs from https://www.w3.org/TR/CSS21/visudet.html
+    // (which is different than the first intuitive way at going at it),
+    // confirmed by looking how it's implemented in WeasyPrint, and actually
+    // giving the same results as Firefox.
+    if ( width >= 0 || height >= 0 ) {
+        // We have at least one of width or height specified
+        // Get width
+        if ( width >= 0 ) { // We have a width
+            w = width;
+        }
+        else { // We have a height but no width: get width to keep aspect ratio
+            w = height * native_width / native_height;
+        }
+        // Ensure widths constraints
+        if ( max_width >= 0 && w > max_width)
+            w = max_width;
+        if ( w < min_width )
+            w = min_width;
+        // Get height
+        if ( height >= 0 ) { // We have a height
+            h = height;
+        }
+        else { // We have computed a width: get height to keep aspect ratio
+            h = w * native_height / native_width;
+        }
+        // Ensure heights constraints
+        if ( max_height >= 0 && h > max_height)
+            h = max_height;
+        if ( h < min_height )
+            h = min_height;
+    }
+    else {
+        // No CSS width nor height: use native image size
+        w = native_width;
+        h = native_height;
+        // We have the preferred image size, ensure min/max-width/height if any
+        // Follow the rules in case of constraint violations from:
+        // https://www.w3.org/TR/CSS2/visudet.html#min-max-widths
+        // "However, for replaced elements with an intrinsic ratio and *both* 'width'
+        // and 'height' specified as 'auto', the algorithm is as follows..."
+        // 10 rules (excluding none) in the table
+        // We follow them literally without thinking too much
+        if ( max_width >= 0 && w > max_width ) {
+            if ( max_height >= 0 && h > max_height ) {
+                if (max_width <= max_height * w / h ) { // rule 5
+                    int h2 = max_width * h / w;
+                    h = h2 > min_height ? h2 : min_height;
+                    w = max_width;
+                }
+                else { // rule 6
+                    int w2 = max_height * w / h;
+                    w = w2 > min_width ? w2 : min_width;
+                    h = max_height;
+                }
+            }
+            else if ( h < min_height ) { // rule 10
+                w = max_width;
+                h = min_height;
+            }
+            else { // rule 1 (similar to rule 5)
+                int h2 = max_width * h / w;
+                h = h2 > min_height ? h2 : min_height;
+                w = max_width;
+            }
+        }
+        else if ( max_height >= 0 && h > max_height ) {
+            if ( w < min_width ) { // rule 9
+                w = min_width;
+                h = max_height;
+            }
+            else { // rule 3 (similar to rule 6)
+                int w2 = max_height * w / h;
+                w = w2 > min_width ? w2 : min_width;
+                h = max_height;
+            }
+        }
+        else if ( w < min_width ) {
+            if ( h < min_height ) {
+                if (min_width <= min_height * w / h ) { // rule 7
+                    w = min_height * w / h;
+                    if ( max_width >= 0 && w > max_width) {
+                        w = max_width;
+                    }
+                    h = min_height;
+                }
+                else { // rule 8
+                    h = min_width * h / w;
+                    if ( max_height >= 0 && h > max_height) {
+                        h = max_height;
+                    }
+                    w = min_width;
+                }
+            }
+            else { // rule 2 (similar to rule 8)
+                h = min_width * h / w;
+                if ( max_height >= 0 && h > max_height) {
+                    h = max_height;
+                }
+                w = min_width;
+            }
+        }
+        else if ( h < min_height ) { // rule 4 (similar to rule 7)
+            w = min_height * w / h;
+            if ( max_width >= 0 && w > max_width) {
+                w = max_width;
+            }
+            h = min_height;
+        }
+    }
+
+    img_width = w;
+    img_height = h;
+    return true;
+}
+
 void SplitLines( const lString32 & str, lString32Collection & lines )
 {
     const lChar32 * s = str.c_str();
@@ -9775,56 +9950,20 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
 
         // Get image size early
         bool is_img = false;
-        lInt16 img_width = 0;
+        int img_width = 0;
         if ( node->getNodeId()==el_img ) {
             is_img = true;
-            // (as in lvtextfm.cpp LFormattedText::AddSourceObject)
-            #define DUMMY_IMAGE_SIZE 16
-            LVImageSourceRef img = node->getObjectImageSource();
-            if ( img.isNull() )
-                img = LVCreateDummyImageSource( node, DUMMY_IMAGE_SIZE, DUMMY_IMAGE_SIZE );
-            lInt16 width = (lUInt16)img->GetWidth();
-            lInt16 height = (lUInt16)img->GetHeight();
-            // Scale image native size according to gRenderDPI
-            width = scaleForRenderDPI(width);
-            height = scaleForRenderDPI(height);
-            // Adjust if size defined by CSS
-            int w = 0, h = 0;
-            int em = node->getFont()->getSize();
-            w = lengthToPx(style->width, 100, em);
-            h = lengthToPx(style->height, 100, em);
-            if (style->width.type==css_val_percent) w = -w;
-            if (style->height.type==css_val_percent) h = w*height/width;
-            if ( w==0 ) {
-                if ( h==0 ) { // use image native size
-                    w = width;
-                } else { // use style height, keep aspect ratio
-                    w = width*h/height;
-                }
-            }
-            if (w > 0)
-                img_width = w;
-            else { // 0 or styles were in %
-                // This is a bit tricky...
-                // When w < 0, the style width was in %, which means % of the
-                // container width.
-                // So it does not influence the width we're trying to guess, and will
-                // adjust to the final width. So, we could let it to be 0.
-                // But, if this image is the single element of this block, we would
-                // end up with a minWidth of 0, with no room for the image, and the
-                // image would be scaled as a % of 0, so to 0.
-                // So, consider we want the image to be shown as a % of its original
-                // size: so, our width should be the original image width.
-                img_width = width;
-                // With that, it looks like we behave exactly as Firefox, whether
-                // the image is single in a cell, or surrounded, in this cell
-                // and/or sibling cells, by small or long text!
-                // We ensure a minimal size of 1em (so it shows as least the size
-                // of a letter).
-                int em = node->getFont()->getSize();
-                if (img_width < em)
-                    img_width = em;
-            }
+            int unused_height = 0;
+            // We have no container width/height to provide: CSS width and
+            // height in % won't apply and default to their initial value
+            // of none or auto, so as if there wasn't any.
+            // https://drafts.csswg.org/css-sizing-3/#cyclic-percentage-contribution
+            getStyledImageSize( node, img_width, unused_height );
+                // We got a single width (the normal image width, constrained
+                // between min-width and max-width if any): we use it to update
+                // both minWidth/maxWidth in here (the CSS properties with the
+                // same name should not influence the minWidth and maxWidth we
+                // try to compute int here).
         }
 
         if (m == erm_inline) {

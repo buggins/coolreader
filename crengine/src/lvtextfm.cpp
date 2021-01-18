@@ -315,8 +315,6 @@ void lvtextAddSourceObject(
 
 #ifdef __cplusplus
 
-#define DUMMY_IMAGE_SIZE 16
-
 void LFormattedText::AddSourceObject(
             lUInt32         flags,     /* flags */
             lInt16          interval,  /* line height in screen pixels */
@@ -332,71 +330,26 @@ void LFormattedText::AddSourceObject(
         TR("LFormattedText::AddSourceObject(): node is NULL!");
         return;
     }
-
-    if (flags & LTEXT_SRC_IS_FLOAT) { // not an image but a float:'ing node
-        // Nothing much to do with it at this point
-        lvtextAddSourceObject(m_pbuffer, 0, 0,
-            flags, interval, valign_dy, indent, object, lang_cfg, letter_spacing );
-            // lvtextAddSourceObject will itself add to flags: | LTEXT_SRC_IS_OBJECT
-            // (only flags & object parameter will be used, the others are not,
-            // but they matter if this float is the first node in a paragraph,
-            // as the code may grab them from the first source)
-        return;
-    }
-    if (flags & LTEXT_SRC_IS_INLINE_BOX) { // not an image but a inline-block wrapping node
-        // Nothing much to do with it at this point: we can't yet render it to
-        // get its width & neight, as they might be in % of our main width, that
-        // we don't know yet (but only when ->Format() is called).
-        lvtextAddSourceObject(m_pbuffer, 0, 0,
-            flags, interval, valign_dy, indent, object, lang_cfg, letter_spacing );
-            // lvtextAddSourceObject will itself add to flags: | LTEXT_SRC_IS_OBJECT
-        return;
-    }
-
-    LVImageSourceRef img = node->getObjectImageSource();
-    if ( img.isNull() )
-        img = LVCreateDummyImageSource( node, DUMMY_IMAGE_SIZE, DUMMY_IMAGE_SIZE );
-    lInt16 width = (lUInt16)img->GetWidth();
-    lInt16 height = (lUInt16)img->GetHeight();
-
-    // Scale image native size according to gRenderDPI
-    width = scaleForRenderDPI(width);
-    height = scaleForRenderDPI(height);
-
-    css_style_ref_t style = node->getStyle();
-    lInt16 w = 0, h = 0;
-    int em = node->getFont()->getSize();
-    w = lengthToPx(style->width, 100, em);
-    h = lengthToPx(style->height, 100, em);
-    // width in % will be computed in measureText() as a % of m_pbuffer->width
-    // For height in %, it's more complicated... see:
-    //   https://www.w3.org/TR/CSS2/visudet.html#the-width-property
-    //   https://www.w3.org/TR/CSS2/visudet.html#the-height-property
-    //   https://www.w3.org/TR/CSS2/visudet.html#inline-replaced-height
-    //   https://drafts.csswg.org/css-sizing-3/#extrinsic
-    if (style->width.type == css_val_percent)
-        w = -w;
-    if (style->height.type == css_val_percent)
-        h = w*height/width;
-
-    if ( w*h==0 ) {
-        if ( w==0 ) {
-            if ( h==0 ) { // use image native size
-                h = height;
-                w = width;
-            } else { // use style height, keep aspect ratio
-                w = width*h/height;
-            }
-        } else if ( h==0 ) { // use style width, keep aspect ratio
-            h = w*height/width;
-            if (h == 0) h = height;
-        }
-    }
-    width = w;
-    height = h;
-
-    lvtextAddSourceObject(m_pbuffer, width, height,
+    // Whether the object is a float, an inline-block or an image,
+    // nothing much to do with it at this point: we add it with
+    // 0-width/height, they will be computed later.
+    // (lvtextAddSourceObject will itself add to flags: | LTEXT_SRC_IS_OBJECT)
+    lvtextAddSourceObject(m_pbuffer, 0, 0,
         flags, interval, valign_dy, indent, object, lang_cfg, letter_spacing );
+
+    // Notes about the 3 cases:
+    // if (flags & LTEXT_SRC_IS_FLOAT):
+    //   Only flags & object parameter will be used, the others are not,
+    //   but they matter if this float is the first node in a paragraph,
+    //   as the code may grab them from the first source
+    // if (flags & LTEXT_SRC_IS_INLINE_BOX):
+    //   We can't yet render it to get its width & neight, as they might
+    //   be in % of our main width, that we don't know yet (but only
+    //   when ->Format() is called).
+    // otherwise, it's an image:
+    //   Handling CSS width and height (and min/max-width/height) will be done
+    //   in measureText(), where we know about the buffer width (its container
+    //   width) and can better apply values in %
 }
 
 class LVFormatter {
@@ -2080,17 +2033,16 @@ public:
                     else {
                         // measure image
                         // assume i==start+1
-                        int width = m_srcs[start]->o.width;
-                        int height = m_srcs[start]->o.height;
-                        // Negative width and height mean the value is a % (of our final block width)
-                        width = width<0 ? (-width * (m_pbuffer->width) / 100) : width;
-                        height = height<0 ? (-height * (m_pbuffer->width) / 100) : height;
-                        /*
-                        printf("measureText img: o.w=%d o.h=%d > w=%d h=%d (max %d %d is_inline=%d) %s\n",
-                            m_srcs[start]->o.width, m_srcs[start]->o.height, width, height,
-                            m_pbuffer->width, m_max_img_height, m_length>1,
-                            UnicodeToLocal(ldomXPointer((ldomNode*)m_srcs[start]->object, 0).toString()).c_str());
-                        */
+                        src_text_fragment_t * src = m_srcs[start];
+                        ldomNode * node = (ldomNode *) src->object;
+                        int width = 0;
+                        int height = 0;
+                        // We have yet no container height to provide for CSS heights in %,
+                        // so they won't apply
+                        getStyledImageSize( node, width, height, m_pbuffer->width, -1 );
+                        // Ensure they are constrained to this paragraph width and page height
+                        // Note: resizeImage() may do some additional scaling depending on image_scaling_options,
+                        // use mode=0 scale=1 for these if this is not desirable.
                         resizeImage(width, height, m_pbuffer->width, m_max_img_height, m_length>1);
                         if ( (m_srcs[start]->flags & LTEXT_STRUT_CONFINED) && m_allow_strut_confining ) {
                             // Text with "-cr-hint: strut-confined" might just be vertically shifted,
@@ -2103,12 +2055,16 @@ public:
                                 height = m_pbuffer->strut_height;
                             }
                         }
-                        // Store the possibly resized dimensions back, so we don't have
-                        // to recompute them later
+                        // Store the computed image dimensions
                         m_srcs[start]->o.width = width;
                         m_srcs[start]->o.height = height;
                         lastWidth += width;
                         m_widths[start] = lastWidth;
+                        /*
+                        printf("measureText img: o.w=%d o.h=%d (max %d %d is_inline=%d) %s\n",
+                            width, height, m_pbuffer->width, m_max_img_height, m_length>1,
+                            UnicodeToLocal(ldomXPointer((ldomNode*)m_srcs[start]->object, 0).toString()).c_str());
+                        */
                     }
                 }
                 else {
