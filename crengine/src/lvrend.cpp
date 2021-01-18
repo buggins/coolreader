@@ -308,6 +308,7 @@ void collapse_border(css_style_ref_t & target_style, int & current_target_size,
 class CCRTable {
 public:
     int table_width;
+    int table_min_width;
     int digitwidth;
     int direction;
     bool is_rtl;
@@ -1095,21 +1096,22 @@ public:
 
         /////////////////////////// From here until further noticed, we just use and update the cols objects
         // Find width available for cells content (including their borders and paddings)
-        // Start with table full width
-        int assignable_width = table_width;
-        // Remove table outer borders
-        assignable_width -= measureBorder(elem,1) + measureBorder(elem,3); // (border indexes are TRBL)
+        // Get widths used by the table itself
+        int table_outer_borders_width = measureBorder(elem,1) + measureBorder(elem,3); // (border indexes are TRBL)
+        int table_paddings_width = 0;
+        int table_borderspacings_width = 0;
         if ( border_collapse ) {
-            // Table own outer paddings and any border-spacing are
-            // ignored with border-collapse
+            // Table own outer paddings and any border-spacing are ignored with border-collapse
         }
         else { // no collapse
-            // Remove table outer paddings (margin and padding indexes are LRTB)
-            assignable_width -= lengthToPx(table_style->padding[0], table_width, table_em);
-            assignable_width -= lengthToPx(table_style->padding[1], table_width, table_em);
-            // Remove (nb cols + 1) border-spacing
-            assignable_width -= (cols.length() + 1) * borderspacing_h;
+            table_paddings_width = lengthToPx(table_style->padding[0], table_width, table_em)
+                                 + lengthToPx(table_style->padding[1], table_width, table_em);
+                                    // (margin and padding indexes are LRTB)
+            // (nb cols + 1) border-spacing
+            table_borderspacings_width = (cols.length() + 1) * borderspacing_h;
         }
+        // Remove all that from table width to get what can be used by cells
+        int assignable_width = table_width - table_outer_borders_width - table_paddings_width - table_borderspacings_width;
         #ifdef DEBUG_TABLE_RENDERING
             printf("TABLE: table_width=%d assignable_width=%d\n", table_width, assignable_width);
         #endif
@@ -1123,6 +1125,9 @@ public:
         }
 
         // Find best width for each column
+        // Note: support for CSS min-width/max-width on table cells and cols
+        // has not been implemented (not sure where to handle that below in
+        // this already complicated algorithm, feels really tedious)
         int npercent=0;
         int sumpercent=0;
         int nwidth = 0;
@@ -1285,26 +1290,53 @@ public:
                 printf("TABLE WIDTHS step4: cols[%d]: %d%% %dpx (min %dpx)\n",
                     x, cols[x]->percent, cols[x]->width, cols[x]->min_width);
         #endif
-        int restw = assignable_width - sumwidth + rw; // may be negative if we needed to
-                                                      // increase to fulfill min_width
+        int min_needed_width = sumwidth - rw;
+        int restw = assignable_width - min_needed_width; // may be negative if we needed to
+                                                         // increase to fulfill cols min_width
+        bool distribute_restw = true;
         if (shrink_to_fit && restw > 0) {
+            distribute_restw = false;
+            int prev_table_width = table_width;
             // If we're asked to shrink width to fit cells content, don't
             // distribute restw to columns, but shrink table width
-            // Table padding may be in %, and need to be corrected
-            int correction = 0;
-            correction += lengthToPx(table_style->padding[0], table_width, table_em);
-            correction += lengthToPx(table_style->padding[0], table_width, table_em);
+            // Table padding may be in %, and need to be corrected (everything else,
+            // border + border_spacing, don't change when the table width does)
+            int old_table_paddings_width = table_paddings_width;
             table_width -= restw;
-            correction -= lengthToPx(table_style->padding[0], table_width, table_em);
-            correction -= lengthToPx(table_style->padding[0], table_width, table_em);
+            table_paddings_width = 0;
+            if ( !border_collapse ) { // padding were not applied when border-collapse
+                table_paddings_width = lengthToPx(table_style->padding[0], table_width, table_em)
+                                     + lengthToPx(table_style->padding[1], table_width, table_em);
+            }
+            int correction = old_table_paddings_width - table_paddings_width;
             table_width -= correction;
             #ifdef DEBUG_TABLE_RENDERING
                 assignable_width -= restw + correction; // (for debug printf() below)
                 printf("TABLE WIDTHS step5 (fit): reducing table_width %d -%d -%d > %d\n",
                     table_width+restw+correction, restw, correction, table_width);
             #endif
+            if ( table_min_width > table_width && table_min_width <= prev_table_width ) {
+                // The table has a CSS min-width specified that is larger
+                // than the shrinked-to-fit width, and that we can ensure
+                // by distributing a bit of what we just removed
+                table_width = table_min_width;
+                table_paddings_width = 0;
+                if ( !border_collapse ) { // padding were not applied when border-collapse
+                    table_paddings_width += lengthToPx(table_style->padding[0], table_width, table_em);
+                    table_paddings_width += lengthToPx(table_style->padding[0], table_width, table_em);
+                }
+                assignable_width = table_width - table_outer_borders_width - table_paddings_width - table_borderspacings_width;
+                restw = assignable_width - min_needed_width;
+                if ( restw > 0 ) {
+                    distribute_restw = true;
+                    #ifdef DEBUG_TABLE_RENDERING
+                        printf("TABLE WIDTHS step5 (min-width): re-increased table_width to %d, redistributing %d\n",
+                            table_width, restw);
+                    #endif
+                }
+            }
         }
-        else {
+        if ( distribute_restw ) {
             #ifdef DEBUG_TABLE_RENDERING
                 printf("TABLE WIDTHS step5 (dist): %d to distribute to %d cols\n",
                     restw, dist_nb_cols);
@@ -2147,8 +2179,10 @@ public:
         return table_h;
     }
 
-    CCRTable(ldomNode * tbl_elem, int tbl_width, bool tbl_shrink_to_fit, int tbl_direction, bool tbl_avoid_pb_inside,
-                                bool tbl_enhanced_rendering, int dwidth, bool tbl_is_ruby_table) : digitwidth(dwidth) {
+    CCRTable(ldomNode * tbl_elem, int tbl_width, bool tbl_shrink_to_fit, int tbl_min_width, int tbl_direction,
+                bool tbl_avoid_pb_inside, bool tbl_enhanced_rendering, int dwidth, bool tbl_is_ruby_table)
+        : digitwidth(dwidth)
+        {
         currentRowGroup = NULL;
         caption = NULL;
         caption_h = 0;
@@ -2156,6 +2190,7 @@ public:
         elem = tbl_elem;
         table_width = tbl_width;
         shrink_to_fit = tbl_shrink_to_fit;
+        table_min_width = tbl_min_width;
         direction = tbl_direction;
         is_rtl = direction == REND_DIRECTION_RTL;
         avoid_pb_inside = tbl_avoid_pb_inside;
@@ -2186,11 +2221,11 @@ public:
     }
 };
 
-int renderTable( LVRendPageContext & context, ldomNode * node, int x, int y, int width, bool shrink_to_fit,
+int renderTable( LVRendPageContext & context, ldomNode * node, int x, int y, int width, bool shrink_to_fit, int min_width,
                  int & fitted_width, int direction, bool avoid_pb_inside, bool enhanced_rendering, bool is_ruby_table )
 {
     CR_UNUSED2(x, y);
-    CCRTable table( node, width, shrink_to_fit, direction, avoid_pb_inside, enhanced_rendering, 10, is_ruby_table );
+    CCRTable table( node, width, shrink_to_fit, min_width, direction, avoid_pb_inside, enhanced_rendering, 10, is_ruby_table );
     int h = table.renderCells( context );
     if (shrink_to_fit)
         fitted_width = table.table_width;
@@ -3212,19 +3247,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 txform->setStrut(0, 0);
                 line_h = 0;
                 indent = 0;
-                // Also, when such a floating image has a width in %, this width
-                // has been used to set the width of the floating box. We need to
-                // update this % width to be 100%, otherwise the image would be
-                // again set to this % of the floating box width...
-                // This feels a bit hacky, there might be a better place to deal with that...
-                if (style->width.type == css_val_percent && style->width.value != 100*256) {
-                    css_style_ref_t oldstyle = enode->getStyle();
-                    css_style_ref_t newstyle(new css_style_rec_t);
-                    copystyle(oldstyle, newstyle);
-                    newstyle->width.value = 100*256; // 100%
-                    enode->setStyle(newstyle);
-                    style = enode->getStyle().get(); // update to the new style
-                }
+                // Note: floating images with CSS width/height and min/max-width in %
+                // have had them converted to screen_px by renderBlockElementEnhanced()
             }
             // Also, the floating element or inline-block inner element vertical-align drift is dropped
             valign_dy = 0;
@@ -4365,7 +4389,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                             specified_width = width;
                         table_width = specified_width;
                     }
-                    int h = renderTable( context, enode, 0, y, table_width, shrink_to_fit, fitted_width );
+                    int h = renderTable( context, enode, 0, y, table_width, shrink_to_fit, 0, fitted_width );
                     // Should we really apply a specified height ?!
                     int st_h = lengthToPx( style->height, em, em );
                     if ( h < st_h )
@@ -6677,19 +6701,15 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     // padding when erm_block or erm_final)
     // Otherwise, this block height will just be its rendered content height.
     int style_h = -1;
-    bool apply_style_height = false;
-    css_length_t style_height;
-    int style_height_base_em;
     if ( is_floating || is_inline_box ) {
         // Nothing special to do: the child style height will be
         // enforced by subcall to renderBlockElement(child)
     }
     else if ( is_hr || is_empty_line_elem || BLOCK_RENDERING(flags, ENSURE_STYLE_HEIGHT) ) {
-        // We always use the style height for <HR>, to actually have
-        // a height to fill with its color
-        style_height = style->height;
-        style_height_base_em = em;
-        apply_style_height = true;
+        // We always use the style height for <HR>, to actually have a height to fill
+        // with its color (as some of our css files render them via height)
+        bool apply_style_height = true;
+        css_length_t style_height = style->height;
         if ( is_empty_line_elem && style_height.type == css_val_unspecified ) {
             // No height specified: default to line-height, just like
             // if it were rendered final.
@@ -6713,22 +6733,43 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
             style_height.value = line_h;
             style_height.type = css_val_screen_px;
         }
-    }
-    if ( apply_style_height && style_height.type != css_val_unspecified ) {
-        if ( !BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) &&
-                style_height.type != css_val_percent && style_height.type != css_val_em &&
-                style_height.type != css_val_ex && style_height.type != css_val_rem ) {
-            apply_style_height = false;
+        // We don't have a container height to apply heights in %, so ignore them
+        if ( style_height.type != css_val_unspecified && style_height.type != css_val_percent ) {
+            if ( !BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) &&
+                    style_height.type != css_val_screen_px && style_height.type != css_val_em &&
+                    style_height.type != css_val_ex && style_height.type != css_val_rem ) {
+                apply_style_height = false;
+            }
+            if ( is_hr || is_empty_line_elem || apply_style_height ) {
+                style_h = lengthToPx( style_height, 0, em );
+                if ( BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) ) {
+                    // If W3C box model requested, CSS height specifies the height
+                    // of the content box, so we just add paddings and borders
+                    // to the height we got from styles (paddings will be removed
+                    // when enforcing it below, but we keep the computation
+                    // common to both models doing it that way).
+                    style_h += padding_top + padding_bottom;
+                }
+            }
         }
-        if ( is_hr || is_empty_line_elem || apply_style_height ) {
-            style_h = lengthToPx( style_height, container_width, style_height_base_em );
-            if ( BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) ) {
-                // If W3C box model requested, CSS height specifies the height
-                // of the content box, so we just add paddings and borders
-                // to the height we got from styles (paddings will be removed
-                // when enforcing it below, but we keep the computation
-                // common to both models doing it that way).
-                style_h += padding_top + padding_bottom;
+        // We don't ensure max-height (we'll always use the height needed to show
+        // this block content without overflowing), but we can ensure min-height
+        css_length_t style_min_height = style->min_height;
+        if ( style_min_height.type != css_val_unspecified && style_min_height.type != css_val_percent
+                                                && BLOCK_RENDERING(flags, ENSURE_STYLE_HEIGHT) ) {
+            if ( !BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) &&
+                    style_min_height.type != css_val_screen_px && style_min_height.type != css_val_em &&
+                    style_min_height.type != css_val_ex && style_min_height.type != css_val_rem ) {
+                // Ignore it
+            }
+            else {
+                int style_min_h = lengthToPx( style_min_height, 0, em );
+                if ( BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) ) {
+                    style_min_h += padding_top + padding_bottom;
+                }
+                if ( style_h < style_min_h ) {
+                    style_h = style_min_h;
+                }
             }
         }
     }
@@ -6737,6 +6778,11 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     int width;
     bool auto_width = false;
     bool table_shrink_to_fit = false;
+    // Keep the computed values for min-width/max-width in case we need them
+    // (we do need min_width for tables with no width: that shrink to fit, and
+    // that we can just shrink less to ensure min-width)
+    int min_width = -1;
+    int max_width = -1;
 
     if ( is_floating || is_inline_box ) {
         // Floats width computation - which should also work as-is for inline block box
@@ -6766,13 +6812,56 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
             }
         }
         // Same for width, as getRenderedWidths() won't ensure width in %
-        if ( child_style->width.type == css_val_percent ) {
+        if ( child->getNodeId() == el_img ) {
+            // For an image itself floating, get its computed width and height
+            // via getStyledImageSize() to properly ensure min/max-width/height
+            // and aspect ratio, and store them back as screen_px, so
+            // getRenderedWidths() and renderFinalBlock() can just use them.
             if (!style_changed) {
                 copystyle(child_style, newstyle);
                 style_changed = true;
             }
+            int img_width = 0;
+            int img_height = 0;
+            getStyledImageSize( child, img_width, img_height, container_width, -1 );
             newstyle->width.type = css_val_screen_px;
-            newstyle->width.value = lengthToPx( child_style->width, container_width, child_em );
+            newstyle->width.value = img_width;
+            newstyle->height.type = css_val_screen_px;
+            newstyle->height.value = img_height;
+            newstyle->min_width.type = css_val_unspecified;
+            newstyle->min_width.value = 0;
+            newstyle->min_height.type = css_val_unspecified;
+            newstyle->min_height.value = 0;
+            newstyle->max_width.type = css_val_unspecified;
+            newstyle->max_width.value = 0;
+            newstyle->max_height.type = css_val_unspecified;
+            newstyle->max_height.value = 0;
+        }
+        else {
+            if ( child_style->width.type == css_val_percent ) {
+                if (!style_changed) {
+                    copystyle(child_style, newstyle);
+                    style_changed = true;
+                }
+                newstyle->width.type = css_val_screen_px;
+                newstyle->width.value = lengthToPx( child_style->width, container_width, child_em );
+            }
+            if ( child_style->min_width.type == css_val_percent ) {
+                if (!style_changed) {
+                    copystyle(child_style, newstyle);
+                    style_changed = true;
+                }
+                newstyle->min_width.type = css_val_screen_px;
+                newstyle->min_width.value = lengthToPx( child_style->min_width, container_width, child_em );
+            }
+            if ( child_style->max_width.type == css_val_percent ) {
+                if (!style_changed) {
+                    copystyle(child_style, newstyle);
+                    style_changed = true;
+                }
+                newstyle->max_width.type = css_val_screen_px;
+                newstyle->max_width.value = lengthToPx( child_style->max_width, container_width, child_em );
+            }
         }
         // (We could do the same fot height if in %, but it looks like Firefox
         // just ignore floats height in %, so let's ignore them too.)
@@ -6836,7 +6925,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
             width = container_width;
         }
         auto_width = true; // no more width tweaks (nor any x adjustment if is_rtl)
-        // printf("floatBox width: max_w=%d min_w=%d => %d", max_content_width, min_content_width, width);
+        // printf("floatBox width: max_w=%d min_w=%d => %d\n", max_content_width, min_content_width, width);
     }
     else if ( is_floatbox_child || is_inline_box_child ) {
         // The float style or rendered width has been applied to the wrapping
@@ -6859,6 +6948,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
             if ( style_width.type != css_val_unspecified ) {
                 apply_style_width = BLOCK_RENDERING(flags, ENSURE_STYLE_WIDTH);
                 if ( apply_style_width && !BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) &&
+                        style_width.type != css_val_screen_px && // in case it was converted to screen_px beforehand
                         style_width.type != css_val_percent && style_width.type != css_val_em &&
                         style_width.type != css_val_ex && style_width.type != css_val_rem ) {
                     apply_style_width = false;
@@ -6903,6 +6993,50 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
             width = container_width - margin_left - margin_right;
             auto_width = true; // no more width tweaks
         }
+        if ( BLOCK_RENDERING(flags, ENSURE_STYLE_WIDTH) ) {
+            // Whether there was a style width or not, we need to ensure the computed
+            // width fits between min-width and max-width if any specified.
+            // (we do that here only for regular elements - for floatBox and floatBox child,
+            // this is ensured naturally by the inner content measurement)
+            // We do max-width first, and then min-width (https://www.w3.org/TR/CSS2/visudet.html#min-max-widths)
+            css_length_t style_max_width = style->max_width;
+            if ( style_max_width.type != css_val_unspecified ) {
+                if ( !BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) &&
+                        style_max_width.type != css_val_screen_px && // in case it was converted to screen_px beforehand
+                        style_max_width.type != css_val_percent && style_max_width.type != css_val_em &&
+                        style_max_width.type != css_val_ex && style_max_width.type != css_val_rem ) {
+                    // Ignore it
+                }
+                else {
+                    max_width = lengthToPx( style_max_width, container_width, em );
+                    if ( style->display != css_d_table && BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) )
+                        max_width += padding_left + padding_right;
+                    if ( width > max_width ) {
+                        width = max_width;
+                        auto_width = false;
+                    }
+                }
+            }
+            css_length_t style_min_width = style->min_width;
+            if ( style_min_width.type != css_val_unspecified ) {
+                if ( !BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) &&
+                        style_min_width.type != css_val_screen_px && // in case it was converted to screen_px beforehand
+                        style_min_width.type != css_val_percent && style_min_width.type != css_val_em &&
+                        style_min_width.type != css_val_ex && style_min_width.type != css_val_rem ) {
+                    // Ignore it
+                }
+                else {
+                    // As just above if apply_style_width
+                    min_width = lengthToPx( style_min_width, container_width, em );
+                    if ( style->display != css_d_table && BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) )
+                        min_width += padding_left + padding_right;
+                    if ( width < min_width ) {
+                        width = min_width;
+                        auto_width = false; // we may need to adjust x, ensure auto margins...
+                    }
+                }
+            }
+        }
     }
 
     // What about a width with a negative value?
@@ -6925,8 +7059,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     //   confused with such rect, and not travel thru them, or
     //   skip them.
     // - A table with a zero or negative width (which can happen
-    //   with very busy imbricated tables) won't be drawn, and
-    //   it's rendering method will be switched to erm_killed
+    //   with very crowded imbricated tables) won't be drawn, and
+    //   its rendering method will be switched to erm_killed
     //   to display some small visual indicator.
     // - Legacy rendering code keeps a negative width in
     //   RenderRectAccessor, and, with erm_final nodes, provides
@@ -7246,7 +7380,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 // renderTable has not been updated to use 'flow', and it looks
                 // like it does not really need to.
                 int h = renderTable( *(flow->getPageContext()), enode, 0, flow->getCurrentRelativeY(),
-                            table_width, table_shrink_to_fit, fitted_width, direction, avoid_pb_inside, true, is_ruby_table );
+                            table_width, table_shrink_to_fit, min_width, fitted_width,
+                            direction, avoid_pb_inside, true, is_ruby_table );
                 // Reload fmt, as renderTable() may have set some flags
                 fmt = RenderRectAccessor( enode );
                 // (It feels like we don't need to ensure a table specified height.)
@@ -9947,6 +10082,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         }
 
         css_style_ref_t style = node->getStyle();
+        int em = node->getFont()->getSize();
 
         // Get image size early
         bool is_img = false;
@@ -10083,8 +10219,8 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 if ( style_width.type != css_val_unspecified && style_width.type != css_val_percent ) {
                     use_style_width = true;
                     if ( !BLOCK_RENDERING(rendFlags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) &&
-                            style_width.type != css_val_percent && style_width.type != css_val_em &&
-                            style_width.type != css_val_ex && style_width.type != css_val_rem ) {
+                            style_width.type != css_val_screen_px && // when % converted to screen_px
+                            style_width.type != css_val_em && style_width.type != css_val_ex && style_width.type != css_val_rem ) {
                         use_style_width = false;
                     }
                     if ( node->getNodeId() == el_hr ) {
@@ -10096,7 +10232,6 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         }
 
         if ( use_style_width ) {
-            int em = node->getFont()->getSize();
             _maxWidth = lengthToPx( style_width, 0, em );
             _minWidth = _maxWidth;
         }
@@ -10115,7 +10250,6 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 curWordWidth = 0;
                 // We don't have any width yet to use for text-indent in % units,
                 // but this is very rare - use em as we must use something
-                int em = node->getFont()->getSize();
                 indent = lengthToPx(style->text_indent, em, em);
                 // First word will have text-indent as part of its width
                 if ( style->text_indent.value & 0x00000001 ) {
@@ -10389,7 +10523,6 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 int final_nb_cols = nb_columns;
                 if ( last_cell_start_column_idx < nb_columns-1 )
                     final_nb_cols = last_cell_start_column_idx + 1;
-                int em = node->getFont()->getSize();
                 int extra_width = lengthToPx(style->border_spacing[0], 0, em) * (final_nb_cols+1);
                 _minWidth += extra_width;
                 _maxWidth += extra_width;
@@ -10422,6 +10555,58 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             }
         }
 
+        // For all the previous cases, if ensuring width, ensure min-width and max-width, but at
+        // this point only. Now if USE_W3C_BOX_MODEL, later if not (after we've computed paddings)
+        int ensured_min_width_late = -1;
+        int ensured_max_width_late = -1;
+        if ( BLOCK_RENDERING(rendFlags, ENSURE_STYLE_WIDTH) && style->display <= css_d_table ) {
+            // We ignore width for table sub-elements.
+            // Table themselves, even when USE_W3C_BOX_MODEL, follow the border box model,
+            // so we'll apply them later.
+            bool ensure_min_max_width_later = !BLOCK_RENDERING(rendFlags, USE_W3C_BOX_MODEL) || style->display == css_d_table;
+            // Ignore widths in %, as we can't do much with them (for the starting node,
+            // they may have been converted to screen_px before calling us
+            // We do max-width first, and then min-width (https://www.w3.org/TR/CSS2/visudet.html#min-max-widths)
+            css_length_t style_max_width = style->max_width;
+            if ( style_max_width.type != css_val_unspecified && style_max_width.type != css_val_percent ) {
+                if ( !BLOCK_RENDERING(rendFlags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) &&
+                        style_max_width.type != css_val_screen_px && // when % converted to screen_px
+                        style_max_width.type != css_val_em && style_max_width.type != css_val_ex && style_max_width.type != css_val_rem ) {
+                    // Ignore it
+                }
+                else {
+                    int max_width = lengthToPx( style_max_width, 0, em );
+                    if ( ensure_min_max_width_later )
+                        ensured_max_width_late = max_width;
+                    else {
+                        if ( _minWidth > max_width )
+                            _minWidth = max_width;
+                        if ( _maxWidth > max_width )
+                            _maxWidth = max_width;
+                    }
+                }
+            }
+            css_length_t style_min_width = style->min_width;
+            if ( style_min_width.type != css_val_unspecified && style_min_width.type != css_val_percent ) {
+                if ( !BLOCK_RENDERING(rendFlags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) &&
+                        style_min_width.type != css_val_screen_px && // when % converted to screen_px
+                        style_min_width.type != css_val_em && style_min_width.type != css_val_ex && style_min_width.type != css_val_rem ) {
+                    // Ignore it
+                }
+                else {
+                    int min_width = lengthToPx( style_min_width, 0, em );
+                    if ( ensure_min_max_width_later )
+                        ensured_min_width_late = min_width;
+                    else {
+                        if ( _minWidth < min_width )
+                            _minWidth = min_width;
+                        if ( _maxWidth < min_width )
+                            _maxWidth = min_width;
+                    }
+                }
+            }
+        }
+
         // For both erm_block or erm_final, adds padding/margin/border
         // to _maxWidth and _minWidth (see comment above)
 
@@ -10442,7 +10627,6 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         // below for each one to counterbalance rounding errors.)
         int padPct = 0; // cumulative percent
         int padPctNb = 0; // nb of styles in % (to add 1px)
-        int em = node->getFont()->getSize();
         // margin
         if (!ignoreMargin) {
             if (style->margin[0].type == css_val_percent) {
@@ -10487,6 +10671,20 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         // Add the non-pct values to make our base to invert-apply padPct
         _minWidth += padLeft + padRight;
         _maxWidth += padLeft + padRight;
+        // If we have some min/max-width to ensure late, do it now, before
+        // handling padPct that will change with the ensured widths
+        if ( ensured_max_width_late >= 0 ) {
+            if ( _minWidth > ensured_max_width_late )
+                _minWidth = ensured_max_width_late;
+            if ( _maxWidth > ensured_max_width_late )
+                _maxWidth = ensured_max_width_late;
+        }
+        if ( ensured_min_width_late >= 0 ) {
+            if ( _minWidth < ensured_min_width_late )
+                _minWidth = ensured_min_width_late;
+            if ( _maxWidth < ensured_min_width_late )
+                _maxWidth = ensured_min_width_late;
+        }
         // For length in %, the % (P, padPct) should be from the outer width (L),
         // but we have only the inner width (w). We have w and P, we want L-w (m).
         //   m = L*P  and  w = L - m
