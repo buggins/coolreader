@@ -43,6 +43,10 @@ enum css_style_rec_important_bit {
     imp_bit_line_height,
     imp_bit_width,
     imp_bit_height,
+    imp_bit_min_width,
+    imp_bit_min_height,
+    imp_bit_max_width,
+    imp_bit_max_height,
     imp_bit_margin_left,
     imp_bit_margin_right,
     imp_bit_margin_top,
@@ -88,14 +92,14 @@ enum css_style_rec_important_bit {
     imp_bit_content,
     imp_bit_cr_hint
 };
-#define NB_IMP_BITS 61 // The number of lines in the enum above: KEEP IT UPDATED.
+#define NB_IMP_BITS 65 // The number of lines in the enum above: KEEP IT UPDATED.
 
 #define NB_IMP_SLOTS    ((NB_IMP_BITS-1)>>5)+1
 // In lvstyles.cpp, we have hardcoded important[0] ... importance[1]
-// So once NB_IMP_SLOTS becomes 3 when IMP_BIT_MAX > 64, add in lvstyles.cpp
-// the needed important[2] and importance[2]. Let us know if we forget that:
-#if (NB_IMP_SLOTS != 2)
-    #error "NB_IMP_SLOTS != 2, some updates in lvstyles.cpp (and then here) are needed"
+// So once NB_IMP_SLOTS becomes 4 when IMP_BIT_MAX > 96, add in lvstyles.cpp
+// the needed important[3] and importance[3]. Let us know if we forget that:
+#if (NB_IMP_SLOTS != 3)
+    #error "NB_IMP_SLOTS != 3, some updates in lvstyles.cpp (and then here) are needed"
 #endif
 
 // Style handling flags
@@ -132,6 +136,10 @@ struct css_style_rec_tag {
     css_length_t         line_height;
     css_length_t         width;
     css_length_t         height;
+    css_length_t         min_width;
+    css_length_t         min_height;
+    css_length_t         max_width;
+    css_length_t         max_height;
     css_length_t         margin[4]; ///< margin-left, -right, -top, -bottom
     css_length_t         padding[4]; ///< padding-left, -right, -top, -bottom
     css_length_t         color;
@@ -189,6 +197,10 @@ struct css_style_rec_tag {
     , line_height(css_val_inherited, 0)
     , width(css_val_unspecified, 0)
     , height(css_val_unspecified, 0)
+    , min_width(css_val_unspecified, 0)
+    , min_height(css_val_unspecified, 0)
+    , max_width(css_val_unspecified, 0)
+    , max_height(css_val_unspecified, 0)
     , color(css_val_inherited, 0)
     , background_color(css_val_unspecified, 0)
     , letter_spacing(css_val_inherited, 0)

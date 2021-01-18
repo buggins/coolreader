@@ -3683,6 +3683,10 @@ void copystyle( css_style_ref_t source, css_style_ref_t dest )
     dest->line_height = source->line_height ;
     dest->width = source->width ;
     dest->height = source->height ;
+    dest->min_width = source->min_width ;
+    dest->min_height = source->min_height ;
+    dest->max_width = source->max_width ;
+    dest->max_height = source->max_height ;
     dest->margin[0] = source->margin[0] ;
     dest->margin[1] = source->margin[1] ;
     dest->margin[2] = source->margin[2] ;

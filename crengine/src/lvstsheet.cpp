@@ -66,6 +66,10 @@ enum css_decl_code {
     cssd_letter_spacing,
     cssd_width,
     cssd_height,
+    cssd_min_width,
+    cssd_min_height,
+    cssd_max_width,
+    cssd_max_height,
     cssd_margin_left,
     cssd_margin_right,
     cssd_margin_top,
@@ -159,6 +163,10 @@ static const char * css_decl_name[] = {
     "letter-spacing",
     "width",
     "height",
+    "min-width",
+    "min-height",
+    "max-width",
+    "max-height",
     "margin-left",
     "margin-right",
     "margin-top",
@@ -449,6 +457,7 @@ static bool parse_number_value( const char * & str, css_length_t & value,
                                     bool accept_percent=true,
                                     bool accept_negative=false,
                                     bool accept_auto=false,
+                                    bool accept_none=false,
                                     bool accept_normal=false,
                                     bool accept_contain_cover=false,
                                     bool is_font_size=false )
@@ -465,6 +474,11 @@ static bool parse_number_value( const char * & str, css_length_t & value,
     if ( accept_auto && substr_icompare( "auto", str ) ) {
         value.type = css_val_unspecified;
         value.value = css_generic_auto;
+        return true;
+    }
+    if ( accept_none && substr_icompare( "none", str ) ) {
+        value.type = css_val_unspecified;
+        value.value = css_generic_none;
         return true;
     }
     if ( accept_normal && substr_icompare( "normal", str ) ) {
@@ -2330,6 +2344,10 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
             case cssd_font_size:
             case cssd_width:
             case cssd_height:
+            case cssd_min_width:
+            case cssd_min_height:
+            case cssd_max_width:
+            case cssd_max_height:
             case cssd_margin_left:
             case cssd_margin_right:
             case cssd_margin_top:
@@ -2349,12 +2367,21 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                     if ( prop_code==cssd_margin_bottom || prop_code==cssd_margin_top ||
                             prop_code==cssd_margin_left || prop_code==cssd_margin_right )
                         accept_negative = true;
-                    // only margin, width and height accept keyword "auto"
+                    // only margin, width, height, min-width, min-height accept keyword "auto"
+                    // (also accept it with max-width, max-height for style tweaks user sake)
                     bool accept_auto = false;
                     if ( prop_code==cssd_margin_bottom || prop_code==cssd_margin_top ||
                             prop_code==cssd_margin_left || prop_code==cssd_margin_right ||
-                            prop_code==cssd_width || prop_code==cssd_height )
+                            prop_code==cssd_width || prop_code==cssd_height ||
+                            prop_code==cssd_min_width || prop_code==cssd_min_height ||
+                            prop_code==cssd_max_width || prop_code==cssd_max_height )
                         accept_auto = true;
+                    // only max-width, max-height accept keyword "none"
+                    // (also accepts it with min-width, min-height for style tweaks user sake)
+                    bool accept_none = false;
+                    if ( prop_code==cssd_max_width || prop_code==cssd_max_height ||
+                            prop_code==cssd_min_width || prop_code==cssd_min_height )
+                        accept_none = true;
                     // only line-height and letter-spacing accept keyword "normal"
                     bool accept_normal = false;
                     if ( prop_code==cssd_line_height || prop_code==cssd_letter_spacing )
@@ -2364,7 +2391,7 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                     if ( prop_code==cssd_font_size )
                         is_font_size = true;
                     css_length_t len;
-                    if ( parse_number_value( decl, len, accept_percent, accept_negative, accept_auto, accept_normal, false, is_font_size) ) {
+                    if ( parse_number_value( decl, len, accept_percent, accept_negative, accept_auto, accept_none, accept_normal, false, is_font_size) ) {
                         buf<<(lUInt32) (prop_code | importance | parse_important(decl));
                         buf<<(lUInt32) len.type;
                         buf<<(lUInt32) len.value;
@@ -2815,7 +2842,7 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                     css_length_t len[2];
                     int i;
                     for (i = 0; i < 2; i++) {
-                        if ( !parse_number_value( decl, len[i], true, false, true, false, true ) )
+                        if ( !parse_number_value( decl, len[i], true, false, true, false, false, true ) )
                             break;
                     }
                     if (i) {
@@ -3043,6 +3070,18 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             break;
         case cssd_height:
             style->Apply( read_length(p), &style->height, imp_bit_height, is_important );
+            break;
+        case cssd_min_width:
+            style->Apply( read_length(p), &style->min_width, imp_bit_min_width, is_important );
+            break;
+        case cssd_min_height:
+            style->Apply( read_length(p), &style->min_height, imp_bit_min_height, is_important );
+            break;
+        case cssd_max_width:
+            style->Apply( read_length(p), &style->max_width, imp_bit_max_width, is_important );
+            break;
+        case cssd_max_height:
+            style->Apply( read_length(p), &style->max_height, imp_bit_max_height, is_important );
             break;
         case cssd_margin_left:
             style->Apply( read_length(p), &style->margin[0], imp_bit_margin_left, is_important );
