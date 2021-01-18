@@ -17568,7 +17568,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & 
             ldomNode * parent = getUnboxedParent();
 
             // See if parent has a 'reversed' attribute.
-            int increment = parent->getAttributeValue(attr_reversed).empty() ? +1 : -1;
+            int increment = parent->hasAttribute(attr_reversed) ? -1 : +1;
 
             // If the caller passes in a non-zero counter then it is assumed
             // have been already calculated and have the value of the prior
