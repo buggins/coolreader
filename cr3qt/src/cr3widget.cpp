@@ -482,7 +482,12 @@ bool CR3View::loadDocument( QString fileName )
 
 void CR3View::wheelEvent( QWheelEvent * event )
 {
+    // Get degrees delta from vertical scrolling
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    int numDegrees = event->angleDelta().y() / 8;
+#else
     int numDegrees = event->delta() / 8;
+#endif
     int numSteps = numDegrees / 15;
     if ( numSteps==0 && numDegrees!=0 )
         numSteps = numDegrees>0 ? 1 : -1;
