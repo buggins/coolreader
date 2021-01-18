@@ -159,7 +159,6 @@ formatted_text_fragment_t * lvtextAllocFormatter( lUInt16 width )
     pbuffer->light_formatting = false;
     int defMode = MAX_IMAGE_SCALE_MUL > 1 ? (ARBITRARY_IMAGE_SCALE_ENABLED==1 ? 2 : 1) : 0;
     int defMult = MAX_IMAGE_SCALE_MUL;
-    // Notes from thornyreader:
     // mode: 0=disabled, 1=integer scaling factors, 2=free scaling
     // scale: 0=auto based on font size, 1=no zoom, 2=scale up to *2, 3=scale up to *3
     pbuffer->img_zoom_in_mode_block = defMode; /**< can zoom in block images: 0=disabled, 1=integer scale, 2=free scale */
@@ -1600,24 +1599,24 @@ public:
                 if ( m_pbuffer->img_zoom_in_mode_inline==0 )
                     return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_in_mode_inline == 2;
-                // maxScale = m_pbuffer->img_zoom_in_scale_inline;
+                maxScale = m_pbuffer->img_zoom_in_scale_inline;
             } else {
 //                if ( m_pbuffer->img_zoom_out_mode_inline==0 )
 //                    return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_out_mode_inline == 2;
-                // maxScale = m_pbuffer->img_zoom_out_scale_inline;
+                maxScale = m_pbuffer->img_zoom_out_scale_inline;
             }
         } else {
             if ( zoomIn ) {
                 if ( m_pbuffer->img_zoom_in_mode_block==0 )
                     return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_in_mode_block == 2;
-                // maxScale = m_pbuffer->img_zoom_in_scale_block;
+                maxScale = m_pbuffer->img_zoom_in_scale_block;
             } else {
 //                if ( m_pbuffer->img_zoom_out_mode_block==0 )
 //                    return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_out_mode_block == 2;
-                // maxScale = m_pbuffer->img_zoom_out_scale_block;
+                maxScale = m_pbuffer->img_zoom_out_scale_block;
             }
         }
         resizeImage( width, height, maxw, maxh, arbitraryImageScaling, maxScale );
