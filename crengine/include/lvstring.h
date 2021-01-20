@@ -120,6 +120,10 @@ int    lStr_cmp(const lChar32 * str1, const lChar16 * str2);
 /// strcmp for lChar8
 int    lStr_cmp(const lChar8 * str1, const lChar8 * str2);
 /// convert string to uppercase
+void lStr_uppercase( lChar8 * str, int len );
+/// convert string to lowercase
+void lStr_lowercase( lChar8 * str, int len );
+/// convert string to uppercase
 void lStr_uppercase( lChar32 * str, int len );
 /// convert string to lowercase
 void lStr_lowercase( lChar32 * str, int len );
@@ -409,6 +413,10 @@ public:
     lString8 & replace(size_type p0, size_type n0, const lString8 & str, size_type offset, size_type count);
     /// replace fragment with repeated character
     lString8 & replace(size_type p0, size_type n0, size_type count, value_type ch);
+    /// make string uppercase
+    lString8 & uppercase();
+    /// make string lowercase
+    lString8 & lowercase();
     /// compare with another string
     int compare(const lString8& str) const { return lStr_cmp(pchunk->buf8, str.pchunk->buf8); }
     /// compare part of string with another string
@@ -421,6 +429,10 @@ public:
     int compare(size_type p0, size_type n0, const value_type *s) const;
     /// compare part of string with C-string fragment
     int compare(size_type p0, size_type n0, const value_type *s, size_type pos) const;
+    /// find position of char inside string, -1 if not found
+    int pos(lChar8 ch) const;
+    /// find position of char inside string starting from specified position, -1 if not found
+    int pos(lChar8 ch, int start) const;
     /// find position of substring inside string, -1 if not found
     int pos(const lString8 & subStr) const;
     /// find position of substring inside string, -1 if not found

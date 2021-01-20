@@ -2735,6 +2735,32 @@ lString8 lString8::substr(size_type pos, size_type n) const
     return lString8( pchunk->buf8+pos, n );
 }
 
+int lString8::pos(lChar8 ch) const
+{
+    for (int i = 0; i < length(); i++)
+    {
+        if (pchunk->buf8[i] == ch)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int lString8::pos(lChar8 ch, int start) const
+{
+    if (length() - start < 1)
+        return -1;
+    for (int i = start; i < length(); i++)
+    {
+        if (pchunk->buf8[i] == ch)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 int lString8::pos(const lString8 & subStr) const
 {
     if (subStr.length()>length())
@@ -3330,6 +3356,17 @@ bool lvUnicodeIsAlpha( lChar32 ch )
     return false;
 }
 
+lString8 & lString8::uppercase()
+{
+    lStr_uppercase( modify(), length() );
+    return *this;
+}
+
+lString8 & lString8::lowercase()
+{
+    lStr_lowercase( modify(), length() );
+    return *this;
+}
 
 lString32 & lString32::uppercase()
 {
@@ -3353,6 +3390,30 @@ lString32 & lString32::fullWidthChars()
 {
     lStr_fullWidthChars( modify(), length() );
     return *this;
+}
+
+void lStr_uppercase( lChar8 * str, int len )
+{
+    for ( int i=0; i<len; i++ ) {
+        lChar32 ch = str[i];
+        if ( ch>='a' && ch<='z' ) {
+            str[i] = ch - 0x20;
+        } else if ( ch>=0xE0 && ch<=0xFF ) {
+            str[i] = ch - 0x20;
+        }
+    }
+}
+
+void lStr_lowercase( lChar8 * str, int len )
+{
+    for ( int i=0; i<len; i++ ) {
+        lChar32 ch = str[i];
+        if ( ch>='A' && ch<='Z' ) {
+            str[i] = ch + 0x20;
+        } else if ( ch>=0xC0 && ch<=0xDF ) {
+            str[i] = ch + 0x20;
+        }
+    }
 }
 
 void lStr_uppercase( lChar32 * str, int len )
