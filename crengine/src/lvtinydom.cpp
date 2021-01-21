@@ -17657,6 +17657,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & 
         switch (st) {
         case css_lst_decimal:
             marker = lString32::itoa(counterValue);
+            marker << '.';
             break;
         case css_lst_lower_roman:
             if (counterValue > 0 &&
@@ -17664,6 +17665,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & 
                 marker = lString32(lower_roman[counterValue-1]);
             else
                 marker = lString32::itoa(counterValue); // fallback to simple counter
+            marker << '.';
             break;
         case css_lst_upper_roman:
             if (counterValue > 0 &&
@@ -17672,18 +17674,21 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & 
             else
                 marker = lString32::itoa(counterValue); // fallback to simple digital counter
             marker.uppercase();
+            marker << '.';
             break;
         case css_lst_lower_alpha:
             if ( counterValue > 0 && counterValue<=26 )
                 marker.append(1, (lChar32)('a' + counterValue - 1));
             else
                 marker = lString32::itoa(counterValue); // fallback to simple digital counter
+            marker << '.';
             break;
         case css_lst_upper_alpha:
             if ( counterValue > 0 && counterValue<=26 )
                 marker.append(1, (lChar32)('A' + counterValue - 1));
             else
                 marker = lString32::itoa(counterValue); // fallback to simple digital counter
+            marker << '.';
             break;
         case css_lst_disc:
         case css_lst_circle:
