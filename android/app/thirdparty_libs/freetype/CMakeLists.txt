@@ -12,6 +12,7 @@ add_definitions(-DFT2_BUILD_LIBRARY=1 -DFT_CONFIG_MODULES_H=<android/config/ftmo
 set(FREETYPE_SRC_FILES
     ${FREETYPE_SRC_DIR}/src/autofit/autofit.c
     ${FREETYPE_SRC_DIR}/src/base/ftbase.c
+    ${FREETYPE_SRC_DIR}/src/base/ftdebug.c
     ${FREETYPE_SRC_DIR}/src/base/ftinit.c
     ${FREETYPE_SRC_DIR}/src/base/ftfntfmt.c
     ${FREETYPE_SRC_DIR}/src/base/ftsystem.c
