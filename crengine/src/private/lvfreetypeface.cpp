@@ -356,8 +356,13 @@ LVFont *LVFreeTypeFace::getFallbackFont(lUInt32 fallbackPassMask) {
     // Get first unprocessed font
     if (!res.isNull() ) {
         if ( res->getFallbackMask() & fallbackPassMask ) {       // already processed
-            // (full_mask & fallbackPassMask) != full_mask, then recursion is not endless
-            res = res->getFallbackFont(fallbackPassMask | _fallback_mask);
+            if ((fallbackPassMask | _fallback_mask) != fallbackPassMask) {
+                // (full_mask & fallbackPassMask) != full_mask, then recursion is not endless
+                res = res->getFallbackFont(fallbackPassMask | _fallback_mask);
+            } else {
+                CRLog::error("getFallbackFont(): invalid fallback pass mask: fallbackPassMask=0x%04X, _fallback_mask=0x%04X", fallbackPassMask, _fallback_mask);
+                return NULL;
+            }
         }
     }
     return res.get();
