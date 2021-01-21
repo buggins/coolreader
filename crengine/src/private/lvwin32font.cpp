@@ -118,8 +118,7 @@ bool LVBaseWin32Font::Create(int size, int weight, bool italic, css_font_family_
     \param glyph is pointer to glyph_info_t struct to place retrieved info
     \return true if glyh was found 
 */
-bool LVWin32DrawFont::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar32 def_char,
-                                    lUInt32 fallbackPassMask, bool replace_missing )
+bool LVWin32DrawFont::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar32 def_char, lUInt32 fallbackPassMask )
 {
     return false;
 }
@@ -518,8 +517,7 @@ glyph_t * LVWin32Font::GetGlyphRec( lChar32 ch )
     \param glyph is pointer to glyph_info_t struct to place retrieved info
     \return true if glyh was found 
 */
-bool LVWin32Font::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar32 def_char,
-                                lUInt32 fallbackPassMask, bool replace_missing )
+bool LVWin32Font::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar32 def_char, lUInt32 fallbackPassMask )
 {
     if (_hfont==NULL)
         return false;

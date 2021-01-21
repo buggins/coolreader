@@ -28,7 +28,7 @@ int LVBaseFont::DrawTextString(LVDrawBuf * buf, int x, int y,
         if (len <= 1 || *text != UNICODE_SOFT_HYPHEN_CODE) {
             lChar32 ch = ((len == 0) ? UNICODE_SOFT_HYPHEN_CODE : *text);
 
-            LVFontGlyphCacheItem *item = getGlyphSearch(ch, def_char);
+            LVFontGlyphCacheItem *item = getGlyph(ch, def_char);
             int w = 0;
             if (item) {
                 // avoid soft hyphens inside text string

@@ -168,30 +168,9 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \param def_char replacement char if glyph for code not found for this font
         \param fallbackPassMask bitmask of processed fallback fonts
-        \param replace_missing internal use for recursive search
-        \return true if glyph was found
+        \return true if glyph was found 
     */
-    virtual bool getGlyphInfo(
-            lUInt32 code,
-            glyph_info_t *glyph,
-            lChar32 def_char = 0,
-            lUInt32 fallbackPassMask = 0,
-            bool replace_missing = false
-    ) = 0;
-
-    /** \brief get glyph info, search without and with character replacement
-        \param code is unicode character code
-        \param glyph is pointer to glyph_info_t struct to place retrieved info
-        \param def_char replacement char if glyph for code not found for this font
-        \param fallbackPassMask bitmask of processed fallback fonts
-        \return true if glyph was found
-    */
-    virtual bool getGlyphInfoSearch(
-            lUInt32 code,
-            glyph_info_t *glyph,
-            lChar32 def_char = 0,
-            lUInt32 fallbackPassMask = 0
-    );
+    virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar32 def_char = 0, lUInt32 fallbackPassMask = 0) = 0;
 
     /** \brief measure text
         \param text is text string pointer
@@ -231,33 +210,13 @@ public:
 //        \return true if glyph was found
 //    */
 //    virtual bool getGlyphImage(lUInt32 code, lUInt8 * buf, lChar32 def_char=0) = 0;
-
     /** \brief get glyph item
         \param ch is unicode character code
         \param def_char replacement char if glyph for ch not found for this font
         \param fallbackPassMask bitmask of processed fallback fonts
-        \param replace_missing internal use for recursive search
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem *getGlyph(
-            lUInt32 ch,
-            lChar32 def_char = 0,
-            lUInt32 fallbackPassMask = 0,
-            bool replace_missing = false
-    ) = 0;
-
-    /** \brief get glyph item, searching without and with character replacement
-        \param ch is unicode character code
-        \param def_char replacement char if glyph for ch not found for this font
-        \param fallbackPassMask bitmask of processed fallback fonts
-        \param replace_missing internal use for recursive search
-        \return glyph pointer if glyph was found, NULL otherwise
-    */
-    virtual LVFontGlyphCacheItem *getGlyphSearch(
-            lUInt32 ch,
-            lChar32 def_char = 0,
-            lUInt32 fallbackPassMask = 0
-    );
+    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar32 def_char = 0, lUInt32 fallbackPassMask = 0) = 0;
 
     /// returns font baseline offset
     virtual int getBaseline() = 0;
