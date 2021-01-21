@@ -33,14 +33,16 @@ ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_SRC_FILES += \
     $(PNG_SRC_DIR)/arm/arm_init.c \
     $(PNG_SRC_DIR)/arm/filter_neon.S \
-    $(PNG_SRC_DIR)/arm/filter_neon_intrinsics.c
+    $(PNG_SRC_DIR)/arm/filter_neon_intrinsics.c \
+    $(PNG_SRC_DIR)/arm/palette_neon_intrinsics.c
 endif
 
 ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
 LOCAL_SRC_FILES += \
     $(PNG_SRC_DIR)/arm/arm_init.c \
     $(PNG_SRC_DIR)/arm/filter_neon.S \
-    $(PNG_SRC_DIR)/arm/filter_neon_intrinsics.c
+    $(PNG_SRC_DIR)/arm/filter_neon_intrinsics.c \
+    $(PNG_SRC_DIR)/arm/palette_neon_intrinsics.c
 endif
 
 ifeq ($(TARGET_ARCH_ABI),x86_64)
