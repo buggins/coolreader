@@ -39,8 +39,9 @@ int LVFontBoldTransform::getHyphenWidth() {
 }
 
 bool
-LVFontBoldTransform::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar32 def_char, lUInt32 fallbackPassMask) {
-    bool res = _baseFont->getGlyphInfo(code, glyph, def_char, fallbackPassMask);
+LVFontBoldTransform::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar32 def_char,
+                                  lUInt32 fallbackPassMask, bool replace_missing) {
+    bool res = _baseFont->getGlyphInfo(code, glyph, def_char, fallbackPassMask, replace_missing);
     if (!res)
         return res;
     glyph->blackBoxX += glyph->blackBoxX > 0 ? _hShift : 0;
@@ -95,13 +96,14 @@ lUInt32 LVFontBoldTransform::getTextWidth(const lChar32 *text, int len, TextLang
     return 0;
 }
 
-LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt32 ch, lChar32 def_char, lUInt32 fallbackPassMask) {
+LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt32 ch, lChar32 def_char, lUInt32 fallbackPassMask,
+                                                    bool replace_missing) {
 
     LVFontGlyphCacheItem *item = _glyph_cache.get(ch);
     if (item)
         return item;
 
-    LVFontGlyphCacheItem *olditem = _baseFont->getGlyph(ch, def_char, fallbackPassMask);
+    LVFontGlyphCacheItem *olditem = _baseFont->getGlyph(ch, def_char, fallbackPassMask, replace_missing);
     if (!olditem)
         return NULL;
 
@@ -179,7 +181,7 @@ int LVFontBoldTransform::DrawTextString(LVDrawBuf *buf, int x, int y, const lCha
             isHyphen = 0;
         }
 
-        LVFontGlyphCacheItem * item = getGlyph(ch, def_char);
+        LVFontGlyphCacheItem * item = getGlyphSearch(ch, def_char);
         int w  = 0;
         if ( item ) {
             // avoid soft hyphens inside text string
@@ -226,11 +228,11 @@ int LVFontBoldTransform::DrawTextString(LVDrawBuf *buf, int x, int y, const lCha
 /*
 bool LVFontBoldTransform::getGlyphImage(lUInt16 code, lUInt8 *buf, lChar32 def_char)
 {
-    LVFontGlyphCacheItem * item = getGlyph( code, def_char );
+    LVFontGlyphCacheItem * item = getGlyphSearch( code, def_char );
     if ( !item )
         return false;
     glyph_info_t glyph;
-    if ( !_baseFont->getGlyphInfo( code, &glyph, def_char ) )
+    if ( !_baseFont->getGlyphInfoSearch( code, &glyph, def_char ) )
         return 0;
     int oldx = glyph.blackBoxX;
     int oldy = glyph.blackBoxY;
@@ -246,10 +248,10 @@ bool LVFontBoldTransform::getGlyphImage(lUInt16 code, lUInt8 *buf, lChar32 def_c
         //CRLog::error("Glyph buffer corrupted!");
         // clear cache
         for ( int i=32; i<4000; i++ ) {
-            _baseFont->getGlyphInfo( i, &glyph, def_char );
+            _baseFont->getGlyphInfoSearch( i, &glyph, def_char );
             _baseFont->getGlyphImage( i, tmp.get(), def_char );
         }
-        _baseFont->getGlyphInfo( code, &glyph, def_char );
+        _baseFont->getGlyphInfoSearch( code, &glyph, def_char );
         _baseFont->getGlyphImage( code, tmp.get(), def_char );
     }
     for ( int y=0; y<dy; y++ ) {
