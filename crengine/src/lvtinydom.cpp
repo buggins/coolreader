@@ -17534,13 +17534,13 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & 
     default:
         // treat default as disc
     case css_lst_disc:
-        marker = U"\x2022"; // U"\x25CF" U"\x26AB" (medium circle) U"\x2981" (spot) U"\x2022" (bullet, small)
+        marker = U"\x2022"; //U"\x25CF"; // 25e6
         break;
     case css_lst_circle:
-        marker = U"\x25E6"; // U"\x25CB" U"\x26AA (medium) U"\25E6" (bullet) U"\x26AC (medium small)
+        marker = U"\x2022"; //U"\x25CB";
         break;
     case css_lst_square:
-        marker = U"\x25AA"; // U"\x25A0" U"\x25FE" (medium small) U"\x25AA" (small)
+        marker = U"\x25A0";
         break;
     case css_lst_none:
         // When css_lsp_inside, no space is used by the invisible marker
