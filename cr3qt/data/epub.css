@@ -67,6 +67,17 @@ ul {
     list-style-type: disc;
     margin-left: 1em;
 }
+
+ul[type=disc], li[type=disc] {
+  list-style-type: disc;
+}
+ul[type=circle], li[type=circle] {
+  list-style-type: circle;
+}
+ul[type=square], li[type=square] {
+  list-style-type: square;
+}
+
 ol {
     list-style-type: decimal;
     margin-left: 1em;
@@ -75,6 +86,30 @@ ul:dir(rtl), ol:dir(rtl) {
     margin-left: 0;
     margin-right: 1em;
 }
+ol[type=1], li[type=1] {
+  list-style-type: decimal;
+}
+ol[type=a], li[type=a] {
+  list-style-type: lower-alpha;
+}
+ol[type=A], li[type=A] {
+  list-style-type: upper-alpha;
+}
+ol[type=i], li[type=i] {
+  list-style-type: lower-roman;
+}
+ol[type=I], li[type=I] {
+  list-style-type: upper-roman;
+}
+
+ul ul, ol ul {
+   list-style-type: circle;
+}
+
+ol ol ul, ol ul ul, ul ol ul, ul ul ul {
+   list-style-type: square;
+}
+
 li {
     display: list-item;
     text-indent: 0;
