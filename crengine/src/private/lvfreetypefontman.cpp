@@ -38,31 +38,6 @@ lUInt32 LVFreeTypeFontManager::GetFontListHash(int documentId) {
     return _cache.GetFontListHash(documentId) * 75 + _fallbackFontFaces.getHash();
 }
 
-bool LVFreeTypeFontManager::SetFallbackFontFace(lString8 face) {
-    FONT_MAN_GUARD
-    lString8 oldFace = _fallbackFontFaces.length() > 0 ? _fallbackFontFaces[0] : lString8();
-    if (face != oldFace) {
-        CRLog::trace("Looking for fallback font %s", face.c_str());
-        LVFontCacheItem *item = _cache.findFallback(face, -1);
-        if (!item) {
-            face.clear();
-            // Don't reset previous fallback if this one is not found/valid
-            return false;
-        }
-        _cache.clearFallbackFonts();
-        if (_fallbackFontFaces.empty())
-            _fallbackFontFaces.add(face);
-        else
-            _fallbackFontFaces[0] = face;
-        // Somehow, with Fedra Serif (only!), changing the fallback font does
-        // not prevent glyphs from previous fallback font to be re-used...
-        // So let's clear glyphs caches too.
-        gc();
-        clearGlyphCache();
-    }
-    return _fallbackFontFaces.length() > 0;
-}
-
 bool LVFreeTypeFontManager::SetFallbackFontFaces(lString8 facesStr)
 {
     FONT_MAN_GUARD
@@ -457,24 +432,8 @@ bool LVFreeTypeFontManager::initSystemFonts() {
         FcFontSetDestroy(fontset);
         CRLog::info("FONTCONFIG: %d fonts registered", facesFound);
         
-        const char * fallback_faces [] = {
-            "Arial Unicode MS",
-            "AR PL ShanHeiSun Uni",
-            "Liberation Sans",
-            "Roboto",
-            "DejaVu Sans",
-            "Noto Sans",
-            "Droid Sans",
-            NULL
-        };
-        
-        for ( int i=0; fallback_faces[i]; i++ )
-            if ( SetFallbackFontFace(lString8(fallback_faces[i])) ) {
-                CRLog::info("Fallback font %s is found", fallback_faces[i]);
-                break;
-            } else {
-                CRLog::trace("Fallback font %s is not found", fallback_faces[i]);
-            }
+        const char * fallback_faces = "Arial Unicode MS; AR PL ShanHeiSun Uni; Liberation Sans; Roboto; DejaVu Sans; Noto Sans; Droid Sans";
+        SetFallbackFontFaces(lString8(fallback_faces));
         
         return facesFound > 0;
     }

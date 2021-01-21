@@ -1630,8 +1630,8 @@ p, li { white-space: pre-wrap; }
         <translation>Автохинтинг</translation>
     </message>
     <message>
-        <source>Fallback font</source>
-        <translation>Дополнительный шрифт</translation>
+        <source>Fallback fonts</source>
+        <translation>Дополнительные шрифты</translation>
     </message>
     <message>
         <source>Enable document internal styles</source>

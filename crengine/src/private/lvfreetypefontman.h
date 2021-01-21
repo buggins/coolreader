@@ -47,9 +47,6 @@ public:
     /// get hash of installed fonts and fallback font
     virtual lUInt32 GetFontListHash(int documentId);
 
-    /// set fallback font
-    virtual bool SetFallbackFontFace(lString8 face);
-
     /// set fallback font face list semicolon separated (returns true if any font is found)
     virtual bool SetFallbackFontFaces(lString8 facesStr );
 

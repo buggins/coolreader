@@ -147,6 +147,7 @@ private:
     QString m_oldHyph;
     QStringList m_backgroundFiles;
     QStringList m_faceList;
+    QString m_defFontFace;
     QString m_styleName;
     StyleItem m_styleItemAlignment;
     StyleItem m_styleItemIndent;
@@ -209,7 +210,6 @@ private slots:
     void on_cbDefFontStyle_currentIndexChanged(int index);
     void on_cbDefFontColor_currentIndexChanged(int index);
     void on_cbFontHinting_currentIndexChanged(int index);
-    void on_cbFallbackFontFace_currentIndexChanged(const QString &arg1);
     void on_cbEnableEmbeddedFonts_toggled(bool checked);
     void on_cbEnableDocumentStyles_toggled(bool checked);
     void on_btnSelectionColor_clicked();
@@ -229,6 +229,7 @@ private slots:
     void on_cbDOMLevel_currentIndexChanged(int index);
     void on_cbMultiLang_stateChanged(int state);
     void on_cbEnableHyph_stateChanged(int state);
+    void on_btnFallbackMan_clicked();
 };
 
 #endif // SETTINGSDLG_H

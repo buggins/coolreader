@@ -18,7 +18,6 @@
 #define PROP_LOG_LEVEL               "crengine.log.level"
 #define PROP_LOG_AUTOFLUSH           "crengine.log.autoflush"
 #define PROP_FONT_SIZE               "crengine.font.size"
-#define PROP_FALLBACK_FONT_FACE      "crengine.font.fallback.face"
 #define PROP_FALLBACK_FONT_FACES     "crengine.font.fallback.faces"
 #define PROP_STATUS_FONT_COLOR       "crengine.page.header.font.color"
 #define PROP_STATUS_FONT_FACE        "crengine.page.header.font.face"
