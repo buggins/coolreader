@@ -196,7 +196,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_ui->cbRendFlags->setCurrentIndex(rendFlagsIndex);
 
     int DOMVersionIndex = 0;
-    int DOMVersion = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, 0);
+    int DOMVersion = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
     for (int i = 0; i < MAX_DOM_VERSIONS_INDEX; i++) {
         if (DOMVersion == DOM_versions[i]) {
             DOMVersionIndex = i;
@@ -1150,7 +1150,7 @@ void SettingsDlg::on_cbRendFlags_currentIndexChanged(int index)
     if (index < 0 || index >= MAX_REND_FLAGS_INDEX)
         index = 0;
     m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, rend_flags[index]);
-    int DOMVersion = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, 0);
+    int DOMVersion = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
     bool legacy_render = (0 == index) || (DOMVersion < 20180524);
     m_ui->label_47->setVisible(!legacy_render);
     m_ui->cbMultiLang->setVisible(!legacy_render);
