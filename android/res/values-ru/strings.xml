@@ -418,6 +418,8 @@
     <string name="options_font_hinting_disabled">Отключен</string>
     <string name="options_font_hinting_auto">Автохинтинг</string>
     <string name="options_font_fallback_face">Резервный шрифт</string>
+    <string name="options_font_fallback_face_num">Резервный шрифт №%s</string>
+    <string name="options_font_fallback_faces">Резервные шрифты</string>
     <string name="win_title_confirm_catalog_delete">Вы действительно хотите удалить этот каталог?</string>
     <string name="win_title_confirm_history_record_delete">Вы действительно хотите удалить эту книгу из списка последних книг?</string>
     <string name="win_title_confirm_book_delete">Вы действительно хотите удалить эту книгу / архив ?</string>

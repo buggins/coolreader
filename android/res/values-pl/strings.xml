@@ -392,6 +392,8 @@
     <string name="options_font_hinting_disabled">Wyłączone</string>
     <string name="options_font_hinting_auto">Auto</string>
     <string name="options_font_fallback_face">Czcionka "zapasowa"</string>
+    <string name="options_font_fallback_face_num">Czcionka zastępcza nr %s</string>
+    <string name="options_font_fallback_faces">Czcionki zastępcze</string>
     <string name="win_title_confirm_catalog_delete">Potwierdź usunięcie katalogu?</string>
     <string name="win_title_confirm_history_record_delete">Potwierdź usunięcie książki z listy ostatnich?</string>
     <string name="win_title_confirm_book_delete">Potwierdź usunięcie książki?</string>

@@ -386,6 +386,8 @@
     <string name="options_font_hinting_disabled">Désactivé</string>
     <string name="options_font_hinting_auto">Automatique</string>
     <string name="options_font_fallback_face">Police par défaut</string>
+    <string name="options_font_fallback_face_num">Police supplémentaire n°%s</string>
+    <string name="options_font_fallback_faces">Polices supplémentaires</string>
     <string name="win_title_confirm_catalog_delete">Voulez-vous vraiment supprimer ce catalogue?</string>
     <string name="win_title_confirm_history_record_delete">Voulez-vous vraiment enlever ce livre de la liste des livres récents?</string>
     <string name="win_title_confirm_book_delete">Voulez-vous vraiment supprimer ce livre?</string>

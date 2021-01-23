@@ -381,6 +381,8 @@
     <string name="options_font_hinting_disabled">Изключено</string>
     <string name="options_font_hinting_auto">Автохинтинг на шрифта</string>
     <string name="options_font_fallback_face">Резервен шрифт</string>
+    <string name="options_font_fallback_face_num">Резервен шрифт #%s</string>
+    <string name="options_font_fallback_faces">Резервни шрифтове</string>
     <string name="win_title_confirm_catalog_delete">Действително ли искате да изтриете каталога?</string>
     <string name="win_title_confirm_history_record_delete">Действително ли искате да изтриете тази книга от списъка с последни книги?</string>
     <string name="win_title_confirm_book_delete">Действително ли искате да изтриете тази книга?</string>

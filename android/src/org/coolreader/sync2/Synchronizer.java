@@ -29,7 +29,6 @@ import org.coolreader.R;
 import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.Bookmark;
-import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
@@ -122,7 +121,6 @@ public class Synchronizer {
 	private int m_lockTryCount = 0;
 
 	private static final String[] ALLOWED_OPTIONS_PROP_NAMES = {
-			Settings.PROP_FALLBACK_FONT_FACE,
 			Settings.PROP_FALLBACK_FONT_FACES,
 			Settings.PROP_FOOTNOTES,
 			Settings.PROP_APP_HIGHLIGHT_BOOKMARKS,
