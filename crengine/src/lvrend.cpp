@@ -2523,12 +2523,7 @@ lString32 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
                 flags |= LTEXT_STRUT_CONFINED;
         }
         marker += "\t";
-        // That "\t" had some purpose in css_d_list_item_legacy rendering to mark the end
-        // of the marker, and by providing the marker_width as negative indent, so that
-        // the following text can have some constant indent by rendering it just like
-        // negative/hanging text-indent. It has no real use if we provide a 0-indent
-        // like we do below.
-        // But coincidentally, this "\t" acts for fribidi as a text segment separator (SS)
+        // This "\t" acts for fribidi as a text segment separator (SS)
         // which will bidi-isolate the marker from the followup text, and will ensure,
         // for example, that:
         //   <li style="list-style-type: lower-roman; list-style-type: inside">Some text</li>
@@ -2791,8 +2786,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         }
 
         if ( (flags & LTEXT_FLAG_NEWLINE) && ( rm == erm_final || ( legacy_rendering && is_block ) ) ) {
-            // Top and single 'final' node (unless in the degenerate case
-            // of obsolete css_d_list_item_legacy):
+            // Top and single 'final' node:
             // Get text-indent and line-height that will apply to the full final block
             // There is also an exception: in legacy rendering mode, we must also indent any blocks.
 
@@ -3051,47 +3045,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             flags &= ~LTEXT_VALIGN_MASK; // also remove any such flag we've set
             flags &= ~LTEXT_STRUT_CONFINED; // remove this if it's been set above
             // (Looks like nothing special to do with indent or line_h)
-        }
-
-        if ( style->display == css_d_list_item_legacy ) { // obsolete (used only when gDOMVersionRequested < 20180524)
-            // put item number/marker to list
-            lString32 marker;
-            int marker_width = 0;
-
-            ListNumberingPropsRef listProps =  enode->getDocument()->getNodeNumberingProps( enode->getParentNode()->getDataIndex() );
-            if ( listProps.isNull() ) { // no previously cached info: compute and cache it
-                // Scan all our siblings to know the widest marker width
-                int counterValue = 0;
-                int maxWidth = 0;
-                ldomNode * sibling = enode->getUnboxedParent()->getUnboxedFirstChild(true);
-                while ( sibling ) {
-                    lString32 marker;
-                    int markerWidth = 0;
-                    if ( sibling->getNodeListMarker( counterValue, marker, markerWidth ) ) {
-                        if ( markerWidth > maxWidth )
-                            maxWidth = markerWidth;
-                    }
-                    sibling = sibling->getUnboxedNextSibling(true); // skip text nodes
-                }
-                listProps = ListNumberingPropsRef( new ListNumberingProps(counterValue, maxWidth) );
-                enode->getDocument()->setNodeNumberingProps( enode->getParentNode()->getDataIndex(), listProps );
-            }
-            int counterValue = 0;
-            if ( enode->getNodeListMarker( counterValue, marker, marker_width ) ) {
-                if ( !listProps.isNull() )
-                    marker_width = listProps->maxWidth;
-                css_list_style_position_t sp = style->list_style_position;
-                LVFontRef font = enode->getFont();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-                int margin = 0;
-                if ( sp==css_lsp_outside )
-                    margin = -marker_width; // will ensure negative/hanging indent-like rendering
-                marker += "\t";
-                txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy,
-                                        margin, NULL );
-                flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH;
-            }
         }
 
         // List item marker rendering when css_d_list_item_block and list-style-position = inside:
@@ -9096,9 +9049,6 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
                 if (domVersionRequested < 20180524) { // revert what was fixed 20180524
                     if (nodeElementId == el_cite) {
                         pstyle->display = css_d_block; // otherwise correctly set to css_d_inline
-                    }
-                    if (nodeElementId == el_li) {
-                        pstyle->display = css_d_list_item_legacy; // otherwise correctly set to css_d_list_item_block
                     }
                     if (nodeElementId == el_style) {
                         pstyle->display = css_d_inline; // otherwise correctly set to css_d_none (hidden)

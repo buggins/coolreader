@@ -2141,16 +2141,6 @@ public:
                     lastBidiLevel = newBidiLevel;
             #endif
         }
-        if ( tabIndex >= 0 && m_srcs[0]->indent < 0) {
-            // Used by obsolete rendering of css_d_list_item_legacy when css_lsp_outside,
-            // where the marker width is provided as negative/hanging indent.
-            int tabPosition = -m_srcs[0]->indent; // has been set to marker_width
-            if ( tabPosition>0 && tabPosition > m_widths[tabIndex] ) {
-                int dx = tabPosition - m_widths[tabIndex];
-                for ( i=tabIndex; i<m_length; i++ )
-                    m_widths[i] += dx;
-            }
-        }
 //        // debug dump
 //        lString32 buf;
 //        for ( int i=0; i<m_length; i++ ) {

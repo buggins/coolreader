@@ -6160,9 +6160,6 @@ void ldomNode::initNodeRendMethod()
         //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
         recurseElements( resetRendMethodToInline );
         setRendMethod(erm_inline);
-    } else if ( d==css_d_list_item_legacy ) {
-        // list item (no more used, obsolete rendering method)
-        setRendMethod(erm_final);
     } else if ( d==css_d_table ) {
         // table: this will "Generate missing child wrappers" if needed
         initTableRendMethods( this, 0 );
@@ -8545,22 +8542,11 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
     for ( ; p; p = p->getParentNode() ) {
         int rm = p->getRendMethod();
         if ( rm == erm_final ) {
-            if ( doc->getDOMVersionRequested() < 20180524 && p->getStyle()->display == css_d_list_item_legacy ) {
-                // This legacy rendering of list item is now erm_final, but
-                // can contain other real erm_final nodes.
-                // So, if we found an erm_final, and if we find this erm_final
-                // when going up, we should use it (unlike in next case).
-                // (This is needed to correctly display highlights on books opened
-                // with some older DOM_VERSION.)
-                finalNode = p;
-            }
-            else {
-                // With floats, we may get multiple erm_final when walking up
-                // to root node: keep the first one met (but go on up to the
-                // root node in case we're in some upper erm_invisible).
-                if (!finalNode)
-                    finalNode = p; // found final block
-            }
+            // With floats, we may get multiple erm_final when walking up
+            // to root node: keep the first one met (but go on up to the
+            // root node in case we're in some upper erm_invisible).
+            if (!finalNode)
+                finalNode = p; // found final block
         }
         else if ( p->getRendMethod() == erm_invisible ) {
             return false; // invisible !!!
@@ -17602,7 +17588,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & 
                         sibling = sibling->getUnboxedNextSibling(true);
                         continue;
                     }
-                    if ( cs->display != css_d_list_item_block && cs->display != css_d_list_item_legacy) {
+                    if ( cs->display != css_d_list_item_block ) {
                         // Alien element among list item nodes, skip it to not mess numbering
                         if ( sibling == this ) // Should not happen, but let's be sure
                             break;
@@ -17625,7 +17611,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & 
                     sibling = sibling->getUnboxedNextSibling(true);
                     continue;
                 }
-                if ( cs->display != css_d_list_item_block && cs->display != css_d_list_item_legacy) {
+                if ( cs->display != css_d_list_item_block ) {
                     // Alien element among list item nodes, skip it to not mess numbering
                     if ( sibling == this ) // Should not happen, but let's be sure
                         break;
