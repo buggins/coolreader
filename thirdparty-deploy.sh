@@ -19,6 +19,23 @@ die()
 	exit 1
 }
 
+_get_tar_args()
+{
+	local args=
+	case "${1}" in
+	*.tar.gz)
+		args="z"
+		;;
+	*.tar.bz2)
+		args="j"
+		;;
+	*.tar.xz)
+		args="J"
+		;;
+	esac
+	echo "${args}"
+}
+
 deploy_package()
 {
 	local pkgname="${1}"
@@ -72,10 +89,11 @@ deploy_package()
 		echo "Checksum OK."
 	fi
 
+	local tar_args=`_get_tar_args "${SRCFILE}"`
 	if [ ! -f .unpacked ]
 	then
 		cd "${thirdparty_dir}" || die "chdir to thirdparty_dir failed!"
-		tar -xzf "${pkg_datadir}/${SRCFILE}" || die "Failed to unpack sources!"
+		tar -x${tar_args}f "${pkg_datadir}/${SRCFILE}" || die "Failed to unpack sources!"
 		cd "${pkg_datadir}" || die "chdir failed!"
 		echo "1" > .unpacked
 		echo "Unpacked OK."
@@ -92,7 +110,6 @@ deploy_package()
 		echo "1" > .prepared
 		echo "Prepared OK."
 	fi
-
 
 	# clean vars
 	unset -v PN
