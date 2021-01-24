@@ -218,8 +218,8 @@ if (NOT PNG_FOUND)
   #to disable #include <qconfig.h>
   ADD_DEFINITIONS(-DCR3_PATCH=1)
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIR})
-  ADD_SUBDIRECTORY(thirdparty_unman/libpng)
-  SET(PNG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty_unman/libpng)
+  ADD_SUBDIRECTORY(thirdparty/libpng-1.6.37)
+  SET(PNG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/libpng-1.6.37)
   SET(PNG_LIBRARIES png)
 endif (NOT PNG_FOUND)
 

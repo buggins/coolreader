@@ -39,7 +39,7 @@ _get_tar_args()
 deploy_package()
 {
 	local pkgname="${1}"
-	local metafile="${repo_dir}/libunibreak.meta.sh"
+	local metafile="${repo_dir}/${pkgname}.meta.sh"
 
 	source "${metafile}"
 
@@ -140,3 +140,4 @@ then
 fi
 
 deploy_package libunibreak
+deploy_package libpng

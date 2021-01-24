@@ -1,11 +1,12 @@
 
 project(png)
 
-set(PNG_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty_unman/libpng)
+set(PNG_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/libpng-1.6.37)
 set(PNG_CONFIG_DIR ${PROJECT_SOURCE_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${PNG_CONFIG_DIR})
+include_directories(${PNG_CONFIG_DIR}/lib)
 
 option(PNG_HARDWARE_OPTIMIZATIONS "Enable Hardware Optimizations" ON)
 

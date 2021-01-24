@@ -23,7 +23,7 @@ CR3_ROOT := $(LOCAL_PATH)/../..
 LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/crengine/include \
     $(CR3_ROOT)/crengine/fc-lang \
-    $(CR3_ROOT)/thirdparty_unman/libpng \
+    $(CR3_ROOT)/thirdparty/libpng-1.6.37 \
     $(CR3_ROOT)/thirdparty_unman/freetype/include \
     $(CR3_ROOT)/thirdparty_unman/freetype \
     $(CR3_ROOT)/thirdparty_unman/harfbuzz/src \
@@ -34,7 +34,8 @@ LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/thirdparty_unman/fribidi/lib \
     $(CR3_ROOT)/thirdparty/libunibreak-4.3/src \
     $(CR3_ROOT)/android/app/thirdparty_libs/freetype \
-    $(CR3_ROOT)/android/app/thirdparty_libs/fribidi/lib
+    $(CR3_ROOT)/android/app/thirdparty_libs/fribidi/lib \
+    $(CR3_ROOT)/android/app/thirdparty_libs/libpng/lib
 
 
 LOCAL_CFLAGS += $(CRFLAGS)
