@@ -144,3 +144,4 @@ deploy_package libpng
 deploy_package libjpeg
 deploy_package freetype
 deploy_package harfbuzz
+deploy_package fribidi

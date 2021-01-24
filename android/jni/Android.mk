@@ -31,7 +31,7 @@ LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/thirdparty_unman/antiword \
     $(CR3_ROOT)/thirdparty_unman/chmlib/src \
     $(CR3_ROOT)/thirdparty_unman/nanosvg/src \
-    $(CR3_ROOT)/thirdparty_unman/fribidi/lib \
+    $(CR3_ROOT)/thirdparty/fribidi-1.0.10/lib \
     $(CR3_ROOT)/thirdparty/libunibreak-4.3/src \
     $(CR3_ROOT)/android/app/thirdparty_libs/freetype \
     $(CR3_ROOT)/android/app/thirdparty_libs/fribidi/lib \

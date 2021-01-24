@@ -21,7 +21,7 @@ include_directories(${CR3_ROOT}/thirdparty/jpeg-9d)
 include_directories(${CR3_ROOT}/thirdparty_unman/antiword)
 include_directories(${CR3_ROOT}/thirdparty_unman/chmlib/src)
 include_directories(${CR3_ROOT}/thirdparty_unman/nanosvg/src)
-include_directories(${CR3_ROOT}/thirdparty_unman/fribidi/lib)
+include_directories(${CR3_ROOT}/thirdparty/fribidi-1.0.10/lib)
 include_directories(thirdparty_libs/fribidi/lib)
 include_directories(${CR3_ROOT}/thirdparty/libunibreak-4.3/src)
 
