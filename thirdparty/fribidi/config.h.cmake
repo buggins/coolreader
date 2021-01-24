@@ -97,4 +97,4 @@
 #cmakedefine STDC_HEADERS
 
 /* Define to empty if `const' does not conform to ANSI C. */
-#undef const
+/* #undef const */
