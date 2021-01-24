@@ -1,0 +1,33 @@
+language: c
+
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+      install: bash .ci/build-c2man.sh
+      env: PATH=$PATH:$TRAVIS_BUILD_DIR/c2man-install
+    - os: linux
+      compiler: clang
+    - os: osx
+      compiler: clang
+    - os: linux
+      language: python
+      python: 3.5
+      env: PATH=$PATH:$TRAVIS_BUILD_DIR/c2man-install
+      install:
+        - pip install meson ninja
+      before_script:
+        - bash .ci/build-c2man.sh
+      script:
+        - meson build
+        - ninja -C build
+        - ninja -C build test
+      cache: pip
+
+before_script:
+  - ./autogen.sh
+
+script:
+  - make
+  - make check || (cat `find -name '*.log'` && false)
+  - make distcheck || (cat `find -name '*.log'` && false)

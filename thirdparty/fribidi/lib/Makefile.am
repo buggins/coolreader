@@ -8,9 +8,7 @@ libfribidi_la_LDFLAGS = -no-undefined -version-info $(LT_VERSION_INFO)
 libfribidi_la_LIBADD =
 libfribidi_la_DEPENDENCIES =
 
-if OS_WIN32
-libfribidi_la_LDFLAGS += -export-symbols $(srcdir)/fribidi.def
-else
+if !OS_WIN32
 libfribidi_la_LDFLAGS += -export-symbols-regex "^fribidi_.*"
 endif # OS_WIN32
 
@@ -55,6 +53,8 @@ libfribidi_la_SOURCES =	\
 		brackets.tab.i \
 		brackets-type.tab.i \
 		run.h
+
+libfribidi_la_CPPFLAGS = @FRIBIDI_CPPFLAGS@ -DFRIBIDI_BUILD
 
 GENERATEDSOURCES = \
 		fribidi-unicode-version.h \

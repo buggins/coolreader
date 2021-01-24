@@ -10,3 +10,4 @@ Description: Unicode Bidirectional Algorithm Library
 Version: @VERSION@
 Libs: -L${libdir} -lfribidi
 Cflags: -I${includedir}/@PACKAGE@
+CFLAGS.private: -DFRIBIDI_LIB_STATIC

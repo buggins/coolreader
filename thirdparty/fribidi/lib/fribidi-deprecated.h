@@ -41,7 +41,7 @@
  *
  * This function is deprecated and only used with other deprecated functions.
  */
-     FRIBIDI_ENTRY fribidi_boolean fribidi_mirroring_status (
+FRIBIDI_ENTRY fribidi_boolean fribidi_mirroring_status (
   void
 ) FRIBIDI_GNUC_DEPRECATED;
 
@@ -59,7 +59,7 @@
  *
  * Returns: the new mirroring status.
  */
-     FRIBIDI_ENTRY fribidi_boolean fribidi_set_mirroring (
+FRIBIDI_ENTRY fribidi_boolean fribidi_set_mirroring (
   fribidi_boolean state		/* new state to set */
 ) FRIBIDI_GNUC_DEPRECATED;
 
@@ -68,7 +68,7 @@
  *
  * This function is deprecated and only used with other deprecated functions.
  */
-     FRIBIDI_ENTRY fribidi_boolean fribidi_reorder_nsm_status (
+FRIBIDI_ENTRY fribidi_boolean fribidi_reorder_nsm_status (
   void
 ) FRIBIDI_GNUC_DEPRECATED;
 
@@ -88,7 +88,7 @@
  *
  * Returns: the new marks reordering status.
  */
-     FRIBIDI_ENTRY fribidi_boolean fribidi_set_reorder_nsm (
+FRIBIDI_ENTRY fribidi_boolean fribidi_set_reorder_nsm (
   fribidi_boolean state		/* new state to set */
 ) FRIBIDI_GNUC_DEPRECATED;
 

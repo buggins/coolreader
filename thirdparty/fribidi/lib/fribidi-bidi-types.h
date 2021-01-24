@@ -377,7 +377,7 @@ fribidi_get_bidi_type (
  * fribidi_get_bidi_type() for more information about the bidi types returned
  * by this function.
  */
-     FRIBIDI_ENTRY void fribidi_get_bidi_types (
+FRIBIDI_ENTRY void fribidi_get_bidi_types (
   const FriBidiChar *str,	/* input string */
   const FriBidiStrIndex len,	/* input string length */
   FriBidiCharType *btypes	/* output bidi types */

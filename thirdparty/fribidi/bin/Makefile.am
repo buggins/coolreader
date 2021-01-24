@@ -9,6 +9,7 @@ fribidi_SOURCES = fribidi-main.c $(getopt_SOURCES)
 fribidi_benchmark_SOURCES = fribidi-benchmark.c $(getopt_SOURCES)
 
 AM_CPPFLAGS = \
+		@FRIBIDI_CPPFLAGS@ \
 		-I$(top_builddir)/lib \
 		-I$(top_srcdir)/lib
 

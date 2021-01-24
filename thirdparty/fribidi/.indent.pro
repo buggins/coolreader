@@ -1,0 +1,16 @@
+-gnu
+-bfda
+-bfde
+-T FILE
+-T FriBidiChar
+-T FriBidiLevel
+-T FriBidiStrIndex
+-T FriBidiCharType
+-T FriBidiParType
+-T FriBidiJoiningType
+-T FriBidiArabicProp
+-T FriBidiCharSet
+-T FriBidiCharSetHandler
+-T FriBidiMemChunk
+-T FriBidiEnv
+-T FriBidiRun

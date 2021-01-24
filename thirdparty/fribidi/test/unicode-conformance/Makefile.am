@@ -15,6 +15,7 @@ TEST_DATAS = \
 TXT_LOG_COMPILER = sh $(srcdir)/run.tests
 
 AM_CPPFLAGS = \
+		@FRIBIDI_CPPFLAGS@ \
 		-I$(top_builddir)/lib \
 		-I$(top_srcdir)/lib \
 		-I$(top_srcdir)/charset

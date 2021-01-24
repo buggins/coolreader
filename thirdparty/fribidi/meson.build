@@ -1,5 +1,5 @@
-project('fribidi', 'c', version: '1.0.8',
-  meson_version : '>= 0.44')
+project('fribidi', 'c', version: '1.0.10',
+  meson_version : '>= 0.48')
 
 # New release:
 #   interface_age++
@@ -26,19 +26,24 @@ if cc.get_id() == 'gcc' and cc.has_argument('-ansi')
 endif
 
 # Symbol visibility
-have_visibility_hidden = cc.has_argument('-fvisibility=hidden')
-if have_visibility_hidden
-  add_project_arguments('-fvisibility=hidden', language: 'c')
+have_visibility_hidden = false
+if host_machine.system() != 'windows'
+  have_visibility_hidden = cc.has_argument('-fvisibility=hidden')
+  if have_visibility_hidden
+    add_project_arguments('-fvisibility=hidden', language: 'c')
+  endif
 endif
 
 # Must explicitly make symbols public if default visibility is hidden
+visibility_args = []
+fribidi_static_cargs = []
 if have_visibility_hidden
-  visibility_args = ['-DFRIBIDI_ENTRY=extern __attribute__ ((visibility ("default")))']
+  visibility_args = ['-DFRIBIDI_ENTRY=__attribute__ ((visibility ("default")))']
 else
-  if host_machine.system() == 'windows' and get_option('default_library') != 'static'
-    visibility_args = ['-DFRIBIDI_ENTRY=__declspec(dllexport)']
-  else
-    visibility_args = ['-DFRIBIDI_ENTRY=extern']
+  if host_machine.system() == 'windows'
+    if get_option('default_library') == 'static'
+      fribidi_static_cargs = ['-DFRIBIDI_LIB_STATIC']
+    endif
   endif
 endif
 
@@ -69,8 +74,7 @@ endif
 # This is available pretty much everywhere
 cdata.set('HAVE_STRINGIZE', 1)
 
-buildtype = get_option('buildtype')
-if buildtype == 'debug' or buildtype == 'debugoptimized'
+if get_option('debug')
   cdata.set('DEBUG', 1)
 endif
 
@@ -84,8 +88,12 @@ incs = include_directories('.', 'lib', 'gen.tab')
 
 subdir('gen.tab')
 subdir('lib')
-subdir('bin')
-subdir('test')
+if get_option('bin')
+  subdir('bin')
+endif
+if get_option('tests')
+   subdir('test')
+endif
 if get_option('docs')
   subdir('doc')
 endif

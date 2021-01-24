@@ -75,7 +75,7 @@ libfribidi = library('fribidi',
   fribidi_sources, fribidi_unicode_version_h, fribidi_config_h,
   generated_tab_include_files, config_h,
   include_directories: incs,
-  c_args: ['-DHAVE_CONFIG_H'] + visibility_args,
+  c_args: ['-DHAVE_CONFIG_H', '-DFRIBIDI_BUILD'] + fribidi_static_cargs + visibility_args,
   version: libversion,
   soversion: soversion,
   install: true)

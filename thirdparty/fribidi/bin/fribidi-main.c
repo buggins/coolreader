@@ -104,7 +104,7 @@ help (
 	  "  -h, --help            Display this information and exit\n"
 	  "  -V, --version         Display version information and exit\n"
 	  "  -v, --verbose         Verbose mode, same as --basedir --ltov --vtol\n"
-	  "                        --levels --changes\n");
+	  "                        --levels\n");
   printf ("  -d, --debug           Output debug information\n"
 	  "  -t, --test            Test " FRIBIDI_NAME
 	  ", same as --clean --nobreak\n"
@@ -139,11 +139,11 @@ help (
 	  "      --vtol            Output Visual to Logical position map\n"
 	  "      --levels          Output Embedding Levels\n"
 	  "      --novisual        Do not output the visual string, to be used with\n"
-	  "                        --basedir, --ltov, --vtol, --levels, --changes\n");
+	  "                        --basedir, --ltov, --vtol, --levels\n");
   printf ("  All string indexes are zero based\n" "\n" "Output:\n"
 	  "  For each line of input, output something like this:\n"
 	  "    [input-str` => '][BOL][[padding space]visual-str][EOL]\n"
-	  "    [\\n base-dir][\\n ltov-map][\\n vtol-map][\\n levels][\\n changes]\n");
+	  "    [\\n base-dir][\\n ltov-map][\\n vtol-map][\\n levels]\n");
 
   {
     int i;
