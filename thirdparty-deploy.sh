@@ -141,3 +141,4 @@ fi
 
 deploy_package libunibreak
 deploy_package libpng
+deploy_package libjpeg
