@@ -26,7 +26,7 @@ LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/thirdparty/libpng-1.6.37 \
     $(CR3_ROOT)/thirdparty/freetype-2.10.4/include \
     $(CR3_ROOT)/thirdparty/freetype-2.10.4 \
-    $(CR3_ROOT)/thirdparty_unman/harfbuzz/src \
+    $(CR3_ROOT)/thirdparty/harfbuzz-2.7.4/src \
     $(CR3_ROOT)/thirdparty/jpeg-9d \
     $(CR3_ROOT)/thirdparty_unman/antiword \
     $(CR3_ROOT)/thirdparty_unman/chmlib/src \

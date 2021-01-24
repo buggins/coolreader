@@ -7,7 +7,7 @@ LOCAL_MODULE := local_freetype
 
 FREETYPE_SRC_DIR := ../../../../thirdparty/freetype-2.10.4
 FREETYPE_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/freetype-2.10.4
-HARFBUZZ_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty_unman/harfbuzz
+HARFBUZZ_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/harfbuzz-2.7.4
 FREETYPE_CONFIG_DIR_P := $(LOCAL_PATH)
 PNG_PRIV_CONFIG_DIR_P := $(LOCAL_PATH)/../libpng/lib
 PNG_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/libpng-1.6.37
