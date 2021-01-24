@@ -24,8 +24,8 @@ LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/crengine/include \
     $(CR3_ROOT)/crengine/fc-lang \
     $(CR3_ROOT)/thirdparty/libpng-1.6.37 \
-    $(CR3_ROOT)/thirdparty_unman/freetype/include \
-    $(CR3_ROOT)/thirdparty_unman/freetype \
+    $(CR3_ROOT)/thirdparty/freetype-2.10.4/include \
+    $(CR3_ROOT)/thirdparty/freetype-2.10.4 \
     $(CR3_ROOT)/thirdparty_unman/harfbuzz/src \
     $(CR3_ROOT)/thirdparty/jpeg-9d \
     $(CR3_ROOT)/thirdparty_unman/antiword \

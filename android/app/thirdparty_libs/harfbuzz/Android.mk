@@ -7,7 +7,7 @@ LOCAL_MODULE := local_harfbuzz
 
 HARFBUZZ_SRC_DIR := ../../../../thirdparty_unman/harfbuzz
 HARFBUZZ_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty_unman/harfbuzz
-FREETYPE_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty_unman/freetype
+FREETYPE_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/freetype-2.10.4
 HARFBUZZ_CONFIG_DIR_P := $(LOCAL_PATH)
 
 LOCAL_C_INCLUDES := \
