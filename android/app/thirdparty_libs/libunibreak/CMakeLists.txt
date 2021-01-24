@@ -2,7 +2,7 @@ project(unibreak C)
 
 cmake_minimum_required(VERSION 3.4)
 
-set(LIBUNIBREAK_SOURCE_DIR "${PROJECT_SOURCE_DIR}/../../../../thirdparty/libunibreak/src")
+set(LIBUNIBREAK_SOURCE_DIR "${PROJECT_SOURCE_DIR}/../../../../thirdparty/libunibreak-4.3/src")
 
 include_directories(${LIBUNIBREAK_SOURCE_DIR})
 

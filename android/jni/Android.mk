@@ -23,16 +23,16 @@ CR3_ROOT := $(LOCAL_PATH)/../..
 LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/crengine/include \
     $(CR3_ROOT)/crengine/fc-lang \
-    $(CR3_ROOT)/thirdparty/libpng \
-    $(CR3_ROOT)/thirdparty/freetype/include \
-    $(CR3_ROOT)/thirdparty/freetype \
-    $(CR3_ROOT)/thirdparty/harfbuzz/src \
-    $(CR3_ROOT)/thirdparty/libjpeg \
-    $(CR3_ROOT)/thirdparty/antiword \
-    $(CR3_ROOT)/thirdparty/chmlib/src \
-    $(CR3_ROOT)/thirdparty/nanosvg/src \
-    $(CR3_ROOT)/thirdparty/fribidi/lib \
-    $(CR3_ROOT)/thirdparty/libunibreak/src \
+    $(CR3_ROOT)/thirdparty_unman/libpng \
+    $(CR3_ROOT)/thirdparty_unman/freetype/include \
+    $(CR3_ROOT)/thirdparty_unman/freetype \
+    $(CR3_ROOT)/thirdparty_unman/harfbuzz/src \
+    $(CR3_ROOT)/thirdparty_unman/libjpeg \
+    $(CR3_ROOT)/thirdparty_unman/antiword \
+    $(CR3_ROOT)/thirdparty_unman/chmlib/src \
+    $(CR3_ROOT)/thirdparty_unman/nanosvg/src \
+    $(CR3_ROOT)/thirdparty_unman/fribidi/lib \
+    $(CR3_ROOT)/thirdparty/libunibreak-4.3/src \
     $(CR3_ROOT)/android/app/thirdparty_libs/freetype \
     $(CR3_ROOT)/android/app/thirdparty_libs/fribidi/lib
 

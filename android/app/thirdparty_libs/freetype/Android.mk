@@ -5,11 +5,11 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := local_freetype
 
-FREETYPE_SRC_DIR := ../../../../thirdparty/freetype
-FREETYPE_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/freetype
-HARFBUZZ_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/harfbuzz
+FREETYPE_SRC_DIR := ../../../../thirdparty_unman/freetype
+FREETYPE_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty_unman/freetype
+HARFBUZZ_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty_unman/harfbuzz
 FREETYPE_CONFIG_DIR_P := $(LOCAL_PATH)
-PNG_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/libpng
+PNG_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty_unman/libpng
 
 LOCAL_C_INCLUDES := \
         $(FREETYPE_CONFIG_DIR_P) \
