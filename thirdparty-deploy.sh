@@ -83,7 +83,7 @@ deploy_package()
 	then
 		# make sha512 sum file
 		echo "${SHA512} *${SRCFILE}" > "${SRCFILE}.sha512"
-		sha512sum -c "${SRCFILE}.sha512" || die "Failed to verify checksum!"
+		sha512sum -c "${SRCFILE}.sha512" || if [ "x" = "x" ]; then rm -f .downloaded; die "Failed to verify checksum!"; fi
 		echo "1" > .verified
 		rm -f "${SRCFILE}.sha512"
 		echo "Checksum OK."
@@ -145,3 +145,4 @@ deploy_package libjpeg
 deploy_package freetype
 deploy_package harfbuzz
 deploy_package fribidi
+deploy_package zlib

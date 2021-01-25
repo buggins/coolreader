@@ -198,10 +198,8 @@ endif (NOT MSVC AND NOT DEFINED USE_STATIC_ZLIB)
 
 if (NOT ZLIB_FOUND)
   message("System ZLIB not found, will build local one\n")
-  #to disable #include <qconfig.h>
-  ADD_DEFINITIONS(-DCR3_PATCH=1)
-  ADD_SUBDIRECTORY(thirdparty_unman/zlib)
-  SET(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty_unman/zlib)
+  ADD_SUBDIRECTORY(thirdparty/zlib-1.2.11)
+  SET(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/zlib-1.2.11 ${CMAKE_BINARY_DIR}/thirdparty/zlib-1.2.11)
   SET(ZLIB_LIBRARIES z)
 endif (NOT ZLIB_FOUND)
 endif(DEFINED USE_QT_ZLIB)
@@ -215,8 +213,6 @@ endif (NOT MSVC AND NOT CR3_PNG)
 
 if (NOT PNG_FOUND)
   message("System LIBPNG not found, will build local one\n")
-  #to disable #include <qconfig.h>
-  ADD_DEFINITIONS(-DCR3_PATCH=1)
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIR})
   ADD_SUBDIRECTORY(thirdparty/libpng-1.6.37)
   SET(PNG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/libpng-1.6.37)
