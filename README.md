@@ -71,10 +71,13 @@ To build debian package, copy one of package descriptions from packages director
 Android Build Instructions
 --------------------------
 
-Deploy/update third party libraries:
-In terminal call script thirdparty-deploy.sh
+* Deploy/update third party libraries: in terminal call script thirdparty-deploy.sh
+
 In Windows can be used git bash terminal
-Use Android Studio - open subdirectory "android" as Android Studio project
+
+        > ./thirdparty-deploy.sh
+
+* Use Android Studio - open subdirectory "android" as Android Studio project
 
 Ensure that you have Android SDK and NDK installed
 
