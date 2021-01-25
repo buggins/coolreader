@@ -2944,6 +2944,22 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
 	}
 }
 
+/// Return a hash accounting for the rendering and the pages layout
+/// A changed hash let frontends know their cached values of some document
+/// properties (full height, TOC pages...) may have changed and that they
+/// need to fetch them again
+lUInt32 LVDocView::getDocumentRenderingHash() {
+    if (m_doc) {
+        // Also account for the number of pages, as toggling m_twoVisiblePagesAsOnePageNumber
+        // does not change the document rendering hash, but it does change page numbers
+        // Also account for the document height, just to be sure
+        return ((( (lUInt32)m_doc->getDocumentRenderingHash()) * 31
+                 + (lUInt32)m_doc->getFullHeight()) * 31
+                 + (lUInt32)getPageCount());
+    }
+    return 0;
+}
+
 /// sets selection for whole element, clears previous selection
 void LVDocView::selectElement(ldomNode * elem) {
 	ldomXRangeList & sel = getDocument()->getSelections();

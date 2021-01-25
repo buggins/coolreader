@@ -936,6 +936,11 @@ public:
     void Render( int dx=0, int dy=0, LVRendPageList * pages=NULL );
     /// set properties before rendering
     void setRenderProps( int dx, int dy );
+    /// Return a hash accounting for the rendering and the pages layout
+    /// A changed hash let frontends know their cached values of some document
+    /// properties (full height, TOC pages...) may have changed and that they
+    /// need to fetch them again
+    lUInt32 getDocumentRenderingHash();
 
     /// Constructor
     LVDocView( int bitsPerPixel=-1, bool noDefaultDocument=false );

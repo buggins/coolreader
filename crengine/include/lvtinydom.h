@@ -2363,6 +2363,7 @@ private:
     bool _toc_from_cache_valid;
     lUInt32 _warnings_seen_bitmap;
     ldomXRangeList _selections;
+    lUInt32 _doc_rendering_hash;
 #endif
 
     lString32 _docStylesheetFileName;
@@ -2397,6 +2398,7 @@ protected:
 public:
 
 #if BUILD_LITE!=1
+    lUInt32 getDocumentRenderingHash() { return _doc_rendering_hash; }
     void forceReinitStyles() {
         dropStyles();
         _hdr.render_style_hash = 0;

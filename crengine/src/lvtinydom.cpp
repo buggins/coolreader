@@ -4129,6 +4129,7 @@ ldomDocument::ldomDocument()
 , _just_rendered_from_cache(false)
 , _toc_from_cache_valid(false)
 , _warnings_seen_bitmap(0)
+, _doc_rendering_hash(0)
 #endif
 , lists(100)
 {
@@ -16137,6 +16138,13 @@ void ldomDocument::updateRenderContext()
     _hdr.node_displaystyle_hash = _nodeDisplayStyleHashInitial; // we keep using the initial one
     CRLog::info("Updating render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x, nodeDisplayStyleHash=%x",
                 _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy, _hdr.node_displaystyle_hash);
+    _doc_rendering_hash = ((((((
+         + (lUInt32)dx) * 31
+         + (lUInt32)dy) * 31
+         + (lUInt32)_docFlags) * 31
+         + (lUInt32)_nodeDisplayStyleHashInitial) * 31
+         + (lUInt32)stylesheetHash) * 31
+         + (lUInt32)styleHash);
 }
 
 /// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
