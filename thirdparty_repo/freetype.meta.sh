@@ -10,4 +10,4 @@ URL="https://download.savannah.gnu.org/releases/${PN}/${SRCFILE}"
 
 SOURCESDIR="${PN}-${PV}"
 
-PATCHES=
+PATCHES="01-disable-install.patch"

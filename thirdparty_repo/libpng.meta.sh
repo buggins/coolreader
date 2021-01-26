@@ -10,4 +10,4 @@ URL="https://download.sourceforge.net/${PN}/${PN}-${PV}.tar.xz"
 
 SOURCESDIR="${PN}-${PV}"
 
-PATCHES="01-cmake-static.patch"
+PATCHES="01-cmake-static-r1.patch"
