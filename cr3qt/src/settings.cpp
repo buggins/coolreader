@@ -161,6 +161,9 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
         m_props->setString(PROP_FONT_GAMMA, "1.0");
     optionToUiString(PROP_FONT_GAMMA, m_ui->cbFontGamma);
 
+    QString ignoreDocMargins = m_props->getStringDef("styles.body.margin", "");
+    m_ui->cbIgnoreDocumentMargins->setCheckState(ignoreDocMargins.length() > 0 ?  Qt::Checked : Qt::Unchecked);
+
     optionToUiInversed( PROP_STATUS_LINE, m_ui->cbShowPageHeader );
 
     bool b = m_props->getIntDef( PROP_STATUS_LINE, 0 )==0;
@@ -1071,10 +1074,17 @@ void SettingsDlg::on_cbEnableEmbeddedFonts_toggled(bool checked)
     setCheck(PROP_EMBEDDED_FONTS, checked ? Qt::Checked : Qt::Unchecked);
 }
 
+void SettingsDlg::on_cbIgnoreDocumentMargins_stateChanged(int s)
+{
+    QString value = (s == Qt::Checked) ? "margin: 0em !important" : "";
+    m_props->setString("styles.body.margin", value);
+}
+
 void SettingsDlg::on_cbEnableDocumentStyles_toggled(bool checked)
 {
     setCheck(PROP_EMBEDDED_STYLES, checked ? Qt::Checked : Qt::Unchecked);
     m_ui->cbEnableEmbeddedFonts->setEnabled(checked);
+    m_ui->cbIgnoreDocumentMargins->setEnabled(checked);
 }
 
 void SettingsDlg::on_btnSelectionColor_clicked()

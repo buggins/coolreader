@@ -1,6 +1,9 @@
 head, style, form, script { display: none; } 
 
-body { $def.all } 
+body {
+    $def.all
+    $body.margin
+}
 
 p { $def.all } 
 *.justindent { text-align: justify; text-indent: 1.2em; margin-top:0em; margin-bottom: 0em }

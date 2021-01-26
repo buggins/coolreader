@@ -1,7 +1,8 @@
 body {
     text-indent: 0;
-    margin: 0;
     text-align: justify;
+    margin: 0;
+    $body.margin
 }
 
 head, script {

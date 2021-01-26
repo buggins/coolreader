@@ -328,6 +328,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	// Disable options
 	OptionBase mHyphDictOption;
 	OptionBase mEmbedFontsOptions;
+	OptionBase mIgnoreDocMargins;
 	OptionBase mFootNotesOption;
 	OptionBase mEnableMultiLangOption;
 	OptionBase mEnableHyphOption;
@@ -550,6 +551,53 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				mOptionsCloudSync.refresh();
 			}
+		}
+	}
+	class StyleBoolOption extends OptionBase {
+		private String onValue;
+		private String offValue;
+		public StyleBoolOption( OptionOwner owner, String label, String property, String onValue, String offValue) {
+			super(owner, label, property);
+			this.onValue = onValue;
+			this.offValue = offValue;
+		}
+		private boolean getValueBoolean() {
+			return onValue.equals(mProperties.getProperty(property));
+		}
+		public OptionBase setDefaultValueBoolean(boolean value) {
+			defaultValue = value ? onValue : offValue;
+			if ( mProperties.getProperty(property)==null )
+				mProperties.setProperty(property, defaultValue);
+			return this;
+		}
+		public void onSelect() {
+			if (!enabled)
+				return;
+			// Toggle the state
+			mProperties.setProperty(property, getValueBoolean() ? offValue : onValue);
+			refreshList();
+		}
+		public int getItemViewType() {
+			return OPTION_VIEW_TYPE_BOOLEAN;
+		}
+		public View getView(View convertView, ViewGroup parent) {
+			View view;
+			convertView = myView;
+			if ( convertView==null ) {
+				//view = new TextView(getContext());
+				view = mInflater.inflate(R.layout.option_item_boolean, null);
+			} else {
+				view = convertView;
+			}
+			myView = view;
+			TextView labelView = view.findViewById(R.id.option_label);
+			CheckBox valueView = view.findViewById(R.id.option_value_cb);
+			labelView.setText(label);
+			labelView.setEnabled(enabled);
+			valueView.setChecked(getValueBoolean());
+			setupIconView((ImageView)view.findViewById(R.id.option_icon));
+			valueView.setEnabled(enabled);
+			return view;
 		}
 	}
 	class BoolOption extends OptionBase {
@@ -1925,12 +1973,16 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				.setOnChangeHandler(() -> {
 					boolean value = mProperties.getBool(PROP_EMBEDDED_STYLES, false);
 					mEmbedFontsOptions.setEnabled(isEpubFormat && value);
+					mIgnoreDocMargins.setEnabled(isFormatWithEmbeddedStyle && value);
 				})
 		);
 		mEmbedFontsOptions = new BoolOption(this, getString(R.string.options_font_embedded_document_font_enabled), PROP_EMBEDDED_FONTS).setDefaultValue("1").noIcon();
 		boolean value = mProperties.getBool(PROP_EMBEDDED_STYLES, false);
 		mEmbedFontsOptions.setEnabled(isEpubFormat && value);
 		mOptionsCSS.add(mEmbedFontsOptions);
+		mIgnoreDocMargins = new StyleBoolOption(this, getString(R.string.options_ignore_document_margins), "styles.body.margin", "margin: 0em !important", "").setDefaultValueBoolean(false).noIcon();
+		mIgnoreDocMargins.setEnabled(isFormatWithEmbeddedStyle && value);
+		mOptionsCSS.add(mIgnoreDocMargins);
 		if (isTextFormat) {
 			mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_text_autoformat_enable), PROP_TXT_OPTION_PREFORMATTED).setDefaultValue("1").noIcon());
 		}

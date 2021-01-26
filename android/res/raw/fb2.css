@@ -1,4 +1,9 @@
-body { text-align: left; margin: 0; text-indent: 0px }
+body {
+    text-align: left;
+    text-indent: 0px;
+    margin: 0;
+    $body.margin
+}
 
 p { $def.all } 
 
@@ -139,4 +144,4 @@ img {
    text-indent: 0em; 
    border-style: solid; 
    border-width: medium; 
-} 
+}
