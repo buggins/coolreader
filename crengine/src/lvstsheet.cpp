@@ -607,6 +607,14 @@ static bool parse_number_value( const char * & str, css_length_t & value,
             return false;
         }
     }
+    else if ( substr_icompare( "vw", str ) )
+        value.type = css_val_vw;
+    else if ( substr_icompare( "vh", str ) )
+        value.type = css_val_vh;
+    else if ( substr_icompare( "vmin", str ) )
+        value.type = css_val_vmin;
+    else if ( substr_icompare( "vmax", str ) )
+        value.type = css_val_vmax;
     else if (n == 0 && frac == 0)
         value.type = css_val_px;
     // allow unspecified unit (for line-height)

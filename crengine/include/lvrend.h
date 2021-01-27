@@ -117,7 +117,7 @@ bool isSameFontStyle( css_style_rec_t * style1, css_style_rec_t * style2 );
 /// removes format data from node
 void freeFormatData( ldomNode * node );
 /// returns best suitable font for style
-LVFontRef getFont(css_style_rec_t * style, int documentId);
+LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId);
 /// initializes format data for node
 void initFormatData( ldomNode * node );
 /// initializes rendering method for node
@@ -169,7 +169,7 @@ void LVRendSetBaseFontWeight(int weight);
 int LVRendGetBaseFontWeight();
 
 int measureBorder(ldomNode *enode,int border);
-int lengthToPx( css_length_t val, int base_px, int base_em, bool unspecified_as_em=false );
+int lengthToPx( ldomNode *node, css_length_t val, int base_px, int base_em = -1, bool unspecified_as_em=false );
 int scaleForRenderDPI( int value );
 bool getStyledImageSize( ldomNode * enode, int & img_width, int & img_height, int container_width=-1, int container_height=-1 );
 

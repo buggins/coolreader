@@ -85,7 +85,7 @@ extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.12.76"
+#define CACHE_FILE_FORMAT_VERSION "3.12.77"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0026
@@ -8792,10 +8792,9 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
         // In legacy mode, we just got the erm_final coordinates, and we must
         // compute and remove left/top border and padding (using rc.width() as
         // the base for % is wrong here, and so is rc.height() for padding top)
-        int em = finalNode->getFont()->getSize();
-        int padding_left = measureBorder(finalNode,3)+lengthToPx(finalNode->getStyle()->padding[0],rc.width(),em);
-        int padding_right = measureBorder(finalNode,1)+lengthToPx(finalNode->getStyle()->padding[1],rc.width(),em);
-        int padding_top = measureBorder(finalNode,0)+lengthToPx(finalNode->getStyle()->padding[2],rc.height(),em);
+        int padding_left = measureBorder(finalNode,3)+lengthToPx(finalNode, finalNode->getStyle()->padding[0],rc.width());
+        int padding_right = measureBorder(finalNode,1)+lengthToPx(finalNode, finalNode->getStyle()->padding[1],rc.width());
+        int padding_top = measureBorder(finalNode,0)+lengthToPx(finalNode, finalNode->getStyle()->padding[2],rc.height());
         pt.x -= padding_left;
         pt.y -= padding_top;
         // As well as the inner width
@@ -9107,12 +9106,11 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
             // In legacy mode, we just got the erm_final coordinates, and we must
             // compute and remove left/top border and padding (using rc.width() as
             // the base for % is wrong here)
-            int em = finalNode->getFont()->getSize();
-            int padding_left = measureBorder(finalNode,3) + lengthToPx(finalNode->getStyle()->padding[0], rc.width(), em);
-            int padding_right = measureBorder(finalNode,1) + lengthToPx(finalNode->getStyle()->padding[1], rc.width(), em);
+            int padding_left = measureBorder(finalNode,3) + lengthToPx(finalNode, finalNode->getStyle()->padding[0], rc.width());
+            int padding_right = measureBorder(finalNode,1) + lengthToPx(finalNode, finalNode->getStyle()->padding[1], rc.width());
             inner_width  = fmt.getWidth() - padding_left - padding_right;
             if (extended) {
-                int padding_top = measureBorder(finalNode,0) + lengthToPx(finalNode->getStyle()->padding[2], rc.width(), em);
+                int padding_top = measureBorder(finalNode,0) + lengthToPx(finalNode, finalNode->getStyle()->padding[2], rc.width());
                 rc.top += padding_top;
                 rc.left += padding_left;
                 // rc.right += padding_left; // wrong, but not used
@@ -11091,18 +11089,16 @@ bool ldomXRange::getRectEx( lvRect & rect, bool & isSingleLine )
     // compute and add left/top border and padding (using rc.width() as
     // the base for % is wrong here, and so is rc.height() for padding top)
     if ( ! RENDER_RECT_HAS_FLAG(fmt1, INNER_FIELDS_SET) ) {
-        int em = finalNode1->getFont()->getSize();
-        int padding_left = measureBorder(finalNode1,3) + lengthToPx(finalNode1->getStyle()->padding[0], fmt1.getWidth(), em);
-        int padding_top = measureBorder(finalNode1,0) + lengthToPx(finalNode1->getStyle()->padding[2], fmt1.getWidth(), em);
+        int padding_left = measureBorder(finalNode1,3) + lengthToPx(finalNode1, finalNode1->getStyle()->padding[0], fmt1.getWidth());
+        int padding_top = measureBorder(finalNode1,0) + lengthToPx(finalNode1, finalNode1->getStyle()->padding[2], fmt1.getWidth());
         rc1.top += padding_top;
         rc1.left += padding_left;
         rc1.right += padding_left;
         rc1.bottom += padding_top;
     }
     if ( ! RENDER_RECT_HAS_FLAG(fmt2, INNER_FIELDS_SET) ) {
-        int em = finalNode2->getFont()->getSize();
-        int padding_left = measureBorder(finalNode2,3) + lengthToPx(finalNode2->getStyle()->padding[0], fmt2.getWidth(), em);
-        int padding_top = measureBorder(finalNode2,0) + lengthToPx(finalNode2->getStyle()->padding[2], fmt2.getWidth(), em);
+        int padding_left = measureBorder(finalNode2,3) + lengthToPx(finalNode2, finalNode2->getStyle()->padding[0], fmt2.getWidth());
+        int padding_top = measureBorder(finalNode2,0) + lengthToPx(finalNode2, finalNode2->getStyle()->padding[2], fmt2.getWidth());
         rc2.top += padding_top;
         rc2.left += padding_left;
         rc2.right += padding_left;
@@ -15552,7 +15548,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
                     if ( !s.isNull() ) {
                         lUInt16 fntIndex = _fontMap.get( style );
                         if ( fntIndex==0 ) {
-                            LVFontRef fnt = getFont(s.get(), getFontContextDocIndex());
+                            LVFontRef fnt = getFont(&buf[j], s.get(), getFontContextDocIndex());
                             fntIndex = (lUInt16)_fonts.cache( fnt );
                             if ( fnt.isNull() ) {
                                 CRLog::error("font not found for style!");
@@ -17620,13 +17616,13 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction, bool strict_bo
         // (erm_table_row_group, erm_table_header_group, erm_table_footer_group, erm_table_row)
         bool ignore_margins = rm >= erm_table_row_group && rm <= erm_table_row;
 
-        int top_margin = ignore_margins ? 0 : lengthToPx(enode->getStyle()->margin[2], fmt.getWidth(), enode->getFont()->getSize());
+        int top_margin = ignore_margins ? 0 : lengthToPx(enode, enode->getStyle()->margin[2], fmt.getWidth());
         if ( pt.y < fmt.getY() - top_margin) {
             if ( direction >= PT_DIR_SCAN_FORWARD && rm == erm_final )
                 return this;
             return NULL;
         }
-        int bottom_margin = ignore_margins ? 0 : lengthToPx(enode->getStyle()->margin[3], fmt.getWidth(), enode->getFont()->getSize());
+        int bottom_margin = ignore_margins ? 0 : lengthToPx(enode, enode->getStyle()->margin[3], fmt.getWidth());
         if ( pt.y >= fmt.getY() + fmt.getHeight() + bottom_margin ) {
             if ( direction <= PT_DIR_SCAN_BACKWARD && rm == erm_final )
                 return this;
@@ -17796,7 +17792,7 @@ bool ldomNode::initNodeFont()
             CRLog::error("style not found for index %d", style);
             s = getDocument()->_styles.get( style );
         }
-        LVFontRef fnt = ::getFont(s.get(), getDocument()->getFontContextDocIndex());
+        LVFontRef fnt = ::getFont(this, s.get(), getDocument()->getFontContextDocIndex());
         fntIndex = (lUInt16)getDocument()->_fonts.cache( fnt );
         if ( fnt.isNull() ) {
             CRLog::error("font not found for style!");
@@ -18818,12 +18814,11 @@ int ldomNode::getSurroundingAddedHeight()
                 RenderRectAccessor fmt( parent );
                 base_width = fmt.getWidth();
             }
-            int em = n->getFont()->getSize();
             css_style_ref_t style = n->getStyle();
-            h += lengthToPx( style->margin[2], base_width, em );  // top margin
-            h += lengthToPx( style->margin[3], base_width, em );  // bottom margin
-            h += lengthToPx( style->padding[2], base_width, em ); // top padding
-            h += lengthToPx( style->padding[3], base_width, em ); // bottom padding
+            h += lengthToPx( n, style->margin[2], base_width );  // top margin
+            h += lengthToPx( n, style->margin[3], base_width );  // bottom margin
+            h += lengthToPx( n, style->padding[2], base_width ); // top padding
+            h += lengthToPx( n, style->padding[3], base_width ); // bottom padding
             h += measureBorder(n, 0); // top border
             h += measureBorder(n, 2); // bottom border
         }
@@ -18942,8 +18937,8 @@ bool ldomNode::refreshFinalBlock()
     LFormattedTextRef txtform;
     int width = fmt.getWidth();
     renderFinalBlock( txtform, &fmt, width-measureBorder(this,1)-measureBorder(this,3)
-         -lengthToPx(this->getStyle()->padding[0],fmt.getWidth(),this->getFont()->getSize())
-         -lengthToPx(this->getStyle()->padding[1],fmt.getWidth(),this->getFont()->getSize()));
+         -lengthToPx(this, this->getStyle()->padding[0],fmt.getWidth())
+         -lengthToPx(this, this->getStyle()->padding[1],fmt.getWidth()) );
     fmt.getRect( newRect );
     if ( oldRect == newRect )
         return false;
