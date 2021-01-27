@@ -367,9 +367,8 @@ void LFormattedText::AddSourceObject(
 
     css_style_ref_t style = node->getStyle();
     lInt16 w = 0, h = 0;
-    int em = node->getFont()->getSize();
-    w = lengthToPx(style->width, 100, em);
-    h = lengthToPx(style->height, 100, em);
+    w = lengthToPx(node, style->width, 100);
+    h = lengthToPx(node, style->height, 100);
     // width in % will be computed in measureText() as a % of m_pbuffer->width
     // For height in %, it's more complicated... see:
     //   https://www.w3.org/TR/CSS2/visudet.html#the-width-property

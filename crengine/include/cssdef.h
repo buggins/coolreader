@@ -241,6 +241,10 @@ enum css_value_type_t {
     css_val_pt,  // 1/72 in  72pt = 96 css px
     css_val_pc,  // 12 pt     6pc = 96 css px
     css_val_percent,
+    css_val_vw,   // 1 percent of the screen width
+    css_val_vh,   // 1 percent of the screen height
+    css_val_vmin, // maximum of 1 percent of the screen height or width
+    css_val_vmax, // minimum of 1 percent of the screen height or width
     css_val_color,
     css_val_screen_px  // screen px, for already scaled values
 };
