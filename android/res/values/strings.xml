@@ -148,6 +148,7 @@
     <string name="action_touch_screen_disabled_toast">Touch screen is locked</string>
     <string name="action_touch_screen_enabled_toast">Touch screen is unlocked</string>
     <string name="action_repeat">(autorepeat)</string>
+    <string name="action_logcat">Save log</string>
     <string name="options_app_scan_book_props">Scan properties of all books in directory</string>
     <string name="options_page_titlebar">Title bar options</string>
     <string name="options_page_show_titlebar_chapter_marks">Chapter bound marks</string>

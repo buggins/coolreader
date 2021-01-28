@@ -40,6 +40,7 @@ import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.FileInfoOperationListener;
 import org.coolreader.crengine.InterfaceTheme;
 import org.coolreader.crengine.L;
+import org.coolreader.crengine.LogcatSaver;
 import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.N2EpdController;
 import org.coolreader.crengine.OPDSCatalogEditDialog;
@@ -61,8 +62,10 @@ import org.koekak.android.ebookdownloader.SonyBookSelector;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -1821,6 +1824,27 @@ public class CoolReader extends BaseActivity {
 		}
 	}
 
+	public void createLogcatFile() {
+		Date since = getLastLogcatDate();
+		FileInfo dir = Services.getScanner().getSharedDownloadDirectory();
+		if (null != dir) {
+			Date now = new Date();
+			SimpleDateFormat format = new SimpleDateFormat("'cr3-'yyyy-MM-dd_HH_mm_ss'.log'", Locale.US);
+			File outputFile = new File(dir.pathname, format.format(now));
+			if (LogcatSaver.saveLogcat(since, outputFile)) {
+				setLastLogcatDate(now);
+				log.i("logcat saved to file " + outputFile);
+				showToast("Logcat saved to " + outputFile);
+				// TODO: show dialog about output file.
+			} else {
+				log.e("Failed to save logcat " + outputFile);
+				showToast("Failed to save logcat " + outputFile);
+			}
+		} else {
+			log.e("Can't create logcat file: no access to download directory!");
+		}
+	}
+
 	public void saveSetting(String name, String value) {
 		if (mReaderView != null)
 			mReaderView.saveSetting(name, value);
@@ -2055,6 +2079,17 @@ public class CoolReader extends BaseActivity {
 				uri = Uri.parse(strUri);
 		}
 		return uri;
+	}
+
+	private Date getLastLogcatDate() {
+		long dateMillis = getPrefs().getLong(PREF_LAST_LOGCAT, 0);
+		return new Date(dateMillis);
+	}
+
+	private void setLastLogcatDate(Date date) {
+		SharedPreferences.Editor editor = getPrefs().edit();
+		editor.putLong(PREF_LAST_LOGCAT, date.getTime());
+		editor.commit();
 	}
 
 	public void showCurrentBook() {

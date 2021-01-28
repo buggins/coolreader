@@ -142,6 +142,7 @@
     <string name="action_touch_screen_disabled_toast">Сенсорный экран отключен</string>
     <string name="action_touch_screen_enabled_toast">Сенсорный экран включен</string>
     <string name="action_repeat">(автоповтор)</string>
+    <string name="action_logcat">Сохранить журнал</string>
     <string name="options_app_scan_book_props">Сканировать свойства книг в директории</string>
     <string name="options_page_titlebar">Настройки колонтитула</string>
     <string name="options_page_show_titlebar_chapter_marks">Метки глав</string>

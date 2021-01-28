@@ -256,6 +256,7 @@ public class BaseActivity extends Activity implements Settings {
 	protected static String PREF_LAST_LOCATION = "LastLocation";
 	protected static String PREF_LAST_NOTIFICATION = "LastNoticeNumber";
 	protected static String PREF_EXT_DATADIR_CREATETIME = "ExtDataDirCreateTime";
+	protected static String PREF_LAST_LOGCAT = "LastLogcat";
 
 	@Override
 	protected void onResume() {
