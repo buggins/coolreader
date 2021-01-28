@@ -1902,7 +1902,7 @@ public class CoolReader extends BaseActivity {
 			setLastLogcatDate(now);
 			log.i("logcat saved to file " + fileName);
 			//showToast("Logcat saved to " + fileName);
-			showMessage("logcat", getString(R.string.notice_log_saved_to_, fileName));
+			showMessage(getString(R.string.win_title_log), getString(R.string.notice_log_saved_to_, fileName));
 		} else {
 			log.e("Failed to save logcat to " + fileName);
 			showToast("Failed to save logcat to " + fileName);
@@ -1987,41 +1987,67 @@ public class CoolReader extends BaseActivity {
 		}
 	}
 
-	int CURRENT_NOTIFICATOIN_VERSION = 1;
+	private static final int NOTIFICATION_READER_MENU_MASK = 0x01;
+	private static final int NOTIFICATION_LOGCAT_MASK = 0x02;
+	private static final int NOTIFICATION_MASK_ALL = NOTIFICATION_READER_MENU_MASK |
+			NOTIFICATION_LOGCAT_MASK;
 
-	public void setLastNotificationId(int notificationId) {
+	public void setLastNotificationMask(int notificationId) {
 		try {
 			SharedPreferences.Editor editor = getPrefs().edit();
-			editor.putInt(PREF_LAST_NOTIFICATION, notificationId);
+			editor.putInt(PREF_LAST_NOTIFICATION_MASK, notificationId);
 			editor.commit();
 		} catch (Exception e) {
 			// ignore
 		}
 	}
 
-	public int getLastNotificationId() {
-		int res = getPrefs().getInt(PREF_LAST_NOTIFICATION, 0);
+	public int getLastNotificationMask() {
+		int res = getPrefs().getInt(PREF_LAST_NOTIFICATION_MASK, 0);
 		log.i("getLastNotification() = " + res);
 		return res;
 	}
 
 
 	public void showNotifications() {
-		int lastNoticeId = getLastNotificationId();
-		if (lastNoticeId >= CURRENT_NOTIFICATOIN_VERSION)
+		int lastNoticeMask = getLastNotificationMask();
+		if ((lastNoticeMask & NOTIFICATION_MASK_ALL) == NOTIFICATION_MASK_ALL)
 			return;
-		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB)
-			if (lastNoticeId <= 1)
+		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
+			if ((lastNoticeMask & NOTIFICATION_READER_MENU_MASK) == 0) {
 				notification1();
-		setLastNotificationId(CURRENT_NOTIFICATOIN_VERSION);
+				return;
+			}
+		}
+		if ((lastNoticeMask & NOTIFICATION_LOGCAT_MASK) == 0) {
+			notification2();
+		}
 	}
 
 	public void notification1() {
 		if (hasHardwareMenuKey())
 			return; // don't show notice if hard key present
 		showNotice(R.string.note1_reader_menu,
-				() -> setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_SHORT_SIDE), false),
-				() -> setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_NONE), false));
+				() -> {
+					setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_SHORT_SIDE), false);
+					setLastNotificationMask(getLastNotificationMask() | NOTIFICATION_READER_MENU_MASK);
+					showNotifications();
+				},
+				() -> {
+					setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_NONE), false);
+					setLastNotificationMask(getLastNotificationMask() | NOTIFICATION_READER_MENU_MASK);
+					showNotifications();
+				}
+		);
+	}
+
+	public void notification2() {
+		showNotice(R.string.note2_logcat,
+				() -> {
+					setLastNotificationMask(getLastNotificationMask() | NOTIFICATION_LOGCAT_MASK);
+					showNotifications();
+				}
+		);
 	}
 
 	/**

@@ -110,7 +110,7 @@ public enum ReaderCommand
 
 	DCMD_GOOGLEDRIVE_SYNC(2100),
 
-	DCMD_CREATE_LOGCAT(2200),
+	DCMD_SAVE_LOGCAT(2200),
 	;
 	
 	final int nativeId;

@@ -2510,7 +2510,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					mActivity.forceSyncFromGoogleDrive();
 				}
 				break;
-			case DCMD_CREATE_LOGCAT:
+			case DCMD_SAVE_LOGCAT:
 				mActivity.createLogcatFile();
 				break;
 			default:

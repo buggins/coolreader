@@ -254,7 +254,7 @@ public class BaseActivity extends Activity implements Settings {
 	protected static String PREF_FILE = "CR3LastBook";
 	protected static String PREF_LAST_BOOK = "LastBook";
 	protected static String PREF_LAST_LOCATION = "LastLocation";
-	protected static String PREF_LAST_NOTIFICATION = "LastNoticeNumber";
+	protected static String PREF_LAST_NOTIFICATION_MASK = "LastNoticeMask";
 	protected static String PREF_EXT_DATADIR_CREATETIME = "ExtDataDirCreateTime";
 	protected static String PREF_LAST_LOGCAT = "LastLogcat";
 
@@ -411,7 +411,7 @@ public class BaseActivity extends Activity implements Settings {
 				R.attr.cr3_button_tts_drawable, R.attr.cr3_browser_folder_recent_drawable, R.attr.cr3_button_scroll_go_drawable,
 				R.attr.cr3_btn_books_swap_drawable, R.attr.cr3_logo_button_drawable, R.attr.cr3_viewer_exit_drawable,
 				R.attr.cr3_button_book_open_drawable, R.attr.cr3_browser_folder_current_book_drawable, R.attr.cr3_browser_folder_opds_drawable,
-				R.attr.google_drive_drawable };
+				R.attr.google_drive_drawable, R.attr.cr3_button_log_drawable };
 		TypedArray a = getTheme().obtainStyledAttributes(attrs);
 		int btnPrevDrawableRes = a.getResourceId(0, 0);
 		int btnNextDrawableRes = a.getResourceId(1, 0);
@@ -435,6 +435,7 @@ public class BaseActivity extends Activity implements Settings {
 		int brFolderCurrBookDrawableRes = a.getResourceId(19, 0);
 		int brFolderOpdsDrawableRes = a.getResourceId(20, 0);
 		int googleDriveDrawableRes = a.getResourceId(21, 0);
+		int btnLogDrawableRes = a.getResourceId(22, 0);
 		a.recycle();
 		if (btnPrevDrawableRes != 0) {
 			ReaderAction.GO_BACK.setIconId(btnPrevDrawableRes);
@@ -484,6 +485,8 @@ public class BaseActivity extends Activity implements Settings {
 			ReaderAction.GDRIVE_SYNCTO.setIconId(googleDriveDrawableRes);
 			ReaderAction.GDRIVE_SYNCFROM.setIconId(googleDriveDrawableRes);
 		}
+		if (btnLogDrawableRes != 0)
+			ReaderAction.SAVE_LOGCAT.setIconId(btnLogDrawableRes);
 	}
 
 	public void setCurrentTheme(InterfaceTheme theme) {
@@ -1299,6 +1302,12 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void showNotice(int questionResourceId, final Runnable action, final Runnable cancelAction) {
 		NoticeDialog dlg = new NoticeDialog(this, action, cancelAction);
+		dlg.setMessage(questionResourceId);
+		dlg.show();
+	}
+
+	public void showNotice(int questionResourceId, final Runnable action) {
+		NoticeDialog dlg = new NoticeDialog(this, action, null);
 		dlg.setMessage(questionResourceId);
 		dlg.show();
 	}
