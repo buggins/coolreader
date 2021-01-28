@@ -162,6 +162,7 @@
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more</item>
         <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book</item>
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info</item>
+        <item name="cr3_button_log_drawable">@drawable/cr3_button_log</item>
 
         <item name="google_drive_drawable">@drawable/google_drive</item>
 
@@ -246,6 +247,7 @@
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more</item>
         <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book</item>
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info</item>
+        <item name="cr3_button_log_drawable">@drawable/cr3_button_log</item>
 
         <item name="google_drive_drawable">@drawable/google_drive</item>
 
@@ -368,6 +370,7 @@
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more_hc</item>
         <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book_hc</item>
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info_hc</item>
+        <item name="cr3_button_log_drawable">@drawable/cr3_button_log_hc</item>
 
         <item name="google_drive_drawable">@drawable/google_drive_mono</item>
 
@@ -454,6 +457,7 @@
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more_hc</item>
         <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book_hc</item>
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info_hc</item>
+        <item name="cr3_button_log_drawable">@drawable/cr3_button_log_hc</item>
 
         <item name="google_drive_drawable">@drawable/google_drive_mono</item>
 
