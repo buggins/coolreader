@@ -705,4 +705,6 @@
     <string name="book_info_genres">Genre(s)</string>
     <string name="including_subgenres">(Including subgenres)</string>
     <string name="action_show_onyx_backlight_system_dialog">Show the system dialog for setting the backlight</string>
+    <string name="confirmation_select_folder_for_log">On the next screen, select a directory to save the log file</string>
+    <string name="notice_log_saved_to_">The log file was saved in file \"%s\". This file may contain personal data, for example, which books you read, be careful.</string>
 </resources>

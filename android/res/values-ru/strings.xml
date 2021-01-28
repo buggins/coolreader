@@ -670,4 +670,6 @@
     <string name="book_info_genres">Жанр(ы)</string>
     <string name="including_subgenres">(Включая поджанры)</string>
     <string name="action_show_onyx_backlight_system_dialog">Показать системный диалог для настройки подсветки</string>
+    <string name="confirmation_select_folder_for_log">На следующем экране выберите каталог для сохранения файла журнала</string>
+    <string name="notice_log_saved_to_">Файл журнала сохранен в файле \"%s\". Этот файл может содержать личные данные, например, какие книги вы читаете, будьте внимательны.</string>
 </resources>

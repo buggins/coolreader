@@ -1299,6 +1299,16 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void showNotice(int questionResourceId, final Runnable action, final Runnable cancelAction) {
 		NoticeDialog dlg = new NoticeDialog(this, action, cancelAction);
+		dlg.setMessage(questionResourceId);
+		dlg.show();
+	}
+
+	public void showMessage(String title, String message) {
+		AlertDialog.Builder dlg = new AlertDialog.Builder(this);
+		if (null != title)
+			dlg.setTitle(title);
+		dlg.setMessage(message);
+		dlg.setPositiveButton(R.string.dlg_button_ok, (arg0, arg1) -> {});
 		dlg.show();
 	}
 

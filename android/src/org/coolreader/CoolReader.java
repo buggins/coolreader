@@ -60,7 +60,9 @@ import org.coolreader.tts.TTS;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -105,8 +107,8 @@ public class CoolReader extends BaseActivity {
 
 	private String mFileToOpenFromExt = null;
 
-	private FileInfo mFileToDelete = null;
-	private FileInfo mFolderToDelete = null;
+	private int mOpenDocumentTreeCommand = ODT_CMD_NO_SPEC;
+	private FileInfo mOpenDocumentTreeArg = null;
 
 	private boolean isFirstStart = true;
 	private boolean phoneStateChangeHandlerInstalled = false;
@@ -122,6 +124,12 @@ public class CoolReader extends BaseActivity {
 	private static final int REQUEST_CODE_READ_PHONE_STATE_PERM = 2;
 	private static final int REQUEST_CODE_GOOGLE_DRIVE_SIGN_IN = 3;
 	private static final int REQUEST_CODE_OPEN_DOCUMENT_TREE = 11;
+
+	// open document tree activity commands
+	private static final int ODT_CMD_NO_SPEC = -1;
+	private static final int ODT_CMD_DEL_FILE = 1;
+	private static final int ODT_CMD_DEL_FOLDER = 2;
+	private static final int ODT_CMD_SAVE_LOGCAT = 3;
 
 	/**
 	 * Called when the activity is first created.
@@ -1441,40 +1449,74 @@ public class CoolReader extends BaseActivity {
 		} else if (requestCode == REQUEST_CODE_OPEN_DOCUMENT_TREE) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 				if (resultCode == Activity.RESULT_OK) {
-					if (mFileToDelete != null && !mFileToDelete.isDirectory) {
-						Uri sdCardUri = intent.getData();
-						DocumentFile documentFile = null;
-						if (null != sdCardUri)
-							documentFile = Utils.getDocumentFile(mFileToDelete, this, sdCardUri);
-						if (null != documentFile) {
-							if (documentFile.delete()) {
-								Services.getHistory().removeBookInfo(getDB(), mFileToDelete, true, true);
-								final FileInfo dirToUpdate = mFileToDelete.parent;
-								if (null != dirToUpdate)
-									BackgroundThread.instance().postGUI(() -> directoryUpdated(dirToUpdate), 700);
-								updateExtSDURI(mFileToDelete, sdCardUri);
-							} else {
-								showToast(R.string.could_not_delete_file, mFileToDelete);
+					switch (mOpenDocumentTreeCommand) {
+						case ODT_CMD_DEL_FILE:
+							if (mOpenDocumentTreeArg != null && !mOpenDocumentTreeArg.isDirectory) {
+								Uri sdCardUri = intent.getData();
+								DocumentFile documentFile = null;
+								if (null != sdCardUri)
+									documentFile = Utils.getDocumentFile(mOpenDocumentTreeArg, this, sdCardUri);
+								if (null != documentFile) {
+									if (documentFile.delete()) {
+										Services.getHistory().removeBookInfo(getDB(), mOpenDocumentTreeArg, true, true);
+										final FileInfo dirToUpdate = mOpenDocumentTreeArg.parent;
+										if (null != dirToUpdate)
+											BackgroundThread.instance().postGUI(() -> directoryUpdated(dirToUpdate), 700);
+										updateExtSDURI(mOpenDocumentTreeArg, sdCardUri);
+									} else {
+										showToast(R.string.could_not_delete_file, mOpenDocumentTreeArg);
+									}
+								} else {
+									showToast(R.string.could_not_delete_on_sd);
+								}
 							}
-						} else {
-							showToast(R.string.could_not_delete_on_sd);
-						}
-					} else if (mFolderToDelete != null && mFolderToDelete.isDirectory) {
-						Uri sdCardUri = intent.getData();
-						DocumentFile documentFile = null;
-						if (null != sdCardUri)
-							documentFile = Utils.getDocumentFile(mFolderToDelete, this, sdCardUri);
-						if (null != documentFile) {
-							if (documentFile.exists()) {
-								updateExtSDURI(mFolderToDelete, sdCardUri);
-								deleteFolder(mFolderToDelete);
+							break;
+						case ODT_CMD_DEL_FOLDER:
+							if (mOpenDocumentTreeArg != null && mOpenDocumentTreeArg.isDirectory) {
+								Uri sdCardUri = intent.getData();
+								DocumentFile documentFile = null;
+								if (null != sdCardUri)
+									documentFile = Utils.getDocumentFile(mOpenDocumentTreeArg, this, sdCardUri);
+								if (null != documentFile) {
+									if (documentFile.exists()) {
+										updateExtSDURI(mOpenDocumentTreeArg, sdCardUri);
+										deleteFolder(mOpenDocumentTreeArg);
+									}
+								} else {
+									showToast(R.string.could_not_delete_on_sd);
+								}
 							}
-						} else {
-							showToast(R.string.could_not_delete_on_sd);
-						}
+							break;
+						case ODT_CMD_SAVE_LOGCAT:
+							if (mOpenDocumentTreeArg != null) {
+								Uri uri = intent.getData();
+								if (null != uri) {
+									DocumentFile docFolder = DocumentFile.fromTreeUri(this, uri);
+									if (null != docFolder) {
+										DocumentFile file = docFolder.createFile("text/x-log", mOpenDocumentTreeArg.filename);
+										if (null != file) {
+											try {
+												OutputStream ostream = getContentResolver().openOutputStream(file.getUri());
+												if (null != ostream) {
+													saveLogcat(file.getName(), ostream);
+													ostream.close();
+												} else {
+													log.e("logcat: failed to open stream!");
+												}
+											} catch (Exception e) {
+												log.e("logcat: " + e);
+											}
+										} else {
+											log.e("logcat: can't create file!");
+										}
+									}
+								} else {
+									log.d("logcat creation canceled by user");
+								}
+							}
+							break;
 					}
-					mFileToDelete = null;
-					mFolderToDelete = null;
+					mOpenDocumentTreeArg = null;
 				}
 			}
 		} //if (requestCode == REQUEST_CODE_OPEN_DOCUMENT_TREE)
@@ -1739,7 +1781,8 @@ public class CoolReader extends BaseActivity {
 						}
 					} else {
 						showToast(R.string.choose_root_sd);
-						mFileToDelete = file;
+						mOpenDocumentTreeArg = file;
+						mOpenDocumentTreeCommand = ODT_CMD_DEL_FILE;
 						Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
 						startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE);
 					}
@@ -1803,7 +1846,8 @@ public class CoolReader extends BaseActivity {
 									} else {
 										showToast(R.string.choose_root_sd);
 										mFolderDeleteRetryCount++;
-										mFolderToDelete = item;
+										mOpenDocumentTreeCommand = ODT_CMD_DEL_FOLDER;
+										mOpenDocumentTreeArg = item;
 										Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
 										startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE);
 									}
@@ -1813,7 +1857,8 @@ public class CoolReader extends BaseActivity {
 							BackgroundThread.instance().executeGUI(() -> {
 								showToast(R.string.choose_root_sd);
 								mFolderDeleteRetryCount++;
-								mFolderToDelete = item;
+								mOpenDocumentTreeCommand = ODT_CMD_DEL_FOLDER;
+								mOpenDocumentTreeArg = item;
 								Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
 								startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE);
 							});
@@ -1825,23 +1870,42 @@ public class CoolReader extends BaseActivity {
 	}
 
 	public void createLogcatFile() {
-		Date since = getLastLogcatDate();
+		final SimpleDateFormat format = new SimpleDateFormat("'cr3-'yyyy-MM-dd_HH_mm_ss'.log'", Locale.US);
 		FileInfo dir = Services.getScanner().getSharedDownloadDirectory();
-		if (null != dir) {
-			Date now = new Date();
-			SimpleDateFormat format = new SimpleDateFormat("'cr3-'yyyy-MM-dd_HH_mm_ss'.log'", Locale.US);
-			File outputFile = new File(dir.pathname, format.format(now));
-			if (LogcatSaver.saveLogcat(since, outputFile)) {
-				setLastLogcatDate(now);
-				log.i("logcat saved to file " + outputFile);
-				showToast("Logcat saved to " + outputFile);
-				// TODO: show dialog about output file.
+		if (null == dir) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+				log.d("logcat: no access to download directory, opening document tree...");
+				askConfirmation(R.string.confirmation_select_folder_for_log, () -> {
+					mOpenDocumentTreeCommand = ODT_CMD_SAVE_LOGCAT;
+					mOpenDocumentTreeArg = new FileInfo(format.format(new Date()));
+					Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+					startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT_TREE);
+				});
 			} else {
-				log.e("Failed to save logcat " + outputFile);
-				showToast("Failed to save logcat " + outputFile);
+				log.e("Can't create logcat file: no access to download directory!");
 			}
 		} else {
-			log.e("Can't create logcat file: no access to download directory!");
+			try {
+				File outputFile = new File(dir.pathname, format.format(new Date()));
+				FileOutputStream ostream = new FileOutputStream(outputFile);
+				saveLogcat(outputFile.getCanonicalPath(), ostream);
+			} catch (Exception e) {
+				log.e("createLogcatFile: " + e);
+			}
+		}
+	}
+
+	private void saveLogcat(String fileName, OutputStream ostream) {
+		Date since = getLastLogcatDate();
+		Date now = new Date();
+		if (LogcatSaver.saveLogcat(since, ostream)) {
+			setLastLogcatDate(now);
+			log.i("logcat saved to file " + fileName);
+			//showToast("Logcat saved to " + fileName);
+			showMessage("logcat", getString(R.string.notice_log_saved_to_, fileName));
+		} else {
+			log.e("Failed to save logcat to " + fileName);
+			showToast("Failed to save logcat to " + fileName);
 		}
 	}
 
