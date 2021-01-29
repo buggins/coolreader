@@ -401,7 +401,8 @@ bool LVFreeTypeFontManager::initSystemFonts() {
             css_font_family_t fontFamily = css_ff_sans_serif;
             lString32 face32((const char *)family);
             face32.lowercase();
-            if ( spacing==FC_MONO )
+            // Avoid using the 'Material Icons *' fonts for monospace.
+            if ( spacing==FC_MONO && face32.pos("icons") == 0 )
                 fontFamily = css_ff_monospace;
             else if (face32.pos("sans") >= 0)
                 fontFamily = css_ff_sans_serif;
