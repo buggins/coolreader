@@ -110,13 +110,9 @@ public class EinkScreen {
 				if (mRefreshNumber >= mUpdateInterval) {
 					mRefreshNumber = 0;
 					onyxRepaintEveryThing(view);
+					return;
 				}
 			}
-		}
-	}
-
-	public static void UpdateController(View view, boolean isPartially) {
-		if (DeviceInfo.EINK_ONYX) {
 			if (mRefreshNumber > 0 || mUpdateInterval == 0) {
 				switch (mUpdateMode) {
 					case CMODE_CLEAR:
@@ -134,6 +130,9 @@ public class EinkScreen {
 				}
 			}
 		}
+	}
+
+	public static void UpdateController(View view, boolean isPartially) {
 	}
 
 	private static void onyxRepaintEveryThing(View view) {
