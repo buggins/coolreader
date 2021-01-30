@@ -6779,8 +6779,23 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 }
             }
         }
-        // We don't ensure max-height (we'll always use the height needed to show
-        // this block content without overflowing), but we can ensure min-height
+        // Note: we'll always use the height needed to show this block content without overflowing
+        css_length_t style_max_height = style->max_height;
+        if ( style_max_height.type != css_val_unspecified &&
+             style_max_height.type != css_val_percent &&
+             BLOCK_RENDERING(flags, ENSURE_STYLE_HEIGHT) ) {
+            if ( BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) ||
+                 style_max_height.type == css_val_screen_px ||
+                 is_length_relative_unit(style_max_height.type) ) {
+                int style_max_h = lengthToPx( enode, style_max_height, 0 );
+                if ( BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) ) {
+                    style_max_h += padding_top + padding_bottom;
+                }
+                if ( style_h > style_max_h ) {
+                    style_h = style_max_h;
+                }
+            }
+        }
         css_length_t style_min_height = style->min_height;
         if ( style_min_height.type != css_val_unspecified &&
              style_min_height.type != css_val_percent &&
