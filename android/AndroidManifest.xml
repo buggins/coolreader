@@ -43,7 +43,7 @@
             android:configChanges="orientation|keyboardHidden|locale|screenSize|screenLayout|layoutDirection"
             android:theme="@android:style/Theme.NoTitleBar"
             android:launchMode="singleInstance"
-            android:windowSoftInputMode="stateHidden"
+            android:windowSoftInputMode="stateAlwaysHidden"
             android:screenOrientation="sensor">
             
             <intent-filter>
