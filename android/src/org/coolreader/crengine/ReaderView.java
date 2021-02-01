@@ -130,7 +130,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		@Override
 		public void onWindowFocusChanged(boolean hasWindowFocus) {
 			if (hasWindowFocus) {
-				mActivity.einkRefresh();
+				BackgroundThread.instance().postGUI(mActivity::einkRefresh, 400);
 				startStats();
 				checkSize();
 			} else

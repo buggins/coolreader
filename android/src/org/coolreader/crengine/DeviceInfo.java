@@ -152,7 +152,10 @@ public class DeviceInfo {
 			Application app = (Application) ReflectUtil.invokeMethodSafely(method, null);
 			if (null != app) {
 				onyx_have_frontlight = Device.currentDevice().hasFLBrightness(app);
-				List<Integer> list = Device.currentDevice().getFrontLightValueList(app);
+				List<Integer> list = null;
+				try {
+					list = Device.currentDevice().getFrontLightValueList(app);
+				} catch (Exception ignored) {}
 				if (list != null && list.size() > 0) {
 					onyx_max_screen_brightness_value = list.get(list.size() - 1);
 					if (!onyx_have_frontlight) {
