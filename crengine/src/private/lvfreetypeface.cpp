@@ -116,14 +116,18 @@ static lChar32 getReplacementChar(lUInt32 code, bool * can_be_ignored = NULL) {
         case 0x2044:
             return '/';
         case 0x2022: // css_lst_disc:
-            return '*';
-        case 0x26AA: // css_lst_disc:
-        case 0x25E6: // css_lst_disc:
+        case 0x26AB: // css_lst_disc:
+        case 0x2981: // css_lst_disc:
         case 0x25CF: // css_lst_disc:
-            return 'o';
-        case 0x25CB: // css_lst_circle:
             return '*';
+        case 0x26AA: // css_lst_circle:
+        case 0x25E6: // css_lst_circle:
+        case 0x26AC: // css_lst_circle:
+        case 0x25CB: // css_lst_circle:
+            return 'o';
         case 0x25A0: // css_lst_square:
+        case 0x25AA: // css_lst_square:
+        case 0x25FE: // css_lst_square:
             return '-';
         default:
             break;
@@ -859,12 +863,12 @@ FT_UInt LVFreeTypeFace::getCharIndex(lUInt32 code, lChar32 def_char) {
             FT_Select_Charmap(_face, FT_ENCODING_UNICODE);
         }
     }
-    if ( ch_glyph_index==0 ) {
+    if ( ch_glyph_index==0 && def_char != 0 ) {
         bool can_be_ignored = false;
         lUInt32 replacement = getReplacementChar( code, &can_be_ignored );
         if ( replacement )
             ch_glyph_index = FT_Get_Char_Index( _face, replacement );
-        if ( ch_glyph_index==0 && def_char && !can_be_ignored ) {
+        if ( ch_glyph_index==0 && !can_be_ignored ) {
             // if neither the index of this character nor the index of the replacement character is found,
             // and if this character can be safely ignored,
             // we simply skip it so as not to draw the unnecessary replacement character.
