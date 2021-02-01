@@ -381,6 +381,8 @@
     <string name="options_font_hinting_disabled">Off</string>
     <string name="options_font_hinting_auto">Automatische hinting van lettertype</string>
     <string name="options_font_fallback_face">Aanvullende lettertype</string>
+    <string name="options_font_fallback_face_num">Aanvullende lettertype #%s</string>
+    <string name="options_font_fallback_faces">Aanvullende lettertypen</string>
     <string name="win_title_confirm_catalog_delete">Ben je zeker deze map te verwijderen?</string>
     <string name="win_title_confirm_history_record_delete">Ben je zeker dit boek te verwijderen uit de recente boeken lijst?</string>
     <string name="win_title_confirm_book_delete">Ben je zeker dit boek te verwijderen?</string>

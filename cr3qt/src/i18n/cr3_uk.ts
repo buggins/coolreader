@@ -1908,8 +1908,8 @@ p, li { white-space: pre-wrap; }
         <translation>Автохінтинг</translation>
     </message>
     <message>
-        <source>Fallback font</source>
-        <translation>Допоміжний шрифт</translation>
+        <source>Fallback fonts</source>
+        <translation>Додаткові шрифти</translation>
     </message>
     <message>
         <source>Stylesheet</source>

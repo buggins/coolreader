@@ -29,7 +29,6 @@ public interface Settings {
     public static final String PROP_LOG_LEVEL               ="crengine.log.level";
     public static final String PROP_LOG_AUTOFLUSH           ="crengine.log.autoflush";
     public static final String PROP_FONT_SIZE               ="crengine.font.size";
-    public static final String PROP_FALLBACK_FONT_FACE      ="crengine.font.fallback.face";
 	public static final String PROP_FALLBACK_FONT_FACES     ="crengine.font.fallback.faces";
     public static final String PROP_STATUS_FONT_COLOR       ="crengine.page.header.font.color";
     public static final String PROP_STATUS_FONT_COLOR_DAY   ="crengine.page.header.font.color.day";
@@ -304,7 +303,7 @@ public interface Settings {
 	    "font.*",
 	    "crengine.page.*",
 	    PROP_FONT_SIZE,
-	    PROP_FALLBACK_FONT_FACE,
+	    PROP_FALLBACK_FONT_FACES,
 	    PROP_INTERLINE_SPACE,
 	    PROP_STATUS_LINE,
 	    PROP_FOOTNOTES,

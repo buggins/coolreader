@@ -400,6 +400,8 @@
     <string name="options_font_hinting_disabled">Відключено</string>
     <string name="options_font_hinting_auto">Автохінтинг</string>
     <string name="options_font_fallback_face">Додатковий шрифт</string>
+    <string name="options_font_fallback_face_num">Додатковий шрифт №%s</string>
+    <string name="options_font_fallback_faces">Додаткові шрифти</string>
     <string name="win_title_confirm_catalog_delete">Ви дійсно бажаєте вилучити цю теку?</string>
     <string name="win_title_confirm_history_record_delete">Ви дійсно бажаєте вилучити книжку із переліку останніх?</string>
     <string name="win_title_confirm_book_delete">Ви дійсно бажаєте вилучити книжку?</string>

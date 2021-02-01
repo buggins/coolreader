@@ -1493,17 +1493,20 @@
          <item row="10" column="0">
           <widget class="QLabel" name="label_36">
            <property name="text">
-            <string>Fallback font</string>
+            <string>Fallback fonts</string>
            </property>
           </widget>
          </item>
          <item row="10" column="1">
-          <widget class="QComboBox" name="cbFallbackFontFace">
+          <widget class="QPushButton" name="btnFallbackMan">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Manage...</string>
            </property>
           </widget>
          </item>
@@ -1733,8 +1736,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>393</width>
-              <height>620</height>
+              <width>389</width>
+              <height>621</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -1974,7 +1977,7 @@
   <tabstop>cbMultiLang</tabstop>
   <tabstop>cbHyphenation</tabstop>
   <tabstop>cbFontGamma</tabstop>
-  <tabstop>cbFallbackFontFace</tabstop>
+  <tabstop>btnFallbackMan</tabstop>
   <tabstop>cbFontHinting</tabstop>
   <tabstop>cbFontShaping</tabstop>
   <tabstop>cbInterlineSpace</tabstop>
@@ -2011,8 +2014,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>257</x>
-     <y>472</y>
+     <x>266</x>
+     <y>739</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -2027,8 +2030,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>472</y>
+     <x>334</x>
+     <y>739</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>

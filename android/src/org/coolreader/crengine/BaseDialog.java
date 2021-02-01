@@ -96,7 +96,8 @@ public class BaseDialog extends Dialog {
 			setContentView(layoutView);
 		}
 		contentsLayout.removeAllViews();
-		contentsLayout.addView(view);
+		if (null != view)
+			contentsLayout.addView(view);
 	}
 	
 	protected void onPositiveButtonClick()
@@ -210,7 +211,8 @@ public class BaseDialog extends Dialog {
             }
         }
         contentsLayout =  layout.findViewById(R.id.base_dialog_content_view);
-        contentsLayout.addView(view);
+        if (null != view)
+            contentsLayout.addView(view);
         setTitle(title);
 		return layout;
 	}
