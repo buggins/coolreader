@@ -109,6 +109,8 @@ public enum ReaderCommand
 	DCMD_SHOW_SYSTEM_BACKLIGHT_DIALOG(2059),
 
 	DCMD_GOOGLEDRIVE_SYNC(2100),
+
+	DCMD_SAVE_LOGCAT(2200),
 	;
 	
 	final int nativeId;

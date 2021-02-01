@@ -5,12 +5,13 @@
     android:orientation="vertical" >
 
     <TextView
+        android:id="@+id/notice_text_view"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dip"
         android:layout_marginLeft="10dip"
-        android:layout_marginRight="10dip"
         android:layout_marginTop="10dip"
+        android:layout_marginRight="10dip"
+        android:layout_marginBottom="10dip"
         android:scrollbarAlwaysDrawVerticalTrack="true"
         android:scrollbars="vertical"
         android:text="@string/note1_reader_menu" />
@@ -25,7 +26,7 @@
         android:orientation="horizontal" >
 
         <Button
-            android:id="@id/base_dlg_btn_positive"
+            android:id="@+id/notice_dlg_btn_positive"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="100dip"
@@ -33,7 +34,7 @@
             />
 
         <Button
-            android:id="@id/base_dlg_btn_negative"
+            android:id="@+id/notice_dlg_btn_negative"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="100dip"

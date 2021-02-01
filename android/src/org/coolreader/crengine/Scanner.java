@@ -912,7 +912,26 @@ public class Scanner extends FileInfoChangeSource {
 		return null;
 	}
 
-    public boolean isValidFolder(FileInfo info){
+	public FileInfo getSharedDownloadDirectory() {
+		for ( int i=0; i<mRoot.dirCount(); i++ ) {
+			FileInfo item = mRoot.getDir(i);
+			if (!item.isWritableDirectory())
+				continue;
+			if ( !item.isSpecialDir() && !item.isArchive ) {
+				if (!item.isListed)
+					listDirectory(item);
+				FileInfo download = item.findItemByPathName(item.pathname + "/Download");
+				if (download == null)
+					download = item.findItemByPathName(item.pathname + "/download");
+				if (download != null && download.exists())
+					return download;
+			}
+		}
+		Log.e("cr3", "shared download directory is not found!!!");
+		return null;
+	}
+
+	public boolean isValidFolder(FileInfo info){
         File dir = new File( info.pathname );
         return dir.isDirectory();
     }

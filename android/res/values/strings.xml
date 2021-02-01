@@ -58,6 +58,7 @@
     <string name="win_title_search">Search</string>
     <string name="win_title_options_apply">Apply changes?</string>
     <string name="win_title_screen_orientation_change_apply">Apply screen orientation change?</string>
+    <string name="win_title_log">Log</string>
     <string name="tab_options_styles">Styles</string>
     <string name="tab_options_page">Page</string>
     <string name="tab_options_app">App</string>
@@ -148,6 +149,7 @@
     <string name="action_touch_screen_disabled_toast">Touch screen is locked</string>
     <string name="action_touch_screen_enabled_toast">Touch screen is unlocked</string>
     <string name="action_repeat">(autorepeat)</string>
+    <string name="action_logcat">Save log</string>
     <string name="options_app_scan_book_props">Scan properties of all books in directory</string>
     <string name="options_page_titlebar">Title bar options</string>
     <string name="options_page_show_titlebar_chapter_marks">Chapter bound marks</string>
@@ -568,6 +570,7 @@
     <string name="online_store_purchase_new_balance">New balance:</string>
     <string name="options_app_plugins">Plugins</string>
     <string name="note1_reader_menu">WARNING: To support fullscreen mode and dimming of softkeys on Android 3 and 4, target Android version has been changed to Android 4. In this mode legacy Menu soft button is not available anymore. Without reader toolbar, in reading mode you can open menu by tapping at center of screen. Long tap at center of screen shows settings dialog. Turn on toolbar in reading mode now? (You can always change this option in Settings/Page/Toolbar)</string>
+    <string name="note2_logcat">Added the function of saving the program log. If during the execution of any operation the program terminates abnormally or does not work correctly, you can create a log file. If the program terminated with an error, you need to start it again and select the "Save log" item in the reading menu. A log file will be generated to help resolve the issue.</string>
     <string name="root_item_recent">Recent books</string>
     <string name="root_item_library">Browse library</string>
     <string name="root_item_filesystem">Browse file system</string>
@@ -704,4 +707,6 @@
     <string name="book_info_genres">Genre(s)</string>
     <string name="including_subgenres">(Including subgenres)</string>
     <string name="action_show_onyx_backlight_system_dialog">Show the system dialog for setting the backlight</string>
+    <string name="confirmation_select_folder_for_log">On the next screen, select a directory to save the log file</string>
+    <string name="notice_log_saved_to_">The log file was saved in file \"%s\". This file may contain personal data, for example, which books you read, be careful.</string>
 </resources>
