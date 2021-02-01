@@ -1618,7 +1618,8 @@ public class Engine {
 				String[] fileList = fontDir.list((dir, filename) -> {
 					String lc = filename.toLowerCase();
 					return (lc.endsWith(".ttf") || lc.endsWith(".otf")
-							|| lc.endsWith(".pfb") || lc.endsWith(".pfa"))
+							|| lc.endsWith(".pfb") || lc.endsWith(".pfa")
+							|| lc.endsWith(".ttc"))
 //								&& !filename.endsWith("Fallback.ttf")
 							;
 				});
