@@ -294,6 +294,7 @@ bool LVFreeTypeFontManager::initSystemFonts() {
             FcChar8 *style=(FcChar8*)"";
             //FcBool b;
             FcResult res;
+
             //FC_SCALABLE
             //res = FcPatternGetBool( fontset->fonts[i], FC_OUTLINE, 0, (FcBool*)&b);
             //if(res != FcResultMatch)
@@ -307,7 +308,7 @@ bool LVFreeTypeFontManager::initSystemFonts() {
             lString8 fn( (const char *)s );
             lString32 fn32( fn.c_str() );
             fn32.lowercase();
-            if (!fn32.endsWith(".ttf") && !fn32.endsWith(".odf") && !fn32.endsWith(".otf") && !fn32.endsWith(".pfb") && !fn32.endsWith(".pfa")  ) {
+            if (!fn32.endsWith(".ttf") && !fn32.endsWith(".odf") && !fn32.endsWith(".otf") && !fn32.endsWith(".pfb") && !fn32.endsWith(".pfa") && !fn32.endsWith(".ttc") ) {
                 continue;
             }
             int weight = FC_WEIGHT_MEDIUM;
