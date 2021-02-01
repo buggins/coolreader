@@ -491,6 +491,9 @@ struct SimpleCacheFileHeader
 struct CacheFileHeader : public SimpleCacheFileHeader
 {
     lUInt32 _fsize;
+    // Padding to explicitly align the index block structure, and that can be
+    // be initialized to zero for reproducible file contents.
+    lUInt32 _padding;
     CacheFileItem _indexBlock; // index array block parameters,
     // duplicate of one of index records which contains
     bool validate(lUInt32 domVersionRequested)
@@ -513,6 +516,7 @@ struct CacheFileHeader : public SimpleCacheFileHeader
     }
     CacheFileHeader( CacheFileItem * indexRec, int fsize, lUInt32 dirtyFlag, lUInt32 domVersion )
     : SimpleCacheFileHeader(dirtyFlag, domVersion), _indexBlock(0,0)
+    , _padding(0)
     {
         if ( indexRec ) {
             memcpy( &_indexBlock, indexRec, sizeof(CacheFileItem));
