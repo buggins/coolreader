@@ -34,8 +34,13 @@ public class EinkScreen {
 	private static List<Integer> mFrontLineLevels = null;
 	private static List<Integer> mWarmLightLevels = null;
 
-	public static void Refresh() {
-		mRefreshNumber = -1;
+	public static void Refresh(View view) {
+		if (DeviceInfo.EINK_NOOK || DeviceInfo.EINK_TOLINO) {
+			mRefreshNumber = -1;
+		} else if (DeviceInfo.EINK_ONYX) {
+			onyxRepaintEveryThing(view, true);
+			mRefreshNumber = 0;
+		}
 	}
 
 	public static void PrepareController(View view, boolean isPartially) {
@@ -102,14 +107,14 @@ public class EinkScreen {
 		} else if (DeviceInfo.EINK_ONYX) {
 			if (mRefreshNumber == -1) {
 				mRefreshNumber = 0;
-				onyxRepaintEveryThing(view);
+				onyxRepaintEveryThing(view, false);
 				return;
 			}
 			if (mUpdateInterval > 0) {
 				mRefreshNumber++;
 				if (mRefreshNumber >= mUpdateInterval) {
 					mRefreshNumber = 0;
-					onyxRepaintEveryThing(view);
+					onyxRepaintEveryThing(view, false);
 					return;
 				}
 			}
@@ -135,7 +140,7 @@ public class EinkScreen {
 	public static void UpdateController(View view, boolean isPartially) {
 	}
 
-	private static void onyxRepaintEveryThing(View view) {
+	private static void onyxRepaintEveryThing(View view, boolean invalidate) {
 		switch (Device.currentDeviceIndex) {
 			case Rk31xx:
 			case Rk32xx:
@@ -144,7 +149,11 @@ public class EinkScreen {
 				EpdController.repaintEveryThing(UpdateMode.GC);
 				break;
 			default:
-				EpdController.setViewDefaultUpdateMode(view, UpdateMode.GC);
+				if (null != view) {
+					EpdController.setViewDefaultUpdateMode(view, UpdateMode.GC);
+					if (invalidate)
+						view.postInvalidate();
+				}
 				break;
 		}
 	}
@@ -176,7 +185,7 @@ public class EinkScreen {
 			mIsSupportRegal = EpdController.supportRegal();
 			mRefreshNumber = 0;
 			if (mUpdateInterval == 0)
-				onyxRepaintEveryThing(view);
+				onyxRepaintEveryThing(view, false);
 			EpdController.clearApplicationFastMode();
 			switch (mode) {
 				case CMODE_CLEAR:			// Quality

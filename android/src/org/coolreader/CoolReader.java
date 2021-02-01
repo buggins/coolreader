@@ -33,6 +33,7 @@ import org.coolreader.crengine.BrowserViewLayout;
 import org.coolreader.crengine.CRRootView;
 import org.coolreader.crengine.CRToolBar;
 import org.coolreader.crengine.DeviceInfo;
+import org.coolreader.crengine.EinkScreen;
 import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.ErrorDialog;
 import org.coolreader.crengine.FileBrowser;
@@ -933,6 +934,12 @@ public class CoolReader extends BaseActivity {
 			mReaderView.close();
 
 		log.i("CoolReader.onStop() exiting");
+	}
+
+	public void einkRefresh() {
+		try {
+			EinkScreen.Refresh(mReaderView.getSurface());
+		} catch (Exception ignored) {}
 	}
 
 	private void requestStoragePermissions() {
