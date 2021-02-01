@@ -1,6 +1,9 @@
 head, style, form, script { display: none; } 
 
-body { $def.all } 
+body {
+    $def.all
+    $body.margin
+}
 
 DocFragment { page-break-before: always }
 
