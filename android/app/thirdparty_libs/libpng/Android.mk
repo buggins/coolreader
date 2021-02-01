@@ -5,11 +5,14 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := local_png
 
-PNG_SRC_DIR := ../../../../thirdparty/libpng
-PNG_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/libpng
+PNG_SRC_DIR := ../../../../thirdparty/libpng-1.6.37
+PNG_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/libpng-1.6.37
 PNG_CONFIG_DIR_P := $(LOCAL_PATH)
 
-LOCAL_C_INCLUDES := $(PNG_CONFIG_DIR_P) $(PNG_SRC_DIR_P)
+LOCAL_C_INCLUDES := \
+    $(PNG_CONFIG_DIR_P) \
+    $(PNG_CONFIG_DIR_P)/lib \
+    $(PNG_SRC_DIR_P)
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
 LOCAL_SRC_FILES := \
@@ -33,14 +36,16 @@ ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_SRC_FILES += \
     $(PNG_SRC_DIR)/arm/arm_init.c \
     $(PNG_SRC_DIR)/arm/filter_neon.S \
-    $(PNG_SRC_DIR)/arm/filter_neon_intrinsics.c
+    $(PNG_SRC_DIR)/arm/filter_neon_intrinsics.c \
+    $(PNG_SRC_DIR)/arm/palette_neon_intrinsics.c
 endif
 
 ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
 LOCAL_SRC_FILES += \
     $(PNG_SRC_DIR)/arm/arm_init.c \
     $(PNG_SRC_DIR)/arm/filter_neon.S \
-    $(PNG_SRC_DIR)/arm/filter_neon_intrinsics.c
+    $(PNG_SRC_DIR)/arm/filter_neon_intrinsics.c \
+    $(PNG_SRC_DIR)/arm/palette_neon_intrinsics.c
 endif
 
 ifeq ($(TARGET_ARCH_ABI),x86_64)

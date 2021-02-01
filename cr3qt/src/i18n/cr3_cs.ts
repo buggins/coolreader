@@ -1471,8 +1471,8 @@ p, li { white-space: pre-wrap; }
         <translation>Automatické instruování písma</translation>
     </message>
     <message>
-        <source>Fallback font</source>
-        <translation>Záložní písmo</translation>
+        <source>Fallback fonts</source>
+        <translation>Záložní písma</translation>
     </message>
     <message>
         <source>Enable document internal styles</source>

@@ -5,8 +5,8 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := local_antiword
 
-ANTIWORD_SRC_DIR := ../../../../thirdparty/antiword
-ANTIWORD_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/antiword
+ANTIWORD_SRC_DIR := ../../../../thirdparty_unman/antiword
+ANTIWORD_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty_unman/antiword
 
 LOCAL_C_INCLUDES := $(ANTIWORD_SRC_DIR_P)
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries

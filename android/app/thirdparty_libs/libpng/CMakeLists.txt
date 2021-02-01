@@ -1,15 +1,17 @@
 
 project(png)
 
-set(PNG_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/libpng)
+set(PNG_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/libpng-1.6.37)
 set(PNG_CONFIG_DIR ${PROJECT_SOURCE_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${PNG_CONFIG_DIR})
+include_directories(${PNG_CONFIG_DIR}/lib)
 
 option(PNG_HARDWARE_OPTIMIZATIONS "Enable Hardware Optimizations" ON)
 
 if(PNG_HARDWARE_OPTIMIZATIONS)
+
 # set definitions and sources for arm
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm" OR
   CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64")
@@ -23,12 +25,13 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm" OR
   list(FIND PNG_ARM_NEON_POSSIBLE_VALUES ${PNG_ARM_NEON} index)
   if(index EQUAL -1)
     message(FATAL_ERROR
-      " PNG_ARM_NEON must be one of [${PNG_ARM_NEON_POSSIBLE_VALUES}]")
-  elseif(NOT ${PNG_ARM_NEON} STREQUAL "no")
+            "PNG_ARM_NEON must be one of [${PNG_ARM_NEON_POSSIBLE_VALUES}]")
+  elseif(NOT ${PNG_ARM_NEON} STREQUAL "off")
     set(libpng_arm_sources
       ${PNG_SRC_DIR}/arm/arm_init.c
       ${PNG_SRC_DIR}/arm/filter_neon.S
-      ${PNG_SRC_DIR}/arm/filter_neon_intrinsics.c)
+      ${PNG_SRC_DIR}/arm/filter_neon_intrinsics.c
+      ${PNG_SRC_DIR}/arm/palette_neon_intrinsics.c)
 
     if(${PNG_ARM_NEON} STREQUAL "on")
       add_definitions(-DPNG_ARM_NEON_OPT=2)
@@ -42,7 +45,7 @@ endif()
 
 # set definitions and sources for intel
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i?86" OR
-    CMAKE_SYSTEM_PROCESSOR MATCHES "^x86_64*" )
+   CMAKE_SYSTEM_PROCESSOR MATCHES "^x86_64*")
   set(PNG_INTEL_SSE_POSSIBLE_VALUES on off)
   set(PNG_INTEL_SSE "on" CACHE STRING "Enable INTEL_SSE optimizations:
      off: disable the optimizations")
@@ -51,8 +54,8 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i?86" OR
   list(FIND PNG_INTEL_SSE_POSSIBLE_VALUES ${PNG_INTEL_SSE} index)
   if(index EQUAL -1)
     message(FATAL_ERROR
-      " PNG_INTEL_SSE must be one of [${PNG_INTEL_SSE_POSSIBLE_VALUES}]")
-  elseif(NOT ${PNG_INTEL_SSE} STREQUAL "no")
+            "PNG_INTEL_SSE must be one of [${PNG_INTEL_SSE_POSSIBLE_VALUES}]")
+  elseif(NOT ${PNG_INTEL_SSE} STREQUAL "off")
     set(libpng_intel_sources
       ${PNG_SRC_DIR}/intel/intel_init.c
       ${PNG_SRC_DIR}/intel/filter_sse2_intrinsics.c)
@@ -63,6 +66,21 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i?86" OR
     add_definitions(-DPNG_INTEL_SSE_OPT=0)
   endif()
 endif()
+
+else(PNG_HARDWARE_OPTIMIZATIONS)
+
+# set definitions and sources for arm
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm" OR
+   CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64")
+  add_definitions(-DPNG_ARM_NEON_OPT=0)
+endif()
+
+# set definitions and sources for intel
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i?86" OR
+   CMAKE_SYSTEM_PROCESSOR MATCHES "^x86_64*")
+  add_definitions(-DPNG_INTEL_SSE_OPT=0)
+endif()
+
 endif(PNG_HARDWARE_OPTIMIZATIONS)
 
 set(PNG_SRC_FILES

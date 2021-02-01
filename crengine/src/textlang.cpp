@@ -158,6 +158,8 @@ HyphMethod * TextLangMan::getHyphMethodForLang( lString32 lang_tag ) {
     HyphDictionary* dict;
     lString32 dict_lang_tag;
     lang_tag.lowercase();
+    int left_hyphen_min = 2;
+    int right_hyphen_min = 3;
     for (int i = 0; i < dictList->length(); i++) {
         dict = dictList->get(i);
         if (dict) {
@@ -166,9 +168,16 @@ HyphMethod * TextLangMan::getHyphMethodForLang( lString32 lang_tag ) {
             else
                 dict_lang_tag = TextLangMan::getLangTag(dict->getId());         // for default dictionaries
             dict_lang_tag.lowercase();
-            if (lang_tag == dict_lang_tag)
-                return HyphMan::getHyphMethodForDictionary( dict->getId(),
-                            _hyph_dict_table[i].left_hyphen_min, _hyph_dict_table[i].right_hyphen_min);
+            if (lang_tag == dict_lang_tag) {
+                for (int j=0; _hyph_dict_table[j].lang_tag!=NULL; j++) {
+                    if ( lang_tag == lString32(_hyph_dict_table[j].lang_tag).lowercase() ) {
+                        left_hyphen_min = _hyph_dict_table[j].left_hyphen_min;
+                        right_hyphen_min = _hyph_dict_table[j].right_hyphen_min;
+                        break;
+                    }
+                }
+                return HyphMan::getHyphMethodForDictionary( dict->getId(), left_hyphen_min, right_hyphen_min );
+            }
         }
     }
     // Look for lang_tag initial subpart
@@ -185,8 +194,14 @@ HyphMethod * TextLangMan::getHyphMethodForLang( lString32 lang_tag ) {
                     dict_lang_tag = TextLangMan::getLangTag(dict->getId());     // for default dictionaries
                 dict_lang_tag.lowercase();
                 if (lang_tag2 == dict_lang_tag)
-                    return HyphMan::getHyphMethodForDictionary( dict->getId(),
-                                _hyph_dict_table[i].left_hyphen_min, _hyph_dict_table[i].right_hyphen_min);
+                    for (int j=0; _hyph_dict_table[j].lang_tag!=NULL; j++) {
+                        if ( lang_tag == lString32(_hyph_dict_table[j].lang_tag).lowercase() ) {
+                            left_hyphen_min = _hyph_dict_table[j].left_hyphen_min;
+                            right_hyphen_min = _hyph_dict_table[j].right_hyphen_min;
+                            break;
+                        }
+                    }
+                    return HyphMan::getHyphMethodForDictionary( dict->getId(), left_hyphen_min, right_hyphen_min );
             }
         }
     }

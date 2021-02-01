@@ -393,6 +393,8 @@
     <string name="options_font_hinting_disabled">Vypnutý</string>
     <string name="options_font_hinting_auto">Auto-hinting</string>
     <string name="options_font_fallback_face">Núdzové písmo</string>
+    <string name="options_font_fallback_face_num">Núdzové písmo #%s</string>
+    <string name="options_font_fallback_faces">Núdzové písma</string>
     <string name="win_title_confirm_catalog_delete">Určite chcete odstrániť tento katalóg?</string>
     <string name="win_title_confirm_history_record_delete">Určite chcete odstrániť túto knihu zo zoznamu nedávnych kníh?</string>
     <string name="win_title_confirm_book_delete">Určite chcete odstrániť túto knihu?</string>

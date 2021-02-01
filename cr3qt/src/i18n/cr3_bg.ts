@@ -1397,7 +1397,7 @@ See README.TXT at root directory of project for build instructions.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Fallback font</source>
+        <source>Fallback fonts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

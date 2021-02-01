@@ -381,6 +381,8 @@
 <string name="options_font_hinting_disabled">"Vypnuto"</string>
 <string name="options_font_hinting_auto">"Automatické instruování písma"</string>
 <string name="options_font_fallback_face">"Náhradní písmo"</string>
+<string name="options_font_fallback_face_num">Náhradní písmo #%s</string>
+<string name="options_font_fallback_faces">Náhradní písma</string>
 <string name="win_title_confirm_catalog_delete">"Opravdu chcete smazat tento katalog?"</string>
 <string name="win_title_confirm_history_record_delete">"Opravdu chcete odstranit tuto knihu ze seznamu naposledy čtených?"</string>
 <string name="win_title_confirm_book_delete">"Opravdu chcete smazat tuto knihu?"</string>

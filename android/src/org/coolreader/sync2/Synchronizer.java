@@ -29,7 +29,6 @@ import org.coolreader.R;
 import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.Bookmark;
-import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
@@ -122,7 +121,6 @@ public class Synchronizer {
 	private int m_lockTryCount = 0;
 
 	private static final String[] ALLOWED_OPTIONS_PROP_NAMES = {
-			Settings.PROP_FALLBACK_FONT_FACE,
 			Settings.PROP_FALLBACK_FONT_FACES,
 			Settings.PROP_FOOTNOTES,
 			Settings.PROP_APP_HIGHLIGHT_BOOKMARKS,
@@ -1251,8 +1249,8 @@ public class Synchronizer {
 										if (!found)
 											filesToDownload.add(reqinfo);
 									}
-									SyncOperation op = DownloadAllBooksBodySyncOperation.this;
 									if (filesToDownload.size() > 0) {
+										SyncOperation op = DownloadAllBooksBodySyncOperation.this;
 										for (DownloadInfo info : filesToDownload) {
 											log.d("scheduling book loading from file: \"" + info.m_filepath + "\"");
 											SyncOperation downloadBookBody = new DownloadBookBodySyncOperation(info);
@@ -1862,77 +1860,93 @@ public class Synchronizer {
 			final List<Bookmark> finalBookmarks = bookmarks;
 			final FileInfo finalFileInfo = fileInfo;
 			BackgroundThread.instance().executeGUI(() -> m_coolReader.waitForCRDBService(() -> {
-				//m_coolReader.getDB().findByFingerprint(2, finalFileInfo.filename, finalFileInfo.crc32,
-				m_coolReader.getDB().findByPatterns(2, finalFileInfo.authors, finalFileInfo.title, finalFileInfo.series, finalFileInfo.filename,
-						fileList -> {
-							// Check this files for existence
-							ArrayList<FileInfo> newList = new ArrayList<FileInfo>();
-							for (FileInfo fi : fileList) {
-								if (fi.exists())
-									newList.add(fi);
-							}
-							if (fileList.size() != newList.size())
-								fileList = newList;
-							if (0 == fileList.size()) {
-								// this book not found in db
-								// find in filesystem?
-								log.e("file \"" + finalFileInfo.filename + "\" not found in database!");
-							} else {
-								if (fileList.size() > 1) {
-									// multiple files found that matches this fileInfo
-									// select first or nothing?
-									log.e("multiple files with name \"" + finalFileInfo.filename + "\" found, using first.");
-									// TODO: show message
-								}
-								FileInfo dbFileInfo = fileList.get(0);
-								BookInfo bookInfo = new BookInfo(dbFileInfo);
-								for (Bookmark bk : finalBookmarks) {
-									bookInfo.addBookmark(bk);
-								}
-								log.d("Book \"" + dbFileInfo + "\" found, syncing...");
-								if (null != m_onStatusListener)
-									m_onStatusListener.onBookmarksLoaded(bookInfo, (m_flags & SYNC_FLAG_FORCE) != 0);
-							}
-						});
+				CRDBService.BookSearchCallback searchCallback = fileList -> {
+					// Check this files for existence
+					ArrayList<FileInfo> newList = new ArrayList<FileInfo>();
+					for (FileInfo fi : fileList) {
+						if (fi.exists())
+							newList.add(fi);
+					}
+					if (fileList.size() != newList.size())
+						fileList = newList;
+					if (0 == fileList.size()) {
+						// this book not found in db
+						// find in filesystem?
+						log.e("file \"" + finalFileInfo.filename + "\" not found in database!");
+					} else {
+						if (fileList.size() > 1) {
+							// multiple files found that matches this fileInfo
+							// select first or nothing?
+							log.e("multiple files with name \"" + finalFileInfo.filename + "\" found, using first.");
+							// TODO: show message
+						}
+						FileInfo dbFileInfo = fileList.get(0);
+						BookInfo bookInfo = new BookInfo(dbFileInfo);
+						for (Bookmark bk : finalBookmarks) {
+							bookInfo.addBookmark(bk);
+						}
+						log.d("Book \"" + dbFileInfo + "\" found, syncing...");
+						if (null != m_onStatusListener)
+							m_onStatusListener.onBookmarksLoaded(bookInfo, (m_flags & SYNC_FLAG_FORCE) != 0);
+					}
+				};
+				ArrayList<String> fingerprints = new ArrayList<String>();
+				fingerprints.add(Long.toString(finalFileInfo.crc32));
+				m_coolReader.getDB().findByFingerprints(2, fingerprints, fileList -> {
+					if (!fileList.isEmpty()) {
+						searchCallback.onBooksFound(fileList);
+					} else {
+						// fallback, try to find by pattern
+						m_coolReader.getDB().findByPatterns(2, finalFileInfo.authors, finalFileInfo.title, finalFileInfo.series, finalFileInfo.filename, searchCallback);
+					}
+				});
 			}));
 		}
 	}
 
-	private void syncSetCurrentBook(FileInfo fileInfo) {
+	private void syncSetCurrentBook(final FileInfo fileInfo) {
 		log.v("syncSetCurrentBook()");
 		BackgroundThread.instance().executeGUI(() -> m_coolReader.waitForCRDBService(() -> {
-			//m_coolReader.getDB().findByFingerprint(2, fileName, crc32,
-			m_coolReader.getDB().findByPatterns(2, fileInfo.authors, fileInfo.title, fileInfo.series, fileInfo.filename,
-					fileList -> {
-						// Check this files for existence
-						ArrayList<FileInfo> newList = new ArrayList<FileInfo>();
-						for (FileInfo fi : fileList) {
-							if (fi.exists())
-								newList.add(fi);
-						}
-						if (fileList.size() != newList.size())
-							fileList = newList;
-						if (0 == fileList.size()) {
-							// this book not found in db
-							// find in filesystem?
-							log.e("file \"" + fileInfo.filename + "\" not found in database!");
-							if (null != m_onStatusListener) {
-								m_onStatusListener.onFileNotFound(fileInfo);
-							}
-						} else {
-							if (fileList.size() > 1) {
-								// multiple files found that matches this fileInfo
-								// select first or nothing?
-								log.e("multiple files with name \"" + fileInfo.filename + "\" found, using first.");
-								// TODO: show message
-							}
-							FileInfo dbFileInfo = fileList.get(0);
-							if (null != m_onStatusListener) {
-								log.d("Book \"" + dbFileInfo + "\" found, call listener to load this book...");
-								m_onStatusListener.onCurrentBookInfoLoaded(fileList.get(0), (m_flags & SYNC_FLAG_FORCE) != 0);
-							}
-						}
-					});
+			CRDBService.BookSearchCallback searchCallback = fileList -> {
+				// Check this files for existence
+				ArrayList<FileInfo> newList = new ArrayList<FileInfo>();
+				for (FileInfo fi : fileList) {
+					if (fi.exists())
+						newList.add(fi);
+				}
+				if (fileList.size() != newList.size())
+					fileList = newList;
+				if (0 == fileList.size()) {
+					// this book not found in db
+					// find in filesystem?
+					log.e("file \"" + fileInfo.filename + "\" not found in database!");
+					if (null != m_onStatusListener) {
+						m_onStatusListener.onFileNotFound(fileInfo);
+					}
+				} else {
+					if (fileList.size() > 1) {
+						// multiple files found that matches this fileInfo
+						// select first or nothing?
+						log.e("multiple files with name \"" + fileInfo.filename + "\" found, using first.");
+						// TODO: show message
+					}
+					FileInfo dbFileInfo = fileList.get(0);
+					if (null != m_onStatusListener) {
+						log.d("Book \"" + dbFileInfo + "\" found, call listener to load this book...");
+						m_onStatusListener.onCurrentBookInfoLoaded(fileList.get(0), (m_flags & SYNC_FLAG_FORCE) != 0);
+					}
+				}
+			};
+			ArrayList<String> fingerprints = new ArrayList<String>();
+			fingerprints.add(Long.toString(fileInfo.crc32));
+			m_coolReader.getDB().findByFingerprints(2, fingerprints, fileList -> {
+				if (!fileList.isEmpty()) {
+					searchCallback.onBooksFound(fileList);
+				} else {
+					// fallback, try to find by pattern
+					m_coolReader.getDB().findByPatterns(2, fileInfo.authors, fileInfo.title, fileInfo.series, fileInfo.filename, searchCallback);
+				}
+			});
 		}));
 	}
 

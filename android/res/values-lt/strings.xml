@@ -381,6 +381,8 @@
     <string name="options_font_hinting_disabled">Disabled</string>
     <string name="options_font_hinting_auto">Autohinting</string>
     <string name="options_font_fallback_face">Fallback font</string>
+    <string name="options_font_fallback_face_num">Fallback font #%s</string>
+    <string name="options_font_fallback_faces">Fallback fonts</string>
     <string name="win_title_confirm_catalog_delete">Do you really want to delete this catalog?</string>
     <string name="win_title_confirm_history_record_delete">Do you really want to remove this book from recent list?</string>
     <string name="win_title_confirm_book_delete">Do you really want to delete this book?</string>

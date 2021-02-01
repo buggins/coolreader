@@ -5,8 +5,8 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := local_chmlib
 
-CHM_SRC_DIR := ../../../../thirdparty/chmlib
-CHM_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/chmlib
+CHM_SRC_DIR := ../../../../thirdparty_unman/chmlib
+CHM_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty_unman/chmlib
 
 LOCAL_C_INCLUDES := $(CHM_SRC_DIR_P)
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries

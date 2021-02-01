@@ -5,18 +5,20 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := local_freetype
 
-FREETYPE_SRC_DIR := ../../../../thirdparty/freetype
-FREETYPE_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/freetype
-HARFBUZZ_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/harfbuzz
+FREETYPE_SRC_DIR := ../../../../thirdparty/freetype-2.10.4
+FREETYPE_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/freetype-2.10.4
+HARFBUZZ_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/harfbuzz-2.7.4
 FREETYPE_CONFIG_DIR_P := $(LOCAL_PATH)
-PNG_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/libpng
+PNG_PRIV_CONFIG_DIR_P := $(LOCAL_PATH)/../libpng/lib
+PNG_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/libpng-1.6.37
 
 LOCAL_C_INCLUDES := \
         $(FREETYPE_CONFIG_DIR_P) \
         $(FREETYPE_SRC_DIR_P) \
         $(FREETYPE_SRC_DIR_P)/include \
         $(HARFBUZZ_SRC_DIR_P)/src \
-        $(PNG_SRC_DIR_P)
+        $(PNG_SRC_DIR_P) \
+        $(PNG_PRIV_CONFIG_DIR_P)
 
 LOCAL_CFLAGS += -DFT2_BUILD_LIBRARY=1 -DFT_CONFIG_MODULES_H=\<android/config/ftmodule.h\> -DFT_CONFIG_OPTIONS_H=\<android/config/ftoption.h\>
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
@@ -24,6 +26,7 @@ LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 LOCAL_SRC_FILES := \
     $(FREETYPE_SRC_DIR)/src/autofit/autofit.c \
     $(FREETYPE_SRC_DIR)/src/base/ftbase.c \
+    $(FREETYPE_SRC_DIR)/src/base/ftdebug.c \
     $(FREETYPE_SRC_DIR)/src/base/ftinit.c \
     $(FREETYPE_SRC_DIR)/src/base/ftfntfmt.c \
     $(FREETYPE_SRC_DIR)/src/base/ftsystem.c \

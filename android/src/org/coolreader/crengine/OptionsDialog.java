@@ -328,6 +328,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	// Disable options
 	OptionBase mHyphDictOption;
 	OptionBase mEmbedFontsOptions;
+	OptionBase mIgnoreDocMargins;
 	OptionBase mFootNotesOption;
 	OptionBase mEnableMultiLangOption;
 	OptionBase mEnableHyphOption;
@@ -344,6 +345,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	public final static int OPTION_VIEW_TYPE_COLOR = 2;
 	public final static int OPTION_VIEW_TYPE_SUBMENU = 3;
 	//public final static int OPTION_VIEW_TYPE_COUNT = 3;
+
+	// This is an engine limitation, see lvfreetypefontman.cpp, lvfreetypeface.cpp
+	private static final int MAX_FALLBACK_FONTS_COUNT = 32;
 
 	public BaseActivity getActivity() { return mActivity; }
 	public Properties getProperties() { return mProperties; }
@@ -550,6 +554,53 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				mOptionsCloudSync.refresh();
 			}
+		}
+	}
+	class StyleBoolOption extends OptionBase {
+		private String onValue;
+		private String offValue;
+		public StyleBoolOption( OptionOwner owner, String label, String property, String onValue, String offValue) {
+			super(owner, label, property);
+			this.onValue = onValue;
+			this.offValue = offValue;
+		}
+		private boolean getValueBoolean() {
+			return onValue.equals(mProperties.getProperty(property));
+		}
+		public OptionBase setDefaultValueBoolean(boolean value) {
+			defaultValue = value ? onValue : offValue;
+			if ( mProperties.getProperty(property)==null )
+				mProperties.setProperty(property, defaultValue);
+			return this;
+		}
+		public void onSelect() {
+			if (!enabled)
+				return;
+			// Toggle the state
+			mProperties.setProperty(property, getValueBoolean() ? offValue : onValue);
+			refreshList();
+		}
+		public int getItemViewType() {
+			return OPTION_VIEW_TYPE_BOOLEAN;
+		}
+		public View getView(View convertView, ViewGroup parent) {
+			View view;
+			convertView = myView;
+			if ( convertView==null ) {
+				//view = new TextView(getContext());
+				view = mInflater.inflate(R.layout.option_item_boolean, null);
+			} else {
+				view = convertView;
+			}
+			myView = view;
+			TextView labelView = view.findViewById(R.id.option_label);
+			CheckBox valueView = view.findViewById(R.id.option_value_cb);
+			labelView.setText(label);
+			labelView.setEnabled(enabled);
+			valueView.setChecked(getValueBoolean());
+			setupIconView((ImageView)view.findViewById(R.id.option_icon));
+			valueView.setEnabled(enabled);
+			return view;
 		}
 	}
 	class BoolOption extends OptionBase {
@@ -1238,7 +1289,132 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				optionsListView.refresh();
 		}
 	}
-	
+
+	class FallbackFontItemOptions extends ListOption {
+
+		private final FallbackFontsOptions mParentOptions;	// parent option item
+		private final int mPosition;						// position in parent list
+
+		public FallbackFontItemOptions(OptionOwner owner, String label, String property, FallbackFontsOptions parentOptions, int pos) {
+			super(owner, label, property);
+			mParentOptions = parentOptions;
+			mPosition = pos;
+		}
+
+		public void onClick( Pair item ) {
+			super.onClick(item);
+			if (item.value.length() > 0) {
+				if (mPosition == mParentOptions.size() - 1) {
+					if (mPosition < MAX_FALLBACK_FONTS_COUNT - 1) {
+						// last item in parent list not empty => add new empty item in parent list
+						mParentOptions.addFallbackFontItem(mParentOptions.size(), "");
+					}
+				}
+			} else {
+				if (mPosition == mParentOptions.size() - 2) {
+					// penultimate item in parent list set to empty => remove last empty item
+					mParentOptions.removeFallbackFontItem(mParentOptions.size() - 1);
+				}
+			}
+		}
+	}
+
+	class FallbackFontsOptions extends SubmenuOption {
+
+		OptionsListView mListView;
+		private final Properties mFallbackProps = new Properties();
+		private final OptionOwner mFallbackOptionItemOwner = new OptionOwner() {
+			@Override
+			public BaseActivity getActivity() {
+				return  mOwner.getActivity();
+			}
+			@Override
+			public Properties getProperties() {
+				return mFallbackProps;
+			}
+			@Override
+			public LayoutInflater getInflater() {
+				return mOwner.getInflater();
+			}
+		};
+
+		public FallbackFontsOptions( OptionOwner owner, String label ) {
+			super( owner, label, PROP_FALLBACK_FONT_FACES );
+			mListView = new OptionsListView(getContext());
+		}
+
+		protected void addFallbackFontItem( int pos, String fontFace) {
+			String propName = Integer.toString(pos);
+			String label = getString(R.string.options_font_fallback_face_num, pos + 1);
+			mFallbackProps.setProperty(propName, fontFace);
+			FallbackFontItemOptions option = new FallbackFontItemOptions(mFallbackOptionItemOwner, label, propName, this, pos);
+			option.add("", "(empty)");
+			option.add(mFontFaces);
+			option.setDefaultValue("");
+			option.noIcon();
+			mListView.add(option);
+		}
+
+		protected boolean removeFallbackFontItem( int pos ) {
+			boolean res = mListView.remove(pos);
+			if (res)
+				mListView.refresh();
+			return res;
+		}
+
+		public void onSelect() {
+			if (!enabled)
+				return;
+			BaseDialog dlg = new BaseDialog(mActivity, label, false, false) {
+				protected void onClose()
+				{
+					updateMainPropertyValue();
+					this.setView(null);
+					super.onClose();
+				}
+			};
+			mListView.clear();
+			String fallbackFaces = getProperties().getProperty(property);
+			if (null == fallbackFaces)
+				fallbackFaces = "";
+			String[] list = fallbackFaces.split(";");
+			int pos = 0;
+			for (String face : list) {
+				face = face.trim();
+				if (face.length() > 0) {
+					addFallbackFontItem(pos, face);
+					pos++;
+				}
+			}
+			addFallbackFontItem(pos, "");
+			dlg.setView(mListView);
+			dlg.show();
+		}
+
+		public int size() {
+			return mListView.size();
+		}
+
+		public String getValueLabel() { return ">"; }
+
+		private void updateMainPropertyValue() {
+			StringBuilder fallbackFacesBuilder = new StringBuilder();
+			for (int i = 0; i < MAX_FALLBACK_FONTS_COUNT; i++) {
+				String propName = Integer.toString(i);
+				String fallback = mFallbackProps.getProperty(propName);
+				if (null != fallback && fallback.length() > 0) {
+					fallbackFacesBuilder.append(fallback);
+					fallbackFacesBuilder.append("; ");
+				}
+			}
+			String fallbackFaces = fallbackFacesBuilder.toString();
+			// Remove trailing "; " part
+			if (fallbackFaces.length() >= 2)
+				fallbackFaces = fallbackFaces.substring(0, fallbackFaces.length() - 2);
+			getProperties().setProperty(property, fallbackFaces);
+		}
+	}
+
 	class DictOptions extends ListOption
 	{
 		public DictOptions( OptionOwner owner, String label )
@@ -1505,6 +1681,20 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			option.optionsListView = this;
 			return this;
 		}
+		public boolean remove(int index) {
+			try {
+				mOptions.remove(index);
+				return true;
+			} catch (Exception ignored) {
+			}
+			return false;
+		}
+		public boolean remove( OptionBase option ) {
+			return mOptions.remove(option);
+		}
+		public void clear() {
+			mOptions.clear();
+		}
 		public OptionsListView( Context context )
 		{
 			super(context, false);
@@ -1573,7 +1763,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptions.get(position).onSelect();
 			return true;
 		}
-		
+		public int size() {
+			return mOptions.size();
+		}
 	}
 	
 	public View createTabContent(String tag) {
@@ -1598,6 +1790,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	private String getString( int resourceId )
 	{
 		return getContext().getResources().getString(resourceId); 
+	}
+
+	public String getString( int resourceId, Object... formatArgs ) {
+		return getContext().getResources().getString(resourceId, formatArgs);
 	}
 
 	class StyleEditorOption extends SubmenuOption {
@@ -1925,12 +2121,16 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				.setOnChangeHandler(() -> {
 					boolean value = mProperties.getBool(PROP_EMBEDDED_STYLES, false);
 					mEmbedFontsOptions.setEnabled(isEpubFormat && value);
+					mIgnoreDocMargins.setEnabled(isFormatWithEmbeddedStyle && value);
 				})
 		);
 		mEmbedFontsOptions = new BoolOption(this, getString(R.string.options_font_embedded_document_font_enabled), PROP_EMBEDDED_FONTS).setDefaultValue("1").noIcon();
 		boolean value = mProperties.getBool(PROP_EMBEDDED_STYLES, false);
 		mEmbedFontsOptions.setEnabled(isEpubFormat && value);
 		mOptionsCSS.add(mEmbedFontsOptions);
+		mIgnoreDocMargins = new StyleBoolOption(this, getString(R.string.options_ignore_document_margins), "styles.body.margin", "margin: 0em !important", "").setDefaultValueBoolean(false).noIcon();
+		mIgnoreDocMargins.setEnabled(isFormatWithEmbeddedStyle && value);
+		mOptionsCSS.add(mIgnoreDocMargins);
 		if (isTextFormat) {
 			mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_text_autoformat_enable), PROP_TXT_OPTION_PREFORMATTED).setDefaultValue("1").noIcon());
 		}
@@ -2057,7 +2257,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_render_font_gamma), PROP_FONT_GAMMA).add(mGammas).setDefaultValue("1.0").setIconIdByAttr(R.attr.cr3_option_font_gamma_drawable, R.drawable.cr3_option_font_gamma));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_format_min_space_width_percent), PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT).addPercents(mMinSpaceWidths).setDefaultValue("50").setIconIdByAttr(R.attr.cr3_option_text_width_drawable, R.drawable.cr3_option_text_width));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_hinting), PROP_FONT_HINTING).add(mHinting, mHintingTitles).setDefaultValue("2").noIcon());
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_fallback_face), PROP_FALLBACK_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
+		mOptionsStyles.add(new FallbackFontsOptions(this, getString(R.string.options_font_fallback_faces)).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
 		
 		//
 		mOptionsPage = new OptionsListView(getContext());

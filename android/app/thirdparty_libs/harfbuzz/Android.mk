@@ -5,9 +5,9 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := local_harfbuzz
 
-HARFBUZZ_SRC_DIR := ../../../../thirdparty/harfbuzz
-HARFBUZZ_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/harfbuzz
-FREETYPE_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/freetype
+HARFBUZZ_SRC_DIR := ../../../../thirdparty/harfbuzz-2.7.4
+HARFBUZZ_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/harfbuzz-2.7.4
+FREETYPE_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/freetype-2.10.4
 HARFBUZZ_CONFIG_DIR_P := $(LOCAL_PATH)
 
 LOCAL_C_INCLUDES := \
@@ -23,12 +23,14 @@ LOCAL_SRC_FILES := \
     $(HARFBUZZ_SRC_DIR)/src/hb-aat-layout.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-aat-map.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-blob.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-buffer-serialize.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-buffer.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-buffer-serialize.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-common.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-draw.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-face.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-fallback-shape.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-font.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ft.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-map.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-number.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-cff1-table.cc \
@@ -46,13 +48,13 @@ LOCAL_SRC_FILES := \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-default.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-hangul.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-hebrew.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-indic-table.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-indic.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-indic-table.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-khmer.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-myanmar.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-thai.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-use-table.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-use.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-use-table.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-vowel-constraints.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-fallback.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-normalize.cc \
@@ -60,12 +62,12 @@ LOCAL_SRC_FILES := \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-tag.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-var.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-set.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-shape-plan.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-shape.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-shape-plan.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-shaper.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-static.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-style.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ucd.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-unicode.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ft.cc
+    $(HARFBUZZ_SRC_DIR)/src/hb-unicode.cc
 
 include $(BUILD_STATIC_LIBRARY)

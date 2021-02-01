@@ -1,7 +1,7 @@
 
 project(chmlib)
 
-set(CHM_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/chmlib)
+set(CHM_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty_unman/chmlib)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 

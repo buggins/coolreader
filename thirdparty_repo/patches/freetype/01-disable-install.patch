@@ -1,0 +1,93 @@
+diff -urBb freetype-2.10.4-orig/CMakeLists.txt freetype-2.10.4/CMakeLists.txt
+--- freetype-2.10.4-orig/CMakeLists.txt	2020-10-20 09:03:43.000000000 +0400
++++ freetype-2.10.4/CMakeLists.txt	2021-01-26 23:46:10.973017007 +0400
+@@ -470,89 +470,6 @@
+ endif ()
+ 
+ 
+-# Installation
+-include(GNUInstallDirs)
+-
+-if (NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
+-  install(
+-    # Note the trailing slash in the argument to `DIRECTORY'!
+-    DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+-      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/freetype2
+-      COMPONENT headers
+-      PATTERN "internal" EXCLUDE
+-      PATTERN "ftconfig.h" EXCLUDE
+-      PATTERN "ftoption.h" EXCLUDE)
+-  install(
+-    FILES ${PROJECT_BINARY_DIR}/include/freetype/config/ftconfig.h
+-          ${PROJECT_BINARY_DIR}/include/freetype/config/ftoption.h
+-      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/freetype2/freetype/config
+-      COMPONENT headers)
+-endif ()
+-
+-if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
+-  # Generate the pkg-config file
+-  if (UNIX)
+-    file(READ "${PROJECT_SOURCE_DIR}/builds/unix/freetype2.in" FREETYPE2_PC_IN)
+-
+-    string(REPLACE ";" ", " PKG_CONFIG_REQUIRED_PRIVATE "${PKG_CONFIG_REQUIRED_PRIVATE}")
+-
+-    string(REPLACE "%prefix%" ${CMAKE_INSTALL_PREFIX}
+-           FREETYPE2_PC_IN ${FREETYPE2_PC_IN})
+-    string(REPLACE "%exec_prefix%" "\${prefix}"
+-           FREETYPE2_PC_IN ${FREETYPE2_PC_IN})
+-    string(REPLACE "%libdir%" "\${prefix}/${CMAKE_INSTALL_LIBDIR}"
+-           FREETYPE2_PC_IN ${FREETYPE2_PC_IN})
+-    string(REPLACE "%includedir%" "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}"
+-           FREETYPE2_PC_IN ${FREETYPE2_PC_IN})
+-    string(REPLACE "%ft_version%" "${LIBTOOL_CURRENT}.${LIBTOOL_REVISION}.${LIBTOOL_AGE}"
+-           FREETYPE2_PC_IN ${FREETYPE2_PC_IN})
+-    string(REPLACE "%REQUIRES_PRIVATE%" "${PKG_CONFIG_REQUIRED_PRIVATE}"
+-           FREETYPE2_PC_IN ${FREETYPE2_PC_IN})
+-    string(REPLACE "%LIBS_PRIVATE%" ""  # All libs support pkg-config
+-           FREETYPE2_PC_IN ${FREETYPE2_PC_IN})
+-
+-    set(FREETYPE2_PC_IN_NAME "${PROJECT_BINARY_DIR}/freetype2.pc")
+-    if (EXISTS "${FREETYPE2_PC_IN_NAME}")
+-      file(READ "${FREETYPE2_PC_IN_NAME}" ORIGINAL_FREETYPE2_PC_IN)
+-    else ()
+-      set(ORIGINAL_FREETYPE2_PC_IN "")
+-    endif ()
+-    if (NOT (ORIGINAL_FREETYPE2_PC_IN STREQUAL FREETYPE2_PC_IN))
+-      file(WRITE "${FREETYPE2_PC_IN_NAME}" ${FREETYPE2_PC_IN})
+-    endif ()
+-
+-    install(
+-      FILES ${PROJECT_BINARY_DIR}/freetype2.pc
+-      DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+-      COMPONENT pkgconfig)
+-  endif ()
+-
+-  include(CMakePackageConfigHelpers)
+-  write_basic_package_version_file(
+-    ${PROJECT_BINARY_DIR}/freetype-config-version.cmake
+-    VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
+-    COMPATIBILITY SameMajorVersion)
+-
+-  install(
+-    TARGETS freetype
+-      EXPORT freetype-targets
+-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+-      FRAMEWORK DESTINATION Library/Frameworks
+-      COMPONENT libraries)
+-  install(
+-    EXPORT freetype-targets
+-      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/freetype
+-      FILE freetype-config.cmake
+-      COMPONENT headers)
+-  install(
+-    FILES ${PROJECT_BINARY_DIR}/freetype-config-version.cmake
+-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/freetype
+-    COMPONENT headers)
+-endif ()
+-
+-
+ # Packaging
+ set(CPACK_PACKAGE_NAME ${CMAKE_PROJECT_NAME})
+ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "The FreeType font rendering library.")

@@ -3310,7 +3310,10 @@ public:
                         word->min_width = word->width;
                         word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
                     }
-                    if ( m_flags[i-1] & LCHAR_IS_SPACE) { // Current word ends with a space
+
+                    bool preformatted = srcline->flags & LTEXT_FLAG_PREFORMATTED;
+                    if ( m_flags[i-1] & LCHAR_IS_SPACE ) {
+                        // Current word ends with a space.
                         // Each word ending with a space (except in some conditions) can
                         // have its width reduced by a fraction of this space width or
                         // increased if needed (for text justification), so actually
@@ -3326,8 +3329,11 @@ public:
                                 word->min_width = word->width - dw;
                             }
                         }
-                        if ( lastWord ) {
-                            // If last word of line, remove any trailing space from word's width
+                        if ( lastWord && !preformatted ) {
+                            // If last word of line, remove any trailing space
+                            // from word's width (but not with preformatted, in
+                            // case of text-align:right where we don't want to
+                            // lose any trailing space)
                             word->width = m_widths[i>1 ? i-2 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
                             word->min_width = word->width;
                         }

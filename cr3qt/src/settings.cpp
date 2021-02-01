@@ -2,6 +2,7 @@
 #include "ui_settings.h"
 #include "cr3widget.h"
 #include "crqtutil.h"
+#include "fallbackfontsdialog.h"
 #include <qglobal.h>
 #if QT_VERSION >= 0x050000
 #include <QtWidgets/QColorDialog>
@@ -161,6 +162,9 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
         m_props->setString(PROP_FONT_GAMMA, "1.0");
     optionToUiString(PROP_FONT_GAMMA, m_ui->cbFontGamma);
 
+    QString ignoreDocMargins = m_props->getStringDef("styles.body.margin", "");
+    m_ui->cbIgnoreDocumentMargins->setCheckState(ignoreDocMargins.length() > 0 ?  Qt::Checked : Qt::Unchecked);
+
     optionToUiInversed( PROP_STATUS_LINE, m_ui->cbShowPageHeader );
 
     bool b = m_props->getIntDef( PROP_STATUS_LINE, 0 )==0;
@@ -196,7 +200,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_ui->cbRendFlags->setCurrentIndex(rendFlagsIndex);
 
     int DOMVersionIndex = 0;
-    int DOMVersion = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, 0);
+    int DOMVersion = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
     for (int i = 0; i < MAX_DOM_VERSIONS_INDEX; i++) {
         if (DOMVersion == DOM_versions[i]) {
             DOMVersionIndex = i;
@@ -231,7 +235,6 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     crGetFontFaceList( m_faceList );
     m_ui->cbTextFontFace->addItems( m_faceList );
     m_ui->cbTitleFontFace->addItems( m_faceList );
-    m_ui->cbFallbackFontFace->addItems( m_faceList );
     QStringList sizeList;
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
     for ( int i=0; i<sizes.length(); i++ )
@@ -239,9 +242,10 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_ui->cbTextFontSize->addItems( sizeList );
     m_ui->cbTitleFontSize->addItems( sizeList );
     
-    const char * defFontFace = "DejaVu Sans";
+    m_defFontFace = "DejaVu Sans";
     static const char * goodFonts[] = {
         "DejaVu Sans",
+        "Noto Sans",
         "FreeSans",
         "Liberation Sans",
         "Arial",
@@ -249,14 +253,13 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     };
     for ( int i=0; goodFonts[i]; i++ ) {
         if ( m_faceList.indexOf(QString(goodFonts[i]))>=0 ) {
-            defFontFace = goodFonts[i];
+            m_defFontFace = goodFonts[i];
             break;
         }
     }
 
-    fontToUi( PROP_FONT_FACE, PROP_FONT_SIZE, m_ui->cbTextFontFace, m_ui->cbTextFontSize, defFontFace );
-    fontToUi( PROP_STATUS_FONT_FACE, PROP_STATUS_FONT_SIZE, m_ui->cbTitleFontFace, m_ui->cbTitleFontSize, defFontFace );
-    fontToUi( PROP_FALLBACK_FONT_FACE, PROP_FALLBACK_FONT_FACE, m_ui->cbFallbackFontFace, NULL, defFontFace );
+    fontToUi( PROP_FONT_FACE, PROP_FONT_SIZE, m_ui->cbTextFontFace, m_ui->cbTextFontSize, m_defFontFace.toLatin1().data() );
+    fontToUi( PROP_STATUS_FONT_FACE, PROP_STATUS_FONT_SIZE, m_ui->cbTitleFontFace, m_ui->cbTitleFontSize, m_defFontFace.toLatin1().data() );
 
 //		{_("90%"), "90"},
 //		{_("100%"), "100"},
@@ -1058,23 +1061,22 @@ void SettingsDlg::on_cbFontHinting_currentIndexChanged(int index)
     updateStyleSample();
 }
 
-void SettingsDlg::on_cbFallbackFontFace_currentIndexChanged(const QString &s)
-{
-    if ( !initDone )
-        return;
-    m_props->setString(PROP_FALLBACK_FONT_FACE, s);
-    updateStyleSample();
-}
-
 void SettingsDlg::on_cbEnableEmbeddedFonts_toggled(bool checked)
 {
     setCheck(PROP_EMBEDDED_FONTS, checked ? Qt::Checked : Qt::Unchecked);
+}
+
+void SettingsDlg::on_cbIgnoreDocumentMargins_stateChanged(int s)
+{
+    QString value = (s == Qt::Checked) ? "margin: 0em !important" : "";
+    m_props->setString("styles.body.margin", value);
 }
 
 void SettingsDlg::on_cbEnableDocumentStyles_toggled(bool checked)
 {
     setCheck(PROP_EMBEDDED_STYLES, checked ? Qt::Checked : Qt::Unchecked);
     m_ui->cbEnableEmbeddedFonts->setEnabled(checked);
+    m_ui->cbIgnoreDocumentMargins->setEnabled(checked);
 }
 
 void SettingsDlg::on_btnSelectionColor_clicked()
@@ -1150,7 +1152,7 @@ void SettingsDlg::on_cbRendFlags_currentIndexChanged(int index)
     if (index < 0 || index >= MAX_REND_FLAGS_INDEX)
         index = 0;
     m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, rend_flags[index]);
-    int DOMVersion = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, 0);
+    int DOMVersion = m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
     bool legacy_render = (0 == index) || (DOMVersion < 20180524);
     m_ui->label_47->setVisible(!legacy_render);
     m_ui->cbMultiLang->setVisible(!legacy_render);
@@ -1207,4 +1209,16 @@ void SettingsDlg::on_cbEnableHyph_stateChanged(int state)
 {
     setCheck( PROP_TEXTLANG_HYPHENATION_ENABLED, state );
     // don't update preview to not change static field TextLangMan::_hyphenation_enabled too early!
+}
+
+void SettingsDlg::on_btnFallbackMan_clicked()
+{
+    FallbackFontsDialog dlg(this, m_faceList);
+    QString fallbackFaces = m_props->getStringDef( PROP_FALLBACK_FONT_FACES, m_defFontFace.toLatin1().data() );
+    dlg.setFallbackFaces(fallbackFaces);
+    if ( dlg.exec() == QDialog::Accepted ) {
+        fallbackFaces = dlg.fallbackFaces();
+        m_props->setString( PROP_FALLBACK_FONT_FACES, fallbackFaces );
+        updateStyleSample();
+    }
 }

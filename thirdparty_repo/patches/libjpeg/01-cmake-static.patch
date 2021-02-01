@@ -1,0 +1,18 @@
+diff -urBbN jpeg-9d-orig/CMakeLists.txt jpeg-9d/CMakeLists.txt
+--- jpeg-9d-orig/CMakeLists.txt	1970-01-01 04:00:00.000000000 +0400
++++ jpeg-9d/CMakeLists.txt	2021-01-24 21:01:41.912455186 +0400
+@@ -0,0 +1,14 @@
++set(JPEG_SOURCES
++        jaricom.c jcapimin.c jcapistd.c jcarith.c jccoefct.c jccolor.c
++        jcdctmgr.c jchuff.c jcinit.c jcmainct.c jcmarker.c jcmaster.c
++        jcomapi.c jcparam.c jcprepct.c jcsample.c jctrans.c jdapimin.c
++        jdapistd.c jdarith.c jdatadst.c jdatasrc.c jdcoefct.c jdcolor.c
++        jddctmgr.c jdhuff.c jdinput.c jdmainct.c jdmarker.c jdmaster.c
++        jdmerge.c jdpostct.c jdsample.c jdtrans.c jerror.c jfdctflt.c
++        jfdctfst.c jfdctint.c jidctflt.c jidctfst.c jidctint.c jquant1.c
++        jquant2.c jutils.c jmemmgr.c
++
++        jmemnobs.c
++)
++
++add_library(jpeg STATIC ${JPEG_SOURCES})

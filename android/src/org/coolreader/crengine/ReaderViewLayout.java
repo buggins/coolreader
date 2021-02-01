@@ -109,7 +109,8 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 					ReaderAction.GO_FORWARD,
 					ReaderAction.RECENT_BOOKS,
 					ReaderAction.OPEN_PREVIOUS_BOOK,
-					ReaderAction.TOGGLE_AUTOSCROLL);
+					ReaderAction.TOGGLE_AUTOSCROLL,
+					ReaderAction.SAVE_LOGCAT);
 			if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				actionsList.add(ReaderAction.GDRIVE_SYNCTO);
 				actionsList.add(ReaderAction.GDRIVE_SYNCFROM);

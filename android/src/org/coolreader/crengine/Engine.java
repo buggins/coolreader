@@ -8,6 +8,7 @@ import android.util.Log;
 
 import org.coolreader.R;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -1272,19 +1273,20 @@ public class Engine {
 			try {
 				final Process process = new ProcessBuilder().command("mount")
 						.redirectErrorStream(true).start();
-				ProcessWithTimeout processWithTimeout = new ProcessWithTimeout(process);
-				int exitCode = processWithTimeout.waitForProcess(100);
-				if (exitCode == Integer.MIN_VALUE) {
+				ProcessIOWithTimeout processIOWithTimeout = new ProcessIOWithTimeout(process, 1024);
+				int exitCode = processIOWithTimeout.waitForProcess(100);
+				if (exitCode == ProcessIOWithTimeout.EXIT_CODE_TIMEOUT) {
 					// Timeout
 					log.e("Timed out waiting for mount command output, " +
 							"please add CoolReader to MagiskHide list!");
 					process.destroy();
 					return out;
 				}
-				try (InputStream is = process.getInputStream()) {
-					final byte[] buffer = new byte[1024];
-					while (is.read(buffer) != -1) {
-						s.append(new String(buffer));
+				try (ByteArrayInputStream inputStream = new ByteArrayInputStream(processIOWithTimeout.receivedData())) {
+					byte[] buffer = new byte[1024];
+					int rb;
+					while ((rb = inputStream.read(buffer)) != -1) {
+						s.append(new String(buffer, 0, rb));
 					}
 				}
 			} catch (final Exception e) {
@@ -1616,7 +1618,8 @@ public class Engine {
 				String[] fileList = fontDir.list((dir, filename) -> {
 					String lc = filename.toLowerCase();
 					return (lc.endsWith(".ttf") || lc.endsWith(".otf")
-							|| lc.endsWith(".pfb") || lc.endsWith(".pfa"))
+							|| lc.endsWith(".pfb") || lc.endsWith(".pfa")
+							|| lc.endsWith(".ttc"))
 //								&& !filename.endsWith("Fallback.ttf")
 							;
 				});

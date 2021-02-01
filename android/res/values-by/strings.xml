@@ -382,6 +382,8 @@
 <string name="options_font_hinting_disabled">Адключаны</string>
 <string name="options_font_hinting_auto">Аўтахінтынг</string>
 <string name="options_font_fallback_face">Дадатковы шрыфт</string>
+<string name="options_font_fallback_face_num">Дадатковы шрыфт №%s</string>
+<string name="options_font_fallback_faces">Дадатковыя шрыфты</string>
 <string name="win_title_confirm_catalog_delete">Вы сапраўды хочаце выдаліць гэтую тэчку</string>
 <string name="win_title_confirm_history_record_delete">Вы сапраўды хочаце выдаліць кнігу з спісу апошніх</string>
 <string name="win_title_confirm_book_delete">Вы сапраўды хочаце выдаліць кнігу</string>
@@ -482,4 +484,4 @@
 <string name="btn_toolbar_more"> Яшчэ ... </string>
 <string name="black_list_enforced"> Нельга дадаваць гэты адрас , так як па запыце LitRes.ru ён дададзены ў чорны спіс каталогаў , якія парушаюць аўтарскія правы. </string>
 <string name="black_list_warning"> Увага ! Гэты адрас па запыце LitRes.ru быў дададзены ў чорны спіс каталогаў , якія парушаюць аўтарскія правы. Вы сапраўды жадаеце выкарыстоўваць гэты каталог ? </string>
-</resources> 
+</resources>

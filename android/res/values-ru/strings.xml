@@ -54,6 +54,7 @@
     <string name="win_title_search">Найти текст</string>
     <string name="win_title_options_apply">Применить новые настройки?</string>
     <string name="win_title_screen_orientation_change_apply">Изменить ориентацию экрана?</string>
+    <string name="win_title_log">Журнал</string>
     <string name="tab_options_styles">Стили</string>
     <string name="tab_options_page">Страница</string>
     <string name="tab_options_app">Программа</string>
@@ -142,6 +143,7 @@
     <string name="action_touch_screen_disabled_toast">Сенсорный экран отключен</string>
     <string name="action_touch_screen_enabled_toast">Сенсорный экран включен</string>
     <string name="action_repeat">(автоповтор)</string>
+    <string name="action_logcat">Сохранить журнал</string>
     <string name="options_app_scan_book_props">Сканировать свойства книг в директории</string>
     <string name="options_page_titlebar">Настройки колонтитула</string>
     <string name="options_page_show_titlebar_chapter_marks">Метки глав</string>
@@ -418,6 +420,8 @@
     <string name="options_font_hinting_disabled">Отключен</string>
     <string name="options_font_hinting_auto">Автохинтинг</string>
     <string name="options_font_fallback_face">Резервный шрифт</string>
+    <string name="options_font_fallback_face_num">Резервный шрифт №%s</string>
+    <string name="options_font_fallback_faces">Резервные шрифты</string>
     <string name="win_title_confirm_catalog_delete">Вы действительно хотите удалить этот каталог?</string>
     <string name="win_title_confirm_history_record_delete">Вы действительно хотите удалить эту книгу из списка последних книг?</string>
     <string name="win_title_confirm_book_delete">Вы действительно хотите удалить эту книгу / архив ?</string>
@@ -538,6 +542,7 @@
     <string name="online_store_purchase_new_balance">Остаток на счете:</string>
     <string name="options_app_plugins">Плагины</string>
     <string name="note1_reader_menu">ВНИМАНИЕ! В новой версии для поддержки полноэкранного режима и гашения экранных кнопок под Android 3 и 4 в приложении указана целевая платформа Android 4. В этом режиме экранная кнопка меню недоступна. Без панели инструментов в режиме чтения меню можно вызвать коротким нажатием в центре экрана. Длинное нажатие открывает настройки. Включить панель инструментов для режима чтения? (Этот выбор всегда можно изменить в Настройках/Страница/Панель инструментов)</string>
+    <string name="note2_logcat">Добавлена функция сохранения журнала работы программы. Если при выполнении какой-либо операции программа аварийно завершилась или некорректно работает, можно создать журнал работы программы. Если программа завершилась с ошибкой нужно запустить её заново и в меню чтения выбрать пункт "Сохранить журнал". В результате будет создан лог-файл, который поможет в решении проблемы.</string>
     <string name="root_item_recent">Последние открытые книги</string>
     <string name="root_item_library">Библиотека</string>
     <string name="root_item_filesystem">Открыть книгу из файловой системы</string>
@@ -669,4 +674,6 @@
     <string name="book_info_genres">Жанр(ы)</string>
     <string name="including_subgenres">(Включая поджанры)</string>
     <string name="action_show_onyx_backlight_system_dialog">Показать системный диалог для настройки подсветки</string>
+    <string name="confirmation_select_folder_for_log">На следующем экране выберите каталог для сохранения файла журнала</string>
+    <string name="notice_log_saved_to_">Файл журнала сохранен в файле \"%s\". Этот файл может содержать личные данные, например, какие книги вы читаете, будьте внимательны.</string>
 </resources>

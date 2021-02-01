@@ -105,6 +105,7 @@ public class ReaderAction {
 	public final static ReaderAction SCAN_DIRECTORY_RECURSIVE = new ReaderAction("SCAN_DIRECTORY_RECURSIVE", R.string.mi_book_scan_recursive, ReaderCommand.DCMD_SCAN_DIRECTORY_RECURSIVE, 0);
 	public final static ReaderAction NEXT_CHAPTER = new ReaderAction("NEXT_CHAPTER", R.string.action_chapter_next, ReaderCommand.DCMD_MOVE_BY_CHAPTER, 1);
 	public final static ReaderAction PREV_CHAPTER = new ReaderAction("PREV_CHAPTER", R.string.action_chapter_prev, ReaderCommand.DCMD_MOVE_BY_CHAPTER, -1);
+	public final static ReaderAction SAVE_LOGCAT = new ReaderAction("SAVE_LOGCAT", R.string.action_logcat, ReaderCommand.DCMD_SAVE_LOGCAT, 0).setIconId(R.drawable.cr3_button_log);
 	public final static ReaderAction EXIT = new ReaderAction("EXIT", R.string.action_exit, ReaderCommand.DCMD_EXIT, 0, R.id.cr3_mi_exit ).setIconId(R.drawable.cr3_viewer_exit);
 
 	public final static ReaderAction BACKLIGHT_SET_DEFAULT = new ReaderAction("BACKLIGHT_SET_DEFAULT", R.string.action_backlight_set_default, ReaderCommand.DCMD_BACKLIGHT_SET_DEFAULT, -1);
@@ -247,7 +248,8 @@ public class ReaderAction {
 				TOGGLE_DICT,
 				BACKLIGHT_SET_DEFAULT,
 				GDRIVE_SYNCTO,
-				GDRIVE_SYNCFROM
+				GDRIVE_SYNCFROM,
+				SAVE_LOGCAT
 		};
 		if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
 			// TODO: and may be other eink devices with frontlight...

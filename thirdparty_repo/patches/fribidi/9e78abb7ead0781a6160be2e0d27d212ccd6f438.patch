@@ -1,0 +1,35 @@
+From 9e78abb7ead0781a6160be2e0d27d212ccd6f438 Mon Sep 17 00:00:00 2001
+From: Dov Grobgeld <dov.grobgeld@gmail.com>
+Date: Tue, 18 Aug 2020 23:24:10 +0300
+Subject: [PATCH] Fixed dangling pointer problem found by fuzzing
+
+---
+ lib/fribidi-bidi.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/lib/fribidi-bidi.c b/lib/fribidi-bidi.c
+index 634546d..14967a7 100644
+--- a/lib/fribidi-bidi.c
++++ b/lib/fribidi-bidi.c
+@@ -83,13 +83,19 @@ merge_with_prev (
+   first->next->prev = first;
+   RL_LEN (first) += RL_LEN (second);
+   if (second->next_isolate)
+-    second->next_isolate->prev_isolate = first;
++    second->next_isolate->prev_isolate = second->prev_isolate;
++  /* The following edge case typically shouldn't happen, but fuzz
++     testing shows it does, and the assignment protects against
++     a dangling pointer. */
++  else if (second->next->prev_isolate == second)
++    second->next->prev_isolate = second->prev_isolate;  
++  if (second->prev_isolate)
++    second->prev_isolate->next_isolate = second->next_isolate;
+   first->next_isolate = second->next_isolate;
+ 
+   fribidi_free (second);
+   return first;
+ }
+-
+ static void
+ compact_list (
+   FriBidiRun *list

@@ -386,6 +386,8 @@
     <string name="options_font_hinting_disabled">Deaktiviert</string>
     <string name="options_font_hinting_auto">Automatisch</string>
     <string name="options_font_fallback_face">Fallback-Schriftart</string>
+    <string name="options_font_fallback_face_num">Fallback-Schriftart Nr. %s</string>
+    <string name="options_font_fallback_faces">Fallback-Schriftarten</string>
     <string name="win_title_confirm_catalog_delete">Wollen Sie diesen Katalog wirklich löschen?</string>
     <string name="win_title_confirm_history_record_delete">Wollen Sie dieses Buch wirklich aus der Liste der letzten Bücher löschen?</string>
     <string name="win_title_confirm_book_delete">Wollen Sie dieses Buch wirklich löschen?</string>
