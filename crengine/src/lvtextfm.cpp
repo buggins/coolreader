@@ -1642,41 +1642,47 @@ public:
             return;
         }
         //CRLog::trace("Resize image (%dx%d) max %dx%d %s  *%d", width, height, maxw, maxh, arbitraryImageScaling ? "arbitrary" : "integer", maxScaleMult);
-        if ( maxScaleMult<1 ) maxScaleMult = 1;
-        if ( arbitraryImageScaling ) {
-            int pscale_x = 1000 * maxw / width;
-            int pscale_y = 1000 * maxh / height;
-            int pscale = pscale_x < pscale_y ? pscale_x : pscale_y;
-            int maxscale = maxScaleMult * 1000;
-            if ( pscale>maxscale )
-                pscale = maxscale;
-            height = height * pscale / 1000;
-            width = width * pscale / 1000;
-        } else {
-            if (maxw == 0 || maxh == 0) {
-                // Avoid a floating point exception (division by zero) crash.
-                printf("CRE WARNING: resizeImage(maxw=0 or maxh=0)\n");
+
+        if ( maxScaleMult < 1 ) maxScaleMult = 1;
+
+        if ( maxw < 2 ) maxw = 2;
+        if ( maxh < 2 ) maxh = 2;
+
+        if ( !arbitraryImageScaling ) {
+            // Integer scaling. Try some integer scales first.
+            if ( maxScaleMult >= 3 && height*3 < maxh - 20
+                 && width*3 < maxw - 20 ) {
+                width = width * 3;
+                height = height * 3;
                 return;
             }
-            int scale_div = 1;
-            int scale_mul = 1;
-            int div_x = (width * 1000 / maxw);
-            int div_y = (height * 1000 / maxh);
-            if ( maxScaleMult>=3 && height*3 < maxh - 20
-                    && width*3 < maxw - 20 ) {
-                scale_mul = 3;
-            } else if ( maxScaleMult>=2 && height * 2 < maxh - 20
-                    && width * 2 < maxw - 20 ) {
-                scale_mul = 2;
-            } else if (div_x>1 || div_y>1) {
-                if (div_x>div_y)
-                    scale_div = div_x;
-                else
-                    scale_div = div_y;
+            if ( maxScaleMult >= 2 && height * 2 < maxh - 20
+                 && width * 2 < maxw - 20 ) {
+                width = width * 2;
+                height = height * 2;
+                return;
             }
-            height = height * 1000 * scale_mul / scale_div;
-            width = width * 1000 * scale_mul / scale_div;
+            if ( height <= maxh && width <= maxw ) {
+                // Fits without scaling (one).
+                return;
+            }
+            // Fall through to arbitrary scale down.
         }
+
+        if (width * maxh > height * maxw) {
+            if (width * maxScaleMult > maxw) {
+                height = roundi(height * maxw, width);
+                width = maxw;
+                return;
+            }
+        }
+        else if (height * maxScaleMult > maxh) {
+            width = roundi(width * maxh, height);
+            height = maxh;
+            return;
+        }
+        width = width * maxScaleMult;
+        height = height * maxScaleMult;
     }
 
     /// measure word
