@@ -246,8 +246,8 @@ public class BaseActivity extends Activity implements Settings {
 		super.onPause();
 	}
 
-	protected void einkRefresh() {
-		EinkScreen.Refresh();
+	public void einkRefresh() {
+		// override it
 	}
 
 
