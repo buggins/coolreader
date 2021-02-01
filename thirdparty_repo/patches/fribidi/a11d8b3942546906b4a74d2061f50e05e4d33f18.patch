@@ -1,0 +1,46 @@
+From a11d8b3942546906b4a74d2061f50e05e4d33f18 Mon Sep 17 00:00:00 2001
+From: Oleg Oshmyan <chortos@inbox.lv>
+Date: Mon, 26 Oct 2020 00:19:31 +0200
+Subject: [PATCH] Skip isolates in fribidi_get_par_direction
+
+Copy the logic from fribidi_get_par_embedding_levels_ex.
+
+Most likely, this should have been added in commit
+f20b6480b9cd46dae8d82a6f95d9c53558fcfd20 but was omitted by accident.
+---
+ lib/fribidi-bidi.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/lib/fribidi-bidi.c b/lib/fribidi-bidi.c
+index 14967a7..ce061d5 100644
+--- a/lib/fribidi-bidi.c
++++ b/lib/fribidi-bidi.c
+@@ -397,14 +397,25 @@ fribidi_get_par_direction (
+   const FriBidiStrIndex len
+ )
+ {
++  int valid_isolate_count = 0;
+   register FriBidiStrIndex i;
+ 
+   fribidi_assert (bidi_types);
+ 
+   for (i = 0; i < len; i++)
+-    if (FRIBIDI_IS_LETTER (bidi_types[i]))
+-      return FRIBIDI_IS_RTL (bidi_types[i]) ? FRIBIDI_PAR_RTL :
+-	FRIBIDI_PAR_LTR;
++    {
++      if (bidi_types[i] == FRIBIDI_TYPE_PDI)
++        {
++          /* Ignore if there is no matching isolate */
++          if (valid_isolate_count>0)
++            valid_isolate_count--;
++        }
++      else if (FRIBIDI_IS_ISOLATE(bidi_types[i]))
++        valid_isolate_count++;
++      else if (valid_isolate_count==0 && FRIBIDI_IS_LETTER (bidi_types[i]))
++        return FRIBIDI_IS_RTL (bidi_types[i]) ? FRIBIDI_PAR_RTL :
++          FRIBIDI_PAR_LTR;
++    }
+ 
+   return FRIBIDI_PAR_ON;
+ }

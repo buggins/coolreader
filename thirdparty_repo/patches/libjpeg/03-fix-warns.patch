@@ -1,0 +1,39 @@
+diff -urBbN jpeg-9d-orig/jmemmgr.c jpeg-9d/jmemmgr.c
+--- jpeg-9d-orig/jmemmgr.c	2019-02-05 21:26:52.000000000 +0400
++++ jpeg-9d/jmemmgr.c	2021-01-24 21:01:41.919121794 +0400
+@@ -304,7 +304,7 @@
+       if (slop < MIN_SLOP)	/* give up when it gets real small */
+ 	out_of_memory(cinfo, 2); /* jpeg_get_small failed */
+     }
+-    mem->total_space_allocated += min_request + slop;
++    mem->total_space_allocated += (int)(min_request + slop);
+     /* Success, initialize the new pool header and add to end of list */
+     hdr_ptr->hdr.next = NULL;
+     hdr_ptr->hdr.bytes_used = 0;
+@@ -364,7 +364,7 @@
+ 					    SIZEOF(large_pool_hdr));
+   if (hdr_ptr == NULL)
+     out_of_memory(cinfo, 4);	/* jpeg_get_large failed */
+-  mem->total_space_allocated += sizeofobject + SIZEOF(large_pool_hdr);
++  mem->total_space_allocated += (int)(sizeofobject + SIZEOF(large_pool_hdr));
+ 
+   /* Success, initialize the new pool header and add to list */
+   hdr_ptr->hdr.next = mem->large_list[pool_id];
+@@ -970,7 +970,7 @@
+ 		  lhdr_ptr->hdr.bytes_left +
+ 		  SIZEOF(large_pool_hdr);
+     jpeg_free_large(cinfo, (void FAR *) lhdr_ptr, space_freed);
+-    mem->total_space_allocated -= space_freed;
++    mem->total_space_allocated -= (int)space_freed;
+     lhdr_ptr = next_lhdr_ptr;
+   }
+ 
+@@ -984,7 +984,7 @@
+ 		  shdr_ptr->hdr.bytes_left +
+ 		  SIZEOF(small_pool_hdr);
+     jpeg_free_small(cinfo, (void *) shdr_ptr, space_freed);
+-    mem->total_space_allocated -= space_freed;
++    mem->total_space_allocated -= (int)space_freed;
+     shdr_ptr = next_shdr_ptr;
+   }
+ }

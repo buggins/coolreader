@@ -7,10 +7,10 @@
 #define FRIBIDI_NAME "GNU FriBidi"
 #define FRIBIDI_BUGREPORT "https://github.com/fribidi/fribidi/issues/new"
 
-#define FRIBIDI_VERSION "1.0.8"
+#define FRIBIDI_VERSION "1.0.10"
 #define FRIBIDI_MAJOR_VERSION 1
 #define FRIBIDI_MINOR_VERSION 0
-#define FRIBIDI_MICRO_VERSION 8
+#define FRIBIDI_MICRO_VERSION 10
 #define FRIBIDI_INTERFACE_VERSION 4
 #define FRIBIDI_INTERFACE_VERSION_STRING "4"
 

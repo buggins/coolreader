@@ -1,7 +1,7 @@
 
 project(antiword)
 
-set(ANTIWORD_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/antiword)
+set(ANTIWORD_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty_unman/antiword)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 

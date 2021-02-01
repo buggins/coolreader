@@ -35,6 +35,8 @@ Directories
         cr3qt      - CR3 with Qt based GUI
         cr3wx      - CR3 with wxWidgets based GUI
         thirdparty - third party libraries, to use if not found in system (zlib, libpng, libjpeg, freetype, harfbuzz)
+        thirdparty_repo - repository for third party libraries deployments
+        thirdparty_unman - unmanaged third party libraries
         tinydict   - small library for .dict file format support
         tools      - miscellaneous configuration files
         android    - Android port
@@ -69,7 +71,13 @@ To build debian package, copy one of package descriptions from packages director
 Android Build Instructions
 --------------------------
 
-Use Android Studio - open subdirectory "android" as Android Studio project
+* Deploy/update third party libraries: in terminal call script thirdparty-deploy.sh
+
+In Windows can be used git bash terminal
+
+        > ./thirdparty-deploy.sh
+
+* Use Android Studio - open subdirectory "android" as Android Studio project
 
 Ensure that you have Android SDK and NDK installed
 

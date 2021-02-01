@@ -5,8 +5,8 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := local_jpeg
 
-JPEG_SRC_DIR := ../../../../thirdparty/libjpeg
-JPEG_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/libjpeg
+JPEG_SRC_DIR := ../../../../thirdparty/jpeg-9d
+JPEG_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/jpeg-9d
 
 LOCAL_C_INCLUDES := $(JPEG_SRC_DIR_P)
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries

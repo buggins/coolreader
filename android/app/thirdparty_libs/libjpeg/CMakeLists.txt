@@ -1,7 +1,7 @@
 
 project(jpeg)
 
-set(JPEG_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/libjpeg)
+set(JPEG_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/jpeg-9d)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 

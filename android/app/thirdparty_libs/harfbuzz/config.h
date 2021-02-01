@@ -82,17 +82,11 @@
 /* Define to 1 if you have the `mprotect' function. */
 #define HAVE_MPROTECT 1
 
-/* Define to 1 if you have the `newlocale' function. */
-/* #undef HAVE_NEWLOCALE */
-
 /* Have POSIX threads */
 #define HAVE_PTHREAD 1
 
 /* Have PTHREAD_PRIO_INHERIT. */
 #define HAVE_PTHREAD_PRIO_INHERIT 1
-
-/* Define to 1 if you have the `roundf' function. */
-/* #undef HAVE_ROUNDF */
 
 /* Define to 1 if you have the <sched.h> header file. */
 /* #undef HAVE_SCHED_H */
@@ -118,9 +112,6 @@
 /* Define to 1 if you have the <string.h> header file. */
 #define HAVE_STRING_H 1
 
-/* Define to 1 if you have the `strtod_l' function. */
-/* #undef HAVE_STRTOD_L */
-
 /* Define to 1 if you have the `sysconf' function. */
 #define HAVE_SYSCONF 1
 
@@ -145,9 +136,6 @@
 /* Define to 1 if you have the <windows.h> header file. */
 /* #undef HAVE_WINDOWS_H */
 
-/* Define to 1 if you have the <xlocale.h> header file. */
-#define HAVE_XLOCALE_H 1
-
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
 
@@ -158,7 +146,7 @@
 #define PACKAGE_NAME "HarfBuzz"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "HarfBuzz 2.6.4"
+#define PACKAGE_STRING "HarfBuzz 2.7.4"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "harfbuzz"
@@ -167,7 +155,7 @@
 #define PACKAGE_URL "http://harfbuzz.org/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.6.4"
+#define PACKAGE_VERSION "2.7.4"
 
 /* Define to necessary symbol if this constant uses a non-standard name on
    your system. */
