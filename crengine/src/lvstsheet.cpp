@@ -453,14 +453,14 @@ static bool parse_integer( const char * & str, int & value)
     return true;
 }
 
-static bool parse_number_value( const char * & str, css_length_t & value,
-                                    bool accept_percent=true,
-                                    bool accept_negative=false,
-                                    bool accept_auto=false,
-                                    bool accept_none=false,
-                                    bool accept_normal=false,
-                                    bool accept_contain_cover=false,
-                                    bool is_font_size=false )
+bool parse_number_value( const char * & str, css_length_t & value,
+                                    bool accept_percent,    // Defaults to true
+                                    bool accept_negative,   // This and next ones default to false
+                                    bool accept_auto,
+                                    bool accept_none,
+                                    bool accept_normal,
+                                    bool accept_contain_cover,
+                                    bool is_font_size )
 {
     const char * orig_pos = str;
     value.type = css_val_unspecified;
