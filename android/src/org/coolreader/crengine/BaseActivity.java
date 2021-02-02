@@ -102,6 +102,26 @@ public class BaseActivity extends Activity implements Settings {
 	private SettingsManager mSettingsManager;
 
 	protected void startServices() {
+		DisplayMetrics dm = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(dm);
+
+		try {
+			Field fld = dm.getClass().getField("densityDpi");
+			if (fld != null) {
+				Object v = fld.get(dm);
+				if (v != null && v instanceof Integer) {
+					densityDpi = ((Integer) v).intValue();
+					log.i("Screen density detected: " + densityDpi + "DPI");
+				}
+			}
+		} catch (Exception e) {
+			log.e("Cannot find field densityDpi, using default value");
+		}
+		float widthInches = (float)dm.widthPixels / (float)densityDpi;
+		float heightInches = (float)dm.heightPixels / (float)densityDpi;
+		diagonalInches = (float) Math.sqrt(widthInches * widthInches + heightInches * heightInches);
+		log.i("diagonal=" + diagonalInches + "  isSmartphone=" + isSmartphone());
+
 		// create settings
 		mSettingsManager = new SettingsManager(this);
 		// create rest of settings
@@ -136,27 +156,6 @@ public class BaseActivity extends Activity implements Settings {
 			// ignore
 		}
 		log.i("CoolReader version : " + getVersion());
-
-		Display d = getWindowManager().getDefaultDisplay();
-		DisplayMetrics m = new DisplayMetrics();
-		d.getMetrics(m);
-		try {
-			Field fld = m.getClass().getField("densityDpi");
-			if (fld != null) {
-				Object v = fld.get(m);
-				if (v != null && v instanceof Integer) {
-					densityDpi = ((Integer) v).intValue();
-					log.i("Screen density detected: " + densityDpi + "DPI");
-				}
-			}
-		} catch (Exception e) {
-			log.e("Cannot find field densityDpi, using default value");
-		}
-		float widthInches = m.widthPixels / densityDpi;
-		float heightInches = m.heightPixels / densityDpi;
-		diagonalInches = (float) Math.sqrt(widthInches * widthInches + heightInches * heightInches);
-
-		log.i("diagonal=" + diagonalInches + "  isSmartphone=" + isSmartphone());
 		//log.i("CoolReader.window=" + getWindow());
 		if (!DeviceInfo.EINK_SCREEN) {
 			WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
@@ -327,7 +326,7 @@ public class BaseActivity extends Activity implements Settings {
 	}
 
 	private int densityDpi = 160;
-	private float diagonalInches = 4;
+	private float diagonalInches = 5;
 
 
 	private InterfaceTheme currentTheme = null;
@@ -1455,7 +1454,6 @@ public class BaseActivity extends Activity implements Settings {
 
 		private BaseActivity mActivity;
 		private Properties mSettings;
-		private boolean isSmartphone;
 
 		private final DisplayMetrics displayMetrics = new DisplayMetrics();
 		private final File defaultSettingsDir;
@@ -1464,7 +1462,7 @@ public class BaseActivity extends Activity implements Settings {
 			this.mActivity = activity;
 			activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 			defaultSettingsDir = activity.getDir("settings", Context.MODE_PRIVATE);
-			isSmartphone = activity.isSmartphone();
+
 			mSettings = loadSettings();
 		}
 
