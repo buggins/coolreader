@@ -2602,10 +2602,32 @@ bool getStyledImageSize( ldomNode * enode, int & img_width, int & img_height, in
             h = w * native_height / native_width;
         }
         // Ensure heights constraints
-        if ( max_height >= 0 && h > max_height)
+        // https://www.w3.org/TR/CSS21/visudet.html#min-max-heights says that when
+        // ensuring the height constraints, "the rules above are applied again",
+        // meaning the previous width adjustment should be done again with the
+        // computed height.
+        // This comes down to, when no width specified, recompute the width to
+        // keep aspect ratio, and ensure min/max width on the recomputed width.
+        if ( max_height >= 0 && h > max_height) {
             h = max_height;
-        if ( h < min_height )
+            if ( width < 0 ) {
+                w = h * native_width / native_height;
+                if ( max_width >= 0 && w > max_width)
+                    w = max_width;
+                if ( w < min_width )
+                    w = min_width;
+            }
+        }
+        if ( h < min_height ) {
             h = min_height;
+            if ( width < 0 ) {
+                w = h * native_width / native_height;
+                if ( max_width >= 0 && w > max_width)
+                    w = max_width;
+                if ( w < min_width )
+                    w = min_width;
+            }
+        }
     }
     else {
         // No CSS width nor height: use native image size
