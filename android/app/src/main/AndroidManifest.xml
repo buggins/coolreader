@@ -89,7 +89,6 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="file" android:host="*" />
                 <data android:scheme="content" />
-                <data android:mimeType="application/octet-stream" />
                 <data android:pathPattern=".*\\.fb2\\.zip"/>
                 <data android:pathPattern=".*\\..*\\.fb2\\.zip"/>
                 <data android:pathPattern=".*\\..*\\..*\\.fb2\\.zip"/>
@@ -152,7 +151,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="file" android:host="*" />
-                <data android:scheme="content" />
+                <data android:scheme="content" android:host="*"/>
                 <data android:mimeType="text/plain"/>
                 <data android:mimeType="text/html"/>
                 <data android:mimeType="text/richtext"/>
@@ -182,6 +181,8 @@
                 <data android:mimeType="application/x-msword"/>
                 <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
                 <data android:mimeType="application/vnd.oasis.opendocument.text"/>
+                <data android:mimeType="application/vnd.ms-htmlhelp"/>
+                <data android:mimeType="application/octet-stream" />
             </intent-filter>
         </activity>
 
