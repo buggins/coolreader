@@ -597,7 +597,12 @@ static bool parse_number_value( const char * & str, css_length_t & value,
     // allow unspecified unit (for line-height)
     // else
     //    return false;
-    value.value = n * 256 + 256 * frac / frac_div; // *256
+
+    // The largest frac here is 999999, limited above, with a frac_div of
+    // 1000000, and even scaling it by 256 it does not overflow a 32 bit
+    // integer. The frac_div is a power of 10 so always divisible by 2 without
+    // loss when frac is non-zero.
+    value.value = n * 256 + (256 * frac + frac_div / 2 ) / frac_div; // *256
     if (negative)
         value.value = -value.value;
     return true;
