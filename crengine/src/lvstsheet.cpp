@@ -533,13 +533,16 @@ static bool parse_number_value( const char * & str, css_length_t & value,
             return true;
         }
     }
+
     bool negative = false;
-    if (accept_negative) {
-        if ( *str == '-' ) {
-            str++;
-            negative = true;
-        }
+    if (accept_negative && *str == '-') {
+        str++;
+        negative = true;
     }
+    else if (*str == '+') {
+        str++;
+    }
+
     int n = 0;
     if (*str != '.') {
         if (*str<'0' || *str>'9') {
@@ -551,6 +554,7 @@ static bool parse_number_value( const char * & str, css_length_t & value,
             str++;
         }
     }
+
     int frac = 0;
     int frac_div = 1;
     if (*str == '.') {
@@ -566,6 +570,29 @@ static bool parse_number_value( const char * & str, css_length_t & value,
             str++;
         }
     }
+
+    int exponent = 0;
+    bool exponent_negative = false;
+    if ((*str == 'e' || *str == 'E') &&
+        (str[1] == '+' || str[1] == '-' || (str[1] >= '0' && str[1] <= '9'))) {
+        str++;
+        if (*str == '-') {
+            str++;
+            exponent_negative = true;
+        }
+        else if (*str == '+') {
+            str++;
+        }
+        if (*str<'0' || *str>'9') {
+            str = orig_pos; // revert our possible str++
+            return false; // not a number
+        }
+        while (*str>='0' && *str<='9') {
+            exponent = exponent*10 + (*str - '0');
+            str++;
+        }
+    }
+
     if ( substr_icompare( "em", str ) )
         value.type = css_val_em;
     else if ( substr_icompare( "pt", str ) )
@@ -602,7 +629,22 @@ static bool parse_number_value( const char * & str, css_length_t & value,
     // 1000000, and even scaling it by 256 it does not overflow a 32 bit
     // integer. The frac_div is a power of 10 so always divisible by 2 without
     // loss when frac is non-zero.
+    if (!exponent_negative) {
+        for (int i = 0; i < exponent; i++) {
+            n *= 10;
+            if (frac_div > 1)
+                frac_div /= 10;
+            else
+                frac *= 10;
+        }
+    }
     value.value = n * 256 + (256 * frac + frac_div / 2 ) / frac_div; // *256
+    if (exponent_negative) {
+        int div = 1;
+        for (int i = 0; i < exponent; i++)
+            div *= 10;
+        value.value = roundi(value.value, div);
+    }
     if (negative)
         value.value = -value.value;
     return true;

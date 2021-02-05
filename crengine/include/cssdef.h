@@ -414,4 +414,27 @@ typedef struct css_length_tag {
     lUInt32 pack() { return (lUInt32)type + (((lUInt32)value)<<4); }
 } css_length_t;
 
+// Support
+
+// Integer division with rounding to nearest.
+//
+// This does not bother to 'round to nearest integer' in the case of a tie.
+static inline lInt32 roundi(lInt32 n, lInt32 divisor)
+{
+    if (divisor < 0) {
+        if (divisor == 0) {
+            if (n >= 0)
+                return 0x7fffffff;
+            return 0x80000000;
+        }
+        n = -n;
+        divisor = -divisor;
+    }
+
+    if (n >= 0)
+        return (n + (divisor / 2)) / divisor;
+    else
+        return (n - (divisor / 2)) / divisor;
+}
+
 #endif // __CSS_DEF_H_INCLUDED__
