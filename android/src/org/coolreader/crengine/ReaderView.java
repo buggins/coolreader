@@ -2642,9 +2642,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		setBackgroundTexture(backgroundImageId, backgroundColor);
 		props.setInt(PROP_STATUS_LINE, props.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_TOP) == VIEWER_STATUS_PAGE ? 0 : 1);
 
-		int updMode = props.getInt(PROP_APP_SCREEN_UPDATE_MODE, 0);
+		int updModeCode = props.getInt(PROP_APP_SCREEN_UPDATE_MODE, EinkScreen.EinkUpdateMode.Clear.code);
 		int updInterval = props.getInt(PROP_APP_SCREEN_UPDATE_INTERVAL, 10);
-		mActivity.setScreenUpdateMode(updMode, surface);
+		mActivity.setScreenUpdateMode(EinkScreen.EinkUpdateMode.byCode(updModeCode), surface);
 		mActivity.setScreenUpdateInterval(updInterval, surface);
 
 		if (null != mBookInfo) {
@@ -3184,10 +3184,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			update = true;
 		}
 		if (update) {
-			if (DeviceInfo.EINK_SCREEN && -1 == savedEinkUpdateMode) {
+			if (DeviceInfo.EINK_SCREEN && EinkScreen.EinkUpdateMode.Unspecified == savedEinkUpdateMode) {
 				savedEinkUpdateMode = EinkScreen.getUpdateMode();
 				savedEinkUpdateInterval = EinkScreen.getUpdateInterval();
-				EinkScreen.ResetController(EinkScreen.CMODE_ONESHOT, 0, surface);
+				// set fast e-ink screen update mode without full refresh
+				EinkScreen.ResetController(EinkScreen.EinkUpdateMode.Fast, 0, surface);
 			}
 			bookView.draw(true);
 		}
@@ -3201,8 +3202,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			currentCloudSyncProgressTitle = null;
 			if (DeviceInfo.EINK_SCREEN) {
 				if (!isProgressActive()) {
+					// restore e-ink screen update mode
 					EinkScreen.ResetController(savedEinkUpdateMode, savedEinkUpdateInterval, surface);
-					savedEinkUpdateMode = -1;
+					savedEinkUpdateMode = EinkScreen.EinkUpdateMode.Unspecified;
 					savedEinkUpdateInterval = -1;
 				}
 			}
@@ -4126,6 +4128,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				if (canvas != null) {
 					if (DeviceInfo.EINK_SCREEN) {
 						// pre draw update
+						//BackgroundThread.instance().executeGUI(() -> EinkScreen.PrepareController(surface, isPartially));
 						EinkScreen.PrepareController(surface, isPartially);
 					}
 					callback.drawTo(canvas);
@@ -4938,7 +4941,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	private int currentProgressPosition = 1;
 	private int currentProgressTitleId = R.string.progress_loading;
 	private String currentProgressTitle = null;
-	private int savedEinkUpdateMode = -1;
+	private EinkScreen.EinkUpdateMode savedEinkUpdateMode = EinkScreen.EinkUpdateMode.Unspecified;
 	private int savedEinkUpdateInterval = -1;
 
 	private void showProgress(int position, int titleResource) {
@@ -4955,10 +4958,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			update = true;
 		}
 		if (update) {
-			if (DeviceInfo.EINK_SCREEN && -1 == savedEinkUpdateMode) {
+			if (DeviceInfo.EINK_SCREEN && EinkScreen.EinkUpdateMode.Unspecified == savedEinkUpdateMode) {
 				savedEinkUpdateMode = EinkScreen.getUpdateMode();
 				savedEinkUpdateInterval = EinkScreen.getUpdateInterval();
-				EinkScreen.ResetController(EinkScreen.CMODE_ONESHOT, 0, surface);
+				// set fast e-ink screen update mode without full refresh
+				EinkScreen.ResetController(EinkScreen.EinkUpdateMode.Fast, 0, surface);
 			}
 			bookView.draw(!first);
 		}
@@ -4972,8 +4976,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			currentProgressTitle = null;
 			if (DeviceInfo.EINK_SCREEN) {
 				if (!isCloudSyncProgressActive()) {
+					// restore e-ink screen update mode
 					EinkScreen.ResetController(savedEinkUpdateMode, savedEinkUpdateInterval, surface);
-					savedEinkUpdateMode = -1;
+					savedEinkUpdateMode = EinkScreen.EinkUpdateMode.Unspecified;
 					savedEinkUpdateInterval = -1;
 				}
 			}

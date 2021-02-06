@@ -1092,17 +1092,17 @@ public class BaseActivity extends Activity implements Settings {
 	ScreenBacklightControl backlightControl = new ScreenBacklightControl();
 
 
-	private int mScreenUpdateMode = 0;
+	private EinkScreen.EinkUpdateMode mScreenUpdateMode = EinkScreen.EinkUpdateMode.Clear;
 
-	public int getScreenUpdateMode() {
+	public EinkScreen.EinkUpdateMode getScreenUpdateMode() {
 		return mScreenUpdateMode;
 	}
 
-	public void setScreenUpdateMode(int screenUpdateMode, View view) {
+	public void setScreenUpdateMode(EinkScreen.EinkUpdateMode screenUpdateMode, View view) {
 		//if (mReaderView != null) {
 		mScreenUpdateMode = screenUpdateMode;
-		if (EinkScreen.getUpdateMode() != screenUpdateMode || EinkScreen.getUpdateMode() == EinkScreen.CMODE_ACTIVE) {
-			EinkScreen.ResetController(mScreenUpdateMode, view);
+		if (EinkScreen.getUpdateMode() != screenUpdateMode || EinkScreen.getUpdateMode() == EinkScreen.EinkUpdateMode.Active) {
+			EinkScreen.ResetController(mScreenUpdateMode, mScreenUpdateInterval, view);
 		}
 		//}
 	}
@@ -1264,7 +1264,7 @@ public class BaseActivity extends Activity implements Settings {
 		} else if (key.equals(PROP_NIGHT_MODE)) {
 			setNightMode(flg);
 		} else if (key.equals(PROP_APP_SCREEN_UPDATE_MODE)) {
-			setScreenUpdateMode(stringToInt(value, 0), getContentView());
+			setScreenUpdateMode(EinkScreen.EinkUpdateMode.byCode(stringToInt(value, 0)), getContentView());
 		} else if (key.equals(PROP_APP_SCREEN_UPDATE_INTERVAL)) {
 			setScreenUpdateInterval(stringToInt(value, 10), getContentView());
 		} else if (key.equals(PROP_APP_THEME)) {
@@ -1898,7 +1898,10 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, vmargin);
 			props.applyDefault(ReaderView.PROP_ROUNDED_CORNERS_MARGIN, "0");
 
-			props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, "0");
+			if (DeviceInfo.EINK_SCREEN_REGAL)
+				props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, String.valueOf(EinkScreen.EinkUpdateMode.Regal.code));
+			else
+				props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, String.valueOf(EinkScreen.EinkUpdateMode.Clear.code));
 			props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL, "10");
 
 			props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");

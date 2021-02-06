@@ -106,14 +106,20 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 1.9
 		};
 	int[] mScreenFullUpdateInterval = new int[] {
-			0, 1, 2, 3, 4, 5, 7, 10, 15, 20
+			1, 2, 3, 4, 5, 7, 10, 15, 20
 		};
 	int[] mScreenUpdateModes = new int[] {
-			0, 1, 2//, 2, 3
+			EinkScreen.EinkUpdateMode.Clear.code, EinkScreen.EinkUpdateMode.Fast.code, EinkScreen.EinkUpdateMode.Active.code
 		};
 	int[] mScreenUpdateModesTitles = new int[] {
 			R.string.options_screen_update_mode_quality, R.string.options_screen_update_mode_fast, R.string.options_screen_update_mode_fast2
 		};
+	int[] mOnyxScreenUpdateModes = new int[] {
+			EinkScreen.EinkUpdateMode.Regal.code, EinkScreen.EinkUpdateMode.Clear.code, EinkScreen.EinkUpdateMode.Fast.code, EinkScreen.EinkUpdateMode.A2.code
+	};
+	int[] mOnyxScreenUpdateModesTitles = new int[] {
+			R.string.options_screen_update_mode_onyx_regal, R.string.options_screen_update_mode_quality, R.string.options_screen_update_mode_fast, R.string.options_screen_update_mode_onyx_a2,
+	};
 	int[] mCoverPageSizes = new int[] {
 			0, 1, 2//, 2, 3
 		};
@@ -1067,8 +1073,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public ListOption( OptionOwner owner, String label, String property ) {
 			super(owner, label, property);
 		}
-		public void add(String value, String label) {
+		public ListOption add(String value, String label) {
 			list.add( new Pair(value, label) );
+			return this;
+		}
+		public ListOption add(int value, int labelID) {
+			String str_value = String.valueOf(value);
+			String label = mActivity.getString(labelID);
+			list.add( new Pair(str_value, label) );
+			return this;
 		}
 		public ListOption add(String[]values) {
 			for ( String item : values ) {
@@ -2284,8 +2297,18 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsPage.add(new TextureOptions(this, getString(R.string.options_background_texture)).setIconId(R.drawable.cr3_option_background_image));
 		if ( DeviceInfo.EINK_SCREEN_UPDATE_MODES_SUPPORTED ) {
-			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE).add(mScreenUpdateModes, mScreenUpdateModesTitles).setDefaultValue("0"));
-			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_interval), PROP_APP_SCREEN_UPDATE_INTERVAL).add(mScreenFullUpdateInterval).setDefaultValue("10"));
+			if ( DeviceInfo.EINK_ONYX ) {
+				ListOption option = new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE);
+				if (DeviceInfo.EINK_SCREEN_REGAL)
+					option = option.add(mOnyxScreenUpdateModes[0], mOnyxScreenUpdateModesTitles[0]);
+				option = option.add(mOnyxScreenUpdateModes[1], mOnyxScreenUpdateModesTitles[1]);
+				option = option.add(mOnyxScreenUpdateModes[2], mOnyxScreenUpdateModesTitles[2]);
+				option = option.add(mOnyxScreenUpdateModes[3], mOnyxScreenUpdateModesTitles[3]);
+				mOptionsPage.add(option.setDefaultValue(String.valueOf(DeviceInfo.EINK_SCREEN_REGAL ? EinkScreen.EinkUpdateMode.Regal.code : EinkScreen.EinkUpdateMode.Clear.code)));
+			} else {
+				mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE).add(mScreenUpdateModes, mScreenUpdateModesTitles).setDefaultValue(String.valueOf(EinkScreen.EinkUpdateMode.Clear.code)));
+			}
+			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_interval), PROP_APP_SCREEN_UPDATE_INTERVAL).add("0", getString(R.string.options_screen_update_interval_none)).add(mScreenFullUpdateInterval).setDefaultValue("10"));
 		}
 
 		mOptionsPage.add(new StatusBarOption(this, getString(R.string.options_page_titlebar)));

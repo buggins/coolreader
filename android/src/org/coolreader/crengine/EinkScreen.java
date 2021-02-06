@@ -15,24 +15,46 @@ import java.util.List;
 
 public class EinkScreen {
 	private static final String TAG = "EinkScreen";
+
+	public enum EinkUpdateMode {
+		Unspecified(-1),
+		Regal(3),				// also known as 'SNOW Field'
+		Clear(0),				// old name CMODE_CLEAR
+		Fast(1),				// old name CMODE_ONESHOT
+		Active(2),			// old name CMODE_ACTIVE
+		A2(4),				// Fast 'A2' mode
+		;
+
+		public static EinkUpdateMode byCode(int code) {
+			for (EinkUpdateMode mode : EinkUpdateMode.values()) {
+				if (mode.code == code)
+					return mode;
+			}
+			return EinkUpdateMode.Unspecified;
+		}
+
+		EinkUpdateMode(int code) {
+			this.code = code;
+		}
+
+		public final int code;
+	}
+
 	/// variables
-	private static int mUpdateMode = -1;
-	// 0 - CLEAR_ALL, set only for old_mode == 2
-	// 1 - ONESHOT, always set in prepare
-	// 2 - ACTIVE, set in prepare
+	//private static int mUpdateMode = -1;
+	private static EinkUpdateMode mUpdateMode = EinkUpdateMode.Unspecified;
+	// 0 - Clear, set only for old_mode == 2
+	// 1 - Fast, always set in prepare
+	// 2 - Active, set in prepare
 	private static int mUpdateInterval;
 	private static int mRefreshNumber = -1;
 	private static boolean mIsSleep = false;
-	private static boolean mIsSupportRegal = false;
 	private static boolean mInFastMode = false;
 	private static boolean mInA2Mode = false;
-	// constants
-	public final static int CMODE_CLEAR = 0;
-	public final static int CMODE_ONESHOT = 1;
-	public final static int CMODE_ACTIVE = 2;
 	// Front light levels
 	private static List<Integer> mFrontLineLevels = null;
 	private static List<Integer> mWarmLightLevels = null;
+	private static UpdateMode mOnyxUpdateMode = UpdateMode.None;
 
 	public static void Refresh(View view) {
 		if (DeviceInfo.EINK_NOOK || DeviceInfo.EINK_TOLINO) {
@@ -53,10 +75,10 @@ public class EinkScreen {
 			}
 			if (mRefreshNumber == -1) {
 				switch (mUpdateMode) {
-					case CMODE_CLEAR:
+					case Clear:
 						SetMode(view, mUpdateMode);
 						break;
-					case CMODE_ACTIVE:
+					case Active:
 						if (mUpdateInterval == 0) {
 							SetMode(view, mUpdateMode);
 						}
@@ -65,45 +87,28 @@ public class EinkScreen {
 				mRefreshNumber = 0;
 				return;
 			}
-			if (mUpdateMode == CMODE_CLEAR) {
-				SetMode(view, CMODE_CLEAR);
+			if (mUpdateMode == EinkUpdateMode.Clear) {
+				SetMode(view, mUpdateMode);
 				return;
 			}
-			if (mUpdateInterval > 0 || mUpdateMode == CMODE_ONESHOT) {
-				if (mRefreshNumber == 0 || (mUpdateMode == CMODE_ONESHOT && mRefreshNumber < mUpdateInterval)) {
+			if (mUpdateInterval > 0 || mUpdateMode == EinkUpdateMode.Fast) {
+				if (mRefreshNumber == 0 || (mUpdateMode == EinkUpdateMode.Fast && mRefreshNumber < mUpdateInterval)) {
 					switch (mUpdateMode) {
-						case CMODE_ACTIVE:
-							SetMode(view, CMODE_ACTIVE);
+						case Active:
+							SetMode(view, mUpdateMode);
 							break;
-						case CMODE_ONESHOT:
-							SetMode(view, CMODE_ONESHOT);
+						case Fast:
+							SetMode(view, mUpdateMode);
 							break;
 					}
 				} else if (mUpdateInterval <= mRefreshNumber) {
-					SetMode(view, CMODE_CLEAR);
+					SetMode(view, EinkUpdateMode.Clear);
 					mRefreshNumber = -1;
 				}
 				if (mUpdateInterval > 0) {
 					mRefreshNumber++;
 				}
 			}
-			/*
-			if (mUpdateMode == 1 && mUpdateInterval != 0) {
-				if (mRefreshNumber == 0) {
-					// быстрый режим, один раз устанавливается
-					N2EpdController.setMode(N2EpdController.REGION_APP_3,
-											N2EpdController.WAVE_GL16,
-											N2EpdController.MODE_ACTIVE, view); // why not MODE_ACTIVE_ALL?
-				} else if (mUpdateInterval == mRefreshNumber) {
-					// одно качественное обновление для быстрого режима
-					N2EpdController.setMode(N2EpdController.REGION_APP_3,
-											N2EpdController.WAVE_GU,
-											N2EpdController.MODE_CLEAR_ALL, view);
-					mRefreshNumber = -1;
-				}
-				mRefreshNumber ++;
-			}
-			*/
 		} else if (DeviceInfo.EINK_ONYX) {
 			if (mRefreshNumber == -1) {
 				mRefreshNumber = 0;
@@ -119,16 +124,8 @@ public class EinkScreen {
 				}
 			}
 			if (mRefreshNumber > 0 || mUpdateInterval == 0) {
-				switch (mUpdateMode) {
-					case CMODE_CLEAR:
-						EpdController.setViewDefaultUpdateMode(view, mIsSupportRegal ? UpdateMode.REGAL : UpdateMode.GU);
-						break;
-					case CMODE_ONESHOT:
-						EpdController.setViewDefaultUpdateMode(view, UpdateMode.DU);
-						break;
-					default:
-				}
-				if (Device.DeviceIndex.Rk32xx == Device.currentDeviceIndex) {
+				EpdController.setViewDefaultUpdateMode(view, mOnyxUpdateMode);
+				if (Device.DeviceIndex.Rk32xx == Device.currentDeviceIndex()) {
 					// I don't know what exactly this line does, but without it, the image on rk3288 will not updated.
 					// Found by brute force.
 					EpdController.byPass(0);
@@ -141,7 +138,7 @@ public class EinkScreen {
 	}
 
 	private static void onyxRepaintEveryThing(View view, boolean invalidate) {
-		switch (Device.currentDeviceIndex) {
+		switch (Device.currentDeviceIndex()) {
 			case Rk31xx:
 			case Rk32xx:
 			case Rk33xx:
@@ -158,23 +155,41 @@ public class EinkScreen {
 		}
 	}
 
-	public static void ResetController(int mode, int updateInterval, View view) {
-		mUpdateInterval = updateInterval;
-		ResetController(mode, view);
+	private static void onyxEnableA2Mode(View view, boolean enable) {
+		switch (Device.currentDeviceIndex()) {
+			case Rk3026:
+			case imx6:
+			case imx7:
+				if (enable)
+					EpdController.enableA2ForSpecificView(view);
+				else
+					EpdController.disableA2ForSpecificView(view);
+				break;
+			default:
+				EpdController.clearApplicationFastMode();
+				if (enable)
+					EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), true, true, UpdateMode.ANIMATION_QUALITY, Integer.MAX_VALUE);
+				else
+					EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
+				break;
+		}
 	}
 
-	public static void ResetController(int mode, View view) {
+	public static void ResetController(EinkUpdateMode mode, int updateInterval, View view) {
+		mUpdateInterval = updateInterval;
+		if (mUpdateMode.equals(mode))
+			return;
+		Log.d(TAG, "EinkScreen.ResetController(): mode=" + mode);
 		if (DeviceInfo.EINK_NOOK || DeviceInfo.EINK_TOLINO) {
-			System.err.println("+++ResetController " + mode);
 			switch (mode) {
-				case CMODE_CLEAR:
-					if (mUpdateMode == CMODE_ACTIVE) {
+				case Clear:
+					if (mUpdateMode == EinkUpdateMode.Active) {
 						mRefreshNumber = -1;
 					} else {
 						mRefreshNumber = 0;
 					}
 					break;
-				case CMODE_ONESHOT:
+				case Fast:
 					mRefreshNumber = 0;
 					break;
 				default:
@@ -182,57 +197,75 @@ public class EinkScreen {
 			}
 		} else if (DeviceInfo.EINK_ONYX) {
 			EpdController.enableScreenUpdate(view, true);
-			mIsSupportRegal = EpdController.supportRegal();
 			mRefreshNumber = 0;
-			if (mUpdateInterval == 0)
-				onyxRepaintEveryThing(view, false);
 			EpdController.clearApplicationFastMode();
+			UpdateMode onyxFastUpdateMode = UpdateMode.DU;
+			switch (Device.currentDeviceIndex()) {
+				case Rk32xx:
+				case Rk33xx:
+				case SDM:
+					onyxFastUpdateMode = UpdateMode.DU_QUALITY;
+					break;
+			}
 			switch (mode) {
-				case CMODE_CLEAR:			// Quality
+				case Regal:			// Regal
 					if (mInA2Mode) {
-						EpdController.disableA2ForSpecificView(view);
+						Log.d(TAG, "disable A2 mode");
+						onyxEnableA2Mode(view, false);
 						mInA2Mode = false;
 					}
 					if (mInFastMode) {
+						Log.d(TAG, "disable Fast mode");
 						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
 						mInFastMode = false;
 					}
+					mOnyxUpdateMode = UpdateMode.REGAL;
 					break;
-				case CMODE_ONESHOT:			// Fast
+				case Clear:			// Quality
 					if (mInA2Mode) {
-						EpdController.disableA2ForSpecificView(view);
+						Log.d(TAG, "disable A2 mode");
+						onyxEnableA2Mode(view, false);
+						mInA2Mode = false;
+					}
+					if (mInFastMode) {
+						Log.d(TAG, "disable Fast mode");
+						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
+						mInFastMode = false;
+					}
+					mOnyxUpdateMode = UpdateMode.GU;
+					break;
+				case Fast:			// Fast
+					if (mInA2Mode) {
+						Log.d(TAG, "disable A2 mode");
+						onyxEnableA2Mode(view, false);
 						mInA2Mode = false;
 					}
 					// Enable fast mode (not implemented on RK3026, not tested)
 					if (!mInFastMode) {
-						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), true, true);
+						Log.d(TAG, "enable Fast mode");
+						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), true, true, UpdateMode.DU_QUALITY, Integer.MAX_VALUE);
 						mInFastMode = true;
 					}
+					mOnyxUpdateMode = onyxFastUpdateMode;
 					break;
-				case CMODE_ACTIVE:			// Fast 2 (A2 mode)
+				case A2:			// A2 mode
 					if (mInFastMode) {
+						Log.d(TAG, "disable Fast mode");
 						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
 						mInFastMode = false;
 					}
 					if (!mInA2Mode) {
-						EpdController.enableA2ForSpecificView(view);
+						Log.d(TAG, "enable A2 mode");
+						onyxEnableA2Mode(view, true);
 						mInA2Mode = true;
 					}
+					mOnyxUpdateMode = onyxFastUpdateMode;
 					break;
+				default:
+					mOnyxUpdateMode = UpdateMode.GU;
 			}
-			Log.d(TAG, "EinkScreen: Regal is " + (mIsSupportRegal ? "" : "NOT ") + "supported");
 		}
 		mUpdateMode = mode;
-	}
-
-	public static void ResetController(View view) {
-		if (DeviceInfo.EINK_NOOK || DeviceInfo.EINK_TOLINO) {
-			if (mUpdateInterval != CMODE_CLEAR) {
-				System.err.println("+++Soft reset Controller ");
-				SetMode(view, CMODE_CLEAR);
-				mRefreshNumber = -1;
-			}
-		}
 	}
 
 	private static void SleepController(boolean toSleep, View view) {
@@ -242,39 +275,39 @@ public class EinkScreen {
 				mIsSleep = toSleep;
 				if (mIsSleep) {
 					switch (mUpdateMode) {
-						case CMODE_CLEAR:
+						case Clear:
 							break;
-						case CMODE_ONESHOT:
+						case Fast:
 							break;
-						case CMODE_ACTIVE:
-							SetMode(view, CMODE_CLEAR);
+						case Active:
+							SetMode(view, EinkUpdateMode.Clear);
 							mRefreshNumber = -1;
 					}
 				} else {
-					ResetController(mUpdateMode, view);
+					ResetController(mUpdateMode, mUpdateInterval, view);
 				}
 			}
 		}
 	}
 
-	private static void SetMode(View view, int mode) {
+	private static void SetMode(View view, EinkUpdateMode mode) {
 		if (DeviceInfo.EINK_TOLINO) {
 			TolinoEpdController.setMode(view, mode);
 		} else if (DeviceInfo.EINK_NOOK) {
 			switch (mode) {
-				case CMODE_CLEAR:
+				case Clear:
 					N2EpdController.setMode(N2EpdController.REGION_APP_3,
 							N2EpdController.WAVE_GC,
 							N2EpdController.MODE_ONESHOT_ALL);
 //					N2EpdController.MODE_CLEAR, view);
 					break;
-				case CMODE_ONESHOT:
+				case Fast:
 					N2EpdController.setMode(N2EpdController.REGION_APP_3,
 							N2EpdController.WAVE_GU,
 							N2EpdController.MODE_ONESHOT_ALL);
 //					N2EpdController.MODE_ONESHOT_ALL, view);
 					break;
-				case CMODE_ACTIVE:
+				case Active:
 					N2EpdController.setMode(N2EpdController.REGION_APP_3,
 							N2EpdController.WAVE_GL16,
 							N2EpdController.MODE_ACTIVE_ALL);
@@ -284,7 +317,7 @@ public class EinkScreen {
 		}
 	}
 
-	public static int getUpdateMode() {
+	public static EinkUpdateMode getUpdateMode() {
 		return mUpdateMode;
 	}
 
@@ -335,7 +368,9 @@ public class EinkScreen {
 		if (null == mFrontLineLevels) {
 			if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
 				if (DeviceInfo.ONYX_HAVE_FRONTLIGHT) {
-					mFrontLineLevels = Device.currentDevice().getFrontLightValueList(context);
+					try {
+						mFrontLineLevels = Device.currentDevice().getFrontLightValueList(context);
+					} catch (Exception ignored) {}
 					if (null == mFrontLineLevels) {
 						Integer[] values = Device.currentDevice().getColdLightValues(context);
 						if (null != values) {

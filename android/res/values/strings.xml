@@ -294,8 +294,11 @@
     <string name="options_screen_update_mode">Screen update mode</string>
     <string name="options_screen_update_mode_fast">Fast</string>
     <string name="options_screen_update_mode_fast2">Fast 2</string>
+    <string name="options_screen_update_mode_onyx_regal">SNOW Field</string>
+    <string name="options_screen_update_mode_onyx_a2">A2</string>
     <string name="options_screen_update_mode_quality">Quality</string>
     <string name="options_screen_update_interval">Full screen update interval</string>
+    <string name="options_screen_update_interval_none">None</string>
     <string name="options_render_font_gamma">Font Gamma</string>
     <string name="action_toggle_titlebar">Toggle Title Bar</string>
     <string name="action_show_position_info">Show position popup</string>
