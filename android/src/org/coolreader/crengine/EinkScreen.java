@@ -264,6 +264,10 @@ public class EinkScreen {
 				default:
 					mOnyxUpdateMode = UpdateMode.GU;
 			}
+			if (null != view) {
+				EpdController.setViewDefaultUpdateMode(view, mOnyxUpdateMode);
+				BackgroundThread.instance().executeGUI(view::invalidate);
+			}
 		}
 		mUpdateMode = mode;
 	}
