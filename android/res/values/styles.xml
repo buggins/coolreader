@@ -69,6 +69,8 @@
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
+        <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
+        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
     </style>
     <style name="Theme.Dark" parent="@style/Theme.Black">
         <item name="android:windowBackground">@drawable/background_tiled_dark_v3</item>
@@ -86,6 +88,8 @@
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
+        <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
+        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -103,6 +107,8 @@
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
+        <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
+        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
@@ -191,6 +197,8 @@
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
+        <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
+        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
@@ -279,7 +287,9 @@
         <!-- toolbar button background -->
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background_hc</item>
         <!-- tabbar background color -->
-        <item name="tabbarBackground">#ff555555</item>
+        <item name="tabbarBackground">@color/gray1</item>
+        <item name="textColorToolBarLabel">#d0d0d0</item>
+        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
     </style>
     <color name="gray2">#ffcccccc</color>
     <style name="Theme.Gray2" parent="@style/Theme.HiContrast1">
@@ -297,7 +307,9 @@
         <!-- toolbar button background -->
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
         <!-- tabbar background color -->
-        <item name="tabbarBackground">#ffcccccc</item>
+        <item name="tabbarBackground">@color/gray2</item>
+        <item name="textColorToolBarLabel">#303030</item>
+        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
     </style>
     <style name="Theme.HiContrast1" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -315,6 +327,8 @@
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background_hc</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#FFFFFFFF</item>
+        <item name="textColorToolBarLabel">@android:color/black</item>
+        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next_hc</item>
@@ -337,7 +351,7 @@
         <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open_hc</item>
         <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book_hc</item>
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds_hc</item>
-        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add</item>
+        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add_hc</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go_hc</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face_hc</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size_hc</item>
@@ -403,6 +417,8 @@
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
+        <item name="textColorToolBarLabel">@android:color/white</item>
+        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next_hc</item>
@@ -425,7 +441,7 @@
         <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open_hc</item>
         <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book_hc</item>
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds_hc</item>
-        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add</item>
+        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add_hc</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go_hc</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face_hc</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size_hc</item>
