@@ -410,7 +410,7 @@ public class BaseActivity extends Activity implements Settings {
 				R.attr.cr3_button_tts_drawable, R.attr.cr3_browser_folder_recent_drawable, R.attr.cr3_button_scroll_go_drawable,
 				R.attr.cr3_btn_books_swap_drawable, R.attr.cr3_logo_button_drawable, R.attr.cr3_viewer_exit_drawable,
 				R.attr.cr3_button_book_open_drawable, R.attr.cr3_browser_folder_current_book_drawable, R.attr.cr3_browser_folder_opds_drawable,
-				R.attr.google_drive_drawable, R.attr.cr3_button_log_drawable };
+				R.attr.google_drive_drawable, R.attr.cr3_button_log_drawable, R.attr.cr3_button_light_drawable };
 		TypedArray a = getTheme().obtainStyledAttributes(attrs);
 		int btnPrevDrawableRes = a.getResourceId(0, 0);
 		int btnNextDrawableRes = a.getResourceId(1, 0);
@@ -435,6 +435,7 @@ public class BaseActivity extends Activity implements Settings {
 		int brFolderOpdsDrawableRes = a.getResourceId(20, 0);
 		int googleDriveDrawableRes = a.getResourceId(21, 0);
 		int btnLogDrawableRes = a.getResourceId(22, 0);
+		int btnLightDrawableRes = a.getResourceId(23, 0);
 		a.recycle();
 		if (btnPrevDrawableRes != 0) {
 			ReaderAction.GO_BACK.setIconId(btnPrevDrawableRes);
@@ -486,6 +487,8 @@ public class BaseActivity extends Activity implements Settings {
 		}
 		if (btnLogDrawableRes != 0)
 			ReaderAction.SAVE_LOGCAT.setIconId(btnLogDrawableRes);
+		if (btnLightDrawableRes != 0)
+			ReaderAction.SHOW_SYSTEM_BACKLIGHT_DIALOG.setIconId(btnLightDrawableRes);
 	}
 
 	public void setCurrentTheme(InterfaceTheme theme) {

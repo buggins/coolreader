@@ -14,6 +14,7 @@ my %ic_actions_list=(
 	'cr3_option_text_multilang-48x48-src.svg' => 'cr3_option_text_multilang.png',
 	'cr3_button_info-48x48-src.svg' => 'cr3_button_info.png',
 	'cr3_button_log-48x48-src.svg' => 'cr3_button_log.png',
+	'cr3_button_light-48x48-src.svg' => 'cr3_button_light.png',
 	'google-drive-logo/drive-icon-48x48.svg' => 'google_drive.png',
 	'google-drive-logo/drive-icon-mono-48x48.svg' => 'google_drive_mono.png',
 
@@ -79,7 +80,8 @@ my %ic_actions_list=(
 	'cr3_button_more_hc-48x48-src.svg' => 'cr3_button_more_hc.png',
 	'cr3_browser_book_hc-48x48-src.svg' => 'cr3_browser_book_hc.png',
 	'cr3_button_info_hc-48x48-src.svg' => 'cr3_button_info_hc.png',
-	'cr3_button_log_hc-48x48-src.svg' => 'cr3_button_log_hc.png'
+	'cr3_button_log_hc-48x48-src.svg' => 'cr3_button_log_hc.png',
+	'cr3_button_light_hc-48x48-src.svg' => 'cr3_button_light_hc.png'
 );
 
 my %ic_tabs_list=(
