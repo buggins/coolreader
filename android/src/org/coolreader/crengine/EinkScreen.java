@@ -210,12 +210,10 @@ public class EinkScreen {
 			switch (mode) {
 				case Regal:			// Regal
 					if (mInA2Mode) {
-						Log.d(TAG, "disable A2 mode");
 						onyxEnableA2Mode(view, false);
 						mInA2Mode = false;
 					}
 					if (mInFastMode) {
-						Log.d(TAG, "disable Fast mode");
 						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
 						mInFastMode = false;
 					}
@@ -223,12 +221,10 @@ public class EinkScreen {
 					break;
 				case Clear:			// Quality
 					if (mInA2Mode) {
-						Log.d(TAG, "disable A2 mode");
 						onyxEnableA2Mode(view, false);
 						mInA2Mode = false;
 					}
 					if (mInFastMode) {
-						Log.d(TAG, "disable Fast mode");
 						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
 						mInFastMode = false;
 					}
@@ -236,13 +232,11 @@ public class EinkScreen {
 					break;
 				case Fast:			// Fast
 					if (mInA2Mode) {
-						Log.d(TAG, "disable A2 mode");
 						onyxEnableA2Mode(view, false);
 						mInA2Mode = false;
 					}
 					// Enable fast mode (not implemented on RK3026, not tested)
 					if (!mInFastMode) {
-						Log.d(TAG, "enable Fast mode");
 						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), true, true, UpdateMode.DU_QUALITY, Integer.MAX_VALUE);
 						mInFastMode = true;
 					}
@@ -250,12 +244,10 @@ public class EinkScreen {
 					break;
 				case A2:			// A2 mode
 					if (mInFastMode) {
-						Log.d(TAG, "disable Fast mode");
 						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
 						mInFastMode = false;
 					}
 					if (!mInA2Mode) {
-						Log.d(TAG, "enable A2 mode");
 						onyxEnableA2Mode(view, true);
 						mInA2Mode = true;
 					}
