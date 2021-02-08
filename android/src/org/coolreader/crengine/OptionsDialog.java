@@ -2473,19 +2473,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	private void addTab(String name, int imageDrawable) {
 		TabHost.TabSpec ts = mTabs.newTabSpec(name);
 		Drawable icon = getContext().getResources().getDrawable(imageDrawable);
-		
-		// temporary rollback ImageButton tabs: no highlight for current tab in this implementation
-//		if (true) {
+		if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
+			// replace too small icons in tabs in Theme.Holo
+			View tabIndicator = mInflater.inflate(R.layout.tab_indicator, null);
+			ImageView imageView = tabIndicator.findViewById(R.id.tab_icon);
+			imageView.setImageDrawable(icon);
+			ts.setIndicator(tabIndicator);
+		} else {
 			ts.setIndicator("", icon);
-//		} else {
-//			// ACCESSIBILITY: we need to specify contentDescription
-//			ImageButton ib = new ImageButton(getContext());
-//			ib.setImageDrawable(icon);
-//			ib.setBackgroundResource(R.drawable.cr3_toolbar_button_background);
-//			Utils.setContentDescription(ib, getContext().getResources().getString(contentDescription));
-//			ts.setIndicator(ib);
-//		}
-		
+		}
 		ts.setContent(this);
 		mTabs.addTab(ts);
 	}
