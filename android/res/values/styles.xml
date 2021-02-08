@@ -2,22 +2,7 @@
 <resources>
 
     <style name="TabWidget" parent="@android:style/Widget.TabWidget">
-        <!-- item name="android:textAppearance">@style/TextAppearance.Small</item>
-        <item name="ellipsize">marquee</item>
-        <item name="singleLine">true</item-->
-        <!--item name="android:tabStripLeft">@android:drawable/tab_bottom_left</item>
-        <item name="android:tabStripRight">@android:drawable/tab_bottom_right</item>
-        <item name="android:tabStripEnabled">true</item>
-        <item name="android:divider">@null</item-->
         <item name="android:gravity">fill_horizontal|center_vertical</item>
-        <item name="android:tabStripLeft">@null</item>
-        <item name="android:tabStripRight">@null</item>
-        <item name="android:tabStripEnabled">false</item>
-        <!-- item name="android:divider">?android:attr/dividerVertical</item>
-        <item name="android:showDividers">middle</item>
-        <item name="android:dividerPadding">8dip</item>
-        <item name="android:measureWithLargestChild">true</item>
-        <item name="android:tabLayout">@android:layout/tab_indicator_holo</item-->
     </style>
     
     <style name="TextAppearance.Widget.EditText" parent="@android:style/TextAppearance.Widget.EditText">
@@ -71,6 +56,7 @@
         <item name="tabbarBackground">#40404040</item>
         <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="tts_toolbar_background">#D0808080</item>
     </style>
     <style name="Theme.Dark" parent="@style/Theme.Black">
         <item name="android:windowBackground">@drawable/background_tiled_dark_v3</item>
@@ -90,6 +76,7 @@
         <item name="tabbarBackground">#40404040</item>
         <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="tts_toolbar_background">#D0808080</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -109,6 +96,7 @@
         <item name="tabbarBackground">#40404040</item>
         <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="tts_toolbar_background">#D0808080</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
@@ -175,6 +163,12 @@
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info</item>
         <item name="cr3_button_log_drawable">@drawable/cr3_button_log</item>
         <item name="cr3_button_light_drawable">@drawable/cr3_button_light</item>
+
+        <item name="ic_media_ff_drawable">@drawable/ic_media_ff</item>
+        <item name="ic_media_play_drawable">@drawable/ic_media_play</item>
+        <item name="ic_media_rew_drawable">@drawable/ic_media_rew</item>
+        <item name="ic_media_stop_drawable">@drawable/ic_media_stop</item>
+        <item name="ic_media_pause_drawable">@drawable/ic_media_pause</item>
 
         <item name="google_drive_drawable">@drawable/google_drive</item>
 
@@ -200,6 +194,7 @@
         <item name="tabbarBackground">#40404040</item>
         <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="tts_toolbar_background">#D0808080</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
@@ -266,6 +261,12 @@
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info</item>
         <item name="cr3_button_log_drawable">@drawable/cr3_button_log</item>
         <item name="cr3_button_light_drawable">@drawable/cr3_button_light</item>
+
+        <item name="ic_media_ff_drawable">@drawable/ic_media_ff</item>
+        <item name="ic_media_play_drawable">@drawable/ic_media_play</item>
+        <item name="ic_media_rew_drawable">@drawable/ic_media_rew</item>
+        <item name="ic_media_stop_drawable">@drawable/ic_media_stop</item>
+        <item name="ic_media_pause_drawable">@drawable/ic_media_pause</item>
 
         <item name="google_drive_drawable">@drawable/google_drive</item>
 
@@ -292,6 +293,7 @@
         <item name="tabbarBackground">@color/gray1</item>
         <item name="textColorToolBarLabel">#d0d0d0</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="tts_toolbar_background">#D0808080</item>
     </style>
     <color name="gray2">#ffcccccc</color>
     <style name="Theme.Gray2" parent="@style/Theme.HiContrast1">
@@ -312,6 +314,7 @@
         <item name="tabbarBackground">@color/gray2</item>
         <item name="textColorToolBarLabel">#303030</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="tts_toolbar_background">#D0808080</item>
     </style>
     <style name="Theme.HiContrast1" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -331,6 +334,7 @@
         <item name="tabbarBackground">#FFFFFFFF</item>
         <item name="textColorToolBarLabel">@android:color/black</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="tts_toolbar_background">#FFFFFFFF</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next_hc</item>
@@ -397,6 +401,12 @@
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info_hc</item>
         <item name="cr3_button_log_drawable">@drawable/cr3_button_log_hc</item>
         <item name="cr3_button_light_drawable">@drawable/cr3_button_light_hc</item>
+
+        <item name="ic_media_ff_drawable">@drawable/ic_media_ff_hc</item>
+        <item name="ic_media_play_drawable">@drawable/ic_media_play_hc</item>
+        <item name="ic_media_rew_drawable">@drawable/ic_media_rew_hc</item>
+        <item name="ic_media_stop_drawable">@drawable/ic_media_stop_hc</item>
+        <item name="ic_media_pause_drawable">@drawable/ic_media_pause_hc</item>
 
         <item name="google_drive_drawable">@drawable/google_drive_mono</item>
 
@@ -422,6 +432,7 @@
         <item name="tabbarBackground">#40404040</item>
         <item name="textColorToolBarLabel">@android:color/white</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="tts_toolbar_background">#FFFFFFFF</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next_hc</item>
@@ -488,6 +499,12 @@
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info_hc</item>
         <item name="cr3_button_log_drawable">@drawable/cr3_button_log_hc</item>
         <item name="cr3_button_light_drawable">@drawable/cr3_button_light_hc</item>
+
+        <item name="ic_media_ff_drawable">@drawable/ic_media_ff_hc</item>
+        <item name="ic_media_play_drawable">@drawable/ic_media_play_hc</item>
+        <item name="ic_media_rew_drawable">@drawable/ic_media_rew_hc</item>
+        <item name="ic_media_stop_drawable">@drawable/ic_media_stop_hc</item>
+        <item name="ic_media_pause_drawable">@drawable/ic_media_pause_hc</item>
 
         <item name="google_drive_drawable">@drawable/google_drive_mono</item>
 

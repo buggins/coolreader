@@ -82,7 +82,13 @@ my %ic_actions_list=(
 	'cr3_browser_book_hc-48x48-src.svg' => 'cr3_browser_book_hc.png',
 	'cr3_button_info_hc-48x48-src.svg' => 'cr3_button_info_hc.png',
 	'cr3_button_log_hc-48x48-src.svg' => 'cr3_button_log_hc.png',
-	'cr3_button_light_hc-48x48-src.svg' => 'cr3_button_light_hc.png'
+	'cr3_button_light_hc-48x48-src.svg' => 'cr3_button_light_hc.png',
+
+	'ic_media_ff_hc-48x48-src.svg' => 'ic_media_ff_hc.png',
+	'ic_media_play_hc-48x48-src.svg' => 'ic_media_play_hc.png',
+	'ic_media_rew_hc-48x48-src.svg' => 'ic_media_rew_hc.png',
+	'ic_media_stop_hc-48x48-src.svg' => 'ic_media_stop_hc.png',
+	'ic_media_pause_hc-48x48-src.svg' => 'ic_media_pause_hc.png'
 );
 
 my %ic_tabs_list=(
