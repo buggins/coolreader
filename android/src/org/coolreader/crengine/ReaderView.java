@@ -183,14 +183,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, src, dst);
 					if (isCloudSyncProgressActive()) {
 						// draw progressbar on top
-						doDrawProgress(canvas, currentCloudSyncProgressPosition, currentCloudSyncProgressTitle, !DeviceInfo.EINK_SCREEN);
+						doDrawProgress(canvas, currentCloudSyncProgressPosition, currentCloudSyncProgressTitle, true);
 					}
 				} else {
 					log.d("onDraw() -- drawing empty screen");
 					drawPageBackground(canvas);
 					if (isCloudSyncProgressActive()) {
 						// draw progressbar on top
-						doDrawProgress(canvas, currentCloudSyncProgressPosition, currentCloudSyncProgressTitle, !DeviceInfo.EINK_SCREEN);
+						doDrawProgress(canvas, currentCloudSyncProgressPosition, currentCloudSyncProgressTitle, true);
 					}
 				}
 			} catch (Exception e) {
@@ -5304,7 +5304,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		doDrawProgress(canvas, position, title, false);
 	}
 
-	protected void doDrawProgress(Canvas canvas, int position, String title, boolean transparentFrame) {
+	protected void doDrawProgress(Canvas canvas, int position, String title, boolean drawFrame) {
 		log.v("doDrawProgress(" + position + ")");
 		if (null == title)
 			return;
@@ -5316,19 +5316,23 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		int fontSize = 12;			// 12pt
 		float factor = mActivity.getDensityFactor();
 		Rect rc = new Rect(w / 2 - mins / 2, h / 2 - ph / 2, w / 2 + mins / 2, h / 2 + ph / 2);
-		if (transparentFrame) {
-			int frameColor = mSettings.getColor(PROP_BACKGROUND_COLOR, 0xFFFFFF);
-			float lumi = Utils.colorLuminance(frameColor);
-			if (Utils.colorLuminance(frameColor) >= 0.5f)
-				frameColor = Utils.darkerColor(frameColor, 150);
-			else
-				frameColor = Utils.lighterColor(frameColor, 200);
+		if (drawFrame) {
 			Rect frameRc = new Rect(rc);
 			frameRc.left -= ph/2;
 			frameRc.right += ph/2;
 			frameRc.top -= 2*fontSize*factor + ph/2;
 			frameRc.bottom += ph/2;
-			canvas.drawRect(frameRc, Utils.createSolidPaint(0xE0000000 | (frameColor & 0x00FFFFFF)));
+			int frameColor = mSettings.getColor(PROP_BACKGROUND_COLOR, 0xFFFFFF);
+			if (!DeviceInfo.EINK_SCREEN) {
+				float lumi = Utils.colorLuminance(frameColor);
+				if (lumi >= 0.5f)
+					frameColor = Utils.darkerColor(frameColor, 150);
+				else
+					frameColor = Utils.lighterColor(frameColor, 200);
+				canvas.drawRect(frameRc, Utils.createSolidPaint(0xE0000000 | (frameColor & 0x00FFFFFF)));
+			} else {
+				canvas.drawRect(frameRc, Utils.createSolidPaint(frameColor));
+			}
 		}
 
 		Utils.drawFrame(canvas, rc, Utils.createSolidPaint(0xC0000000 | textColor));
