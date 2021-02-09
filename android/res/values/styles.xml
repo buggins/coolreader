@@ -38,6 +38,14 @@
         <item name="android:divider">@drawable/divider_white_tiled</item>
     </style>
 
+    <style name="WidgetHCLightCompoundButtonCheckBox">
+        <item name="android:button">@drawable/btn_check_hc_light</item>
+    </style>
+
+    <style name="WidgetHCDarkCompoundButtonCheckBox">
+        <item name="android:button">@drawable/btn_check_hc_dark</item>
+    </style>
+
     <style name="Theme.Light" parent="@style/Theme.White">
         <item name="android:windowBackground">@drawable/background_tiled_light_v3</item>
         <item name="android:colorBackground">#ffe0e0e0</item>
@@ -97,6 +105,8 @@
         <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <item name="tts_toolbar_background">#D0808080</item>
+        <!-- checkbox -->
+        <item name="android:checkboxStyle">@android:style/Widget.CompoundButton.CheckBox</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
@@ -195,6 +205,7 @@
         <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <item name="tts_toolbar_background">#D0808080</item>
+        <item name="android:checkboxStyle">@android:style/Widget.CompoundButton.CheckBox</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
@@ -335,6 +346,8 @@
         <item name="textColorToolBarLabel">@android:color/black</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <item name="tts_toolbar_background">#FFFFFFFF</item>
+        <!-- checkbox -->
+        <item name="android:checkboxStyle">@style/WidgetHCLightCompoundButtonCheckBox</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next_hc</item>
@@ -433,6 +446,8 @@
         <item name="textColorToolBarLabel">@android:color/white</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <item name="tts_toolbar_background">#FFFFFFFF</item>
+        <!-- checkbox -->
+        <item name="android:checkboxStyle">@style/WidgetHCDarkCompoundButtonCheckBox</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next_hc</item>
