@@ -10903,6 +10903,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 }
                 lChar32 c = *(txt + start + i);
                 lChar32 next_c = *(txt + start + i + 1); // might be 0 at end of string
+                bool is_collapsable_space = (c == ' '); // We only collapse the classic ASCII spaces in lvtextfm.cpp
                 if ( lang_cfg->hasLBCharSubFunc() ) {
                     next_c = lang_cfg->getLBCharSubFunc()(&lbCtx, txt+start, i+1, len-1 - (i+1));
                 }
@@ -10916,10 +10917,13 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     // collapse; this might still not be right with pre-wrap though).
                 // printf("between <%c%c>: brk %d\n", c, next_c, brk);
                 if (brk == LINEBREAK_ALLOWBREAK && !nowrap) {
-                    if (flags[i] & LCHAR_ALLOW_WRAP_AFTER) { // a breakable/collapsible space (flag set by measureText()
-                        if (collapseNextSpace) // ignore this space
-                            continue;
-                        collapseNextSpace = true; // ignore next spaces, even if in another node
+                    if (flags[i] & LCHAR_ALLOW_WRAP_AFTER) { // a breakable space (flag set by measureText()
+                        // We can break on it, and if breaking, it's width would not be accounted anywhere
+                        if (is_collapsable_space) { // a collapsable ascii space
+                            if (collapseNextSpace) // ignore this space
+                                continue;
+                            collapseNextSpace = true; // ignore next spaces, even if in another node
+                        }
                         lastSpaceWidth = pre ? 0 : w; // Don't remove last space width if 'pre'
                         curMaxWidth += w; // add this space to non-wrap width
                         if (fit_glyphs && curWordWidth > 0) { // there was a word before this space
@@ -10985,11 +10989,13 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 else { // break not allowed: this char is part of a word
                     // But it can be a space followed by another space (with libunibreak,
                     // only the last space will get LINEBREAK_ALLOWBREAK).
-                    if (flags[i] & LCHAR_ALLOW_WRAP_AFTER) { // a breakable/collapsible space (flag set by measureText()
-                        if (collapseNextSpace) { // space before (and space after)
-                            continue; // ignore it
+                    if (flags[i] & LCHAR_ALLOW_WRAP_AFTER) { // a breakable space (flag set by measureText()
+                        if (is_collapsable_space) { // a collapsable ascii space
+                            if (collapseNextSpace) { // space before (and space after)
+                                continue; // ignore it
+                            }
+                            collapseNextSpace = true; // ignore next ones
                         }
-                        collapseNextSpace = true; // ignore next ones
                         lastSpaceWidth = pre ? 0 : w; // Don't remove last space width if 'pre'
                     }
                     else { // Not a space
@@ -11015,6 +11021,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             for (int i=0; i<chars_measured; i++) {
                 int w = widths[i] - (i>0 ? widths[i-1] : 0);
                 lChar32 c = *(txt + start + i);
+                bool is_collapsable_space = (c == ' '); // We only collapse the classic ASCII spaces in lvtextfm.cpp
                 if ( (flags[i] & LCHAR_IS_SPACE) && (space_width_scale_percent != 100) ) {
                     w = w * space_width_scale_percent / 100;
                 }
@@ -11029,9 +11036,11 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     // But Firefox does that too, may be a bit less radically than
                     // us, so our table algorithm may need some tweaking...
                 if (flags[i] & LCHAR_ALLOW_WRAP_AFTER) { // A space
-                    if (collapseNextSpace) // ignore this space
-                        continue;
-                    collapseNextSpace = true; // ignore next spaces, even if in another node
+                    if (is_collapsable_space) { // a collapsable ascii space
+                        if (collapseNextSpace) // ignore this space
+                            continue;
+                        collapseNextSpace = true; // ignore next spaces, even if in another node
+                    }
                     lastSpaceWidth = w;
                     curMaxWidth += w; // add this space to non-wrap width
                     if (fit_glyphs && curWordWidth > 0) { // there was a word before this space
