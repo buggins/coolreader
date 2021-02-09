@@ -332,6 +332,14 @@ enum css_direction_t {
     css_dir_rtl
 };
 
+/// visibility property values
+enum css_visibility_t {
+    css_v_inherit,
+    css_v_visible,
+    css_v_hidden,
+    css_v_collapse // handled as "hidden" (but it should behave differently on tables, which we don't ensure)
+};
+
 enum css_generic_value_t {
     css_generic_auto = -1,        // (css_val_unspecified, css_generic_auto), for "margin: auto"
     css_generic_normal = -2,      // (css_val_unspecified, css_generic_normal), for "line-height: normal"

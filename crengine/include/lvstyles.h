@@ -89,10 +89,11 @@ enum css_style_rec_important_bit {
     imp_bit_float,
     imp_bit_clear,
     imp_bit_direction,
+    imp_bit_visibility,
     imp_bit_content,
     imp_bit_cr_hint
 };
-#define NB_IMP_BITS 65 // The number of lines in the enum above: KEEP IT UPDATED.
+#define NB_IMP_BITS 66 // The number of lines in the enum above: KEEP IT UPDATED.
 
 #define NB_IMP_SLOTS    ((NB_IMP_BITS-1)>>5)+1
 // In lvstyles.cpp, we have hardcoded important[0] ... importance[1]
@@ -168,6 +169,7 @@ struct css_style_rec_tag {
     css_float_t            float_; // "float" is a C++ keyword...
     css_clear_t            clear;
     css_direction_t        direction;
+    css_visibility_t       visibility;
     lString32              content;
     css_length_t           cr_hint;
     // The following should only be used when applying stylesheets while in lvend.cpp setNodeStyle(),
@@ -222,6 +224,7 @@ struct css_style_rec_tag {
     , float_(css_f_none)
     , clear(css_c_none)
     , direction(css_dir_inherit)
+    , visibility(css_v_inherit)
     , cr_hint(css_val_inherited, 0)
     , flags(0)
     , pseudo_elem_before_style(NULL)

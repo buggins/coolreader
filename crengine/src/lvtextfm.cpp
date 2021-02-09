@@ -4721,6 +4721,8 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
             {
                 word = &frmline->words[j];
                 srcline = &m_pbuffer->srctext[word->src_text_index];
+                if ( srcline->flags & LTEXT_HIDDEN )
+                    continue;
                 if (word->flags & LTEXT_WORD_IS_OBJECT)
                 {
                     // no background, TODO
@@ -4793,9 +4795,11 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
             for (j=0; j<frmline->word_count; j++)
             {
                 word = &frmline->words[j];
+                srcline = &m_pbuffer->srctext[word->src_text_index];
+                if ( srcline->flags & LTEXT_HIDDEN )
+                    continue;
                 if (word->flags & LTEXT_WORD_IS_OBJECT)
                 {
-                    srcline = &m_pbuffer->srctext[word->src_text_index];
                     ldomNode * node = (ldomNode *) srcline->object;
                     if (node) {
                         LVImageSourceRef img = node->getObjectImageSource();
@@ -4809,7 +4813,6 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                 }
                 else if (word->flags & LTEXT_WORD_IS_INLINE_BOX)
                 {
-                    srcline = &m_pbuffer->srctext[word->src_text_index];
                     ldomNode * node = (ldomNode *) srcline->object;
                     // Logically, the coordinates of the top left of the box are:
                     // int x0 = x + frmline->x + word->x;
@@ -4871,7 +4874,6 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                         else if (frmline->flags & LTEXT_LINE_IS_BIDI)
                             flgHyphen = true;
                     }
-                    srcline = &m_pbuffer->srctext[word->src_text_index];
                     font = (LVFont *) srcline->t.font;
                     str = srcline->t.text + word->t.start;
                     /*

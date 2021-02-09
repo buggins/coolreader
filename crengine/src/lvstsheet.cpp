@@ -118,6 +118,7 @@ enum css_decl_code {
     cssd_float,
     cssd_clear,
     cssd_direction,
+    cssd_visibility,
     cssd_content,
     cssd_cr_ignore_if_dom_version_greater_or_equal,
     cssd_cr_hint,
@@ -215,6 +216,7 @@ static const char * css_decl_name[] = {
     "float",
     "clear",
     "direction",
+    "visibility",
     "content",
     "-cr-ignore-if-dom-version-greater-or-equal",
     "-cr-hint",
@@ -1819,6 +1821,16 @@ static const char * css_dir_names[] =
     NULL
 };
 
+// visibility value names
+static const char * css_v_names[] =
+{
+    "inherit",
+    "visible",
+    "hidden",
+    "collapse",
+    NULL
+};
+
 static const char * css_cr_only_if_names[]={
         "any",
         "always",
@@ -2910,6 +2922,9 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
             case cssd_direction:
                 n = parse_name( decl, css_dir_names, -1 );
                 break;
+            case cssd_visibility:
+                n = parse_name( decl, css_v_names, -1 );
+                break;
             case cssd_content:
                 {
                     lString32 parsed_content;
@@ -3223,6 +3238,9 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             break;
         case cssd_direction:
             style->Apply( (css_direction_t) *p++, &style->direction, imp_bit_direction, is_important );
+            break;
+        case cssd_visibility:
+            style->Apply( (css_visibility_t) *p++, &style->visibility, imp_bit_visibility, is_important );
             break;
         case cssd_cr_hint:
             {

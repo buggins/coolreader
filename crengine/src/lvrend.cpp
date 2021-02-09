@@ -3183,6 +3183,10 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // inside that strut.
             flags |= LTEXT_STRUT_CONFINED;
         }
+        if ( style->visibility >= css_v_hidden )
+            flags |= LTEXT_HIDDEN;
+        else
+            flags &= ~LTEXT_HIDDEN;
 
         // Now, process styles that may differ between inline nodes, and
         // are needed to display any children text node.
@@ -4049,6 +4053,7 @@ void copystyle( css_style_ref_t source, css_style_ref_t dest )
     dest->float_ = source->float_;
     dest->clear = source->clear;
     dest->direction = source->direction;
+    dest->visibility = source->visibility;
     dest->content = source->content ;
     dest->cr_hint.type = source->cr_hint.type ;
     dest->cr_hint.value = source->cr_hint.value ;
@@ -8997,7 +9002,17 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
 
         css_style_ref_t style = enode->getStyle();
 
+        // When a node has "visibility: hidden", it should take its normal space
+        // (so, we have rendered and sized it as if it was visible) - we should just
+        // not draw it. But we can't just simply return and not draw sub-children, as
+        // some inner content might have "visibility: visible" and has to be drawn.
+        // For non-final nodes, being hidden just mean we should not draw its
+        // border and background. For final nodes, text fragments will carry a
+        // flag and won't be drawn.
+        bool isHidden = style->visibility >= css_v_hidden;
+
         // Check and draw background
+        bool restoreBackgroundColor = false;
         css_length_t bg = style->background_color;
         lUInt32 oldColor = 0;
         // Don't draw background color for TR and THEAD/TFOOT/TBODY as it could
@@ -9005,16 +9020,17 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
         // the TR bgcolor to its TDs that must have it, as it should be done (the
         // border spacing between cells does not have the bg color of the TR: only
         // cells have it).
-        if ( bg.type==css_val_color && !isTableRowLike ) {
+        if ( bg.type==css_val_color && !isTableRowLike && !isHidden ) {
             // Even if we don't draw/fill background, we may need to
             // drawbuf.SetBackgroundColor() for the text to be correctly
             // drawn over this background color
             oldColor = drawbuf.GetBackgroundColor();
             drawbuf.SetBackgroundColor( bg.value );
+            restoreBackgroundColor = true;
             if ( draw_background )
                 drawbuf.FillRect( x0 + doc_x, y0 + doc_y, x0 + doc_x+fmt.getWidth(), y0+doc_y+fmt.getHeight(), bg.value );
         }
-        if ( draw_background && !style->background_image.empty() ) {
+        if ( draw_background && !style->background_image.empty() && !isHidden ) {
             if ( enode->getNodeId() == el_body ) {
                 // CSS specific: <body> background does not obey margin rules
                 // We don't draw on the fmt width, but on the drawbuf width.
@@ -9098,7 +9114,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                         DrawDocument( drawbuf, child, x0, y0, dx, dy, doc_x, doc_y, page_height, marks, bookmarks, false, true );
                     }
                     // Cleanup and return
-                    if ( bg.type==css_val_color ) {
+                    if ( restoreBackgroundColor ) {
                         drawbuf.SetBackgroundColor( oldColor );
                     }
                     return;
@@ -9112,14 +9128,14 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 // Don't draw border for TR TBODY... as their borders are never directly
                 // rendered by Firefox (they are rendered only when border-collapse, when
                 // they did collapse to the cell, and made out the cell border)
-                if ( !isTableRowLike )
+                if ( !isTableRowLike && !isHidden )
                     DrawBorder(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
 
                 // List item marker drawing when css_d_list_item_block and list-style-position = outside
                 // and list_item_block rendered as block (containing text and block elements)
                 // Rendering hack (in renderAsListStylePositionInside(): not when text-align "right"
                 // or "center", we treat it just as "inside", and drawing is managed by renderFinalBlock())
-                if ( style->display == css_d_list_item_block && !renderAsListStylePositionInside(style, is_rtl) ) {
+                if ( style->display == css_d_list_item_block && !renderAsListStylePositionInside(style, is_rtl) && !isHidden ) {
                     int width = fmt.getWidth();
                     int base_width = 0; // for padding_top in %
                     ldomNode * parent = enode->getParentNode();
@@ -9278,7 +9294,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 // drawn above, before the switch())
                 if ( !draw_content ) {
                     // Cleanup and return
-                    if ( bg.type==css_val_color ) {
+                    if ( restoreBackgroundColor ) {
                         drawbuf.SetBackgroundColor( oldColor );
                     }
                     return;
@@ -9287,7 +9303,8 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 // Draw borders before content, so inner content can bleed if necessary on
                 // the border (some glyphs like 'J' at start or 'f' at end may be drawn
                 // outside the text content box).
-                DrawBorder(enode, drawbuf, x0, y0, doc_x, doc_y, fmt);
+                if ( !isHidden )
+                    DrawBorder(enode, drawbuf, x0, y0, doc_x, doc_y, fmt);
 
                 // Get ready to create a LFormattedText with the correct content width
                 // and position: we'll have it draw itself at the right coordinates.
@@ -9315,7 +9332,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 // and list_item_block rendered as final (containing only text and inline elements)
                 // Rendering hack (in renderAsListStylePositionInside(): not when text-align "right"
                 // or "center", we treat it just as "inside", and drawing is managed by renderFinalBlock())
-                if ( style->display == css_d_list_item_block && !renderAsListStylePositionInside(style, is_rtl) ) {
+                if ( style->display == css_d_list_item_block && !renderAsListStylePositionInside(style, is_rtl) && !isHidden ) {
                     // We already adjusted our block X and width in renderBlockElement(),
                     // we just need to draw the marker in the space we made on the left of
                     // this node.
@@ -9411,8 +9428,8 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
             // don't draw invisible blocks
             break;
         case erm_killed:
-            if ( !draw_content ) {
-                if ( bg.type==css_val_color ) {
+            if ( !draw_content || isHidden ) {
+                if ( restoreBackgroundColor ) {
                     drawbuf.SetBackgroundColor( oldColor );
                 }
                 return;
@@ -9429,7 +9446,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
             break;
             //crFatalError(); // error
         }
-        if ( bg.type==css_val_color ) {
+        if ( restoreBackgroundColor ) {
             drawbuf.SetBackgroundColor( oldColor );
         }
     }
@@ -9824,6 +9841,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     UPDATE_STYLE_FIELD( widows, css_orphans_widows_inherit );
     UPDATE_STYLE_FIELD( list_style_type, css_lst_inherit );
     UPDATE_STYLE_FIELD( list_style_position, css_lsp_inherit );
+    UPDATE_STYLE_FIELD( visibility, css_v_inherit );
 
     // Note: we don't inherit "direction" (which should be inherited per specs);
     // We'll handle inheritance of direction in renderBlockEnhanced, because
