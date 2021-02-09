@@ -580,7 +580,7 @@ public:
             // But let's be fully deterministic with that, and redo it.
         }
         if ( !already_rendered ) {
-            LVRendPageContext alt_context( NULL, m_pbuffer->page_height, false );
+            LVRendPageContext alt_context( NULL, m_pbuffer->page_height, 0, false );
             // We render the float with the specified direction (from upper dir=), even
             // if UNSET (and not with the direction determined by fribidi from the text).
             // We provide 0,0 as the usable left/right overflows, so no glyph/hanging
@@ -1966,7 +1966,7 @@ public:
                             }
                         }
                         if ( !already_rendered ) {
-                            LVRendPageContext alt_context( NULL, m_pbuffer->page_height, false );
+                            LVRendPageContext alt_context( NULL, m_pbuffer->page_height, 0, false );
                             // inline-block and inline-table have a baseline, that renderBlockElement()
                             // will compute and give us back.
                             int baseline = REQ_BASELINE_FOR_INLINE_BLOCK;

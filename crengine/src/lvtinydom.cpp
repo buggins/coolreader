@@ -413,7 +413,6 @@ lUInt32 calcGlobalSettingsHash(int documentId, bool already_rendered)
     hash = hash * 31 + LVRendGetBaseFontWeight();
     hash = hash * 31 + fontMan->GetFallbackFontFaces().getHash();
     hash = hash * 31 + gRenderDPI;
-    hash = hash * 31 + gRootFontSize;
     // If not yet rendered (initial loading with XML parsing), we can
     // ignore some global flags that have not yet produced any effect,
     // so they can possibly be updated between loading and rendering
@@ -5248,7 +5247,7 @@ bool ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback,
         pages->clear();
         if ( showCover )
             pages->add( new LVRendPageInfo( _page_height ) );
-        LVRendPageContext context( pages, _page_height );
+        LVRendPageContext context( pages, _page_height, _def_font->getSize() );
         int numFinalBlocks = calcFinalBlocks();
         CRLog::info("Final block count: %d", numFinalBlocks);
         context.setCallback(callback, numFinalBlocks);

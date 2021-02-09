@@ -371,6 +371,8 @@ class LVRendPageContext
     LVRendPageList * page_list;
     // page height
     int page_h;
+    // document default font size (= root node font size)
+    int doc_font_size;
     // Whether to gather lines or not (only footnote links will be gathered if not)
     bool gather_lines;
     // Links gathered when !gather_lines
@@ -429,10 +431,14 @@ public:
     /// returns page height
     int getPageHeight() { return page_h; }
 
+    /// returns document font size
+    int getDocFontSize() { return doc_font_size; }
+
     /// returns page list pointer
     LVRendPageList * getPageList() { return page_list; }
 
-    LVRendPageContext(LVRendPageList * pageList, int pageHeight, bool gatherLines=true);
+    /// constructor (docFontSize is only needed for with main context actually used to split pages)
+    LVRendPageContext(LVRendPageList * pageList, int pageHeight, int docFontSize=0, bool gatherLines=true);
 
     /// add source line
     void AddLine( int starty, int endy, int flags );

@@ -53,7 +53,6 @@
 
 int gRenderDPI = DEF_RENDER_DPI; // if 0: old crengine behaviour: 1px/pt=1px, 1in/cm/pc...=0px
 bool gRenderScaleFontWithDPI = DEF_RENDER_SCALE_FONT_WITH_DPI;
-int gRootFontSize = 24; // will be reset as soon as font size is set
 
 int scaleForRenderDPI( int value ) {
     // if gRenderDPI == 0 or 96, use value as is (1px = 1px)
@@ -1734,7 +1733,7 @@ public:
                             rend_flags &= ~BLOCK_RENDERING_ALLOW_NEGATIVE_COLLAPSED_MARGINS;
                         }
                         else {
-                            cell_context = new LVRendPageContext( NULL, context.getPageHeight(), false );
+                            cell_context = new LVRendPageContext( NULL, context.getPageHeight(), 0, false );
                         }
                         // We request renderBlockElement() to give us back the baseline
                         // of the block as expected for tables
@@ -2464,7 +2463,7 @@ int lengthToPx( ldomNode * node, css_length_t val, int base_px, int base_em, boo
     }
 
     case css_val_rem: // value = rem*256 (font size of the root element)
-        px = (gRootFontSize * val.value) >> 8;
+        px = (node->getDocument()->getDefaultFont()->getSize() * val.value) >> 8;
         break;
 
     /* absolute value, less often used - value = unit*256 */
@@ -7702,7 +7701,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                         // to the page splitting context. The non-floating nodes will,
                         // and if !DO_NOT_CLEAR_OWN_FLOATS, we'll fill the remaining
                         // height taken by floats if any.
-                        LVRendPageContext alt_context( NULL, flow->getPageHeight(), false );
+                        LVRendPageContext alt_context( NULL, flow->getPageHeight(), 0, false );
                         // For floats too, the provided x must be the padding-left of the
                         // parent container of the float (and width must exclude the parent's
                         // padding-left/right) for the flow to correctly position inner floats
@@ -9568,9 +9567,6 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
 
     // display before stylesheet is applied (for fallback below if legacy mode)
     css_display_t orig_elem_display = pstyle->display;
-
-    // not used (could be used for 'rem', but we have it in gRootFontSize)
-    // int baseFontSize = enode->getDocument()->getDefaultFont()->getSize();
 
     //////////////////////////////////////////////////////
     // apply style sheet
