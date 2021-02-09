@@ -2359,7 +2359,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1").noIcon());
 		} else if ( DeviceInfo.EINK_HAVE_FRONTLIGHT ) {
-			List<Integer> frontLightLevels = EinkScreen.getFrontLightLevels(mActivity);
+			List<Integer> frontLightLevels = mActivity.getEinkScreen().getFrontLightLevels(mActivity);
 			if (null != frontLightLevels && frontLightLevels.size() > 0) {
 				ArrayList<String> levelsTitles = new ArrayList<>();
 				ArrayList<Integer> levels = new ArrayList<>();
@@ -2376,7 +2376,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(levels, levelsTitles).setDefaultValue("-1").noIcon());
 			}
 			if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT) {
-				List<Integer> warmLightLevels = EinkScreen.getWarmLightLevels(mActivity);
+				List<Integer> warmLightLevels = mActivity.getEinkScreen().getWarmLightLevels(mActivity);
 				if (null != warmLightLevels && warmLightLevels.size() > 0) {
 					ArrayList<String> levelsTitles = new ArrayList<>();
 					ArrayList<Integer> levels = new ArrayList<>();

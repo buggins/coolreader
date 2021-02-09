@@ -322,6 +322,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	private final CoolReader mActivity;
 	private final Engine mEngine;
+	private final EinkScreen mEinkScreen;
 
 	private BookInfo mBookInfo;
 
@@ -3185,10 +3186,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		}
 		if (update) {
 			if (DeviceInfo.EINK_SCREEN && EinkScreen.EinkUpdateMode.Unspecified == savedEinkUpdateMode) {
-				savedEinkUpdateMode = EinkScreen.getUpdateMode();
-				savedEinkUpdateInterval = EinkScreen.getUpdateInterval();
+				savedEinkUpdateMode = mEinkScreen.getUpdateMode();
+				savedEinkUpdateInterval = mEinkScreen.getUpdateInterval();
 				// set fast e-ink screen update mode without full refresh
-				EinkScreen.ResetController(EinkScreen.EinkUpdateMode.Fast, 0, surface);
+				mEinkScreen.setupController(EinkScreen.EinkUpdateMode.Fast, 0, surface);
 			}
 			bookView.draw(true);
 		}
@@ -3203,7 +3204,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			if (DeviceInfo.EINK_SCREEN) {
 				if (!isProgressActive()) {
 					// restore e-ink screen update mode
-					EinkScreen.ResetController(savedEinkUpdateMode, savedEinkUpdateInterval, surface);
+					mEinkScreen.setupController(savedEinkUpdateMode, savedEinkUpdateInterval, surface);
 					savedEinkUpdateMode = EinkScreen.EinkUpdateMode.Unspecified;
 					savedEinkUpdateInterval = -1;
 				}
@@ -3857,12 +3858,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					}
 				}
 				else if (DeviceInfo.EINK_HAVE_FRONTLIGHT)
-					currentBrightnessValueIndex = Utils.findNearestIndex(EinkScreen.getFrontLightLevels(mActivity), currentBrightnessValue);
+					currentBrightnessValueIndex = Utils.findNearestIndex(mEinkScreen.getFrontLightLevels(mActivity), currentBrightnessValue);
 				break;
 			case BRIGHTNESS_TYPE_WARM:
 				currentBrightnessValue = mActivity.getWarmBacklightLevel();
 				if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT)
-					currentBrightnessValueIndex = Utils.findNearestIndex(EinkScreen.getWarmLightLevels(mActivity), currentBrightnessValue);
+					currentBrightnessValueIndex = Utils.findNearestIndex(mEinkScreen.getWarmLightLevels(mActivity), currentBrightnessValue);
 				break;
 			default:
 				return;
@@ -3878,8 +3879,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			case BRIGHTNESS_TYPE_COMMON:
 				if (!DeviceInfo.EINK_SCREEN)
 					count = OptionsDialog.mBacklightLevels.length;
-				else if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
-					levelList = EinkScreen.getFrontLightLevels(mActivity);
+				else if (null != mEinkScreen) {
+					levelList = mEinkScreen.getFrontLightLevels(mActivity);
 					if (null != levelList)
 						count = levelList.size();
 					else
@@ -3887,8 +3888,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				}
 				break;
 			case BRIGHTNESS_TYPE_WARM:
-				if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT) {
-					levelList = EinkScreen.getWarmLightLevels(mActivity);
+				if (null != mEinkScreen) {
+					levelList = mEinkScreen.getWarmLightLevels(mActivity);
 					if (null != levelList)
 						count = levelList.size();
 					else
@@ -4129,12 +4130,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					if (DeviceInfo.EINK_SCREEN) {
 						// pre draw update
 						//BackgroundThread.instance().executeGUI(() -> EinkScreen.PrepareController(surface, isPartially));
-						EinkScreen.PrepareController(surface, isPartially);
+						mEinkScreen.prepareController(surface, isPartially);
 					}
 					callback.drawTo(canvas);
 					if (DeviceInfo.EINK_SCREEN) {
 						// post draw update
-						EinkScreen.UpdateController(surface, isPartially);
+						mEinkScreen.updateController(surface, isPartially);
 					}
 				}
 			} finally {
@@ -4959,10 +4960,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		}
 		if (update) {
 			if (DeviceInfo.EINK_SCREEN && EinkScreen.EinkUpdateMode.Unspecified == savedEinkUpdateMode) {
-				savedEinkUpdateMode = EinkScreen.getUpdateMode();
-				savedEinkUpdateInterval = EinkScreen.getUpdateInterval();
+				savedEinkUpdateMode = mEinkScreen.getUpdateMode();
+				savedEinkUpdateInterval = mEinkScreen.getUpdateInterval();
 				// set fast e-ink screen update mode without full refresh
-				EinkScreen.ResetController(EinkScreen.EinkUpdateMode.Fast, 0, surface);
+				mEinkScreen.setupController(EinkScreen.EinkUpdateMode.Fast, 0, surface);
 			}
 			bookView.draw(!first);
 		}
@@ -4977,7 +4978,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			if (DeviceInfo.EINK_SCREEN) {
 				if (!isCloudSyncProgressActive()) {
 					// restore e-ink screen update mode
-					EinkScreen.ResetController(savedEinkUpdateMode, savedEinkUpdateInterval, surface);
+					mEinkScreen.setupController(savedEinkUpdateMode, savedEinkUpdateInterval, surface);
 					savedEinkUpdateMode = EinkScreen.EinkUpdateMode.Unspecified;
 					savedEinkUpdateInterval = -1;
 				}
@@ -6413,6 +6414,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		BackgroundThread.ensureGUI();
 		this.mActivity = activity;
 		this.mEngine = engine;
+		this.mEinkScreen = activity.getEinkScreen();
 		surface.setFocusable(true);
 		surface.setFocusableInTouchMode(true);
 		// set initial size to exclude java.lang.IllegalArgumentException in Bitmap.createBitmap(0, 0)

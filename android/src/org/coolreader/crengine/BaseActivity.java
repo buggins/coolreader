@@ -101,7 +101,22 @@ public class BaseActivity extends Activity implements Settings {
 
 	private SettingsManager mSettingsManager;
 
+	private EinkScreen mEinkScreen;
+
+	public EinkScreen getEinkScreen() {
+		return mEinkScreen;
+	}
+
 	protected void startServices() {
+		if (DeviceInfo.EINK_NOOK)
+			mEinkScreen = new EinkScreenNook();
+		else if (DeviceInfo.EINK_TOLINO)
+			mEinkScreen = new EinkScreenTolino();
+		else if (DeviceInfo.EINK_ONYX)
+			mEinkScreen = new EinkScreenOnyx();
+		else
+			mEinkScreen = new EinkScreenDummy();
+
 		DisplayMetrics dm = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(dm);
 
@@ -801,8 +816,8 @@ public class BaseActivity extends Activity implements Settings {
 		screenBacklightBrightness = value;
 		if (!DeviceInfo.EINK_SCREEN)
 			onUserActivity();
-		else if (DeviceInfo.EINK_HAVE_FRONTLIGHT)
-			EinkScreen.setFrontLightValue(this, value);
+		else if (null != mEinkScreen)
+			mEinkScreen.setFrontLightValue(this, value);
 	}
 
 	public void setScreenWarmBacklightLevel(int value) {
@@ -810,9 +825,9 @@ public class BaseActivity extends Activity implements Settings {
 			value = -1;
 		else if (value > DeviceInfo.MAX_SCREEN_BRIGHTNESS_WARM_VALUE)
 			value = -1;
-		if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT) {
-			screenWarmBacklightBrightness = value;
-			EinkScreen.setWarmLightValue(this, value);
+		if (null != mEinkScreen) {
+			if (mEinkScreen.setWarmLightValue(this, value))
+				screenWarmBacklightBrightness = value;
 		}
 	}
 
@@ -1103,9 +1118,11 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void setScreenUpdateMode(EinkScreen.EinkUpdateMode screenUpdateMode, View view) {
 		//if (mReaderView != null) {
-		mScreenUpdateMode = screenUpdateMode;
-		if (EinkScreen.getUpdateMode() != screenUpdateMode || EinkScreen.getUpdateMode() == EinkScreen.EinkUpdateMode.Active) {
-			EinkScreen.ResetController(mScreenUpdateMode, mScreenUpdateInterval, view);
+		if (null != mEinkScreen) {
+			mScreenUpdateMode = screenUpdateMode;
+			if (mEinkScreen.getUpdateMode() != screenUpdateMode || mEinkScreen.getUpdateMode() == EinkScreen.EinkUpdateMode.Active) {
+				mEinkScreen.setupController(mScreenUpdateMode, mScreenUpdateInterval, view);
+			}
 		}
 		//}
 	}
@@ -1117,9 +1134,11 @@ public class BaseActivity extends Activity implements Settings {
 	}
 
 	public void setScreenUpdateInterval(int screenUpdateInterval, View view) {
-		mScreenUpdateInterval = screenUpdateInterval;
-		if (EinkScreen.getUpdateInterval() != screenUpdateInterval) {
-			EinkScreen.ResetController(mScreenUpdateMode, screenUpdateInterval, view);
+		if (null != mEinkScreen) {
+			mScreenUpdateInterval = screenUpdateInterval;
+			if (mEinkScreen.getUpdateInterval() != screenUpdateInterval) {
+				mEinkScreen.setupController(mScreenUpdateMode, screenUpdateInterval, view);
+			}
 		}
 	}
 
