@@ -4899,8 +4899,12 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     lUInt32 oldBgColor = buf->GetBackgroundColor();
                     lUInt32 cl = srcline->color;
                     lUInt32 bgcl = srcline->bgcolor;
-                    if ( cl!=0xFFFFFFFF )
-                        buf->SetTextColor( cl );
+                    if ( cl!=0xFFFFFFFF ) {
+                        if ( cl==0xDDFFFFFF ) // color: transparent
+                            continue; // Don't draw this word
+                        else
+                            buf->SetTextColor( cl );
+                    }
                     if ( bgcl!=0xFFFFFFFF )
                         buf->SetBackgroundColor( bgcl );
                     // Add drawing flags: text decoration (underline...)

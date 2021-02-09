@@ -2301,6 +2301,20 @@ LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId)
     return fnt;
 }
 
+inline lUInt32 getBackgroundColor(const css_style_ref_t style)
+{
+        return style->background_color.type == css_val_color ? style->background_color.value : 0xFFFFFFFF;
+}
+
+inline lUInt32 getForegroundColor(const css_style_ref_t style)
+{
+        if ( style->color.type == css_val_color )
+            return style->color.value;
+        if ( style->color.value == css_generic_transparent && style->color.type == css_val_unspecified )
+            return 0xDDFFFFFF; // Handled by LFormattedText::Draw(), which will skip drawing this fragment
+        return 0xFFFFFFFF;
+}
+
 lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt32 oldflags, int direction )
 {
     lUInt32 flg = oldflags;
@@ -2841,8 +2855,8 @@ lString32 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
             marker_width = listProps->maxWidth;
         css_style_ref_t style = enode->getStyle();
         LVFontRef font = enode->getFont();
-        lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-        lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+        lUInt32 cl = getForegroundColor(style);
+        lUInt32 bgcl = getBackgroundColor(style);
         if (line_h < 0) { // -1, not specified by caller: find it out from the node
             if ( style->line_height.type == css_val_unspecified &&
                         style->line_height.value == css_generic_normal ) {
@@ -3411,8 +3425,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     marker_width = listProps->maxWidth;
                 css_list_style_position_t sp = style->list_style_position;
                 LVFontRef font = enode->getFont();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                lUInt32 cl = getForegroundColor(style);
+                lUInt32 bgcl = getBackgroundColor(style);
                 int margin = 0;
                 if ( sp==css_lsp_outside )
                     margin = -marker_width; // will ensure negative/hanging indent-like rendering
@@ -3466,8 +3480,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 lUInt32 flags = styleToTextFmtFlags( true, enode->getStyle(), baseflags, direction );
                 //txform->AddSourceLine(U"title", 5, 0x000000, 0xffffff, font, baseflags, interval, margin, NULL, 0, 0);
                 LVFontRef font = enode->getFont();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                lUInt32 cl = getForegroundColor(style);
+                lUInt32 bgcl = 0xFFFFFFFF; // erm_final: any background will be drawn by DrawDocument
                 lString32 title;
                 //txform->AddSourceLine( title.c_str(), title.length(), cl, bgcl, font, LTEXT_FLAG_OWNTEXT|LTEXT_FLAG_NEWLINE, line_h, 0, NULL );
                 //baseflags
@@ -3586,8 +3600,10 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // any txform->AddSourceLine(). If we delay that and add another
                 // char before, this other char would generate a new line.
                 LVFontRef font = enode->getFont();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                lUInt32 cl = getForegroundColor(style);
+                // If erm_final, the background will be drawn by DrawDocument, and should not
+                // be drawn by the LFormattedText txform
+                lUInt32 bgcl = rm == erm_final ? 0xFFFFFFFF : getBackgroundColor(style);
 
                 // The following is needed for fribidi to do the right thing when the content creator
                 // has provided hints to explicite ambiguous cases.
@@ -3692,8 +3708,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
 
             if ( addGeneratedContent ) {
                 LVFontRef font = enode->getFont();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                lUInt32 cl = getForegroundColor(style);
+                lUInt32 bgcl = rm == erm_final ? 0xFFFFFFFF : getBackgroundColor(style);
                 // See comment above: these are the closing counterpart
                 if ( closeWithPDI ) {
                     txform->AddSourceLine( U"\x2069", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
@@ -3717,8 +3733,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // and we don't use UNICODE_NO_BREAK_SPACE.
                 LVFontRef font = enode->getFont();
                 css_style_ref_t style = enode->getStyle();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                lUInt32 cl = getForegroundColor(style);
+                lUInt32 bgcl = rm == erm_final ? 0xFFFFFFFF : getBackgroundColor(style);
                 txform->AddSourceLine( U" ", 1, cl, bgcl, font.get(), lang_cfg, LTEXT_LOCKED_SPACING|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
                 /*
                 // We used to specify two UNICODE_NO_BREAK_SPACE (that would not collapse)
@@ -3768,8 +3784,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // as wanted by a <BR/>.
                 // (This makes consecutive and stuck <br><br><br> work)
                 LVFontRef font = enode->getFont();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                lUInt32 cl = getForegroundColor(style);
+                lUInt32 bgcl = rm == erm_final ? 0xFFFFFFFF : getBackgroundColor(style);
                 txform->AddSourceLine( U" ", 1, cl, bgcl, font.get(), lang_cfg,
                                         baseflags | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
                                         line_h, valign_dy);
@@ -3829,8 +3845,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // by lvtextfm.cpp splitParagraphs() to not add this empty
             // string to text, and just call floatClearText().
             LVFontRef font = enode->getFont();
-            lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-            lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+            lUInt32 cl = getForegroundColor(style);
+            lUInt32 bgcl = 0xFFFFFFFF; // erm_final: any background will be drawn by DrawDocument
             txform->AddSourceLine( U" ", 1, cl, bgcl, font.get(), lang_cfg,
                             baseflags | LTEXT_SRC_IS_CLEAR_LAST | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
                             line_h, valign_dy);
@@ -3860,19 +3876,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
             LVFontRef const font = parent->getFont();
             css_style_ref_t style = parent->getStyle();
-            lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-            lUInt32 bgcl = 0xFFFFFFFF;
-            if ( style->background_color.type == css_val_color && (lUInt32)style->background_color.value != 0xFFFFFFFF ) {
-                bgcl = style->background_color.value;
-                // Avoid painting same background color as upper node, as it may cover any background image
-                ldomNode * gparent = parent->getParentNode();
-                if( gparent && !gparent->isNull() ) {
-                    css_length_t gparent_bgcolor = gparent->getStyle()->background_color;
-                    if ( gparent_bgcolor.type == css_val_color && (lUInt32)gparent_bgcolor.value == bgcl ) {
-                        bgcl=0xFFFFFFFF;
-                    }
-                }
-            }
+
+            lUInt32 cl = getForegroundColor(style);
+            // If erm_final, the background will be drawn by DrawDocument, and should not
+            // be drawn over each word by the LFormattedText txform
+            lUInt32 bgcl = parent->getRendMethod() == erm_final ? 0xFFFFFFFF : getBackgroundColor(style);
 
             switch (style->text_transform) {
             case css_tt_uppercase:
@@ -10039,7 +10047,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
              pstyle->letter_spacing.value != css_generic_normal) )
         pstyle->letter_spacing = parent_style->letter_spacing;
 
-    spreadParent( pstyle->color, parent_style->color );
+    // Don't inherit when (css_val_unspecified, css_generic_transparent) used with "color: transparent"
+    if ( pstyle->color.type != css_val_unspecified || pstyle->color.value != css_generic_transparent )
+        spreadParent( pstyle->color, parent_style->color );
 
     // background_color
     // Should not be inherited: elements start with unspecified.
