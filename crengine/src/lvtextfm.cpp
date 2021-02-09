@@ -880,8 +880,13 @@ public:
                         m_max_img_height = m_pbuffer->page_height;
                         // remove parent nodes' margin/border/padding
                         m_max_img_height -= node->getSurroundingAddedHeight();
-                        // remove height taken by the strut baseline
-                        m_max_img_height -= (m_pbuffer->strut_height - m_pbuffer->strut_baseline);
+                        // remove height taken by the strut baseline (but not
+                        // if negative, ie. when a small line-height has pushed
+                        // the baseline below the line box)
+                        int baseline_to_bottom = m_pbuffer->strut_height - m_pbuffer->strut_baseline;
+                        if ( baseline_to_bottom > 0 ) {
+                            m_max_img_height -= baseline_to_bottom;
+                        }
                         m_has_images = true;
                     }
                 }
