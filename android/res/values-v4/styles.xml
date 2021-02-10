@@ -63,6 +63,14 @@
         <item name="android:button">@drawable/btn_check_hc_dark</item>
     </style>
 
+    <style name="WidgetHCLightCompoundButtonRadioBox">
+        <item name="android:button">@drawable/btn_radio_hc_light</item>
+    </style>
+
+    <style name="WidgetHCDarkCompoundButtonRadioBox">
+        <item name="android:button">@drawable/btn_radio_hc_dark</item>
+    </style>
+
     <style name="Theme.Light" parent="@style/Theme.White">
         <item name="android:windowBackground">@drawable/background_tiled_light</item>
         <item name="android:colorBackground">#ffe0e0e0</item>
@@ -118,6 +126,8 @@
         <item name="tts_toolbar_background">#D0808080</item>
         <!-- checkbox -->
         <item name="android:checkboxStyle">@android:style/Widget.CompoundButton.CheckBox</item>
+        <!-- RadioBox -->
+        <item name="android:radioButtonStyle">@android:style/Widget.CompoundButton.RadioButton</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
@@ -216,6 +226,8 @@
         <item name="tts_toolbar_background">#D0808080</item>
         <!-- checkbox -->
         <item name="android:checkboxStyle">@android:style/Widget.CompoundButton.CheckBox</item>
+        <!-- RadioBox -->
+        <item name="android:radioButtonStyle">@android:style/Widget.CompoundButton.RadioButton</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
@@ -358,6 +370,8 @@
         <item name="tts_toolbar_background">#FFFFFFFF</item>
         <!-- checkbox -->
         <item name="android:checkboxStyle">@style/WidgetHCLightCompoundButtonCheckBox</item>
+        <!-- RadioBox -->
+        <item name="android:radioButtonStyle">@style/WidgetHCLightCompoundButtonRadioBox</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next_hc</item>
@@ -458,6 +472,8 @@
         <item name="tts_toolbar_background">#FFFFFFFF</item>
         <!-- checkbox -->
         <item name="android:checkboxStyle">@style/WidgetHCDarkCompoundButtonCheckBox</item>
+        <!-- RadioBox -->
+        <item name="android:radioButtonStyle">@style/WidgetHCDarkCompoundButtonRadioBox</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next_hc</item>
