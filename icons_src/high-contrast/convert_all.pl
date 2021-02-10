@@ -63,6 +63,7 @@ my %ic_actions_list=(
 	'cr3_option_text_margin_bottom_hc-48x48-src.svg' => 'cr3_option_text_margin_bottom_hc.png',
 	'cr3_option_text_align_hc-48x48-src.svg' => 'cr3_option_text_align_hc.png',
 	'cr3_option_text_indent_hc-48x48-src.svg' => 'cr3_option_text_indent_hc.png',
+	'cr3_option_text_hinting_hc-48x48-src.svg' => 'cr3_option_text_hinting_hc.png',
 	'cr3_option_controls_keys_hc-48x48-src.svg' => 'cr3_option_controls_keys_hc.png',
 	'cr3_option_controls_tapzones_hc-48x48-src.svg' => 'cr3_option_controls_tapzones_hc.png',
 	'cr3_option_other_hc-48x48-src.svg' => 'cr3_option_other_hc.png',

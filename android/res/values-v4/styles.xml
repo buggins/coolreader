@@ -177,6 +177,7 @@
         <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom</item>
         <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align</item>
         <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent</item>
+        <item name="cr3_option_text_hinting_drawable">@drawable/cr3_option_text_hinting</item>
         <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys</item>
         <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones</item>
         <item name="cr3_option_other_drawable">@drawable/cr3_option_other</item>
@@ -276,6 +277,7 @@
         <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom</item>
         <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align</item>
         <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent</item>
+        <item name="cr3_option_text_hinting_drawable">@drawable/cr3_option_text_hinting</item>
         <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys</item>
         <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones</item>
         <item name="cr3_option_other_drawable">@drawable/cr3_option_other</item>
@@ -419,6 +421,7 @@
         <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom_hc</item>
         <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align_hc</item>
         <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent_hc</item>
+        <item name="cr3_option_text_hinting_drawable">@drawable/cr3_option_text_hinting_hc</item>
         <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys_hc</item>
         <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones_hc</item>
         <item name="cr3_option_other_drawable">@drawable/cr3_option_other_hc</item>
@@ -520,6 +523,7 @@
         <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom_hc</item>
         <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align_hc</item>
         <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent_hc</item>
+        <item name="cr3_option_text_hinting_drawable">@drawable/cr3_option_text_hinting_hc</item>
         <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys_hc</item>
         <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones_hc</item>
         <item name="cr3_option_other_drawable">@drawable/cr3_option_other_hc</item>
