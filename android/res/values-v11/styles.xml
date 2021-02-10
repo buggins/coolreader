@@ -113,6 +113,7 @@
         <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <item name="tts_toolbar_background">#D0808080</item>
+        <item name="tabIndicatorBackground">@drawable/tab_indicator_holo</item>
 
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
@@ -212,6 +213,7 @@
         <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <item name="tts_toolbar_background">#D0808080</item>
+        <item name="tabIndicatorBackground">@drawable/tab_indicator_holo</item>
 
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
@@ -355,6 +357,7 @@
         <item name="textColorToolBarLabel">@android:color/black</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <item name="tts_toolbar_background">#FFFFFFFF</item>
+        <item name="tabIndicatorBackground">@drawable/tab_indicator_hc_light</item>
 
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
@@ -456,6 +459,7 @@
         <item name="textColorToolBarLabel">@android:color/white</item>
         <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <item name="tts_toolbar_background">#FFFFFFFF</item>
+        <item name="tabIndicatorBackground">@drawable/tab_indicator_hc_dark</item>
 
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
