@@ -1897,7 +1897,7 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 			props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
 			props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
-			props.applyDefault(ReaderView.PROP_APP_DICTIONARY, Dictionaries.DEFAULT_DICTIONARY_ID);
+			props.applyDefault(ReaderView.PROP_APP_DICTIONARY, Dictionaries.defaultDictionary().id);
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS, "0");
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES, "0");
 			props.applyDefault(ReaderView.PROP_APP_SELECTION_ACTION, "0");
