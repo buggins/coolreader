@@ -203,7 +203,8 @@ public class BaseActivity extends Activity implements Settings {
 		int backlight = props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1);
 		if (backlight < -1 || backlight > DeviceInfo.MAX_SCREEN_BRIGHTNESS_VALUE)
 			backlight = -1;
-		setScreenBacklightLevel(backlight);
+		if (!DeviceInfo.EINK_SCREEN)
+			setScreenBacklightLevel(backlight);
 
 		bindCRDBService();
 	}
@@ -1299,7 +1300,7 @@ public class BaseActivity extends Activity implements Settings {
 				// ignore
 			}
 			setScreenOrientation(orientation);
-		} else if ((!DeviceInfo.EINK_SCREEN || DeviceInfo.EINK_HAVE_FRONTLIGHT) && PROP_APP_SCREEN_BACKLIGHT.equals(key)) {
+		} else if (PROP_APP_SCREEN_BACKLIGHT.equals(key) && !DeviceInfo.EINK_SCREEN) {
 			try {
 				final int n = Integer.valueOf(value);
 				// delay before setting brightness
@@ -1309,15 +1310,11 @@ public class BaseActivity extends Activity implements Settings {
 			} catch (Exception e) {
 				// ignore
 			}
-		} else if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT && PROP_APP_SCREEN_WARM_BACKLIGHT.equals(key)) {
-			try {
-				int n = Integer.parseInt(value);
-				setScreenWarmBacklightLevel(n);
-			} catch (Exception ignored) {
-			}
 		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS)) {
 			Services.getScanner().setHideEmptyDirs(flg);
 		}
+		// Don't apply screen brightness on e-ink devices on program startup and at any other events
+		// On e-ink in ReaderView gesture handlers setScreenBacklightLevel() & setScreenWarmBacklightLevel() called directly
 	}
 
 

@@ -3954,7 +3954,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				String s = OptionsDialog.mBacklightLevelsTitles[currentBrightnessValueIndex];
 				mActivity.showToast(s);
 			}
-			saveSettings(mSettings);
+			if (!DeviceInfo.EINK_SCREEN)
+				saveSettings(mSettings);
 			currentBrightnessValue = -1;
 			currentBrightnessValueIndex = -1;
 			currentBrightnessPrevYPos = -1;

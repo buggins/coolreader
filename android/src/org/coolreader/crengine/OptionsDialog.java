@@ -2358,41 +2358,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_timeout), PROP_APP_SCREEN_BACKLIGHT_LOCK).add(mBacklightTimeout, mBacklightTimeoutTitles).setDefaultValue("3").noIcon());
 			mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1").noIcon());
-		} else if ( DeviceInfo.EINK_HAVE_FRONTLIGHT ) {
-			List<Integer> frontLightLevels = mActivity.getEinkScreen().getFrontLightLevels(mActivity);
-			if (null != frontLightLevels && frontLightLevels.size() > 0) {
-				ArrayList<String> levelsTitles = new ArrayList<>();
-				ArrayList<Integer> levels = new ArrayList<>();
-				levels.add(-1);
-				levelsTitles.add(getString(R.string.options_app_backlight_screen_default));
-				for (Integer level : frontLightLevels) {
-					float percentLevel = 100 * level / (float)DeviceInfo.MAX_SCREEN_BRIGHTNESS_VALUE;
-					if (percentLevel < 10)
-						levelsTitles.add(String.format("%1$.1f%%", percentLevel));
-					else
-						levelsTitles.add(String.format("%1$.0f%%", percentLevel));
-					levels.add(level);
-				}
-				mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(levels, levelsTitles).setDefaultValue("-1").noIcon());
-			}
-			if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT) {
-				List<Integer> warmLightLevels = mActivity.getEinkScreen().getWarmLightLevels(mActivity);
-				if (null != warmLightLevels && warmLightLevels.size() > 0) {
-					ArrayList<String> levelsTitles = new ArrayList<>();
-					ArrayList<Integer> levels = new ArrayList<>();
-					levels.add(-1);
-					levelsTitles.add(getString(R.string.options_app_backlight_screen_default));
-					for (Integer level : warmLightLevels) {
-						float percentLevel = 100 * level / (float) DeviceInfo.MAX_SCREEN_BRIGHTNESS_WARM_VALUE;
-						if (percentLevel < 10)
-							levelsTitles.add(String.format("%1$.1f%%", percentLevel));
-						else
-							levelsTitles.add(String.format("%1$.0f%%", percentLevel));
-						levels.add(level);
-					}
-					mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_warm_backlight_screen), PROP_APP_SCREEN_WARM_BACKLIGHT).add(levels, levelsTitles).setDefaultValue("-1").noIcon());
-				}
-			}
 		}
 		mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_tts_stop_motion_timeout), PROP_APP_MOTION_TIMEOUT).add(mMotionTimeouts, mMotionTimeoutsTitles).setDefaultValue(Integer.toString(mMotionTimeouts[0])).noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_key_backlight_off), PROP_APP_KEY_BACKLIGHT_OFF).setDefaultValue("1").noIcon());
