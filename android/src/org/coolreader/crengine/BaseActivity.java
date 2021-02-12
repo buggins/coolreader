@@ -1854,9 +1854,9 @@ public class BaseActivity extends Activity implements Settings {
 			if (DeviceInfo.DEF_FONT_SIZE != null)
 				fontSize = DeviceInfo.DEF_FONT_SIZE;
 
-			int statusLocation = props.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_PAGE);
+			int statusLocation = props.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_PAGE_HEADER);
 			if (statusLocation == VIEWER_STATUS_BOTTOM || statusLocation == VIEWER_STATUS_TOP)
-				statusLocation = VIEWER_STATUS_PAGE;
+				statusLocation = VIEWER_STATUS_PAGE_HEADER;
 			props.setInt(PROP_STATUS_LOCATION, statusLocation);
 
 
@@ -1947,7 +1947,7 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY, "0");
 			props.applyDefault(ReaderView.PROP_TEXTLANG_HYPH_FORCE_ALGORITHMIC, "0");
 
-			props.applyDefault(ReaderView.PROP_STATUS_LOCATION, Settings.VIEWER_STATUS_PAGE);
+			props.applyDefault(ReaderView.PROP_STATUS_LOCATION, !DeviceInfo.EINK_SCREEN ? Settings.VIEWER_STATUS_PAGE_HEADER : Settings.VIEWER_STATUS_PAGE_FOOTER);
 			//props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, DeviceInfo.getSDKLevel() < DeviceInfo.HONEYCOMB ? Settings.VIEWER_TOOLBAR_NONE : Settings.VIEWER_TOOLBAR_SHORT_SIDE);
 			props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, Settings.VIEWER_TOOLBAR_NONE);
 			props.applyDefault(ReaderView.PROP_TOOLBAR_HIDE_IN_FULLSCREEN, "0");

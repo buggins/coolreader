@@ -2641,7 +2641,17 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		String backgroundImageId = props.getProperty(PROP_PAGE_BACKGROUND_IMAGE);
 		int backgroundColor = props.getColor(PROP_BACKGROUND_COLOR, 0xFFFFFF);
 		setBackgroundTexture(backgroundImageId, backgroundColor);
-		props.setInt(PROP_STATUS_LINE, props.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_TOP) == VIEWER_STATUS_PAGE ? 0 : 1);
+		int statusLocation = props.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_PAGE_HEADER);
+		int statusLine = 0;
+		switch (statusLocation) {
+			case VIEWER_STATUS_PAGE_HEADER:
+				statusLine = 1;
+				break;
+			case VIEWER_STATUS_PAGE_FOOTER:
+				statusLine = 2;
+				break;
+		}
+		props.setInt(PROP_STATUS_LINE, statusLine);
 
 		int updModeCode = props.getInt(PROP_APP_SCREEN_UPDATE_MODE, EinkScreen.EinkUpdateMode.Clear.code);
 		int updInterval = props.getInt(PROP_APP_SCREEN_UPDATE_INTERVAL, 10);

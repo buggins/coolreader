@@ -494,6 +494,7 @@
     <string name="book_info_rating">Rate</string>
     <string name="options_page_show_titlebar_hidden">None</string>
     <string name="options_page_show_titlebar_page_header">Page header</string>
+    <string name="options_page_show_titlebar_page_footer">Page footer</string>
     <string name="options_page_show_titlebar_bottom">Bottom</string>
     <string name="options_page_show_titlebar_top">Top</string>
     <string name="options_view_toolbar_position_short_side">Short side</string>

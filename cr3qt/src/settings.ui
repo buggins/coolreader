@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>433</width>
-    <height>749</height>
+    <height>756</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -306,11 +306,40 @@
           </layout>
          </item>
          <item>
-          <widget class="QCheckBox" name="cbShowPageHeader">
-           <property name="text">
-            <string>Show page header</string>
-           </property>
-          </widget>
+          <layout class="QHBoxLayout" name="horizontalLayout_13">
+           <item>
+            <widget class="QLabel" name="label_50">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Show page header</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="cbShowPageHeader">
+             <item>
+              <property name="text">
+               <string>None</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Page header</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Page footer</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -1751,7 +1780,7 @@
               <x>0</x>
               <y>0</y>
               <width>389</width>
-              <height>621</height>
+              <height>628</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_9">

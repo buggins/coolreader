@@ -28,10 +28,6 @@
         <translation>Диалог</translation>
     </message>
     <message>
-        <source>...</source>
-        <translation type="vanished">...</translation>
-    </message>
-    <message>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -949,7 +945,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Next Sentence</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Следующее предложение</translation>
     </message>
     <message>
         <source>Move selection to next sentence</source>
@@ -1893,16 +1889,8 @@ p, li { white-space: pre-wrap; }
         <translation>Разрешить кернинг шрифта</translation>
     </message>
     <message>
-        <source>Use ligatures</source>
-        <translation type="vanished">Использовать лигатуры</translation>
-    </message>
-    <message>
-        <source>Enable ligatutes (very slowly!)</source>
-        <translation type="vanished">Разрешить лигатуры (очень медленно!)</translation>
-    </message>
-    <message>
         <source>Rendering flags</source>
-        <translation type="unfinished">Флаги рендеринга</translation>
+        <translation>Флаги рендеринга</translation>
     </message>
     <message>
         <source>Legacy</source>
@@ -1934,7 +1922,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Support for multilingual documents</source>
-        <translation type="unfinished">Поддержка мультиязычных документов</translation>
+        <translation>Поддержка мультиязычных документов</translation>
     </message>
     <message>
         <source>Manage...</source>
@@ -1942,27 +1930,39 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Text Shaping</source>
-        <translation type="unfinished">Формировщик текста</translation>
+        <translation>Формировщик текста</translation>
     </message>
     <message>
         <source>Simple (FreeType only, fastest)</source>
-        <translation type="unfinished">Простой (FreeType only, быстрый)</translation>
+        <translation>Простой (FreeType only, быстрый)</translation>
     </message>
     <message>
         <source>Light (HarfBuzz without ligatures)</source>
-        <translation type="unfinished">Легкий (HarfBuzz, без лигатур)</translation>
+        <translation>Легкий (HarfBuzz, без лигатур)</translation>
     </message>
     <message>
         <source>Full (HarfBuzz with ligatures)</source>
-        <translation type="unfinished">Полный (HarfBuzz, с лигатурами)</translation>
-    </message>
-    <message>
-        <source>Hyphenation:</source>
-        <translation>Переносы:</translation>
+        <translation>Полный (HarfBuzz, с лигатурами)</translation>
     </message>
     <message>
         <source>Enable hyphenation</source>
         <translation>Разрешить переносы</translation>
+    </message>
+    <message>
+        <source>Page header</source>
+        <translation>верхний колонтитул страницы</translation>
+    </message>
+    <message>
+        <source>Page footer</source>
+        <translation>нижний колонтитул страницы</translation>
+    </message>
+    <message>
+        <source>Internal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore document margins</source>
+        <translation>Игнорировать отступы документа</translation>
     </message>
 </context>
 <context>
