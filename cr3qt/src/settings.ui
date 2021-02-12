@@ -1683,7 +1683,7 @@
            </property>
           </widget>
          </item>
-         <item row="209" column="0">
+         <item row="20" column="0">
           <widget class="QLabel" name="label_15">
            <property name="text">
             <string>Sample</string>
