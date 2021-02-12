@@ -2274,7 +2274,7 @@ css_style_ref_t tinyNodeCollection::getNodeStyle( lUInt32 dataIndex )
     _styleStorage.getStyleData( dataIndex, &info );
     css_style_ref_t res =  _styles.get( info._styleIndex );
     if (!res.isNull())
-    _styles.addIndexRef(info._styleIndex);
+        _styles.addIndexRef(info._styleIndex);
 #if DEBUG_DOM_STORAGE==1
     if ( res.isNull() && info._styleIndex!=0 ) {
         CRLog::error("Null style returned for index %d", (int)info._styleIndex);
@@ -6511,16 +6511,18 @@ void ldomNode::initNodeRendMethod()
                         #endif
                         setRendMethod( erm_table_row );
                     }
-                    #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
-                        printf("initNodeRendMethod: wrapping unproper table cells %d>%d\n",
-                               first_table_cell, last_table_cell);
-                    #endif
-                    ldomNode * tbox = boxWrapChildren(first_table_cell, last_table_cell, el_tabularBox);
-                    if ( tbox && !tbox->isNull() ) {
-                        tbox->initNodeStyle();
-                        tbox->setRendMethod( erm_table_row );
+                    else {
+                        #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
+                            printf("initNodeRendMethod: wrapping unproper table cells %d>%d\n",
+                                        first_table_cell, last_table_cell);
+                        #endif
+                        ldomNode * tbox = boxWrapChildren(first_table_cell, last_table_cell, el_tabularBox);
+                        if ( tbox && !tbox->isNull() ) {
+                            tbox->initNodeStyle();
+                            tbox->setRendMethod( erm_table_row );
+                        }
+                        did_wrap = true;
                     }
-                    did_wrap = true;
                     last_table_cell = -1;
                     first_table_cell = -1;
                 }
@@ -6612,17 +6614,19 @@ void ldomNode::initNodeRendMethod()
                     setRendMethod( erm_table );
                     initTableRendMethods( this, 0 );
                 }
-                #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
-                    printf("initNodeRendMethod: wrapping unproper table children %d>%d\n",
-                                first_misparented, last_misparented);
-                #endif
-                ldomNode * tbox = boxWrapChildren(first_misparented, last_misparented, el_tabularBox);
-                if ( tbox && !tbox->isNull() ) {
-                    tbox->initNodeStyle();
-                    tbox->setRendMethod( erm_table );
-                    initTableRendMethods( tbox, 0 );
+                else {
+                    #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
+                        printf("initNodeRendMethod: wrapping unproper table children %d>%d\n",
+                                    first_misparented, last_misparented);
+                    #endif
+                    ldomNode * tbox = boxWrapChildren(first_misparented, last_misparented, el_tabularBox);
+                    if ( tbox && !tbox->isNull() ) {
+                        tbox->initNodeStyle();
+                        tbox->setRendMethod( erm_table );
+                        initTableRendMethods( tbox, 0 );
+                    }
+                    did_wrap = true;
                 }
-                did_wrap = true;
                 last_misparented = -1;
                 first_misparented = -1;
                 // Note:
@@ -6957,7 +6961,8 @@ void ldomNode::initNodeRendMethod()
                                 }
                                 rbox3->initNodeStyle();
                             }
-                        } else { // no child to wrap
+                        }
+                        else { // no child to wrap
                             // We need to insert an empty element to play the role of a <td> for
                             // the table rendering code to work correctly.
                             ldomNode * rbox3 = rbox2->insertChildElement( 0, LXML_NS_NONE, el_rubyBox );
