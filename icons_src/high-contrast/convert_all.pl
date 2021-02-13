@@ -85,7 +85,13 @@ my %ic_actions_list=(
 	'ic_media_pause_hc-48x48-src.svg' => 'ic_media_pause_hc.png',
 	'ic_media_stop_hc-48x48-src.svg' => 'ic_media_stop_hc.png',
 	'ic_media_ff_hc-48x48-src.svg' => 'ic_media_ff_hc.png',
-	'ic_media_rew_hc-48x48-src.svg' => 'ic_media_rew_hc.png'
+	'ic_media_rew_hc-48x48-src.svg' => 'ic_media_rew_hc.png',
+	'ic_menu_copy_hc-48x48-src.svg' => 'ic_menu_copy_hc.png',
+	'ic_menu_sort_alphabetically_hc-48x48-src.svg' => 'ic_menu_sort_alphabetically_hc.png',
+	'ic_menu_star_hc-48x48-src.svg' => 'ic_menu_star_hc.png',
+	'ic_menu_compose_hc-48x48-src.svg' => 'ic_menu_compose_hc.png',
+	'ic_menu_search_hc-48x48-src.svg' => 'ic_menu_search_hc.png',
+	'ic_menu_close_clear_cancel_hc-48x48-src.svg' => 'ic_menu_close_clear_cancel_hc.png'
 );
 
 my %ic_tabs_list=(

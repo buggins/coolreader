@@ -89,6 +89,12 @@
     <attr name="ic_media_rew_drawable" format="reference" />
     <attr name="ic_media_stop_drawable" format="reference" />
     <attr name="ic_media_pause_drawable" format="reference" />
+    <attr name="ic_menu_copy_drawable" format="reference" />
+    <attr name="ic_menu_sort_alphabetically_drawable" format="reference" />
+    <attr name="ic_menu_star_drawable" format="reference" />
+    <attr name="ic_menu_compose_drawable" format="reference" />
+    <attr name="ic_menu_search_drawable" format="reference" />
+    <attr name="ic_menu_close_clear_cancel_drawable" format="reference" />
 
     <attr name="google_drive_drawable" format="reference" />
 

@@ -199,6 +199,12 @@
         <item name="ic_media_rew_drawable">@drawable/ic_media_rew</item>
         <item name="ic_media_stop_drawable">@drawable/ic_media_stop</item>
         <item name="ic_media_pause_drawable">@drawable/ic_media_pause</item>
+        <item name="ic_menu_copy_drawable">@drawable/ic_menu_copy</item>
+        <item name="ic_menu_sort_alphabetically_drawable">@drawable/ic_menu_sort_alphabetically</item>
+        <item name="ic_menu_star_drawable">@drawable/ic_menu_star</item>
+        <item name="ic_menu_compose_drawable">@drawable/ic_menu_compose</item>
+        <item name="ic_menu_search_drawable">@drawable/ic_menu_search</item>
+        <item name="ic_menu_close_clear_cancel_drawable">@drawable/ic_menu_close_clear_cancel</item>
 
         <item name="google_drive_drawable">@drawable/google_drive</item>
 
@@ -303,6 +309,12 @@
         <item name="ic_media_rew_drawable">@drawable/ic_media_rew</item>
         <item name="ic_media_stop_drawable">@drawable/ic_media_stop</item>
         <item name="ic_media_pause_drawable">@drawable/ic_media_pause</item>
+        <item name="ic_menu_copy_drawable">@drawable/ic_menu_copy</item>
+        <item name="ic_menu_sort_alphabetically_drawable">@drawable/ic_menu_sort_alphabetically</item>
+        <item name="ic_menu_star_drawable">@drawable/ic_menu_star</item>
+        <item name="ic_menu_compose_drawable">@drawable/ic_menu_compose</item>
+        <item name="ic_menu_search_drawable">@drawable/ic_menu_search</item>
+        <item name="ic_menu_close_clear_cancel_drawable">@drawable/ic_menu_close_clear_cancel</item>
 
         <item name="google_drive_drawable">@drawable/google_drive</item>
 
@@ -435,6 +447,12 @@
         <item name="ic_media_rew_drawable">@drawable/ic_media_rew_hc</item>
         <item name="ic_media_stop_drawable">@drawable/ic_media_stop_hc</item>
         <item name="ic_media_pause_drawable">@drawable/ic_media_pause_hc</item>
+        <item name="ic_menu_copy_drawable">@drawable/ic_menu_copy_hc</item>
+        <item name="ic_menu_sort_alphabetically_drawable">@drawable/ic_menu_sort_alphabetically_hc</item>
+        <item name="ic_menu_star_drawable">@drawable/ic_menu_star_hc</item>
+        <item name="ic_menu_compose_drawable">@drawable/ic_menu_compose_hc</item>
+        <item name="ic_menu_search_drawable">@drawable/ic_menu_search_hc</item>
+        <item name="ic_menu_close_clear_cancel_drawable">@drawable/ic_menu_close_clear_cancel_hc</item>
 
         <item name="google_drive_drawable">@drawable/google_drive_mono</item>
 
@@ -541,6 +559,12 @@
         <item name="ic_media_rew_drawable">@drawable/ic_media_rew_hc</item>
         <item name="ic_media_stop_drawable">@drawable/ic_media_stop_hc</item>
         <item name="ic_media_pause_drawable">@drawable/ic_media_pause_hc</item>
+        <item name="ic_menu_copy_drawable">@drawable/ic_menu_copy_hc</item>
+        <item name="ic_menu_sort_alphabetically_drawable">@drawable/ic_menu_sort_alphabetically_hc</item>
+        <item name="ic_menu_star_drawable">@drawable/ic_menu_star_hc</item>
+        <item name="ic_menu_compose_drawable">@drawable/ic_menu_compose_hc</item>
+        <item name="ic_menu_search_drawable">@drawable/ic_menu_search_hc</item>
+        <item name="ic_menu_close_clear_cancel_drawable">@drawable/ic_menu_close_clear_cancel_hc</item>
 
         <item name="google_drive_drawable">@drawable/google_drive_mono</item>
 
