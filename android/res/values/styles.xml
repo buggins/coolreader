@@ -60,19 +60,8 @@
         <!-- item name="android:textColor">@android:color/black</item-->
         <item name="android:listViewStyle">@style/ListView.Light</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Light</item>
-        <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
-        <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.Light</item>
-
-        <!-- toolbar button background -->
-        <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
-        <!-- tabbar background color -->
-        <item name="tabbarBackground">#40404040</item>
-        <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
-        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
-        <item name="tts_toolbar_background">#D0808080</item>
     </style>
     <style name="Theme.Dark" parent="@style/Theme.Black">
         <item name="android:windowBackground">@drawable/background_tiled_dark_v3</item>
@@ -80,19 +69,8 @@
         <!-- item name="android:textColor">@android:color/white</item-->
         <item name="android:listViewStyle">@style/ListView.Dark</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Dark</item>
-        <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
-        <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.Dark</item>
-
-        <!-- toolbar button background -->
-        <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
-        <!-- tabbar background color -->
-        <item name="tabbarBackground">#40404040</item>
-        <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
-        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
-        <item name="tts_toolbar_background">#D0808080</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -303,20 +281,12 @@
         <item name="android:windowBackground">@color/gray1</item>
         <item name="android:colorBackground">@color/gray1</item>
         <!-- item name="android:textColor">@android:color/white</item-->
-        <item name="android:listViewStyle">@style/ListView.Black</item>
-        <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
-        <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
-        <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
-
-        <item name="rootDelimiterStyle">@style/RootDelimiter.Black</item>
 
         <!-- toolbar button background -->
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background_hc</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">@color/gray1</item>
         <item name="textColorToolBarLabel">#d0d0d0</item>
-        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <item name="tts_toolbar_background">#D0808080</item>
     </style>
     <color name="gray2">#ffcccccc</color>
@@ -324,20 +294,12 @@
         <item name="android:windowBackground">@color/gray2</item>
         <item name="android:colorBackground">@color/gray2</item>
         <!-- item name="android:textColor">@android:color/black</item-->
-        <item name="android:listViewStyle">@style/ListView.White</item>
-        <item name="android:listViewWhiteStyle">@style/ListView.White</item>
-        <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
-        <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
-
-        <item name="rootDelimiterStyle">@style/RootDelimiter.White</item>
 
         <!-- toolbar button background -->
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">@color/gray2</item>
         <item name="textColorToolBarLabel">#303030</item>
-        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
         <item name="tts_toolbar_background">#D0808080</item>
     </style>
     <style name="Theme.HiContrast1" parent="@android:style/Theme.Light">
