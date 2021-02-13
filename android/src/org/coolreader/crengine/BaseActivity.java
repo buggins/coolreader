@@ -1867,10 +1867,10 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : String.valueOf(statusFontSize));
 			props.applyDefault(ReaderView.PROP_FONT_COLOR, "#000000");
 			props.applyDefault(ReaderView.PROP_FONT_COLOR_DAY, "#000000");
-			props.applyDefault(ReaderView.PROP_FONT_COLOR_NIGHT, "#D0B070");
+			props.applyDefault(ReaderView.PROP_FONT_COLOR_NIGHT, !DeviceInfo.EINK_SCREEN ? "#D0B070" : "#FFFFFF");
 			props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR, "#FFFFFF");
 			props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_DAY, "#FFFFFF");
-			props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, "#101010");
+			props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, !DeviceInfo.EINK_SCREEN ? "#101010" : "#000000");
 			props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR, "#FF000000"); // don't use separate color
 			props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR_DAY, "#FF000000"); // don't use separate color
 			props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR_NIGHT, "#80000000"); // don't use separate color
@@ -1932,8 +1932,8 @@ public class BaseActivity extends Activity implements Settings {
 				else
 					props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_DAY_BACKGROUND_TEXTURE);
 			}
-			props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, Engine.DEF_DAY_BACKGROUND_TEXTURE);
-			props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
+			props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, !DeviceInfo.EINK_SCREEN ? Engine.DEF_DAY_BACKGROUND_TEXTURE : Engine.NO_TEXTURE.id);
+			props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, !DeviceInfo.EINK_SCREEN ? Engine.DEF_NIGHT_BACKGROUND_TEXTURE : Engine.NO_TEXTURE.id);
 
 			props.applyDefault(ReaderView.PROP_FONT_GAMMA, DeviceInfo.EINK_SCREEN ? "1.5" : "1.0");
 
