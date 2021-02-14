@@ -3,12 +3,13 @@
    Option item layout for CR3 options dialog
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/option_item_body"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:minHeight="?android:attr/listPreferredItemHeight"
     android:gravity="center_vertical"
+    android:orientation="horizontal"
     android:paddingRight="?android:attr/scrollbarSize"
     >
 
@@ -38,6 +39,16 @@
         <!--android:ellipsize="marquee"
             android:fadingEdge="horizontal"
          -->
+        <TextView
+                android:id="@+id/option_comment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/option_label"
+                android:layout_alignLeft="@id/option_label"
+                android:maxLines="3"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="?attr/textColorOptionValue"
+                android:visibility="gone" />
 
     </RelativeLayout>
     <CheckBox android:id="@+id/option_value_cb"

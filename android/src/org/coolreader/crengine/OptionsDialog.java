@@ -613,6 +613,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	}
 	class BoolOption extends OptionBase {
 		private boolean inverse = false;
+		private String comment;
 		public BoolOption( OptionOwner owner, String label, String property ) {
 			super(owner, label, property);
 		}
@@ -627,6 +628,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			refreshList();
 		}
 		public BoolOption setInverse() { inverse = true; return this; }
+		public BoolOption setComment(String comment) { this.comment = comment; return this; }
 		public int getItemViewType() {
 			return OPTION_VIEW_TYPE_BOOLEAN;
 		}
@@ -641,11 +643,16 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			}
 			myView = view;
 			TextView labelView = view.findViewById(R.id.option_label);
+			TextView commentView = view.findViewById(R.id.option_comment);
 			CheckBox valueView = view.findViewById(R.id.option_value_cb);
 //			valueView.setFocusable(false);
 //			valueView.setClickable(false);
 			labelView.setText(label);
 			labelView.setEnabled(enabled);
+			if (null != comment) {
+				commentView.setText(comment);
+				commentView.setVisibility(View.VISIBLE);
+			}
 			valueView.setChecked(getValueBoolean());
 			valueView.setOnCheckedChangeListener((arg0, checked) -> {
 //						mProperties.setBool(property, checked);
@@ -2336,7 +2343,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsControls.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)).setIconIdByAttr(R.attr.cr3_option_controls_keys_drawable, R.drawable.cr3_option_controls_keys));
 		mOptionsControls.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), PROP_APP_TAP_ZONE_ACTIONS_TAP).setIconIdByAttr(R.attr.cr3_option_controls_tapzones_drawable, R.drawable.cr3_option_controls_tapzones));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_tap_secondary_action_type), PROP_APP_SECONDARY_TAP_ACTION_TYPE).add(mTapSecondaryActionType, mTapSecondaryActionTypeTitles).setDefaultValue(String.valueOf(TAP_ACTION_TYPE_LONGPRESS)));
-		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), PROP_APP_DOUBLE_TAP_SELECTION).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_touch_drawable, R.drawable.cr3_option_touch));
+		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), PROP_APP_DOUBLE_TAP_SELECTION).setComment(getString(R.string.options_app_double_tap_selection_slowdown)).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_touch_drawable, R.drawable.cr3_option_touch));
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsControls.add(new BoolOption(this, getString(R.string.options_controls_enable_volume_keys), PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
 		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_touch_drawable, R.drawable.cr3_option_touch));
