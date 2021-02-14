@@ -147,6 +147,19 @@ public class EinkScreenOnyx implements EinkScreen {
 	}
 
 	@Override
+	public int getFrontLightValue(Context context) {
+		int res = 0;
+		try {
+			if (DeviceInfo.ONYX_HAVE_NATURAL_BACKLIGHT) {
+				res = Device.currentDevice().getColdLightConfigValue(context);
+			} else {
+				res = Device.currentDevice().getFrontLightDeviceValue(context);
+			}
+		} catch (Exception ignored) {}
+		return res;
+	}
+
+	@Override
 	public boolean setFrontLightValue(Context context, int value) {
 		boolean res = false;
 		if (DeviceInfo.ONYX_HAVE_FRONTLIGHT) {
@@ -164,6 +177,17 @@ public class EinkScreenOnyx implements EinkScreen {
 				// system default, just ignore
 			}
 		}
+		return res;
+	}
+
+	@Override
+	public int getWarmLightValue(Context context) {
+		int res = 0;
+		try {
+			if (DeviceInfo.ONYX_HAVE_NATURAL_BACKLIGHT) {
+				res = Device.currentDevice().getWarmLightConfigValue(context);
+			}
+		} catch (Exception ignored) {}
 		return res;
 	}
 

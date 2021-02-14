@@ -33,8 +33,18 @@ public class EinkScreenDummy implements EinkScreen {
 	}
 
 	@Override
+	public int getFrontLightValue(Context context) {
+		return 0;
+	}
+
+	@Override
 	public boolean setFrontLightValue(Context context, int value) {
 		return false;
+	}
+
+	@Override
+	public int getWarmLightValue(Context context) {
+		return 0;
 	}
 
 	@Override

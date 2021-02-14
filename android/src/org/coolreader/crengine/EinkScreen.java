@@ -43,7 +43,11 @@ public interface EinkScreen {
 
 	int getUpdateInterval();
 
+	int getFrontLightValue(Context context);
+
 	boolean setFrontLightValue(Context context, int value);
+
+	int getWarmLightValue(Context context);
 
 	boolean setWarmLightValue(Context context, int value);
 

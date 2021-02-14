@@ -802,11 +802,21 @@ public class BaseActivity extends Activity implements Settings {
 	}
 
 	public int getScreenBacklightLevel() {
-		return screenBacklightBrightness;
+		if (!DeviceInfo.EINK_SCREEN)
+			return screenBacklightBrightness;
+		else if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
+			// on E-INK devices fetch the system backlight level
+			return mEinkScreen.getFrontLightValue(this);
+		}
+		return 0;
 	}
 
 	public int getWarmBacklightLevel() {
-		return screenWarmBacklightBrightness;
+		if (!DeviceInfo.EINK_SCREEN)
+			return screenWarmBacklightBrightness;
+		else if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT)
+			return mEinkScreen.getWarmLightValue(this);
+		return 0;
 	}
 
 	public void setScreenBacklightLevel(int value) {
