@@ -69,6 +69,7 @@ public class Dictionaries {
 		new DictInfo("AardDict", "Aard Dictionary", "aarddict.android", "aarddict.android.Article", Intent.ACTION_SEARCH, 0),
 		new DictInfo("AardDictLookup", "Aard Dictionary Lookup", "aarddict.android", "aarddict.android.Lookup", Intent.ACTION_SEARCH, 0),
 		new DictInfo("Aard2", "Aard 2 Dictionary", "itkach.aard2", "aard2.lookup", Intent.ACTION_SEARCH, 3),
+		new DictInfo("OnyxDictOld", "ONYX Dictionary (Old)", "com.onyx.dict", "com.onyx.dict.activity.DictMainActivity", Intent.ACTION_VIEW, 0).setDataKey("android.intent.action.SEARCH"),
 		new DictInfo("OnyxDict", "ONYX Dictionary", "com.onyx.dict", "com.onyx.dict.main.ui.DictMainActivity", Intent.ACTION_VIEW, 0).setDataKey("android.intent.action.SEARCH"),
 		new DictInfo("OnyxDictWindowed", "ONYX Dictionary (Windowed)", "com.onyx.dict", "com.onyx.dict.translation.ui.ProcessTextActivity", Intent.ACTION_VIEW, 0).setDataKey("android.intent.extra.PROCESS_TEXT"),
 		new DictInfo("Dictan", "Dictan Dictionary", "info.softex.dictan", null, Intent.ACTION_VIEW, 2),
