@@ -89,7 +89,9 @@ my %ic_actions_list=(
 	'cr3_viewer_toc-48x48-src.svg' => 'cr3_viewer_toc.png',
 	'cr3_button_info-48x48-src.svg' => 'cr3_button_info.png',
 	'cr3_button_log-48x48-src.svg' => 'cr3_button_log.png',
-	'cr3_button_light-48x48-src.svg' => 'cr3_button_light.png'
+	'cr3_button_light-48x48-src.svg' => 'cr3_button_light.png',
+	'cr3_button_inc-48x48-src.svg' => 'cr3_button_inc.png',
+	'cr3_button_dec-48x48-src.svg' => 'cr3_button_dec.png'
 );
 
 my %ic_tabs_list=(

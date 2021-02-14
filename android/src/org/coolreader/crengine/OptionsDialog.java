@@ -8,6 +8,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -15,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -41,6 +44,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	ReaderView mReaderView;
 	BaseActivity mActivity;
 	String[] mFontFaces;
+	/*
 	int[] mFontSizes = new int[] {
 		9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
 		31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72, 78, 84, 90, 110, 130, 150, 170, 200, 230, 260, 300, 340
@@ -61,7 +65,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	        res[i] = list.get(i);
 	    return res;
 	}
-	
+	*/
 	public static int findBacklightSettingIndex( int value ) {
 		int bestIndex = 0;
 		int bestDiff = -1;
@@ -352,7 +356,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
 	public final static int OPTION_VIEW_TYPE_COLOR = 2;
 	public final static int OPTION_VIEW_TYPE_SUBMENU = 3;
-	//public final static int OPTION_VIEW_TYPE_COUNT = 3;
+	public final static int OPTION_VIEW_TYPE_NUMBER = 4;
+	//public final static int OPTION_VIEW_TYPE_COUNT = 4;
 
 	// This is an engine limitation, see lvfreetypefontman.cpp, lvfreetypeface.cpp
 	private static final int MAX_FALLBACK_FONTS_COUNT = 32;
@@ -920,7 +925,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_show_titlebar), PROP_STATUS_LOCATION).add(mStatusPositions, mStatusPositionsTitles).setDefaultValue("1"));
 			listView.add(new ListOption(mOwner, getString(R.string.options_rounded_corners_margin), PROP_ROUNDED_CORNERS_MARGIN).add(mRoundedCornersMargins).setDefaultValue("0"));
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_face), PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
-			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_size), PROP_STATUS_FONT_SIZE).add(filterFontSizes(mStatusFontSizes)).setDefaultValue("18").setIconIdByAttr(R.attr.cr3_option_font_size_drawable, R.drawable.cr3_option_font_size));
+			listView.add(new NumberPickerOption(mOwner, getString(R.string.options_page_titlebar_font_size), PROP_STATUS_FONT_SIZE).setMinValue(mActivity.getMinFontSize()).setMaxValue(mActivity.getMaxFontSize()).setDefaultValue("18").setIconIdByAttr(R.attr.cr3_option_font_size_drawable, R.drawable.cr3_option_font_size));
+
 			listView.add(new ColorOption(mOwner, getString(R.string.options_page_titlebar_font_color), PROP_STATUS_FONT_COLOR, 0x000000));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_title), PROP_SHOW_TITLE).setDefaultValue("1"));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_page_number), PROP_SHOW_PAGE_NUMBER).setDefaultValue("1"));
@@ -1656,7 +1662,107 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			}
 		}
 	}
-	
+
+	class NumberPickerOption extends OptionBase {
+		private int minValue = 9;
+		private int maxValue = 340;
+		public NumberPickerOption( OptionOwner owner, String label, String property ) {
+			super(owner, label, property);
+		}
+		public int getItemViewType() {
+			return OPTION_VIEW_TYPE_NUMBER;
+		}
+		private int getValueInt() {
+			int res = 0;
+			try {
+				res = Integer.parseInt(mProperties.getProperty(property));
+			} catch (NumberFormatException ignored) {}
+			return res;
+		}
+		NumberPickerOption setMinValue(int minValue) {
+			this.minValue = minValue;
+			return this;
+		}
+		NumberPickerOption setMaxValue(int maxValue) {
+			this.maxValue = maxValue;
+			return this;
+		}
+		public void onSelect() {
+			if (!enabled)
+				return;
+			View view = getView(null, null);
+			EditText valueView = view.findViewById(R.id.option_value);
+			valueView.requestFocus();
+			refreshList();
+		}
+		public View getView(View convertView, ViewGroup parent) {
+			View view;
+			convertView = myView;
+			if (null == convertView) {
+				view = mInflater.inflate(R.layout.option_item_number, null);
+				myView = view;
+				TextView labelView = view.findViewById(R.id.option_label);
+				EditText valueView = view.findViewById(R.id.option_value);
+				ImageButton decButton = view.findViewById(R.id.option_btn_dec);
+				ImageButton incButton = view.findViewById(R.id.option_btn_inc);
+				labelView.setText(label);
+				labelView.setEnabled(enabled);
+				valueView.setText(String.valueOf(getValueInt()));
+				valueView.addTextChangedListener(new TextWatcher() {
+					@Override
+					public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+					}
+
+					@Override
+					public void onTextChanged(CharSequence s, int start, int before, int count) {
+					}
+
+					@Override
+					public void afterTextChanged(Editable s) {
+						if (!enabled)
+							return;
+						try {
+							int value = Integer.parseInt(s.toString());
+							if (value < minValue) {
+								value = minValue;
+							} else if (value > maxValue) {
+								value = maxValue;
+							}
+							mProperties.setProperty(property, String.valueOf(value));
+						} catch (NumberFormatException ignored) {}
+					}
+				});
+				decButton.setOnClickListener(v -> {
+					if (!enabled)
+						return;
+					int value = getValueInt() - 1;
+					if (value >= minValue) {
+						mProperties.setProperty(property, String.valueOf(value));
+						View view1 = getView(null, null);
+						EditText editText = view1.findViewById(R.id.option_value);
+						editText.setText(String.valueOf(value));
+					}
+				});
+				incButton.setOnClickListener(v -> {
+					if (!enabled)
+						return;
+					int value = getValueInt() + 1;
+					if (value <= maxValue) {
+						mProperties.setProperty(property, String.valueOf(value));
+						View view1 = getView(null, null);
+						EditText editText = view1.findViewById(R.id.option_value);
+						editText.setText(String.valueOf(value));
+					}
+				});
+				valueView.setEnabled(enabled);
+				setupIconView((ImageView)view.findViewById(R.id.option_icon));
+			} else {
+				view = convertView;
+			}
+			return view;
+		}
+	}
+
 	//byte[] fakeLongArrayForDebug;
 	
 	public enum Mode {
@@ -2251,7 +2357,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 		mOptionsStyles = new OptionsListView(getContext());
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).add(filterFontSizes(mFontSizes)).setDefaultValue("24").setIconIdByAttr(R.attr.cr3_option_font_size_drawable, R.drawable.cr3_option_font_size));
+		mOptionsStyles.add(new NumberPickerOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).setMinValue(mActivity.getMinFontSize()).setMaxValue(mActivity.getMaxFontSize()).setDefaultValue("24").setIconIdByAttr(R.attr.cr3_option_font_size_drawable, R.drawable.cr3_option_font_size));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_embolden), PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_text_bold_drawable, R.drawable.cr3_option_text_bold));
 		//mOptionsStyles.add(new BoolOption(getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).setInverse().setDefaultValue("0"));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_antialias_drawable, R.drawable.cr3_option_text_antialias));
