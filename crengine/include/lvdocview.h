@@ -262,8 +262,13 @@ private:
     int m_font_size; // = m_requested_font_size, possibly scaled according to DPI
     int m_status_font_size;
     int m_def_interline_space;
+#if USE_LIMITED_FONT_SIZES_SET
     LVArray<int> m_font_sizes;
     bool m_font_sizes_cyclic;
+#else
+    int m_min_font_size;
+    int m_max_font_size;
+#endif
     bool m_is_rendered;
 
     LVDocViewMode m_view_mode; // DVM_SCROLL, DVM_PAGES
@@ -859,8 +864,13 @@ public:
     /// sets new status bar font size
     void setStatusFontSize( int newSize );
 
+#if USE_LIMITED_FONT_SIZES_SET
     /// sets posible base font sizes (for ZoomFont)
     void setFontSizes( LVArray<int> & sizes, bool cyclic );
+#else
+    void setMinFontSize( int size );
+    void setMaxFontSize( int size );
+#endif
 
     /// get drawing buffer
     //LVDrawBuf * GetDrawBuf() { return &m_drawbuf; }

@@ -159,8 +159,13 @@ LVDocView::LVDocView(int bitsPerPixel, bool noDefaultDocument) :
 #endif
 			, m_status_font_size(INFO_FONT_SIZE),
 			m_def_interline_space(100),
+#if USE_LIMITED_FONT_SIZES_SET
 			m_font_sizes(def_font_sizes, sizeof(def_font_sizes) / sizeof(int)),
 			m_font_sizes_cyclic(false),
+#else
+			m_min_font_size(6),
+			m_max_font_size(72),
+#endif
 			m_is_rendered(false),
 			m_view_mode(1 ? DVM_PAGES : DVM_SCROLL) // choose 0/1
 			/*
@@ -3559,6 +3564,7 @@ void LVDocView::setVisiblePageCount(int n) {
     _posIsSet = false;
 }
 
+#if USE_LIMITED_FONT_SIZES_SET
 static int findBestFit(LVArray<int> & v, int n, bool rollCyclic = false) {
 	int bestsz = -1;
 	int bestfit = -1;
@@ -3581,6 +3587,7 @@ static int findBestFit(LVArray<int> & v, int n, bool rollCyclic = false) {
 		bestsz = n;
 	return bestsz;
 }
+#endif
 
 void LVDocView::setDefaultInterlineSpace(int percent) {
     LVLock lock(getMutex());
@@ -3612,7 +3619,14 @@ void LVDocView::setStatusFontSize(int newSize) {
 int LVDocView::scaleFontSizeForDPI(int fontSize) {
     if (gRenderScaleFontWithDPI) {
         fontSize = scaleForRenderDPI(fontSize);
+#if USE_LIMITED_FONT_SIZES_SET
         fontSize = findBestFit(m_font_sizes, fontSize);
+#else
+        if (fontSize < m_min_font_size)
+            fontSize = m_min_font_size;
+        else if (fontSize > m_max_font_size)
+            fontSize = m_max_font_size;
+#endif
     }
     return fontSize;
 }
@@ -3624,7 +3638,16 @@ void LVDocView::setFontSize(int newSize) {
     // can be changed independantly.
     int oldSize = m_requested_font_size;
     if (oldSize != newSize) {
+#if USE_LIMITED_FONT_SIZES_SET
         m_requested_font_size = findBestFit(m_font_sizes, newSize);
+#else
+        if (newSize < m_min_font_size)
+            m_requested_font_size = m_min_font_size;
+        else if (newSize > m_max_font_size)
+            m_requested_font_size = m_max_font_size;
+        else
+            m_requested_font_size = newSize;
+#endif
         propsGetCurrent()->setInt(PROP_FONT_SIZE, m_requested_font_size);
         m_font_size = scaleFontSizeForDPI(m_requested_font_size);
         gRootFontSize = m_font_size; // stored as global (for 'rem' css unit)
@@ -3644,16 +3667,29 @@ void LVDocView::setStatusFontFace(const lString8 & newFace) {
     REQUEST_RENDER("setStatusFontFace")
 }
 
+#if USE_LIMITED_FONT_SIZES_SET
 /// sets posible base font sizes (for ZoomFont feature)
 void LVDocView::setFontSizes(LVArray<int> & sizes, bool cyclic) {
 	m_font_sizes = sizes;
 	m_font_sizes_cyclic = cyclic;
 }
+#endif
+
+#if !USE_LIMITED_FONT_SIZES_SET
+void LVDocView::setMinFontSize( int size ) {
+	m_min_font_size = size;
+}
+
+void LVDocView::setMaxFontSize( int size ) {
+	m_max_font_size = size;
+}
+#endif
 
 void LVDocView::ZoomFont(int delta) {
 	if (m_font.isNull())
 		return;
 #if 1
+#if USE_LIMITED_FONT_SIZES_SET
 	int sz = m_requested_font_size;
 	for (int i = 0; i < 15; i++) {
 		sz += delta;
@@ -3665,6 +3701,9 @@ void LVDocView::ZoomFont(int delta) {
 		if (sz < 12)
 			break;
 	}
+#else
+	setFontSize(m_requested_font_size + delta);
+#endif
 #else
 	LVFontRef nfnt;
 	int sz = m_font->getHeight();
@@ -6363,10 +6402,14 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 		props->setString(PROP_FONT_FACE, list[0]);
 	props->setStringDef(PROP_FALLBACK_FONT_FACES, fallbackFonts);
 
+#if USE_LIMITED_FONT_SIZES_SET
 	props->setIntDef(PROP_FONT_SIZE,
 			m_font_sizes[m_font_sizes.length() * 2 / 3]);
 	props->limitValueList(PROP_FONT_SIZE, m_font_sizes.ptr(),
 			m_font_sizes.length());
+#else
+	props->setIntDef(PROP_FONT_SIZE, m_min_font_size + (m_min_font_size + m_max_font_size)/7);
+#endif
 	props->limitValueList(PROP_INTERLINE_SPACE, cr_interline_spaces,
 			sizeof(cr_interline_spaces) / sizeof(int));
 #if CR_INTERNAL_PAGE_ORIENTATION==1
@@ -6660,7 +6703,11 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             //} else if ( name==PROP_BOOKMARK_ICONS ) {
             //    enableBookmarkIcons( value==U"1" );
         } else if (name == PROP_FONT_SIZE) {
+#if USE_LIMITED_FONT_SIZES_SET
             int fontSize = props->getIntDef(PROP_FONT_SIZE, m_font_sizes[0]);
+#else
+            int fontSize = props->getIntDef(PROP_FONT_SIZE, m_min_font_size);
+#endif
             setFontSize(fontSize);//cr_font_sizes
             value = lString32::itoa(m_requested_font_size);
             updatePageMargins();
