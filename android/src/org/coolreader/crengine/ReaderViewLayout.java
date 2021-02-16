@@ -111,6 +111,12 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 					ReaderAction.OPEN_PREVIOUS_BOOK,
 					ReaderAction.TOGGLE_AUTOSCROLL,
 					ReaderAction.SAVE_LOGCAT);
+			if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
+				if (DeviceInfo.EINK_ONYX && DeviceInfo.ONYX_HAVE_BRIGHTNESS_SYSTEM_DIALOG) {
+					actionsList.add(7, ReaderAction.SHOW_SYSTEM_BACKLIGHT_DIALOG);
+				}
+				// TODO: add other e-ink devices with backlight support
+			}
 			if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				actionsList.add(ReaderAction.GDRIVE_SYNCTO);
 				actionsList.add(ReaderAction.GDRIVE_SYNCFROM);

@@ -33,7 +33,6 @@ import org.coolreader.crengine.BrowserViewLayout;
 import org.coolreader.crengine.CRRootView;
 import org.coolreader.crengine.CRToolBar;
 import org.coolreader.crengine.DeviceInfo;
-import org.coolreader.crengine.EinkScreen;
 import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.ErrorDialog;
 import org.coolreader.crengine.FileBrowser;
@@ -676,10 +675,11 @@ public class CoolReader extends BaseActivity {
 			}, 500), true);
 			return true;
 		} else if (null != uri) {
+			// TODO: calculate fingerprint for uri and find fileInfo in DB
 			log.d("URI_TO_OPEN = " + uri);
 			final String uriString = uri.toString();
 			mFileToOpenFromExt = uriString;
-			loadDocumentFromUri(uri, null, () -> BackgroundThread.instance().postGUI(() -> {
+			loadDocumentFromUri(uri, () -> showToast(R.string.opened_from_stream), () -> BackgroundThread.instance().postGUI(() -> {
 				// if document not loaded show error & then root window
 				ErrorDialog errDialog = new ErrorDialog(CoolReader.this, CoolReader.this.getString(R.string.error), CoolReader.this.getString(R.string.cant_open_file, uriString));
 				errDialog.setOnDismissListener(dialog -> showRootWindow());
@@ -938,7 +938,7 @@ public class CoolReader extends BaseActivity {
 
 	public void einkRefresh() {
 		try {
-			EinkScreen.Refresh(mReaderView.getSurface());
+			getEinkScreen().refreshScreen(mReaderView.getSurface());
 		} catch (Exception ignored) {}
 	}
 

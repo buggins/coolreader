@@ -165,9 +165,9 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     QString ignoreDocMargins = m_props->getStringDef("styles.body.margin", "");
     m_ui->cbIgnoreDocumentMargins->setCheckState(ignoreDocMargins.length() > 0 ?  Qt::Checked : Qt::Unchecked);
 
-    optionToUiInversed( PROP_STATUS_LINE, m_ui->cbShowPageHeader );
+    optionToUiIndex( PROP_STATUS_LINE, m_ui->cbShowPageHeader );
 
-    bool b = m_props->getIntDef( PROP_STATUS_LINE, 0 )==0;
+    bool b = m_props->getIntDef( PROP_STATUS_LINE, 0 ) > 0;
     m_ui->cbShowBattery->setEnabled( b );
     m_ui->cbShowClock->setEnabled( b );
     m_ui->cbShowBookName->setEnabled( b );
@@ -781,10 +781,10 @@ void SettingsDlg::on_cbViewMode_currentIndexChanged(int index)
     }
 }
 
-void SettingsDlg::on_cbShowPageHeader_stateChanged(int s)
+void SettingsDlg::on_cbShowPageHeader_currentIndexChanged(int index)
 {
-    setCheckInversed( PROP_STATUS_LINE, s );
-    bool b = m_props->getIntDef( PROP_STATUS_LINE, 0 )==0;
+    m_props->setInt( PROP_STATUS_LINE, index );
+    bool b = index > 0;
     m_ui->cbShowBattery->setEnabled( b );
     m_ui->cbShowClock->setEnabled( b );
     m_ui->cbShowBookName->setEnabled( b );

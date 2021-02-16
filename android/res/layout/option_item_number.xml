@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+   Option item layout for CR3 options dialog
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/option_item_body"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="?android:attr/listPreferredItemHeight"
+        android:orientation="horizontal"
+        android:paddingRight="?android:attr/scrollbarSize">
+
+    <ImageView
+            android:id="@+id/option_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+
+    <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dip"
+            android:layout_marginTop="6dip"
+            android:layout_marginRight="6dip"
+            android:layout_marginBottom="6dip"
+            android:layout_weight="1">
+
+        <TextView
+                android:id="@+id/option_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="3"
+                android:singleLine="false"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    </RelativeLayout>
+
+    <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+        <ImageButton
+                android:id="@+id/option_btn_dec"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@android:color/transparent"
+                android:src="?attr/cr3_button_dec_drawable" />
+
+        <EditText
+                android:id="@+id/option_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:singleLine="true" />
+
+        <ImageButton
+                android:id="@+id/option_btn_inc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@android:color/transparent"
+                android:src="?attr/cr3_button_inc_drawable" />
+
+    </LinearLayout>
+
+    <View
+            android:id="@+id/view"
+            android:layout_width="4dp"
+            android:layout_height="1dp"
+            android:layout_weight="0" />
+</LinearLayout>

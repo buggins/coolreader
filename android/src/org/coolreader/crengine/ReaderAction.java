@@ -253,7 +253,7 @@ public class ReaderAction {
 		};
 		if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
 			// TODO: and may be other eink devices with frontlight...
-			if (DeviceInfo.EINK_ONYX) {
+			if (DeviceInfo.EINK_ONYX && DeviceInfo.ONYX_HAVE_BRIGHTNESS_SYSTEM_DIALOG) {
 				int count = BASE_ACTIONS.length;
 				ReaderAction[] new_array = new ReaderAction[count + 1];
 				System.arraycopy(BASE_ACTIONS, 0, new_array, 0, count);

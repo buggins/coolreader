@@ -166,6 +166,7 @@
     <string name="options_app_key_long_press">(long press)</string>
     <string name="options_app_key_double_press">(double press)</string>
     <string name="options_app_double_tap_selection">Text selection with double tap</string>
+    <string name="options_app_double_tap_selection_slowdown">(Slows down the reaction time to single taps)</string>
     <string name="mi_select_text">Select text</string>
     <string name="action_toggle_selection_mode">Toggle selection mode</string>
     <string name="action_toggle_selection_mode_off">Selection mode is off</string>
@@ -294,8 +295,11 @@
     <string name="options_screen_update_mode">Screen update mode</string>
     <string name="options_screen_update_mode_fast">Fast</string>
     <string name="options_screen_update_mode_fast2">Fast 2</string>
+    <string name="options_screen_update_mode_onyx_regal">SNOW Field</string>
+    <string name="options_screen_update_mode_onyx_a2">A2</string>
     <string name="options_screen_update_mode_quality">Quality</string>
     <string name="options_screen_update_interval">Full screen update interval</string>
+    <string name="options_screen_update_interval_none">None</string>
     <string name="options_render_font_gamma">Font Gamma</string>
     <string name="action_toggle_titlebar">Toggle Title Bar</string>
     <string name="action_show_position_info">Show position popup</string>
@@ -491,6 +495,7 @@
     <string name="book_info_rating">Rate</string>
     <string name="options_page_show_titlebar_hidden">None</string>
     <string name="options_page_show_titlebar_page_header">Page header</string>
+    <string name="options_page_show_titlebar_page_footer">Page footer</string>
     <string name="options_page_show_titlebar_bottom">Bottom</string>
     <string name="options_page_show_titlebar_top">Top</string>
     <string name="options_view_toolbar_position_short_side">Short side</string>
@@ -582,6 +587,7 @@
     <string name="black_list_warning">WARNING: this URL is added to black list of catalogs which may violate DMCA by request of LitRes.ru Do you really want to add this catalog?</string>
     <string name="error">Error</string>
     <string name="cant_open_file">Can\'t open file \"%s\"!</string>
+    <string name="opened_from_stream">Document opened from stream, file location unknown. Unable to save information about the last opened file!</string>
     <string name="options_app_tts_stop_motion_timeout">Stop reading aloud on motion sensor timeout</string>
     <string name="motion_timeout_off">"Off"</string>
     <string name="motion_timeout_1min">"1 minute"</string>

@@ -2,22 +2,7 @@
 <resources>
 
     <style name="TabWidget" parent="@android:style/Widget.TabWidget">
-        <!-- item name="android:textAppearance">@style/TextAppearance.Small</item>
-        <item name="ellipsize">marquee</item>
-        <item name="singleLine">true</item-->
-        <!--item name="android:tabStripLeft">@android:drawable/tab_bottom_left</item>
-        <item name="android:tabStripRight">@android:drawable/tab_bottom_right</item>
-        <item name="android:tabStripEnabled">true</item>
-        <item name="android:divider">@null</item-->
         <item name="android:gravity">fill_horizontal|center_vertical</item>
-        <item name="android:tabStripLeft">@null</item>
-        <item name="android:tabStripRight">@null</item>
-        <item name="android:tabStripEnabled">false</item>
-        <!-- item name="android:divider">?android:attr/dividerVertical</item>
-        <item name="android:showDividers">middle</item>
-        <item name="android:dividerPadding">8dip</item>
-        <item name="android:measureWithLargestChild">true</item>
-        <item name="android:tabLayout">@android:layout/tab_indicator_holo</item-->
     </style>
     
     <style name="TextAppearance.Widget.EditText" parent="@android:style/TextAppearance.Widget.EditText">
@@ -53,22 +38,60 @@
         <item name="android:divider">@drawable/divider_white_tiled</item>
     </style>
 
+    <style name="CheckBox.HC.Light" parent="@android:style/Widget.CompoundButton.CheckBox">
+        <item name="android:button">@drawable/btn_check_hc_light</item>
+    </style>
+
+    <style name="CheckBox.HC.Dark" parent="@android:style/Widget.CompoundButton.CheckBox">
+        <item name="android:button">@drawable/btn_check_hc_dark</item>
+    </style>
+
+    <style name="RadioButton.HC.Light" parent="@android:style/Widget.CompoundButton.RadioButton">
+        <item name="android:button">@drawable/btn_radio_hc_light</item>
+    </style>
+
+    <style name="RadioButton.HC.Dark" parent="@android:style/Widget.CompoundButton.RadioButton">
+        <item name="android:button">@drawable/btn_radio_hc_dark</item>
+    </style>
+
+    <style name="Button.HC.Light" parent="@android:style/Widget.Button">
+        <item name="android:background">@drawable/btn_default_hc_light</item>
+        <item name="android:textColor">@color/btn_default_hc_light_text</item>
+    </style>
+
+    <style name="Button.HC.Dark" parent="@android:style/Widget.Button">
+        <item name="android:background">@drawable/btn_default_hc_dark</item>
+        <item name="android:textColor">@color/btn_default_hc_dark_text</item>
+    </style>
+
+    <style name="Button.HC.Light.Small" parent="@android:style/Widget.Button.Small">
+        <item name="android:background">@drawable/btn_default_hc_light</item>
+        <item name="android:textColor">@color/btn_default_hc_light_text</item>
+    </style>
+
+    <style name="Button.HC.Dark.Small" parent="@android:style/Widget.Button.Small">
+        <item name="android:background">@drawable/btn_default_hc_dark</item>
+        <item name="android:textColor">@color/btn_default_hc_dark_text</item>
+    </style>
+
+    <style name="ImageButton.HC.Light" parent="@android:style/Widget.ImageButton">
+        <item name="android:background">@drawable/btn_default_hc_light</item>
+        <item name="android:textColor">@color/btn_default_hc_light_text</item>
+    </style>
+
+    <style name="ImageButton.HC.Dark" parent="@android:style/Widget.ImageButton">
+        <item name="android:background">@drawable/btn_default_hc_dark</item>
+        <item name="android:textColor">@color/btn_default_hc_dark_text</item>
+    </style>
+
     <style name="Theme.Light" parent="@style/Theme.White">
         <item name="android:windowBackground">@drawable/background_tiled_light_v3</item>
         <item name="android:colorBackground">#ffe0e0e0</item>
         <!-- item name="android:textColor">@android:color/black</item-->
         <item name="android:listViewStyle">@style/ListView.Light</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Light</item>
-        <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
-        <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.Light</item>
-
-        <!-- toolbar button background -->
-        <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
-        <!-- tabbar background color -->
-        <item name="tabbarBackground">#40404040</item>
     </style>
     <style name="Theme.Dark" parent="@style/Theme.Black">
         <item name="android:windowBackground">@drawable/background_tiled_dark_v3</item>
@@ -76,16 +99,8 @@
         <!-- item name="android:textColor">@android:color/white</item-->
         <item name="android:listViewStyle">@style/ListView.Dark</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Dark</item>
-        <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
-        <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.Dark</item>
-
-        <!-- toolbar button background -->
-        <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
-        <!-- tabbar background color -->
-        <item name="tabbarBackground">#40404040</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -93,6 +108,11 @@
         <!-- item name="android:textColor">@android:color/black</item-->
         <item name="android:listViewStyle">@style/ListView.White</item>
         <item name="android:listViewWhiteStyle">@style/ListView.White</item>
+        <item name="android:checkboxStyle">@android:style/Widget.CompoundButton.CheckBox</item>
+        <item name="android:radioButtonStyle">@android:style/Widget.CompoundButton.RadioButton</item>
+        <item name="android:buttonStyle">@android:style/Widget.Button</item>
+        <item name="android:buttonStyleSmall">@android:style/Widget.Button.Small</item>
+        <item name="android:imageButtonStyle">@android:style/Widget.ImageButton</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
         <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
@@ -103,6 +123,10 @@
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
+        <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
+        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="tts_toolbar_background">#D0808080</item>
+
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
@@ -153,6 +177,7 @@
         <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom</item>
         <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align</item>
         <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent</item>
+        <item name="cr3_option_text_hinting_drawable">@drawable/cr3_option_text_hinting</item>
         <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys</item>
         <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones</item>
         <item name="cr3_option_other_drawable">@drawable/cr3_option_other</item>
@@ -163,10 +188,26 @@
         <item name="cr3_button_add_drawable">@drawable/cr3_button_add</item>
         <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok</item>
         <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel</item>
+        <item name="cr3_button_remove_drawable">@drawable/cr3_button_remove</item>
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more</item>
         <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book</item>
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info</item>
         <item name="cr3_button_log_drawable">@drawable/cr3_button_log</item>
+        <item name="cr3_button_light_drawable">@drawable/cr3_button_light</item>
+        <item name="cr3_button_inc_drawable">@drawable/cr3_button_inc</item>
+        <item name="cr3_button_dec_drawable">@drawable/cr3_button_dec</item>
+
+        <item name="ic_media_ff_drawable">@drawable/ic_media_ff</item>
+        <item name="ic_media_play_drawable">@drawable/ic_media_play</item>
+        <item name="ic_media_rew_drawable">@drawable/ic_media_rew</item>
+        <item name="ic_media_stop_drawable">@drawable/ic_media_stop</item>
+        <item name="ic_media_pause_drawable">@drawable/ic_media_pause</item>
+        <item name="ic_menu_copy_drawable">@drawable/ic_menu_copy</item>
+        <item name="ic_menu_sort_alphabetically_drawable">@drawable/ic_menu_sort_alphabetically</item>
+        <item name="ic_menu_star_drawable">@drawable/ic_menu_star</item>
+        <item name="ic_menu_compose_drawable">@drawable/ic_menu_compose</item>
+        <item name="ic_menu_search_drawable">@drawable/ic_menu_search</item>
+        <item name="ic_menu_close_clear_cancel_drawable">@drawable/ic_menu_close_clear_cancel</item>
 
         <item name="google_drive_drawable">@drawable/google_drive</item>
 
@@ -180,6 +221,11 @@
         <!-- item name="android:textColor">@android:color/white</item-->
         <item name="android:listViewStyle">@style/ListView.Black</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
+        <item name="android:checkboxStyle">@android:style/Widget.CompoundButton.CheckBox</item>
+        <item name="android:radioButtonStyle">@android:style/Widget.CompoundButton.RadioButton</item>
+        <item name="android:buttonStyle">@android:style/Widget.Button</item>
+        <item name="android:buttonStyleSmall">@android:style/Widget.Button.Small</item>
+        <item name="android:imageButtonStyle">@android:style/Widget.ImageButton</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
         <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
@@ -190,6 +236,10 @@
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
+        <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
+        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="tts_toolbar_background">#D0808080</item>
+
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
@@ -240,6 +290,7 @@
         <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom</item>
         <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align</item>
         <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent</item>
+        <item name="cr3_option_text_hinting_drawable">@drawable/cr3_option_text_hinting</item>
         <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys</item>
         <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones</item>
         <item name="cr3_option_other_drawable">@drawable/cr3_option_other</item>
@@ -250,10 +301,26 @@
         <item name="cr3_button_add_drawable">@drawable/cr3_button_add</item>
         <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok</item>
         <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel</item>
+        <item name="cr3_button_remove_drawable">@drawable/cr3_button_remove</item>
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more</item>
         <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book</item>
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info</item>
         <item name="cr3_button_log_drawable">@drawable/cr3_button_log</item>
+        <item name="cr3_button_light_drawable">@drawable/cr3_button_light</item>
+        <item name="cr3_button_inc_drawable">@drawable/cr3_button_inc</item>
+        <item name="cr3_button_dec_drawable">@drawable/cr3_button_dec</item>
+
+        <item name="ic_media_ff_drawable">@drawable/ic_media_ff</item>
+        <item name="ic_media_play_drawable">@drawable/ic_media_play</item>
+        <item name="ic_media_rew_drawable">@drawable/ic_media_rew</item>
+        <item name="ic_media_stop_drawable">@drawable/ic_media_stop</item>
+        <item name="ic_media_pause_drawable">@drawable/ic_media_pause</item>
+        <item name="ic_menu_copy_drawable">@drawable/ic_menu_copy</item>
+        <item name="ic_menu_sort_alphabetically_drawable">@drawable/ic_menu_sort_alphabetically</item>
+        <item name="ic_menu_star_drawable">@drawable/ic_menu_star</item>
+        <item name="ic_menu_compose_drawable">@drawable/ic_menu_compose</item>
+        <item name="ic_menu_search_drawable">@drawable/ic_menu_search</item>
+        <item name="ic_menu_close_clear_cancel_drawable">@drawable/ic_menu_close_clear_cancel</item>
 
         <item name="google_drive_drawable">@drawable/google_drive</item>
 
@@ -266,36 +333,26 @@
         <item name="android:windowBackground">@color/gray1</item>
         <item name="android:colorBackground">@color/gray1</item>
         <!-- item name="android:textColor">@android:color/white</item-->
-        <item name="android:listViewStyle">@style/ListView.Black</item>
-        <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
-        <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
-        <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
-
-        <item name="rootDelimiterStyle">@style/RootDelimiter.Black</item>
 
         <!-- toolbar button background -->
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background_hc</item>
         <!-- tabbar background color -->
-        <item name="tabbarBackground">#ff555555</item>
+        <item name="tabbarBackground">@color/gray1</item>
+        <item name="textColorToolBarLabel">#d0d0d0</item>
+        <item name="tts_toolbar_background">#D0808080</item>
     </style>
     <color name="gray2">#ffcccccc</color>
     <style name="Theme.Gray2" parent="@style/Theme.HiContrast1">
         <item name="android:windowBackground">@color/gray2</item>
         <item name="android:colorBackground">@color/gray2</item>
         <!-- item name="android:textColor">@android:color/black</item-->
-        <item name="android:listViewStyle">@style/ListView.White</item>
-        <item name="android:listViewWhiteStyle">@style/ListView.White</item>
-        <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
-        <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
-        <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
-
-        <item name="rootDelimiterStyle">@style/RootDelimiter.White</item>
 
         <!-- toolbar button background -->
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
         <!-- tabbar background color -->
-        <item name="tabbarBackground">#ffcccccc</item>
+        <item name="tabbarBackground">@color/gray2</item>
+        <item name="textColorToolBarLabel">#303030</item>
+        <item name="tts_toolbar_background">#D0808080</item>
     </style>
     <style name="Theme.HiContrast1" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -303,6 +360,11 @@
         <!-- item name="android:textColor">@android:color/black</item-->
         <item name="android:listViewStyle">@style/ListView.White</item>
         <item name="android:listViewWhiteStyle">@style/ListView.White</item>
+        <item name="android:checkboxStyle">@style/CheckBox.HC.Light</item>
+        <item name="android:radioButtonStyle">@style/RadioButton.HC.Light</item>
+        <item name="android:buttonStyle">@style/Button.HC.Light</item>
+        <item name="android:buttonStyleSmall">@style/Button.HC.Light.Small</item>
+        <item name="android:imageButtonStyle">@style/ImageButton.HC.Light</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
         <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
@@ -313,6 +375,10 @@
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background_hc</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#FFFFFFFF</item>
+        <item name="textColorToolBarLabel">@android:color/black</item>
+        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="tts_toolbar_background">#FFFFFFFF</item>
+
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next_hc</item>
@@ -335,7 +401,7 @@
         <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open_hc</item>
         <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book_hc</item>
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds_hc</item>
-        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add</item>
+        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add_hc</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go_hc</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face_hc</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size_hc</item>
@@ -363,6 +429,7 @@
         <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom_hc</item>
         <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align_hc</item>
         <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent_hc</item>
+        <item name="cr3_option_text_hinting_drawable">@drawable/cr3_option_text_hinting_hc</item>
         <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys_hc</item>
         <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones_hc</item>
         <item name="cr3_option_other_drawable">@drawable/cr3_option_other_hc</item>
@@ -373,10 +440,26 @@
         <item name="cr3_button_add_drawable">@drawable/cr3_button_add_hc</item>
         <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok_hc</item>
         <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel_hc</item>
+        <item name="cr3_button_remove_drawable">@drawable/cr3_button_remove_hc</item>
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more_hc</item>
         <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book_hc</item>
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info_hc</item>
         <item name="cr3_button_log_drawable">@drawable/cr3_button_log_hc</item>
+        <item name="cr3_button_light_drawable">@drawable/cr3_button_light_hc</item>
+        <item name="cr3_button_inc_drawable">@drawable/cr3_button_inc_hc</item>
+        <item name="cr3_button_dec_drawable">@drawable/cr3_button_dec_hc</item>
+
+        <item name="ic_media_ff_drawable">@drawable/ic_media_ff_hc</item>
+        <item name="ic_media_play_drawable">@drawable/ic_media_play_hc</item>
+        <item name="ic_media_rew_drawable">@drawable/ic_media_rew_hc</item>
+        <item name="ic_media_stop_drawable">@drawable/ic_media_stop_hc</item>
+        <item name="ic_media_pause_drawable">@drawable/ic_media_pause_hc</item>
+        <item name="ic_menu_copy_drawable">@drawable/ic_menu_copy_hc</item>
+        <item name="ic_menu_sort_alphabetically_drawable">@drawable/ic_menu_sort_alphabetically_hc</item>
+        <item name="ic_menu_star_drawable">@drawable/ic_menu_star_hc</item>
+        <item name="ic_menu_compose_drawable">@drawable/ic_menu_compose_hc</item>
+        <item name="ic_menu_search_drawable">@drawable/ic_menu_search_hc</item>
+        <item name="ic_menu_close_clear_cancel_drawable">@drawable/ic_menu_close_clear_cancel_hc</item>
 
         <item name="google_drive_drawable">@drawable/google_drive_mono</item>
 
@@ -390,6 +473,11 @@
         <!-- item name="android:textColor">@android:color/white</item-->
         <item name="android:listViewStyle">@style/ListView.Black</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
+        <item name="android:checkboxStyle">@style/CheckBox.HC.Dark</item>
+        <item name="android:radioButtonStyle">@style/RadioButton.HC.Dark</item>
+        <item name="android:buttonStyle">@style/Button.HC.Light</item>
+        <item name="android:buttonStyleSmall">@style/Button.HC.Light.Small</item>
+        <item name="android:imageButtonStyle">@style/ImageButton.HC.Light</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
         <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
@@ -397,9 +485,13 @@
         <item name="rootDelimiterStyle">@style/RootDelimiter.Black</item>
 
         <!-- toolbar button background -->
-        <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
+        <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background_hc</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
+        <item name="textColorToolBarLabel">@android:color/white</item>
+        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="tts_toolbar_background">#FFFFFFFF</item>
+
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next_hc</item>
@@ -422,7 +514,7 @@
         <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open_hc</item>
         <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book_hc</item>
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds_hc</item>
-        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add</item>
+        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add_hc</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go_hc</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face_hc</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size_hc</item>
@@ -450,6 +542,7 @@
         <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom_hc</item>
         <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align_hc</item>
         <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent_hc</item>
+        <item name="cr3_option_text_hinting_drawable">@drawable/cr3_option_text_hinting_hc</item>
         <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys_hc</item>
         <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones_hc</item>
         <item name="cr3_option_other_drawable">@drawable/cr3_option_other_hc</item>
@@ -460,10 +553,26 @@
         <item name="cr3_button_add_drawable">@drawable/cr3_button_add_hc</item>
         <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok_hc</item>
         <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel_hc</item>
+        <item name="cr3_button_remove_drawable">@drawable/cr3_button_remove_hc</item>
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more_hc</item>
         <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book_hc</item>
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info_hc</item>
         <item name="cr3_button_log_drawable">@drawable/cr3_button_log_hc</item>
+        <item name="cr3_button_light_drawable">@drawable/cr3_button_light_hc</item>
+        <item name="cr3_button_inc_drawable">@drawable/cr3_button_inc_hc</item>
+        <item name="cr3_button_dec_drawable">@drawable/cr3_button_dec_hc</item>
+
+        <item name="ic_media_ff_drawable">@drawable/ic_media_ff_hc</item>
+        <item name="ic_media_play_drawable">@drawable/ic_media_play_hc</item>
+        <item name="ic_media_rew_drawable">@drawable/ic_media_rew_hc</item>
+        <item name="ic_media_stop_drawable">@drawable/ic_media_stop_hc</item>
+        <item name="ic_media_pause_drawable">@drawable/ic_media_pause_hc</item>
+        <item name="ic_menu_copy_drawable">@drawable/ic_menu_copy_hc</item>
+        <item name="ic_menu_sort_alphabetically_drawable">@drawable/ic_menu_sort_alphabetically_hc</item>
+        <item name="ic_menu_star_drawable">@drawable/ic_menu_star_hc</item>
+        <item name="ic_menu_compose_drawable">@drawable/ic_menu_compose_hc</item>
+        <item name="ic_menu_search_drawable">@drawable/ic_menu_search_hc</item>
+        <item name="ic_menu_close_clear_cancel_drawable">@drawable/ic_menu_close_clear_cancel_hc</item>
 
         <item name="google_drive_drawable">@drawable/google_drive_mono</item>
 

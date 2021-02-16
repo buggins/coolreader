@@ -186,7 +186,7 @@ private slots:
     void on_cbShowClock_stateChanged(int s);
     void on_cbShowBookName_stateChanged(int s);
     void on_cbIgnoreDocumentMargins_stateChanged(int s);
-    void on_cbShowPageHeader_stateChanged(int s);
+    void on_cbShowPageHeader_currentIndexChanged(int index);
     void on_cbViewMode_currentIndexChanged(int index);
     void on_cbWindowShowScrollbar_stateChanged(int );
     void on_cbWindowShowStatusBar_stateChanged(int );

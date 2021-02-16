@@ -208,8 +208,9 @@ public interface Settings {
     public static final int VIEWER_STATUS_NONE = 0;
     public static final int VIEWER_STATUS_TOP = 1;
     public static final int VIEWER_STATUS_BOTTOM = 2;
-    public static final int VIEWER_STATUS_PAGE = 3;
-    
+    public static final int VIEWER_STATUS_PAGE_HEADER = 3;
+    public static final int VIEWER_STATUS_PAGE_FOOTER = 4;
+
     public static final int VIEWER_TOOLBAR_NONE = 0;
     public static final int VIEWER_TOOLBAR_TOP = 1;
     public static final int VIEWER_TOOLBAR_BOTTOM = 2;
