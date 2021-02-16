@@ -1582,57 +1582,58 @@ public:
 
     void resizeImage( int & width, int & height, int maxw, int maxh, bool arbitraryImageScaling, int maxScaleMult )
     {
-        if (width == 0 || height == 0) {
-            // Avoid a floating point exception (division by zero) crash.
-            printf("CRE WARNING: resizeImage(width=0 or height=0)\n");
+        if (width <= 0 || height <= 0) {
+            // Reject nonsensical values (and avoids the potential for an FPE if 0)
+            printf("CRE WARNING: resizeImage(width<=0 or height<=0)\n");
             return;
         }
-        if (width < 0 || height < 0) {
-            // Avoid invalid resizing if we are provided with negative values
-            printf("CRE WARNING: resizeImage(width<0 or height<0)\n");
-            return;
-        }
-        if (maxw < 0 || maxh < 0) {
-            // Avoid invalid resizing if we are provided with negative max values
-            printf("CRE WARNING: resizeImage(maxw<0 or maxh<0)\n");
+        if (maxw <= 0 || maxh <= 0) {
+            // Ditto
+            printf("CRE WARNING: resizeImage(maxw<=0 or maxh<=0)\n");
             return;
         }
         //CRLog::trace("Resize image (%dx%d) max %dx%d %s  *%d", width, height, maxw, maxh, arbitraryImageScaling ? "arbitrary" : "integer", maxScaleMult);
-        if ( maxScaleMult<1 ) maxScaleMult = 1;
-        if ( arbitraryImageScaling ) {
-            int pscale_x = 1000 * maxw / width;
-            int pscale_y = 1000 * maxh / height;
-            int pscale = pscale_x < pscale_y ? pscale_x : pscale_y;
-            int maxscale = maxScaleMult * 1000;
-            if ( pscale>maxscale )
-                pscale = maxscale;
-            height = height * pscale / 1000;
-            width = width * pscale / 1000;
-        } else {
-            if (maxw == 0 || maxh == 0) {
-                // Avoid a floating point exception (division by zero) crash.
-                printf("CRE WARNING: resizeImage(maxw=0 or maxh=0)\n");
-                return;
-            }
-            int scale_div = 1;
-            int scale_mul = 1;
-            int div_x = (width * 1000 / maxw);
-            int div_y = (height * 1000 / maxh);
-            if ( maxScaleMult>=3 && height*3 < maxh - 20
-                    && width*3 < maxw - 20 ) {
-                scale_mul = 3;
-            } else if ( maxScaleMult>=2 && height * 2 < maxh - 20
-                    && width * 2 < maxw - 20 ) {
-                scale_mul = 2;
-            } else if (div_x>1 || div_y>1) {
-                if (div_x>div_y)
-                    scale_div = div_x;
-                else
-                    scale_div = div_y;
-            }
-            height = height * 1000 * scale_mul / scale_div;
-            width = width * 1000 * scale_mul / scale_div;
+
+        if ( maxScaleMult<1 ) {
+            maxScaleMult = 1;
         }
+
+        if ( !arbitraryImageScaling ) {
+            // Integer scaling, constrained to maxScaleMult
+            for ( int i = maxScaleMult; i > 0; i-- ) {
+                // Use the largest integer multiplier that fits
+                int scaled_width = width * i;
+                int scaled_height = height * i;
+                if ( scaled_width <= maxw && scaled_height <= maxh ) {
+                    width = scaled_width;
+                    height = scaled_height;
+                    return;
+                }
+            }
+
+            // Fall through to arbitrary scaling
+        }
+
+        // Make sure we never blow past maxScaleMult while still fitting inside maxw/maxh
+        int bbox_width = width * maxScaleMult > maxw ? maxw : width * maxScaleMult;
+        int bbox_height = height * maxScaleMult > maxh ? maxh : height * maxScaleMult;
+
+        int scaled_width;
+        int scaled_height;
+        // And now see whether we need to compute width or height to honor the AR.
+        // c.f., QSize::scaled @ https://github.com/qt/qtbase/blob/dev/src/corelib/tools/qsize.cpp for Qt::KeepAspectRatio
+        int rescaled_width = bbox_height * width / height;
+        if ( rescaled_width <= bbox_width ) {
+            scaled_width = rescaled_width;
+            scaled_height = bbox_height;
+        } else {
+            scaled_width = bbox_width;
+            scaled_height = bbox_width * height / width;
+        }
+
+        // We're done, update out pointers
+        width = scaled_width;
+        height = scaled_height;
     }
 
     /// measure word
