@@ -6,11 +6,11 @@ $TARGET_DIR = "../../android/res/";
 
 #                      dpi: 120       160       240         320         480           640
 #    factor:             0.75         1.0       1.5         2.0         3.0           4.0
-my %ic_actions_sizes  = (ldpi=>24, mdpi=>32,  hdpi=>48,  xhdpi=>64,  xxhdpi=>96,  xxxhdpi=>128);
-my %ic_legacy_sizes   = (ldpi=>36, mdpi=>48,  hdpi=>72,  xhdpi=>96,  xxhdpi=>144, xxxhdpi=>192);
-my %ic_ad_full_sizes  = (ldpi=>81, mdpi=>108, hdpi=>162, xhdpi=>216, xxhdpi=>324, xxxhdpi=>432);
-#my %ic_ad_inner_sizes = (ldpi=>54, mdpi=>72,  hdpi=>108, xhdpi=>144, xxhdpi=>216, xxxhdpi=>288);
-my %ic_ad_inner_sizes = (ldpi=>42, mdpi=>56,  hdpi=>84,  xhdpi=>112, xxhdpi=>168, xxxhdpi=>224);
+my %ic_actions_sizes  = (ldpi=>24, mdpi=>32,  hdpi=>48,  xhdpi=>64,  xxhdpi=>96);  # ,  xxxhdpi=>128);
+my %ic_legacy_sizes   = (ldpi=>36, mdpi=>48,  hdpi=>72,  xhdpi=>96,  xxhdpi=>144); # , xxxhdpi=>192);
+my %ic_ad_full_sizes  = (ldpi=>81, mdpi=>108, hdpi=>162, xhdpi=>216, xxhdpi=>324); # , xxxhdpi=>432);
+#my %ic_ad_inner_sizes = (ldpi=>54, mdpi=>72,  hdpi=>108, xhdpi=>144, xxhdpi=>216); # , xxxhdpi=>288);
+my %ic_ad_inner_sizes = (ldpi=>42, mdpi=>56,  hdpi=>84,  xhdpi=>112, xxhdpi=>168); # , xxxhdpi=>224);
 
 my %ic_legacy_list=(
 	'cr3_logo-base-300x300-unsharp.png' => 'cr3_logo.png'

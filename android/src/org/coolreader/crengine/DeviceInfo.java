@@ -5,6 +5,7 @@ import android.graphics.PixelFormat;
 import android.os.Build;
 import android.util.Log;
 
+import com.onyx.android.sdk.api.device.epd.EpdController;
 import com.onyx.android.sdk.device.Device;
 import com.onyx.android.sdk.utils.ReflectUtil;
 
@@ -24,6 +25,7 @@ public class DeviceInfo {
 	public final static int MAX_SCREEN_BRIGHTNESS_WARM_VALUE;
 	public final static boolean SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 	public final static boolean EINK_SCREEN;
+	public final static boolean EINK_SCREEN_REGAL;
 	public final static boolean EINK_HAVE_FRONTLIGHT;
 	public final static boolean EINK_HAVE_NATURAL_BACKLIGHT;
 	public final static boolean EINK_SCREEN_UPDATE_MODES_SUPPORTED;
@@ -43,6 +45,7 @@ public class DeviceInfo {
 	public final static boolean ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE;
 	public final static boolean ONYX_HAVE_FRONTLIGHT;
 	public final static boolean ONYX_HAVE_NATURAL_BACKLIGHT;
+	public final static boolean ONYX_HAVE_BRIGHTNESS_SYSTEM_DIALOG;
 	public final static boolean NOFLIBUSTA;
 	public final static boolean NAVIGATE_LEFTRIGHT; // map left/right keys to single page flip
 	public final static boolean REVERT_LANDSCAPE_VOLUME_KEYS; // revert volume keys in landscape mode
@@ -146,7 +149,10 @@ public class DeviceInfo {
 		boolean onyx_have_natural_backlight = false;
 		int onyx_max_screen_brightness_value = 100;
 		int onyx_max_screen_brightness_warm_value = 100;
+		boolean onyx_support_regal = false;
+		boolean onyx_have_brightness_system_dialog = false;
 		if (EINK_ONYX) {
+			onyx_support_regal = EpdController.supportRegal();
 			Class<?> clazz = ReflectUtil.classForName("android.app.ActivityThread");
 			Method method = ReflectUtil.getMethodSafely(clazz, "currentApplication");
 			Application app = (Application) ReflectUtil.invokeMethodSafely(method, null);
@@ -179,11 +185,22 @@ public class DeviceInfo {
 					}
 				}
 			}
+			switch (Device.currentDeviceIndex()) {
+				case Rk31xx:
+				case Rk32xx:
+				case Rk33xx:
+				case SDM:
+					onyx_have_brightness_system_dialog = true;
+					break;
+			}
 		}
+		ONYX_HAVE_BRIGHTNESS_SYSTEM_DIALOG = onyx_have_brightness_system_dialog;
 		ONYX_HAVE_FRONTLIGHT = onyx_have_frontlight;
 		ONYX_HAVE_NATURAL_BACKLIGHT = onyx_have_natural_backlight;
 		MAX_SCREEN_BRIGHTNESS_VALUE = onyx_max_screen_brightness_value;
 		MAX_SCREEN_BRIGHTNESS_WARM_VALUE = onyx_max_screen_brightness_warm_value;
+
+		EINK_SCREEN_REGAL = onyx_support_regal;		// TODO: add other e-ink devices with regal support
 
 		EINK_HAVE_FRONTLIGHT = ONYX_HAVE_FRONTLIGHT; // TODO: add other e-ink devices with frontlight support
 		EINK_HAVE_NATURAL_BACKLIGHT = ONYX_HAVE_NATURAL_BACKLIGHT;	// TODO: add other e-ink devices with natural backlight support
@@ -224,7 +241,7 @@ public class DeviceInfo {
 	
 	static {
 		Log.i("cr3", "DeviceInfo: MANUFACTURER=" + MANUFACTURER + ", MODEL=" + MODEL + ", DEVICE=" + DEVICE + ", PRODUCT=" + PRODUCT + ", BRAND=" + BRAND);
-		Log.i("cr3", "DeviceInfo: MIN_SCREEN_BRIGHTNESS_VALUE=" + MIN_SCREEN_BRIGHTNESS_VALUE + "; MAX_SCREEN_BRIGHTNESS_VALUE=" + MAX_SCREEN_BRIGHTNESS_VALUE + "; EINK_SCREEN=" + EINK_SCREEN + ", AMOLED_SCREEN=" + AMOLED_SCREEN + ", POCKETBOOK=" + POCKETBOOK);
+		Log.i("cr3", "DeviceInfo: MIN_SCREEN_BRIGHTNESS_VALUE=" + MIN_SCREEN_BRIGHTNESS_VALUE + "; MAX_SCREEN_BRIGHTNESS_VALUE=" + MAX_SCREEN_BRIGHTNESS_VALUE + "; EINK_SCREEN=" + EINK_SCREEN + "; EINK_SCREEN_REGAL=" + EINK_SCREEN_REGAL + ", AMOLED_SCREEN=" + AMOLED_SCREEN + ", POCKETBOOK=" + POCKETBOOK);
 	}
 
 	// multiple patterns divided by |, * wildcard can be placed at beginning and/or end of pattern

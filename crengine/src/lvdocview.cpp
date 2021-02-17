@@ -137,6 +137,11 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 #endif
 #endif
 
+#define HEADER_MARGIN       4
+#define PAGE_HEADER_POS_NONE    0
+#define PAGE_HEADER_POS_TOP     1
+#define PAGE_HEADER_POS_BOTTOM  2
+
 /// minimum EM width of page (prevents show two pages for windows that not enougn wide)
 #define MIN_EM_PER_PAGE     20
 
@@ -154,8 +159,13 @@ LVDocView::LVDocView(int bitsPerPixel, bool noDefaultDocument) :
 #endif
 			, m_status_font_size(INFO_FONT_SIZE),
 			m_def_interline_space(100),
+#if USE_LIMITED_FONT_SIZES_SET
 			m_font_sizes(def_font_sizes, sizeof(def_font_sizes) / sizeof(int)),
 			m_font_sizes_cyclic(false),
+#else
+			m_min_font_size(6),
+			m_max_font_size(72),
+#endif
 			m_is_rendered(false),
 			m_view_mode(1 ? DVM_PAGES : DVM_SCROLL) // choose 0/1
 			/*
@@ -172,7 +182,7 @@ LVDocView::LVDocView(int bitsPerPixel, bool noDefaultDocument) :
 			m_pageMargins(DEFAULT_PAGE_MARGIN,
 					DEFAULT_PAGE_MARGIN / 2 /*+ INFO_FONT_SIZE + 4 */,
 					DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN / 2),
-            m_pagesVisible(2), m_pagesVisibleOverride(0), m_pageHeaderInfo(PGHDR_PAGE_NUMBER
+            m_pagesVisible(2), m_pagesVisibleOverride(0), m_pageHeaderPos(PAGE_HEADER_POS_TOP), m_pageHeaderInfo(PGHDR_PAGE_NUMBER
 #ifndef LBOOK
 					| PGHDR_CLOCK
 #endif
@@ -445,6 +455,20 @@ void LVDocView::setPageMargins(lvRect rc) {
 		clearImageCache();
         m_pageMargins = rc;
     }
+}
+
+void LVDocView::setPageHeaderPosition( int pos ) {
+	if (m_pageHeaderPos == pos)
+		return;
+	LVLock lock(getMutex());
+	int oldH = getPageHeaderHeight();
+	m_pageHeaderPos = pos;
+	int h = getPageHeaderHeight();
+	if (h != oldH) {
+		REQUEST_RENDER("setPageHeaderPosition")
+	} else {
+		clearImageCache();
+	}
 }
 
 void LVDocView::setPageHeaderInfo(int hdrFlags) {
@@ -1327,9 +1351,10 @@ int LVDocView::GetFullHeight() {
 	return (rd.getHeight() + rd.getY());
 }
 
-#define HEADER_MARGIN 4
 /// calculate page header height
 int LVDocView::getPageHeaderHeight() {
+	if (getPageheaderPosition() == 0)
+		return 0;
 	if (!getPageHeaderInfo())
 		return 0;
 	if (!getInfoFont())
@@ -1351,8 +1376,18 @@ void LVDocView::getPageHeaderRectangle(int pageIndex, lvRect & headerRc) {
 	} else {
 		int h = getPageHeaderHeight();
 		int propHeaderMargin = m_props->getIntDef(PROP_ROUNDED_CORNERS_MARGIN, 0);
-		headerRc.bottom = headerRc.top + h;
-		headerRc.top += HEADER_MARGIN;
+		switch (m_pageHeaderPos) {
+			case PAGE_HEADER_POS_TOP:
+				// header/status at page header
+				headerRc.bottom = headerRc.top + h;
+				headerRc.top += HEADER_MARGIN;
+				break;
+			case PAGE_HEADER_POS_BOTTOM:
+				// header/status at page footer
+				headerRc.bottom -= HEADER_MARGIN;
+				headerRc.top = headerRc.bottom - h;
+				break;
+		}
 		headerRc.left += HEADER_MARGIN + propHeaderMargin;
 		headerRc.right -= HEADER_MARGIN + propHeaderMargin;
 	}
@@ -1737,7 +1772,17 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	LVArray<int> & sbounds = getSectionBounds();
 	lvRect navBar;
 	getNavigationBarRectangle(pageIndex, navBar);
-	int gpos = info.bottom;
+	int gpos = 0;
+	switch (m_pageHeaderPos) {
+		case PAGE_HEADER_POS_TOP:
+			gpos = info.bottom;
+			break;
+		case PAGE_HEADER_POS_BOTTOM:
+			gpos = info.top + 4;
+			break;
+		default:
+			break;
+	}
 //	if (drawbuf->GetBitsPerPixel() <= 2) {
 //		// gray
 //		cl3 = 1;
@@ -1801,7 +1846,9 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 
 	lString32 text;
 	//int iy = info.top; // + (info.height() - m_infoFont->getHeight()) * 2 / 3;
-        int iy = info.top + /*m_infoFont->getHeight() +*/ (info.height() - m_infoFont->getHeight()) / 2 - HEADER_MARGIN/2;
+	int iy = info.top + /*m_infoFont->getHeight() +*/ (info.height() - m_infoFont->getHeight()) / 2 - HEADER_MARGIN/2;
+	if (PAGE_HEADER_POS_BOTTOM == m_pageHeaderPos)
+		iy += 4 + 1;
 
 	if (!m_pageHeaderOverride.empty()) {
 		text = m_pageHeaderOverride;
@@ -1948,7 +1995,6 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 		lvRect * pageRect, int pageCount, int basePage) {
 	int start = page.start;
 	int height = page.height;
-	int headerHeight = getPageHeaderHeight();
 	//CRLog::trace("drawPageTo(%d,%d)", start, height);
 	lvRect fullRect(0, 0, drawbuf->GetWidth(), drawbuf->GetHeight());
 	if (!pageRect)
@@ -1961,8 +2007,8 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 	//    offset = 0;
 	int offset = 0;
 	lvRect clip;
-	clip.top = pageRect->top + m_pageMargins.top + headerHeight + offset;
-	clip.bottom = pageRect->top + m_pageMargins.top + height + headerHeight + offset;
+	clip.top = pageRect->top + m_pageMargins.top + offset;
+	clip.bottom = pageRect->top + m_pageMargins.top + height + offset;
 	// clip.left = pageRect->left + m_pageMargins.left;
 	// clip.right = pageRect->left + pageRect->width() - m_pageMargins.right;
 	// We don't really need to enforce left and right clipping of page margins:
@@ -1972,7 +2018,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 	clip.right = pageRect->left + pageRect->width();
 	if (page.flags & RN_PAGE_TYPE_COVER)
 		clip.top = pageRect->top + m_pageMargins.top;
-	if ( ( (m_pageHeaderInfo || !m_pageHeaderOverride.empty()) && (page.flags & RN_PAGE_TYPE_NORMAL) )
+	if ( ( ((m_pageHeaderPos != PAGE_HEADER_POS_NONE && m_pageHeaderInfo) || !m_pageHeaderOverride.empty()) && (page.flags & RN_PAGE_TYPE_NORMAL) )
 				&& getViewMode() == DVM_PAGES ) {
 		int phi = m_pageHeaderInfo;
 		if (getVisiblePageCount() == 2) {
@@ -1993,7 +2039,11 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 		getPageHeaderRectangle(page.index, info);
 		drawPageHeader(drawbuf, info, page.index - 1 + basePage, phi, pageCount
 				- 1 + basePage);
-		//clip.top = info.bottom;
+		if (PAGE_HEADER_POS_TOP == m_pageHeaderPos) {
+			// only when page header at page header (but not page footer)
+			clip.top += info.height();
+			clip.bottom += info.height();
+		}
 	}
 	drawbuf->SetClipRect(&clip);
 	if (m_doc) {
@@ -2444,7 +2494,7 @@ bool LVDocView::windowToDocPoint(lvPoint & pt) {
 		int page = getCurPage();
 		lvRect * rc = NULL;
 		lvRect page1(m_pageRects[0]);
-		int headerHeight = getPageHeaderHeight();
+		int headerHeight = (PAGE_HEADER_POS_TOP == m_pageHeaderPos) ? getPageHeaderHeight() : 0;
 		page1.left += m_pageMargins.left;
 		page1.top += m_pageMargins.top + headerHeight;
 		page1.right -= m_pageMargins.right;
@@ -2490,6 +2540,7 @@ bool LVDocView::docToWindowPoint(lvPoint & pt, bool isRectBottom, bool fitToPage
 	} else {
             // PAGES mode
             int page = getCurPage();
+            int headerHeight = (PAGE_HEADER_POS_TOP == m_pageHeaderPos) ? getPageHeaderHeight() : 0;
             if (page >= 0 && page < m_pages.length() && pt.y >= m_pages[page]->start) {
                 int index = -1;
                 // The y at start+height is normally part of the next
@@ -2528,7 +2579,7 @@ bool LVDocView::docToWindowPoint(lvPoint & pt, bool isRectBottom, bool fitToPage
                     // ensure anything and crop on the right, and this allows text
                     // selection to grab bits of overflowed glyph
                     pt.x = pt.x + m_pageRects[index].left + m_pageMargins.left;
-                    pt.y = pt.y + getPageHeaderHeight() + m_pageMargins.top - m_pages[page + index]->start;
+                    pt.y = pt.y + headerHeight + m_pageMargins.top - m_pages[page + index]->start;
                     return true;
                 }
             }
@@ -2537,18 +2588,18 @@ bool LVDocView::docToWindowPoint(lvPoint & pt, bool isRectBottom, bool fitToPage
                 if (page >= 0 && page < m_pages.length() && pt.y < m_pages[page]->start) {
                     // Before 1st page top: adjust to page top
                     pt.x = pt.x + m_pageRects[0].left + m_pageMargins.left;
-                    pt.y = getPageHeaderHeight() + m_pageMargins.top;
+                    pt.y = headerHeight + m_pageMargins.top;
                 }
                 else if (getVisiblePageCount() == 2 && page + 1 < m_pages.length()
                         && pt.y >= m_pages[page + 1]->start + m_pages[page + 1]->height) {
                     // After 2nd page bottom: adjust to 2nd page bottom
                     pt.x = pt.x + m_pageRects[1].left + m_pageMargins.left;
-                    pt.y = getPageHeaderHeight() + m_pageMargins.top + m_pages[page+1]->height;
+                    pt.y = headerHeight + m_pageMargins.top + m_pages[page+1]->height;
                 }
                 else {
                     // After single page bottom: adjust to page bottom
                     pt.x = pt.x + m_pageRects[0].left + m_pageMargins.left;
-                    pt.y = getPageHeaderHeight() + m_pageMargins.top + m_pages[page]->height;
+                    pt.y = headerHeight + m_pageMargins.top + m_pages[page]->height;
                 }
                 return true;
             }
@@ -3513,6 +3564,7 @@ void LVDocView::setVisiblePageCount(int n) {
     _posIsSet = false;
 }
 
+#if USE_LIMITED_FONT_SIZES_SET
 static int findBestFit(LVArray<int> & v, int n, bool rollCyclic = false) {
 	int bestsz = -1;
 	int bestfit = -1;
@@ -3535,6 +3587,7 @@ static int findBestFit(LVArray<int> & v, int n, bool rollCyclic = false) {
 		bestsz = n;
 	return bestsz;
 }
+#endif
 
 void LVDocView::setDefaultInterlineSpace(int percent) {
     LVLock lock(getMutex());
@@ -3566,7 +3619,14 @@ void LVDocView::setStatusFontSize(int newSize) {
 int LVDocView::scaleFontSizeForDPI(int fontSize) {
     if (gRenderScaleFontWithDPI) {
         fontSize = scaleForRenderDPI(fontSize);
+#if USE_LIMITED_FONT_SIZES_SET
         fontSize = findBestFit(m_font_sizes, fontSize);
+#else
+        if (fontSize < m_min_font_size)
+            fontSize = m_min_font_size;
+        else if (fontSize > m_max_font_size)
+            fontSize = m_max_font_size;
+#endif
     }
     return fontSize;
 }
@@ -3578,7 +3638,16 @@ void LVDocView::setFontSize(int newSize) {
     // can be changed independantly.
     int oldSize = m_requested_font_size;
     if (oldSize != newSize) {
+#if USE_LIMITED_FONT_SIZES_SET
         m_requested_font_size = findBestFit(m_font_sizes, newSize);
+#else
+        if (newSize < m_min_font_size)
+            m_requested_font_size = m_min_font_size;
+        else if (newSize > m_max_font_size)
+            m_requested_font_size = m_max_font_size;
+        else
+            m_requested_font_size = newSize;
+#endif
         propsGetCurrent()->setInt(PROP_FONT_SIZE, m_requested_font_size);
         m_font_size = scaleFontSizeForDPI(m_requested_font_size);
         gRootFontSize = m_font_size; // stored as global (for 'rem' css unit)
@@ -3598,16 +3667,29 @@ void LVDocView::setStatusFontFace(const lString8 & newFace) {
     REQUEST_RENDER("setStatusFontFace")
 }
 
+#if USE_LIMITED_FONT_SIZES_SET
 /// sets posible base font sizes (for ZoomFont feature)
 void LVDocView::setFontSizes(LVArray<int> & sizes, bool cyclic) {
 	m_font_sizes = sizes;
 	m_font_sizes_cyclic = cyclic;
 }
+#endif
+
+#if !USE_LIMITED_FONT_SIZES_SET
+void LVDocView::setMinFontSize( int size ) {
+	m_min_font_size = size;
+}
+
+void LVDocView::setMaxFontSize( int size ) {
+	m_max_font_size = size;
+}
+#endif
 
 void LVDocView::ZoomFont(int delta) {
 	if (m_font.isNull())
 		return;
 #if 1
+#if USE_LIMITED_FONT_SIZES_SET
 	int sz = m_requested_font_size;
 	for (int i = 0; i < 15; i++) {
 		sz += delta;
@@ -3619,6 +3701,9 @@ void LVDocView::ZoomFont(int delta) {
 		if (sz < 12)
 			break;
 	}
+#else
+	setFontSize(m_requested_font_size + delta);
+#endif
 #else
 	LVFontRef nfnt;
 	int sz = m_font->getHeight();
@@ -6317,10 +6402,14 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 		props->setString(PROP_FONT_FACE, list[0]);
 	props->setStringDef(PROP_FALLBACK_FONT_FACES, fallbackFonts);
 
+#if USE_LIMITED_FONT_SIZES_SET
 	props->setIntDef(PROP_FONT_SIZE,
 			m_font_sizes[m_font_sizes.length() * 2 / 3]);
 	props->limitValueList(PROP_FONT_SIZE, m_font_sizes.ptr(),
 			m_font_sizes.length());
+#else
+	props->setIntDef(PROP_FONT_SIZE, m_min_font_size + (m_min_font_size + m_max_font_size)/7);
+#endif
 	props->limitValueList(PROP_INTERLINE_SPACE, cr_interline_spaces,
 			sizeof(cr_interline_spaces) / sizeof(int));
 #if CR_INTERNAL_PAGE_ORIENTATION==1
@@ -6385,7 +6474,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 			props->setStringDef(PROP_HYPHENATION_DICT, lString32(
 					HYPH_DICT_ID_ALGORITHM));
 	}
-	props->setIntDef(PROP_STATUS_LINE, 0);
+	props->setIntDef(PROP_STATUS_LINE, 1);
 	props->setIntDef(PROP_SHOW_TITLE, 1);
 	props->setIntDef(PROP_SHOW_TIME, 1);
 	props->setIntDef(PROP_SHOW_BATTERY, 1);
@@ -6456,37 +6545,23 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
         props->setStringDef(def_style_macros[i * 2], def_style_macros[i * 2 + 1]);
 }
 
-#define H_MARGIN 8
-#define V_MARGIN 8
-#define ALLOW_BOTTOM_STATUSBAR 0
-void LVDocView::setStatusMode(int newMode, bool showClock, bool showTitle,
+void LVDocView::setStatusMode(int pos, bool showClock, bool showTitle,
         bool showBattery, bool showChapterMarks, bool showPercent, bool showPageNumber, bool showPageCount) {
-	CRLog::debug("LVDocView::setStatusMode(%d, %s %s %s %s)", newMode,
+	CRLog::debug("LVDocView::setStatusMode(%d, %s %s %s %s)", pos,
 			showClock ? "clock" : "", showTitle ? "title" : "",
 			showBattery ? "battery" : "", showChapterMarks ? "marks" : "");
-#if ALLOW_BOTTOM_STATUSBAR==1
-	lvRect margins( H_MARGIN, V_MARGIN, H_MARGIN, V_MARGIN/2 );
-	lvRect oldMargins = _docview->getPageMargins( );
-	if (newMode==1)
-	margins.bottom = STANDARD_STATUSBAR_HEIGHT + V_MARGIN/4;
-#endif
-	if (newMode == 0)
-        setPageHeaderInfo(
-                  (showPageNumber ? PGHDR_PAGE_NUMBER : 0)
-                | (showClock ? PGHDR_CLOCK : 0)
-                | (showBattery ? PGHDR_BATTERY : 0)
-                | (showPageCount ? PGHDR_PAGE_COUNT : 0)
-				| (showTitle ? PGHDR_AUTHOR : 0)
-				| (showTitle ? PGHDR_TITLE : 0)
-				| (showChapterMarks ? PGHDR_CHAPTER_MARKS : 0)
-                | (showPercent ? PGHDR_PERCENT : 0)
+    setPageHeaderPosition(pos);
+    setPageHeaderInfo(
+        (showPageNumber ? PGHDR_PAGE_NUMBER : 0)
+        | (showClock ? PGHDR_CLOCK : 0)
+        | (showBattery ? PGHDR_BATTERY : 0)
+        | (showPageCount ? PGHDR_PAGE_COUNT : 0)
+        | (showTitle ? PGHDR_AUTHOR : 0)
+        | (showTitle ? PGHDR_TITLE : 0)
+        | (showChapterMarks ? PGHDR_CHAPTER_MARKS : 0)
+        | (showPercent ? PGHDR_PERCENT : 0)
         //| PGHDR_CLOCK
-		);
-	else
-		setPageHeaderInfo(0);
-#if ALLOW_BOTTOM_STATUSBAR==1
-	setPageMargins( margins );
-#endif
+    );
 }
 
 bool LVDocView::propApply(lString8 name, lString32 value) {
@@ -6616,7 +6691,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                    || name == PROP_STATUS_CHAPTER_MARKS || name == PROP_SHOW_POS_PERCENT
                    || name == PROP_SHOW_PAGE_COUNT || name == PROP_SHOW_PAGE_NUMBER) {
             m_props->setString(name.c_str(), value);
-            setStatusMode(m_props->getIntDef(PROP_STATUS_LINE, 0),
+            setStatusMode(m_props->getIntDef(PROP_STATUS_LINE, 1),
                           m_props->getBoolDef(PROP_SHOW_TIME, false),
                           m_props->getBoolDef(PROP_SHOW_TITLE, true),
                           m_props->getBoolDef(PROP_SHOW_BATTERY, true),
@@ -6628,7 +6703,11 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             //} else if ( name==PROP_BOOKMARK_ICONS ) {
             //    enableBookmarkIcons( value==U"1" );
         } else if (name == PROP_FONT_SIZE) {
+#if USE_LIMITED_FONT_SIZES_SET
             int fontSize = props->getIntDef(PROP_FONT_SIZE, m_font_sizes[0]);
+#else
+            int fontSize = props->getIntDef(PROP_FONT_SIZE, m_min_font_size);
+#endif
             setFontSize(fontSize);//cr_font_sizes
             value = lString32::itoa(m_requested_font_size);
             updatePageMargins();

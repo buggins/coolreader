@@ -101,7 +101,22 @@ public class BaseActivity extends Activity implements Settings {
 
 	private SettingsManager mSettingsManager;
 
+	private EinkScreen mEinkScreen;
+
+	public EinkScreen getEinkScreen() {
+		return mEinkScreen;
+	}
+
 	protected void startServices() {
+		if (DeviceInfo.EINK_NOOK)
+			mEinkScreen = new EinkScreenNook();
+		else if (DeviceInfo.EINK_TOLINO)
+			mEinkScreen = new EinkScreenTolino();
+		else if (DeviceInfo.EINK_ONYX)
+			mEinkScreen = new EinkScreenOnyx();
+		else
+			mEinkScreen = new EinkScreenDummy();
+
 		DisplayMetrics dm = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(dm);
 
@@ -188,7 +203,8 @@ public class BaseActivity extends Activity implements Settings {
 		int backlight = props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1);
 		if (backlight < -1 || backlight > DeviceInfo.MAX_SCREEN_BRIGHTNESS_VALUE)
 			backlight = -1;
-		setScreenBacklightLevel(backlight);
+		if (!DeviceInfo.EINK_SCREEN)
+			setScreenBacklightLevel(backlight);
 
 		bindCRDBService();
 	}
@@ -410,7 +426,7 @@ public class BaseActivity extends Activity implements Settings {
 				R.attr.cr3_button_tts_drawable, R.attr.cr3_browser_folder_recent_drawable, R.attr.cr3_button_scroll_go_drawable,
 				R.attr.cr3_btn_books_swap_drawable, R.attr.cr3_logo_button_drawable, R.attr.cr3_viewer_exit_drawable,
 				R.attr.cr3_button_book_open_drawable, R.attr.cr3_browser_folder_current_book_drawable, R.attr.cr3_browser_folder_opds_drawable,
-				R.attr.google_drive_drawable, R.attr.cr3_button_log_drawable };
+				R.attr.google_drive_drawable, R.attr.cr3_button_log_drawable, R.attr.cr3_button_light_drawable };
 		TypedArray a = getTheme().obtainStyledAttributes(attrs);
 		int btnPrevDrawableRes = a.getResourceId(0, 0);
 		int btnNextDrawableRes = a.getResourceId(1, 0);
@@ -435,6 +451,7 @@ public class BaseActivity extends Activity implements Settings {
 		int brFolderOpdsDrawableRes = a.getResourceId(20, 0);
 		int googleDriveDrawableRes = a.getResourceId(21, 0);
 		int btnLogDrawableRes = a.getResourceId(22, 0);
+		int btnLightDrawableRes = a.getResourceId(23, 0);
 		a.recycle();
 		if (btnPrevDrawableRes != 0) {
 			ReaderAction.GO_BACK.setIconId(btnPrevDrawableRes);
@@ -486,6 +503,8 @@ public class BaseActivity extends Activity implements Settings {
 		}
 		if (btnLogDrawableRes != 0)
 			ReaderAction.SAVE_LOGCAT.setIconId(btnLogDrawableRes);
+		if (btnLightDrawableRes != 0)
+			ReaderAction.SHOW_SYSTEM_BACKLIGHT_DIALOG.setIconId(btnLightDrawableRes);
 	}
 
 	public void setCurrentTheme(InterfaceTheme theme) {
@@ -783,11 +802,21 @@ public class BaseActivity extends Activity implements Settings {
 	}
 
 	public int getScreenBacklightLevel() {
-		return screenBacklightBrightness;
+		if (!DeviceInfo.EINK_SCREEN)
+			return screenBacklightBrightness;
+		else if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
+			// on E-INK devices fetch the system backlight level
+			return mEinkScreen.getFrontLightValue(this);
+		}
+		return 0;
 	}
 
 	public int getWarmBacklightLevel() {
-		return screenWarmBacklightBrightness;
+		if (!DeviceInfo.EINK_SCREEN)
+			return screenWarmBacklightBrightness;
+		else if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT)
+			return mEinkScreen.getWarmLightValue(this);
+		return 0;
 	}
 
 	public void setScreenBacklightLevel(int value) {
@@ -798,8 +827,8 @@ public class BaseActivity extends Activity implements Settings {
 		screenBacklightBrightness = value;
 		if (!DeviceInfo.EINK_SCREEN)
 			onUserActivity();
-		else if (DeviceInfo.EINK_HAVE_FRONTLIGHT)
-			EinkScreen.setFrontLightValue(this, value);
+		else if (null != mEinkScreen)
+			mEinkScreen.setFrontLightValue(this, value);
 	}
 
 	public void setScreenWarmBacklightLevel(int value) {
@@ -807,9 +836,9 @@ public class BaseActivity extends Activity implements Settings {
 			value = -1;
 		else if (value > DeviceInfo.MAX_SCREEN_BRIGHTNESS_WARM_VALUE)
 			value = -1;
-		if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT) {
-			screenWarmBacklightBrightness = value;
-			EinkScreen.setWarmLightValue(this, value);
+		if (null != mEinkScreen) {
+			if (mEinkScreen.setWarmLightValue(this, value))
+				screenWarmBacklightBrightness = value;
 		}
 	}
 
@@ -1092,17 +1121,19 @@ public class BaseActivity extends Activity implements Settings {
 	ScreenBacklightControl backlightControl = new ScreenBacklightControl();
 
 
-	private int mScreenUpdateMode = 0;
+	private EinkScreen.EinkUpdateMode mScreenUpdateMode = EinkScreen.EinkUpdateMode.Clear;
 
-	public int getScreenUpdateMode() {
+	public EinkScreen.EinkUpdateMode getScreenUpdateMode() {
 		return mScreenUpdateMode;
 	}
 
-	public void setScreenUpdateMode(int screenUpdateMode, View view) {
+	public void setScreenUpdateMode(EinkScreen.EinkUpdateMode screenUpdateMode, View view) {
 		//if (mReaderView != null) {
-		mScreenUpdateMode = screenUpdateMode;
-		if (EinkScreen.getUpdateMode() != screenUpdateMode || EinkScreen.getUpdateMode() == EinkScreen.CMODE_ACTIVE) {
-			EinkScreen.ResetController(mScreenUpdateMode, view);
+		if (null != mEinkScreen) {
+			mScreenUpdateMode = screenUpdateMode;
+			if (mEinkScreen.getUpdateMode() != screenUpdateMode || mEinkScreen.getUpdateMode() == EinkScreen.EinkUpdateMode.Active) {
+				mEinkScreen.setupController(mScreenUpdateMode, mScreenUpdateInterval, view);
+			}
 		}
 		//}
 	}
@@ -1114,9 +1145,11 @@ public class BaseActivity extends Activity implements Settings {
 	}
 
 	public void setScreenUpdateInterval(int screenUpdateInterval, View view) {
-		mScreenUpdateInterval = screenUpdateInterval;
-		if (EinkScreen.getUpdateInterval() != screenUpdateInterval) {
-			EinkScreen.ResetController(mScreenUpdateMode, screenUpdateInterval, view);
+		if (null != mEinkScreen) {
+			mScreenUpdateInterval = screenUpdateInterval;
+			if (mEinkScreen.getUpdateInterval() != screenUpdateInterval) {
+				mEinkScreen.setupController(mScreenUpdateMode, screenUpdateInterval, view);
+			}
 		}
 	}
 
@@ -1264,7 +1297,7 @@ public class BaseActivity extends Activity implements Settings {
 		} else if (key.equals(PROP_NIGHT_MODE)) {
 			setNightMode(flg);
 		} else if (key.equals(PROP_APP_SCREEN_UPDATE_MODE)) {
-			setScreenUpdateMode(stringToInt(value, 0), getContentView());
+			setScreenUpdateMode(EinkScreen.EinkUpdateMode.byCode(stringToInt(value, 0)), getContentView());
 		} else if (key.equals(PROP_APP_SCREEN_UPDATE_INTERVAL)) {
 			setScreenUpdateInterval(stringToInt(value, 10), getContentView());
 		} else if (key.equals(PROP_APP_THEME)) {
@@ -1277,7 +1310,7 @@ public class BaseActivity extends Activity implements Settings {
 				// ignore
 			}
 			setScreenOrientation(orientation);
-		} else if ((!DeviceInfo.EINK_SCREEN || DeviceInfo.EINK_HAVE_FRONTLIGHT) && PROP_APP_SCREEN_BACKLIGHT.equals(key)) {
+		} else if (PROP_APP_SCREEN_BACKLIGHT.equals(key) && !DeviceInfo.EINK_SCREEN) {
 			try {
 				final int n = Integer.valueOf(value);
 				// delay before setting brightness
@@ -1287,15 +1320,11 @@ public class BaseActivity extends Activity implements Settings {
 			} catch (Exception e) {
 				// ignore
 			}
-		} else if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT && PROP_APP_SCREEN_WARM_BACKLIGHT.equals(key)) {
-			try {
-				int n = Integer.parseInt(value);
-				setScreenWarmBacklightLevel(n);
-			} catch (Exception ignored) {
-			}
 		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS)) {
 			Services.getScanner().setHideEmptyDirs(flg);
 		}
+		// Don't apply screen brightness on e-ink devices on program startup and at any other events
+		// On e-ink in ReaderView gesture handlers setScreenBacklightLevel() & setScreenWarmBacklightLevel() called directly
 	}
 
 
@@ -1835,9 +1864,9 @@ public class BaseActivity extends Activity implements Settings {
 			if (DeviceInfo.DEF_FONT_SIZE != null)
 				fontSize = DeviceInfo.DEF_FONT_SIZE;
 
-			int statusLocation = props.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_PAGE);
+			int statusLocation = props.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_PAGE_HEADER);
 			if (statusLocation == VIEWER_STATUS_BOTTOM || statusLocation == VIEWER_STATUS_TOP)
-				statusLocation = VIEWER_STATUS_PAGE;
+				statusLocation = VIEWER_STATUS_PAGE_HEADER;
 			props.setInt(PROP_STATUS_LOCATION, statusLocation);
 
 
@@ -1848,10 +1877,10 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : String.valueOf(statusFontSize));
 			props.applyDefault(ReaderView.PROP_FONT_COLOR, "#000000");
 			props.applyDefault(ReaderView.PROP_FONT_COLOR_DAY, "#000000");
-			props.applyDefault(ReaderView.PROP_FONT_COLOR_NIGHT, "#D0B070");
+			props.applyDefault(ReaderView.PROP_FONT_COLOR_NIGHT, !DeviceInfo.EINK_SCREEN ? "#D0B070" : "#FFFFFF");
 			props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR, "#FFFFFF");
 			props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_DAY, "#FFFFFF");
-			props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, "#101010");
+			props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, !DeviceInfo.EINK_SCREEN ? "#101010" : "#000000");
 			props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR, "#FF000000"); // don't use separate color
 			props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR_DAY, "#FF000000"); // don't use separate color
 			props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR_NIGHT, "#80000000"); // don't use separate color
@@ -1875,7 +1904,8 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 			props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
 			props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
-			props.applyDefault(ReaderView.PROP_APP_DICTIONARY, Dictionaries.DEFAULT_DICTIONARY_ID);
+			DictInfo dict = Dictionaries.defaultDictionary();
+			props.applyDefault(ReaderView.PROP_APP_DICTIONARY, (dict != null) ? dict.id : "");
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS, "0");
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES, "0");
 			props.applyDefault(ReaderView.PROP_APP_SELECTION_ACTION, "0");
@@ -1898,7 +1928,10 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, vmargin);
 			props.applyDefault(ReaderView.PROP_ROUNDED_CORNERS_MARGIN, "0");
 
-			props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, "0");
+			if (DeviceInfo.EINK_SCREEN_REGAL)
+				props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, String.valueOf(EinkScreen.EinkUpdateMode.Regal.code));
+			else
+				props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, String.valueOf(EinkScreen.EinkUpdateMode.Clear.code));
 			props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL, "10");
 
 			props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");
@@ -1910,8 +1943,8 @@ public class BaseActivity extends Activity implements Settings {
 				else
 					props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_DAY_BACKGROUND_TEXTURE);
 			}
-			props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, Engine.DEF_DAY_BACKGROUND_TEXTURE);
-			props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
+			props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, !DeviceInfo.EINK_SCREEN ? Engine.DEF_DAY_BACKGROUND_TEXTURE : Engine.NO_TEXTURE.id);
+			props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, !DeviceInfo.EINK_SCREEN ? Engine.DEF_NIGHT_BACKGROUND_TEXTURE : Engine.NO_TEXTURE.id);
 
 			props.applyDefault(ReaderView.PROP_FONT_GAMMA, DeviceInfo.EINK_SCREEN ? "1.5" : "1.0");
 
@@ -1925,7 +1958,7 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY, "0");
 			props.applyDefault(ReaderView.PROP_TEXTLANG_HYPH_FORCE_ALGORITHMIC, "0");
 
-			props.applyDefault(ReaderView.PROP_STATUS_LOCATION, Settings.VIEWER_STATUS_PAGE);
+			props.applyDefault(ReaderView.PROP_STATUS_LOCATION, !DeviceInfo.EINK_SCREEN ? Settings.VIEWER_STATUS_PAGE_HEADER : Settings.VIEWER_STATUS_PAGE_FOOTER);
 			//props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, DeviceInfo.getSDKLevel() < DeviceInfo.HONEYCOMB ? Settings.VIEWER_TOOLBAR_NONE : Settings.VIEWER_TOOLBAR_SHORT_SIDE);
 			props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, Settings.VIEWER_TOOLBAR_NONE);
 			props.applyDefault(ReaderView.PROP_TOOLBAR_HIDE_IN_FULLSCREEN, "0");

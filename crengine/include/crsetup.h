@@ -74,6 +74,7 @@
 #ifdef ANDROID
 #define CR_USE_THREADS                       1
 #define USE_ATOMIC_REFCOUNT
+#define USE_LIMITED_FONT_SIZES_SET           0
 #else
 #define CR_USE_THREADS                       0
 #endif // ANDROID
@@ -322,6 +323,10 @@
 
 #ifndef USE_GLYPHCACHE_HASHTABLE
 #define USE_GLYPHCACHE_HASHTABLE 0
+#endif
+
+#ifndef USE_LIMITED_FONT_SIZES_SET
+#define USE_LIMITED_FONT_SIZES_SET 1
 #endif
 
 // Maximum & minimum screen resolution

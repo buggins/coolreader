@@ -155,11 +155,13 @@ public:
 
 CRTimerUtil _timeoutControl;
 
+#if USE_LIMITED_FONT_SIZES_SET
 #define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = \
  { 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, \
    31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72, 78, 84, 90, 110, 130, 150, 170, 200, 230, 260, 300, 340 }
 
 DECL_DEF_CR_FONT_SIZES;
+#endif
 
 #define NO_BATTERY_GAUGE 1
 
@@ -838,9 +840,14 @@ DocViewNative::DocViewNative()
     getBatteryIcons(icons, _batteryIconColor, _batteryIconSize);
     _docview->setBatteryIcons(icons);
 
+#if USE_LIMITED_FONT_SIZES_SET
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
-    _docview->setShowCover( true );
     _docview->setFontSizes( sizes, true );
+#else
+    _docview->setMinFontSize(9);
+    _docview->setMaxFontSize(340);
+#endif
+	_docview->setShowCover( true );
 	_docview->setFontSize(24);
 	_docview->setBatteryFont( fontMan->GetFont( 16, 600, false, css_ff_sans_serif, lString8("Droid Sans") ));
 	

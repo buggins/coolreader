@@ -6,7 +6,7 @@
     android:id="@+id/tts_toolbar_body"
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:background="#D0808080"
+    android:background="?attr/tts_toolbar_background"
     android:layout_marginTop="3dip"
     android:layout_marginBottom="3dip"
     android:baselineAligned="true" android:layout_height="wrap_content">
@@ -26,7 +26,7 @@
 	        android:layout_marginBottom="5dip"
 	        android:layout_marginLeft="2dip"
 	        android:layout_marginRight="2dip"
-            android:src="@drawable/ic_media_play"
+            android:src="?attr/ic_media_play_drawable"
 	        android:focusable="false"
             android:focusableInTouchMode="false"
             android:contentDescription="@string/tts_play"/>
@@ -37,7 +37,7 @@
 	        android:layout_marginBottom="5dip"
 	        android:layout_marginLeft="2dip"
 	        android:layout_marginRight="2dip"
-	        android:src="@drawable/ic_media_rew"
+	        android:src="?attr/ic_media_rew_drawable"
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:contentDescription="@string/tts_back"/>
@@ -48,7 +48,7 @@
 	        android:layout_marginBottom="5dip"
 	        android:layout_marginLeft="2dip"
 	        android:layout_marginRight="2dip"
-	        android:src="@drawable/ic_media_ff"
+	        android:src="?attr/ic_media_ff_drawable"
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:contentDescription="@string/tts_forward"/>
@@ -59,7 +59,7 @@
 	        android:layout_marginBottom="5dip"
 	        android:layout_marginLeft="2dip"
 	        android:layout_marginRight="2dip"
-	        android:src="@drawable/ic_media_stop"
+	        android:src="?attr/ic_media_stop_drawable"
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:contentDescription="@string/tts_stop"/>

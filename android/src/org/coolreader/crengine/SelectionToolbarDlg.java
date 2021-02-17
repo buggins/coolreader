@@ -3,6 +3,7 @@ package org.coolreader.crengine;
 import android.app.SearchManager;
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -224,8 +225,18 @@ public class SelectionToolbarDlg {
 			restoreReaderMode();
 			mReaderView.clearSelection();
 		});
-		
-		mWindow.setBackgroundDrawable(new BitmapDrawable());
+
+		if (!DeviceInfo.EINK_SCREEN) {
+			// transparent
+			mWindow.setBackgroundDrawable(new BitmapDrawable());
+		}
+		else {
+			// white background with rectangle
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+				mWindow.setBackgroundDrawable(mCoolReader.getDrawable(R.drawable.btn_default_normal_hc_light));
+			else
+				mWindow.setBackgroundDrawable(mCoolReader.getResources().getDrawable(R.drawable.btn_default_normal_hc_light));
+		}
 		//mWindow.setAnimationStyle(android.R.style.Animation_Toast);
 		mWindow.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
 		mWindow.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);

@@ -69,6 +69,9 @@ public class Dictionaries {
 		new DictInfo("AardDict", "Aard Dictionary", "aarddict.android", "aarddict.android.Article", Intent.ACTION_SEARCH, 0),
 		new DictInfo("AardDictLookup", "Aard Dictionary Lookup", "aarddict.android", "aarddict.android.Lookup", Intent.ACTION_SEARCH, 0),
 		new DictInfo("Aard2", "Aard 2 Dictionary", "itkach.aard2", "aard2.lookup", Intent.ACTION_SEARCH, 3),
+		new DictInfo("OnyxDictOld", "ONYX Dictionary (Old)", "com.onyx.dict", "com.onyx.dict.activity.DictMainActivity", Intent.ACTION_VIEW, 0).setDataKey("android.intent.action.SEARCH"),
+		new DictInfo("OnyxDict", "ONYX Dictionary", "com.onyx.dict", "com.onyx.dict.main.ui.DictMainActivity", Intent.ACTION_VIEW, 0).setDataKey("android.intent.action.SEARCH"),
+		new DictInfo("OnyxDictWindowed", "ONYX Dictionary (Windowed)", "com.onyx.dict", "com.onyx.dict.translation.ui.ProcessTextActivity", Intent.ACTION_VIEW, 0).setDataKey("android.intent.extra.PROCESS_TEXT"),
 		new DictInfo("Dictan", "Dictan Dictionary", "info.softex.dictan", null, Intent.ACTION_VIEW, 2),
 		new DictInfo("FreeDictionary.org", "Free Dictionary . org", "org.freedictionary", "org.freedictionary.MainActivity", "android.intent.action.VIEW", 0),
 		new DictInfo("ABBYYLingvo", "ABBYY Lingvo", "com.abbyy.mobile.lingvo.market", null /*com.abbyy.mobile.lingvo.market.MainActivity*/, "com.abbyy.mobile.lingvo.intent.action.TRANSLATE", 0).setDataKey("com.abbyy.mobile.lingvo.intent.extra.TEXT"),
@@ -82,8 +85,9 @@ public class Dictionaries {
 		new DictInfo("Wikipedia", "Wikipedia", "org.wikipedia", "org.wikipedia.search.SearchActivity", Intent.ACTION_SEND, 0),
 	};
 
-	public static final String DEFAULT_DICTIONARY_ID = "com.ngc.fora";
-	
+	public static final String DEFAULT_DICTIONARY_ID = "Fora";
+	public static final String DEFAULT_ONYX_DICTIONARY_ID = "OnyxDictWindowed";
+
 	static DictInfo findById(String id) {
 		for(DictInfo d: dicts) {
 			if (d.id.equals(id))
@@ -92,7 +96,9 @@ public class Dictionaries {
 		return null;
 	}
 	
-	static DictInfo defaultDictionary() {
+	public static DictInfo defaultDictionary() {
+		if (DeviceInfo.EINK_ONYX)
+			return findById(DEFAULT_ONYX_DICTIONARY_ID);
 		return findById(DEFAULT_DICTIONARY_ID);
 	}
 		
