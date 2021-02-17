@@ -214,7 +214,7 @@ public class EinkScreenOnyx implements EinkScreen {
 				try {
 					mFrontLineLevels = Device.currentDevice().getFrontLightValueList(context);
 				} catch (Exception ignored) { }
-				if (null == mFrontLineLevels) {
+				if (null == mFrontLineLevels || mFrontLineLevels.size() == 0) {
 					Integer[] values = Device.currentDevice().getColdLightValues(context);
 					if (null != values) {
 						mFrontLineLevels = Arrays.asList(values);
