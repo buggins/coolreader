@@ -767,7 +767,6 @@ public class CoolReader extends BaseActivity {
 	@Override
 	protected void onPause() {
 		activityIsRunning = false;
-		super.onPause();
 		if (mReaderView != null) {
 			mReaderView.onAppPause();
 		}
@@ -777,6 +776,7 @@ public class CoolReader extends BaseActivity {
 				mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
 			}
 		}
+		super.onPause();
 	}
 
 	@Override
