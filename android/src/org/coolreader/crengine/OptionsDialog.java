@@ -1705,6 +1705,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				EditText valueView = view.findViewById(R.id.option_value);
 				ImageButton decButton = view.findViewById(R.id.option_btn_dec);
 				ImageButton incButton = view.findViewById(R.id.option_btn_inc);
+				View marginView = view.findViewById(R.id.margin_view);
+				marginView.setFocusableInTouchMode(true);
+				marginView.requestFocusFromTouch();
 				labelView.setText(label);
 				labelView.setEnabled(enabled);
 				valueView.setText(String.valueOf(getValueInt()));
