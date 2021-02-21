@@ -365,6 +365,10 @@ public:
     }
     void SplitLineIfOverflowPage( LVRendLineInfo * line )
     {
+        // If page_h <= 0 this function will fall into an infinite loop
+        // in which it will allocate memory until it runs out.
+        if (page_h <= 0)
+            return;
         // A 'line' is usually a line of text from a paragraph, but
         // can be an image, or a fully rendered table row (<tr>), and
         // can have a huge height, possibly overflowing page height.
