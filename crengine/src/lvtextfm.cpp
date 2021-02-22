@@ -312,6 +312,26 @@ void lvtextAddSourceObject(
 #define DEPRECATED_LINE_BREAK_WORD_COUNT    3
 #define DEPRECATED_LINE_BREAK_SPACE_LIMIT   64
 
+// Fetch some extra LTEXT properties from the node style (mostly used for rare inherited
+// CSS properties that don't require us to waste a bit in srcline->flags)
+int getLTextExtraProperty( src_text_fragment_t * srcline, ltext_extra_t extra_property ) {
+    // We return 0 when no property: be sure if returning one of multiple css_xx_something enums,
+    // the one with a value of 0 is the one that requires no specific handling (inherit, none, auto...)
+    if ( !(srcline->flags & LTEXT_HAS_EXTRA) )
+        return 0;
+    if ( !srcline->object )
+        return 0;
+    ldomNode * node = (ldomNode *) srcline->object;
+    if ( node->isText() )
+        node = node->getParentNode();
+    if ( !node || node->isNull() )
+        return 0;
+    css_style_ref_t style = node->getStyle();
+    if ( extra_property == LTEXT_EXTRA_CSS_HIDDEN ) {
+        return style->visibility >= css_v_hidden ? 1 : 0;
+    }
+    return 0;
+}
 
 #ifdef __cplusplus
 
@@ -4722,7 +4742,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
             {
                 word = &frmline->words[j];
                 srcline = &m_pbuffer->srctext[word->src_text_index];
-                if ( srcline->flags & LTEXT_HIDDEN )
+                if ( srcline->flags & LTEXT_HAS_EXTRA && getLTextExtraProperty(srcline, LTEXT_EXTRA_CSS_HIDDEN) )
                     continue;
                 if (word->flags & LTEXT_WORD_IS_OBJECT)
                 {
@@ -4797,7 +4817,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
             {
                 word = &frmline->words[j];
                 srcline = &m_pbuffer->srctext[word->src_text_index];
-                if ( srcline->flags & LTEXT_HIDDEN )
+                if ( srcline->flags & LTEXT_HAS_EXTRA && getLTextExtraProperty(srcline, LTEXT_EXTRA_CSS_HIDDEN) )
                     continue;
                 if (word->flags & LTEXT_WORD_IS_OBJECT)
                 {
