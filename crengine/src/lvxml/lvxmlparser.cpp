@@ -441,25 +441,29 @@ bool LVXMLParser::Parse()
 
 bool LVXMLParser::ReadText()
 {
-    // TODO: remove tracking of file pos
-    //int text_start_pos = 0;
-    //int ch_start_pos = 0;
-    //int last_split_fpos = 0;
     int last_split_txtlen = 0;
     int tlen = 0;
-    //text_start_pos = (int)(m_buf_fpos + m_buf_pos);
     m_txt_buf.reset(TEXT_SPLIT_SIZE+1);
     lUInt32 flags = m_callback->getFlags();
     bool pre_para_splitting = ( flags & TXTFLG_PRE_PARA_SPLITTING )!=0;
     bool last_eol = false;
 
-    bool flgBreak = false;
+    bool flgBreak = false; // set when this text node should end
+    int nbCharToSkipOnFlgBreak = 0;
     bool splitParas = false;
     while ( !flgBreak ) {
-        int i=0;
-        if ( m_read_buffer_pos + 1 >= m_read_buffer_len ) {
-            if ( !fillCharBuffer() ) {
+        // We might have to peek at a few chars further away in the buffer:
+        // be sure we have 10 chars available (to get '</script') so we
+        // don't uneedlessly loop 8 times with needMoreData=true.
+        #define TEXT_READ_AHEAD_NEEDED_SIZE 10
+        bool needMoreData = false; // set when more buffer data needed to properly check for things
+        bool hasNoMoreData = false;
+        int available = m_read_buffer_len - m_read_buffer_pos;
+        if ( available < TEXT_READ_AHEAD_NEEDED_SIZE ) {
+            available = fillCharBuffer();
+            if ( available <= 0 ) {
                 m_eof = true;
+                hasNoMoreData = true;
                 bool done = true;
                 if ( tlen > 0 ) {
                     // We still have some text in m_txt_buf to handle.
@@ -477,70 +481,113 @@ bool LVXMLParser::ReadText()
                 if ( done )
                     return false;
             }
+            else {
+                // fillCharBuffer() ensures there's quite a bit of data available.
+                // If we're now with not much available, we're sure there's no more data to read
+                if ( available < TEXT_READ_AHEAD_NEEDED_SIZE ) {
+                    hasNoMoreData = true;
+                }
+            }
         }
-      if ( !m_eof ) { // just skip the following if m_eof but still some text in buffer to handle
+        // Walk buffer without updating m_read_buffer_pos
+        int i=0;
+        // If m_eof (m_read_buffer_pos == m_read_buffer_len), this 'for' won't loop
         for ( ; m_read_buffer_pos+i<m_read_buffer_len; i++ ) {
             lChar32 ch = m_read_buffer[m_read_buffer_pos + i];
-            lChar32 nextch = m_read_buffer_pos + i + 1 < m_read_buffer_len ? m_read_buffer[m_read_buffer_pos + i + 1] : 0;
-            flgBreak = m_eof;
             if ( m_in_cdata ) { // we're done only when we meet ']]>'
-                if ( ch==']' && nextch==']') {
-                    lChar32 nextnextch = m_read_buffer_pos + i + 2 < m_read_buffer_len ? m_read_buffer[m_read_buffer_pos + i + 2] : 0;
-                    if ( nextnextch=='>' ) {
-                        flgBreak = true;
+                if ( ch==']' ) {
+                    if ( m_read_buffer_pos+i+1 < m_read_buffer_len ) {
+                        if ( m_read_buffer[m_read_buffer_pos+i+1] == ']' ) {
+                            if ( m_read_buffer_pos+i+2 < m_read_buffer_len ) {
+                                if ( m_read_buffer[m_read_buffer_pos+i+2] == '>' ) {
+                                    flgBreak = true;
+                                    nbCharToSkipOnFlgBreak = 3;
+                                }
+                            }
+                            else if ( !hasNoMoreData ) {
+                                needMoreData = true;
+                            }
+                        }
+                    }
+                    else if ( !hasNoMoreData ) {
+                        needMoreData = true;
                     }
                 }
             }
             else if ( ch=='<' ) {
                 if ( m_in_html_script_tag ) { // we're done only when we meet </script>
-                    if ( nextch=='/' && m_read_buffer_pos + i + 7 < m_read_buffer_len ) {
-                        const lChar32 * buf = (const lChar32 *)(m_read_buffer + m_read_buffer_pos + i + 2);
-                        lString32 tag(buf, 6);
-                        if ( tag.lowercase() == U"script" ) {
-                            flgBreak = true;
+                    if ( m_read_buffer_pos+i+1 < m_read_buffer_len ) {
+                        if ( m_read_buffer[m_read_buffer_pos+i+1] == '/' ) {
+                            if ( m_read_buffer_pos+i+7 < m_read_buffer_len ) {
+                                const lChar32 * buf = (const lChar32 *)(m_read_buffer + m_read_buffer_pos + i + 2);
+                                lString32 tag(buf, 6);
+                                if ( tag.lowercase() == U"script" ) {
+                                    flgBreak = true;
+                                    nbCharToSkipOnFlgBreak = 1;
+                                }
+                            }
+                            else if ( !hasNoMoreData ) {
+                                needMoreData = true;
+                            }
                         }
                     }
+                    else if ( !hasNoMoreData ) {
+                        needMoreData = true;
+                    }
                 }
-                else {
+                else { // '<' marks the end of this text node
                     flgBreak = true;
+                    nbCharToSkipOnFlgBreak = 1;
                 }
             }
-            if ( flgBreak && !tlen ) {
-                m_read_buffer_pos++;
-                if ( m_in_cdata ) {
-                    m_read_buffer_pos+=2;
-                }
+            if ( flgBreak && !tlen ) { // no passed-by text content to provide to callback
+                m_read_buffer_pos += nbCharToSkipOnFlgBreak;
                 return false;
             }
             splitParas = false;
-            if (last_eol && pre_para_splitting && (ch==' ' || ch=='\t' || ch==160) && tlen>0 ) //!!!
+            if (pre_para_splitting && last_eol && (ch==' ' || ch=='\t' || ch==160) && tlen>0 ) {
+                // In Lib.ru books, lines are split at ~76 bytes. The start of a paragraph is indicated
+                // by a line starting with a few spaces.
                 splitParas = true;
-            if (!flgBreak && !splitParas)
-            {
+            }
+            if (!flgBreak && !splitParas && !needMoreData) { // regular char, passed-by text content
                 tlen++;
             }
-            if ( tlen > TEXT_SPLIT_SIZE || flgBreak || splitParas)
-            {
+            if ( tlen > TEXT_SPLIT_SIZE || flgBreak || splitParas || needMoreData ) {
+                // m_txt_buf filled, end of text node, para splitting, or need more data
                 if ( last_split_txtlen==0 || flgBreak || splitParas )
                     last_split_txtlen = tlen;
                 break;
             }
-            else if (ch==' ' || (ch=='\r' && nextch!='\n')
-                || (ch=='\n' && nextch!='\r') )
-            {
-                //last_split_fpos = (int)(m_buf_fpos + m_buf_pos);
+            else if (ch==' ') {
+                // Not sure what this last_split_txtlen is about: may be to avoid spliting
+                // a word into multiple text nodes (when tlen > TEXT_SPLIT_SIZE), so splitting
+                // on spaces, \r and \n when giving the text to the callback?
                 last_split_txtlen = tlen;
+                last_eol = false;
             }
-            last_eol = (ch=='\r' || ch=='\n');
+            else if (ch=='\r' || ch=='\n') {
+                // Not sure what happens when \r\n at buffer boundary, and we would have \r at end
+                // of a first text node, and the next one starting with \n.
+                // We could just 'break' if !hasNoMoreData and go fetch more char - but as this
+                // is hard to test, just be conservative and keep doing it this way.
+                lChar32 nextch = m_read_buffer_pos+i+1 < m_read_buffer_len ? m_read_buffer[m_read_buffer_pos+i+1] : 0;
+                if ( (ch=='\r' && nextch!='\n') || (ch=='\n' && nextch!='\r') ) {
+                    last_split_txtlen = tlen;
+                }
+                last_eol = true; // Keep track of them to allow splitting paragraphs
+            }
+            else {
+                last_eol = false;
+            }
         }
-        if ( i>0 ) {
+        if ( i>0 ) { // Append passed-by regular text content to m_txt_buf
             m_txt_buf.append( m_read_buffer + m_read_buffer_pos, i );
             m_read_buffer_pos += i;
         }
-      }
-        if ( tlen > TEXT_SPLIT_SIZE || flgBreak || splitParas)
-        {
+        if ( tlen > TEXT_SPLIT_SIZE || flgBreak || splitParas) {
             //=====================================================
+            // Provide accumulated text to callback
             lChar32 * buf = m_txt_buf.modify();
 
             const lChar32 * enc_table = NULL;
@@ -579,25 +626,13 @@ bool LVXMLParser::ReadText()
             last_split_txtlen = 0;
 
             //=====================================================
-            if (flgBreak)
-            {
-                // TODO:LVE???
-                if ( PeekCharFromBuffer()=='<' )
-                    m_read_buffer_pos++;
-                else if ( m_in_cdata && PeekCharFromBuffer()==']' )
-                    m_read_buffer_pos += 3; // skip ']]>'
-                //if ( m_read_buffer_pos < m_read_buffer_len )
-                //    m_read_buffer_pos++;
+            if (flgBreak) {
+                m_read_buffer_pos += nbCharToSkipOnFlgBreak;
                 break;
             }
-            //text_start_pos = last_split_fpos; //m_buf_fpos + m_buf_pos;
-            //last_split_fpos = 0;
         }
     }
 
-
-    //if (!Eof())
-    //    m_buf_pos++;
     return (!m_eof);
 }
 
