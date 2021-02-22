@@ -34,13 +34,16 @@ enum css_decl_code {
     cssd_white_space,
     cssd_text_align,
     cssd_text_align_last,
+    cssd_text_align_last2, // -epub-text-align-last (mentioned in early versions of EPUB3)
     cssd_text_decoration,
+    cssd_text_decoration2, // -epub-text-decoration (WebKit css extension)
     cssd_text_transform,
     cssd_hyphenate,  // hyphens (proper css property name)
     cssd_hyphenate2, // -webkit-hyphens (used by authors as an alternative to adobe-hyphenate)
     cssd_hyphenate3, // adobe-hyphenate (used by late Adobe RMSDK)
     cssd_hyphenate4, // adobe-text-layout (used by earlier Adobe RMSDK)
     cssd_hyphenate5, // hyphenate (fb2? used in obsoleted css files))
+    cssd_hyphenate6, // -epub-hyphens (mentioned in early versions of EPUB3)
     cssd_color,
     cssd_border_top_color,
     cssd_border_right_color,
@@ -56,6 +59,7 @@ enum css_decl_code {
     cssd_font_features,           // font-feature-settings (not yet parsed)
     cssd_font_variant,            // all these are parsed specifically and mapped into
     cssd_font_variant_ligatures,  // the same style->font_features 31 bits bitmap
+    cssd_font_variant_ligatures2, // -webkit-font-variant-ligatures (former Webkit property)
     cssd_font_variant_caps,
     cssd_font_variant_position,
     cssd_font_variant_numeric,
@@ -111,6 +115,7 @@ enum css_decl_code {
     cssd_background_repeat,
     cssd_background_position,
     cssd_background_size,
+    cssd_background_size2, // -webkit-background-size (former Webkit property)
     cssd_border_collapse,
     cssd_border_spacing,
     cssd_orphans,
@@ -132,13 +137,16 @@ static const char * css_decl_name[] = {
     "white-space",
     "text-align",
     "text-align-last",
+    "-epub-text-align-last",
     "text-decoration",
+    "-epub-text-decoration",
     "text-transform",
     "hyphens",
     "-webkit-hyphens",
     "adobe-hyphenate",
     "adobe-text-layout",
     "hyphenate",
+    "-epub-hyphens",
     "color",
     "border-top-color",
     "border-right-color",
@@ -154,6 +162,7 @@ static const char * css_decl_name[] = {
     "font-feature-settings",
     "font-variant",
     "font-variant-ligatures",
+    "-webkit-font-variant-ligatures",
     "font-variant-caps",
     "font-variant-position",
     "font-variant-numeric",
@@ -209,6 +218,7 @@ static const char * css_decl_name[] = {
     "background-repeat",
     "background-position",
     "background-size",
+    "-webkit-background-size",
     "border-collapse",
     "border-spacing",
     "orphans",
@@ -2044,9 +2054,13 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                     n = -1;
                 break;
             case cssd_text_align_last:
+            case cssd_text_align_last2:
+                prop_code = cssd_text_align_last;
                 n = parse_name( decl, css_ta_names, -1 );
                 break;
             case cssd_text_decoration:
+            case cssd_text_decoration2:
+                prop_code = cssd_text_decoration;
                 n = parse_name( decl, css_td_names, -1 );
                 break;
             case cssd_text_transform:
@@ -2057,6 +2071,7 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
             case cssd_hyphenate3:
             case cssd_hyphenate4:
             case cssd_hyphenate5:
+            case cssd_hyphenate6:
                 prop_code = cssd_hyphenate;
                 n = parse_name( decl, css_hyph_names, -1 );
                 if ( n==-1 )
@@ -2246,6 +2261,7 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                 break;
             case cssd_font_variant:
             case cssd_font_variant_ligatures:
+            case cssd_font_variant_ligatures2:
             case cssd_font_variant_caps:
             case cssd_font_variant_position:
             case cssd_font_variant_numeric:
@@ -2254,7 +2270,8 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                 {
                     // https://drafts.csswg.org/css-fonts-3/#propdef-font-variant
                     // https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant
-                    bool parse_ligatures =  prop_code == cssd_font_variant || prop_code == cssd_font_variant_ligatures;
+                    bool parse_ligatures =  prop_code == cssd_font_variant || prop_code == cssd_font_variant_ligatures
+                                                                           || prop_code == cssd_font_variant_ligatures2;
                     bool parse_caps =       prop_code == cssd_font_variant || prop_code == cssd_font_variant_caps;
                     bool parse_position =   prop_code == cssd_font_variant || prop_code == cssd_font_variant_position;
                     bool parse_numeric =    prop_code == cssd_font_variant || prop_code == cssd_font_variant_numeric;
@@ -2907,7 +2924,9 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                 }
                 break;
             case cssd_background_size:
+            case cssd_background_size2:
                 {
+                    prop_code = cssd_background_size;
                     // https://developer.mozilla.org/en-US/docs/Web/CSS/background-size
                     css_length_t len[2];
                     int i;
