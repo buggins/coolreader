@@ -2141,32 +2141,82 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                 {
                     lString8Collection list;
                     int processed = splitPropertyValueList( decl, list );
+                    // printf("font-family: %s\n", lString8(decl, processed).c_str());
                     decl += processed;
                     n = -1;
+                    bool check_for_important = true;
                     if ( list.length() ) {
                         for (int i=list.length()-1; i>=0; i--) {
                             const char * name = list[i].c_str();
+                            // printf("  %d: #%s#\n", i, name);
+                            if ( check_for_important ) {
+                                check_for_important = false;
+                                // The last item from splitPropertyValueList may be or include '!important':
+                                //   "serif !important"      (when generic family name)
+                                //   "Bitter !important"     (when unquoted font name)
+                                //   "Noto Sans !important"  (when unquoted font name)
+                                //   "!important"            (when preceded by a quoted font name)
+                                // We want to notice it and clean the previous part
+                                const char * str = name;
+                                bool drop_item = false;
+                                while (*str) {
+                                    parsed_important = parse_important(str);
+                                    if ( parsed_important ) {
+                                        // Found it
+                                        if ( name == str ) {
+                                            // No advance: standalone "!important"
+                                            // remove it from the list of font names
+                                            drop_item = true;
+                                        }
+                                        else {
+                                            // Otherwise, truncate name up to where we
+                                            // were when finding !important
+                                            list[i] = lString8(name, str - name);
+                                            name = list[i].c_str();
+                                        }
+                                        break;
+                                    }
+                                    else { // skip current char that might be a space
+                                        str++;
+                                    }
+                                    // skip next char until we find a space, that would start a new token
+                                    while (*str && *str != ' ' ) {
+                                        str++;
+                                    }
+                                }
+                                if ( drop_item ) {
+                                    list.erase( i, 1 );
+                                    continue;
+                                }
+                            }
                             int nn = parse_name( name, css_ff_names, -1 );
-                            // Ignore "inherit" (nn=0) in font-family, as its the default
-                            // behaviour, and it may prevent (the way we handle
-                            // it in setNodeStyle()) the use of the font names
-                            // specified alongside.
-                            if (n==-1 && nn!=-1 && nn!=0) {
-                                n = nn;
-                            }
-                            if (nn!=-1) {
-                                // remove family name from font list
+                            if ( nn != -1 ) {
+                                if ( nn == css_ff_inherit ) {
+                                    // "inherit" is invalid when not standalone
+                                    // We have seen books with 'font-family: "Some Font", inherit',
+                                    // that Calibre 3.x would render with "Some Font", while Firefox
+                                    // and Calibre 5.x would consider the whole declaration invalid.
+                                    // So, best to just ignore any non-standalone "inherit", and
+                                    // keep parsing the font names.
+                                    if ( i == 0 && list.length() == 1) {
+                                        // At start and single (we have removed "!important" from the list
+                                        // above, as well as any other generic name that was after)
+                                        n = css_ff_inherit;
+                                    }
+                                }
+                                else {
+                                    // As we browse list from the right, keep replacing
+                                    // the generic family name with the left most one
+                                    n = nn;
+                                }
+                                // remove generic family name from font list
                                 list.erase( i, 1 );
-                            }
-                            else if ( substr_icompare( "!important", name ) ) {
-                                // !important may be caught by splitPropertyValueList()
-                                list.erase( i, 1 );
-                                parsed_important = IMPORTANT_DECL_SET;
                             }
                         }
                         strValue = joinPropertyValueList( list );
                     }
-                    // default to sans-serif generic font-family (the default
+                    // printf("  n=%d imp=%x strValue=%s\n", n, parsed_important, strValue.c_str());
+                    // Default to sans-serif generic font-family (the default
                     // in lvfntman.cpp, as FreeType can't know the family of
                     // a font)
                     if (n == -1)
