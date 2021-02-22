@@ -10,14 +10,36 @@
 // Uncomment to see which lang_tags are seen and lang_cfg created
 // #define DEBUG_LANG_USAGE
 
+// Check a lang tag (or its first part) against a lang (without subparts)
+static bool langStartsWith(const lString32 lang_tag, const char * prefix) {
+    if (!prefix || !prefix[0])
+        return true;
+    int prefix_len = 0;
+    for (const char * p=prefix; *p; p++)
+        prefix_len++;
+    int lang_len = lang_tag.length();
+    if ( lang_len < prefix_len )
+        return false;
+    const lChar32 * s1 = lang_tag.c_str();
+    const lChar8 * s2 = prefix;
+    for ( int i=0; i<prefix_len; i++ )
+        if (s1[i] != s2[i])
+            return false;
+    if ( lang_len == prefix_len ) // "en" starts with "en"
+        return true;
+    if ( s1[prefix_len] == '-' ) // "en-" starts with "en", but "eno" does not
+        return true;
+    return false;
+}
+
 // Some macros to expand: LANG_STARTS_WITH(("fr") ("es"))   (no comma!)
-// to: lang_tag.startsWith("fr") || lang_tag.startsWith("es") || false
+// to langStartsWith(lang_tag, "fr") || langStartsWith(lang_tag, "es") || false
 // (from https://stackoverflow.com/questions/19680962/translate-sequence-in-macro-parameters-to-separate-macros )
 #define PRIMITIVE_SEQ_ITERATE(...) __VA_ARGS__ ## _END
 #define SEQ_ITERATE(...) PRIMITIVE_SEQ_ITERATE(__VA_ARGS__)
 #define LANG_STARTS_WITH(seq) SEQ_ITERATE(LANG_STARTS_WITH_EACH_1 seq)
-#define LANG_STARTS_WITH_EACH_1(...) lang_tag.startsWith(__VA_ARGS__) || LANG_STARTS_WITH_EACH_2
-#define LANG_STARTS_WITH_EACH_2(...) lang_tag.startsWith(__VA_ARGS__) || LANG_STARTS_WITH_EACH_1
+#define LANG_STARTS_WITH_EACH_1(...) langStartsWith(lang_tag, __VA_ARGS__) || LANG_STARTS_WITH_EACH_2
+#define LANG_STARTS_WITH_EACH_2(...) langStartsWith(lang_tag, __VA_ARGS__) || LANG_STARTS_WITH_EACH_1
 #define LANG_STARTS_WITH_EACH_1_END false
 #define LANG_STARTS_WITH_EACH_2_END false
 
@@ -867,7 +889,7 @@ TextLangCfg::TextLangCfg( lString32 lang_tag ) {
     //   "q::after  { content: close-quote }"
     quotes_spec * quotes = &_quotes_spec_default;
     for (int i=0; _quotes_spec_table[i].lang_tag!=NULL; i++) {
-        if ( lang_tag.startsWith( _quotes_spec_table[i].lang_tag ) ) {
+        if ( langStartsWith(lang_tag, _quotes_spec_table[i].lang_tag ) ) {
             quotes = &_quotes_spec_table[i];
             break;
         }
