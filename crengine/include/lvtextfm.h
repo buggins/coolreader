@@ -91,7 +91,9 @@ extern "C" {
 // mostly used for rare inherited CSS properties that don't need us to waste a bit for
 // them in the above flags. The LTEXT_HAS_EXTRA signals one or more of these are set.
 enum ltext_extra_t {
-    LTEXT_EXTRA_CSS_HIDDEN = 1          // visibility: hidden
+    LTEXT_EXTRA_CSS_HIDDEN = 1,         // visibility: hidden
+    LTEXT_EXTRA_CSS_LINE_BREAK,         // line-break: anywhere, or loose/normal/strict (for lang=ja/zh)
+    LTEXT_EXTRA_CSS_WORD_BREAK,         // word-break: break-all or keep-all
 };
 
 /** \brief Source text line

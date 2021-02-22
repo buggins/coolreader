@@ -124,6 +124,10 @@ enum css_decl_code {
     cssd_clear,
     cssd_direction,
     cssd_visibility,
+    cssd_line_break,
+    cssd_line_break2,
+    cssd_line_break3,
+    cssd_word_break,
     cssd_content,
     cssd_cr_ignore_if_dom_version_greater_or_equal,
     cssd_cr_hint,
@@ -227,6 +231,10 @@ static const char * css_decl_name[] = {
     "clear",
     "direction",
     "visibility",
+    "line-break",
+    "-epub-line-break",
+    "-webkit-line-break",
+    "word-break",
     "content",
     "-cr-ignore-if-dom-version-greater-or-equal",
     "-cr-hint",
@@ -1841,6 +1849,29 @@ static const char * css_v_names[] =
     NULL
 };
 
+// line-break value names
+static const char * css_lb_names[] =
+{
+    "inherit",
+    "auto",
+    "normal",
+    "loose",
+    "strict",
+    "anywhere",
+    NULL
+};
+
+// word-break value names
+static const char * css_wb_names[] =
+{
+    "inherit",
+    "normal",
+    "break-word",
+    "break-all",
+    "keep-all",
+    NULL
+};
+
 static const char * css_cr_only_if_names[]={
         "any",
         "always",
@@ -2994,6 +3025,15 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
             case cssd_visibility:
                 n = parse_name( decl, css_v_names, -1 );
                 break;
+            case cssd_line_break:
+            case cssd_line_break2:
+            case cssd_line_break3:
+                prop_code = cssd_line_break;
+                n = parse_name( decl, css_lb_names, -1 );
+                break;
+            case cssd_word_break:
+                n = parse_name( decl, css_wb_names, -1 );
+                break;
             case cssd_content:
                 {
                     lString32 parsed_content;
@@ -3310,6 +3350,12 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             break;
         case cssd_visibility:
             style->Apply( (css_visibility_t) *p++, &style->visibility, imp_bit_visibility, is_important );
+            break;
+        case cssd_line_break:
+            style->Apply( (css_line_break_t) *p++, &style->line_break, imp_bit_line_break, is_important );
+            break;
+        case cssd_word_break:
+            style->Apply( (css_word_break_t) *p++, &style->word_break, imp_bit_word_break, is_important );
             break;
         case cssd_cr_hint:
             {

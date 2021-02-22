@@ -85,7 +85,7 @@ extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.12.78"
+#define CACHE_FILE_FORMAT_VERSION "3.12.79"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0027
@@ -5014,6 +5014,8 @@ bool ldomDocument::setRenderProps( int width, int dy, bool /*showCover*/, int /*
     s->clear = css_c_none;
     s->direction = css_dir_inherit;
     s->visibility = css_v_visible;
+    s->line_break = css_lb_auto;
+    s->word_break = css_wb_normal;
     s->cr_hint.type = css_val_unspecified;
     s->cr_hint.value = CSS_CR_HINT_NONE;
     //lUInt32 defStyleHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));

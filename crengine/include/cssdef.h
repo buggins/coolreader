@@ -340,6 +340,25 @@ enum css_visibility_t {
     css_v_collapse // handled as "hidden" (but it should behave differently on tables, which we don't ensure)
 };
 
+/// line-break property values
+enum css_line_break_t {
+    css_lb_inherit,
+    css_lb_auto,
+    css_lb_normal,
+    css_lb_loose,
+    css_lb_strict,
+    css_lb_anywhere
+};
+
+/// word-break property values
+enum css_word_break_t {
+    css_wb_inherit,
+    css_wb_normal,
+    css_wb_break_word, // legacy, handled as "normal" (and "overflow-wrap: anywhere", which is our default behaviour)
+    css_wb_break_all,
+    css_wb_keep_all
+};
+
 enum css_generic_value_t {
     css_generic_auto = -1,        // (css_val_unspecified, css_generic_auto), for "margin: auto"
     css_generic_normal = -2,      // (css_val_unspecified, css_generic_normal), for "line-height: normal"

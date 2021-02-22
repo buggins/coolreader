@@ -45,7 +45,7 @@ lUInt32 calcHash(font_ref_t & f)
 lUInt32 calcHash(css_style_rec_t & rec)
 {
     if ( !rec.hash )
-        rec.hash = (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+        rec.hash = (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
          + (lUInt32)rec.important[0]) * 31
          + (lUInt32)rec.important[1]) * 31
          + (lUInt32)rec.important[2]) * 31
@@ -113,6 +113,8 @@ lUInt32 calcHash(css_style_rec_t & rec)
          + (lUInt32)rec.clear) * 31
          + (lUInt32)rec.direction) * 31
          + (lUInt32)rec.visibility) * 31
+         + (lUInt32)rec.line_break) * 31
+         + (lUInt32)rec.word_break) * 31
          + (lUInt32)rec.cr_hint.pack()) * 31
          + (lUInt32)rec.font_name.getHash()
          + (lUInt32)rec.background_image.getHash()
@@ -190,6 +192,8 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.clear == r2.clear&&
            r1.direction == r2.direction&&
            r1.visibility == r2.visibility&&
+           r1.line_break == r2.line_break&&
+           r1.word_break == r2.word_break&&
            r1.content == r2.content&&
            r1.cr_hint==r2.cr_hint;
 }
@@ -388,6 +392,8 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     ST_PUT_ENUM(clear);
     ST_PUT_ENUM(direction);
     ST_PUT_ENUM(visibility);
+    ST_PUT_ENUM(line_break);
+    ST_PUT_ENUM(word_break);
     buf << content;
     ST_PUT_LEN(cr_hint);
     lUInt32 hash = calcHash(*this);
@@ -458,6 +464,8 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     ST_GET_ENUM(css_clear_t, clear);
     ST_GET_ENUM(css_direction_t, direction);
     ST_GET_ENUM(css_visibility_t, visibility);
+    ST_GET_ENUM(css_line_break_t, line_break);
+    ST_GET_ENUM(css_word_break_t, word_break);
     buf>>content;
     ST_GET_LEN(cr_hint);
     lUInt32 hash = 0;

@@ -330,6 +330,12 @@ int getLTextExtraProperty( src_text_fragment_t * srcline, ltext_extra_t extra_pr
     if ( extra_property == LTEXT_EXTRA_CSS_HIDDEN ) {
         return style->visibility >= css_v_hidden ? 1 : 0;
     }
+    if ( extra_property == LTEXT_EXTRA_CSS_LINE_BREAK ) {
+        return style->line_break; // more than 1 possibly interesting value
+    }
+    if ( extra_property == LTEXT_EXTRA_CSS_WORD_BREAK ) {
+        return style->word_break; // more than 1 possibly interesting value
+    }
     return 0;
 }
 
@@ -1122,6 +1128,19 @@ public:
                 }
             }
 
+            // CSS tweaks to line breaking via line-break: and word-break:
+            // ("white-space: nowrap" has precedence)
+            #if (USE_LIBUNIBREAK==1)
+            css_line_break_t css_linebreak = css_lb_auto; // no specific tweak
+            css_word_break_t css_wordbreak = css_wb_normal; // no specific tweak
+            bool has_css_line_breaking_tweaks = false;
+            if ( !nowrap && src->flags & LTEXT_HAS_EXTRA ) {
+                css_linebreak = (css_line_break_t)getLTextExtraProperty(src, LTEXT_EXTRA_CSS_LINE_BREAK);
+                css_wordbreak = (css_word_break_t)getLTextExtraProperty(src, LTEXT_EXTRA_CSS_WORD_BREAK);
+                has_css_line_breaking_tweaks = css_linebreak > css_lb_auto || css_wordbreak > css_wb_break_word;
+            }
+            #endif
+
             if ( src->flags & LTEXT_SRC_IS_FLOAT ) {
                 m_text[pos] = 0;
                 m_srcs[pos] = src;
@@ -1405,6 +1424,13 @@ public:
                         // Lang specific function may want to substitute char (for
                         // libunibreak only) to tweak line breaking around it
                         ch = src->lang_cfg->getLBCharSubFunc()(&lbCtx, m_text, pos, len-1 - k);
+                        // We do this before the following, to allow this lang specific function
+                        // to possibly tweak the more generic getCssLbCharSub()
+                    }
+                    if ( has_css_line_breaking_tweaks ) {
+                        // CSS line breaking tweaks by char substitution (we need to provide our 'ch'
+                        // as it may have been tweaked and differ from m_text[pos]...)
+                        ch = src->lang_cfg->getCssLbCharSub(css_linebreak, css_wordbreak, &lbCtx, m_text, pos, len-1 - k, ch);
                     }
                     int brk = lb_process_next_char(&lbCtx, (utf32_t)ch);
                     if ( pos > 0 ) {
