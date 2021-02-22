@@ -119,7 +119,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		@Override
 		public void onWindowVisibilityChanged(int visibility) {
 			if (visibility == VISIBLE) {
-				mActivity.einkRefresh();
+				if (DeviceInfo.EINK_SCREEN)
+					mActivity.getEinkScreen().refreshScreen(surface);
 				startStats();
 				checkSize();
 			} else
@@ -130,7 +131,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		@Override
 		public void onWindowFocusChanged(boolean hasWindowFocus) {
 			if (hasWindowFocus) {
-				BackgroundThread.instance().postGUI(mActivity::einkRefresh, 400);
+				if (DeviceInfo.EINK_SCREEN)
+					BackgroundThread.instance().postGUI(() -> mActivity.getEinkScreen().refreshScreen(surface), 400);
 				startStats();
 				checkSize();
 			} else
@@ -5560,7 +5562,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	public void save() {
-		mActivity.einkRefresh();
 		BackgroundThread.ensureGUI();
 		if (isBookLoaded() && mBookInfo != null) {
 			if (!Services.isStopped()) {

@@ -255,16 +255,9 @@ public class BaseActivity extends Activity implements Settings {
 		log.i("CoolReader.onPause() : saving reader state");
 		mIsStarted = false;
 		mPaused = true;
-//		setScreenUpdateMode(-1, mReaderView);
-		einkRefresh();
 		releaseBacklightControl();
 		super.onPause();
 	}
-
-	public void einkRefresh() {
-		// override it
-	}
-
 
 	protected static String PREF_FILE = "CR3LastBook";
 	protected static String PREF_LAST_BOOK = "LastBook";
