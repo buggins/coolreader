@@ -936,12 +936,6 @@ public class CoolReader extends BaseActivity {
 		log.i("CoolReader.onStop() exiting");
 	}
 
-	public void einkRefresh() {
-		try {
-			getEinkScreen().refreshScreen(mReaderView.getSurface());
-		} catch (Exception ignored) {}
-	}
-
 	private void requestStoragePermissions() {
 		// check or request permission for storage
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

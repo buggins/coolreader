@@ -68,8 +68,9 @@
     </LinearLayout>
 
     <View
-            android:id="@+id/view"
+            android:id="@+id/margin_view"
             android:layout_width="4dp"
             android:layout_height="1dp"
-            android:layout_weight="0" />
+            android:layout_weight="0"
+            android:focusableInTouchMode="true" />
 </LinearLayout>
