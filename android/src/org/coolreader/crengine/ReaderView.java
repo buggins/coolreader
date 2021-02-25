@@ -2652,10 +2652,15 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		}
 		props.setInt(PROP_STATUS_LINE, statusLine);
 
-		int updModeCode = props.getInt(PROP_APP_SCREEN_UPDATE_MODE, EinkScreen.EinkUpdateMode.Clear.code);
-		int updInterval = props.getInt(PROP_APP_SCREEN_UPDATE_INTERVAL, 10);
-		mActivity.setScreenUpdateMode(EinkScreen.EinkUpdateMode.byCode(updModeCode), surface);
-		mActivity.setScreenUpdateInterval(updInterval, surface);
+		if (!inDisabledFullRefresh()) {
+			// If this function is called when new settings loaded from the cloud are applied,
+			// we must prohibit changing the e-ink screen refresh mode, as this will lead to
+			// a periodic full screen refresh when drawing the next phase of the progress bar.
+			int updModeCode = props.getInt(PROP_APP_SCREEN_UPDATE_MODE, EinkScreen.EinkUpdateMode.Clear.code);
+			int updInterval = props.getInt(PROP_APP_SCREEN_UPDATE_INTERVAL, 10);
+			mActivity.setScreenUpdateMode(EinkScreen.EinkUpdateMode.byCode(updModeCode), surface);
+			mActivity.setScreenUpdateInterval(updInterval, surface);
+		}
 
 		if (null != mBookInfo) {
 			FileInfo fileInfo = mBookInfo.getFileInfo();
@@ -4908,6 +4913,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			mEinkScreen.setupController(mEinkScreen.getUpdateMode(), savedEinkUpdateInterval, surface);
 			savedEinkUpdateInterval = -1;
 		}
+	}
+
+	private boolean inDisabledFullRefresh() {
+		return !einkModeClients.isEmpty();
 	}
 
 	private void showProgress(int position, int titleResource) {
