@@ -388,7 +388,7 @@ public class CoolReader extends BaseActivity {
 					}
 					if (null != mReaderView) {
 						if (showProgress) {
-							mReaderView.showCloudSyncProgress(100, getString(Synchronizer.SyncDirection.SyncFrom == direction ? R.string.cloud_synchronization_from_ : R.string.cloud_synchronization_to_));
+							mReaderView.showCloudSyncProgress(100);
 						}
 					}
 				}
@@ -401,7 +401,7 @@ public class CoolReader extends BaseActivity {
 							int total_ = total;
 							if (current > total_)
 								total_ = current;
-							mReaderView.showCloudSyncProgress(10000 * current / total_, getString(Synchronizer.SyncDirection.SyncFrom == direction ? R.string.cloud_synchronization_from_ : R.string.cloud_synchronization_to_));
+							mReaderView.showCloudSyncProgress(10000 * current / total_);
 						}
 					}
 				}
@@ -418,7 +418,7 @@ public class CoolReader extends BaseActivity {
 					if (showProgress) {
 						if (null != mReaderView) {
 							// Hide sync indicator
-							mReaderView.hideSyncProgress();
+							mReaderView.hideCloudSyncProgress();
 						}
 					}
 					if (mSyncGoogleDriveEnabled)
@@ -429,7 +429,7 @@ public class CoolReader extends BaseActivity {
 				public void onSyncError(Synchronizer.SyncDirection direction, String errorString) {
 					// Hide sync indicator
 					if (null != mReaderView) {
-						mReaderView.hideSyncProgress();
+						mReaderView.hideCloudSyncProgress();
 					}
 					if (null != errorString)
 						showToast(R.string.googledrive_sync_failed_with, errorString);
@@ -449,7 +449,7 @@ public class CoolReader extends BaseActivity {
 				public void onAborted(Synchronizer.SyncDirection direction) {
 					// Hide sync indicator
 					if (null != mReaderView) {
-						mReaderView.hideSyncProgress();
+						mReaderView.hideCloudSyncProgress();
 					}
 					showToast(R.string.googledrive_sync_aborted);
 				}

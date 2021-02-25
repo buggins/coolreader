@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -152,47 +153,43 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 					if (currentAutoScrollAnimation != null) {
 						currentAutoScrollAnimation.draw(canvas);
-						return;
-					}
-
-					if (currentAnimation != null) {
+					} else if (currentAnimation != null) {
 						currentAnimation.draw(canvas);
-						return;
-					}
-
-					Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
-					Rect src = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), mCurrentPageInfo.bitmap.getHeight());
-					if (dontStretchWhileDrawing) {
-						if (dst.right > src.right)
-							dst.right = src.right;
-						if (dst.bottom > src.bottom)
-							dst.bottom = src.bottom;
-						if (src.right > dst.right)
-							src.right = dst.right;
-						if (src.bottom > dst.bottom)
-							src.bottom = dst.bottom;
-						if (centerPageInsteadOfResizing) {
-							int ddx = (canvas.getWidth() - dst.width()) / 2;
-							int ddy = (canvas.getHeight() - dst.height()) / 2;
-							dst.left += ddx;
-							dst.right += ddx;
-							dst.top += ddy;
-							dst.bottom += ddy;
+					} else {
+						Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
+						Rect src = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), mCurrentPageInfo.bitmap.getHeight());
+						if (dontStretchWhileDrawing) {
+							if (dst.right > src.right)
+								dst.right = src.right;
+							if (dst.bottom > src.bottom)
+								dst.bottom = src.bottom;
+							if (src.right > dst.right)
+								src.right = dst.right;
+							if (src.bottom > dst.bottom)
+								src.bottom = dst.bottom;
+							if (centerPageInsteadOfResizing) {
+								int ddx = (canvas.getWidth() - dst.width()) / 2;
+								int ddy = (canvas.getHeight() - dst.height()) / 2;
+								dst.left += ddx;
+								dst.right += ddx;
+								dst.top += ddy;
+								dst.bottom += ddy;
+							}
 						}
+						if (dst.width() != canvas.getWidth() || dst.height() != canvas.getHeight())
+							canvas.drawColor(Color.rgb(32, 32, 32));
+						drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, src, dst);
 					}
-					if (dst.width() != canvas.getWidth() || dst.height() != canvas.getHeight())
-						canvas.drawColor(Color.rgb(32, 32, 32));
-					drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, src, dst);
 					if (isCloudSyncProgressActive()) {
 						// draw progressbar on top
-						doDrawProgress(canvas, currentCloudSyncProgressPosition, currentCloudSyncProgressTitle, true);
+						doDrawCloudSyncProgress(canvas, currentCloudSyncProgressPosition);
 					}
 				} else {
 					log.d("onDraw() -- drawing empty screen");
 					drawPageBackground(canvas);
 					if (isCloudSyncProgressActive()) {
 						// draw progressbar on top
-						doDrawProgress(canvas, currentCloudSyncProgressPosition, currentCloudSyncProgressTitle, true);
+						doDrawCloudSyncProgress(canvas, currentCloudSyncProgressPosition);
 					}
 				}
 			} catch (Exception e) {
@@ -3164,53 +3161,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		return mBookInfo;
 	}
 
-	private int currentCloudSyncProgressPosition = -1;
-	private String currentCloudSyncProgressTitle;
-
-	public void showCloudSyncProgress(int progress, String title) {
-		log.v("showClodSyncProgress(" + progress + ")");
-		boolean update = false;
-		if (null == currentCloudSyncProgressTitle || !currentCloudSyncProgressTitle.equals(title)) {
-			currentCloudSyncProgressTitle = title;
-			update = true;
-		}
-		if (currentCloudSyncProgressPosition != progress) {
-			currentCloudSyncProgressPosition = progress;
-			update = true;
-		}
-		if (update) {
-			if (DeviceInfo.EINK_SCREEN && EinkScreen.EinkUpdateMode.Unspecified == savedEinkUpdateMode) {
-				savedEinkUpdateMode = mEinkScreen.getUpdateMode();
-				savedEinkUpdateInterval = mEinkScreen.getUpdateInterval();
-				// set fast e-ink screen update mode without full refresh
-				mEinkScreen.setupController(EinkScreen.EinkUpdateMode.Fast, 0, surface);
-			}
-			bookView.draw(true);
-		}
-	}
-
-	public void hideSyncProgress() {
-		//hideProgress();
-		log.v("hideSyncProgress()");
-		if (currentCloudSyncProgressTitle != null || currentCloudSyncProgressPosition != -1) {
-			currentCloudSyncProgressPosition = -1;
-			currentCloudSyncProgressTitle = null;
-			if (DeviceInfo.EINK_SCREEN) {
-				if (!isProgressActive()) {
-					// restore e-ink screen update mode
-					mEinkScreen.setupController(savedEinkUpdateMode, savedEinkUpdateInterval, surface);
-					savedEinkUpdateMode = EinkScreen.EinkUpdateMode.Unspecified;
-					savedEinkUpdateInterval = -1;
-				}
-			}
-			bookView.draw(false);
-		}
-	}
-
-	private boolean isCloudSyncProgressActive() {
-		return currentCloudSyncProgressPosition > 0;
-	}
-
 	private int mBatteryState = 100;
 
 	public void setBatteryState(int state) {
@@ -4937,8 +4887,31 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	private int currentProgressPosition = 1;
 	private int currentProgressTitleId = R.string.progress_loading;
 	private String currentProgressTitle = null;
+	private int currentCloudSyncProgressPosition = -1;
+
 	private EinkScreen.EinkUpdateMode savedEinkUpdateMode = EinkScreen.EinkUpdateMode.Unspecified;
 	private int savedEinkUpdateInterval = -1;
+	private final HashSet<Integer> einkModeClients = new HashSet<Integer>();
+
+	private void requestEinkFastMode(int id) {
+		if (EinkScreen.EinkUpdateMode.Unspecified == savedEinkUpdateMode) {
+			savedEinkUpdateMode = mEinkScreen.getUpdateMode();
+			savedEinkUpdateInterval = mEinkScreen.getUpdateInterval();
+			// set fast e-ink screen update mode without full refresh
+			mEinkScreen.setupController(EinkScreen.EinkUpdateMode.Fast, 0, surface);
+		}
+		einkModeClients.add(id);
+	}
+
+	private void releaseEinkFastMode(int id) {
+		einkModeClients.remove(id);
+		if (einkModeClients.isEmpty()) {
+			// restore e-ink screen update mode
+			mEinkScreen.setupController(savedEinkUpdateMode, savedEinkUpdateInterval, surface);
+			savedEinkUpdateMode = EinkScreen.EinkUpdateMode.Unspecified;
+			savedEinkUpdateInterval = -1;
+		}
+	}
 
 	private void showProgress(int position, int titleResource) {
 		log.v("showProgress(" + position + ")");
@@ -4954,12 +4927,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			update = true;
 		}
 		if (update) {
-			if (DeviceInfo.EINK_SCREEN && EinkScreen.EinkUpdateMode.Unspecified == savedEinkUpdateMode) {
-				savedEinkUpdateMode = mEinkScreen.getUpdateMode();
-				savedEinkUpdateInterval = mEinkScreen.getUpdateInterval();
-				// set fast e-ink screen update mode without full refresh
-				mEinkScreen.setupController(EinkScreen.EinkUpdateMode.Fast, 0, surface);
-			}
+			if (DeviceInfo.EINK_SCREEN)
+				requestEinkFastMode(1);
 			bookView.draw(!first);
 		}
 	}
@@ -4970,20 +4939,38 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			currentProgressPosition = -1;
 			currentProgressTitleId = 0;
 			currentProgressTitle = null;
-			if (DeviceInfo.EINK_SCREEN) {
-				if (!isCloudSyncProgressActive()) {
-					// restore e-ink screen update mode
-					mEinkScreen.setupController(savedEinkUpdateMode, savedEinkUpdateInterval, surface);
-					savedEinkUpdateMode = EinkScreen.EinkUpdateMode.Unspecified;
-					savedEinkUpdateInterval = -1;
-				}
-			}
+			if (DeviceInfo.EINK_SCREEN)
+				releaseEinkFastMode(1);
 			bookView.draw(false);
 		}
 	}
 
 	private boolean isProgressActive() {
 		return currentProgressPosition > 0;
+	}
+
+	public void showCloudSyncProgress(int progress) {
+		log.v("showClodSyncProgress(" + progress + ")");
+		if (currentCloudSyncProgressPosition != progress) {
+			currentCloudSyncProgressPosition = progress;
+			if (DeviceInfo.EINK_SCREEN)
+				requestEinkFastMode(2);
+			bookView.draw(true);
+		}
+	}
+
+	public void hideCloudSyncProgress() {
+		log.v("hideCloudSyncProgress()");
+		if (currentCloudSyncProgressPosition != -1) {
+			currentCloudSyncProgressPosition = -1;
+			if (DeviceInfo.EINK_SCREEN)
+				releaseEinkFastMode(2);
+			bookView.draw(false);
+		}
+	}
+
+	private boolean isCloudSyncProgressActive() {
+		return currentCloudSyncProgressPosition > 0;
 	}
 
 	private class LoadDocumentTask extends Task {
@@ -5297,10 +5284,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	protected void doDrawProgress(Canvas canvas, int position, String title) {
-		doDrawProgress(canvas, position, title, false);
-	}
-
-	protected void doDrawProgress(Canvas canvas, int position, String title, boolean drawFrame) {
 		log.v("doDrawProgress(" + position + ")");
 		if (null == title)
 			return;
@@ -5309,28 +5292,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		int mins = Math.min(w, h) * 7 / 10;
 		int ph = mins / 20;
 		int textColor = mSettings.getColor(PROP_FONT_COLOR, 0x000000);
-		int fontSize = 12;			// 12pt
+		int fontSize = 15;			// 15pt
 		float factor = mActivity.getDensityFactor();
 		Rect rc = new Rect(w / 2 - mins / 2, h / 2 - ph / 2, w / 2 + mins / 2, h / 2 + ph / 2);
-		if (drawFrame) {
-			Rect frameRc = new Rect(rc);
-			frameRc.left -= ph/2;
-			frameRc.right += ph/2;
-			frameRc.top -= 2*fontSize*factor + ph/2;
-			frameRc.bottom += ph/2;
-			int frameColor = mSettings.getColor(PROP_BACKGROUND_COLOR, 0xFFFFFF);
-			if (!DeviceInfo.EINK_SCREEN) {
-				float lumi = Utils.colorLuminance(frameColor);
-				if (lumi >= 0.5f)
-					frameColor = Utils.darkerColor(frameColor, 150);
-				else
-					frameColor = Utils.lighterColor(frameColor, 200);
-				canvas.drawRect(frameRc, Utils.createSolidPaint(0xE0000000 | (frameColor & 0x00FFFFFF)));
-			} else {
-				canvas.drawRect(frameRc, Utils.createSolidPaint(frameColor));
-			}
-		}
-
 		Utils.drawFrame(canvas, rc, Utils.createSolidPaint(0xC0000000 | textColor));
 		//canvas.drawRect(rc, createSolidPaint(0xFFC0C0A0));
 		rc.left += 2;
@@ -5343,7 +5307,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		canvas.drawRect(rc1, Utils.createSolidPaint(0x80000000 | textColor));
 		Paint textPaint = Utils.createSolidPaint(0xFF000000 | textColor);
 		textPaint.setTextAlign(Paint.Align.CENTER);
-		textPaint.setTextSize(15f * factor);
+		textPaint.setTextSize(fontSize*factor);
 		textPaint.setSubpixelText(true);
 		canvas.drawText(title, (rc.left + rc.right) / 2, rc1.top - fontSize * factor, textPaint);
 		//canvas.drawText(String.valueOf(position * 100 / 10000) + "%", rc.left + 4, rc1.bottom - 4, textPaint);
@@ -5352,6 +5316,25 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 //		canvas.drawRect(rc2, createSolidPaint(0xFFC0C0A0));
 	}
 
+	protected void doDrawCloudSyncProgress(Canvas canvas, int position) {
+		log.v("doDrawCloudSyncProgress(" + position + ")");
+		int w = canvas.getWidth();
+		int h = canvas.getHeight();
+		int ph = Math.min(w, h)/100;
+		if (ph < 5)
+			ph = 5;
+		int textColor = mSettings.getColor(PROP_FONT_COLOR, 0x000000);
+		int pageHeaderPos = mSettings.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_PAGE_HEADER);
+		Rect rc;
+		if (VIEWER_STATUS_PAGE_FOOTER == pageHeaderPos)
+			rc = new Rect(0, h - ph, w - 1, h - 2);
+		else
+			rc = new Rect(0, 1, w - 1, ph);
+		int x = rc.left + (rc.right - rc.left) * position / 10000;
+		Rect rc1 = new Rect(rc);
+		rc1.right = x;
+		canvas.drawRect(rc1, Utils.createSolidPaint(0x40000000 | textColor));
+	}
 
 	private int dimmingAlpha = 255; // no dimming
 
