@@ -9,21 +9,24 @@ project(cr3engine)
 
 set(CR3_ROOT ${PROJECT_SOURCE_DIR}/../..)
 
+# thirdparty sources definitions
+include(${CR3_ROOT}/thirdparty_repo/repo_srcdirs.cmake)
+
 include_directories(${CR3_ROOT}/crengine/include)
 include_directories(${CR3_ROOT}/crengine/fc-lang)
-include_directories(${CR3_ROOT}/thirdparty/libpng-1.6.37)
+include_directories(${CR3_ROOT}/thirdparty/${REPO_LIBPNG_SRCDIR})
 include_directories(thirdparty_libs/libpng/lib)
-include_directories(${CR3_ROOT}/thirdparty/freetype-2.10.4)
-include_directories(${CR3_ROOT}/thirdparty/freetype-2.10.4/include)
+include_directories(${CR3_ROOT}/thirdparty/${REPO_FREETYPE_SRCDIR})
+include_directories(${CR3_ROOT}/thirdparty/${REPO_FREETYPE_SRCDIR}/include)
 include_directories(thirdparty_libs/freetype)
-include_directories(${CR3_ROOT}/thirdparty/harfbuzz-2.7.4/src)
-include_directories(${CR3_ROOT}/thirdparty/jpeg-9d)
+include_directories(${CR3_ROOT}/thirdparty/${REPO_HARFBUZZ_SRCDIR}/src)
+include_directories(${CR3_ROOT}/thirdparty/${REPO_LIBJPEG_SRCDIR})
 include_directories(${CR3_ROOT}/thirdparty_unman/antiword)
 include_directories(${CR3_ROOT}/thirdparty_unman/chmlib/src)
 include_directories(${CR3_ROOT}/thirdparty_unman/nanosvg/src)
-include_directories(${CR3_ROOT}/thirdparty/fribidi-1.0.10/lib)
+include_directories(${CR3_ROOT}/thirdparty/${REPO_FRIBIDI_SRCDIR}/lib)
 include_directories(thirdparty_libs/fribidi/lib)
-include_directories(${CR3_ROOT}/thirdparty/libunibreak-4.3/src)
+include_directories(${CR3_ROOT}/thirdparty/${REPO_LIBUNIBREAK_SRCDIR}/src)
 
 add_definitions(-DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH)
 add_definitions(-DFT_CONFIG_MODULES_H=<android/config/ftmodule.h> -DFT_CONFIG_OPTIONS_H=<android/config/ftoption.h>)
@@ -129,6 +132,7 @@ if("${ANDROID_ABI}" STREQUAL "armeabi-v7a" OR "${ANDROID_ABI}" STREQUAL "arm64-v
     set(LOCAL_SRC_FILES ${LOCAL_SRC_FILES} ${COFFEECATCH_SRC_FILES})
 endif("${ANDROID_ABI}" STREQUAL "armeabi-v7a" OR "${ANDROID_ABI}" STREQUAL "arm64-v8a" OR "${ANDROID_ABI}" STREQUAL "mips" OR "${ANDROID_ABI}" STREQUAL "x86")
 
+# thirdparty libraries
 add_subdirectory(thirdparty_libs)
 
 # Creates and names a library, sets it as either STATIC

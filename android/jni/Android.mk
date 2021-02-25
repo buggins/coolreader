@@ -20,19 +20,21 @@ CRFLAGS := -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH \
 
 CR3_ROOT := $(LOCAL_PATH)/../..
 
+include $(CR3_ROOT)/thirdparty_repo/repo_srcdirs.mk
+
 LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/crengine/include \
     $(CR3_ROOT)/crengine/fc-lang \
-    $(CR3_ROOT)/thirdparty/libpng-1.6.37 \
-    $(CR3_ROOT)/thirdparty/freetype-2.10.4/include \
-    $(CR3_ROOT)/thirdparty/freetype-2.10.4 \
-    $(CR3_ROOT)/thirdparty/harfbuzz-2.7.4/src \
-    $(CR3_ROOT)/thirdparty/jpeg-9d \
+    $(CR3_ROOT)/thirdparty/$(REPO_LIBPNG_SRCDIR) \
+    $(CR3_ROOT)/thirdparty/$(REPO_FREETYPE_SRCDIR)/include \
+    $(CR3_ROOT)/thirdparty/$(REPO_FREETYPE_SRCDIR) \
+    $(CR3_ROOT)/thirdparty/$(REPO_HARFBUZZ_SRCDIR)/src \
+    $(CR3_ROOT)/thirdparty/$(REPO_LIBJPEG_SRCDIR) \
     $(CR3_ROOT)/thirdparty_unman/antiword \
     $(CR3_ROOT)/thirdparty_unman/chmlib/src \
     $(CR3_ROOT)/thirdparty_unman/nanosvg/src \
-    $(CR3_ROOT)/thirdparty/fribidi-1.0.10/lib \
-    $(CR3_ROOT)/thirdparty/libunibreak-4.3/src \
+    $(CR3_ROOT)/thirdparty/$(REPO_FRIBIDI_SRCDIR)/lib \
+    $(CR3_ROOT)/thirdparty/$(REPO_LIBUNIBREAK_SRCDIR)/src \
     $(CR3_ROOT)/android/app/thirdparty_libs/freetype \
     $(CR3_ROOT)/android/app/thirdparty_libs/fribidi/lib \
     $(CR3_ROOT)/android/app/thirdparty_libs/libpng/lib

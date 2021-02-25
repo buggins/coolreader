@@ -1,7 +1,7 @@
 
 project(harfbuzz)
 
-set(HARFBUZZ_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/harfbuzz-2.7.4)
+set(HARFBUZZ_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/${REPO_HARFBUZZ_SRCDIR})
 set(HARFBUZZ_CONFIG_DIR ${PROJECT_SOURCE_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

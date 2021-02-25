@@ -5,8 +5,8 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := local_fribidi
 
-FRIBIDI_SRC_DIR := ../../../../thirdparty/fribidi-1.0.10
-FRIBIDI_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/fribidi-1.0.10
+FRIBIDI_SRC_DIR := ../../../../thirdparty/$(REPO_FRIBIDI_SRCDIR)
+FRIBIDI_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/$(REPO_FRIBIDI_SRCDIR)
 FRIBIDI_CONFIG_DIR_P := $(LOCAL_PATH)
 
 LOCAL_C_INCLUDES := \
