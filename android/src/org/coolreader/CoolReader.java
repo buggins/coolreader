@@ -569,10 +569,12 @@ public class CoolReader extends BaseActivity {
 					mGoogleDriveAutoSaveTimer = null;
 				}
 				if (mSyncGoogleDriveEnabledPrev && null != mGoogleDriveSync) {
-					log.d("Google Drive sync is disabled.");
-					// ask user: cleanup & sign out
-					askConfirmation(R.string.googledrive_disabled_cleanup_question,
-							() -> {
+					log.d("Google Drive autosync is disabled.");
+					if (false) {
+						// TODO: Don't remove authorization on Google Account here, move this into OptionsDialog
+						// ask user: cleanup & sign out
+						askConfirmation(R.string.googledrive_disabled_cleanup_question,
+								() -> {
 									if (null != mGoogleDriveSync) {
 										mGoogleDriveSync.abort(() -> {
 											if (null != mGoogleDriveSync) {
@@ -582,7 +584,7 @@ public class CoolReader extends BaseActivity {
 										});
 									}
 								},
-							() -> {
+								() -> {
 									if (null != mGoogleDriveSync) {
 										mGoogleDriveSync.abort(() -> {
 											if (null != mGoogleDriveSync) {
@@ -592,7 +594,8 @@ public class CoolReader extends BaseActivity {
 										});
 									}
 								}
-					);
+						);
+					}
 				}
 			}
 		}
