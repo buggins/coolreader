@@ -47,6 +47,12 @@
 
 #endif
 
+// Use Freetype embolden API instead of LVFontBoldTransform to
+// make fake bold (for fonts that do not provide a bold face).
+// This gives a chance to get them working with Harfbuzz, even if
+// they won't look as nice as if they came with a real bold font.
+#define USE_FT_EMBOLDEN
+
 #define CACHED_UNSIGNED_METRIC_NOT_SET 0xFFFF
 class LVFontGlyphUnsignedMetricCache
 {
