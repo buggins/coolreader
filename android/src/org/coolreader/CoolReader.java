@@ -1359,6 +1359,21 @@ public class CoolReader extends BaseActivity {
 		loadDocument(item.getPathName(), doneCallback, errorCallback, forceSync);
 	}
 
+	/**
+	 * When current book is opened, switch to previous book.
+	 *
+	 * @param errorCallback
+	 */
+	public void loadPreviousDocument(Runnable errorCallback) {
+		BookInfo bi = Services.getHistory().getPreviousBook();
+		if (bi != null && bi.getFileInfo() != null) {
+			log.i("loadPreviousDocument() is called, prevBookName = " + bi.getFileInfo().getPathName());
+			loadDocument(bi.getFileInfo(), null, errorCallback, true);
+			return;
+		}
+		errorCallback.run();
+	}
+
 	public void showOpenedBook() {
 		showReader();
 	}

@@ -2342,7 +2342,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				mActivity.showDictionary();
 				break;
 			case DCMD_OPEN_PREVIOUS_BOOK:
-				loadPreviousDocument(() -> {
+				mActivity.loadPreviousDocument(() -> {
 					// do nothing
 				});
 				break;
@@ -3068,24 +3068,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			});
 		});
 		return true;
-	}
-
-	/**
-	 * When current book is opened, switch to previous book.
-	 *
-	 * @param errorHandler
-	 * @return
-	 */
-	public boolean loadPreviousDocument(final Runnable errorHandler) {
-		BackgroundThread.ensureGUI();
-		BookInfo bi = Services.getHistory().getPreviousBook();
-		if (bi != null && bi.getFileInfo() != null) {
-			save();
-			log.i("loadPreviousDocument() is called, prevBookName = " + bi.getFileInfo().getPathName());
-			return loadDocument(bi.getFileInfo().getPathName(), null, errorHandler);
-		}
-		errorHandler.run();
-		return false;
 	}
 
 	public boolean loadDocument(String fileName, final Runnable doneHandler, final Runnable errorHandler) {
