@@ -4889,26 +4889,23 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	private String currentProgressTitle = null;
 	private int currentCloudSyncProgressPosition = -1;
 
-	private EinkScreen.EinkUpdateMode savedEinkUpdateMode = EinkScreen.EinkUpdateMode.Unspecified;
 	private int savedEinkUpdateInterval = -1;
 	private final HashSet<Integer> einkModeClients = new HashSet<Integer>();
 
-	private void requestEinkFastMode(int id) {
-		if (EinkScreen.EinkUpdateMode.Unspecified == savedEinkUpdateMode) {
-			savedEinkUpdateMode = mEinkScreen.getUpdateMode();
+	private void requestDisableFullRefresh(int id) {
+		if (-1 == savedEinkUpdateInterval) {
 			savedEinkUpdateInterval = mEinkScreen.getUpdateInterval();
-			// set fast e-ink screen update mode without full refresh
-			mEinkScreen.setupController(EinkScreen.EinkUpdateMode.Fast, 0, surface);
+			// current e-ink screen update mode without full refresh
+			mEinkScreen.setupController(mEinkScreen.getUpdateMode(), 0, surface);
 		}
 		einkModeClients.add(id);
 	}
 
-	private void releaseEinkFastMode(int id) {
+	private void releaseDisableFullRefresh(int id) {
 		einkModeClients.remove(id);
 		if (einkModeClients.isEmpty()) {
-			// restore e-ink screen update mode
-			mEinkScreen.setupController(savedEinkUpdateMode, savedEinkUpdateInterval, surface);
-			savedEinkUpdateMode = EinkScreen.EinkUpdateMode.Unspecified;
+			// restore e-ink full screen refresh period
+			mEinkScreen.setupController(mEinkScreen.getUpdateMode(), savedEinkUpdateInterval, surface);
 			savedEinkUpdateInterval = -1;
 		}
 	}
@@ -4928,7 +4925,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		}
 		if (update) {
 			if (DeviceInfo.EINK_SCREEN)
-				requestEinkFastMode(1);
+				requestDisableFullRefresh(1);
 			bookView.draw(!first);
 		}
 	}
@@ -4940,7 +4937,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			currentProgressTitleId = 0;
 			currentProgressTitle = null;
 			if (DeviceInfo.EINK_SCREEN)
-				releaseEinkFastMode(1);
+				releaseDisableFullRefresh(1);
 			bookView.draw(false);
 		}
 	}
@@ -4954,7 +4951,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (currentCloudSyncProgressPosition != progress) {
 			currentCloudSyncProgressPosition = progress;
 			if (DeviceInfo.EINK_SCREEN)
-				requestEinkFastMode(2);
+				requestDisableFullRefresh(2);
 			bookView.draw(true);
 		}
 	}
@@ -4964,7 +4961,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (currentCloudSyncProgressPosition != -1) {
 			currentCloudSyncProgressPosition = -1;
 			if (DeviceInfo.EINK_SCREEN)
-				releaseEinkFastMode(2);
+				releaseDisableFullRefresh(2);
 			bookView.draw(false);
 		}
 	}
