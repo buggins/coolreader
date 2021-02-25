@@ -561,7 +561,7 @@ public class CoolReader extends BaseActivity {
 						@Override
 						public void run() {
 							if (activityIsRunning && null != mGoogleDriveSync) {
-								mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY);
+								mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
 							}
 						}
 					}, mSyncGoogleDriveAutoSavePeriod * 60000, mSyncGoogleDriveAutoSavePeriod * 60000);
@@ -1124,7 +1124,7 @@ public class CoolReader extends BaseActivity {
 							} else if (!mGoogleDriveSync.isBusy()) {
 								// After setting changed in OptionsDialog
 								log.d("Some settings is changed, uploading to cloud...");
-								mGoogleDriveSync.startSyncToOnly(null, Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY, Synchronizer.SyncTarget.SETTINGS);
+								mGoogleDriveSync.startSyncToOnly(null, Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS, Synchronizer.SyncTarget.SETTINGS);
 							}
 						}
 					}, 500);
