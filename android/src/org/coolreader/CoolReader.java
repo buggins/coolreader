@@ -291,18 +291,8 @@ public class CoolReader extends BaseActivity {
 			if (mBrowser != null)
 				mBrowser.setCoverPageFontFace(value);
 		} else if (key.equals(PROP_APP_COVERPAGE_SIZE)) {
-			int n = 0;
-			try {
-				n = Integer.parseInt(value);
-			} catch (NumberFormatException e) {
-				// ignore
-			}
-			if (n < 0)
-				n = 0;
-			else if (n > 2)
-				n = 2;
 			if (mBrowser != null)
-				mBrowser.setCoverPageSizeOption(n);
+				mBrowser.setCoverPageSizeOption(Utils.parseInt(value, 0, 0, 2));
 		} else if (key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE)) {
 			if (mBrowser != null)
 				mBrowser.setSimpleViewMode(flg);
@@ -336,48 +326,18 @@ public class CoolReader extends BaseActivity {
 			}
 		} else if (key.equals(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD)) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-				int n = 0;
-				try {
-					n = Integer.parseInt(value);
-				} catch (NumberFormatException e) {
-					// ignore
-				}
-				if (n < 0)
-					n = 0;
-				else if (n > 30)
-					n = 30;
-				mSyncGoogleDriveAutoSavePeriod = n;
+				mSyncGoogleDriveAutoSavePeriod = Utils.parseInt(value, 0, 0, 30);
 				updateGoogleDriveSynchronizer();
 			}
 		} else if (key.equals(PROP_APP_CLOUDSYNC_DATA_KEEPALIVE)) {
-			int n = 0;
-			try {
-				n = Integer.parseInt(value);
-			} catch (NumberFormatException e) {
-				// ignore
-			}
-			if (n < 0)
-				n = 0;
-			else if (n > 365)
-				n = 365;
-			mCloudSyncBookmarksKeepAlive = n;
+			mCloudSyncBookmarksKeepAlive = Utils.parseInt(value, 14, 0, 365);
 			updateGoogleDriveSynchronizer();
 		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES)) {
 			if (null != mBrowser) {
 				mBrowser.setHideEmptyGenres(flg);
 			}
 		} else if (key.equals(PROP_APP_TTS_SPEED)) {
-			int n = 0;
-			try {
-				n = Integer.parseInt(value);
-			} catch (NumberFormatException e) {
-				// ignore
-			}
-			if (n < 0)
-				n = 0;
-			else if (n > 100)
-				n = 100;
-			ttsSpeedPercent = n;
+			ttsSpeedPercent = Utils.parseInt(value, 50, 0, 100);
 		}
 		//
 	}

@@ -817,4 +817,24 @@ public class Utils {
 		return res;
 	}
 
+	public static int parseInt(String str, int defValue) {
+		return parseInt(str, defValue, Integer.MIN_VALUE, Integer.MAX_VALUE);
+	}
+
+	public static int parseInt(String str, int defValue, int minValue, int maxValue) {
+		int n;
+		if (null == str)
+			return defValue;
+		try {
+			n = Integer.parseInt(str);
+		} catch (NumberFormatException e) {
+			n = defValue;
+		}
+		if (n < minValue)
+			n = minValue;
+		else if (n > maxValue)
+			n = maxValue;
+		return n;
+	}
+
 }

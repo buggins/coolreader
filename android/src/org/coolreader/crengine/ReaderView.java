@@ -2810,43 +2810,16 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			flgHighlightBookmarks = !"0".equals(value);
 			clearSelection();
 		} else if (PROP_APP_VIEW_AUTOSCROLL_SPEED.equals(key)) {
-			int n = 1500;
-			try {
-				n = Integer.parseInt(value);
-			} catch (NumberFormatException e) {
-				// ignore
-			}
-			if (n < 200)
-				n = 200;
-			if (n > 10000)
-				n = 10000;
-			autoScrollSpeed = n;
+			autoScrollSpeed = Utils.parseInt(value, 1500, 200, 10000);
 		} else if (PROP_PAGE_ANIMATION.equals(key)) {
-			try {
-				int n = Integer.valueOf(value);
-				if (n < 0 || n > PAGE_ANIMATION_MAX)
-					n = PAGE_ANIMATION_SLIDE2;
-				pageFlipAnimationMode = n;
-			} catch (Exception e) {
-				// ignore
-			}
+			pageFlipAnimationMode = Utils.parseInt(value, PAGE_ANIMATION_SLIDE2, PAGE_ANIMATION_NONE, PAGE_ANIMATION_MAX);
 			pageFlipAnimationSpeedMs = pageFlipAnimationMode != PAGE_ANIMATION_NONE ? DEF_PAGE_FLIP_MS : 0;
 		} else if (PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key)) {
 			enableVolumeKeys = flg;
 		} else if (PROP_APP_SELECTION_ACTION.equals(key)) {
-			try {
-				int n = Integer.valueOf(value);
-				mSelectionAction = n;
-			} catch (Exception e) {
-				// ignore
-			}
+			mSelectionAction = Utils.parseInt(value, SELECTION_ACTION_TOOLBAR);
 		} else if (PROP_APP_MULTI_SELECTION_ACTION.equals(key)) {
-			try {
-				int n = Integer.valueOf(value);
-				mMultiSelectionAction = n;
-			} catch (Exception e) {
-				// ignore
-			}
+			mMultiSelectionAction = Utils.parseInt(value, SELECTION_ACTION_TOOLBAR);
 		} else {
 			//mActivity.applyAppSetting(key, value);
 		}
