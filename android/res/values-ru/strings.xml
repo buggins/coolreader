@@ -87,6 +87,7 @@
     <string name="options_page_landscape_pages">Страницы в альбомном режиме</string>
     <string name="options_page_landscape_pages_one">Одна страница</string>
     <string name="options_page_landscape_pages_two">Две страницы</string>
+    <string name="options_ignore_document_margins">Игнорировать отступы документа</string>
     <string name="options_page_margin_left">Левый отступ</string>
     <string name="options_page_margin_right">Правый отступ</string>
     <string name="options_page_margin_top">Верхний отступ</string>
