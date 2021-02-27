@@ -391,6 +391,12 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
+				// round to a multiple of 10
+				int roundedVal = 10*((progress + 5)/10);
+				if (progress != roundedVal) {
+					sbSpeed.setProgress(roundedVal);
+					return;
+				}
 				mCoolReader.setTTSSpeed(progress);
 			}
 
