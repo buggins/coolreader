@@ -382,21 +382,16 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		// setup speed && volume seek bars
 		sbSpeed = mPanel.findViewById(R.id.tts_sb_speed);
 		sbVolume = mPanel.findViewById(R.id.tts_sb_volume);
-		
+
 		sbSpeed.setMax(100);
-		sbSpeed.setProgress(50);
+		sbSpeed.setProgress(mCoolReader.getTTSSpeed());
 		sbVolume.setMax(100);
 		sbVolume.setProgress(mCoolReader.getVolume());
 		sbSpeed.setOnSeekBarChangeListener( new OnSeekBarChangeListener() {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-				float rate = 1.0f;
-				if ( progress<50 )
-					rate = 0.3f + 0.7f * progress / 50f;
-				else
-					rate = 1.0f + 2.5f * (progress-50) / 50f;
-				mTTS.setSpeechRate(rate);
+				mCoolReader.setTTSSpeed(progress);
 			}
 
 			@Override

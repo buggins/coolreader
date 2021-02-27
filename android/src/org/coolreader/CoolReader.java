@@ -366,6 +366,18 @@ public class CoolReader extends BaseActivity {
 			if (null != mBrowser) {
 				mBrowser.setHideEmptyGenres(flg);
 			}
+		} else if (key.equals(PROP_APP_TTS_SPEED)) {
+			int n = 0;
+			try {
+				n = Integer.parseInt(value);
+			} catch (NumberFormatException e) {
+				// ignore
+			}
+			if (n < 0)
+				n = 0;
+			else if (n > 100)
+				n = 100;
+			ttsSpeedPercent = n;
 		}
 		//
 	}
@@ -1624,6 +1636,7 @@ public class CoolReader extends BaseActivity {
 	TTS tts;
 	boolean ttsInitialized;
 	boolean ttsError;
+	int ttsSpeedPercent = 50;		// 50% (normal)
 
 	public boolean initTTS(final TTS.OnTTSCreatedListener listener) {
 		if (ttsError || !TTS.isFound()) {
@@ -1656,7 +1669,10 @@ public class CoolReader extends BaseActivity {
 			}
 		}
 		if (ttsInitialized && tts != null) {
-			BackgroundThread.instance().executeGUI(() -> listener.onCreated(tts));
+			BackgroundThread.instance().executeGUI(() -> {
+				listener.onCreated(tts);
+				tts.setSpeechRate(speechRateFromPercent(ttsSpeedPercent));
+			});
 			return true;
 		}
 		if (ttsInitialized && tts != null) {
@@ -1669,7 +1685,10 @@ public class CoolReader extends BaseActivity {
 			L.i("TTS init status: " + status);
 			if (status == TTS.SUCCESS) {
 				ttsInitialized = true;
-				BackgroundThread.instance().executeGUI(() -> listener.onCreated(tts));
+				BackgroundThread.instance().executeGUI(() -> {
+					listener.onCreated(tts);
+					tts.setSpeechRate(speechRateFromPercent(ttsSpeedPercent));
+				});
 			} else {
 				ttsError = true;
 				BackgroundThread.instance().executeGUI(() -> showToast("Cannot initialize TTS"));
@@ -1678,6 +1697,41 @@ public class CoolReader extends BaseActivity {
 		return true;
 	}
 
+	/**
+	 * Convert speech speed percentage to speech rate value.
+	 * @param percent speech rate percentage
+	 * @return speech rate value
+	 *
+	 * 0%  - 0.30
+	 * 10% - 0.44
+	 * 20% - 0.58
+	 * 30% - 0.72
+	 * 40% - 0.86
+	 * 50% - 1.00
+	 * 60% - 1.50
+	 * 70% - 2.00
+	 * 80% - 2.50
+	 * 90% - 3.00
+	 * 100%- 3.50
+	 */
+	private float speechRateFromPercent(int percent) {
+		float rate;
+		if ( percent < 50 )
+			rate = 0.3f + 0.7f * percent / 50f;
+		else
+			rate = 1.0f + 2.5f * (percent - 50) / 50f;
+		return rate;
+	}
+
+	public int getTTSSpeed() {
+		return ttsSpeedPercent;
+	}
+
+	public void setTTSSpeed(int percent) {
+		ttsSpeedPercent = percent;
+		tts.setSpeechRate(speechRateFromPercent(ttsSpeedPercent));
+		setSetting(PROP_APP_TTS_SPEED, String.valueOf(percent), false);
+	}
 
 	// ============================================================
 	private AudioManager am;

@@ -183,6 +183,8 @@ public interface Settings {
     String PROP_APP_CLOUDSYNC_CONFIRMATIONS = "app.cloudsync.confirmations";
     String PROP_APP_CLOUDSYNC_DATA_KEEPALIVE = "app.cloudsync.bookmarks.keepalive";		// days
 
+    String PROP_APP_TTS_SPEED = "app.tts.speed";
+
     // available options for PROP_APP_SELECTION_ACTION setting
     public static final int SELECTION_ACTION_TOOLBAR = 0;
     public static final int SELECTION_ACTION_COPY = 1;
