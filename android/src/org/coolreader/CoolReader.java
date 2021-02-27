@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
+import android.speech.tts.TextToSpeech;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,7 +57,7 @@ import org.coolreader.donations.CRDonationService;
 import org.coolreader.sync2.OnSyncStatusListener;
 import org.coolreader.sync2.Synchronizer;
 import org.coolreader.sync2.googledrive.GoogleDriveRemoteAccess;
-import org.coolreader.tts.TTS;
+import org.coolreader.tts.OnTTSCreatedListener;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import java.io.File;
@@ -1593,19 +1594,12 @@ public class CoolReader extends BaseActivity {
 
 	// ========================================================================================
 	// TTS
-	TTS tts;
+	TextToSpeech tts;
 	boolean ttsInitialized;
 	boolean ttsError;
 	int ttsSpeedPercent = 50;		// 50% (normal)
 
-	public boolean initTTS(final TTS.OnTTSCreatedListener listener) {
-		if (ttsError || !TTS.isFound()) {
-			if (!ttsError) {
-				ttsError = true;
-				showToast("TTS is not available");
-			}
-			return false;
-		}
+	public boolean initTTS(final OnTTSCreatedListener listener) {
 		if (!phoneStateChangeHandlerInstalled) {
 			boolean readPhoneStateIsAvailable;
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -1635,15 +1629,11 @@ public class CoolReader extends BaseActivity {
 			});
 			return true;
 		}
-		if (ttsInitialized && tts != null) {
-			showToast("TTS initialization is already called");
-			return false;
-		}
 		showToast("Initializing TTS");
-		tts = new TTS(this, status -> {
+		tts = new TextToSpeech(this, status -> {
 			//tts.shutdown();
 			L.i("TTS init status: " + status);
-			if (status == TTS.SUCCESS) {
+			if (status == TextToSpeech.SUCCESS) {
 				ttsInitialized = true;
 				BackgroundThread.instance().executeGUI(() -> {
 					listener.onCreated(tts);

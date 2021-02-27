@@ -527,6 +527,7 @@
     <string name="tts_stop">Stop</string>
     <string name="tts_volume">Volume</string>
     <string name="tts_rate">Rate</string>
+    <string name="tts_failed">Failure of speech synthesis</string>
     <string name="dlg_button_open_book">Open book</string>
     <string name="dlg_button_open_folder">Open containing folder</string>
     <string name="dlg_button_recent_delete">Remove from recent books list</string>
