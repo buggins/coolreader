@@ -26,8 +26,15 @@ public class LogcatSaver {
 	}
 
 	public static boolean saveLogcat(Date since, OutputStream outputStream) {
+		boolean res = saveLogcat_impl(since, "yyyy-MM-dd HH:mm:ss.SSS", outputStream);
+		if (!res)
+			res = saveLogcat_impl(since, "MM-dd HH:mm:ss.SSS", outputStream);
+		return res;
+	}
+
+	private static boolean saveLogcat_impl(Date since, String dateFmt, OutputStream outputStream) {
 		boolean res = false;
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US);
+		SimpleDateFormat dateFormat = new SimpleDateFormat(dateFmt, Locale.US);
 		String dateString = dateFormat.format(since);
 		List<String> logcatCmdArgs = new ArrayList<>();
 		logcatCmdArgs.add("logcat");			// command

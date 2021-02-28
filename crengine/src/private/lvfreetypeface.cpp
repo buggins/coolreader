@@ -43,12 +43,6 @@
 #include FT_SYNTHESIS_H // for FT_GlyphSlot_Embolden()
 #include FT_GLYPH_H     // for FT_Matrix_Multiply()
 
-// Use Freetype embolden API instead of LVFontBoldTransform to
-// make fake bold (for fonts that do not provide a bold face).
-// This gives a chance to get them working with Harfbuzz, even if
-// they won't look as nice as if they came with a real bold font.
-#define USE_FT_EMBOLDEN
-
 // Helpers with font metrics (units are 1/64 px)
 // #define FONT_METRIC_FLOOR(x)    ((x) & -64)
 // #define FONT_METRIC_CEIL(x)     (((x)+63) & -64)

@@ -2,7 +2,7 @@ project(fribidi C)
 
 cmake_minimum_required(VERSION 3.4)
 
-set(FRIBIDI_SOURCE_DIR "${PROJECT_SOURCE_DIR}/../../../../thirdparty/fribidi-1.0.10")
+set(FRIBIDI_SOURCE_DIR "${PROJECT_SOURCE_DIR}/../../../../thirdparty/${REPO_FRIBIDI_SRCDIR}")
 set(FRIBIDI_CONFIG_DIR "${PROJECT_SOURCE_DIR}")
 
 include_directories(${FRIBIDI_SOURCE_DIR})

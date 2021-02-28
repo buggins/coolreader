@@ -1094,25 +1094,29 @@ public class Engine {
 			log.e("File " + oldPlace.getAbsolutePath() + " does not exist!");
 			return false;
 		}
-		try (FileInputStream is = new FileInputStream(oldPlace);
-			 FileOutputStream os = new FileOutputStream(newPlace)) {
-			if (!newPlace.createNewFile())
-				return false; // cannot create file
-			byte[] buf = new byte[0x10000];
+		try {
+			FileInputStream is = new FileInputStream(oldPlace);
+			FileOutputStream os = new FileOutputStream(newPlace);
+			byte[] buf = new byte[0x10000];				// 64kB
 			for (; ; ) {
 				int bytesRead = is.read(buf);
 				if (bytesRead <= 0)
 					break;
 				os.write(buf, 0, bytesRead);
 			}
+			os.close();
+			is.close();
 			removeNewFile = false;
 			oldPlace.delete();
 			return true;
 		} catch (IOException e) {
 			return false;
 		} finally {
-			if (removeNewFile)
+			if (removeNewFile) {
+				// Write to new file failed, remove it.
+				log.e("Failed to write into file " + newPlace.getAbsolutePath() + "!");
 				newPlace.delete();
+			}
 		}
 	}
 

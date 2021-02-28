@@ -1,7 +1,7 @@
 
 project(freetype)
 
-set(FREETYPE_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/freetype-2.10.4)
+set(FREETYPE_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/${REPO_FREETYPE_SRCDIR})
 set(FREETYPE_CONFIG_DIR ${PROJECT_SOURCE_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

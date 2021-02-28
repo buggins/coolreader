@@ -5,9 +5,9 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := local_harfbuzz
 
-HARFBUZZ_SRC_DIR := ../../../../thirdparty/harfbuzz-2.7.4
-HARFBUZZ_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/harfbuzz-2.7.4
-FREETYPE_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/freetype-2.10.4
+HARFBUZZ_SRC_DIR := ../../../../thirdparty/$(REPO_HARFBUZZ_SRCDIR)
+HARFBUZZ_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/$(REPO_HARFBUZZ_SRCDIR)
+FREETYPE_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/$(REPO_FREETYPE_SRCDIR)
 HARFBUZZ_CONFIG_DIR_P := $(LOCAL_PATH)
 
 LOCAL_C_INCLUDES := \

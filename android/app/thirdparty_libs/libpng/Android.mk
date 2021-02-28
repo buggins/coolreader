@@ -5,8 +5,8 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := local_png
 
-PNG_SRC_DIR := ../../../../thirdparty/libpng-1.6.37
-PNG_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/libpng-1.6.37
+PNG_SRC_DIR := ../../../../thirdparty/$(REPO_LIBPNG_SRCDIR)
+PNG_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/$(REPO_LIBPNG_SRCDIR)
 PNG_CONFIG_DIR_P := $(LOCAL_PATH)
 
 LOCAL_C_INCLUDES := \

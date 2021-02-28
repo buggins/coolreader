@@ -5,8 +5,8 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := local_libunibreak
 
-LIBUNIBREAK_SRC_DIR := ../../../../thirdparty/libunibreak-4.3/src
-LIBUNIBREAK_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/libunibreak-4.3/src
+LIBUNIBREAK_SRC_DIR := ../../../../thirdparty/$(REPO_LIBUNIBREAK_SRCDIR)/src
+LIBUNIBREAK_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/$(REPO_LIBUNIBREAK_SRCDIR)/src
 
 LOCAL_C_INCLUDES := $(LIBUNIBREAK_SRC_DIR_P)
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries

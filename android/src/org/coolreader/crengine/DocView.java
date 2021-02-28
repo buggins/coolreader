@@ -368,12 +368,6 @@ public class DocView {
 		}
 	}
 
-	private void getPageImageTexture(int[] buf, int width, int height) {
-		synchronized(mutex) {
-			getPageImageTextureInternal(buf, width, height, DeviceInfo.EINK_SCREEN ? 4 : 32);
-		}
-	}
-
 	/**
 	 * Check whether point of current document contains image.
 	 * If image is found, image becomes current image to be drawn by drawImage(), dstImage fields are set to image dimension.
@@ -515,8 +509,6 @@ public class DocView {
 	// / returns either SWAP_DONE, SWAP_TIMEOUT or SWAP_ERROR
 	private native int swapToCacheInternal();
 
-	private native void getPageImageTextureInternal(int[] buf, int width, int height, int bpp);
-	
 	private long mNativeObject; // used from JNI
 
 	private ReaderCallback readerCallback;  // used from JNI

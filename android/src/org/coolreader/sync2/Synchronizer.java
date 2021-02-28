@@ -87,6 +87,8 @@ public class Synchronizer {
 	public final static int SYNC_FLAG_SHOW_SIGN_IN = 0x04;
 	/// show progress bar for sync process
 	public final static int SYNC_FLAG_SHOW_PROGRESS = 0x08;
+	/// ask user about changed position or changed document
+	public final static int SYNC_FLAG_ASK_CHANGED = 0x10;
 
 	private class DownloadInfo implements Cloneable {
 		public String m_filepath;		// full path to file on the cloud
@@ -243,35 +245,48 @@ public class Synchronizer {
 	}
 
 	protected void doneSuccessfully() {
-		if (null != m_onStatusListener)
-			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSyncCompleted(m_syncDirection, (m_flags & SYNC_FLAG_SHOW_PROGRESS) != 0, (m_flags & SYNC_FLAG_FORCE) != 0));
+		BackgroundThread.instance().executeGUI(() -> {
+			if (null != m_onStatusListener) {
+				m_onStatusListener.onSyncCompleted(m_syncDirection, (m_flags & SYNC_FLAG_SHOW_PROGRESS) != 0, (m_flags & SYNC_FLAG_QUIETLY) == 0);
+			}
+		});
 		m_isBusy = false;
 	}
 
 	protected void doneFailed(String error) {
-		if (null != m_onStatusListener)
-			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSyncError(m_syncDirection, error));
+		BackgroundThread.instance().executeGUI(() -> {
+			if (null != m_onStatusListener) {
+				m_onStatusListener.onSyncError(m_syncDirection, error);
+			}
+		});
 		m_isBusy = false;
 	}
 
 	protected void doneAborted() {
-		if (null != m_onStatusListener)
-			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onAborted(m_syncDirection));
+		BackgroundThread.instance().executeGUI(() -> {
+			if (null != m_onStatusListener) {
+				m_onStatusListener.onAborted(m_syncDirection);
+			}
+		});
 		m_isBusy = false;
 	}
 
 	protected void setSyncStarted(SyncDirection dir) {
 		m_isBusy = true;
 		m_syncDirection = dir;
-		if (null != m_onStatusListener) {
-			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSyncStarted(m_syncDirection, (m_flags & SYNC_FLAG_SHOW_PROGRESS) != 0, (m_flags & SYNC_FLAG_FORCE) != 0));
-		}
+		BackgroundThread.instance().executeGUI(() -> {
+			if (null != m_onStatusListener) {
+				m_onStatusListener.onSyncStarted(m_syncDirection, (m_flags & SYNC_FLAG_SHOW_PROGRESS) != 0, (m_flags & SYNC_FLAG_QUIETLY) == 0);
+			}
+		});
 	}
 
-	protected void setSyncProgress(int current, int total) {
-		if (null != m_onStatusListener) {
-			BackgroundThread.instance().executeGUI(() -> m_onStatusListener.OnSyncProgress(m_syncDirection, (m_flags & SYNC_FLAG_SHOW_PROGRESS) != 0, current, total, (m_flags & SYNC_FLAG_FORCE) != 0));
-		}
+	protected void updateSyncProgress(int current, int total) {
+		BackgroundThread.instance().executeGUI(() -> {
+			if (null != m_onStatusListener) {
+				m_onStatusListener.OnSyncProgress(m_syncDirection, (m_flags & SYNC_FLAG_SHOW_PROGRESS) != 0, current, total, (m_flags & SYNC_FLAG_QUIETLY) == 0);
+			}
+		});
 	}
 
 	protected boolean checkAbort() {
@@ -355,7 +370,7 @@ public class Synchronizer {
 				if (checkAbort())
 					return;
 				m_currentOperationIndex++;
-				setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+				updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 				if (0 == statusCode) {
 					log.d("SignInSyncOperation: SignIn successfully.");
 					onContinue.run();
@@ -377,7 +392,7 @@ public class Synchronizer {
 				if (checkAbort())
 					return;
 				m_currentOperationIndex++;
-				setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+				updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 				if (0 == statusCode) {
 					log.d("SignInQuietlySyncOperation: signIn successfully.");
 					onContinue.run();
@@ -400,7 +415,7 @@ public class Synchronizer {
 				if (checkAbort())
 					return;
 				m_currentOperationIndex++;
-				setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+				updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 				if (0 == statusCode) {
 					log.d("SignOutSyncOperation: SignOut successfully.");
 					onContinue.run();
@@ -426,7 +441,7 @@ public class Synchronizer {
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 					if (null != meta) {
 						onContinue.run();
 					} else {
@@ -472,7 +487,7 @@ public class Synchronizer {
 								m_remoteAccess.discardDirCache();
 								log.d("lock file created, continue.");
 								m_currentOperationIndex++;
-								setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+								updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 								onContinue.run();
 							}
 
@@ -492,7 +507,7 @@ public class Synchronizer {
 								insertOperation(this_op, new CheckLockFileSyncOperation());
 								// update progress bar on screen
 								m_currentOperationIndex++;
-								setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+								updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 								onContinue.run();
 							}, LOCK_FILE_CHECK_PERIOD);
 						} else {
@@ -500,7 +515,7 @@ public class Synchronizer {
 							m_remoteAccess.discardDirCache();
 							log.d("lock file still exists after waiting " + (LOCK_FILE_CHECK_MAX_COUNT*LOCK_FILE_CHECK_PERIOD)/1000 + " seconds, ignore ..." );
 							m_currentOperationIndex++;
-							setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+							updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 							onContinue.run();
 						}
 					}
@@ -537,7 +552,7 @@ public class Synchronizer {
 								if (checkAbort())
 									return;
 								m_currentOperationIndex++;
-								setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+								updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 								onContinue.run();
 							}
 
@@ -549,7 +564,7 @@ public class Synchronizer {
 						});
 					} else {
 						m_currentOperationIndex++;
-						setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+						updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 						onContinue.run();
 					}
 				}
@@ -586,7 +601,7 @@ public class Synchronizer {
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 					SyncOperation this_op = CheckUploadSettingsSyncOperation.this;
 					if (null != meta) {
 						// file found on remote device
@@ -676,7 +691,7 @@ public class Synchronizer {
 						if (checkAbort())
 							return;
 						m_currentOperationIndex++;
-						setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+						updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 						if (null != result && result) {
 							log.d("file created or updated.");
 							onContinue.run();
@@ -722,7 +737,7 @@ public class Synchronizer {
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 					SyncOperation this_op = CheckDownloadSettingsSyncOperation.this;
 					if (null != meta) {
 						// file found on remote device
@@ -795,7 +810,7 @@ public class Synchronizer {
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 					if (null != inputStream) {
 						log.d("Reading settings from remote service...");
 						try {
@@ -818,9 +833,11 @@ public class Synchronizer {
 								if (allowed)
 									props.put(key, allProps.get(key));
 							}
-							if (null != m_onStatusListener) {
-								BackgroundThread.instance().executeGUI(() -> m_onStatusListener.onSettingsLoaded(props, (m_flags & SYNC_FLAG_FORCE) != 0));
-							}
+							BackgroundThread.instance().executeGUI(() -> {
+								if (null != m_onStatusListener) {
+									m_onStatusListener.onSettingsLoaded(props, (m_flags & SYNC_FLAG_QUIETLY) == 0);
+								}
+							});
 							log.d(" ... done.");
 						} catch (Exception e) {
 							log.e("DownloadSettingsSyncOperation: file opened, but failed to read or write: " + e.toString());
@@ -867,7 +884,7 @@ public class Synchronizer {
 						if (checkAbort())
 							return;
 						m_currentOperationIndex++;
-						setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+						updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 						if (null != result && result) {
 							log.d("file created or updated.");
 							onContinue.run();
@@ -887,7 +904,7 @@ public class Synchronizer {
 				// bookmarks data is null, continue with next operation
 				log.d("bookmarks data is null, continue with next operation");
 				m_currentOperationIndex++;
-				setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+				updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 				onContinue.run();
 			}
 		}
@@ -913,7 +930,7 @@ public class Synchronizer {
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 					if (null != inputStream) {
 						syncBookmarks(inputStream);
 						onContinue.run();
@@ -945,7 +962,7 @@ public class Synchronizer {
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 					if (null != metalist) {
 						SyncOperation op = DownloadAllBookmarksSyncOperation.this;
 						for (FileMetadata meta : metalist) {
@@ -1008,7 +1025,7 @@ public class Synchronizer {
 						if (checkAbort())
 							return;
 						m_currentOperationIndex++;
-						setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+						updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 						if (null != result && result) {
 							log.d("file created or updated.");
 							onContinue.run();
@@ -1044,7 +1061,7 @@ public class Synchronizer {
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 					if (null != inputStream) {
 						try {
 							Properties props = new Properties();
@@ -1148,7 +1165,7 @@ public class Synchronizer {
 									if (checkAbort())
 										return;
 									m_currentOperationIndex++;
-									setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+									updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 									if (null != result && result) {
 										log.d("file created or updated.");
 										onContinue.run();
@@ -1171,7 +1188,7 @@ public class Synchronizer {
 					} else {
 						log.d("book data file already exist on the cloud.");
 						m_currentOperationIndex++;
-						setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+						updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 						onContinue.run();
 					}
 				}
@@ -1198,7 +1215,7 @@ public class Synchronizer {
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 					if (null != metalist) {
 						ArrayList<DownloadInfo> filesToCheck = new ArrayList<DownloadInfo>();
 						for (FileMetadata meta : metalist) {
@@ -1301,7 +1318,7 @@ public class Synchronizer {
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 					if (null != inputStream) {
 						String sourceName = downloadInfo.m_meta.fileName;
 						int sourceSize = downloadInfo.m_meta.getCustomPropSourceSize();
@@ -1410,7 +1427,7 @@ public class Synchronizer {
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 					if (null != result && result) {
 						log.d("data removed.");
 						onContinue.run();
@@ -1441,7 +1458,7 @@ public class Synchronizer {
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 					if (null == metalist) {
 						// `metalist` can be null, which means that the folder you are looking for was not found.
 						log.d(REMOTE_FOLDER_PATH + " don't exist yet...");
@@ -1491,7 +1508,7 @@ public class Synchronizer {
 					if (checkAbort())
 						return;
 					m_currentOperationIndex++;
-					setSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
+					updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 					if (result)
 						log.d("File \"" + m_fileName + "\" trashed.");
 					onContinue.run();
@@ -1887,7 +1904,7 @@ public class Synchronizer {
 						}
 						log.d("Book \"" + dbFileInfo + "\" found, syncing...");
 						if (null != m_onStatusListener)
-							m_onStatusListener.onBookmarksLoaded(bookInfo, (m_flags & SYNC_FLAG_FORCE) != 0);
+							m_onStatusListener.onBookmarksLoaded(bookInfo, (m_flags & SYNC_FLAG_ASK_CHANGED) != 0);
 					}
 				};
 				ArrayList<String> fingerprints = new ArrayList<String>();
@@ -1933,7 +1950,7 @@ public class Synchronizer {
 					FileInfo dbFileInfo = fileList.get(0);
 					if (null != m_onStatusListener) {
 						log.d("Book \"" + dbFileInfo + "\" found, call listener to load this book...");
-						m_onStatusListener.onCurrentBookInfoLoaded(fileList.get(0), (m_flags & SYNC_FLAG_FORCE) != 0);
+						m_onStatusListener.onCurrentBookInfoLoaded(fileList.get(0), (m_flags & SYNC_FLAG_ASK_CHANGED) != 0);
 					}
 				}
 			};
