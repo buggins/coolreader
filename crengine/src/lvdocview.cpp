@@ -1925,10 +1925,14 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
                     pageinfo << "0";
                 pageinfo << fmt::decimal(pp) << "%";
             }
-            if ( batteryPercentNormalFont && m_battery_state>=0 ) {
-                pageinfo << "  [" << fmt::decimal(m_battery_state) << "%]";
+            if ( batteryPercentNormalFont ) {
+                if (m_battery_state >= 0)
+                    pageinfo << "  [" << fmt::decimal(m_battery_state) << "%]";
+                else if (m_battery_state == CR_BATTERY_STATE_CHARGING)
+                    pageinfo << "  [ + ]";
             }
-		}
+        }
+
 		int piw = 0;
 		if (!pageinfo.empty()) {
 			piw = m_infoFont->getTextWidth(pageinfo.c_str(), pageinfo.length());
