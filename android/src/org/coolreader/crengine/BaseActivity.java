@@ -1403,7 +1403,7 @@ public class BaseActivity extends Activity implements Settings {
 	}
 
 	public void showBrowserOptionsDialog() {
-		OptionsDialog dlg = new OptionsDialog(BaseActivity.this, null, null, OptionsDialog.Mode.BROWSER);
+		OptionsDialog dlg = new OptionsDialog(BaseActivity.this, OptionsDialog.Mode.BROWSER, null, null, null);
 		dlg.show();
 	}
 

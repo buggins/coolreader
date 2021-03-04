@@ -2356,6 +2356,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					log.i("TTS created: opening TTS toolbar");
 					ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, tts);
 					ttsToolbar.setOnCloseListener(() -> ttsToolbar = null);
+					ttsToolbar.setAppSettings(mSettings, null);
 				})) {
 					log.e("Cannot initialize TTS");
 				}
@@ -2527,6 +2528,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	public void stopTTS() {
 		if (ttsToolbar != null)
 			ttsToolbar.pause();
+	}
+
+	public boolean isTTSActive() {
+		return ttsToolbar != null;
+	}
+
+	public TTSToolbarDlg getTTSToolbar() {
+		return ttsToolbar;
 	}
 
 	public void doEngineCommand(final ReaderCommand cmd, final int param) {
@@ -2888,11 +2897,19 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		log.v("oldNightMode=" + mSettings.getProperty(PROP_NIGHT_MODE) + " newNightMode=" + newSettings.getProperty(PROP_NIGHT_MODE));
 		BackgroundThread.ensureGUI();
 		final Properties currSettings = new Properties(mSettings);
-		setAppSettings(newSettings, currSettings);
-		Properties changedSettings = newSettings.diff(currSettings);
-		currSettings.setAll(changedSettings);
-		mSettings = currSettings;
-		BackgroundThread.instance().postBackground(() -> applySettings(currSettings));
+		if (null != ttsToolbar) {
+			// ignore all non TTS options if TTS is active...
+			ttsToolbar.setAppSettings(newSettings, currSettings);
+			Properties changedSettings = newSettings.diff(currSettings);
+			currSettings.setAll(changedSettings);
+			mSettings = currSettings;
+		} else {
+			setAppSettings(newSettings, currSettings);
+			Properties changedSettings = newSettings.diff(currSettings);
+			currSettings.setAll(changedSettings);
+			mSettings = currSettings;
+			BackgroundThread.instance().postBackground(() -> applySettings(currSettings));
+		}
 	}
 
 	private void setBackgroundTexture(String textureId, int color) {

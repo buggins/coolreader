@@ -52,6 +52,7 @@ import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
+import org.coolreader.crengine.TTSToolbarDlg;
 import org.coolreader.crengine.Utils;
 import org.coolreader.donations.CRDonationService;
 import org.coolreader.sync2.OnSyncStatusListener;
@@ -337,8 +338,23 @@ public class CoolReader extends BaseActivity {
 			if (null != mBrowser) {
 				mBrowser.setHideEmptyGenres(flg);
 			}
-		} else if (key.equals(PROP_APP_TTS_SPEED)) {
-			ttsSpeedPercent = Utils.parseInt(value, 50, 0, 100);
+		} else if (key.equals(PROP_APP_TTS_ENGINE)) {
+			ttsEnginePackage = value;
+			if (null != mReaderView && mReaderView.isTTSActive() && null != tts) {
+				// Stop current TTS process & create new
+				mReaderView.stopTTS();
+				if (tts != null) {
+					// Cleanup previous TTS
+					tts.shutdown();
+					tts = null;
+					ttsInitialized = false;
+					ttsError = false;
+				}
+				initTTS(tts -> {
+					TTSToolbarDlg dlg = mReaderView.getTTSToolbar();
+					dlg.changeTTS(tts);
+				});
+			}
 		}
 		//
 	}
@@ -1594,10 +1610,10 @@ public class CoolReader extends BaseActivity {
 
 	// ========================================================================================
 	// TTS
-	TextToSpeech tts;
-	boolean ttsInitialized;
-	boolean ttsError;
-	int ttsSpeedPercent = 50;		// 50% (normal)
+	private TextToSpeech tts;
+	private boolean ttsInitialized;
+	private boolean ttsError;
+	private String ttsEnginePackage;
 
 	public boolean initTTS(final OnTTSCreatedListener listener) {
 		if (!phoneStateChangeHandlerInstalled) {
@@ -1623,64 +1639,26 @@ public class CoolReader extends BaseActivity {
 			}
 		}
 		if (ttsInitialized && tts != null) {
-			BackgroundThread.instance().executeGUI(() -> {
-				listener.onCreated(tts);
-				tts.setSpeechRate(speechRateFromPercent(ttsSpeedPercent));
-			});
+			BackgroundThread.instance().executeGUI(() -> listener.onCreated(tts));
 			return true;
 		}
 		showToast("Initializing TTS");
-		tts = new TextToSpeech(this, status -> {
+		TextToSpeech.OnInitListener onInitListener = status -> {
 			//tts.shutdown();
 			L.i("TTS init status: " + status);
 			if (status == TextToSpeech.SUCCESS) {
 				ttsInitialized = true;
-				BackgroundThread.instance().executeGUI(() -> {
-					listener.onCreated(tts);
-					tts.setSpeechRate(speechRateFromPercent(ttsSpeedPercent));
-				});
+				BackgroundThread.instance().executeGUI(() -> listener.onCreated(tts));
 			} else {
 				ttsError = true;
 				BackgroundThread.instance().executeGUI(() -> showToast("Cannot initialize TTS"));
 			}
-		});
-		return true;
-	}
-
-	/**
-	 * Convert speech speed percentage to speech rate value.
-	 * @param percent speech rate percentage
-	 * @return speech rate value
-	 *
-	 * 0%  - 0.30
-	 * 10% - 0.44
-	 * 20% - 0.58
-	 * 30% - 0.72
-	 * 40% - 0.86
-	 * 50% - 1.00
-	 * 60% - 1.50
-	 * 70% - 2.00
-	 * 80% - 2.50
-	 * 90% - 3.00
-	 * 100%- 3.50
-	 */
-	private float speechRateFromPercent(int percent) {
-		float rate;
-		if ( percent < 50 )
-			rate = 0.3f + 0.7f * percent / 50f;
+		};
+		if (Build.VERSION.SDK_INT > Build.VERSION_CODES.ICE_CREAM_SANDWICH && null != ttsEnginePackage && ttsEnginePackage.length() > 0)
+			tts = new TextToSpeech(this, onInitListener, ttsEnginePackage);
 		else
-			rate = 1.0f + 2.5f * (percent - 50) / 50f;
-		return rate;
-	}
-
-	public int getTTSSpeed() {
-		return ttsSpeedPercent;
-	}
-
-	public void setTTSSpeed(int percent) {
-		ttsSpeedPercent = percent;
-		tts.setSpeechRate(speechRateFromPercent(ttsSpeedPercent));
-		setSetting(PROP_APP_TTS_SPEED, String.valueOf(percent), false);
+			tts = new TextToSpeech(this, onInitListener);
+		return true;
 	}
 
 	// ============================================================
@@ -1714,7 +1692,7 @@ public class CoolReader extends BaseActivity {
 		BackgroundThread.instance().postBackground(() -> {
 			final String[] mFontFaces = Engine.getFontFaceList();
 			BackgroundThread.instance().executeGUI(() -> {
-				OptionsDialog dlg = new OptionsDialog(CoolReader.this, mReaderView, mFontFaces, mode);
+				OptionsDialog dlg = new OptionsDialog(CoolReader.this, mode, mReaderView, mFontFaces, null);
 				dlg.show();
 			});
 		});
