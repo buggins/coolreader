@@ -40,20 +40,23 @@ public class TTSToolbarDlg {
 	private static final String CR3_UTTERANCE_ID = "cr3UtteranceId";
 	private static final int MAX_CONTINUOUS_ERRORS = 3;
 
-	PopupWindow mWindow;
-	View mAnchor;
-	CoolReader mCoolReader;
-	ReaderView mReaderView;
-	String mBookTitle;
-	View mPanel;
-	TextToSpeech mTTS;
-	TTSControlServiceAccessor mTTSControl;
-	ImageButton playPauseButton;
-	SeekBar sbSpeed;
-	SeekBar sbVolume;
+	private final PopupWindow mWindow;
+	private final CoolReader mCoolReader;
+	private final ReaderView mReaderView;
+	private String mBookTitle;
+	private final TextToSpeech mTTS;
+	private TTSControlServiceAccessor mTTSControl;
+	private ImageButton mPlayPauseButton;
+	private SeekBar mSbSpeed;
+	private SeekBar mSbVolume;
 	private HandlerThread mMotionWatchdog;
 	private boolean changedPageMode;
 	private int mContinuousErrors = 0;
+	private Runnable mOnCloseListener;
+	private boolean mClosed;
+	private Selection mCurrentSelection;
+	private boolean isSpeaking;
+	private Runnable mOnStopRunnable;
 
 	BroadcastReceiver mTTSControlButtonReceiver = new BroadcastReceiver() {
 		@Override
@@ -91,29 +94,21 @@ public class TTSToolbarDlg {
 		}
 	};
 
-	static public TTSToolbarDlg showDialog( CoolReader coolReader, ReaderView readerView, TextToSpeech tts)
-	{
+	static public TTSToolbarDlg showDialog( CoolReader coolReader, ReaderView readerView, TextToSpeech tts) {
 		TTSToolbarDlg dlg = new TTSToolbarDlg(coolReader, readerView, tts);
-		//dlg.mWindow.update(dlg.mAnchor, width, height)
 		log.d("popup: " + dlg.mWindow.getWidth() + "x" + dlg.mWindow.getHeight());
-		//dlg.update();
-		//dlg.showAtLocation(readerView, Gravity.LEFT|Gravity.TOP, readerView.getLeft()+50, readerView.getTop()+50);
-		//dlg.showAsDropDown(readerView);
-		//dlg.update();
 		return dlg;
 	}
-	
-	private Runnable onCloseListener;
+
 	public void setOnCloseListener(Runnable handler) {
-		onCloseListener = handler;
+		mOnCloseListener = handler;
 	}
 
-	private boolean closed; 
 	public void stopAndClose() {
-		if (closed)
+		if (mClosed)
 			return;
 		isSpeaking = false;
-		closed = true;
+		mClosed = true;
 		BackgroundThread.instance().executeGUI(() -> {
 			stop();
 			mCoolReader.unregisterReceiver(mTTSControlButtonReceiver);
@@ -123,8 +118,8 @@ public class TTSToolbarDlg {
 			mCoolReader.stopService(intent);
 			restoreReaderMode();
 			mReaderView.clearSelection();
-			if (onCloseListener != null)
-				onCloseListener.run();
+			if (mOnCloseListener != null)
+				mOnCloseListener.run();
 			if ( mWindow.isShowing() )
 				mWindow.dismiss();
 			mReaderView.save();
@@ -139,15 +134,13 @@ public class TTSToolbarDlg {
 		}
 		moveSelection( ReaderCommand.DCMD_SELECT_FIRST_SENTENCE );
 	}
-	
+
 	private void restoreReaderMode() {
 		if ( changedPageMode ) {
 			mReaderView.setViewModeNonPermanent(ViewMode.PAGES);
 		}
 	}
-	
-	private Selection currentSelection;
-	
+
 	private void moveSelection( ReaderCommand cmd )
 	{
 		mReaderView.moveSelection(cmd, 0, new ReaderView.MoveSelectionCallback() {
@@ -155,20 +148,20 @@ public class TTSToolbarDlg {
 			@Override
 			public void onNewSelection(Selection selection) {
 				log.d("onNewSelection: " + selection.text);
-				currentSelection = selection;
+				mCurrentSelection = selection;
 				if ( isSpeaking )
-					say( currentSelection );
+					say(mCurrentSelection);
 			}
 			
 			@Override
 			public void onFail() {
 				log.e("fail()");
 				stop();
-				//currentSelection = null;
+				//mCurrentSelection = null;
 			}
 		});
 	}
-	
+
 	private void say( Selection selection ) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 			Bundle bundle = new Bundle();
@@ -184,11 +177,11 @@ public class TTSToolbarDlg {
 	}
 	
 	private void start() {
-		if ( currentSelection==null )
+		if ( mCurrentSelection ==null )
 			return;
 		startMotionWatchdog();
 		isSpeaking = true;
-		say( currentSelection );
+		say(mCurrentSelection);
 	}
 
 	private void startMotionWatchdog(){
@@ -208,9 +201,6 @@ public class TTSToolbarDlg {
 		new MotionWatchdogHandler(this, mCoolReader, mMotionWatchdog, timeout);
 		Log.d(TAG, "startMotionWatchdog() exit");
 	}
-	
-	private boolean isSpeaking;
-	private Runnable mOnStopRunnable;
 
 	private void stop() {
 		stop(null);
@@ -234,13 +224,13 @@ public class TTSToolbarDlg {
 	
 	private void toggleStartStop() {
 		if ( isSpeaking ) {
-			playPauseButton.setImageResource(Utils.resolveResourceIdByAttr(mCoolReader, R.attr.ic_media_play_drawable, R.drawable.ic_media_play));
+			mPlayPauseButton.setImageResource(Utils.resolveResourceIdByAttr(mCoolReader, R.attr.ic_media_play_drawable, R.drawable.ic_media_play));
 			runInTTSControlService(tts -> tts.notifyPause(mBookTitle));
 			stop();
 		} else {
-			if (null != currentSelection) {
-				playPauseButton.setImageResource(Utils.resolveResourceIdByAttr(mCoolReader, R.attr.ic_media_pause_drawable, R.drawable.ic_media_pause));
-				runInTTSControlService(tts -> tts.notifyPlay(mBookTitle, currentSelection.text));
+			if (null != mCurrentSelection) {
+				mPlayPauseButton.setImageResource(Utils.resolveResourceIdByAttr(mCoolReader, R.attr.ic_media_pause_drawable, R.drawable.ic_media_pause));
+				runInTTSControlService(tts -> tts.notifyPlay(mBookTitle, mCurrentSelection.text));
 				start();
 			}
 		}
@@ -253,11 +243,10 @@ public class TTSToolbarDlg {
 		mTTSControl.bind(callback);
 	}
 
-	public TTSToolbarDlg( CoolReader coolReader, ReaderView readerView, TextToSpeech tts )
-	{
+	public TTSToolbarDlg( CoolReader coolReader, ReaderView readerView, TextToSpeech tts ) {
 		mCoolReader = coolReader;
 		mReaderView = readerView;
-		mAnchor = readerView.getSurface();
+		View anchor = readerView.getSurface();
 		mTTS = tts;
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
 			mTTS.setOnUtteranceCompletedListener(utteranceId -> {
@@ -353,33 +342,22 @@ public class TTSToolbarDlg {
 			});
 		}
 
-		View panel = (LayoutInflater.from(coolReader.getApplicationContext()).inflate(R.layout.tts_toolbar, null));
-		playPauseButton = panel.findViewById(R.id.tts_play_pause);
-		playPauseButton.setImageResource(Utils.resolveResourceIdByAttr(mCoolReader, R.attr.ic_media_play_drawable, R.drawable.ic_media_play));
-		//panel.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+		//Context context = mCoolReader.getApplicationContext();
+		Context context = anchor.getContext();
+		LayoutInflater inflater = LayoutInflater.from(context);
+		View panel = inflater.inflate(R.layout.tts_toolbar, null);
 		panel.measure(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-		
-		//mReaderView.getS
-		
-		mWindow = new PopupWindow( mAnchor.getContext() );
-//		mWindow.setFocusable(true);
-//		mWindow.setTouchable(true);
-//		mWindow.setOutsideTouchable(true);
+
+		mPlayPauseButton = panel.findViewById(R.id.tts_play_pause);
+		mPlayPauseButton.setImageResource(Utils.resolveResourceIdByAttr(mCoolReader, R.attr.ic_media_play_drawable, R.drawable.ic_media_play));
+		ImageButton backButton = panel.findViewById(R.id.tts_back);
+		ImageButton forwardButton = panel.findViewById(R.id.tts_forward);
+		ImageButton stopButton = panel.findViewById(R.id.tts_stop);
+
+		mWindow = new PopupWindow( context );
 		mWindow.setBackgroundDrawable(new BitmapDrawable());
-//		mWindow.setTouchInterceptor(new OnTouchListener() {
-//			@Override
-//			public boolean onTouch(View v, MotionEvent event) {
-////				if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
-////					stopAndClose();
-////					return true;
-////				}
-//				return true;
-//			}
-//		});
-		//super(panel);
-		mPanel = panel;
-		mPanel.findViewById(R.id.tts_play_pause).setOnClickListener(v -> toggleStartStop());
-		mPanel.findViewById(R.id.tts_back).setOnClickListener(v -> {
+		mPlayPauseButton.setOnClickListener(v -> toggleStartStop());
+		backButton.setOnClickListener(v -> {
 			if ( isSpeaking ) {
 				stop(() -> {
 					isSpeaking = true;
@@ -388,7 +366,7 @@ public class TTSToolbarDlg {
 			} else
 				moveSelection( ReaderCommand.DCMD_SELECT_PREV_SENTENCE );
 		});
-		mPanel.findViewById(R.id.tts_forward).setOnClickListener(v -> {
+		forwardButton.setOnClickListener(v -> {
 			if ( isSpeaking ) {
 				stop(() -> {
 					isSpeaking = true;
@@ -397,10 +375,10 @@ public class TTSToolbarDlg {
 			} else
 				moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
 		});
-		mPanel.findViewById(R.id.tts_stop).setOnClickListener(v -> stopAndClose());
-		mPanel.setFocusable(true);
-		mPanel.setEnabled(true);
-		mPanel.setOnKeyListener((v, keyCode, event) -> {
+		stopButton.setOnClickListener(v -> stopAndClose());
+		panel.setFocusable(true);
+		panel.setEnabled(true);
+		panel.setOnKeyListener((v, keyCode, event) -> {
 			if ( event.getAction()==KeyEvent.ACTION_UP ) {
 				switch ( keyCode ) {
 				case KeyEvent.KEYCODE_VOLUME_DOWN:
@@ -421,17 +399,17 @@ public class TTSToolbarDlg {
 			} else if ( event.getAction()==KeyEvent.ACTION_DOWN ) {
 				switch ( keyCode ) {
 				case KeyEvent.KEYCODE_VOLUME_DOWN: {
-					int p = sbVolume.getProgress() - 5;
+					int p = mSbVolume.getProgress() - 5;
 					if ( p<0 )
 						p = 0;
-					sbVolume.setProgress(p);
+					mSbVolume.setProgress(p);
 					return true;
 				}
 				case KeyEvent.KEYCODE_VOLUME_UP:
-					int p = sbVolume.getProgress() + 5;
+					int p = mSbVolume.getProgress() + 5;
 					if ( p>100 )
 						p = 100;
-					sbVolume.setProgress(p);
+					mSbVolume.setProgress(p);
 					return true;
 				}
 				if ( keyCode == KeyEvent.KEYCODE_BACK) {
@@ -442,53 +420,41 @@ public class TTSToolbarDlg {
 		});
 
 		mWindow.setOnDismissListener(() -> {
-			if ( !closed )
+			if ( !mClosed)
 				stopAndClose();
 		});
-		
+
 		mWindow.setBackgroundDrawable(new BitmapDrawable());
-		//mWindow.setAnimationStyle(android.R.style.Animation_Toast);
-		//mWindow.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
 		mWindow.setWidth(WindowManager.LayoutParams.FILL_PARENT);
 		mWindow.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
-//		setWidth(panel.getWidth());
-//		setHeight(panel.getHeight());
-		
 		mWindow.setFocusable(true);
 		mWindow.setTouchable(true);
 		mWindow.setOutsideTouchable(true);
 		mWindow.setContentView(panel);
-		
-		
-		int [] location = new int[2];
-		mAnchor.getLocationOnScreen(location);
-		//mWindow.update(location[0], location[1], mPanel.getWidth(), mPanel.getHeight() );
-		//mWindow.setWidth(mPanel.getWidth());
-		//mWindow.setHeight(mPanel.getHeight());
 
-		mWindow.showAtLocation(mAnchor, Gravity.TOP | Gravity.CENTER_HORIZONTAL, location[0], location[1] + mAnchor.getHeight() - mPanel.getHeight());
-//		if ( mWindow.isShowing() )
-//			mWindow.update(mAnchor, 50, 50);
-		//dlg.mWindow.showAsDropDown(dlg.mAnchor);
-		
+		int [] location = new int[2];
+		anchor.getLocationOnScreen(location);
+
+		mWindow.showAtLocation(anchor, Gravity.TOP | Gravity.CENTER_HORIZONTAL, location[0], location[1] + anchor.getHeight() - panel.getHeight());
+
 		setReaderMode();
 
 		// setup speed && volume seek bars
-		sbSpeed = mPanel.findViewById(R.id.tts_sb_speed);
-		sbVolume = mPanel.findViewById(R.id.tts_sb_volume);
+		mSbSpeed = panel.findViewById(R.id.tts_sb_speed);
+		mSbVolume = panel.findViewById(R.id.tts_sb_volume);
 
-		sbSpeed.setMax(100);
-		sbSpeed.setProgress(mCoolReader.getTTSSpeed());
-		sbVolume.setMax(100);
-		sbVolume.setProgress(mCoolReader.getVolume());
-		sbSpeed.setOnSeekBarChangeListener( new OnSeekBarChangeListener() {
+		mSbSpeed.setMax(100);
+		mSbSpeed.setProgress(mCoolReader.getTTSSpeed());
+		mSbVolume.setMax(100);
+		mSbVolume.setProgress(mCoolReader.getVolume());
+		mSbSpeed.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
 				// round to a multiple of 10
 				int roundedVal = 10*((progress + 5)/10);
 				if (progress != roundedVal) {
-					sbSpeed.setProgress(roundedVal);
+					mSbSpeed.setProgress(roundedVal);
 					return;
 				}
 				mCoolReader.setTTSSpeed(progress);
@@ -502,8 +468,7 @@ public class TTSToolbarDlg {
 			public void onStopTrackingTouch(SeekBar seekBar) {
 			}
 		});
-
-		sbVolume.setOnSeekBarChangeListener( new OnSeekBarChangeListener() {
+		mSbVolume.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
@@ -519,14 +484,12 @@ public class TTSToolbarDlg {
 			}
 		});
 
-		mPanel.requestFocus();
-
+		// set language for TTS based on book's language
 		BookInfo bookInfo = mReaderView.getBookInfo();
 		if (null != bookInfo) {
 			FileInfo fileInfo = bookInfo.getFileInfo();
 			if (null != fileInfo) {
 				mBookTitle = fileInfo.title;
-				// set language for TTS based on book's language
 				log.d("book language is \"" + fileInfo.language + "\"");
 				if (null != fileInfo.language && fileInfo.language.length() > 0) {
 					Locale locale = new Locale(fileInfo.language);
@@ -553,6 +516,8 @@ public class TTSToolbarDlg {
 		filter.addAction(TTSControlService.TTS_CONTROL_ACTION_PREV);
 		filter.addAction(TTSControlService.TTS_CONTROL_ACTION_DONE);
 		mCoolReader.registerReceiver(mTTSControlButtonReceiver, filter);
+
+		panel.requestFocus();
 	}
 
 }
