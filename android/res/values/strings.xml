@@ -539,6 +539,7 @@
     <string name="options_tts_voice_quality_normal">Normal quality</string>
     <string name="options_tts_voice_quality_high">High quality</string>
     <string name="options_tts_voice_quality_very_high">Very high quality</string>
+    <string name="tts_init_failure">TTS engine \"%s\" init failure, disabling it…</string>
     <string name="dlg_button_open_book">Open book</string>
     <string name="dlg_button_open_folder">Open containing folder</string>
     <string name="dlg_button_recent_delete">Remove from recent books list</string>

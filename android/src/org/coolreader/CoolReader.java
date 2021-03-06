@@ -1614,6 +1614,9 @@ public class CoolReader extends BaseActivity {
 	private boolean ttsInitialized;
 	private boolean ttsError;
 	private String ttsEnginePackage;
+	private Timer initTTSTimer;
+
+	private final static long INIT_TTS_TIMEOUT = 10000;		// 10 sec.
 
 	public boolean initTTS(final OnTTSCreatedListener listener) {
 		if (!phoneStateChangeHandlerInstalled) {
@@ -1645,6 +1648,8 @@ public class CoolReader extends BaseActivity {
 		showToast("Initializing TTS");
 		TextToSpeech.OnInitListener onInitListener = status -> {
 			//tts.shutdown();
+			initTTSTimer.cancel();
+			initTTSTimer = null;
 			L.i("TTS init status: " + status);
 			if (status == TextToSpeech.SUCCESS) {
 				ttsInitialized = true;
@@ -1658,6 +1663,22 @@ public class CoolReader extends BaseActivity {
 			tts = new TextToSpeech(this, onInitListener, ttsEnginePackage);
 		else
 			tts = new TextToSpeech(this, onInitListener);
+		initTTSTimer = new Timer();
+		initTTSTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				// TTS engine init hangs, remove it from settings
+				log.e("TTS engine \"" + ttsEnginePackage + "\" init failure, disabling!");
+				BackgroundThread.instance().executeGUI(() -> showToast(R.string.tts_init_failure, ttsEnginePackage));
+				setSetting(PROP_APP_TTS_ENGINE, "", false);
+				ttsEnginePackage = "";
+				try {
+					mReaderView.getTTSToolbar().stopAndClose();
+				} catch (Exception ignored) {}
+				initTTSTimer.cancel();
+				initTTSTimer = null;
+			}
+		}, INIT_TTS_TIMEOUT);
 		return true;
 	}
 
