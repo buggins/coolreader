@@ -15,7 +15,7 @@
 #include "lvwin32fontman.h"
 #include "lvwin32font.h"
 
-#if !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE != 1
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(USE_FREETYPE)
 
 // prototype
 int CALLBACK LVWin32FontEnumFontFamExProc(
@@ -187,4 +187,4 @@ int CALLBACK LVWin32FontEnumFontFamExProc(
     return 1;
 }
 
-#endif  // !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE != 1
+#endif  // !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(USE_FREETYPE)

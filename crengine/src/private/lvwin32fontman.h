@@ -21,7 +21,7 @@
 #include "lvfontcache.h"
 
 
-#if !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE != 1
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(USE_FREETYPE)
 
 class LVWin32FontManager : public LVFontManager
 {
@@ -58,6 +58,6 @@ public:
     virtual void getFontFileNameList( lString32Collection & list );
 };
 
-#endif  // !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE!=1
+#endif  // !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(USE_FREETYPE)
 
 #endif  // __LV_WIN32FONTMAN_H_INCLUDED__

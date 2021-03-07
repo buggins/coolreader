@@ -16,7 +16,7 @@
 #include "../../include/lvfnt.h"
 
 
-#if !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE != 1
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(USE_FREETYPE)
 void LVBaseWin32Font::Clear()
 {
     if (_hfont)
@@ -672,4 +672,4 @@ bool LVWin32Font::Create(int size, int weight, bool italic, css_font_family_t fa
     return true;
 }
 
-#endif  // !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE != 1
+#endif  // !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(USE_FREETYPE)

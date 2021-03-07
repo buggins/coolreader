@@ -547,7 +547,7 @@ wxBitmap cr3Frame::getIcon16x16(const lChar32 *name )
     return wxNullBitmap;
 } // ~wxLogNull called, old log sink restored
 
-#if (USE_FREETYPE==1)
+#ifdef USE_FREETYPE
 bool getDirectoryFonts( lString32Collection & pathList, lString32 ext, lString32Collection & fonts, bool absPath )
 {
     int foundCount = 0;
@@ -688,12 +688,12 @@ cr3app::OnInit()
     if (!fontMan->GetFontCount()) {
 
 
-#if (USE_FREETYPE==1)
+#ifdef USE_FREETYPE
     lString32 fontExt = U".ttf";
 #else
     lString32 fontExt = U".lbf";
 #endif
-#if (USE_FREETYPE==1)
+#ifdef USE_FREETYPE
     lString32Collection fonts;
     lString32Collection fontDirs;
     fontDirs.add( fontDir );
@@ -778,7 +778,7 @@ cr3app::OnInit()
     if (!fontMan->GetFontCount())
     {
         //error
-#if (USE_FREETYPE==1)
+#ifdef USE_FREETYPE
         printf("Fatal Error: Cannot open font file(s) .ttf \nCannot work without font\n" );
 #else
         printf("Fatal Error: Cannot open font file(s) font#.lbf \nCannot work without font\nUse FontConv utility to generate .lbf fonts from TTF\n" );

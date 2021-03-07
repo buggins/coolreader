@@ -157,7 +157,7 @@ void ShutdownCREngine()
     CRLog::setLogger( NULL );
 }
 
-#if (USE_FREETYPE==1)
+#ifdef USE_FREETYPE
 bool getDirectoryFonts( lString16Collection & pathList, lString16Collection & ext, lString16Collection & fonts, bool absPath )
 {
     int foundCount = 0;
@@ -235,7 +235,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     if (!fontMan->GetFontCount()) {
 
     lString16Collection fontExt;
-    #if (USE_FREETYPE==1)
+    #ifdef USE_FREETYPE
         fontExt.add(".ttf");
         fontExt.add(".otf");
         fontExt.add(".pfa");
@@ -243,7 +243,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     #else
         fontExt.add(".lbf");
     #endif
-    #if (USE_FREETYPE==1)
+    #ifdef USE_FREETYPE
         lString16Collection fonts;
         fontDirs.add( fontDir );
         static const char * msfonts[] = {
@@ -301,7 +301,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     if (!fontMan->GetFontCount())
     {
         //error
-#if (USE_FREETYPE==1)
+#ifdef USE_FREETYPE
         printf("Fatal Error: Cannot open font file(s) .ttf \nCannot work without font\n" );
 #else
         printf("Fatal Error: Cannot open font file(s) font#.lbf \nCannot work without font\nUse FontConv utility to generate .lbf fonts from TTF\n" );

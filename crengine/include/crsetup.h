@@ -40,7 +40,6 @@
 #define USE_LIBJPEG                          0
 #define USE_LIBPNG                           0
 #define USE_GIF                              0
-#define USE_FREETYPE                         0
 #define USE_HARFBUZZ                         0
 #define USE_FRIBIDI                          0
 #define USE_LIBUNIBREAK                      0
@@ -125,7 +124,6 @@
 #define MAX_IMAGE_SCALE_MUL                  1
 #endif
 #if defined(CYGWIN)
-#define USE_FREETYPE                         0
 #define USE_HARFBUZZ                         0
 #define USE_FRIBIDI                          0
 #define USE_LIBUNIBREAK                      0
@@ -221,7 +219,7 @@
 
 
 
-#if !defined(USE_WIN32_FONTS) && (USE_FREETYPE!=1)
+#if !defined(USE_WIN32_FONTS) && !defined(USE_FREETYPE)
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
 /** \def USE_WIN32_FONTS
@@ -237,15 +235,11 @@
 #define ALLOW_KERNING 0
 #endif
 
-#endif  // !defined(USE_WIN32_FONTS) && (USE_FREETYPE!=1)
+#endif  // !defined(USE_WIN32_FONTS) && !defined(USE_FREETYPE)
 
 
 #ifndef CHM_SUPPORT_ENABLED
 #define CHM_SUPPORT_ENABLED 1
-#endif
-
-#ifndef USE_FREETYPE
-#define USE_FREETYPE 0
 #endif
 
 #ifndef USE_WIN32_FONTS
@@ -268,7 +262,7 @@
 
 #ifndef USE_BITMAP_FONTS
 
-#if (USE_WIN32_FONTS==1) || (USE_FREETYPE==1)
+#if (USE_WIN32_FONTS==1) || defined(USE_FREETYPE)
 #define USE_BITMAP_FONTS 0
 #else
 #define USE_BITMAP_FONTS 1

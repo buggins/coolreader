@@ -15,7 +15,7 @@ script:
   - sudo ln -s /usr/include/freetype2/ft2build.h /usr/include/ # https://github.com/matplotlib/matplotlib/issues/3029#issuecomment-43318941
   - mkdir qtbuild
   - cd qtbuild
-  - cmake -DGUI=QT5 -DCMAKE_CXX_FLAGS="-DUSE_FREETYPE2" -DCMAKE_BUILD_TYPE=Release -DMAX_IMAGE_SCALE_MUL=2 -DDOC_DATA_COMPRESSION_LEVEL=3 -DDOC_BUFFER_SIZE=0x1400000 -DCMAKE_INSTALL_PREFIX=/usr ..
+  - cmake -DGUI=QT5 -DCMAKE_CXX_FLAGS="-DUSE_FREETYPE=1" -DCMAKE_BUILD_TYPE=Release -DMAX_IMAGE_SCALE_MUL=2 -DDOC_DATA_COMPRESSION_LEVEL=3 -DDOC_BUFFER_SIZE=0x1400000 -DCMAKE_INSTALL_PREFIX=/usr ..
   - make -j$(nproc)
   - make DESTDIR=appdir -j$(nproc) install ; find appdir/
   - wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"

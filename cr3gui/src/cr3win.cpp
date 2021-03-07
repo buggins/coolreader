@@ -452,7 +452,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     {
         //error
         char str[1000];
-#if (USE_FREETYPE==1)
+#ifdef USE_FREETYPE
         sprintf(str, "Cannot open font file(s) fonts/*.ttf \nCannot work without font\nPlace some TTF files to font\\ directory" );
 #else
         sprintf(str, "Cannot open font file(s) font#.lbf \nCannot work without font\nUse FontConv utility to generate .lbf fonts from TTF" );

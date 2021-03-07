@@ -43,7 +43,7 @@ void InitCREngineLog( const char * cfgfile );
 bool InitCREngine( const char * exename, lString32Collection & fontDirs );
 void ShutdownCREngine();
 lString8 readFileToString( const char * fname );
-#if (USE_FREETYPE==1)
+#ifdef USE_FREETYPE
 bool getDirectoryFonts( lString32Collection & pathList, lString32Collection & ext, lString32Collection & fonts, bool absPath );
 #endif
 
@@ -285,7 +285,7 @@ void ShutdownCREngine()
 #endif
 }
 
-#if (USE_FREETYPE==1)
+#ifdef USE_FREETYPE
 bool getDirectoryFonts( lString32Collection & pathList, lString32Collection & ext, lString32Collection & fonts, bool absPath )
 {
     int foundCount = 0;
@@ -421,7 +421,7 @@ bool InitCREngine( const char * exename, lString32Collection & fontDirs )
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
     // use fontconfig
 
-#if USE_FREETYPE==1
+#ifdef USE_FREETYPE
     lString32Collection fontExt;
     fontExt.add(cs32(".ttf"));
     fontExt.add(cs32(".otf"));
@@ -442,7 +442,7 @@ bool InitCREngine( const char * exename, lString32Collection & fontDirs )
 	    }
 	}
     //}
-#endif  // USE_FREETYPE==1
+#endif  // USE_FREETYPE=1
 
     // init hyphenation manager
     //char hyphfn[1024];
@@ -456,7 +456,7 @@ bool InitCREngine( const char * exename, lString32Collection & fontDirs )
     if (!fontMan->GetFontCount())
     {
         //error
-#if (USE_FREETYPE==1)
+#ifdef USE_FREETYPE
         printf("Fatal Error: Cannot open font file(s) .ttf \nCannot work without font\n" );
 #else
         printf("Fatal Error: Cannot open font file(s) font#.lbf \nCannot work without font\nUse FontConv utility to generate .lbf fonts from TTF\n" );

@@ -21,7 +21,7 @@
 #include "lvbasefont.h"
 #include "lvfontcache.h"
 
-#if (USE_FREETYPE != 1) && (USE_BITMAP_FONTS == 1)
+#if !defined(USE_FREETYPE) && (USE_BITMAP_FONTS == 1)
 
 /* C++ wrapper class */
 class LBitmapFont : public LVBaseFont {
@@ -91,6 +91,6 @@ public:
     }
 };
 
-#endif  // (USE_FREETYPE!=1) && (USE_BITMAP_FONTS==1)
+#endif  // !defined(USE_FREETYPE) && (USE_BITMAP_FONTS==1)
 
 #endif // __LV_BITMAPFONT_H_INCLUDED__
