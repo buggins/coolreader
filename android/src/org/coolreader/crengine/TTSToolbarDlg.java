@@ -656,6 +656,8 @@ public class TTSToolbarDlg implements Settings {
 				mBookTitle = fileInfo.title;
 			}
 		}
+		if (null == mBookTitle)
+			mBookTitle = "";
 
 		// Start the foreground service to make this app also foreground,
 		// even if the main activity is in the background.

@@ -1,5 +1,6 @@
 package org.coolreader.tts;
 
+import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -12,8 +13,6 @@ import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-
-import androidx.annotation.RequiresApi;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
@@ -39,7 +38,8 @@ public class TTSControlService extends Service {
 	public static final String TTS_CONTROL_ACTION_DONE = "org.coolreader.tts.tts_done";
 
 	private boolean mChannelCreated = false;
-	private IBinder mBinder = new TTSControlBinder(this);
+	private final IBinder mBinder = new TTSControlBinder(this);
+	private NotificationManager mNotificationManager = null;
 
 	public enum TTSStatus {
 		PLAYED,
@@ -53,6 +53,8 @@ public class TTSControlService extends Service {
 	@Override
 	public void onCreate() {
 		log.d("onCreate");
+		if (null == mNotificationManager)
+			mNotificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 	}
 
 	@Override
@@ -60,7 +62,7 @@ public class TTSControlService extends Service {
 		// do nothing
 	}
 
-	@RequiresApi(api = Build.VERSION_CODES.ECLAIR)
+	@TargetApi(Build.VERSION_CODES.ECLAIR)
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		log.d("Received start id " + startId + ": " + intent);
@@ -91,12 +93,20 @@ public class TTSControlService extends Service {
 	@Override
 	public IBinder onBind(Intent intent) {
 		log.i("onBind(): " + intent);
+		if (null == mNotificationManager)
+			mNotificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		return mBinder;
 	}
 
 	@Override
 	public void onDestroy() {
 		log.d("onDestroy");
+		if (null != mNotificationManager) {
+			mNotificationManager.cancel(NOTIFICATION_ID);
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				mNotificationManager.deleteNotificationChannel(NOTIFICATION_CHANNEL_ID);
+			}
+		}
 	}
 
 	@Override
@@ -118,9 +128,8 @@ public class TTSControlService extends Service {
 					channel.setDescription("CoolReader TTS control");
 					// Register the channel with the system; you can't change the importance
 					// or other notification behaviors after this
-					NotificationManager notificationManager = getSystemService(NotificationManager.class);
-					if (null != notificationManager) {
-						notificationManager.createNotificationChannel(channel);
+					if (null != mNotificationManager) {
+						mNotificationManager.createNotificationChannel(channel);
 						mChannelCreated = true;
 					}
 				}
@@ -195,22 +204,20 @@ public class TTSControlService extends Service {
 	}
 
 	public void notifyPlay(String title, String sentence) {
-		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		if (null != notificationManager) {
+		if (null != mNotificationManager) {
 			Notification notification = buildNotification(title, sentence, TTSStatus.PLAYED);
 			if (null != notification)
-				notificationManager.notify(NOTIFICATION_ID, notification);
+				mNotificationManager.notify(NOTIFICATION_ID, notification);
 			else
 				log.e("Failed to build notification!");
 		}
 	}
 
 	public void notifyPause(String title) {
-		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		if (null != notificationManager) {
+		if (null != mNotificationManager) {
 			Notification notification = buildNotification(title, null, TTSStatus.PAUSED);
 			if (null != notification)
-				notificationManager.notify(NOTIFICATION_ID, notification);
+				mNotificationManager.notify(NOTIFICATION_ID, notification);
 			else
 				log.e("Failed to build notification!");
 		}
