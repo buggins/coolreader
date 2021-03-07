@@ -28,6 +28,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.text.ClipboardManager;
 import android.util.Log;
 import android.util.SparseArray;
@@ -4074,7 +4075,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			Canvas canvas = null;
 			long startTs = android.os.SystemClock.uptimeMillis();
 			try {
-				canvas = holder.lockCanvas(rc);
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+					canvas = holder.lockHardwareCanvas();
+				else
+					canvas = holder.lockCanvas(rc);
 				//log.v("before draw(canvas)");
 				if (canvas != null) {
 					if (DeviceInfo.EINK_SCREEN) {
