@@ -26,6 +26,7 @@ public class EinkScreenOnyx implements EinkScreen {
 	private List<Integer> mFrontLineLevels = null;
 	private List<Integer> mWarmLightLevels = null;
 	private UpdateMode mOnyxUpdateMode = UpdateMode.None;
+	private int mExtraDelayFullRefresh = 0;
 
 	@Override
 	public void setupController(EinkUpdateMode mode, int updateInterval, View view) {
@@ -42,6 +43,13 @@ public class EinkScreenOnyx implements EinkScreen {
 			case Rk33xx:
 			case SDM:
 				onyxFastUpdateMode = UpdateMode.DU_QUALITY;
+				break;
+		}
+		switch (Device.currentDeviceIndex()) {
+			// TODO: check other ONYX devices & platforms
+			case SDM:
+				// Hack, use additional delay before full screen update
+				mExtraDelayFullRefresh = 20;
 				break;
 		}
 		switch (mode) {
@@ -72,7 +80,7 @@ public class EinkScreenOnyx implements EinkScreen {
 					onyxEnableA2Mode(view, false);
 					mInA2Mode = false;
 				}
-				// Enable fast mode (not implemented on RK3026, not tested)
+				// Enable fast mode (not implemented on RK3026)
 				if (!mInFastMode) {
 					EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), true, true, UpdateMode.DU_QUALITY, Integer.MAX_VALUE);
 					mInFastMode = true;
@@ -111,14 +119,13 @@ public class EinkScreenOnyx implements EinkScreen {
 			mRefreshNumber++;
 			if (mRefreshNumber >= mUpdateInterval) {
 				mRefreshNumber = 0;
-				onyxRepaintEveryThing(view, false);
 				return;
 			}
 		}
 		if (mRefreshNumber > 0 || mUpdateInterval == 0) {
 			EpdController.setViewDefaultUpdateMode(view, mOnyxUpdateMode);
 			if (Device.DeviceIndex.Rk32xx == Device.currentDeviceIndex()) {
-				// I don't know what exactly this line does, but without it, the image on rk3288 will not updated.
+				// Hack, without it, the image on rk3288 will not updated.
 				// Found by brute force.
 				EpdController.byPass(0);
 			}
@@ -127,7 +134,21 @@ public class EinkScreenOnyx implements EinkScreen {
 
 	@Override
 	public void updateController(View view, boolean isPartially) {
-		// do nothing...
+		if (0 == mRefreshNumber && mUpdateInterval > 0) {
+			if (mExtraDelayFullRefresh > 0) {
+				// Hack, on ONYX devices with SDM platform without this delay full screen refresh runs too early
+				// (before new page appears on screen)
+				// This functions called after android.view.SurfaceHolder.unlockCanvasAndPost()
+				//   See https://developer.android.com/reference/android/view/SurfaceHolder#unlockCanvasAndPost(android.graphics.Canvas)
+				// which guarantees that by this time the new image will be on the screen
+				// But in fact on com.onyx.android.sdk.device.Device.DeviceIndex.SDM need extra delay.
+				try {
+					Thread.sleep(mExtraDelayFullRefresh);
+				} catch (InterruptedException ignored) {
+				}
+			}
+			onyxRepaintEveryThing(view, false);
+		}
 	}
 
 	@Override
