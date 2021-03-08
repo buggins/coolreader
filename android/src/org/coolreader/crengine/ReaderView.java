@@ -28,6 +28,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.text.ClipboardManager;
 import android.util.Log;
 import android.util.SparseArray;
@@ -121,7 +122,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		public void onWindowVisibilityChanged(int visibility) {
 			if (visibility == VISIBLE) {
 				if (DeviceInfo.EINK_SCREEN)
-					mActivity.getEinkScreen().refreshScreen(surface);
+					mEinkScreen.refreshScreen(surface);
 				startStats();
 				checkSize();
 			} else
@@ -133,7 +134,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		public void onWindowFocusChanged(boolean hasWindowFocus) {
 			if (hasWindowFocus) {
 				if (DeviceInfo.EINK_SCREEN)
-					BackgroundThread.instance().postGUI(() -> mActivity.getEinkScreen().refreshScreen(surface), 400);
+					BackgroundThread.instance().postGUI(() -> mEinkScreen.refreshScreen(surface), 400);
 				startStats();
 				checkSize();
 			} else
@@ -4064,7 +4065,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			Canvas canvas = null;
 			long startTs = android.os.SystemClock.uptimeMillis();
 			try {
-				canvas = holder.lockCanvas(rc);
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+					canvas = holder.lockHardwareCanvas();
+				else
+					canvas = holder.lockCanvas(rc);
 				//log.v("before draw(canvas)");
 				if (canvas != null) {
 					if (DeviceInfo.EINK_SCREEN) {
@@ -4073,10 +4077,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 						mEinkScreen.prepareController(surface, isPartially);
 					}
 					callback.drawTo(canvas);
-					if (DeviceInfo.EINK_SCREEN) {
-						// post draw update
-						mEinkScreen.updateController(surface, isPartially);
-					}
 				}
 			} finally {
 				//log.v("exiting finally");
@@ -4088,6 +4088,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 						long endTs = android.os.SystemClock.uptimeMillis();
 						updateAnimationDurationStats(endTs - startTs);
 						//}
+						if (DeviceInfo.EINK_SCREEN) {
+							// post draw update
+							mEinkScreen.updateController(surface, isPartially);
+						}
 					}
 					//log.v("after unlockCanvasAndPost");
 				}
