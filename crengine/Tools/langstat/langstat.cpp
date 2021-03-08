@@ -71,8 +71,8 @@ void MakeStats()
    MakeStatsForFile( BASE_DIR "es2-utf8.txt", "utf8", "ee", 2, f, list );
    MakeStatsForFile( BASE_DIR "ee3-cp775.txt", "cp775", "ee", 1, f, list );
    MakeStatsForFile( BASE_DIR "es3-cp1257.txt", "cp1257", "ee", 2, f, list );
-   MakeStatsForFile( BASE_DIR "gr1-cp1253.txt", "cp1253", "gr", 1, f, list );
-   MakeStatsForFile( BASE_DIR "gr1-cp737.txt", "cp737", "gr", 1, f, list );
+   MakeStatsForFile( BASE_DIR "gr1-cp1253.txt", "cp1253", "el", 1, f, list );
+   MakeStatsForFile( BASE_DIR "gr1-cp737.txt", "cp737", "el", 1, f, list );
    MakeStatsForFile( BASE_DIR "lit1-cp1257.txt", "cp1257", "lit", 1, f, list );
    MakeStatsForFile( BASE_DIR "lat1-cp1257.txt", "cp1257", "lat", 1, f, list );
     
