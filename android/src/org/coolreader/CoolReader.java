@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
+import android.speech.tts.TextToSpeech;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,12 +52,13 @@ import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
+import org.coolreader.crengine.TTSToolbarDlg;
 import org.coolreader.crengine.Utils;
 import org.coolreader.donations.CRDonationService;
 import org.coolreader.sync2.OnSyncStatusListener;
 import org.coolreader.sync2.Synchronizer;
 import org.coolreader.sync2.googledrive.GoogleDriveRemoteAccess;
-import org.coolreader.tts.TTS;
+import org.coolreader.tts.OnTTSCreatedListener;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import java.io.File;
@@ -291,18 +293,8 @@ public class CoolReader extends BaseActivity {
 			if (mBrowser != null)
 				mBrowser.setCoverPageFontFace(value);
 		} else if (key.equals(PROP_APP_COVERPAGE_SIZE)) {
-			int n = 0;
-			try {
-				n = Integer.parseInt(value);
-			} catch (NumberFormatException e) {
-				// ignore
-			}
-			if (n < 0)
-				n = 0;
-			else if (n > 2)
-				n = 2;
 			if (mBrowser != null)
-				mBrowser.setCoverPageSizeOption(n);
+				mBrowser.setCoverPageSizeOption(Utils.parseInt(value, 0, 0, 2));
 		} else if (key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE)) {
 			if (mBrowser != null)
 				mBrowser.setSimpleViewMode(flg);
@@ -336,35 +328,32 @@ public class CoolReader extends BaseActivity {
 			}
 		} else if (key.equals(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD)) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-				int n = 0;
-				try {
-					n = Integer.parseInt(value);
-				} catch (NumberFormatException e) {
-					// ignore
-				}
-				if (n < 0)
-					n = 0;
-				else if (n > 30)
-					n = 30;
-				mSyncGoogleDriveAutoSavePeriod = n;
+				mSyncGoogleDriveAutoSavePeriod = Utils.parseInt(value, 0, 0, 30);
 				updateGoogleDriveSynchronizer();
 			}
 		} else if (key.equals(PROP_APP_CLOUDSYNC_DATA_KEEPALIVE)) {
-			int n = 0;
-			try {
-				n = Integer.parseInt(value);
-			} catch (NumberFormatException e) {
-				// ignore
-			}
-			if (n < 0)
-				n = 0;
-			else if (n > 365)
-				n = 365;
-			mCloudSyncBookmarksKeepAlive = n;
+			mCloudSyncBookmarksKeepAlive = Utils.parseInt(value, 14, 0, 365);
 			updateGoogleDriveSynchronizer();
 		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES)) {
 			if (null != mBrowser) {
 				mBrowser.setHideEmptyGenres(flg);
+			}
+		} else if (key.equals(PROP_APP_TTS_ENGINE)) {
+			ttsEnginePackage = value;
+			if (null != mReaderView && mReaderView.isTTSActive() && null != tts) {
+				// Stop current TTS process & create new
+				mReaderView.stopTTS();
+				if (tts != null) {
+					// Cleanup previous TTS
+					tts.shutdown();
+					tts = null;
+					ttsInitialized = false;
+					ttsError = false;
+				}
+				initTTS(tts -> {
+					TTSToolbarDlg dlg = mReaderView.getTTSToolbar();
+					dlg.changeTTS(tts);
+				});
 			}
 		}
 		//
@@ -1621,18 +1610,15 @@ public class CoolReader extends BaseActivity {
 
 	// ========================================================================================
 	// TTS
-	TTS tts;
-	boolean ttsInitialized;
-	boolean ttsError;
+	private TextToSpeech tts;
+	private boolean ttsInitialized;
+	private boolean ttsError;
+	private String ttsEnginePackage;
+	private Timer initTTSTimer;
 
-	public boolean initTTS(final TTS.OnTTSCreatedListener listener) {
-		if (ttsError || !TTS.isFound()) {
-			if (!ttsError) {
-				ttsError = true;
-				showToast("TTS is not available");
-			}
-			return false;
-		}
+	private final static long INIT_TTS_TIMEOUT = 10000;		// 10 sec.
+
+	public boolean initTTS(final OnTTSCreatedListener listener) {
 		if (!phoneStateChangeHandlerInstalled) {
 			boolean readPhoneStateIsAvailable;
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -1659,25 +1645,42 @@ public class CoolReader extends BaseActivity {
 			BackgroundThread.instance().executeGUI(() -> listener.onCreated(tts));
 			return true;
 		}
-		if (ttsInitialized && tts != null) {
-			showToast("TTS initialization is already called");
-			return false;
-		}
 		showToast("Initializing TTS");
-		tts = new TTS(this, status -> {
+		TextToSpeech.OnInitListener onInitListener = status -> {
 			//tts.shutdown();
+			initTTSTimer.cancel();
+			initTTSTimer = null;
 			L.i("TTS init status: " + status);
-			if (status == TTS.SUCCESS) {
+			if (status == TextToSpeech.SUCCESS) {
 				ttsInitialized = true;
 				BackgroundThread.instance().executeGUI(() -> listener.onCreated(tts));
 			} else {
 				ttsError = true;
 				BackgroundThread.instance().executeGUI(() -> showToast("Cannot initialize TTS"));
 			}
-		});
+		};
+		if (Build.VERSION.SDK_INT > Build.VERSION_CODES.ICE_CREAM_SANDWICH && null != ttsEnginePackage && ttsEnginePackage.length() > 0)
+			tts = new TextToSpeech(this, onInitListener, ttsEnginePackage);
+		else
+			tts = new TextToSpeech(this, onInitListener);
+		initTTSTimer = new Timer();
+		initTTSTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				// TTS engine init hangs, remove it from settings
+				log.e("TTS engine \"" + ttsEnginePackage + "\" init failure, disabling!");
+				BackgroundThread.instance().executeGUI(() -> showToast(R.string.tts_init_failure, ttsEnginePackage));
+				setSetting(PROP_APP_TTS_ENGINE, "", false);
+				ttsEnginePackage = "";
+				try {
+					mReaderView.getTTSToolbar().stopAndClose();
+				} catch (Exception ignored) {}
+				initTTSTimer.cancel();
+				initTTSTimer = null;
+			}
+		}, INIT_TTS_TIMEOUT);
 		return true;
 	}
-
 
 	// ============================================================
 	private AudioManager am;
@@ -1710,7 +1713,7 @@ public class CoolReader extends BaseActivity {
 		BackgroundThread.instance().postBackground(() -> {
 			final String[] mFontFaces = Engine.getFontFaceList();
 			BackgroundThread.instance().executeGUI(() -> {
-				OptionsDialog dlg = new OptionsDialog(CoolReader.this, mReaderView, mFontFaces, mode);
+				OptionsDialog dlg = new OptionsDialog(CoolReader.this, mode, mReaderView, mFontFaces, null);
 				dlg.show();
 			});
 		});

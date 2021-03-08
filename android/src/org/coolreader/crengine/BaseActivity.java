@@ -1261,16 +1261,6 @@ public class BaseActivity extends Activity implements Settings {
 	private static final Locale defaultLocale = Locale.getDefault();
 
 
-	static public int stringToInt(String value, int defValue) {
-		if (value == null)
-			return defValue;
-		try {
-			return Integer.valueOf(value);
-		} catch (NumberFormatException e) {
-			return defValue;
-		}
-	}
-
 	public void applyAppSetting(String key, String value) {
 		boolean flg = "1".equals(value);
 		if (key.equals(PROP_APP_FULLSCREEN)) {
@@ -1280,39 +1270,23 @@ public class BaseActivity extends Activity implements Settings {
 		} else if (key.equals(PROP_APP_KEY_BACKLIGHT_OFF)) {
 			setKeyBacklightDisabled(flg);
 		} else if (key.equals(PROP_APP_SCREEN_BACKLIGHT_LOCK)) {
-			int n = 0;
-			try {
-				n = Integer.parseInt(value);
-			} catch (NumberFormatException e) {
-				// ignore
-			}
-			setScreenBacklightDuration(n);
+			setScreenBacklightDuration(Utils.parseInt(value, 0));
 		} else if (key.equals(PROP_NIGHT_MODE)) {
 			setNightMode(flg);
 		} else if (key.equals(PROP_APP_SCREEN_UPDATE_MODE)) {
-			setScreenUpdateMode(EinkScreen.EinkUpdateMode.byCode(stringToInt(value, 0)), getContentView());
+			setScreenUpdateMode(EinkScreen.EinkUpdateMode.byCode(Utils.parseInt(value, 0)), getContentView());
 		} else if (key.equals(PROP_APP_SCREEN_UPDATE_INTERVAL)) {
-			setScreenUpdateInterval(stringToInt(value, 10), getContentView());
+			setScreenUpdateInterval(Utils.parseInt(value, 10), getContentView());
 		} else if (key.equals(PROP_APP_THEME)) {
 			setCurrentTheme(value);
 		} else if (key.equals(PROP_APP_SCREEN_ORIENTATION)) {
-			int orientation = 0;
-			try {
-				orientation = Integer.parseInt(value);
-			} catch (NumberFormatException e) {
-				// ignore
-			}
-			setScreenOrientation(orientation);
+			setScreenOrientation(Utils.parseInt(value, 0));
 		} else if (PROP_APP_SCREEN_BACKLIGHT.equals(key) && !DeviceInfo.EINK_SCREEN) {
-			try {
-				final int n = Integer.valueOf(value);
-				// delay before setting brightness
-				BackgroundThread.instance().postGUI(() -> BackgroundThread.instance()
-						.postBackground(() -> BackgroundThread.instance()
-								.postGUI(() -> setScreenBacklightLevel(n))), 100);
-			} catch (Exception e) {
-				// ignore
-			}
+			final int n = Utils.parseInt(value, -1, -1, 100);
+			// delay before setting brightness
+			BackgroundThread.instance().postGUI(() -> BackgroundThread.instance()
+					.postBackground(() -> BackgroundThread.instance()
+							.postGUI(() -> setScreenBacklightLevel(n))), 100);
 		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS)) {
 			Services.getScanner().setHideEmptyDirs(flg);
 		}
@@ -1429,7 +1403,7 @@ public class BaseActivity extends Activity implements Settings {
 	}
 
 	public void showBrowserOptionsDialog() {
-		OptionsDialog dlg = new OptionsDialog(BaseActivity.this, null, null, OptionsDialog.Mode.BROWSER);
+		OptionsDialog dlg = new OptionsDialog(BaseActivity.this, OptionsDialog.Mode.BROWSER, null, null, null);
 		dlg.show();
 	}
 

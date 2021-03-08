@@ -6853,7 +6853,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                     props->getIntDef(PROP_PAGE_VIEW_MODE, 1) ? DVM_PAGES
                                                              : DVM_SCROLL;
             setViewMode(m);
-        } else if (name == PROP_PAGE_VIEW_MODE) {
+        } else if (name == PROP_CACHE_VALIDATION_ENABLED) {
             bool value = props->getBoolDef(PROP_CACHE_VALIDATION_ENABLED, true);
             enableCacheFileContentsValidation(value);
         } else {
