@@ -22,6 +22,7 @@ import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.TextView;
 
 import com.s_trace.motion_watchdog.HandlerThread;
 import com.s_trace.motion_watchdog.MotionWatchdogHandler;
@@ -51,6 +52,8 @@ public class TTSToolbarDlg implements Settings {
 	private TextToSpeech mTTS;
 	private TTSControlServiceAccessor mTTSControl;
 	private ImageButton mPlayPauseButton;
+	private TextView mVolumeTextView;
+	private TextView mSpeedTextView;
 	private SeekBar mSbSpeed;
 	private SeekBar mSbVolume;
 	private HandlerThread mMotionWatchdog;
@@ -300,7 +303,7 @@ public class TTSToolbarDlg implements Settings {
 		mSbSpeed.setProgress(mTTSSpeedPercent);
 	}
 
-	public void processAppSetting(String key, String value) {
+	private void processAppSetting(String key, String value) {
 		boolean flg = "1".equals(value);
 		switch (key) {
 			case PROP_APP_MOTION_TIMEOUT:
@@ -603,25 +606,32 @@ public class TTSToolbarDlg implements Settings {
 		setReaderMode();
 
 		// setup speed && volume seek bars
+		int volume = mCoolReader.getVolume();
+		mVolumeTextView = panel.findViewById(R.id.tts_lbl_volume);
+		mVolumeTextView.setText(String.format(Locale.getDefault(), "%s (%d%%)", context.getString(R.string.tts_volume), volume));
+		mSpeedTextView = panel.findViewById(R.id.tts_lbl_speed);
+		mSpeedTextView.setText(String.format(Locale.getDefault(), "%s (x%.2f)", context.getString(R.string.tts_rate), speechRateFromPercent(50)));
+
 		mSbSpeed = panel.findViewById(R.id.tts_sb_speed);
 		mSbVolume = panel.findViewById(R.id.tts_sb_volume);
 
 		mSbSpeed.setMax(100);
 		mSbSpeed.setProgress(50);
 		mSbVolume.setMax(100);
-		mSbVolume.setProgress(mCoolReader.getVolume());
+		mSbVolume.setProgress(volume);
 		mSbSpeed.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-				// round to a multiple of 10
-				int roundedVal = 10*((progress + 5)/10);
+				// round to a multiple of 5
+				int roundedVal = 5*(progress/5);
 				if (progress != roundedVal) {
 					mSbSpeed.setProgress(roundedVal);
 					return;
 				}
 				mTTSSpeedPercent = progress;
 				mTTS.setSpeechRate(speechRateFromPercent(mTTSSpeedPercent));
+				mSpeedTextView.setText(String.format(Locale.getDefault(), "%s (x%.2f)", context.getString(R.string.tts_rate), speechRateFromPercent(progress)));
 			}
 
 			@Override
@@ -638,6 +648,7 @@ public class TTSToolbarDlg implements Settings {
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
 				mCoolReader.setVolume(progress);
+				mVolumeTextView.setText(String.format(Locale.getDefault(), "%s (%d%%)", context.getString(R.string.tts_volume), progress));
 			}
 
 			@Override
