@@ -55,8 +55,8 @@ public class FileInfo {
 	public String username; // username for online catalogs
 	public String password; // password for online catalogs
 	public DocumentFormat format;
-	public int size; // full file size
-	public int arcsize; // compressed size
+	public long size; // full file size
+	public long arcsize; // compressed size
 	public long createTime;
 	public long lastAccessTime;
 	public int flags;
@@ -234,7 +234,7 @@ public class FileInfo {
 			path = f.getPath();
 			File arc = new File(arcname);
 			if (arc.isFile() && arc.exists()) {
-				arcsize = (int)arc.length();
+				arcsize = arc.length();
 				isArchive = true;
 				try {
 					//ZipFile zip = new ZipFile(new File(arcname));
@@ -248,8 +248,8 @@ public class FileInfo {
 							filename = itemf.getName();
 							path = itemf.getPath();
 							format = DocumentFormat.byExtension(name);
-							size = (int)entry.getSize();
-							arcsize = (int)entry.getCompressedSize();
+							size = entry.getSize();
+							//arcsize = entry.getCompressedSize();
 							createTime = entry.getTime();
 							domVersion = Engine.DOM_VERSION_CURRENT;
 							blockRenderingFlags = Engine.BLOCK_RENDERING_FLAGS_WEB;
@@ -280,7 +280,7 @@ public class FileInfo {
 			pathname = f.getAbsolutePath();
 			format = fmt;
 			createTime = f.lastModified();
-			size = (int)f.length();
+			size = f.length();
 			domVersion = Engine.DOM_VERSION_CURRENT;
 			blockRenderingFlags = Engine.BLOCK_RENDERING_FLAGS_WEB;
 		} else {
@@ -1121,7 +1121,7 @@ public class FileInfo {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((arcname == null) ? 0 : arcname.hashCode());
-		result = prime * result + arcsize;
+		result = prime * result + (int)arcsize;
 		result = prime * result + ((authors == null) ? 0 : authors.hashCode());
 		result = prime * result + (int) (createTime ^ (createTime >>> 32));
 		result = prime * result + ((dirs == null) ? 0 : dirs.hashCode());
@@ -1144,7 +1144,7 @@ public class FileInfo {
 				+ ((pathname == null) ? 0 : pathname.hashCode());
 		result = prime * result + ((series == null) ? 0 : series.hashCode());
 		result = prime * result + seriesNumber;
-		result = prime * result + size;
+		result = prime * result + (int)size;
 		result = prime * result + ((title == null) ? 0 : title.hashCode());
 		return result;
 	}

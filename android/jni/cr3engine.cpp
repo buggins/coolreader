@@ -104,7 +104,7 @@ public:
     lString32 title;
     lString32 author;
     lString32 series;
-    int filesize;
+    long filesize;
     lString32 filedate;
     int seriesNumber;
     lString32 language;
@@ -336,7 +336,7 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
     time_t t = (time_t)time(0);
 
     if ( isArchiveFile ) {
-        int arcsize = (int)stream->GetSize();
+		lvsize_t arcsize = stream->GetSize();
         LVContainerRef container = LVOpenArchieve(stream);
         if ( container.isNull() ) {
             CRLog::error( "Cannot read archive contents from %s", LCSTR(arcPathName) );

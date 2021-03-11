@@ -60,11 +60,11 @@ public class Scanner extends FileInfoChangeSource {
 				item.filename = f.getName();
 				item.path = f.getPath();
 				item.pathname = entry.getName();
-				item.size = (int)entry.getSize();
+				item.size = entry.getSize();
 				//item.createTime = entry.getTime();
 				item.createTime = zf.lastModified();
 				item.arcname = zip.pathname;
-				//item.arcsize = (int)entry.getCompressedSize();
+				//item.arcsize = entry.getCompressedSize();
 				item.arcsize = zip.size;
 				item.isArchive = true;
 				items.add(item);

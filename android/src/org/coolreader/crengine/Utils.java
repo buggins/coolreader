@@ -555,6 +555,23 @@ public class Utils {
 		else
 			return String.valueOf(size/1000000) + "M";
 	}
+	public static String formatSize( long size )
+	{
+		if ( size==0 )
+			return "";
+		if ( size<10000 )
+			return String.valueOf(size);
+		else if ( size<1000000 )
+			return String.valueOf(size/1000) + "K";
+		else if ( size<10000000 )		// < 10M
+			return String.valueOf(size/1000000) + "." + String.valueOf(size%1000000/100000) + "M";
+		else if ( size<1000000000 )		// < 1G
+			return String.valueOf(size/1000000) + "M";
+		else if ( size<10000000000L )	// < 10G
+			return String.valueOf(size/1000000000L) + "." + String.valueOf(size%1000000000L/100000000L) + "G";
+		else
+			return String.valueOf(size/1000000000L) + "G";
+	}
 
 	public static String formatFileInfo(Activity activity, FileInfo item) {
 		return formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(activity, item.createTime);
