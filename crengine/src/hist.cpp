@@ -242,9 +242,12 @@ public:
         case in_filepath:
             _curr_file->setFilePath( txt );
             break;
-        case in_filesize:
-            _curr_file->setFileSize( txt.atoi() );
+        case in_filesize: {
+            lInt64 size = 0;
+            if (txt.atoi(size))
+                _curr_file->setFileSize( size );
             break;
+        }
         case in_dom_version:
             _curr_file->setDOMversion( txt.atoi() );
             break;

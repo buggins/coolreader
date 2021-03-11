@@ -187,7 +187,9 @@
 /** \def LVLONG_FILE_SUPPORT
     \brief define to 1 to use 64 bits for file position types
 */
+#ifndef LVLONG_FILE_SUPPORT
 #define LVLONG_FILE_SUPPORT 0
+#endif
 
 //#define USE_ANSI_FILES 1
 
