@@ -240,7 +240,7 @@ public class Utils {
 	private static boolean deleteFolderDocTree_impl(FileInfo folder, Context context, Uri sdCardUri, FileInfoOperationListener bookDeleteCallback) {
 		boolean res = true;
 		Scanner scanner = Services.getScanner();
-		scanner.listDirectory(folder, false);
+		scanner.listDirectory(folder, false, false);
 		DocumentFile documentFile;
 		int i;
 		for (i = 0; i < folder.dirCount(); i++) {
@@ -276,7 +276,7 @@ public class Utils {
 	private static boolean deleteFolder_impl(FileInfo folder, FileInfoOperationListener bookDeleteCallback) {
 		boolean res = true;
 		Scanner scanner = Services.getScanner();
-		scanner.listDirectory(folder, false);
+		scanner.listDirectory(folder, false, false);
 		int i;
 		// delete recursively all child folders
 		for (i = 0; i < folder.dirCount(); i++) {
