@@ -1288,8 +1288,8 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     if ( !item )
                         break;
                     EpubItem * epubItem = epubItems.findById( item->getAttributeValue("idref") );
-                    epubItem->nonlinear = lString32(item->getAttributeValue("linear")).lowercase() == U"no";
                     if ( epubItem ) {
+                        epubItem->nonlinear = lString32(item->getAttributeValue("linear")).lowercase() == U"no";
                         // TODO: add to document
                         spineItems.add( epubItem );
                     }
