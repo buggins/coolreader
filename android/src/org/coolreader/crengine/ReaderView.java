@@ -452,6 +452,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		Bookmark bmk = getCurrentPositionBookmark();
 		if (bmk != null)
 			savePositionBookmark(bmk);
+		if (!mAvgDrawAnimationStats.isEmpty())
+			setSetting(PROP_APP_VIEW_ANIM_DURATION, String.valueOf(mAvgDrawAnimationStats.average()), false, true, false);
 		log.i("calling bookView.onPause()");
 		bookView.onPause();
 	}
@@ -2830,6 +2832,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			mSelectionAction = Utils.parseInt(value, SELECTION_ACTION_TOOLBAR);
 		} else if (PROP_APP_MULTI_SELECTION_ACTION.equals(key)) {
 			mMultiSelectionAction = Utils.parseInt(value, SELECTION_ACTION_TOOLBAR);
+		} else if (PROP_APP_VIEW_ANIM_DURATION.equals(key)) {
+			mAvgDrawAnimationStats.fill(Utils.parseInt(value, 50));
 		} else {
 			//mActivity.applyAppSetting(key, value);
 		}
@@ -4811,12 +4815,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	private static final class RingBuffer {
-		private long [] mArray;
+		private final long [] mArray;
 		private long mSum;
 		private long mAvg;
 		private int mPos;
 		private int mCount;
-		private int mSize;
+		private final int mSize;
 
 		public RingBuffer(int size, long initialAvg) {
 			mSize = size;
@@ -4843,9 +4847,22 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			if (mPos >= mSize)
 				mPos = 0;
 		}
+
+		public boolean isEmpty() {
+			return 0 == mCount;
+		}
+
+		public void fill(long value) {
+			mPos = 0;
+			mCount = 0;
+			mSum = 0;
+			for (int i = 0; i < mSize; i++) {
+				add(value);
+			}
+		}
 	}
 
-	RingBuffer mAvgDrawAnimationStats = new RingBuffer(16, 50);
+	private final RingBuffer mAvgDrawAnimationStats = new RingBuffer(16, 50);
 
 	private long getAvgAnimationDrawDuration() {
 		return mAvgDrawAnimationStats.average();
