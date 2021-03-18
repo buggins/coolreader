@@ -10158,10 +10158,11 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
     int lastSpaceWidth = 0; // trailing spaces width to remove
     // These do not need to be passed by reference, as they are only valid for inner nodes/calls
     int indent = 0;         // text-indent: used on first text, and set again on <BR/>
+    bool nowrap = false;    // from upper node's white-space
     bool isStartNode = true; // we are starting measurement on that node
     // Start measurements and recursions:
     getRenderedWidths(node, maxWidth, minWidth, direction, ignoreMargin, rendFlags,
-        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, NULL, false, isStartNode);
+        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, nowrap, NULL, false, isStartNode);
     // We took more care with including side bearings into minWidth when considering
     // single words, than into maxWidth: so trust minWidth if larger than maxWidth.
     if ( maxWidth < minWidth)
@@ -10170,7 +10171,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
 
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction, bool ignoreMargin, int rendFlags,
     int &curMaxWidth, int &curWordWidth, bool &collapseNextSpace, int &lastSpaceWidth,
-    int indent, TextLangCfg * lang_cfg, bool processNodeAsText, bool isStartNode)
+    int indent, bool nowrap, TextLangCfg * lang_cfg, bool processNodeAsText, bool isStartNode)
 {
     // This does mostly what renderBlockElement, renderFinalBlock and lvtextfm.cpp
     // do, but only with widths and horizontal margin/border/padding and indent
@@ -10211,6 +10212,11 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
 
         css_style_ref_t style = node->getStyle();
 
+        // nowrap to provide to children (only useful when inside erm_final, between erm_inline and text nodes)
+        bool nowrap_in = (style->white_space == css_ws_nowrap) || (style->white_space == css_ws_pre);
+            // When getting min width, ensure non free wrap for "white-space: pre" (even if we
+            // don't when rendering). Others like "pre-wrap" and "pre-line" are allowed to wrap.
+
         // Get image size early
         bool is_img = false;
         int img_width = 0;
@@ -10230,20 +10236,6 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         }
 
         if (m == erm_inline) {
-            if ( is_img ) {
-                // Get done with previous word
-                if (curWordWidth > minWidth)
-                    minWidth = curWordWidth;
-                curWordWidth = 0;
-                collapseNextSpace = false;
-                lastSpaceWidth = 0;
-                if (img_width > 0) { // inline img with a fixed width
-                    maxWidth += img_width;
-                    if (img_width > minWidth)
-                        minWidth = img_width;
-                }
-                return;
-            }
             if ( nodeElementId == el_br ) {
                 #ifdef DEBUG_GETRENDEREDWIDTHS
                     printf("GRW: BR\n");
@@ -10266,27 +10258,41 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 lastSpaceWidth = 0;
                 return;
             }
-            if ( node->isBoxingInlineBox() ) {
-                // Get done with previous word
-                if (curWordWidth > minWidth)
-                    minWidth = curWordWidth;
-                curWordWidth = 0;
+            if ( is_img || node->isBoxingInlineBox() ) {
+                if (!nowrap) {
+                    // Get done with previous word
+                    if (curWordWidth > minWidth)
+                        minWidth = curWordWidth;
+                    curWordWidth = 0;
+                }
                 collapseNextSpace = false;
                 lastSpaceWidth = 0;
-                // Get the rendered width of the inlineBox
                 int _maxw = 0;
                 int _minw = 0;
-                getRenderedWidths(node, _maxw, _minw, direction, false, rendFlags);
+                if ( is_img && img_width > 0) {
+                    // Inline img with a fixed width
+                    _maxw = img_width;
+                    _minw = img_width;
+                }
+                else {
+                    // Get the rendered width of the inlineBox
+                    getRenderedWidths(node, _maxw, _minw, direction, false, rendFlags);
+                }
                 curMaxWidth += _maxw;
-                if (_minw > minWidth)
-                    minWidth = _minw;
+                if (nowrap) {
+                    curWordWidth += _minw;
+                }
+                else {
+                    if (_minw > minWidth)
+                        minWidth = _minw;
+                }
                 return;
             }
             if ( nodeElementId == el_pseudoElem ) {
                 // pseudoElem has no children: reprocess this same node
                 // with processNodeAsText=true, to process its text content.
                 getRenderedWidths(node, maxWidth, minWidth, direction, false, rendFlags,
-                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg, true);
+                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, nowrap_in, lang_cfg, true);
                 return;
             }
             // Contains only other inline or text nodes:
@@ -10296,7 +10302,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 // Nothing more to do with inline elements: they just carry some
                 // styles that will be grabbed by children text nodes
                 getRenderedWidths(child, maxWidth, minWidth, direction, false, rendFlags,
-                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg);
+                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, nowrap_in, lang_cfg);
             }
             return;
         }
@@ -10408,14 +10414,14 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 for (int i = 0; i < node->getChildCount(); i++) {
                     ldomNode * child = node->getChildNode(i);
                     getRenderedWidths(child, _maxWidth, _minWidth, direction, false, rendFlags,
-                        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg);
+                        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, nowrap_in, lang_cfg);
                     // A <BR/> can happen deep among our children, so we deal with that when erm_inline above
                 }
                 if ( nodeElementId == el_pseudoElem ) {
                     // erm_final pseudoElem (which has no children): reprocess this same
                     // node with processNodeAsText=true, to process its text content.
                     getRenderedWidths(node, _maxWidth, _minWidth, direction, false, rendFlags,
-                        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg, true);
+                        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, nowrap_in, lang_cfg, true);
                 }
                 if (lastSpaceWidth)
                     curMaxWidth -= lastSpaceWidth;
@@ -10491,7 +10497,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                                 bool _collapseNextSpace = true;
                                 int _lastSpaceWidth = 0;
                                 getRenderedWidths(child, _maxw, _minw, direction, false, rendFlags,
-                                    _curMaxWidth, _curWordWidth, _collapseNextSpace, _lastSpaceWidth, indent, lang_cfg);
+                                    _curMaxWidth, _curWordWidth, _collapseNextSpace, _lastSpaceWidth, indent, nowrap_in, lang_cfg);
                                 int cspan = StrToIntPercent( child->getAttributeValue(attr_colspan).c_str() );
                                 if ( !cspan ) { // 0 if no attribute
                                     // also check obsolete rbspan attribute for <ruby> tables
@@ -10522,7 +10528,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                             bool _collapseNextSpace = true;
                             int _lastSpaceWidth = 0;
                             getRenderedWidths(n, _maxw, _minw, direction, false, rendFlags,
-                                _curMaxWidth, _curWordWidth, _collapseNextSpace, _lastSpaceWidth, indent, lang_cfg);
+                                _curMaxWidth, _curWordWidth, _collapseNextSpace, _lastSpaceWidth, indent, nowrap_in, lang_cfg);
                             if ( _minw > caption_min_width )
                                 caption_min_width = _minw;
                             if ( _maxw > caption_max_width )
@@ -10672,7 +10678,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     continue;
                 }
                 getRenderedWidths(child, _maxw, _minw, direction, false, rendFlags,
-                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg);
+                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, nowrap_in, lang_cfg);
                 if (_maxw > _maxWidth)
                     _maxWidth = _maxw;
                 if (_minw > _minWidth)
@@ -10877,10 +10883,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             case css_tt_inherit:
                 break;
         }
-        // white-space
-        // When getting min width, ensure non free wrap for "white-space: pre" (even if we
-        // don't when rendering). Others like "pre-wrap" and "pre-line" are allowed to wrap.
-        bool nowrap = (parent_style->white_space == css_ws_nowrap) || (parent_style->white_space == css_ws_pre);
+        // white-space (nowrap provided by parent with sub-call)
         bool pre = parent_style->white_space >= css_ws_pre;
         int space_width_scale_percent = pre ? 100 : parent->getDocument()->getSpaceWidthScalePercent();
 
@@ -11059,7 +11062,6 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             }
             #else // not USE_LIBUNIBREAK==1
             // (This has not been updated to handle nowrap & pre)
-            (void)nowrap; // avoid clang warning: value stored is never read
             for (int i=0; i<chars_measured; i++) {
                 int w = widths[i] - (i>0 ? widths[i-1] : 0);
                 lChar32 c = *(txt + start + i);

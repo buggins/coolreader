@@ -153,7 +153,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
 // full function for recursive use:
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction, bool ignorePadding, int rendFlags,
             int &curMaxWidth, int &curWordWidth, bool &collapseNextSpace, int &lastSpaceWidth,
-            int indent, TextLangCfg * lang_cfg, bool processNodeAsText=false, bool isStartNode=false);
+            int indent, bool nowrap, TextLangCfg * lang_cfg, bool processNodeAsText=false, bool isStartNode=false);
 // simpler function for first call:
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction=REND_DIRECTION_UNSET, bool ignorePadding=false, int rendFlags=0);
 
