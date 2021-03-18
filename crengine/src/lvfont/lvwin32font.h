@@ -176,6 +176,7 @@ public:
                        bool addHyphen, TextLangCfg * lang_cfg = NULL,
                        lUInt32 flags=0, int letter_spacing=0, int width=-1,
                        int text_decoration_back_gap=0,
+                       int target_w=-1, int target_h=-1,
                        lUInt32 fallbackPassMask = 0 );
 
     /** \brief get glyph image in 1 byte per pixel format

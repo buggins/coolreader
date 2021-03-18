@@ -177,6 +177,7 @@ public:
                                bool addHyphen = false, TextLangCfg * lang_cfg = NULL,
                                lUInt32 flags = 0, int letter_spacing = 0,
                                int width = -1, int text_decoration_back_gap = 0,
+                               int target_w=-1, int target_h=-1,
                                lUInt32 fallbackPassMask = 0);
 
     /// get bitmap mode (true=monochrome bitmap, false=antialiased)

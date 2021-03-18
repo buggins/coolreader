@@ -45,6 +45,8 @@ enum shaping_mode_t {
 #define LFNT_HINT_BEGINS_PARAGRAPH       0x0004 /// segment is at start of paragraph
 #define LFNT_HINT_ENDS_PARAGRAPH         0x0008 /// segment is at end of paragraph
 
+#define LFNT_HINT_TRANSFORM_STRETCH      0x0100 /// Glyph(s) are to be stretched so their bounding box fits the provided w/h
+
 // These 4 translate from LTEXT_TD_* equivalents (see lvtextfm.h). Keep them in sync.
 #define LFNT_DRAW_UNDERLINE              0x1000 /// underlined text
 #define LFNT_DRAW_OVERLINE               0x2000 /// overlined text
@@ -349,6 +351,7 @@ public:
                        bool addHyphen = false, TextLangCfg * lang_cfg = NULL,
                        lUInt32 flags=0, int letter_spacing=0, int width=-1,
                        int text_decoration_back_gap=0,
+                       int target_w=-1, int target_h=-1,
                        lUInt32 fallbackPassMask = 0) = 0;
 
     /// constructor

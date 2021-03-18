@@ -302,6 +302,7 @@ int LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
                    lChar32 def_char, lUInt32 * palette, bool addHyphen, TextLangCfg * lang_cfg,
                    lUInt32 flags, int letter_spacing, int width,
                    int text_decoration_back_gap,
+                   int target_w, int target_h,
                    lUInt32 fallbackPassMask )
 {
     if (_hfont==NULL)

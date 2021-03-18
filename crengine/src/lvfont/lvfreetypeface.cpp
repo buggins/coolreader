@@ -1122,6 +1122,152 @@ FT_UInt LVFreeTypeFace::getCharIndex(lUInt32 code, lChar32 def_char) {
     return ch_glyph_index;
 }
 
+void LVFreeTypeFace::DrawStretchedGlyph(LVDrawBuf *buf, int glyph_index, int x, int y, int w, int h, lUInt32 *palette)
+{
+    // This is used for drawing stretched MathML operators,
+    // and we do it the "cheap" way by just scaling the glyph
+    // (which will have the edges of glyphs like '[' or '{'
+    // look blury when scaled a lot on the y-asis only)
+    //
+    // More proper drawing could be done with the help of
+    // the math font OpenType features. See:
+    // Harfbuzz OT math support:
+    //  https://github.com/harfbuzz/harfbuzz/issues/235
+    //  https://github.com/harfbuzz/harfbuzz/issues/2585
+    // Harfbuzz code (not merged) to properly shape/draw stretchy operators:
+    //  https://github.com/fred-wang/harfbuzz/tree/MATH-3
+    //  https://frederic-wang.fr/opentype-math-in-harfbuzz.html
+
+    // We don't want to cache anything about these stretched glyphs
+    glyph_info_t glyph;
+    if ( !getGlyphInfo( glyph_index, &glyph, 0, true ) ) {
+        return; // no glyph
+    }
+
+    if ( glyph.width == 0 || glyph.blackBoxY == 0 ) {
+        return; // blank glyph
+    }
+
+    // Initial idea:
+    // (Best to use the advance instead of the ink width, so that we keep a bit of the original lsb/rsb)
+    // int scale_x = w * 256 / glyph.width; // instead of glyph.blackBoxX
+    // int scale_y = h * 256 / glyph.blackBoxY;
+
+    // But it feels better to try to get this a bit more adjusted:
+    // We want to keep the original glyph lsb/rsb, so they feel naturally adjusted
+    // to neighbours, as when unscaled:
+    int pad_left = glyph.originX > 0 ? glyph.originX : 0;
+    int pad_right = glyph.rsb > 0 ? glyph.rsb : 0;
+    int target_w = w - pad_left - pad_right;
+    // For the height, we can't really trust the font glyphs vertical position
+    // and top/bottom side bearings. So, keep 1px on each side if we are stretching
+    // vertically, but none if we are horizontally stretching (as these are usually
+    // quite thin, and some vertical spacing is already accounted in munder/mover).
+    int pad_top_bottom = h > w ? 1 : 0;
+    int target_h = h - 2*pad_top_bottom;
+
+    // Be sure we don't go negative in our computations
+    if ( target_w <= 0 )
+        target_w = 1;
+    if ( target_h <= 0 )
+        target_h = 1;
+
+    int scale_x = target_w * 256 / glyph.blackBoxX;
+    int scale_y = target_h * 256 / glyph.blackBoxY;
+
+    // Hijack pixel size to let FreeType scale the glyph to our target size
+    int size_x = _size * scale_x / 256;
+    int size_y = _size * scale_y / 256;
+    if ( size_x <= 0 )
+        size_x = 1;
+    if ( size_y <= 0 )
+        size_y = 1;
+    int error = FT_Set_Pixel_Sizes(
+        _face,       /* handle to face object */
+        size_x,      /* pixel_width  */
+        size_y);     /* pixel_height */
+
+    int rend_flags = FT_LOAD_RENDER | ( !_drawMonochrome ? FT_LOAD_TARGET_LIGHT : FT_LOAD_TARGET_MONO );
+    if (_hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR) {
+        rend_flags |= FT_LOAD_NO_AUTOHINT;
+    }
+    else if (_hintingMode == HINTING_MODE_AUTOHINT) {
+        rend_flags |= FT_LOAD_FORCE_AUTOHINT;
+    }
+    else if (_hintingMode == HINTING_MODE_DISABLED) {
+        rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+    }
+    if (_synth_weight > 0 || _italic == 2) { // Don't render yet
+        rend_flags &= ~FT_LOAD_RENDER;
+        // Also disable any hinting, as it would be wrong after embolden.
+        // But it feels this is now fine after switching to FT_LOAD_TARGET_LIGHT.
+        // rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+    }
+    /* load glyph image into the slot (erase previous one) */
+    updateTransform(); // no-op
+    error = FT_Load_Glyph( _face, /* handle to face object */
+            glyph_index,           /* glyph index           */
+            rend_flags );             /* load flags, see below */
+    if ( error == FT_Err_Execution_Too_Long && _hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR ) {
+        // Native hinting bytecode may fail with some bad fonts: try again with no hinting
+        rend_flags |= FT_LOAD_NO_HINTING;
+        error = FT_Load_Glyph( _face, glyph_index, rend_flags );
+    }
+    if ( error ) {
+        return;
+    }
+    if (_synth_weight > 0) {
+        // See setSynthWeight() for details
+        if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
+            FT_Outline_Embolden(&_slot->outline, _synth_weight_strength);
+            FT_Outline_Translate(&_slot->outline, 0, -_synth_weight_half_strength);
+        }
+    }
+    if (_italic==2) {
+        FT_GlyphSlot_Oblique(_slot);
+    }
+    if (_synth_weight > 0 || _italic == 2) {
+        // Render now that transformations are applied
+        FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
+    }
+
+    FT_Bitmap * bitmap = &_slot->bitmap;
+
+    // Position the resulting bitmap in the targeted area (and center the rounding errors)
+    int pad_x = pad_left + (target_w > bitmap->width ? (target_w - bitmap->width)/2 : 0);
+    int pad_y = pad_top_bottom + (target_h > bitmap->rows ? (target_h - bitmap->rows)/2 : 0);
+
+    // This felt needed at some point to draw tall stretchy glyphs, but seems no longer needed
+    // buf->setHidePartialGlyphs(false);
+
+    FontBmpPixelFormat bmp_fmt = getBmpFormat((FT_Pixel_Mode)bitmap->pixel_mode);
+#ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
+    // For ClearType-style LCD rendering we must swap R & B channels (for BGR format)
+    if (font_aa_lcd_bgr == _aa_mode && BMP_PIXEL_FORMAT_RGB == bmp_fmt)
+        bmp_fmt = BMP_PIXEL_FORMAT_BGR;
+    else if (font_aa_lcd_v_bgr == _aa_mode && BMP_PIXEL_FORMAT_RGB_V == bmp_fmt)
+        bmp_fmt = BMP_PIXEL_FORMAT_BGR_V;
+#else
+    // In Harmony LCD rendering R & B channels already swapped (for BGR format)
+#endif
+
+    buf->BlendBitmap(x + pad_x,
+        y + pad_y,
+        bitmap->buffer,
+        bmp_fmt,
+        bitmap->width,
+        bitmap->rows,
+        bitmap->pitch,
+        palette);
+
+    // Restore original pixel size
+    error = FT_Set_Pixel_Sizes(
+        _face,    /* handle to face object */
+        0,        /* pixel_width           */
+        _size );  /* pixel_height          */
+    return;
+}
+
 #if USE_HARFBUZZ == 1
 bool LVFreeTypeFace::setHBFeatureValue(const char *tag, uint32_t value)
 {
@@ -2648,7 +2794,8 @@ bool LVFreeTypeFace::hasOTMathSupport() const {
 
 int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *text, int len,
                                    lChar32 def_char, lUInt32 *palette, bool addHyphen, TextLangCfg *lang_cfg,
-                                    lUInt32 flags, int letter_spacing, int width, int text_decoration_back_gap, lUInt32 fallbackPassMask) {
+                                   lUInt32 flags, int letter_spacing, int width, int text_decoration_back_gap,
+                                   int target_w, int target_h, lUInt32 fallbackPassMask) {
     FONT_GUARD
     if (len <= 0 || _face == NULL)
         return 0;
@@ -2667,7 +2814,9 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
     lvRect clip;
     buf->GetClipRect(&clip);
     updateTransform(); // no-op
-    if (y + _height < clip.top || y >= clip.bottom)
+    bool transform_stretch = flags & LFNT_HINT_TRANSFORM_STRETCH;
+    int text_height = transform_stretch ? target_h : _height;
+    if ( y + text_height < clip.top || y >= clip.bottom )
         return 0;
 
     unsigned int i;
@@ -2898,7 +3047,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
                 int fb_advance = fallbackFont->DrawTextString( buf, x,
                    fb_y, fb_text, fb_len,
                    def_char, palette, fb_addHyphen, lang_cfg, fb_flags, letter_spacing,
-                   width, text_decoration_back_gap, fallbackPassMask | _fallback_mask );
+                   width, text_decoration_back_gap, target_w, target_h, fallbackPassMask | _fallback_mask );
                 x += fb_advance;
                 #ifdef DEBUG_DRAW_TEXT
                     printf("DTHB ### drawn past notdef > X+= %d\n[...]", fb_advance);
@@ -2913,19 +3062,29 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
                 for (i = hg; i < hg2; i++) {
                     LVFontGlyphCacheItem *item = getGlyphByIndex(glyph_info[i].codepoint);
                     if (item) {
-                        #ifdef DEBUG_DRAW_TEXT
-                            printf("%x(x=%d+%d,w=%d) ", glyph_info[i].codepoint, x,
-                                    item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset), FONT_METRIC_TO_PX(glyph_pos[i].x_advance));
-                        #endif
-                        buf->BlendBitmap(x + item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset),
-                                  y + _baseline - item->origin_y - FONT_METRIC_TO_PX(glyph_pos[i].y_offset),
-                                  item->bmp,
-                                  item->bmp_fmt,
-                                  item->bmp_width,
-                                  item->bmp_height,
-                                  item->bmp_pitch,
-                                  palette);
-                        x += FONT_METRIC_TO_PX(glyph_pos[i].x_advance);
+                        if ( transform_stretch ) {
+                            // Stretched drawing of glyph to the x/y/w/h provided (used with MathML)
+                            // Split the targeted width to each glyph in case we have more than one
+                            int w = target_w / glyph_count;
+                            DrawStretchedGlyph(buf, glyph_info[i].codepoint, x, y, w, target_h, palette);
+                            x += w;
+                        }
+                        else {
+                            // Regular drawing of glyph at the baseline
+                            #ifdef DEBUG_DRAW_TEXT
+                                printf("%x(x=%d+%d,w=%d) ", glyph_info[i].codepoint, x,
+                                        item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset), FONT_METRIC_TO_PX(glyph_pos[i].x_advance));
+                            #endif
+                            buf->BlendBitmap(x + item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset),
+                                      y + _baseline - item->origin_y - FONT_METRIC_TO_PX(glyph_pos[i].y_offset),
+                                      item->bmp,
+                                      item->bmp_fmt,
+                                      item->bmp_width,
+                                      item->bmp_height,
+                                      item->bmp_pitch,
+                                      palette);
+                            x += FONT_METRIC_TO_PX(glyph_pos[i].x_advance);
+                        }
                     }
                     #ifdef DEBUG_DRAW_TEXT
                     else
@@ -3005,20 +3164,30 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
                     }
                     _width_cache2.set(triplet, posInfo);
                 }
-                buf->BlendBitmap(x + item->origin_x + posInfo.offset,
-                    y + _baseline - item->origin_y,
-                    item->bmp,
-                    item->bmp_fmt,
-                    item->bmp_width,
-                    item->bmp_height,
-                    item->bmp_pitch,
-                    palette);
-
-                if ( posInfo.advance == 0 ) {
-                    // Assume zero advance means it's a diacritic, and we should not apply
-                    // any letter spacing on this char (now, and when justifying)
-                } else {
-                    x += posInfo.advance + letter_spacing_w;
+                if ( transform_stretch ) {
+                    // Stretched drawing of glyph to the x/y/w/h provided (used with MathML)
+                    // Split the targeted width to each glyph in case we have more than one
+                    int w = target_w / len;
+                    DrawStretchedGlyph(buf, getCharIndex(ch, def_char), x, y, w, target_h, palette);
+                    x += w;
+                }
+                else {
+                    // Regular drawing of glyph at the baseline
+                    buf->BlendBitmap(x + item->origin_x + posInfo.offset,
+                        y + _baseline - item->origin_y,
+                        item->bmp,
+                        item->bmp_fmt,
+                        item->bmp_width,
+                        item->bmp_height,
+                        item->bmp_pitch,
+                        palette);
+    
+                    if ( posInfo.advance == 0 ) {
+                        // Assume zero advance means it's a diacritic, and we should not apply
+                        // any letter spacing on this char (now, and when justifying)
+                    } else {
+                        x += posInfo.advance + letter_spacing_w;
+                    }
                 }
             }
         }
@@ -3060,21 +3229,30 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
         if ( !item )
             continue;
         if ( (item && !isHyphen) || i>=len-1 ) { // avoid soft hyphens inside text string
-            lInt32 w = item->advance + FONT_METRIC_TRUNC(kerning_26_6);
-            buf->BlendBitmap( x + FONT_METRIC_TRUNC(kerning_26_6) + item->origin_x,
-                       y + _baseline - item->origin_y,
-                       item->bmp,
-                       item->bmp_fmt,
-                       item->bmp_width,
-                       item->bmp_height,
-                       item->bmp_pitch,
-                       palette);
-
-            if ( w == 0 ) {
-                // Assume zero advance means it's a diacritic, and we should not apply
-                // any letter spacing on this char (now, and when justifying)
-            } else {
-                x  += w + letter_spacing_w;
+            if ( transform_stretch ) {
+                // Stretched drawing of glyph to the x/y/w/h provided (used with MathML)
+                // Split the targeted width to each glyph in case we have more than one
+                int w = target_w / len;
+                DrawStretchedGlyph(buf, getCharIndex(ch, def_char), x, y, w, target_h, palette);
+                x += w;
+            }
+            else {
+                lInt32 w = item->advance + FONT_METRIC_TRUNC(kerning_26_6);
+                buf->BlendBitmap( x + FONT_METRIC_TRUNC(kerning_26_6) + item->origin_x,
+                           y + _baseline - item->origin_y,
+                           item->bmp,
+                           item->bmp_fmt,
+                           item->bmp_width,
+                           item->bmp_height,
+                           item->bmp_pitch,
+                           palette);
+    
+                if ( w == 0 ) {
+                    // Assume zero advance means it's a diacritic, and we should not apply
+                    // any letter spacing on this char (now, and when justifying)
+                } else {
+                    x  += w + letter_spacing_w;
+                }
             }
             previous = ch_glyph_index;
         }

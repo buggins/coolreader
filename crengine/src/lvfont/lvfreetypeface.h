@@ -390,6 +390,7 @@ public:
                                bool addHyphen = false, TextLangCfg * lang_cfg = NULL,
                                lUInt32 flags = 0, int letter_spacing = 0, int width=-1,
                                int text_decoration_back_gap = 0,
+                               int target_w=-1, int target_h=-1,
                                lUInt32 fallbackPassMask = 0);
 
     /// returns true if font is empty
@@ -405,6 +406,7 @@ public:
 protected:
     void updateTransform();
     FT_UInt getCharIndex(lUInt32 code, lChar32 def_char);
+    void DrawStretchedGlyph(LVDrawBuf * buf, int glyph_index, int x, int y, int w, int h, lUInt32 * palette=NULL);
 #if USE_HARFBUZZ==1
     LVFontGlyphCacheItem *getGlyphByIndex(lUInt32 index);
     lChar32 filterChar(lChar32 code, lChar32 def_char=0);
