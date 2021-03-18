@@ -32,12 +32,14 @@
 #define RENDER_RECT_FLAG_DIRECTION_INVERTED                 0x0002
 #define RENDER_RECT_FLAG_DIRECTION_VERTICAL                 0x0004 // not used (only horizontal currently supported)
 #define RENDER_RECT_FLAG_INNER_FIELDS_SET                   0x0008
-#define RENDER_RECT_FLAG_BOX_IS_RENDERED                    0x0010 // for floatBox and inlineBox
+#define RENDER_RECT_FLAG_BOX_IS_RENDERED                    0x0010 // for floatBox and inlineBox (when width/height set)
 #define RENDER_RECT_FLAG_NO_CLEAR_OWN_FLOATS                0x0020
 #define RENDER_RECT_FLAG_FINAL_FOOTPRINT_AS_SAVED_FLOAT_IDS 0x0040
 #define RENDER_RECT_FLAG_FLOATBOX_IS_RIGHT                  0x0080
 #define RENDER_RECT_FLAG_NO_INTERLINE_SCALE_UP              0x0100 // for ruby elements to not scale up
-#define RENDER_RECT_FLAG_CHILDREN_RENDERING_REORDERED       0x0200 // for table rows/thead/tfoot reordering
+#define RENDER_RECT_FLAG_CHILDREN_RENDERING_REORDERED       0x0200 // for table rows/thead/tfoot/cells reordering
+#define RENDER_RECT_FLAG_BOX_IS_POSITIONNED                 0x0400 // for inlineBox (when X/Y set in its erm_final)
+#define RENDER_RECT_FLAG_DO_MATH_TRANSFORM                  0x0800 // do math glyph stretching
 #define RENDER_RECT_FLAG_TEMP_USED_AS_CSS_CHECK_CACHE       0x8000 // has been cleared and is used as a CSS checks cache
 
 #define RENDER_RECT_SET_FLAG(r, f)     ( r.setFlags( r.getFlags() | RENDER_RECT_FLAG_##f ) )

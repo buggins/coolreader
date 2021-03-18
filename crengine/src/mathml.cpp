@@ -170,7 +170,7 @@ static const char * MATHML_CSS =
 
 // Allow parsing it at run-time when developping:
 // Uncomment to parse mathml_css_h.css at run-time
-#define MATHML_CSS_DEVEL
+// #define MATHML_CSS_DEVEL
 
 static bool loadMathMLStylesheet( ldomNode * node ) {
     // We need a document to parse a stylesheet, to get elements and attributes IDs from.
@@ -2313,6 +2313,8 @@ void ensureMathMLVerticalStretch( ldomNode * node, lUInt32 line_y, lUInt16 line_
                                                                lUInt16 & needed_baseline, lUInt16 & needed_height ) {
     // We use the current frmline height as the stretch target. It might be wrong if
     // some larger elements in the same <mrow> are to be part of the next frmline.
+    // The stretching may also feels excessive when the font has a large line-height
+    // as we'll target it (ie. (1+1/N) in a <mfrac> with the TeX fonts).
     // (May be we could walk 'node' siblings to guess their height, as
     // all inline-block/table have been rendered, even if not yet splitted
     // to frmlines, and get more accurate stretch target?)

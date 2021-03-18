@@ -83,7 +83,6 @@
 
 extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 
-
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
 #define CACHE_FILE_FORMAT_VERSION "3.12.80"
 
@@ -4124,6 +4123,7 @@ ldomDocument::ldomDocument()
 , _last_docflags(0)
 , _page_height(0)
 , _page_width(0)
+, _parsing(false)
 , _rendered(false)
 , _just_rendered_from_cache(false)
 , _toc_from_cache_valid(false)
@@ -5564,6 +5564,10 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
         // set styles to this node, so we'll get the real white_space value to use.
 
     _isSection = (id==el_section);
+
+    #if MATHML_SUPPORT==1
+        _insideMathML = (_parent && _parent->_insideMathML) || (id==el_math);
+    #endif
 
     // Default (for elements not specified in fb2def.h) is to allow text
     // (except for the root node which must have children)
@@ -7764,6 +7768,15 @@ void ldomNode::initNodeRendMethod()
             }
         }
     }
+
+    #if MATHML_SUPPORT==1
+        if ( getNodeId()==el_math && getDocument()->isBeingParsed() ) {
+            // Skip that uneeded work if the <math> element is "display:none"
+            if ( getRendMethod() != erm_invisible ) {
+                fixupMathMLMathElement( this );
+            }
+        }
+    #endif
 }
 #endif
 
@@ -8042,9 +8055,33 @@ void ldomDocumentWriter::OnTagBody()
         CRLog::trace("added BODY>stylesheet child element with HEAD>STYLE&LINKS content");
     }
     else if ( _currNode ) { // for all other tags (including BODY when no style)
+        #if MATHML_SUPPORT==1
+            if ( _currNode->_insideMathML ) {
+                // All attributes are set, this may add other attributes depending
+                // on ancestors: to be done before onBodyEnter() if these attributes
+                // may affect styling.
+                _mathMLHelper.handleMathMLtag(this, MATHML_STEP_NODE_SET, el_NULL);
+            }
+        #endif
         _currNode->onBodyEnter();
         _flags = _currNode->getFlags(); // _flags may have been updated (if white-space: pre)
     }
+
+    #if MATHML_SUPPORT==1
+        if ( _currNode->_insideMathML ) {
+            // At this point, the style for this node has been applied.
+            // Check if the <math> element (or any of its parent) is display:none,
+            // in which case we don't need to spend time handling MathML that
+            // won't be shown.
+            if ( _currNode->getElement()->getNodeId()==el_math && hasInvisibleParent(_currNode->getElement()) ) {
+                _currNode->_insideMathML = false;
+            }
+            else {
+                // This may create a wrapping mathBox around all this element's children
+                _mathMLHelper.handleMathMLtag(this, MATHML_STEP_NODE_ENTERED, el_NULL);
+            }
+        }
+    #endif
 }
 
 ldomNode * ldomDocumentWriter::OnTagOpen( const lChar32 * nsname, const lChar32 * tagname )
@@ -8053,6 +8090,13 @@ ldomNode * ldomDocumentWriter::OnTagOpen( const lChar32 * nsname, const lChar32 
     //CRLog::trace("OnTagOpen(%s)", UnicodeToUtf8(lString32(tagname)).c_str());
     lUInt16 id = _document->getElementNameIndex(tagname);
     lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
+
+    #if MATHML_SUPPORT==1
+        if ( (_currNode && _currNode->_insideMathML) || (id == el_math) ) {
+            // This may create a wrapping mathBox around this new element
+            _mathMLHelper.handleMathMLtag(this, MATHML_STEP_BEFORE_NEW_CHILD, id);
+        }
+    #endif
 
     // Set a flag for OnText to accumulate the content of any <HEAD><STYLE>
     if ( id == el_style && _currNode && _currNode->getElement()->getNodeId() == el_head ) {
@@ -8113,6 +8157,7 @@ ldomDocumentWriter::~ldomDocumentWriter()
             // on all nodes.)
             _document->getRootNode()->clearRenderDataRecursive();
         }
+        _document->_parsing = false; // done parsing
     }
 
 #endif
@@ -8155,8 +8200,26 @@ void ldomDocumentWriter::OnTagClose( const lChar32 *, const lChar32 * tagname, b
         }
     }
 
+    #if MATHML_SUPPORT==1
+        if ( _currNode->_insideMathML ) {
+            if ( _mathMLHelper.handleMathMLtag(this, MATHML_STEP_NODE_CLOSING, id) ) {
+                // curnode may have changed
+                curNodeId = _currNode->getElement()->getNodeId();
+                id = tagname ? _document->getElementNameIndex(tagname) : curNodeId;
+                _errFlag |= (id != curNodeId); // (we seem to not do anything with _errFlag)
+            }
+        }
+    #endif
+
     _currNode = pop( _currNode, id );
         // _currNode is now the parent
+
+    #if MATHML_SUPPORT==1
+        if ( _currNode->_insideMathML ) {
+            // This may close wrapping mathBoxes
+            _mathMLHelper.handleMathMLtag(this, MATHML_STEP_NODE_CLOSED, id);
+        }
+    #endif
 
     if ( _currNode )
         _flags = _currNode->getFlags();
@@ -8222,6 +8285,16 @@ void ldomDocumentWriter::OnText( const lChar32 * text, int len, lUInt32 flags )
         if ( (_flags & XML_FLAG_NO_SPACE_TEXT)
              && IsEmptySpace(text, len)  && !(flags & TXTFLG_PRE))
              return;
+        #if MATHML_SUPPORT==1
+            if ( _currNode->_insideMathML ) {
+                lString32 math_text = _mathMLHelper.getMathMLAdjustedText(_currNode->getElement(), text, len);
+                if ( !math_text.empty() ) {
+                    _mathMLHelper.handleMathMLtag(this, MATHML_STEP_BEFORE_NEW_CHILD, el_NULL);
+                    _currNode->onText( math_text.c_str(), math_text.length(), flags );
+                }
+                return;
+            }
+        #endif
         if (_currNode->_allowText)
             _currNode->onText( text, len, flags );
     }
@@ -8239,6 +8312,7 @@ ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document, bool headerOnly)
     _stylesheetLinks.clear();
     _stopTagId = 0xFFFE;
     IS_FIRST_BODY = true;
+    _document->_parsing = true;
 
 #if BUILD_LITE!=1
     if ( _document->isDefStyleSet() ) {
@@ -8249,12 +8323,6 @@ ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document, bool headerOnly)
 
     //CRLog::trace("ldomDocumentWriter() headerOnly=%s", _headerOnly?"true":"false");
 }
-
-
-
-
-
-
 
 
 bool FindNextNode( ldomNode * & node, ldomNode * root )
@@ -13653,6 +13721,8 @@ HTML_SCOPE_TABLE_OPENING_TD_TH, // = SCOPE_TABLE: close any TD/TH
 // and pass by the element.
 // So, we shouldn't meet any in popUpTo() and don't have to wonder
 // if we should stop at them, or pass by them.
+// Except <mathBox> that might be added when parsing MathML,
+// and so can be met when poping up nodes.
 
 lUInt16 ldomDocumentWriterFilter::popUpTo( ldomElementWriter * target, lUInt16 target_id, int scope )
 {
@@ -13661,8 +13731,8 @@ lUInt16 ldomDocumentWriterFilter::popUpTo( ldomElementWriter * target, lUInt16 t
         ldomElementWriter * tmp = _currNode;
         while ( tmp ) {
             lUInt16 tmpId = tmp->getElement()->getNodeId();
-            if ( tmpId < el_DocFragment && tmpId > el_NULL) {
-                // We shouldn't meet any (see comment above)
+            if ( tmpId < el_DocFragment && tmpId > el_NULL && tmpId != el_mathBox ) {
+                // We shouldn't meet any (see comment above), except mathBox
                 // (but we can meet the root node when poping </html>)
                 crFatalError( 127, "Unexpected boxing element met in ldomDocumentWriterFilter::popUpTo()" );
             }
@@ -14250,6 +14320,13 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar32 * nsname, const lC
         }
     }
 
+    #if MATHML_SUPPORT==1
+        if ( (_currNode && _currNode->_insideMathML) || (id == el_math) ) {
+            // This may create a wrapping mathBox around this new element
+            _mathMLHelper.handleMathMLtag(this, MATHML_STEP_BEFORE_NEW_CHILD, id);
+        }
+    #endif
+
     bool tag_accepted = true;
     bool insert_before_last_child = false;
     if (_document->getDOMVersionRequested() >= 20200824) { // A little bit more HTML5 conformance
@@ -14285,13 +14362,6 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar32 * nsname, const lC
         AutoClose( id, true );
     }
 
-    // Set a flag for OnText to accumulate the content of any <HEAD><STYLE>
-    // (We do that after the autoclose above, so that with <HEAD><META><STYLE>,
-    // the META is properly closed and we find HEAD as the current node.)
-    if ( id == el_style && _currNode && _currNode->getElement()->getNodeId() == el_head ) {
-        _inHeadStyle = true;
-    }
-
     // From now on, we don't create/close any elements, so expect
     // the next event to be OnTagBody (except OnTagAttribute)
     _tagBodyCalled = false;
@@ -14303,6 +14373,13 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar32 * nsname, const lC
         // No issue with OnTagClose, that can usually ignore stuff.
         _curTagIsIgnored = true;
         return _currNode ? _currNode->getElement() : NULL;
+    }
+
+    // Set a flag for OnText to accumulate the content of any <HEAD><STYLE>
+    // (We do that after the autoclose above, so that with <HEAD><META><STYLE>,
+    // the META is properly closed and we find HEAD as the current node.)
+    if ( id == el_style && _currNode && _currNode->getElement()->getNodeId() == el_head ) {
+        _inHeadStyle = true;
     }
 
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode, insert_before_last_child );
@@ -14402,6 +14479,17 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar32 * nsname, const lChar3
     // Hopefully, a document use either one or the other.
     // (Alternative: in lvrend.cpp when used, as fallback when there is
     // none specified in node->getStyle().)
+    #if MATHML_SUPPORT==1
+        // We should really remove this handling below and support them via CSS
+        // for HTML5 elements that support them.
+        // In the meantime, just don't mess with MathML
+        if ( id >= EL_MATHML_START && id <= EL_MATHML_END ) {
+            lUInt16 attr_ns = (nsname && nsname[0]) ? _document->getNsNameIndex( nsname ) : 0;
+            lUInt16 attr_id = (attrname && attrname[0]) ? _document->getAttrNameIndex( attrname ) : 0;
+            _currNode->addAttribute( attr_ns, attr_id, attrvalue );
+            return;
+        }
+    #endif
 
     // HTML align= => CSS text-align:
     // Done for all elements, except IMG and TABLE (for those, it should
@@ -14544,6 +14632,17 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar32 * /*nsname*/, const lCh
         }
     }
 
+    #if MATHML_SUPPORT==1
+        if ( _currNode->_insideMathML ) {
+            if ( _mathMLHelper.handleMathMLtag(this, MATHML_STEP_NODE_CLOSING, id) ) {
+                // curnode may have changed
+                curNodeId = _currNode->getElement()->getNodeId();
+                id = tagname ? _document->getElementNameIndex(tagname) : curNodeId;
+                _errFlag |= (id != curNodeId); // (we seem to not do anything with _errFlag)
+            }
+        }
+    #endif
+
     if (_document->getDOMVersionRequested() >= 20200824) { // A little bit more HTML5 conformance
         if ( _curNodeIsSelfClosing ) { // Internal call (not from XMLParser)
             _currNode = pop( _currNode, id );
@@ -14564,6 +14663,13 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar32 * /*nsname*/, const lCh
         _currNode = pop( _currNode, id );
             // _currNode is now the parent
     }
+
+    #if MATHML_SUPPORT==1
+        if ( _currNode->_insideMathML ) {
+            // This may close wrapping mathBoxes
+            _mathMLHelper.handleMathMLtag(this, MATHML_STEP_NODE_CLOSED, id);
+        }
+    #endif
 
     if ( _currNode ) {
         _flags = _currNode->getFlags();
@@ -14637,6 +14743,16 @@ void ldomDocumentWriterFilter::OnText( const lChar32 * text, int len, lUInt32 fl
             if ( !_currNode->_allowText )
                 return;
         }
+        #if MATHML_SUPPORT==1
+            if ( _currNode->_insideMathML ) {
+                lString32 math_text = _mathMLHelper.getMathMLAdjustedText(_currNode->getElement(), text, len);
+                if ( !math_text.empty() ) {
+                    _mathMLHelper.handleMathMLtag(this, MATHML_STEP_BEFORE_NEW_CHILD, el_NULL);
+                    _currNode->onText( math_text.c_str(), math_text.length(), flags, insert_before_last_child );
+                }
+            }
+            else // skip the next checks if we are _insideMathML
+        #endif
         if ( !_libRuDocumentDetected ) {
             _currNode->onText( text, len, flags, insert_before_last_child );
         }

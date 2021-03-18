@@ -82,7 +82,7 @@ extern "C" {
 #define LTEXT_FIT_GLYPHS             0x08000000  // Avoid glyph overflows and override at line edges and between text nodes
 
 #define LTEXT_HAS_EXTRA              0x10000000  // Has extra properties (see below)
-#define LTEXT__AVAILABLE_BIT_30__    0x20000000
+#define LTEXT_MATH_TRANSFORM         0x20000000  // Text might need to be stretched or tweaked
 #define LTEXT__AVAILABLE_BIT_31__    0x40000000
 #define LTEXT_LEGACY_RENDERING       0x80000000  // Legacy text rendering tweaks
 

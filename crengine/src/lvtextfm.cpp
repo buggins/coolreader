@@ -2363,6 +2363,10 @@ public:
             }
         }
         if ( hasInlineBoxes ) {
+            #if MATHML_SUPPORT==1
+                lUInt16 needed_baseline = frmline->baseline;
+                lUInt16 needed_height = frmline->height;
+            #endif
             // Now that we have the final x of each word, we can update
             // the RenderRectAccessor x/y of each word that is a inlineBox
             // (needed to correctly draw highlighted text in them).
@@ -2372,10 +2376,45 @@ public:
                     src_text_fragment_t * srcline = &m_pbuffer->srctext[word->src_text_index];
                     ldomNode * node = (ldomNode *) srcline->object;
                     RenderRectAccessor fmt( node );
+                    if ( RENDER_RECT_HAS_FLAG(fmt, BOX_IS_POSITIONNED) )
+                        continue;
+                    RENDER_RECT_SET_FLAG(fmt, BOX_IS_POSITIONNED);
                     fmt.setX( frmline->x + word->x );
                     fmt.setY( frmline->y + frmline->baseline - word->o.baseline + word->y );
+                    fmt.push();
+                    #if MATHML_SUPPORT==1
+                        ldomNode * unboxedParent = node->getUnboxedParent();
+                        if ( unboxedParent ) {
+                            lUInt16 unboxedParentId = unboxedParent->getNodeId();
+                            if ( unboxedParentId >= EL_MATHML_START && unboxedParentId <= EL_MATHML_END ) {
+                                ensureMathMLVerticalStretch(node, frmline->y, frmline->baseline, frmline->height,
+                                                                                needed_baseline, needed_height);
+                            }
+                        }
+                    #endif
                 }
             }
+            #if MATHML_SUPPORT==1
+                if ( needed_height > frmline->height ) {
+                    frmline->height = needed_height;
+                }
+                if ( needed_baseline > frmline->baseline ) {
+                    int baseline_shift = needed_baseline - frmline->baseline;
+                    frmline->baseline = needed_baseline;
+                    // We need to update all the inlineBoxes absolute positions in the paragraph,
+                    // as they are all to be positionned relative to the baseline, which has moved.
+                    for ( int i=0; i<frmline->word_count; i++ ) {
+                        if ( frmline->words[i].flags & LTEXT_WORD_IS_INLINE_BOX ) {
+                            formatted_word_t * word = &frmline->words[i];
+                            src_text_fragment_t * srcline = &m_pbuffer->srctext[word->src_text_index];
+                            ldomNode * node = (ldomNode *) srcline->object;
+                            RenderRectAccessor fmt( node );
+                            fmt.setY( fmt.getY() + baseline_shift );
+                            fmt.push();
+                        }
+                    }
+                }
+            #endif
         }
     }
 
@@ -4730,6 +4769,17 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
     const lChar32 * str;
     int line_y = y;
 
+    bool ignore_clip = false;
+    if ( m_pbuffer->frmlinecount == 1 && m_pbuffer->frmlines[0]->word_count > 0 ) {
+        // If the first word of a single line block has LTEXT_MATH_TRANSFORM,
+        // it's a single word that is a <mo> that might be stretched by the
+        // font drawing code: ignore the clip as the original glyph might be
+        // outside, but we want any part of the stretched glyph to be rendered.
+        srcline = &m_pbuffer->srctext[m_pbuffer->frmlines[0]->words[0].src_text_index];
+        if ( srcline->flags & LTEXT_MATH_TRANSFORM )
+            ignore_clip = true;
+    }
+
     // We might need to translate "marks" (native highlights) from relative
     // coordinates to absolute coordinates if we have to draw floats or
     // inlineBoxes: we'll do that when dealing with the first of these if any.
@@ -4744,10 +4794,10 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
 
     for (i=0; i<m_pbuffer->frmlinecount; i++)
     {
-        if (line_y >= clip.bottom)
+        if ( line_y >= clip.bottom && !ignore_clip )
             break;
         frmline = m_pbuffer->frmlines[i];
-        if (line_y + frmline->height > clip.top)
+        if ( line_y + frmline->height > clip.top || ignore_clip )
         {
             // process background
 
@@ -4958,10 +5008,28 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     lUInt32 drawFlags = srcline->flags & LTEXT_TD_MASK;
                     // and chars direction, and if word begins or ends paragraph (for Harfbuzz)
                     drawFlags |= WORD_FLAGS_TO_FNT_FLAGS(word->flags);
+                    int x0, y0, w, h;
+                    if ( srcline->flags & LTEXT_MATH_TRANSFORM ) {
+                        ldomNode * node = (ldomNode *) srcline->object;
+                        // Parent of text node, which, having this flag, must be erm_final
+                        // We want the glyph to be stretched to cover the erm_final rect
+                        RenderRectAccessor fmt( node->getParentNode() );
+                        x0 = x;
+                        y0 = y;
+                        w = fmt.getWidth();
+                        h = fmt.getHeight();
+                        drawFlags |= LFNT_HINT_TRANSFORM_STRETCH;
+                    }
+                    else {
+                        // Regular drawing of glyphs at word position and baseline
+                        x0 = x + frmline->x + word->x;
+                        y0 = line_y + (frmline->baseline - font->getBaseline()) + word->y;
+                        w = h = 0; // unused
+                    }
                     font->DrawTextString(
                         buf,
-                        x + frmline->x + word->x,
-                        line_y + (frmline->baseline - font->getBaseline()) + word->y,
+                        x0,
+                        y0,
                         str,
                         word->t.len,
                         '?',
@@ -4971,7 +5039,8 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                         drawFlags,
                         srcline->letter_spacing + word->added_letter_spacing,
                         word->width,
-                        text_decoration_back_gap);
+                        text_decoration_back_gap,
+                        w, h);
                     /* To display the added letter spacing % at end of line
                     if (j == frmline->word_count-1 && word->added_letter_spacing ) {
                         // lString32 val = lString32::itoa(word->added_letter_spacing);

@@ -327,6 +327,15 @@ public:
     // LVMatrix<CCRTableCell*> cells; // not used (it was filled, but never read)
     CCRTableRowGroup * currentRowGroup;
 
+    #if MATHML_SUPPORT==1
+        // Additional property
+        lUInt16 mathml_tweaked_element_name_id;
+        // Additional methods declared here but implemented in src/mathml_table_ext.h, included below
+        void MathML_checkAndTweakTableElement();
+        void MathML_fixupTableLayout();
+        void MathML_finalizeTableLayout();
+    #endif
+
     void ExtendCols( int ncols ) {
         while (cols.length()<ncols) {
             CCRTableCol * col = new CCRTableCol;
@@ -588,8 +597,6 @@ public:
         // but with CSS, "display:table-header-group" might be used
         // to render some element above others even if it is after
         // them in the DOM.
-        // (This is done by the MathML CSS profile, for example with
-        // <msup>, to render the superscript in a top table row).
         //
         // Note that Firefox only moves the *first* table-header-group and
         // the *first* table-footer-group met.
@@ -981,8 +988,10 @@ public:
             for (j=0; j<rows[i]->cells.length(); j++) {
                 // rows[i]->cells contains only real cells made from node elements
                 CCRTableCell * cell = (rows[i]->cells[j]);
-                int rend_flags = cell->elem->getDocument()->getRenderBlockRenderingFlags();
-                getRenderedWidths(cell->elem, cell->max_content_width, cell->min_content_width, cell->direction, true, rend_flags);
+                if ( cell->elem ) { // otherwise might be an empty cell added by MathML tweaks
+                    int rend_flags = cell->elem->getDocument()->getRenderBlockRenderingFlags();
+                    getRenderedWidths(cell->elem, cell->max_content_width, cell->min_content_width, cell->direction, true, rend_flags);
+                }
                 #ifdef DEBUG_TABLE_RENDERING
                     printf("TABLE: cell[%d,%d] getRenderedWidths: %d (min %d)\n",
                         j, i, cell->max_content_width, cell->min_content_width);
@@ -1615,6 +1624,8 @@ public:
             bool row_has_baseline_aligned_cells = false;
             for (j=0; j<rows[i]->cells.length(); j++) {
                 CCRTableCell * cell = rows[i]->cells[j];
+                if ( !cell->elem ) // might be an empty cell added by MathML tweaks
+                    continue;
                 // int x = cell->col->index;
                 int y = cell->row->index;
                 // int n = rows[i]->cells.length();
@@ -1851,6 +1862,12 @@ public:
             }
         }
 
+        #if MATHML_SUPPORT==1
+            if ( mathml_tweaked_element_name_id ) {
+                MathML_fixupTableLayout();
+            }
+        #endif
+
         // Update rows heights from multi-row (rowspan > 1) cells height
         for (i=0; i<rows.length(); i++) {
             //CCRTableRow * row = rows[i];
@@ -2082,6 +2099,8 @@ public:
         for (i=0; i<rows.length(); i++) {
             for (j=0; j<rows[i]->cells.length(); j++) {
                 CCRTableCell * cell = rows[i]->cells[j];
+                if ( !cell->elem ) // might be an empty cell added by MathML tweaks
+                    continue;
                 //int x = cell->col->index;
                 int y = cell->row->index;
                 if ( i==y ) {
@@ -2136,6 +2155,14 @@ public:
                 }
             }
         }
+
+        #if MATHML_SUPPORT==1
+            if ( mathml_tweaked_element_name_id ) {
+                // Some cells may have been put in an added row that does not
+                // map to a node. Fix up RenderRectAccessors positionning and sizes.
+                MathML_finalizeTableLayout();
+            }
+        #endif
 
         // Update row groups (thead, tbody...) placement (we need to do that as
         // these rowgroup elements are just block containers of the row elements,
@@ -2215,6 +2242,10 @@ public:
         #endif
         LookupElem( tbl_elem, direction, 0 );
         FixRowGroupsOrder();
+        #if MATHML_SUPPORT==1
+            mathml_tweaked_element_name_id = 0;
+            MathML_checkAndTweakTableElement();
+        #endif
         if ( is_ruby_table && rows.length() >= 2 ) {
             // Move 2nd row (first ruby annotation) to 1st position,
             // so base ruby text (initially 1st row) becomes 2nd
@@ -2232,6 +2263,11 @@ public:
         }
     }
 };
+
+#if MATHML_SUPPORT==1
+// Add implementation for MathML additional methods to CCRTable, and a few functions used below
+#include "mathml_table_ext.h"
+#endif
 
 int renderTable( LVRendPageContext & context, ldomNode * node, int x, int y, int width, bool shrink_to_fit, int min_width,
                  int & fitted_width, int direction, bool avoid_pb_inside, bool enhanced_rendering, bool is_ruby_table )
@@ -3464,6 +3500,15 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             flags &= ~LTEXT_VALIGN_MASK; // also remove any such flag we've set
             flags &= ~LTEXT_STRUT_CONFINED; // remove this if it's been set above
             // (Looks like nothing special to do with indent or line_h)
+
+            #if MATHML_SUPPORT==1
+                if ( rm == erm_final && RENDER_RECT_PTR_HAS_FLAG(fmt, DO_MATH_TRANSFORM) ) {
+                    // MathML <mo> elements are always erm_final, and their parent is an inlineBox
+                    // If they have a Mtransform= attribute, we'll need the text drawing code
+                    // to stretch the glyph (or have the font use variants)
+                    flags |= LTEXT_MATH_TRANSFORM;
+                }
+            #endif
         }
 
         if ( style->display == css_d_list_item_legacy ) { // obsolete (used only when gDOMVersionRequested < 20180524)
@@ -5301,8 +5346,8 @@ public:
                 int row_baseline = fmt.getY() + fmt.getBaseline();
                 ldomNode * n = rowNode->getParentNode();
                 for (; n && n!=node; n=n->getParentNode()) {
-                    RenderRectAccessor fmt(n);
-                    row_baseline += fmt.getY();
+                    RenderRectAccessor nfmt(n);
+                    row_baseline += nfmt.getY();
                 }
                 if ( !baseline_set || (row_baseline < baseline_y) ) {
                     baseline_y = row_baseline;
@@ -5316,8 +5361,13 @@ public:
             //  [or ...], in which case the baseline is the bottom margin edge."
             // So, return what will be returned as height just after this
             // function is called in renderBlockElement().
-            return getCurrentAbsoluteY();
+            baseline_y = getCurrentAbsoluteY();
         }
+        #if MATHML_SUPPORT==1
+            // Update (or recompute/replace) the computed baseline if this table
+            // is a MathML element that sets it differently
+            MathML_updateBaseline( node, baseline_y );
+        #endif
         return baseline_y;
     }
 
@@ -9262,7 +9312,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
                     lvRect clip;
                     drawbuf.GetClipRect( &clip );
-                    if (doc_y + y0 + h <= clip.bottom) { // draw only if marker fully fits on page
+                    if (doc_y + y0 + h <= clip.bottom) {...} // draw only if marker fully fits on page
                     */
                     // Better to draw it, even if it slightly overflows, or we might lose some
                     // list item number for no real reason
@@ -9370,7 +9420,17 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt.getHeight()-1, doc_x+x0+fmt.getWidth(), doc_y+y0+fmt.getHeight(), color );
                 #endif
                 // Border was previously drawn here, but has been moved above for earlier drawing.
+
+                #if MATHML_SUPPORT==1
+                if ( drawbuf.WantsHiddenContent() && enode->getNodeId() == el_mspace ) {
+                    // MathML Acid3 test 56 with munder>mspace+mo had the mo above the bgcolored mspace...
+                    // mspace has no ink, but may have some width and height, that should be considered as ink.
+                    // Let's handle this edge case with this little hack here: if drawbuf.WantsHiddenContent(),
+                    // we're measuring ink for MathML elements: make the mspace full bodied.
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+fmt.getWidth(), doc_y+y0+fmt.getHeight(), 0 );
                 }
+                #endif
+            }
             break;
         case erm_final:
             {
@@ -9437,7 +9497,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
                     lvRect clip;
                     drawbuf.GetClipRect( &clip );
-                    if (doc_y + y0 + h <= clip.bottom) { // draw only if marker fully fits on page
+                    if (doc_y + y0 + h <= clip.bottom) {...} // draw only if marker fully fits on page
                     */
                     // Better to draw it, even if it slightly overflows, or we might lose some
                     // list item number for no real reason
@@ -9668,6 +9728,31 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
             }
         }
     }
+
+    #if MATHML_SUPPORT==1
+        // We apply our internal MathML stylesheet *after* user-agent (including style tweaks)
+        // and publisher embedded styles, because:
+        // - we want correct MathML rendering, so overwrite any unexpected style
+        // - we want to avoid doing any MathML rendering if the <math> element
+        //   has been set display:none by the previous styles
+        if ( nodeElementId >= EL_MATHML_START && nodeElementId <= EL_MATHML_END ) {
+            setMathMLElementNodeStyle( enode, pstyle );
+        }
+        else if (   (nodeElementId >= EL_BOXING_START && nodeElementId <= EL_BOXING_END)
+                  || nodeElementId == el_pseudoElem
+                  || nodeElementId == el_annotation ) { // <annotation> is also a FB2 element, so we have to check its parent
+            ldomNode * unboxedParent = enode->getUnboxedParent();
+            if ( unboxedParent ) {
+                lUInt16 unboxedParentId = unboxedParent->getNodeId();
+                if ( unboxedParentId >= EL_MATHML_START && unboxedParentId <= EL_MATHML_END ) {
+                    setMathMLElementNodeStyle( enode, pstyle );
+                }
+            }
+        }
+        else if ( nodeElementId == el_img && enode->getParentNode()->getNodeId() == el_mglyph ) {
+            setMathMLElementNodeStyle( enode, pstyle );
+        }
+    #endif
 
     // As per-specs (and to avoid checking edge cases in initNodeRendMethod()):
     // https://www.w3.org/TR/css-tables-3/#table-structure
@@ -10523,15 +10608,20 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             // So, we'll still compute the addition of each row's cells (which might
             // give the right min/max width of a row with colspan): we'll take the
             // largest widths from these 2 computations.
+            //
+            // Note: these typedef and struct are copied in src/mathml_table_ext.h
+            // MathML_fixupTableLayoutForRenderedWidths(). Be sure any update to
+            // them is made in both places.
             typedef struct CellWidths {
                 int min_w;
                 int max_w;
                 int colspan;
                 int rowspan;
                 int last_row_idx; // when used as column: index of last row occupied by previous rowspans
-                CellWidths() : min_w(0), max_w(0), colspan(1), rowspan(1), last_row_idx(-1) {};
-                CellWidths(int min, int max, int cspan=1, int rspan=1)
-                    : min_w(min), max_w(max), colspan(cspan), rowspan(rspan), last_row_idx(-1) {};
+                ldomNode * elem;
+                CellWidths() : min_w(0), max_w(0), colspan(1), rowspan(1), last_row_idx(-1), elem(NULL) {};
+                CellWidths(int min, int max, int cspan=1, int rspan=1, ldomNode * n=NULL )
+                    : min_w(min), max_w(max), colspan(cspan), rowspan(rspan), last_row_idx(-1), elem(n) {};
             } CellWidths;
             typedef LVArray<CellWidths> RowCells;
             LVArray<RowCells> table;
@@ -10587,7 +10677,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                                 if ( !rspan ) { // 0 if no attribute
                                     rspan = 1;
                                 }
-                                row.add( CellWidths(_minw, _maxw, cspan, rspan) );
+                                row.add( CellWidths(_minw, _maxw, cspan, rspan, child) );
                             }
                             if ( row.length() > seen_nb_cells )
                                 seen_nb_cells = row.length();
@@ -10625,6 +10715,10 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                         break; // back to top node and all its children visited
                 }
             } // Done with non-recursive sub tree walker
+
+            #if MATHML_SUPPORT==1
+                MathML_fixupTableLayoutForRenderedWidths( nodeElementId, node, &table, seen_nb_cells );
+            #endif
 
             // nb_columns is the largest nb of cells+colspan in a row (helps avoiding reallocs)
             int nb_columns = 0;
