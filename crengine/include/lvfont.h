@@ -120,6 +120,77 @@ enum shaping_mode_t {
 // No more room for: (let's hope it's really the default in fonts)
 // #define LFNT_OT_FEATURES_P_JP90 0x80000000 // +jp90      (font-variant-east-asian: jis90)
 
+// Extra font metrics (cached)
+enum font_extra_metric_t
+{
+    font_metric_x_height = 0,
+    font_metric_ch_width,
+    font_metric_y_superscript_y_offset,
+    font_metric_y_subscript_y_offset,
+#if MATHML_SUPPORT==1
+    font_metric_underline_thickness,
+    font_metric_math_axis_height,
+    font_metric_math_fraction_rule_thickness,
+    font_metric_math_fraction_numerator_shift_up,
+    font_metric_math_fraction_numerator_display_style_shift_up,
+    font_metric_math_fraction_numerator_gap_min,
+    font_metric_math_fraction_num_display_style_gap_min,
+    font_metric_math_fraction_denominator_shift_down,
+    font_metric_math_fraction_denominator_display_style_shift_down,
+    font_metric_math_fraction_denominator_gap_min,
+    font_metric_math_fraction_denom_display_style_gap_min,
+    font_metric_math_stack_top_shift_up,
+    font_metric_math_stack_top_display_style_shift_up,
+    font_metric_math_stack_bottom_shift_down,
+    font_metric_math_stack_bottom_display_style_shift_down,
+    font_metric_math_stack_gap_min,
+    font_metric_math_stack_display_style_gap_min,
+    font_metric_math_script_percent_scale_down,
+    font_metric_math_script_script_percent_scale_down,
+    font_metric_math_display_operator_min_height,
+    font_metric_math_accent_base_height,
+    font_metric_math_overbar_vertical_gap,
+    font_metric_math_underbar_vertical_gap,
+    font_metric_math_overbar_extra_ascender,
+    font_metric_math_underbar_extra_descender,
+    font_metric_math_upper_limit_baseline_rise_min,
+    font_metric_math_upper_limit_gap_min,
+    font_metric_math_stretch_stack_top_shift_up,
+    font_metric_math_stretch_stack_gap_below_min,
+    font_metric_math_lower_limit_baseline_drop_min,
+    font_metric_math_lower_limit_gap_min,
+    font_metric_math_stretch_stack_bottom_shift_down,
+    font_metric_math_stretch_stack_gap_above_min,
+    font_metric_math_superscript_shift_up,
+    font_metric_math_superscript_shift_up_cramped,
+    font_metric_math_superscript_bottom_min,
+    font_metric_math_superscript_baseline_drop_max,
+    font_metric_math_subscript_shift_down,
+    font_metric_math_subscript_top_max,
+    font_metric_math_subscript_baseline_drop_min,
+    font_metric_math_sub_superscript_gap_min,
+    font_metric_math_superscript_bottom_max_with_subscript,
+    font_metric_math_radical_vertical_gap,
+    font_metric_math_radical_display_style_vertical_gap,
+    font_metric_math_radical_rule_thickness,
+    font_metric_math_radical_extra_ascender,
+    font_metric_math_radical_kern_before_degree,
+    font_metric_math_radical_kern_after_degree,
+    font_metric_math_radical_degree_bottom_raise_percent,
+#endif
+    FONT_METRIC_MAX
+};
+
+// Extra glyph metrics (not cached)
+enum glyph_extra_metric_t
+{
+    glyph_metric_dummy = 0,
+#if MATHML_SUPPORT==1
+    glyph_metric_math_italics_correction,
+    glyph_metric_math_top_accent_attachment
+#endif
+};
+
 // Changing this enum also update method LVDocView::rotateFontAntialiasMode()
 // & org.coolreader.crengine.OptionsDialog.mAntialias array.
 enum font_antialiasing_t {
@@ -181,6 +252,10 @@ public:
         \return true if glyph was found 
     */
     virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar32 def_char = 0, lUInt32 fallbackPassMask = 0) = 0;
+
+    /** \brief get extra glyph metric
+    */
+    virtual bool getGlyphExtraMetric( glyph_extra_metric_t metric, lUInt32 code, int & value, bool scaled_to_px=true, lChar32 def_char=0, lUInt32 fallbackPassMask = 0 ) = 0;
 
     /** \brief measure text
         \param text is text string pointer
@@ -251,6 +326,12 @@ public:
 
     /// returns char glyph right side bearing
     virtual int getRightSideBearing( lChar32 ch, bool negative_only=false, bool italic_only=false ) = 0;
+
+    /// returns extra metric
+    virtual int getExtraMetric(font_extra_metric_t metric, bool scaled_to_px=true) = 0;
+
+    /// returns if font has OpenType Math tables
+    virtual bool hasOTMathSupport() const = 0;
 
     /// retrieves font handle
     virtual void *GetHandle() = 0;

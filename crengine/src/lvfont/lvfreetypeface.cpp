@@ -44,6 +44,11 @@
 #include FT_OUTLINE_H   // for FT_Outline_Embolden()
 #include FT_SYNTHESIS_H // for FT_GlyphSlot_Oblique()
 #include FT_GLYPH_H     // for FT_Matrix_Multiply()
+#include FT_TRUETYPE_TABLES_H   // for FT_Get_Sfnt_Table()
+
+#if (USE_HARFBUZZ == 1)
+#include <hb-ot.h>
+#endif
 
 // Helpers with font metrics (units are 1/64 px)
 // #define FONT_METRIC_FLOOR(x)    ((x) & -64)
@@ -499,7 +504,7 @@ LVFreeTypeFace::LVFreeTypeFace(LVMutex &mutex, FT_Library library,
         : LVFont(),
           _mutex(mutex), _fontFamily(css_ff_sans_serif), _library(library), _face(NULL),
           _size(0), _hyphen_width(0), _baseline(0),
-          _weight(400), _italic(0), _features(0),
+          _weight(400), _italic(0), _extra_metric(NULL), _features(0),
           _glyph_cache(globalCache),
           _drawMonochrome(false),
           _aa_mode(font_aa_all),
@@ -1389,6 +1394,58 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
     return true;
 }
 
+bool LVFreeTypeFace::getGlyphExtraMetric( glyph_extra_metric_t metric, lUInt32 code, int & value, bool scaled_to_px, lChar32 def_char, lUInt32 fallbackPassMask ) {
+    int glyph_index = getCharIndex( code, 0 );
+    if ( glyph_index==0 ) {
+        LVFont *fallback = getFallbackFont(fallbackPassMask);
+        if (NULL == fallback) {
+            // No fallback
+            glyph_index = getCharIndex(code, def_char);
+            if (glyph_index == 0)
+                return false;
+        } else {
+            // Fallback
+            lUInt32 passMask = fallbackPassMask | _fallback_mask;
+            return fallback->getGlyphExtraMetric(metric, code, value, scaled_to_px, def_char, passMask);
+        }
+    }
+    switch (metric) {
+    case glyph_metric_dummy:
+        value = 0;
+        return true;
+        break;
+#if MATHML_SUPPORT==1
+    case glyph_metric_math_italics_correction:
+        {
+            #if USE_HARFBUZZ==1
+            if ( hb_ot_math_has_data(hb_font_get_face(_hb_font)) ) {
+                value = hb_ot_math_get_glyph_italics_correction(_hb_font, glyph_index);
+                if ( scaled_to_px )
+                    value = FONT_METRIC_TO_PX(value);
+                return true;
+            }
+            #endif
+            return false;
+        }
+        break;
+    case glyph_metric_math_top_accent_attachment:
+        {
+            #if USE_HARFBUZZ==1
+            if ( hb_ot_math_has_data(hb_font_get_face(_hb_font)) ) {
+                value = hb_ot_math_get_glyph_top_accent_attachment(_hb_font, glyph_index);
+                if ( scaled_to_px )
+                    value = FONT_METRIC_TO_PX(value);
+                return true;
+            }
+            #endif
+            return false;
+        }
+        break;
+#endif // MATHML_SUPPORT==1
+    }
+    return false;
+}
+
 bool LVFreeTypeFace::checkFontLangCompat(const lString8 &langCode) {
 #define FC_LANG_START_INTERVAL_CODE     2
     bool fullSupport = false;
@@ -2229,6 +2286,368 @@ int LVFreeTypeFace::getRightSideBearing( lChar32 ch, bool negative_only, bool it
     return (int) b;
 }
 
+int LVFreeTypeFace::getExtraMetric(font_extra_metric_t metric, bool scaled_to_px) {
+    if ( _extra_metric == NULL ) {
+        _extra_metric = (int *)malloc(sizeof(int)*FONT_METRIC_MAX);
+        for (int i=0; i<FONT_METRIC_MAX; i++) {
+            _extra_metric[i] = CACHED_SIGNED_METRIC_NOT_SET;
+        }
+    }
+    if ( _extra_metric[metric] == CACHED_SIGNED_METRIC_NOT_SET ) {
+        // We can get ideas from:
+        // https://github.com/mozilla/gecko-dev/blob/master/gfx/thebes/gfxFT2Utils.cpp
+        bool value_set = false;
+        int value = 0;
+        // Tables we might look at
+        TT_OS2 * os2 = (TT_OS2 *)FT_Get_Sfnt_Table(_face, FT_SFNT_OS2);
+        bool has_ot_math_data = false;
+#if MATHML_SUPPORT==1
+        #if USE_HARFBUZZ==1
+            has_ot_math_data = hb_ot_math_has_data(hb_font_get_face(_hb_font));
+            #define VALUE_FROM_OT_MATH_CONSTANT(x) if ( has_ot_math_data ) { \
+                    value = hb_ot_math_get_constant(_hb_font, HB_OT_MATH_CONSTANT_##x); \
+                    value_set = true; }
+        #else
+            #define VALUE_FROM_OT_MATH_CONSTANT(x)
+        #endif
+#endif
+
+        switch (metric) {
+        case font_metric_x_height: {
+            int glyph_index = getCharIndex( 'x', 0 );
+            if ( glyph_index ) {
+                int error = FT_Load_Glyph( _face, glyph_index, FT_LOAD_DEFAULT );
+                if ( !error ) {
+                    value = _slot->metrics.horiBearingY;
+                    value_set = true;
+                }
+            }
+            if ( !value_set && os2 && os2->sxHeight > 0 ) {
+                // The os2 table values are each a constant, that we need to scale
+                value = FT_MulFix(os2->sxHeight, _face->size->metrics.y_scale);
+                value_set = true;
+            }
+            if ( !value_set ) {
+                value = _size*64 / 2; // 0.5em
+            }
+            break;
+        }
+        case font_metric_ch_width: {
+            // Could be used for CSS unit 'ch': equal to the used advance measure
+            // of the "0" (ZERO, U+0030) glyph. But let's keep approximating it
+            // with 0.5em, which may be good enough.
+            int glyph_index = getCharIndex( '0', 0 );
+            if ( glyph_index ) {
+                int error = FT_Load_Glyph( _face, glyph_index, FT_LOAD_DEFAULT );
+                if ( !error ) {
+                    value = myabs(_slot->metrics.horiAdvance);
+                    // printf("glyph: %d", value);
+                    value_set = true;
+                }
+            }
+            if ( !value_set ) {
+                value = _size*64 / 2; // assumed to be 0.5em wide
+            }
+            break;
+        }
+        case font_metric_y_superscript_y_offset: {
+            if ( os2 && os2->ySuperscriptYOffset != 0 ) {
+                value = FT_MulFix(os2->ySuperscriptYOffset, _face->size->metrics.y_scale);
+                if (value < 0) // Probable font bug (the os2 value should be positive)
+                    value = -value;
+                value_set = true;
+            }
+            if ( !value_set ) {
+                // As Firefox, which itself uses this instead of the OS/2 metric
+                // https://bugzilla.mozilla.org/show_bug.cgi?id=1029307
+                // https://github.com/mozilla/gecko-dev/commit/1e79307a4f068f29247d1db3ca897b2785e22b6f
+                value = _face->size->metrics.height * 1/3;
+            }
+            break;
+        }
+        case font_metric_y_subscript_y_offset: {
+            if ( os2 && os2->ySubscriptYOffset != 0 ) {
+                value = FT_MulFix(os2->ySubscriptYOffset, _face->size->metrics.y_scale);
+                if (value < 0) // Probable font bug (the os2 value should be positive)
+                    value = -value;
+                value_set = true;
+            }
+            if ( !value_set ) {
+                // As Firefox, which itself uses this instead of the OS/2 metric
+                value = _face->size->metrics.height * 1/5;
+            }
+            break;
+        }
+#if MATHML_SUPPORT==1
+        // Reference (and fallback values) from
+        // https://mathml-refresh.github.io/mathml-core/#layout-constants-mathconstants
+        case font_metric_underline_thickness: {
+            #if USE_HARFBUZZ==1
+            // This will make HB fetch the value from post->table.underlineThickness
+            if ( hb_ot_metrics_get_position(_hb_font, HB_OT_METRICS_TAG_UNDERLINE_SIZE, &value) )
+                value_set = true;
+            #endif
+            if ( !value_set )
+                value = 0;
+            break;
+        }
+        case font_metric_math_axis_height: {
+            VALUE_FROM_OT_MATH_CONSTANT(AXIS_HEIGHT)
+            // FreeSerif seems to have this a bit too large, but tweaking it causes other
+            // issues as some other math metric constants interplay with this one - also,
+            // the factor correction needed (to align the fraction bar with +/-/=) would
+            // vary with the font size...
+            //   if ( value_set && _faceName == "FreeSerif" ) value = value * 90/100;
+            //   if ( value_set && _faceName == "FreeSerif" ) value_set = false;
+            if ( !value_set ) {
+                // Firefox nsMathMLFrame.cpp does this (which feels better than x_height/2)
+                int glyph_index = getCharIndex( 0x2212, 0 ); // minus sign
+                if ( !glyph_index )
+                    glyph_index = getCharIndex( '-', 0 ); // ASCII minus
+                if ( glyph_index ) {
+                    int error = FT_Load_Glyph( _face, glyph_index, FT_LOAD_DEFAULT );
+                    if ( !error ) {
+                        value = _slot->metrics.horiBearingY;
+                        value_set = true;
+                    }
+                }
+            }
+            if ( !value_set )
+                value = getExtraMetric(font_metric_x_height, false) * 1/2;
+            break;
+        }
+        case font_metric_math_fraction_rule_thickness:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_RULE_THICKNESS)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_fraction_numerator_shift_up:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_NUMERATOR_SHIFT_UP)
+            // Default to 0
+            break;
+        case font_metric_math_fraction_numerator_display_style_shift_up:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_NUMERATOR_DISPLAY_STYLE_SHIFT_UP)
+            // Default to 0
+            break;
+        case font_metric_math_fraction_numerator_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_NUMERATOR_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_fraction_num_display_style_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_NUM_DISPLAY_STYLE_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 3; // 3 x default rule thickness
+            break;
+        case font_metric_math_fraction_denominator_shift_down:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_DENOMINATOR_SHIFT_DOWN)
+            // Default to 0
+            break;
+        case font_metric_math_fraction_denominator_display_style_shift_down:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_DENOMINATOR_DISPLAY_STYLE_SHIFT_DOWN)
+            // Default to 0
+            break;
+        case font_metric_math_fraction_denominator_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_DENOMINATOR_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_fraction_denom_display_style_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_DENOM_DISPLAY_STYLE_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 3; // 3 x default rule thickness
+            break;
+        case font_metric_math_stack_top_shift_up:
+            VALUE_FROM_OT_MATH_CONSTANT(STACK_TOP_SHIFT_UP)
+            // Default to 0
+            break;
+        case font_metric_math_stack_top_display_style_shift_up:
+            VALUE_FROM_OT_MATH_CONSTANT(STACK_TOP_DISPLAY_STYLE_SHIFT_UP)
+            // Default to 0
+            break;
+        case font_metric_math_stack_bottom_shift_down:
+            VALUE_FROM_OT_MATH_CONSTANT(STACK_BOTTOM_SHIFT_DOWN)
+            // Default to 0
+            break;
+        case font_metric_math_stack_bottom_display_style_shift_down:
+            VALUE_FROM_OT_MATH_CONSTANT(STACK_BOTTOM_DISPLAY_STYLE_SHIFT_DOWN)
+            // Default to 0
+            break;
+        case font_metric_math_stack_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(STACK_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 3; // 3 x default rule thickness
+            break;
+        case font_metric_math_stack_display_style_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(STACK_DISPLAY_STYLE_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 7; // 7 x default rule thickness
+            break;
+        case font_metric_math_script_percent_scale_down:
+            VALUE_FROM_OT_MATH_CONSTANT(SCRIPT_PERCENT_SCALE_DOWN)
+            if ( !value_set || value <= 0)
+                value = 71;
+            break;
+        case font_metric_math_script_script_percent_scale_down:
+            VALUE_FROM_OT_MATH_CONSTANT(SCRIPT_SCRIPT_PERCENT_SCALE_DOWN)
+            if ( !value_set || value <= 0)
+                value = 50;
+            break;
+        case font_metric_math_display_operator_min_height:
+            VALUE_FROM_OT_MATH_CONSTANT(DISPLAY_OPERATOR_MIN_HEIGHT)
+            if ( !value_set || value <= 0)
+                // Specs say 0, but we want something > 1 and sqrt(2) is mentionned in a few places
+                value = _size*64 * 1.41; // sqrt(2)
+            break;
+        case font_metric_math_accent_base_height:
+            VALUE_FROM_OT_MATH_CONSTANT(ACCENT_BASE_HEIGHT)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_x_height, false);
+            break;
+        case font_metric_math_overbar_vertical_gap:
+            VALUE_FROM_OT_MATH_CONSTANT(OVERBAR_VERTICAL_GAP)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 3; // 3 x default rule thickness
+            break;
+        case font_metric_math_underbar_vertical_gap:
+            VALUE_FROM_OT_MATH_CONSTANT(UNDERBAR_VERTICAL_GAP)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 3; // 3 x default rule thickness
+            break;
+        case font_metric_math_overbar_extra_ascender:
+            VALUE_FROM_OT_MATH_CONSTANT(OVERBAR_EXTRA_ASCENDER)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_underbar_extra_descender:
+            VALUE_FROM_OT_MATH_CONSTANT(UNDERBAR_EXTRA_DESCENDER)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_upper_limit_baseline_rise_min:
+            VALUE_FROM_OT_MATH_CONSTANT(UPPER_LIMIT_BASELINE_RISE_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_upper_limit_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(UPPER_LIMIT_GAP_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_stretch_stack_top_shift_up:
+            VALUE_FROM_OT_MATH_CONSTANT(STRETCH_STACK_TOP_SHIFT_UP)
+            // Defaults to 0
+            break;
+        case font_metric_math_stretch_stack_gap_below_min:
+            VALUE_FROM_OT_MATH_CONSTANT(STRETCH_STACK_GAP_BELOW_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_lower_limit_baseline_drop_min:
+            VALUE_FROM_OT_MATH_CONSTANT(LOWER_LIMIT_BASELINE_DROP_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_lower_limit_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(LOWER_LIMIT_GAP_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_stretch_stack_bottom_shift_down:
+            VALUE_FROM_OT_MATH_CONSTANT(STRETCH_STACK_BOTTOM_SHIFT_DOWN)
+            // Defaults to 0
+            break;
+        case font_metric_math_stretch_stack_gap_above_min:
+            VALUE_FROM_OT_MATH_CONSTANT(STRETCH_STACK_GAP_ABOVE_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_superscript_shift_up:
+            VALUE_FROM_OT_MATH_CONSTANT(SUPERSCRIPT_SHIFT_UP)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_y_superscript_y_offset, false);
+            break;
+        case font_metric_math_superscript_shift_up_cramped:
+            VALUE_FROM_OT_MATH_CONSTANT(SUPERSCRIPT_SHIFT_UP_CRAMPED)
+            // Defaults to 0
+            break;
+        case font_metric_math_superscript_bottom_min:
+            VALUE_FROM_OT_MATH_CONSTANT(SUPERSCRIPT_BOTTOM_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_x_height, false) * 1/4;
+            break;
+        case font_metric_math_superscript_baseline_drop_max:
+            VALUE_FROM_OT_MATH_CONSTANT(SUPERSCRIPT_BASELINE_DROP_MAX)
+            // Defaults to 0
+            break;
+        case font_metric_math_subscript_shift_down:
+            VALUE_FROM_OT_MATH_CONSTANT(SUBSCRIPT_SHIFT_DOWN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_y_subscript_y_offset, false);
+            break;
+        case font_metric_math_subscript_top_max:
+            VALUE_FROM_OT_MATH_CONSTANT(SUBSCRIPT_TOP_MAX)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_x_height, false) * 4/5;
+            break;
+        case font_metric_math_subscript_baseline_drop_min:
+            VALUE_FROM_OT_MATH_CONSTANT(SUBSCRIPT_BASELINE_DROP_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_sub_superscript_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(SUB_SUPERSCRIPT_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 4; // 4 x default rule thickness
+            break;
+        case font_metric_math_superscript_bottom_max_with_subscript:
+            VALUE_FROM_OT_MATH_CONSTANT(SUPERSCRIPT_BOTTOM_MAX_WITH_SUBSCRIPT)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_x_height, false) * 4/5;
+            break;
+        case font_metric_math_radical_vertical_gap:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_VERTICAL_GAP)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 5/4; // 1.25 x default rule thickness
+            break;
+        case font_metric_math_radical_display_style_vertical_gap:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_DISPLAY_STYLE_VERTICAL_GAP)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) // default rule thickness + 1/4 OS/2.sxHeight
+                            + getExtraMetric(font_metric_x_height, false) * 1/4;
+            break;
+        case font_metric_math_radical_rule_thickness:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_RULE_THICKNESS)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_radical_extra_ascender:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_EXTRA_ASCENDER)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_radical_kern_before_degree:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_KERN_BEFORE_DEGREE)
+            if ( !value_set )
+                value = _size*64 * 5/18; // 5/18em
+            break;
+        case font_metric_math_radical_kern_after_degree:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_KERN_AFTER_DEGREE)
+            if ( !value_set )
+                value = - _size*64 * 10/18; // -10/18em
+            break;
+        case font_metric_math_radical_degree_bottom_raise_percent:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_DEGREE_BOTTOM_RAISE_PERCENT)
+            if ( !value_set || value <= 0)
+                value = 60;
+            break;
+#endif // MATHML_SUPPORT==1
+        }
+        _extra_metric[metric] = value;
+    }
+    return scaled_to_px ? FONT_METRIC_TO_PX(_extra_metric[metric]) : _extra_metric[metric];
+}
+
+bool LVFreeTypeFace::hasOTMathSupport() const {
+#if USE_HARFBUZZ==1
+    return hb_ot_math_has_data(hb_font_get_face(_hb_font));
+#endif
+    return false;
+}
+
 int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *text, int len,
                                    lChar32 def_char, lUInt32 *palette, bool addHyphen, TextLangCfg *lang_cfg,
                                     lUInt32 flags, int letter_spacing, int width, int text_decoration_back_gap, lUInt32 fallbackPassMask) {
@@ -2709,6 +3128,10 @@ void LVFreeTypeFace::Clear() {
     if (_face) {
         FT_Done_Face(_face);
         _face = NULL;
+    }
+    if ( _extra_metric ) {
+        free(_extra_metric);
+        _extra_metric = NULL;
     }
 }
 

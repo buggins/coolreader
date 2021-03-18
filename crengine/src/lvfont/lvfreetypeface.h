@@ -127,6 +127,7 @@ protected:
     int _baseline;
     int _weight; // original font weight 400: normal, 700: bold, 100..900 thin..black
     int _italic; // 0: regular, 1: italic, 2: fake/synthesized italic
+    int* _extra_metric;
     LVFontGlyphUnsignedMetricCache _wcache;
     LVFontGlyphSignedMetricCache _lsbcache; // glyph left side bearing cache
     LVFontGlyphSignedMetricCache _rsbcache; // glyph right side bearing cache
@@ -267,6 +268,10 @@ public:
     }
   */
 
+    /** \brief get extra glyph metric
+    */
+    virtual bool getGlyphExtraMetric( glyph_extra_metric_t metric, lUInt32 code, int & value, bool scaled_to_px=true, lChar32 def_char=0, lUInt32 fallbackPassMask = 0 );
+
     /**
      * @brief Check font for compatibility with language with langCode
      * @param langCode language code, for example, "en" - English, "ru" - Russian
@@ -343,6 +348,12 @@ public:
 
     /// returns char glyph right side bearing
     virtual int getRightSideBearing( lChar32 ch, bool negative_only=false, bool italic_only=false );
+
+    /// returns extra metric
+    virtual int getExtraMetric(font_extra_metric_t metric, bool scaled_to_px=true);
+
+    /// returns if font has OpenType Math tables
+    virtual bool hasOTMathSupport() const;
 
     /// retrieves font handle
     virtual void *GetHandle() {

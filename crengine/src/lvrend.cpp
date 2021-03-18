@@ -3330,6 +3330,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         // some others, so use 4/5 (which is not the finest with some
                         // fonts, but a sane middle ground)
                         valign_dy += (pfh - pfb)*4/5;
+                        // The following alternatives usually give similar results:
+                        //   Via OS/2 metrics:
+                        //   valign_dy += parent->getFont()->getExtraMetric(font_metric_y_subscript_y_offset);
+                        //   As Firefox:
+                        //   valign_dy += pfh/5;
                         flags |= LTEXT_VALIGN_SUB;
                         break;
                     case css_va_super:
@@ -3338,6 +3343,12 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         // 1/4 of the font height looks alright with most fonts (we could also
                         // use a fraction of 'baseline' only, the height above the baseline)
                         valign_dy -= pfh / 4;
+                        // The following alternatives usually give larger results, which may quite easily
+                        // increase the normal line height and cause uneven line heights:
+                        //   Via OS/2 metrics:
+                        //   valign_dy -= parent->getFont()->getExtraMetric(font_metric_y_superscript_y_offset);
+                        //   As Firefox:
+                        //   valign_dy -= pfh / 3;
                         flags |= LTEXT_VALIGN_SUPER;
                         break;
                     case css_va_middle:

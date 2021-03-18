@@ -32,6 +32,10 @@ public:
 
     virtual bool getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar32 def_char = 0, lUInt32 fallbackPassMask = 0);
 
+    virtual bool getGlyphExtraMetric( glyph_extra_metric_t metric, lUInt32 code, int & value, bool scaled_to_px=true, lChar32 def_char=0, lUInt32 fallbackPassMask=0 ) {
+        return false;
+    }
+
     virtual lUInt16
     measureText(const lChar32 *text, int len, lUInt16 *widths, lUInt8 *flags, int max_width,
                 lChar32 def_char, TextLangCfg * lang_cfg = NULL, int letter_spacing = 0, bool allow_hyphenation = true, lUInt32 hints=0, lUInt32 fallbackPassMask = 0);
@@ -71,6 +75,10 @@ public:
             return glyph.width;
         return 0;
     }
+
+    virtual int getExtraMetric(font_extra_metric_t metric, bool scaled_to_px=true) { return 0; }
+
+    virtual bool hasOTMathSupport() const { return false; }
 
     virtual lvfont_handle GetHandle() { return m_font; }
 
