@@ -1,0 +1,386 @@
+R"===( /* " */
+/* The peculiar first and last lines of this file are so so that we can
+ * in mathml.cpp "const char * MATHML_CSS = #include" it as a C++11
+ * raw string - while keeping it almost valid CSS, so at least
+ * syntax highlight still work in various text editors */
+
+math {
+    /* font-family: is set by the code to a hardcoded list of known fonts with
+     * good OpenType Math support, when no font (Math or not) has been specified
+     * by previous stylesheets, and if the inherited font has no OT Math support */
+    font-style: normal;
+    font-weight: normal;
+    letter-spacing: normal;
+    line-height: normal;
+    text-indent: 0;
+    direction: ltr;
+    hyphens: none;
+}
+math[display="block"] {
+    display: block;
+    text-align: center;
+    margin: 0.5em 0;
+    page-break-inside: avoid;
+}
+
+/* mo are to be inline-block so ML/MR can be applied as margin */
+mo {
+    display: inline-block;
+}
+/* We can't fetch largeop variants from the font, so fallback
+ * to a larger font size for these */
+mo[Mlargeop] {
+    font-size: 1.41em;
+}
+mo[Mlargeop="integral"] {
+    font-size: 2em;
+}
+
+/* mrow could just be an inline container, which should
+ * allow wrapping inside if needed.
+ * But we need each mrow to be its own formatting context,
+ * so stretchy operators it may contain adjust only to the
+ * height of the mrow content */
+mrow {
+    display: inline-block;
+    white-space: nowrap; /* avoid wrap in some wrapping elements */
+}
+mfenced {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+/* mfrac rendered as a table with 2 rows with each 1 cell.
+ * Additional style and rendering adjustments (including linethickness) handled by code */
+mfrac {
+    display: inline-table; /* the code will wrap each child in a mathBox */
+    white-space: nowrap;
+    border-collapse: collapse;
+    margin: 0 1px; /* suggested by specs */
+}
+mfrac > mathBox {
+    display: table-row;
+    text-align: center;
+}
+mfrac[numalign="left"] > mathBox:first-child,
+mfrac[denomalign="left"] > mathBox:nth-child(2) {
+    text-align: left;
+}
+mfrac[numalign="right"] > mathBox:first-child,
+mfrac[denomalign="right"] > mathBox:nth-child(2) {
+    text-align: right;
+}
+
+/* msub, msup, msubsup, mmultiscripts
+ * Rendered as an inline-table with very specific tweaks.
+ * Each child is wrapped in a mathBox set display:table-cell.
+ * Cells will internally be moved into added rows by the table rendering code
+ */
+msub,
+msup,
+msubsup,
+mmultiscripts {
+    display: inline-table; /* the code will wrap each child in a mathBox */
+}
+msub > mathBox,
+msup > mathBox,
+msubsup > mathBox,
+mmultiscripts > mathBox,
+mmultiscripts > mprescripts {
+    display: table-cell;
+    text-align: center;
+}
+/* subscripts and superscripts */
+msub > mathBox + mathBox,
+msup > mathBox + mathBox,
+msubsup > mathBox + mathBox,
+mmultiscripts > mathBox + mathBox {
+    text-align: start;
+}
+/* subscripts and superscripts displayed on the left side of base */
+mmultiscripts > mprescripts ~ mathBox {
+    text-align: end;
+}
+/* <none/> is a MathML element used with mmultiscripts, no specific styling needed */
+
+/* munder, mover, munderover
+ * Rendered as an inline-table with very specific tweaks.
+ * Each child is wrapped in a mathBox set display:table-cell.
+ * Cells will internally be moved into added rows by the table rendering code
+ * When movablelimits=true, these can be rendered as msub/msup/msubsup.
+ */
+munder,
+mover,
+munderover {
+    display: inline-table; /* the code will wrap each child in a mathBox */
+}
+munder > mathBox,
+mover > mathBox,
+munderover > mathBox {
+    display: table-cell;
+    text-align: center;
+}
+munder[align=left] > mathBox + mathBox,
+mover[align=left] > mathBox + mathBox,
+munderover[align=left] > mathBox + mathBox {
+    text-align: left;
+}
+munder[align=right] > mathBox + mathBox,
+mover[align=right] > mathBox + mathBox,
+munderover[align=right] > mathBox + mathBox {
+    text-align: right;
+}
+/* When handled as msub/msup/msubsup when movablelimits */
+munder[Msubsup] > mathBox + mathBox,
+mover[Msubsup] > mathBox + mathBox,
+munderover[Msubsup] > mathBox + mathBox {
+    text-align: start;
+}
+
+/* msqrt, mroot */
+msqrt,
+mroot {
+    display: inline-table; /* the code will wrap each child in a mathBox */
+}
+msqrt > mathBox,
+mroot > mathBox {
+    display: table-cell;
+    white-space: nowrap;
+}
+
+/* mpadded, limited support */
+mpadded {
+    display: inline-block;
+}
+
+/* menclose: simple framed container, notation rendered as we can via table borders */
+menclose {
+    display: inline-block;
+    padding: 0.5ex 0.4em; /* suggested by specs */
+    margin: 1px; /* small room outside borders to distinguish adjacent mencloses */
+}
+menclose[notation*="top"],
+menclose[notation*="actuarial"] {
+    border-top: solid thin;
+}
+menclose[notation*="bottom"],
+menclose[notation*="madruwb"] {
+    border-bottom: solid thin;
+}
+menclose[notation*="right"],
+menclose[notation*="actuarial"],
+menclose[notation*="madruwb"] {
+    border-right: solid thin;
+}
+menclose[notation*="left"] {
+    border-left: solid thin;
+}
+menclose[notation*="box"],
+menclose[notation*="roundedbox"],
+menclose[notation*="circle"] {
+    border: solid thin;
+}
+menclose[notation*="roundedbox"] {
+    border-radius: 15%; /* not supported */
+}
+menclose[notation*="circle"] {
+    border-radius: 50%; /* not supported */
+}
+menclose[notation*="horizontalstrike"] {
+    text-decoration: line-through;
+}
+
+/* mtable */
+mtable {
+    display: inline-table;
+    vertical-align: middle;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-indent: 0;
+}
+mtr,
+mlabeledtr {
+    display: table-row;
+    vertical-align: baseline;
+}
+mtd {
+    display: table-cell;
+    text-align: center;
+    vertical-align: inherit;
+    padding: 0.2em 0.2em;
+    /* Should be "padding: 0.5ex 0.4em" per specs, but we use a bit less
+    /* to avoid wasting space and limit cell content being wrapped */
+}
+mtable[columnalign="left"],
+mtr[columnalign="left"],
+mlabeledtr[columnalign="left"],
+mtd[columnalign="left"] {
+    text-align: left;
+}
+mtable[columnalign="right"],
+mtr[columnalign="right"],
+mlabeledtr[columnalign="right"],
+mtd[columnalign="right"] {
+    text-align: right;
+}
+mtable[rowalign="top"] > mtr > mtd,
+mtable[rowalign="top"] > mlabeledtr > mtd,
+mtr[rowalign="top"] > mtd,
+mlabeledtr[rowalign="top"] > mtd,
+mtd[rowalign="top"] {
+    vertical-align: top;
+}
+mtable[rowalign="center"] > mtr > mtd,
+mtable[rowalign="center"] > mlabeledtr > mtd,
+mtr[rowalign="center"] > mtd,
+mlabeledtr[rowalign="center"] > mtd,
+mtd[rowalign="center"] {
+    vertical-align: middle,
+}
+mtable[rowalign="bottom"] > mtr > mtd,
+mtable[rowalign="bottom"] > mlabeledtr > mtd,
+mtr[rowalign="bottom"] > mtd,
+mlabeledtr[rowalign="bottom"] > mtd,
+mtd[rowalign="bottom"] {
+    vertical-align: bottom;
+}
+mtable[frame="solid"] {
+    border: solid thin;
+}
+mtable[frame="dashed"] {
+    border: dashed thin;
+}
+mtable[rowlines="solid"],
+mtable[rowlines="dashed"],
+mtable[columnlines="solid"],
+mtable[columnlines="dashed"] {
+    border-collapse: collapse;
+}
+mtable[rowlines="solid"] > mtr + mtr,
+mtable[rowlines="solid"] > mtr + mlabeledtr,
+mtable[rowlines="solid"] > mlabeledtr + mtr,
+mtable[rowlines="solid"] > mlabeledtr + mlabeledtr {
+    border-top: solid thin;
+}
+mtable[rowlines="dashed"] > mtr + mtr,
+mtable[rowlines="dashed"] > mtr + mlabeledtr,
+mtable[rowlines="dashed"] > mlabeledtr + mtr,
+mtable[rowlines="dashed"] > mlabeledtr + mlabeledtr {
+    border-top: dashed thin;
+}
+mtable[columnlines="solid"] > mtr > mtd + mtd,
+mtable[columnlines="solid"] > mlabeledtr > mtd + mtd {
+    border-left: solid thin;
+}
+mtable[columnlines="dashed"] > mtr > mtd + mtd,
+mtable[columnlines="dashed"] > mlabeledtr > mtd + mtd {
+    border-left: dashed thin;
+}
+
+/* mspace: width/height/depth attributes handled by code */
+mspace[linebreak="newline"]:before,
+mspace[linebreak="indentingnewline"]:before {
+    content: "\000A";
+    white-space: pre;
+}
+mspace[linebreak="indentingnewline"]:after {
+    display: inline-block;
+    content: "";
+    width: 1em;
+}
+
+/* mphantom */
+mphantom {
+    visibility: hidden;
+}
+
+/* ms: litteral string */
+ms:before,
+ms:after {
+    content: "\0022";
+}
+ms[lquote]:before {
+    content: attr(lquote);
+}
+ms[rquote]:after {
+    content: attr(rquote);
+}
+
+/* merror */
+merror {
+    display: inline-block;
+    border: 1px solid red;
+    background-color: yellow;
+}
+merror:before {
+    content: "Error: ";
+}
+
+/* tooltip... only the first child should be shown */
+maction > * + * {
+    display: none;
+}
+
+/* annotation-xml may contain alternate HTML content */
+annotation,
+annotation-xml {
+    display: none;
+}
+
+/* mstack, mlongdiv
+ * Elementary math, used to show addition and division steps for learners.
+ * Not really supported nor tested, CSS taken from the "MathML for CSS Profile"
+ * as it might be better than nothing
+ */
+mstack,
+mlongdiv {
+    display: inline-table;
+    font-family: monospace;
+}
+mstack {
+    text-align: right;
+    border-collapse: collapse;
+}
+mstack[align='top'],
+mlongdiv[align='top'] {
+    vertical-align: top;
+}
+mstack[align='center'],
+mlongdiv[align='center'] {
+    vertical-align: middle;
+}
+mstack[align='bottom'],
+mlongdiv[align='bottom'] {
+    vertical-align: bottom;
+}
+msline {
+    display: block;
+    border-bottom: solid thin;
+}
+mstack > *,
+mlongdiv > mn:first-child {
+    display: table-row;
+}
+mlongdiv > *:first-child + * {
+    display: table-cell;
+}
+mlongdiv > *:first-child + * + * {
+    border-top: solid thin;
+}
+mlongdiv > *:first-child:before {
+    display: table-cell;
+    content: '\A0';
+}
+mlongdiv > *:first-child + *:after {
+    content: ')';
+}
+mlongdiv > * {
+    display: block;
+}
+mscarry {
+    display: none;
+}
+
+/* End of stylesheet (see top for why we end it that way) */
+/*
+)===" // /* */
