@@ -5793,7 +5793,7 @@ void ldomNode::ensurePseudoElement( bool is_before ) {
             ldomNode * child = getChildNode(nb_children-1); // should always be found as the last node
             // pseudoElem might have been wrapped by a inlineBox, autoBoxing, floatBox...
             while ( child && child->isBoxingNode() && child->getChildCount()>0 )
-                child = child->getChildNode(0);
+                child = child->getChildNode(child->getChildCount()-1);
             if ( child && child->getNodeId() == el_pseudoElem && child->hasAttribute(attr_After) ) {
                 // Already there, no need to create it
                 insertChildIndex = -1;
@@ -17890,11 +17890,11 @@ void ldomNode::initNodeStyle()
 }
 #endif
 
-bool ldomNode::isBoxingNode( bool orPseudoElem ) const
+bool ldomNode::isBoxingNode( bool orPseudoElem, lUInt16 exceptBoxingNodeId ) const
 {
     if( isElement() ) {
         lUInt16 id = getNodeId();
-        if( id >= el_autoBoxing && id <= el_inlineBox ) {
+        if( id >= EL_BOXING_START && id <= EL_BOXING_END && id != exceptBoxingNodeId ) {
             return true;
         }
         if ( orPseudoElem && id == el_pseudoElem ) {
@@ -17904,10 +17904,10 @@ bool ldomNode::isBoxingNode( bool orPseudoElem ) const
     return false;
 }
 
-ldomNode * ldomNode::getUnboxedParent() const
+ldomNode * ldomNode::getUnboxedParent( lUInt16 exceptBoxingNodeId ) const
 {
     ldomNode * parent = getParentNode();
-    while ( parent && parent->isBoxingNode() )
+    while ( parent && parent->isBoxingNode(false, exceptBoxingNodeId) )
         parent = parent->getParentNode();
     return parent;
 }
@@ -17915,12 +17915,12 @@ ldomNode * ldomNode::getUnboxedParent() const
 // The following 4 methods are mostly used when checking CSS siblings/child
 // rules and counting list items siblings: we have them skip pseudoElems by
 // using isBoxingNode(orPseudoElem=true).
-ldomNode * ldomNode::getUnboxedFirstChild( bool skip_text_nodes ) const
+ldomNode * ldomNode::getUnboxedFirstChild( bool skip_text_nodes, lUInt16 exceptBoxingNodeId ) const
 {
     for ( int i=0; i<getChildCount(); i++ ) {
         ldomNode * child = getChildNode(i);
-        if ( child && child->isBoxingNode(true) ) {
-            child = child->getUnboxedFirstChild( skip_text_nodes );
+        if ( child && child->isBoxingNode(true, exceptBoxingNodeId) ) {
+            child = child->getUnboxedFirstChild( skip_text_nodes, exceptBoxingNodeId );
             // (child will then be NULL if it was a pseudoElem)
         }
         if ( child && (!skip_text_nodes || !child->isText()) )
@@ -17929,12 +17929,12 @@ ldomNode * ldomNode::getUnboxedFirstChild( bool skip_text_nodes ) const
     return NULL;
 }
 
-ldomNode * ldomNode::getUnboxedLastChild( bool skip_text_nodes ) const
+ldomNode * ldomNode::getUnboxedLastChild( bool skip_text_nodes, lUInt16 exceptBoxingNodeId ) const
 {
     for ( int i=getChildCount()-1; i>=0; i-- ) {
         ldomNode * child = getChildNode(i);
-        if ( child && child->isBoxingNode(true) ) {
-            child = child->getUnboxedLastChild( skip_text_nodes );
+        if ( child && child->isBoxingNode(true, exceptBoxingNodeId) ) {
+            child = child->getUnboxedLastChild( skip_text_nodes, exceptBoxingNodeId );
         }
         if ( child && (!skip_text_nodes || !child->isText()) )
             return child;
@@ -17968,13 +17968,13 @@ ldomNode * ldomNode::getUnboxedLastChild( bool skip_text_nodes ) const
     }
 */
 
-ldomNode * ldomNode::getUnboxedNextSibling( bool skip_text_nodes ) const
+ldomNode * ldomNode::getUnboxedNextSibling( bool skip_text_nodes, lUInt16 exceptBoxingNodeId ) const
 {
     // We use a variation of the above non-recursive node subtree walker,
     // but with an arbitrary starting node (this) inside the unboxed_parent
     // tree, and checks to not walk down non-boxing nodes - but still
     // walking up any node (which ought to be a boxing node).
-    ldomNode * unboxed_parent = getUnboxedParent(); // don't walk outside of it
+    ldomNode * unboxed_parent = getUnboxedParent(exceptBoxingNodeId); // don't walk outside of it
     if ( !unboxed_parent )
         return NULL;
     ldomNode * n = (ldomNode *) this;
@@ -17996,7 +17996,7 @@ ldomNode * ldomNode::getUnboxedNextSibling( bool skip_text_nodes ) const
                 if ( !skip_text_nodes )
                     return n;
             }
-            else if ( !n->isBoxingNode(true) ) // Not a boxing node nor pseudoElem
+            else if ( !n->isBoxingNode(true, exceptBoxingNodeId) ) // Not a boxing node nor pseudoElem
                 return n;
             // Otherwise, this node is a boxing node (or a text node or a pseudoElem
             // with no child, and we'll get back to its parent)
@@ -18006,7 +18006,7 @@ ldomNode * ldomNode::getUnboxedNextSibling( bool skip_text_nodes ) const
         //   we want to check
         // - if n->isBoxingNode() (and node_entered=true, and index=0): enter the first
         //   child of this boxingNode (not if pseudoElem, that doesn't box anything)
-        if ( (!node_entered || n->isBoxingNode()) && index < n->getChildCount() ) {
+        if ( (!node_entered || n->isBoxingNode(false, exceptBoxingNodeId)) && index < n->getChildCount() ) {
             n = n->getChildNode(index);
             index = 0;
             node_entered = true;
@@ -18025,10 +18025,10 @@ ldomNode * ldomNode::getUnboxedNextSibling( bool skip_text_nodes ) const
     return NULL;
 }
 
-ldomNode * ldomNode::getUnboxedPrevSibling( bool skip_text_nodes ) const
+ldomNode * ldomNode::getUnboxedPrevSibling( bool skip_text_nodes, lUInt16 exceptBoxingNodeId ) const
 {
     // Similar to getUnboxedNextSibling(), but walking backward
-    ldomNode * unboxed_parent = getUnboxedParent();
+    ldomNode * unboxed_parent = getUnboxedParent(exceptBoxingNodeId);
     if ( !unboxed_parent )
         return NULL;
     ldomNode * n = (ldomNode *) this;
@@ -18041,10 +18041,10 @@ ldomNode * ldomNode::getUnboxedPrevSibling( bool skip_text_nodes ) const
                 if ( !skip_text_nodes )
                     return n;
             }
-            else if ( !n->isBoxingNode(true) )
+            else if ( !n->isBoxingNode(true, exceptBoxingNodeId) )
                 return n;
         }
-        if ( (!node_entered || n->isBoxingNode()) && index >= 0 && index < n->getChildCount() ) {
+        if ( (!node_entered || n->isBoxingNode(false, exceptBoxingNodeId)) && index >= 0 && index < n->getChildCount() ) {
             n = n->getChildNode(index);
             index = n->getChildCount() - 1;
             node_entered = true;

@@ -1071,15 +1071,15 @@ public:
     bool isEmbeddedBlockBoxingInlineBox(bool inline_box_checks_done=false) const;
 
     /// is node any of our internal boxing element (or, optionally, our pseudoElem)
-    bool isBoxingNode( bool orPseudoElem=false ) const;
+    bool isBoxingNode( bool orPseudoElem=false, lUInt16 exceptBoxingNodeId=0 ) const;
 
     /// return real (as in the original HTML) parent/siblings by skipping any internal
     /// boxing element up or down (returns NULL when no more sibling)
-    ldomNode * getUnboxedParent() const;
-    ldomNode * getUnboxedFirstChild( bool skip_text_nodes=false ) const;
-    ldomNode * getUnboxedLastChild( bool skip_text_nodes=false ) const;
-    ldomNode * getUnboxedPrevSibling( bool skip_text_nodes=false ) const;
-    ldomNode * getUnboxedNextSibling( bool skip_text_nodes=false ) const;
+    ldomNode * getUnboxedParent( lUInt16 exceptBoxingNodeId=0 ) const;
+    ldomNode * getUnboxedFirstChild( bool skip_text_nodes=false, lUInt16 exceptBoxingNodeId=0 ) const;
+    ldomNode * getUnboxedLastChild( bool skip_text_nodes=false, lUInt16 exceptBoxingNodeId=0 ) const;
+    ldomNode * getUnboxedPrevSibling( bool skip_text_nodes=false, lUInt16 exceptBoxingNodeId=0 ) const;
+    ldomNode * getUnboxedNextSibling( bool skip_text_nodes=false, lUInt16 exceptBoxingNodeId=0 ) const;
 };
 
 

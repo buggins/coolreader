@@ -3510,11 +3510,27 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
     // or be updated to the node on which next selectors (on the left in the
     // chain) must be checked against. When returning 'false', we can let
     // node be in any state, even messy.
+
+    // We allow internal/boxing elements element names in selectors,
+    // so if one is specified, we should not skip it with getUnboxed*().
+    // We expect to find only a single kind of them per selector though.
+    lUInt16 exceptBoxingNodeId = 0;
+    if ( _id >= EL_BOXING_START && _id <= EL_BOXING_END ) { // _id from rule
+        exceptBoxingNodeId = _id;
+    }
+    else {
+        // Also check current node: if we stopped on it from a previous
+        // rule, it's because the previous rule was checking for this
+        // boxing element name
+        lUInt16 curNodeId = node->getNodeId();
+        if ( curNodeId >= EL_BOXING_START && curNodeId <= EL_BOXING_END )
+            exceptBoxingNodeId = curNodeId;
+    }
     switch (_type)
     {
     case cssrt_parent:        // E > F (child combinator)
         {
-            node = node->getUnboxedParent();
+            node = node->getUnboxedParent(exceptBoxingNodeId);
             if (!node || node->isNull())
                 return false;
             // If _id=0, we are the parent and we match
@@ -3526,7 +3542,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
     case cssrt_ancessor:      // E F (descendant combinator)
         {
             for (;;) {
-                node = node->getUnboxedParent();
+                node = node->getUnboxedParent(exceptBoxingNodeId);
                 if (!node || node->isNull())
                     return false;
                 // cssrt_ancessor is a non-deterministic rule: next rules
@@ -3554,7 +3570,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         break;
     case cssrt_predecessor:   // E + F (adjacent sibling combinator)
         {
-            node = node->getUnboxedPrevSibling(true); // skip text nodes
+            node = node->getUnboxedPrevSibling(true, exceptBoxingNodeId); // skip text nodes
             if (!node || node->isNull())
                 return false;
             if (!_id || node->getNodeId() == _id) {
@@ -3567,7 +3583,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
     case cssrt_predsibling:   // E ~ F (preceding sibling / general sibling combinator)
         {
             for (;;) {
-                node = node->getUnboxedPrevSibling(true); // skip text nodes
+                node = node->getUnboxedPrevSibling(true, exceptBoxingNodeId); // skip text nodes
                 if (!node || node->isNull())
                     return false;
                 if ( !_id || node->getNodeId() == _id ) {
@@ -3756,7 +3772,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                     // the first <body> or the <html> node, but to avoid applyng the
                     // style twice (to the 2 <body>s), we want to NOT match the first
                     // node.
-                    ldomNode * parent = node->getUnboxedParent();
+                    ldomNode * parent = node->getUnboxedParent(exceptBoxingNodeId);
                     if ( !parent || parent->isRoot() )
                         return false; // we do not want to return true;
                     lUInt16 parentNodeId = parent->getNodeId();
@@ -3800,7 +3816,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                             nodeId = node->getNodeId();
                         const ldomNode * elem = node;
                         for (;;) {
-                            elem = elem->getUnboxedPrevSibling(true); // skip text nodes
+                            elem = elem->getUnboxedPrevSibling(true, exceptBoxingNodeId); // skip text nodes
                             if (!elem)
                                 break;
                             // We have a previous sibling
@@ -3824,7 +3840,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                             nodeId = node->getNodeId();
                         const ldomNode * elem = node;
                         for (;;) {
-                            elem = elem->getUnboxedNextSibling(true); // skip text nodes
+                            elem = elem->getUnboxedNextSibling(true, exceptBoxingNodeId); // skip text nodes
                             if (!elem)
                                 break;
                             // We have a next sibling
@@ -3848,7 +3864,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                         const ldomNode * elem = node;
                         n = 1;
                         for (;;) {
-                            elem = elem->getUnboxedPrevSibling(true); // skip text nodes
+                            elem = elem->getUnboxedPrevSibling(true, exceptBoxingNodeId); // skip text nodes
                             if (!elem)
                                 break;
                             if (_attrid == csspc_nth_child || elem->getNodeId() == nodeId)
@@ -3869,7 +3885,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                         const ldomNode * elem = node;
                         n = 1;
                         for (;;) {
-                            elem = elem->getUnboxedNextSibling(true); // skip text nodes
+                            elem = elem->getUnboxedNextSibling(true, exceptBoxingNodeId); // skip text nodes
                             if (!elem)
                                 break;
                             if (_attrid == csspc_nth_last_child || elem->getNodeId() == nodeId)
@@ -3888,7 +3904,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                         n = 2; // true
                         if ( _attrid == csspc_only_of_type )
                             nodeId = node->getNodeId();
-                        const ldomNode * elem = node->getUnboxedParent()->getUnboxedFirstChild(true);
+                        const ldomNode * elem = node->getUnboxedParent(exceptBoxingNodeId)->getUnboxedFirstChild(true, exceptBoxingNodeId);
                         while (elem) {
                             if (elem != node) {
                                 if (_attrid == csspc_only_child || elem->getNodeId() == nodeId) {
@@ -3896,7 +3912,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                                     break;
                                 }
                             }
-                            elem = elem->getUnboxedNextSibling(true);
+                            elem = elem->getUnboxedNextSibling(true, exceptBoxingNodeId);
                         }
                         cache_node_checked_property(node, _attrid, n);
                     }
@@ -3939,8 +3955,13 @@ bool LVCssSelector::check( const ldomNode * node ) const
         }
         else {
             // We might be the pseudoElem that was created by this selector.
-            // Start checking the rules starting from the real parent.
-            node = node->getUnboxedParent();
+            // Start checking the rules starting from the real parent
+            // (except if this selector target a boxing element: we should
+            // stop unboxing at that boxing element).
+            if ( _id >= EL_BOXING_START && _id <= EL_BOXING_END )
+                node = node->getUnboxedParent(_id);
+            else
+                node = node->getUnboxedParent();
             nodeId = node->getNodeId();
         }
     }
@@ -4273,8 +4294,10 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
                 // is shorter than the shortest of them (rubyBox)
                 element = element.lowercase();
             }
-            else if ( element != "DocFragment" && element != "autoBoxing" && element != "tabularBox" &&
-                      element != "rubyBox"     && element != "floatBox"   && element != "inlineBox"  &&
+            else if ( element != "DocFragment" &&
+                      element != "autoBoxing"  && element != "tabularBox" &&
+                      element != "rubyBox"     && element != "mathBox"    &&
+                      element != "floatBox"    && element != "inlineBox"  &&
                       element != "pseudoElem"  && element != "FictionBook" ) {
                 element = element.lowercase();
             }
@@ -4499,7 +4522,10 @@ void LVStyleSheet::apply( const ldomNode * node, css_style_rec_t * style )
     lUInt16 id = node->getNodeId();
     if ( id == el_pseudoElem ) { // get the id chain from the parent element
         // Note that a "div:before {float:left}" will result in: <div><floatBox><pseudoElem>
-        id = node->getUnboxedParent()->getNodeId();
+        // There is just one kind of boxing element that is explicitely
+        // added when parsing MathML (and can't be implicitely added) that
+        // could generate pseudo elements: <mathBox>. So, don't skip them
+        id = node->getUnboxedParent(el_mathBox)->getNodeId();
     }
     
     // _selectors[0] holds the ordered chain of selectors starting (from

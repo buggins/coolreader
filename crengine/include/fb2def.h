@@ -38,10 +38,15 @@ XS_TAG1T( autoBoxing )
 XS_TAG1T( tabularBox )
 // Internal element for ruby wrapping completion (so we can render them as inline-table with tweaks)
 XS_TAG1I( rubyBox )
+// Internal element used to wrap MathML elements for rendering them as inline-table/inline-block sub-elements
+XS_TAG1I( mathBox )
 // Internal element for float rendering
 XS_TAG1T( floatBox )
 // Internal element for inline-block and inline-table rendering
 XS_TAG1I( inlineBox )
+
+#define EL_BOXING_START el_autoBoxing
+#define EL_BOXING_END   el_inlineBox
 
 // Internal element created for CSS pseudo elements ::before and ::after :
 //  - defaults to "display: none", but will be set to "inline" when style is applied
