@@ -1291,8 +1291,8 @@ lString32 & lString32::insert(size_type p0, size_type count, lChar32 ch)
     if (p0>pchunk->len)
         p0 = pchunk->len;
     reserve( pchunk->len+count );
-    for (size_type i=pchunk->len+count; i>p0; i--)
-        pchunk->buf32[i] = pchunk->buf32[i-1];
+    for (size_type i=pchunk->len-1; i>=p0; i--)
+        pchunk->buf32[i+count] = pchunk->buf32[i];
     _lStr_memset(pchunk->buf32+p0, ch, count);
     pchunk->len += count;
     pchunk->buf32[pchunk->len] = 0;
@@ -1305,8 +1305,8 @@ lString32 & lString32::insert(size_type p0, const lString32 & str)
         p0 = pchunk->len;
     int count = str.length();
     reserve( pchunk->len+count );
-    for (size_type i=pchunk->len+count; i>p0; i--)
-        pchunk->buf32[i] = pchunk->buf32[i-1];
+    for (size_type i=pchunk->len-1; i>=p0; i--)
+        pchunk->buf32[i+count] = pchunk->buf32[i];
     _lStr_memcpy(pchunk->buf32 + p0, str.c_str(), count);
     pchunk->len += count;
     pchunk->buf32[pchunk->len] = 0;
@@ -2722,8 +2722,8 @@ lString8 & lString8::insert(size_type p0, size_type count, lChar8 ch)
     if (p0>pchunk->len)
         p0 = pchunk->len;
     reserve( pchunk->len+count );
-    for (size_type i=pchunk->len+count; i>p0; i--)
-        pchunk->buf8[i] = pchunk->buf8[i-1];
+    for (size_type i=pchunk->len-1; i>=p0; i--)
+        pchunk->buf8[i+count] = pchunk->buf8[i];
     //_lStr_memset(pchunk->buf8+p0, ch, count);
     memset(pchunk->buf8+p0, ch, count);
     pchunk->len += count;
