@@ -134,35 +134,15 @@ int LVSvgImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImage
                 nsvgRasterize(rast, image, 1, 1, 1, img, w, h, w*4); // offsets of 1 pixel, scale = 1
                 // stbi_write_png("/tmp/svg.png", w, h, 4, img, w*4); // for debug
                 callback->OnStartDecode(this);
+                lUInt32 * src = (lUInt32 *)img;
                 lUInt32 * row = new lUInt32 [ _width ];
-                lUInt8 * p = img;
-                lUInt8 r, g, b, a, ia, blend, iblend;
-                lUInt32 ro, go, bo;
                 for (int y=0; y<_height; y++) {
-                    for (int x=0; x<_width; x++) {
-                        // We mostly get full white or full black when using alpha channel like this:
-                        //   row[x] = (((lUInt32)p[3])<<24) | (((lUInt32)p[0])<<16) | (((lUInt32)p[1])<<8) | (((lUInt32)p[2])<<0);
-                        // We can ignore the alpha channel but we get a black background for transparent pixels with:
-                        //   row[x] = (((lUInt32)p[0])<<16) | (((lUInt32)p[1])<<8) | (((lUInt32)p[2])<<0);
-                        // It's better to use alpha channel here to blend pixels over a white background and set opacity to full
-                        // """ To perform a source-over blend between two colors that use straight alpha format:
-                        //           result = (source.RGB * source.A) + (dest.RGB * (1 - source.A))        """
-                        r = (lUInt8)p[0];
-                        g = (lUInt8)p[1];
-                        b = (lUInt8)p[2];
-                        a = (lUInt8)p[3];
-                        ia = a ^ 0xFF;
-                        ro = (lUInt32)( r*a + 0xff*ia );
-                        go = (lUInt32)( g*a + 0xff*ia );
-                        bo = (lUInt32)( b*a + 0xff*ia );
-                        // More accurate divide by 256 than just >> 8 (255 becomes 254 with just >> 8)
-                        ro = (ro+1 + (ro >> 8)) >> 8;
-                        go = (go+1 + (go >> 8)) >> 8;
-                        bo = (bo+1 + (bo >> 8)) >> 8;
-                        row[x] = ro<<16|go<<8|bo;
-                        // if (y == 80) // output bytes for a single row
-                        // printf("SVG: byte colors %d %d %d %d > %d %d %d\n", (int)a, (int)r, (int)g, (int)b, (int)ro, (int)go, (int)bo);
-                        p += 4;
+                    size_t px_count = _width;
+                    lUInt32 * dst = row;
+                    while (px_count--) {
+                        // nanosvg outputs straight RGBA; lvimg expects BGRA, with inverted alpha,
+                        const lUInt32 cl = *src++ ^ 0xFF000000;
+                        *dst++ = ((cl<<16)&0x00FF0000) | ((cl>>16)&0x000000FF) | (cl&0xFF00FF00);
                     }
                     callback->OnLineDecoded( this, y, row );
                 }
