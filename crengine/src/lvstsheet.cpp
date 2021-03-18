@@ -607,6 +607,8 @@ bool parse_number_value( const char * & str, css_length_t & value,
         value.type = css_val_pt;
     else if ( substr_icompare( "ex", str ) )
         value.type = css_val_ex;
+    else if ( substr_icompare( "ch", str ) )
+        value.type = css_val_ch;
     else if ( substr_icompare( "rem", str ) )
         value.type = css_val_rem;
     else if ( substr_icompare( "px", str ) )

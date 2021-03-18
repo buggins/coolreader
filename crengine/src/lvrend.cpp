@@ -2277,8 +2277,8 @@ LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId)
 {
     int sz;
     if ( style->font_size.type == css_val_em || style->font_size.type == css_val_ex ||
-            style->font_size.type == css_val_percent ) {
-        // font_size.type can't be em/ex/%, it should have been converted to px
+            style->font_size.type == css_val_ch || style->font_size.type == css_val_percent ) {
+        // font_size.type can't be em/ex/ch/%, it should have been converted to px
         // or screen_px while in setNodeStyle().
         printf("CRE WARNING: getFont: %d of unit %d\n", style->font_size.value>>8, style->font_size.type);
         sz = style->font_size.value >> 8; // set some value anyway
@@ -2473,8 +2473,10 @@ int lengthToPx( ldomNode * node, css_length_t val, int base_px, int base_em, boo
     case css_val_percent:
         px = ( base_px * val.value / 100 ) >> 8;
         break;
-    case css_val_ex: {
-        // value = ex*512 (approximated with base_em, 1ex =~ 0.5em in many fonts)
+    case css_val_ex:
+    case css_val_ch: {
+        // value = ex*512 (approximated with base_em, 1ex =~ 0.5em in many fonts,
+        // and 1ch can be assumed to be 0.5em wide when impractical to determine)
         // Default the base em using the node if not supplied.
         if (base_em < 0)
             base_em = node->getFont()->getSize();
@@ -2545,7 +2547,7 @@ int lengthToPx( ldomNode * node, css_length_t val, int base_px, int base_em, boo
 bool is_length_relative_unit(css_length_t val)
 {
     return (val.type == css_val_percent || val.type == css_val_em ||
-            val.type == css_val_ex || val.type == css_val_rem ||
+            val.type == css_val_ex || val.type == css_val_ch || val.type == css_val_rem ||
             val.type == css_val_vw || val.type == css_val_vh ||
             val.type == css_val_vmin || val.type == css_val_vmax);
 }
@@ -9850,6 +9852,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
             pstyle->fld.value = parent_style->font_size.value * pstyle->fld.value / 256; \
             break; \
         case css_val_ex: \
+        case css_val_ch: \
             pstyle->fld.type = parent_style->fld.type; \
             pstyle->fld.value = parent_style->font_size.value * pstyle->fld.value / 512; \
             break; \
@@ -10004,6 +10007,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->font_size.value = parent_style->font_size.value * pstyle->font_size.value / 256;
         break;
     case css_val_ex: // value = ex*256 ; 512 = 2ex = 1em = x1
+    case css_val_ch: // value = ch*256 ; 512 = 2ch = 1em = x1
         pstyle->font_size.type = parent_style->font_size.type;
         pstyle->font_size.value = parent_style->font_size.value * pstyle->font_size.value / 512;
         break;
@@ -10044,6 +10048,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
             case css_val_percent:
             case css_val_em:
             case css_val_ex:
+            case css_val_ch:
                 {
                 int pem = parent_font->getSize(); // value in screen px
                 int line_h = lengthToPx(enode, parent_style->line_height, pem, pem);
