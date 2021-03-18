@@ -18751,8 +18751,15 @@ LVStreamRef ldomDocument::getObjectImageStream( lString32 refName )
         lString32 data = refName.substr(0, 50);
         int pos = data.pos(U";base64,");
         if ( pos > 0 ) {
-            lString8 b64data = UnicodeToLocal(refName.substr(pos+8));
+            lString8 b64data = UnicodeToUtf8(refName.substr(pos+8));
             ref = LVStreamRef(new LVBase64Stream(b64data));
+            return ref;
+        }
+        // Non-standard plain string data (can be used to provide SVG)
+        pos = data.pos(U";-cr-plain,");
+        if ( pos > 0 ) {
+            lString8 plaindata = UnicodeToUtf8(refName.substr(pos+11));
+            ref = LVCreateStringStream(plaindata);
             return ref;
         }
     }
