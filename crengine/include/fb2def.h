@@ -413,6 +413,8 @@ XS_ATTR( role )
 XS_ATTR( dir )
 XS_ATTR( lang )
 XS_ATTR( recindex ) // used with mobi images
+XS_ATTR2( required_namespace, "required-namespace" ) // <epub:case required-namespace="...">
+
 // Note that attributes parsed in the HTML are lowercased, unlike the ones
 // we explicitely set while building the DOM. So, for our internal elements
 // needs, let's use some uppercase to avoid conflicts with HTML content
@@ -422,6 +424,7 @@ XS_ATTR( Before ) // for pseudoElem internal element
 XS_ATTR( After )  // for pseudoElem internal element
 XS_ATTR( ParserHint )   // HTML parser hints (used for Lib.ru support)
 XS_ATTR( NonLinear )    // for non-linear items in EPUB
+
 // Other classic attributes present in html5.css
 XS_ATTR2( accept_charset, "accept-charset" )
 XS_ATTR( alt )
