@@ -1510,6 +1510,7 @@ public:
             }
             fmt.push();
             caption_h = caption->renderFinalBlock( txform, &fmt, w - padding_left - padding_right );
+            context.updateRenderProgress(1);
             caption_h += padding_top + padding_bottom;
             // Reload fmt, as enode->renderFinalBlock() may have updated it.
             fmt = RenderRectAccessor( caption );
@@ -1626,6 +1627,7 @@ public:
                         }
                         fmt.push();
                         int h = cell->elem->renderFinalBlock( txform, &fmt, cell->width - padding_left - padding_right);
+                        context.updateRenderProgress(1);
                         cell->height = padding_top + h + padding_bottom;
                         // A cell baseline is the baseline of its first line of text (or
                         // the bottom of content edge of the cell if no line)

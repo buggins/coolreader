@@ -45,6 +45,8 @@ int LVRendPageList::FindNearestPage( int y, int direction )
     return length()-1;
 }
 
+static LVRendPageContext * main_context = NULL;
+
 LVRendPageContext::LVRendPageContext(LVRendPageList * pageList, int pageHeight, int docFontSize, bool gatherLines)
     : callback(NULL), totalFinalBlocks(0)
     , renderedFinalBlocks(0), lastPercent(-1), page_list(pageList), page_h(pageHeight)
@@ -58,6 +60,17 @@ LVRendPageContext::LVRendPageContext(LVRendPageList * pageList, int pageHeight, 
 
 bool LVRendPageContext::updateRenderProgress( int numFinalBlocksRendered )
 {
+    if ( !callback ) {
+        if ( main_context ) {
+            main_context->updateRenderProgress( numFinalBlocksRendered );
+        }
+        return false;
+    }
+    if ( !main_context && callback ) {
+        // Save the main context (with the progress callback), so other
+        // flows' contexts can forward their progress to it
+        main_context = this;
+    }
     renderedFinalBlocks += numFinalBlocksRendered;
     int percent = totalFinalBlocks>0 ? renderedFinalBlocks * 100 / totalFinalBlocks : 0;
     if ( percent<0 )
@@ -811,6 +824,9 @@ void LVRendPageContext::Finalize()
     split();
     lines.clear();
     footNotes.clear();
+    if ( main_context == this ) {
+        main_context = NULL;
+    }
 }
 
 static const char * pagelist_magic = "PageList";
