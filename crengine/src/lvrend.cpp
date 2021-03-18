@@ -980,7 +980,8 @@ public:
             for (j=0; j<rows[i]->cells.length(); j++) {
                 // rows[i]->cells contains only real cells made from node elements
                 CCRTableCell * cell = (rows[i]->cells[j]);
-                getRenderedWidths(cell->elem, cell->max_content_width, cell->min_content_width, cell->direction);
+                int rend_flags = cell->elem->getDocument()->getRenderBlockRenderingFlags();
+                getRenderedWidths(cell->elem, cell->max_content_width, cell->min_content_width, cell->direction, true, rend_flags);
                 #ifdef DEBUG_TABLE_RENDERING
                     printf("TABLE: cell[%d,%d] getRenderedWidths: %d (min %d)\n",
                         j, i, cell->max_content_width, cell->min_content_width);
@@ -1119,6 +1120,13 @@ public:
             assignable_width = table_width;
             borderspacing_h = 0;
         }
+        // todo: there's an issue with TD's style->width being usually explicitely ignored
+        // in getRenderedWidths() as a rule to not impose these widths because here,
+        // we just use them as a first hint, and it is not the final cell/column width.
+        // But with inline-table, whose table_width has been estimated without
+        // TD's style->width, having them used below as a hint that influence
+        // the sizing of all columns with distribution to compensate these
+        // style->widths can give really bad results.
 
         // Find best width for each column
         // Note: support for CSS min-width/max-width on table cells and cols
