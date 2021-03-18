@@ -17,6 +17,7 @@
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
 #include "../include/lvrend.h"
+#include "lvdrawbuf/lvinkmeasurementdrawbuf.h"
 #include "../include/crlog.h"
 
 // Note about box model/sizing in crengine:
@@ -2813,6 +2814,33 @@ bool getStyledImageSize( ldomNode * enode, int & img_width, int & img_height, in
 
     img_width = w;
     img_height = h;
+    return true;
+}
+
+// Returns ink offsets from the node's RenderRectAccessor (its border box), positive when inward
+bool getInkOffsets( ldomNode * node, lvRect &inkOffsets, bool measure_hidden_content,
+                    bool ignore_decorations, bool skip_initial_borders, lvRect * borderBox ) {
+    RenderRectAccessor fmt( node );
+    if ( borderBox ) {
+        // Give this to caller if requested so it doesn't have to do it
+        borderBox->left = fmt.getX();
+        borderBox->right = fmt.getX() + fmt.getWidth();
+        borderBox->top = fmt.getY();
+        borderBox->bottom = fmt.getY() + fmt.getHeight();
+    }
+    LVInkMeasurementDrawBuf inkBuf(measure_hidden_content, ignore_decorations);
+    DrawDocument( inkBuf, node, 0, 0, fmt.getWidth(), fmt.getHeight(), 0 - fmt.getX(), 0 - fmt.getY(),
+                        node->getDocument()->getPageHeight(), NULL, NULL, true, false, skip_initial_borders );
+    lvRect inkArea;
+    if ( !inkBuf.getInkArea(inkArea) ) {
+        // printf("no ink area\n");
+        return false;
+    }
+    // printf("ink area %d>%d %d\\%d in fmt(%d>%d %d\\%d)\n", inkArea.left, inkArea.right, inkArea.top, inkArea.bottom, fmt.getX(), fmt.getX()+fmt.getWidth(), fmt.getY(), fmt.getY()+fmt.getHeight());
+    inkOffsets.left = inkArea.left;
+    inkOffsets.right = fmt.getWidth() - inkArea.right;
+    inkOffsets.top = inkArea.top;
+    inkOffsets.bottom = fmt.getHeight() - inkArea.bottom;
     return true;
 }
 
@@ -8999,9 +9027,9 @@ void DrawBackgroundImage(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int d
 //   doc_x is initially 0, and doc_y is set to a negative
 //   value (- page.start) from the y of the top of the page
 //   (in the whole book height) we want to start showing
-void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx, int dy,
-                    int doc_x, int doc_y, int page_height, ldomMarkedRangeList * marks,
-                    ldomMarkedRangeList *bookmarks, bool draw_content, bool draw_background )
+void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx, int dy, int doc_x, int doc_y,
+                   int page_height, ldomMarkedRangeList * marks, ldomMarkedRangeList *bookmarks,
+                   bool draw_content, bool draw_background, bool skip_initial_borders )
 {
     // Because of possible floats overflowing their block container box, that could
     // be drawn over the area of a next block, we may need to switch to two-steps drawing:
@@ -9054,7 +9082,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
         // For non-final nodes, being hidden just mean we should not draw its
         // border and background. For final nodes, text fragments will carry a
         // flag and won't be drawn.
-        bool isHidden = style->visibility >= css_v_hidden;
+        bool isHidden = style->visibility >= css_v_hidden && !drawbuf.WantsHiddenContent();
 
         // Check and draw background
         bool restoreBackgroundColor = false;
@@ -9173,7 +9201,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 // Don't draw border for TR TBODY... as their borders are never directly
                 // rendered by Firefox (they are rendered only when border-collapse, when
                 // they did collapse to the cell, and made out the cell border)
-                if ( !isTableRowLike && !isHidden )
+                if ( !isTableRowLike && !isHidden && !skip_initial_borders )
                     DrawBorder(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
 
                 // List item marker drawing when css_d_list_item_block and list-style-position = outside
@@ -9348,7 +9376,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 // Draw borders before content, so inner content can bleed if necessary on
                 // the border (some glyphs like 'J' at start or 'f' at end may be drawn
                 // outside the text content box).
-                if ( !isHidden )
+                if ( !isHidden && !skip_initial_borders )
                     DrawBorder(enode, drawbuf, x0, y0, doc_x, doc_y, fmt);
 
                 // Get ready to create a LFormattedText with the correct content width

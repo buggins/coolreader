@@ -145,7 +145,7 @@ void copystyle( css_style_ref_t sourcestyle, css_style_ref_t deststyle );
 /// draws formatted document to drawing buffer
 void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx, int dy, int doc_x, int doc_y,
                    int page_height, ldomMarkedRangeList * marks, ldomMarkedRangeList * bookmarks = NULL,
-                   bool draw_content=true, bool draw_background=true );
+                   bool draw_content=true, bool draw_background=true, bool skip_initial_borders=false );
 
 // Estimate width of node when rendered:
 //   maxWidth: width if it would be rendered on an infinite width area
@@ -172,6 +172,10 @@ int measureBorder(ldomNode *enode,int border);
 int lengthToPx( ldomNode *node, css_length_t val, int base_px, int base_em = -1, bool unspecified_as_em=false );
 int scaleForRenderDPI( int value );
 bool getStyledImageSize( ldomNode * enode, int & img_width, int & img_height, int container_width=-1, int container_height=-1 );
+
+// Returns ink offsets from the node's RenderRectAccessor (its border box), positive when inward
+bool getInkOffsets( ldomNode * node, lvRect &inkOffsets, bool measure_hidden_content=false,
+                    bool ignore_decorations=false, bool skip_initial_borders=false, lvRect * borderBox=NULL );
 
 #define BASE_CSS_DPI 96 // at 96 dpi, 1 css px = 1 screen px
 #define DEF_RENDER_DPI 96

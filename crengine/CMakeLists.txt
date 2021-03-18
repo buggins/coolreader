@@ -109,6 +109,7 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
         src/lvdrawbuf/lvbasedrawbuf.cpp
         src/lvdrawbuf/lvgraydrawbuf.cpp
         src/lvdrawbuf/lvcolordrawbuf.cpp
+        src/lvdrawbuf/lvinkmeasurementdrawbuf.cpp
         src/lvdrawbuf/lvimagescaleddrawcallback.cpp
         src/lvdrawbuf/lvdrawbuf_utils.cpp
         #src/xutils.cpp
