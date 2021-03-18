@@ -304,6 +304,67 @@ XS_TAG2T( src_ocr, "src-ocr" )
 XS_TAG2T( src_url, "src-url" )
 XS_TAG2T( text_author, "text-author" )
 
+#if MATHML_SUPPORT==1
+// MathML presentation elements, all inline by default, but might be modified by mathml_css_h.css
+XS_TAG1I( math )
+// MathML tokens (containing text)
+// https://www.w3.org/TR/MathML/chapter3.html#presm.tokel
+XS_TAG1I( mglyph ) // empty element, similar to <img src=>
+XS_TAG1I( mi )
+XS_TAG1I( mn )
+XS_TAG1I( mo )
+XS_TAG1I( mtext )
+XS_TAG1I( mspace )
+XS_TAG1I( ms )
+// MathML containers (containing tokens or other containers)
+// https://www.w3.org/TR/MathML/chapter3.html#presm.genlayout
+// MathML general layout schemata
+XS_TAG1I( mrow )
+XS_TAG1I( mstyle )
+XS_TAG1I( merror )
+XS_TAG1I( mphantom )
+XS_TAG1I( mpadded )
+XS_TAG1I( menclose )
+XS_TAG1I( mfenced )
+XS_TAG1I( mfrac )
+XS_TAG1I( msqrt )
+XS_TAG1I( mroot )
+// MathML script and limit schemata
+XS_TAG1I( munder )
+XS_TAG1I( mover )
+XS_TAG1I( munderover )
+XS_TAG1I( msub )
+XS_TAG1I( msup )
+XS_TAG1I( msubsup )
+XS_TAG1I( mmultiscripts )
+XS_TAG1I( mprescripts ) // empty element
+XS_TAG1I( none ) // empty element
+// MathML script and limit schemata
+XS_TAG1I( mtable )
+XS_TAG1I( mtr )
+XS_TAG1I( mlabeledtr )
+XS_TAG1I( mtd )
+XS_TAG1I( maligngroup ) // empty element
+XS_TAG1I( malignmark ) // empty element
+// MathML elementary maths (learning maths)
+XS_TAG1I( mstack )
+XS_TAG1I( mlongdiv )
+XS_TAG1I( msgroup )
+XS_TAG1I( msrow )
+XS_TAG1I( mscarries )
+XS_TAG1I( mscarry )
+XS_TAG1I( msline )
+// MathML other elements
+XS_TAG1I( maction )
+XS_TAG1I( semantics )
+XS_TAG2I( annotation_xml, "annotation-xml" )
+// <annotation> is already defined above for FB2
+#define EL_MATHML_START         el_math
+#define EL_MATHML_END           el_annotation_xml
+#define EL_MATHML_TOKEN_START   el_mglyph
+#define EL_MATHML_TOKEN_END     el_ms
+#endif // MATHML_SUPPORT==1
+
 XS_END_TAGS
 
 
@@ -389,6 +450,64 @@ XS_ATTR( tabindex )
 XS_ATTR( target )
 XS_ATTR( vspace )
 XS_ATTR( wrap )
+
+#if MATHML_SUPPORT==1
+// Various MathML attributes for internal rendering
+XS_ATTR( MT )       // MathML element or mathBox: type
+XS_ATTR( MD )       // MathML element has or inherits "math-style: normal" / "displaystyle=true": drawn larger
+XS_ATTR( MS )       // MathML element has or inherits "math-shift: normal": superscripts can be higher
+XS_ATTR( MN )       // MathML element has this "math-depth: <N>" nested level, used for reducing font-size
+XS_ATTR( ML )       // MathML element (or mathBox) has this added left spacing
+XS_ATTR( MR )       // MathML element (or mathBox) has this added right spacing
+XS_ATTR( Memb )     // MathML element is embelished or an embelisher
+XS_ATTR( Mform )    // MathML computed form (prefix/infix/postfix) (for debugging)
+XS_ATTR( Mlargeop ) // MathML <mo> should be larger ("", "integral")
+XS_ATTR( Mtransform ) // MathML <mo> or Memb should be transformed ("vstretch", "hstretch")
+XS_ATTR( Msymmetric ) // MathML <mo> stretching should be symmetric
+XS_ATTR2( Mhas_hstretch, "has-hstretch" ) // MathML <munder/mover/munderover> contains <mo> that should hstretch
+XS_ATTR( Msubsup )  // MathML <munder/mover/munderover> should be rendered as <msub/msup/subsup>
+XS_ATTR( Maccent )  // MathML <munder/mover><mathBox> is to be drawn as accent
+XS_ATTR( Maccentunder )  // MathML <munder/mover><mathBox> is to be drawn as accentunder
+// MathML regular attributes we might want to parse or handle via mathml.css (all attributes
+// checked in CSS with ie. 'mtable[frame="solid"] {...}' *must* be declared here; if stuff
+// works on first book after launch, but not on later re-open, this might be the reason).
+XS_ATTR( display )       // <math>
+XS_ATTR( mathcolor )     // most elements
+XS_ATTR( mathbackground )
+XS_ATTR( mathsize )
+XS_ATTR( mathvariant )   // <mo> and most elements
+XS_ATTR( form )          // <mo>
+XS_ATTR( stretchy )
+XS_ATTR( symmetric )
+XS_ATTR( largeop )
+XS_ATTR( movablelimits )
+XS_ATTR( accent )
+XS_ATTR( lspace )
+XS_ATTR( rspace )
+XS_ATTR( maxsize )
+XS_ATTR( minsize )
+XS_ATTR( linebreak )     // <mo>, <mspace>
+XS_ATTR( depth )         // <mspace>
+XS_ATTR( lquote )        // <ms>
+XS_ATTR( rquote )        // <ms>
+XS_ATTR( linethickness ) // <mfrac>
+XS_ATTR( bevelled )
+XS_ATTR( numalign )
+XS_ATTR( denalign )
+XS_ATTR( displaystyle )
+XS_ATTR( open )          // <mfenced>
+XS_ATTR( close )
+XS_ATTR( separators )
+XS_ATTR( notation )      // <menclose>
+XS_ATTR( voffset )       // <mpadded>
+XS_ATTR( accentunder )   // <munder>
+XS_ATTR( columnalign )   // <mtable>
+XS_ATTR( columnlines )
+XS_ATTR( columnspan )
+XS_ATTR( frame )
+XS_ATTR( rowalign )
+XS_ATTR( rowlines )
+#endif // MATHML_SUPPORT==1
 
 XS_END_ATTRS
 
