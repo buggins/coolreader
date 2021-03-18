@@ -922,6 +922,15 @@ public:
     inline const lString32 & getAttributeValue( lUInt16 id ) const { return getAttributeValue( LXML_NS_ANY, id ); }
     /// returns true if element node has attribute with specified name id
     inline bool hasAttribute( lUInt16 id ) const  { return hasAttribute( LXML_NS_ANY, id ); }
+    /// returns lowercased attribute value by attribute name id, for case insensitive keyword checking/parsing
+    inline lString32 getAttributeValueLC( lUInt16 id ) const
+    {
+        if ( hasAttribute(id) ) {
+            lString32 value = getAttributeValue(id);
+            return value.lowercase();
+        }
+        return lString32::empty_str;
+    };
 
     /// returns attribute value by attribute name id, looking at children if needed
     const lString32 & getFirstInnerAttributeValue( lUInt16 nsid, lUInt16 id ) const;
