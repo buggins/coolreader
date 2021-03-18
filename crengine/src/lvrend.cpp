@@ -6851,6 +6851,9 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
     // Adjust box size and position
 
+    // We may trust width set on our own boxing elements, even if a table
+    // element wheree it is usually ignored
+    bool is_boxing_elem = nodeElementId >= EL_BOXING_START && nodeElementId <= EL_BOXING_END;
     // <HR> gets its style width, height and margin:auto no matter flags
     bool is_hr = nodeElementId == el_hr;
     // <EMPTY-LINE> block element with height added for empty lines in txt document
@@ -7115,7 +7118,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         bool apply_style_width = false;
         css_length_t style_width = style->width;
         // table sub-elements widths are managed by the table layout algorithm
-        if ( style->display <= css_d_table ) {
+        // (but trust width if the table sub element is one of our boxing elements)
+        if ( style->display <= css_d_table || is_boxing_elem ) {
             // Only if ENSURE_STYLE_WIDTH as we may prefer having
             // full width text blocks to not waste reading width with blank areas.
             if ( style_width.type != css_val_unspecified ) {
@@ -10373,11 +10377,13 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         int _maxWidth = 0;
         int _minWidth = 0;
 
+        bool is_boxing_elem = nodeElementId >= EL_BOXING_START && nodeElementId <= EL_BOXING_END;
         bool use_style_width = false;
         css_length_t style_width = style->width;
         if ( BLOCK_RENDERING(rendFlags, ENSURE_STYLE_WIDTH) ) {
-            // ignore width for table sub-elements
-            if ( style->display <= css_d_table ) {
+            // Ignore width for table sub-elements - but allow it for our boxing elements, as we can set it
+            // for some explicit rendering purpose (i.e. for the MathML <msqrt> mathBox root symbol)
+            if ( style->display <= css_d_table || is_boxing_elem ) {
                 // Ignore widths in %, as we can't do much with them
                 if ( style_width.type != css_val_unspecified && style_width.type != css_val_percent ) {
                     if ( BLOCK_RENDERING(rendFlags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) ||
@@ -10722,8 +10728,8 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         // this point only. Now if USE_W3C_BOX_MODEL, later if not (after we've computed paddings)
         int ensured_min_width_late = -1;
         int ensured_max_width_late = -1;
-        if ( BLOCK_RENDERING(rendFlags, ENSURE_STYLE_WIDTH) && style->display <= css_d_table ) {
-            // We ignore width for table sub-elements.
+        if ( BLOCK_RENDERING(rendFlags, ENSURE_STYLE_WIDTH) && (style->display <= css_d_table || is_boxing_elem) ) {
+            // We ignore width for table sub-elements (except if it is one of our boxing elements, see above why).
             // Table themselves, even when USE_W3C_BOX_MODEL, follow the border box model,
             // so we'll apply them later.
             bool ensure_min_max_width_later = !BLOCK_RENDERING(rendFlags, USE_W3C_BOX_MODEL) || style->display == css_d_table;
