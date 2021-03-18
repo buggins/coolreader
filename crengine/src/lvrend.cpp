@@ -10083,6 +10083,12 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     if ( pstyle->color.type != css_val_unspecified || pstyle->color.value != css_generic_transparent )
         spreadParent( pstyle->color, parent_style->color );
 
+    // Border colors are not inherited, and default to "currentcolor": the just computed pstyle->color
+    for ( int i=0; i < 4; i++ ) {
+        if ( pstyle->border_color[i].type == css_val_unspecified && pstyle->border_color[i].value == css_generic_currentcolor )
+            pstyle->border_color[i] = pstyle->color;
+    }
+
     // background_color
     // Should not be inherited: elements start with unspecified.
     // The code will fill the rect of a parent element, and will
@@ -10106,6 +10112,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         spread_background_color = true;
     if ( spread_background_color )
         spreadParent( pstyle->background_color, parent_style->background_color, true );
+    // Except for the mostly useless case css_generic_currentcolor
+    if ( pstyle->background_color.type == css_val_unspecified && pstyle->background_color.value == css_generic_currentcolor )
+        pstyle->background_color = pstyle->color;
 
     // See if applying styles requires pseudo element before/after
     bool requires_pseudo_element_before = false;

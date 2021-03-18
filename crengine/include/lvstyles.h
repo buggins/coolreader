@@ -246,6 +246,11 @@ struct css_style_rec_tag {
         border_width[3] = css_length_t(css_val_unspecified, 0);
         background_size[0] = css_length_t(css_val_unspecified, 0);
         background_size[1] = css_length_t(css_val_unspecified, 0);
+        // Also initialize border colors
+        border_color[0] = css_length_t(css_val_unspecified, css_generic_currentcolor);
+        border_color[1] = css_length_t(css_val_unspecified, css_generic_currentcolor);
+        border_color[2] = css_length_t(css_val_unspecified, css_generic_currentcolor);
+        border_color[3] = css_length_t(css_val_unspecified, css_generic_currentcolor);
     }
     void AddRef() { refCount++; }
     int Release() { return --refCount; }

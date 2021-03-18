@@ -360,12 +360,13 @@ enum css_word_break_t {
 };
 
 enum css_generic_value_t {
-    css_generic_auto = -1,        // (css_val_unspecified, css_generic_auto), for "margin: auto"
-    css_generic_normal = -2,      // (css_val_unspecified, css_generic_normal), for "line-height: normal"
-    css_generic_transparent = -3, // (css_val_unspecified, css_generic_transparent), for "color: transparent"
-    css_generic_contain = -4,     // (css_val_unspecified, css_generic_contain), for "background-size: contain"
-    css_generic_cover = -5,       // (css_val_unspecified, css_generic_cover), for "background-size: cover"
-    css_generic_none = -6         // (css_val_unspecified, css_generic_none), for "max-width: none"
+    css_generic_auto = -1,         // (css_val_unspecified, css_generic_auto), for "margin: auto"
+    css_generic_normal = -2,       // (css_val_unspecified, css_generic_normal), for "line-height: normal"
+    css_generic_transparent = -3,  // (css_val_unspecified, css_generic_transparent), for "color: transparent"
+    css_generic_currentcolor = -4, // (css_val_unspecified, css_generic_currentcolor), for "color: currentcolor"
+    css_generic_contain = -5,      // (css_val_unspecified, css_generic_contain), for "background-size: contain"
+    css_generic_cover = -6,        // (css_val_unspecified, css_generic_cover), for "background-size: cover"
+    css_generic_none = -7          // (css_val_unspecified, css_generic_none), for "max-width: none"
 };
 
 // -cr-hint is a non standard property for providing hints to crengine via style tweaks

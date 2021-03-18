@@ -1056,6 +1056,11 @@ bool parse_color_value( const char * & str, css_length_t & value )
         value.value = css_generic_transparent;
         return true;
     }
+    if ( substr_icompare( "currentcolor", str ) ) {
+        value.type = css_val_unspecified;
+        value.value = css_generic_currentcolor;
+        return true;
+    }
     if ( substr_compare( "inherit", str ) )
     {
         value.type = css_val_inherited;
@@ -2760,9 +2765,8 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                             width.value = 3*256;
                         }
                         if ( !found_color ) {
-                            // We don't support "currentColor": fallback to black
-                            color.type = css_val_color;
-                            color.value = 0x000000;
+                            color.type = css_val_unspecified;
+                            color.value = css_generic_currentcolor;
                         }
                         if ( prop_code==cssd_border ) {
                             buf<<(lUInt32) (cssd_border_style | importance | parsed_important);
