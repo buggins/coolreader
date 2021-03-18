@@ -1208,30 +1208,40 @@ public:
             for (int x=0; x<cols.length(); x++)
                 printf("TABLE WIDTHS step2: cols[%d]: %d%% %dpx\n",
                     x, cols[x]->percent, cols[x]->width);
+            printf("TABLE WIDTHS step2: sumwidth=%d, sum_auto_max_width=%d sum_auto_mean_max_content_width=%d\n",
+                    sumwidth, sum_auto_max_width, sum_auto_mean_max_content_width);
         #endif
         // At this point, all columns with specified width or percent has been
         // set accordingly, or reduced to fit table width
         // We need to compute a width for columns with unspecified width.
         // nrest = cols.length() - nwidth;
         int restwidth = assignable_width - sumwidth;
+        bool canFitMaxWidths = sum_auto_max_width <= restwidth;
         int sumMinWidths = 0;
         // new pass: convert text len percent into width
         for (i=0; i<cols.length(); i++) {
             if (cols[i]->width==0) { // unspecified (or width scaled down and rounded to 0)
-                // We have multiple options:
-                // Either distribute remaining width according to max_width ratio
-                // (so larger content gets more width to use less height)
-                //     if (sum_auto_max_width > 0)
-                //         cols[i]->width = cols[i]->max_width * restwidth / sum_auto_max_width;
-                // Or better: distribute remaining width according to the mean
-                // of cells' max_content_width, so a single large cell among
-                // many smaller cells doesn't request all the width for this
-                // column (which would give less to others, which could make
-                // them use more height). This should help getting more
-                // reasonable heights across all rows.
-                if (sum_auto_mean_max_content_width > 0)
-                    cols[i]->width = cols[i]->sum_max_content_width / cols[i]->nb_sum_max_content_width * restwidth / sum_auto_mean_max_content_width;
-                // else stays at 0
+                if ( canFitMaxWidths ) {
+                    // All max content widths fit: use them
+                    cols[i]->width = cols[i]->max_width;
+                }
+                else {
+                    // Max content widths do overflow: smaller widths need to be decided (content will wrap).
+                    // We have multiple options:
+                    // Either distribute remaining width according to max_width ratio
+                    // (so larger content gets more width to use less height)
+                    //     if (sum_auto_max_width > 0)
+                    //         cols[i]->width = cols[i]->max_width * restwidth / sum_auto_max_width;
+                    // Or better: distribute remaining width according to the mean
+                    // of cells' max_content_width, so a single large cell among
+                    // many smaller cells doesn't request all the width for this
+                    // column (which would give less to others, which could make
+                    // them use more height). This should help getting more
+                    // reasonable heights across all rows.
+                    if (sum_auto_mean_max_content_width > 0)
+                        cols[i]->width = cols[i]->sum_max_content_width / cols[i]->nb_sum_max_content_width * restwidth / sum_auto_mean_max_content_width;
+                    // else stays at 0
+                }
                 sumwidth += cols[i]->width;
                 nwidth++;
             }
