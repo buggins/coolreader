@@ -9975,10 +9975,18 @@ lString32 ldomXPointer::toStringV2()
         }
     }
     else {
-        if ( offset < p->getChildCount() )
+        // Be really sure we get a non boxing node
+        if ( offset < p->getChildCount() ) {
             p = p->getChildNode(offset);
-        else
-            p = p->getParentNode();
+            if ( p->isBoxingNode(true) ) {
+                p = p->getUnboxedFirstChild();
+                if ( !p )
+                    p = node->getUnboxedParent();
+            }
+        }
+        else {
+            p = p->getUnboxedParent();
+        }
     }
     ldomNode * mainNode = node->getDocument()->getRootNode();
     while (p && p!=mainNode) {
