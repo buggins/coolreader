@@ -1977,8 +1977,8 @@ public class Engine {
 		return new ProgressControl(resourceId, scanControl);
 	}
 
-	private static final int PROGRESS_UPDATE_INTERVAL = DeviceInfo.EINK_SCREEN ? 4000 : 500;
-	private static final int PROGRESS_SHOW_INTERVAL = DeviceInfo.EINK_SCREEN ? 4000 : 1500;
+	private static final int PROGRESS_UPDATE_INTERVAL = DeviceInfo.EINK_SCREEN ? 1000 : 500;
+	private static final int PROGRESS_SHOW_INTERVAL = DeviceInfo.EINK_SCREEN ? 1000 : 500;
 
 	public class ProgressControl {
 		private final int resourceId;
