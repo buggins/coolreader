@@ -334,6 +334,13 @@ public class CoolReader extends BaseActivity {
 		} else if (key.equals(PROP_APP_CLOUDSYNC_DATA_KEEPALIVE)) {
 			mCloudSyncBookmarksKeepAlive = Utils.parseInt(value, 14, 0, 365);
 			updateGoogleDriveSynchronizer();
+		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS)) {
+			// already in super method:
+			// Services.getScanner().setHideEmptyDirs(flg);
+			// Here only refresh the file browser
+			if (null != mBrowser) {
+				mBrowser.showLastDirectory();
+			}
 		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES)) {
 			if (null != mBrowser) {
 				mBrowser.setHideEmptyGenres(flg);
