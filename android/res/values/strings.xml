@@ -734,4 +734,5 @@
     <string name="inconsistent_options">Inconsistent options were found: the reading menu was disabled in the "Tap zone actions" section, the reading menu was not associated with any buttons in the "Keys actions" section, and the toolbar was also disabled. In order not to lose the functionality of the program, choose variant: enable the display of the toolbar, or add an action to display the reading menu on the touch screen</string>
     <string name="inconsistent_options_toolbar">enable toolbar</string>
     <string name="inconsistent_options_tap_reading_menu">add reading menu on the touch screen</string>
+    <string name="options_hide_empty_dirs_slowdown">(May slow down the listing of directory contents)</string>
 </resources>
