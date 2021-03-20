@@ -772,6 +772,9 @@ public class CoolReader extends BaseActivity {
 		if (mReaderView != null) {
 			mReaderView.onAppPause();
 		}
+		if (mBrowser != null) {
+			mBrowser.stopCurrentScan();
+		}
 		Services.getCoverpageManager().removeCoverpageReadyListener(mHomeFrame);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (mSyncGoogleDriveEnabled && mGoogleDriveSync != null && !mGoogleDriveSync.isBusy()) {
@@ -1162,6 +1165,9 @@ public class CoolReader extends BaseActivity {
 			if (mCurrentFrame == mBrowserFrame) {
 				// update recent books directory
 				mBrowser.refreshDirectory(Services.getScanner().getRecentDir(), null);
+			} else {
+				if (null != mBrowser)
+					mBrowser.stopCurrentScan();
 			}
 			onUserActivity();
 		}
@@ -1174,6 +1180,8 @@ public class CoolReader extends BaseActivity {
 	}
 
 	public void showRootWindow() {
+		if (null != mBrowser)
+			mBrowser.stopCurrentScan();
 		setCurrentFrame(mHomeFrame);
 		if (activityIsRunning) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
@@ -1186,6 +1194,8 @@ public class CoolReader extends BaseActivity {
 	}
 
 	private void runInReader(final Runnable task) {
+		if (null != mBrowser)
+			mBrowser.stopCurrentScan();
 		waitForCRDBService(() -> {
 			if (mReaderFrame != null) {
 				task.run();
