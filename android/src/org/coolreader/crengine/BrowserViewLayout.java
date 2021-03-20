@@ -4,6 +4,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.coolreader.R;
@@ -42,7 +43,12 @@ public class BrowserViewLayout extends ViewGroup {
 		this.browserTitle = title;
 		((TextView)titleView.findViewById(R.id.title)).setText(title);
 	}
-	
+
+	public void setBrowserProgressStatus(boolean enable) {
+		ProgressBar progressBar = titleView.findViewById(R.id.progress);
+		progressBar.setVisibility(enable ? View.VISIBLE : View.GONE);
+	}
+
 	public void onThemeChanged(InterfaceTheme theme) {
 		//titleView.setBackgroundResource(theme.getBrowserStatusBackground());
 		//toolbarView.setButtonAlpha(theme.getToolbarButtonAlpha());

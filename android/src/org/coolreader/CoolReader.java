@@ -1404,6 +1404,14 @@ public class CoolReader extends BaseActivity {
 			mBrowserFrame.setBrowserTitle(title);
 	}
 
+	public void setBrowserProgressStatus(boolean enable) {
+		if (!enable) {
+			log.e("setBrowserProgressStatus(false)");
+		}
+		if (mBrowserFrame != null)
+			mBrowserFrame.setBrowserProgressStatus(enable);
+	}
+
 
 	// Dictionary support
 
