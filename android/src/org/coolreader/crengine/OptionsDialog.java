@@ -2838,6 +2838,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 	@Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (KeyEvent.KEYCODE_BACK == keyCode) {
+			return true;
+		}
 		if (mode == Mode.READER) {
 	        if (mTabs.getCurrentView().onKeyDown(keyCode, event))
 	        	return true;
@@ -2846,5 +2849,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	        	return true;
 		}
         return super.onKeyDown(keyCode, event);
-    }	
+    }
+
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		if (KeyEvent.KEYCODE_BACK == keyCode) {
+			onPositiveButtonClick();
+			return true;
+		}
+		return super.onKeyUp(keyCode, event);
+	}
+
 }
