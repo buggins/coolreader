@@ -378,7 +378,7 @@ public class Scanner extends FileInfoChangeSource {
 				readyListener.onComplete(scanControl);
 				return;
 			}
-			Engine.ProgressControl progress = engine.createProgress(recursiveScan ? 0 : R.string.progress_scanning);
+			Engine.ProgressControl progress = engine.createProgress(recursiveScan ? 0 : R.string.progress_scanning, scanControl);
 			scanDirectoryFiles(db, baseDir, scanControl, progress, () -> {
 				// GUI thread
 				onDirectoryContentChanged(baseDir);
