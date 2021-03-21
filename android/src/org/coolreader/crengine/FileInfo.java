@@ -620,6 +620,26 @@ public class FileInfo {
 		dirs = null;
 		addItems( items );
 	}
+	public boolean updateItem( FileInfo item ) {
+		if (null != dirs) {
+			for (FileInfo dir : dirs) {
+				if (dir.pathNameEquals(item)) {
+					dir.assign(item);
+					dir.setItems(item);
+					return true;
+				}
+			}
+		}
+		if (null != files) {
+			for (FileInfo file : files) {
+				if (file.pathNameEquals(item)) {
+					file.assign(item);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 	public boolean isEmpty()
 	{
 		return fileCount()==0 && dirCount()==0;
@@ -745,15 +765,21 @@ public class FileInfo {
 
 	public void setItems(FileInfo copyFrom)
 	{
+		if (this == copyFrom)
+			return;
 		clear();
 		for (int i=0; i<copyFrom.fileCount(); i++) {
-			addFile(copyFrom.getFile(i));
-			copyFrom.getFile(i).parent = this;
+			FileInfo file = copyFrom.getFile(i);
+			file.parent = this;
+			addFile(file);
 		}
 		for (int i=0; i<copyFrom.dirCount(); i++) {
-			addDir(copyFrom.getDir(i));
-			copyFrom.getDir(i).parent = this;
+			FileInfo dir = copyFrom.getDir(i);
+			dir.parent = this;
+			addDir(dir);
 		}
+		isListed = copyFrom.isListed;
+		isScanned = copyFrom.isScanned;
 	}
 
 	public void setItems(Collection<FileInfo> list)
@@ -768,17 +794,22 @@ public class FileInfo {
 				addFile(item);
 			item.parent = this;
 		}
+		isListed = true;
 	}
 
-	public void removeEmptyDirs()
+	public boolean removeEmptyDirs()
 	{
 		if ( parent==null || pathname.startsWith("@") || !isListed || dirs==null )
-			return;
+			return false;
+		boolean removed = false;
 		for ( int i=dirCount()-1; i>=0; i-- ) {
 			FileInfo dir = getDir(i);
-			if ( dir.isListed && dir.dirCount() == 0 && dir.fileCount() == 0)
+			if ( dir.isListed && dir.dirCount() == 0 && dir.fileCount() == 0) {
 				dirs.remove(i);
+				removed = true;
+			}
 		}
+		return removed;
 	}
 	
 	public void removeChild( FileInfo item )

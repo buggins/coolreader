@@ -334,6 +334,13 @@ public class CoolReader extends BaseActivity {
 		} else if (key.equals(PROP_APP_CLOUDSYNC_DATA_KEEPALIVE)) {
 			mCloudSyncBookmarksKeepAlive = Utils.parseInt(value, 14, 0, 365);
 			updateGoogleDriveSynchronizer();
+		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS)) {
+			// already in super method:
+			// Services.getScanner().setHideEmptyDirs(flg);
+			// Here only refresh the file browser
+			if (null != mBrowser) {
+				mBrowser.showLastDirectory();
+			}
 		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES)) {
 			if (null != mBrowser) {
 				mBrowser.setHideEmptyGenres(flg);
@@ -765,6 +772,9 @@ public class CoolReader extends BaseActivity {
 		if (mReaderView != null) {
 			mReaderView.onAppPause();
 		}
+		if (mBrowser != null) {
+			mBrowser.stopCurrentScan();
+		}
 		Services.getCoverpageManager().removeCoverpageReadyListener(mHomeFrame);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (mSyncGoogleDriveEnabled && mGoogleDriveSync != null && !mGoogleDriveSync.isBusy()) {
@@ -1155,6 +1165,9 @@ public class CoolReader extends BaseActivity {
 			if (mCurrentFrame == mBrowserFrame) {
 				// update recent books directory
 				mBrowser.refreshDirectory(Services.getScanner().getRecentDir(), null);
+			} else {
+				if (null != mBrowser)
+					mBrowser.stopCurrentScan();
 			}
 			onUserActivity();
 		}
@@ -1167,6 +1180,8 @@ public class CoolReader extends BaseActivity {
 	}
 
 	public void showRootWindow() {
+		if (null != mBrowser)
+			mBrowser.stopCurrentScan();
 		setCurrentFrame(mHomeFrame);
 		if (activityIsRunning) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
@@ -1179,6 +1194,8 @@ public class CoolReader extends BaseActivity {
 	}
 
 	private void runInReader(final Runnable task) {
+		if (null != mBrowser)
+			mBrowser.stopCurrentScan();
 		waitForCRDBService(() -> {
 			if (mReaderFrame != null) {
 				task.run();
@@ -1402,6 +1419,14 @@ public class CoolReader extends BaseActivity {
 	public void setBrowserTitle(String title) {
 		if (mBrowserFrame != null)
 			mBrowserFrame.setBrowserTitle(title);
+	}
+
+	public void setBrowserProgressStatus(boolean enable) {
+		if (!enable) {
+			log.e("setBrowserProgressStatus(false)");
+		}
+		if (mBrowserFrame != null)
+			mBrowserFrame.setBrowserProgressStatus(enable);
 	}
 
 

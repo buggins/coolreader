@@ -1378,7 +1378,7 @@ public class Synchronizer {
 													throw new IOException("Invalid size of file, saved " + totalSize + ", must be " + sourceSize);
 												// parse & save in DB
 												BackgroundThread.instance().executeGUI(() -> m_coolReader.waitForCRDBService(() -> {
-													Services.getScanner().scanDirectory(m_coolReader.getDB(), new FileInfo(outDir), () -> onContinue.run(), false, new Scanner.ScanControl());
+													Services.getScanner().scanDirectory(m_coolReader.getDB(), new FileInfo(outDir), null, (scanControl) -> onContinue.run(), false, new Scanner.ScanControl());
 												}));
 												log.d("File \"" + file.getAbsolutePath() + "\" successfully saved.");
 											} catch (Exception e) {

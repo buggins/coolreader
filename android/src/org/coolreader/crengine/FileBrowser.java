@@ -44,6 +44,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	
 	Engine mEngine;
 	Scanner mScanner;
+	Scanner.ScanControl mScanControl;
 	CoolReader mActivity;
 	LayoutInflater mInflater;
 	History mHistory;
@@ -186,6 +187,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		this.mActivity = activity;
 		this.mEngine = engine;
 		this.mScanner = scanner;
+		this.mScanControl = new Scanner.ScanControl();
 		this.mInflater = LayoutInflater.from(activity);// activity.getLayoutInflater();
 		this.mHistory = history;
 		this.mCoverpageManager = Services.getCoverpageManager();
@@ -222,11 +224,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	}
 
 	public void onClose() {
+		mScanControl.stop();
 		this.mCoverpageManager.removeCoverpageReadyListener(coverpageListener);
 		coverpageListener = null;
 		super.onDetachedFromWindow();
 	}
 
+	public void stopCurrentScan() {
+		mScanControl.stop();
+	}
 
 	public CoverpageManager getCoverpageManager() {
 		return mCoverpageManager;
@@ -372,9 +378,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 	public void showParentDirectory()
 	{
-		if (currDirectory == null || currDirectory.parent == null || currDirectory.parent.isRootDir())
+		if (currDirectory == null || currDirectory.parent == null || currDirectory.parent.isRootDir()) {
+			mScanControl.stop();
 			mActivity.showRootWindow();
-		else
+		} else
 			showDirectory(currDirectory.parent, currDirectory);
 	}
 	
@@ -766,18 +773,26 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			showDirectoryInternal(baseDir, itemToSelect);
 		}
 	};
-	
+
 	@Override
 	public void onChange(FileInfo object, boolean filePropsOnly) {
 		if (currDirectory == null)
 			return;
 		if (!currDirectory.pathNameEquals(object) && !currDirectory.hasItem(object))
 			return;
+		if (currDirectory != object) {
+			if (currDirectory.pathNameEquals(object)) {
+				currDirectory.setItems(object);
+			} else if (currDirectory.hasItem(object)) {
+				currDirectory.updateItem(object);
+			}
+		}
 		// refresh
 		if (filePropsOnly)
 			currentListAdapter.notifyInvalidated();
 		else
 			showDirectoryInternal(currDirectory, null);
+		mActivity.setBrowserProgressStatus(true);
 	}
 
 	public void showDirectory(FileInfo fileOrDir, FileInfo itemToSelect)
@@ -904,11 +919,23 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		final FileInfo file = fileOrDir==null || fileOrDir.isDirectory ? itemToSelect : fileOrDir;
 		final FileInfo dir = fileOrDir!=null && !fileOrDir.isDirectory ? mScanner.findParent(file, mScanner.getRoot()) : fileOrDir;
 		if ( dir!=null ) {
+			// if previous scan is in progress, interrupt it
+			if (!mScanControl.isStopped())
+				mScanControl.stop();
+			mScanControl = new Scanner.ScanControl();
 			mScanner.scanDirectory(mActivity.getDB(), dir, () -> {
 				if (dir.allowSorting())
 					dir.sort(mSortOrder);
 				showDirectoryInternal(dir, file);
-			}, false, new Scanner.ScanControl() );
+				mActivity.setBrowserProgressStatus(true);
+			}, (scanControl) -> {
+				if (!scanControl.isStopped()) {
+					if (dir.allowSorting())
+						dir.sort(mSortOrder);
+					showDirectoryInternal(dir, file);
+				}
+				mActivity.setBrowserProgressStatus(false);
+			}, false, mScanControl);
 		} else
 			showDirectoryInternal(null, file);
 	}
@@ -917,19 +944,25 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		if (currDirectory == null)
 			return;
 		log.i("scanCurrentDirectoryRecursive started");
-		final Scanner.ScanControl control = new Scanner.ScanControl(); 
-		final ProgressDialog dlg = ProgressDialog.show(mActivity, 
+		if (!mScanControl.isStopped())
+			mScanControl.stop();
+		mScanControl = new Scanner.ScanControl();
+		final ProgressDialog dlg = ProgressDialog.show(mActivity,
 				mActivity.getString(R.string.dlg_scan_title), 
 				mActivity.getString(R.string.dlg_scan_message),
 				true, true, dialog -> {
 					log.i("scanCurrentDirectoryRecursive : stop handler");
-					control.stop();
+					mScanControl.stop();
 				});
 		mScanner.scanDirectory(mActivity.getDB(), currDirectory, () -> {
+			showDirectoryInternal(currDirectory, null);
+			mActivity.setBrowserProgressStatus(true);
+		}, (scanControl) -> {
 			log.i("scanCurrentDirectoryRecursive : finish handler");
-			if ( dlg.isShowing() )
+			mActivity.setBrowserProgressStatus(false);
+			if (dlg.isShowing())
 				dlg.dismiss();
-		}, true, control);
+		}, true, mScanControl);
 	}
 
 
@@ -1307,8 +1340,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		}
 		
 		mActivity.setBrowserTitle(title);
-		
-		mListView.setAdapter(currentListAdapter);
+		if (mListView.getAdapter() != currentListAdapter)
+			mListView.setAdapter(currentListAdapter);
 		currentListAdapter.notifyDataSetChanged();
 		mListView.setSelection(index);
 		mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
