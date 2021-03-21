@@ -1924,6 +1924,7 @@ public:
                             // remove, from the measured cumulative width, what we just, and previously, removed
                             widths[k] -= cumulative_width_removed;
                             if ( first_word_len >= 0 ) { // This is the space (or nbsp) after first word
+                                bool keep_checking = false;
                                 if ( first_word_len == 1 ) { // Previous word is a single char
                                     if ( k > 0 && isLeftPunctuation(m_text[k-1]) ) {
                                         // This space follows one of the common opening quotation marks or
@@ -1936,6 +1937,10 @@ public:
                                         // Also prevent that quotation mark or dash from getting
                                         // additional letter spacing for justification
                                         flags[k-1] |= LCHAR_LOCKED_SPACING;
+                                        // If what's coming next is also such a char, continue doing that
+                                        if ( k+1 < len && isLeftPunctuation(m_text[k+1]) ) {
+                                            keep_checking = true;
+                                        }
                                         //
                                         // Note: we do this check here, with the text still in logical
                                         // order, so we get that working with RTL text too (where, in
@@ -1943,7 +1948,10 @@ public:
                                         // first word - untested though).
                                     }
                                 }
-                                first_word_len = -1; // We don't need to deal with this anymore
+                                if ( keep_checking )
+                                    first_word_len = 0;
+                                else
+                                    first_word_len = -1; // We don't need to deal with this anymore
                             }
                         }
                         else {
