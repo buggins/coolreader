@@ -1637,8 +1637,8 @@ public class MainDB extends BaseDB {
 		fileInfo.series = rs.getString(i++);
 		fileInfo.seriesNumber = rs.getInt(i++);
 		fileInfo.format = DocumentFormat.byId(rs.getInt(i++));
-		fileInfo.size = rs.getInt(i++);
-		fileInfo.arcsize = rs.getInt(i++);
+		fileInfo.size = rs.getLong(i++);
+		fileInfo.arcsize = rs.getLong(i++);
 		fileInfo.createTime = rs.getInt(i++);
 		fileInfo.lastAccessTime = rs.getInt(i++);
 		fileInfo.flags = rs.getInt(i++);

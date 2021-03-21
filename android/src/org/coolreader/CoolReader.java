@@ -550,7 +550,7 @@ public class CoolReader extends BaseActivity {
 						@Override
 						public void run() {
 							if (activityIsRunning && null != mGoogleDriveSync) {
-								mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
+								mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY);
 							}
 						}
 					}, mSyncGoogleDriveAutoSavePeriod * 60000, mSyncGoogleDriveAutoSavePeriod * 60000);
@@ -1093,6 +1093,7 @@ public class CoolReader extends BaseActivity {
 		}
 		// Show/Hide soft navbar after OptionDialog is closed.
 		applyFullscreen(getWindow());
+		validateSettings();
 		if (!justCreated) {
 			// Only after onStart()!
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
@@ -2053,12 +2054,12 @@ public class CoolReader extends BaseActivity {
 		if (hasHardwareMenuKey())
 			return; // don't show notice if hard key present
 		showNotice(R.string.note1_reader_menu,
-				() -> {
+				R.string.dlg_button_yes, () -> {
 					setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_SHORT_SIDE), false);
 					setLastNotificationMask(getLastNotificationMask() | NOTIFICATION_READER_MENU_MASK);
 					showNotifications();
 				},
-				() -> {
+				R.string.dlg_button_no, () -> {
 					setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_NONE), false);
 					setLastNotificationMask(getLastNotificationMask() | NOTIFICATION_READER_MENU_MASK);
 					showNotifications();

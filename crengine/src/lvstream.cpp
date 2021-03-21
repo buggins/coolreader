@@ -74,6 +74,16 @@ extern "C" {
 
 #endif
 
+// To support "large files" on 32-bit platforms
+// Since we have defined own types 'lvoffset_t', 'lvpos_t' and do not use the system type 'off_t'
+// it is logical to define our own wrapper function 'lseek'.
+static inline lvpos_t cr3_lseek(int fd, lvoffset_t offset, int whence) {
+#if LVLONG_FILE_SUPPORT == 1
+    return (lvpos_t)::lseek64(fd, (off64_t)offset, whence);
+#else
+    return (lvpos_t)::lseek(fd, (off_t)offset, whence);
+#endif
+}
 
 static LVAssetContainerFactory * _assetContainerFactory = NULL;
 
@@ -683,7 +693,7 @@ public:
 			return error();
 #else
 		// LINUX
-		if ( lseek( m_fd, size-1, SEEK_SET ) == -1 ) {
+		if ( cr3_lseek( m_fd, size-1, SEEK_SET ) == (lvpos_t)-1 ) {
             CRLog::error("LVFileMappedStream::SetSize() -- Seek error");
             return error();
         }
@@ -1203,20 +1213,20 @@ public:
         if (m_fd == -1)
             return LVERR_FAIL;
        //
-       int res = -1;
+       lvpos_t res = (lvpos_t)-1;
        switch ( origin )
        {
        case LVSEEK_SET:
-           res = lseek( m_fd, offset, SEEK_SET );
+           res = cr3_lseek( m_fd, offset, SEEK_SET );
            break;
        case LVSEEK_CUR:
-           res = lseek( m_fd, offset, SEEK_CUR );
+           res = cr3_lseek( m_fd, offset, SEEK_CUR );
            break;
        case LVSEEK_END:
-           res = lseek( m_fd, offset, SEEK_END );
+           res = cr3_lseek( m_fd, offset, SEEK_END );
            break;
        }
-       if (res!=(off_t)-1)
+       if (res!=(lvpos_t)-1)
        {
            m_pos = res;
            if ( pNewPos )

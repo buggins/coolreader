@@ -1423,8 +1423,8 @@ lString32 & lString32::trim()
 int lString32::atoi() const
 {
     int n = 0;
-    atoi(n);
-    return n;
+    bool res = atoi(n);
+    return res ? n : 0;
 }
 
 static const char * hex_digits = "0123456789abcdef";
@@ -1503,6 +1503,9 @@ bool lString32::atoi( int &n ) const
         return false;
     while (*s>='0' && *s<='9')
     {
+        if (n > INT_MAX/10) {
+            return false;
+        }
         n = n * 10 + ( (*s++)-'0' );
     }
     if ( sgn<0 )
@@ -1529,6 +1532,8 @@ bool lString32::atoi( lInt64 &n ) const
         return false;
     while (*s>='0' && *s<='9')
     {
+        if (n > __INT64_MAX__/10)
+            return false;
         n = n * 10 + ( (*s++)-'0' );
     }
     if ( sgn<0 )

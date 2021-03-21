@@ -731,4 +731,7 @@
     <string name="action_show_onyx_backlight_system_dialog">Show the system dialog for setting the backlight</string>
     <string name="confirmation_select_folder_for_log">On the next screen, select a directory to save the log file</string>
     <string name="notice_log_saved_to_">The log file was saved in file \"%s\". This file may contain personal data, for example, which books you read, be careful.</string>
+    <string name="inconsistent_options">Inconsistent options were found: the reading menu was disabled in the "Tap zone actions" section, the reading menu was not associated with any buttons in the "Keys actions" section, and the toolbar was also disabled. In order not to lose the functionality of the program, choose variant: enable the display of the toolbar, or add an action to display the reading menu on the touch screen</string>
+    <string name="inconsistent_options_toolbar">enable toolbar</string>
+    <string name="inconsistent_options_tap_reading_menu">add reading menu on the touch screen</string>
 </resources>

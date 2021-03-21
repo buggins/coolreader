@@ -30,6 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="100dip"
+            android:layout_weight="10"
             android:text="@string/dlg_button_ok"
             />
 
@@ -38,6 +39,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="100dip"
+            android:layout_weight="10"
             android:text="@string/dlg_button_cancel"
             />
 

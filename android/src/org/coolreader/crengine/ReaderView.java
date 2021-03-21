@@ -452,6 +452,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		Bookmark bmk = getCurrentPositionBookmark();
 		if (bmk != null)
 			savePositionBookmark(bmk);
+		if (!mAvgDrawAnimationStats.isEmpty())
+			setSetting(PROP_APP_VIEW_ANIM_DURATION, String.valueOf(mAvgDrawAnimationStats.average()), false, true, false);
 		log.i("calling bookView.onPause()");
 		bookView.onPause();
 	}
@@ -2830,6 +2832,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			mSelectionAction = Utils.parseInt(value, SELECTION_ACTION_TOOLBAR);
 		} else if (PROP_APP_MULTI_SELECTION_ACTION.equals(key)) {
 			mMultiSelectionAction = Utils.parseInt(value, SELECTION_ACTION_TOOLBAR);
+		} else if (PROP_APP_VIEW_ANIM_DURATION.equals(key)) {
+			mAvgDrawAnimationStats.fill(Utils.parseInt(value, 50));
 		} else {
 			//mActivity.applyAppSetting(key, value);
 		}
@@ -3719,7 +3723,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	volatile private int nextHiliteId = 0;
-	private final static int HILITE_RECT_ALPHA = 32;
+	private final static int HILITE_RECT_ALPHA = 64;
 	private Rect hiliteRect = null;
 
 	private void unhiliteTapZone() {
@@ -3753,15 +3757,19 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					drawCallback(canvas -> {
 						if (mInitialized && mCurrentPageInfo != null) {
 							log.d("onDraw() -- drawing page image");
-							drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, rc, rc);
+							Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
+							Rect src = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), mCurrentPageInfo.bitmap.getHeight());
+							drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, src, dst);
 							if (hilite) {
 								Paint p = new Paint();
+								p.setStyle(Paint.Style.FILL);
 								p.setColor(color);
+								int w = (int)(2.0f*mActivity.getDensityFactor());
 //					    			if ( true ) {
-								canvas.drawRect(new Rect(rc.left, rc.top, rc.right - 2, rc.top + 2), p);
-								canvas.drawRect(new Rect(rc.left, rc.top + 2, rc.left + 2, rc.bottom - 2), p);
-								canvas.drawRect(new Rect(rc.right - 2 - 2, rc.top + 2, rc.right - 2, rc.bottom - 2), p);
-								canvas.drawRect(new Rect(rc.left + 2, rc.bottom - 2 - 2, rc.right - 2 - 2, rc.bottom - 2), p);
+								canvas.drawRect(new Rect(rc.left, rc.top, rc.right - w, rc.top + w), p);
+								canvas.drawRect(new Rect(rc.left, rc.top + w, rc.left + w, rc.bottom - w), p);
+								canvas.drawRect(new Rect(rc.right - w - w, rc.top + w, rc.right - w, rc.bottom - w), p);
+								canvas.drawRect(new Rect(rc.left + w, rc.bottom - w - w, rc.right - w - w, rc.bottom - w), p);
 //					    			} else {
 //					    				canvas.drawRect(rc, p);
 //					    			}
@@ -4064,10 +4072,15 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		{
 			Canvas canvas = null;
 			long startTs = android.os.SystemClock.uptimeMillis();
-			try {
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				try {
 					canvas = holder.lockHardwareCanvas();
-				else
+				} catch (Exception e) {
+					log.e("drawCallback() -> lockHardwareCanvas(): " + e.toString());
+				}
+			}
+			try {
+				if (canvas == null)
 					canvas = holder.lockCanvas(rc);
 				//log.v("before draw(canvas)");
 				if (canvas != null) {
@@ -4082,16 +4095,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				//log.v("exiting finally");
 				if (canvas != null && surface.getHolder() != null) {
 					//log.v("before unlockCanvasAndPost");
-					if (canvas != null && holder != null) {
-						holder.unlockCanvasAndPost(canvas);
-						//if ( rc==null ) {
-						long endTs = android.os.SystemClock.uptimeMillis();
-						updateAnimationDurationStats(endTs - startTs);
-						//}
-						if (DeviceInfo.EINK_SCREEN) {
-							// post draw update
-							mEinkScreen.updateController(surface, isPartially);
-						}
+					holder.unlockCanvasAndPost(canvas);
+					//if ( rc==null ) {
+					long endTs = android.os.SystemClock.uptimeMillis();
+					updateAnimationDurationStats(endTs - startTs);
+					//}
+					if (DeviceInfo.EINK_SCREEN) {
+						// post draw update
+						mEinkScreen.updateController(surface, isPartially);
 					}
 					//log.v("after unlockCanvasAndPost");
 				}
@@ -4804,12 +4815,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	private static final class RingBuffer {
-		private long [] mArray;
+		private final long [] mArray;
 		private long mSum;
 		private long mAvg;
 		private int mPos;
 		private int mCount;
-		private int mSize;
+		private final int mSize;
 
 		public RingBuffer(int size, long initialAvg) {
 			mSize = size;
@@ -4836,9 +4847,22 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			if (mPos >= mSize)
 				mPos = 0;
 		}
+
+		public boolean isEmpty() {
+			return 0 == mCount;
+		}
+
+		public void fill(long value) {
+			mPos = 0;
+			mCount = 0;
+			mSum = 0;
+			for (int i = 0; i < mSize; i++) {
+				add(value);
+			}
+		}
 	}
 
-	RingBuffer mAvgDrawAnimationStats = new RingBuffer(16, 50);
+	private final RingBuffer mAvgDrawAnimationStats = new RingBuffer(16, 50);
 
 	private long getAvgAnimationDrawDuration() {
 		return mAvgDrawAnimationStats.average();

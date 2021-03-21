@@ -60,11 +60,11 @@ public class Scanner extends FileInfoChangeSource {
 				item.filename = f.getName();
 				item.path = f.getPath();
 				item.pathname = entry.getName();
-				item.size = (int)entry.getSize();
+				item.size = entry.getSize();
 				//item.createTime = entry.getTime();
 				item.createTime = zf.lastModified();
 				item.arcname = zip.pathname;
-				//item.arcsize = (int)entry.getCompressedSize();
+				//item.arcsize = entry.getCompressedSize();
 				item.arcsize = zip.size;
 				item.isArchive = true;
 				items.add(item);
@@ -95,7 +95,7 @@ public class Scanner extends FileInfoChangeSource {
 	}
 
 	public boolean listDirectory(FileInfo baseDir) {
-		return listDirectory(baseDir, true);
+		return listDirectory(baseDir, true, true);
 	}
 
 	/**
@@ -103,7 +103,7 @@ public class Scanner extends FileInfoChangeSource {
 	 * @param baseDir is directory to list files and dirs for
 	 * @return true if successful.
 	 */
-	public boolean listDirectory(FileInfo baseDir, boolean onlySupportedFormats)
+	public boolean listDirectory(FileInfo baseDir, boolean onlySupportedFormats, boolean scanzip)
 	{
 		Set<String> knownItems = null;
 		if ( baseDir.isListed ) {
@@ -155,7 +155,7 @@ public class Scanner extends FileInfoChangeSource {
 						boolean isNew = false;
 						if ( item==null ) {
 							item = new FileInfo( f );
-							if ( isZip ) {
+							if ( scanzip && isZip ) {
 								item = scanZip( item );
 								if ( item==null )
 									continue;
@@ -444,7 +444,7 @@ public class Scanner extends FileInfoChangeSource {
 				log.w("Skipping " + pathname + " - it's not a readable directory");
 				return false;
 			}
-			if (!listDirectory(dir)) {
+			if (!listDirectory(dir, true, false)) {
 				log.w("Skipping " + pathname + " - listing failed");
 				return false;
 			}
@@ -870,7 +870,7 @@ public class Scanner extends FileInfoChangeSource {
 				continue;
 			if ( !item.isSpecialDir() && !item.isArchive ) {
 				if (!item.isListed)
-					listDirectory(item);
+					listDirectory(item, false, false);
 				FileInfo books = item.findItemByPathName(item.pathname + "/Books");
 				if (books == null)
 					books = item.findItemByPathName(item.pathname + "/books");
@@ -919,7 +919,7 @@ public class Scanner extends FileInfoChangeSource {
 				continue;
 			if ( !item.isSpecialDir() && !item.isArchive ) {
 				if (!item.isListed)
-					listDirectory(item);
+					listDirectory(item, false, false);
 				FileInfo download = item.findItemByPathName(item.pathname + "/Download");
 				if (download == null)
 					download = item.findItemByPathName(item.pathname + "/download");
