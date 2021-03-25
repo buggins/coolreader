@@ -52,9 +52,9 @@ LOCAL_SRC_FILES := \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-indic-table.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-khmer.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-myanmar.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-syllabic.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-thai.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-use.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-use-table.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-vowel-constraints.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-fallback.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-normalize.cc \
