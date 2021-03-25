@@ -4096,10 +4096,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				if (canvas != null && surface.getHolder() != null) {
 					//log.v("before unlockCanvasAndPost");
 					holder.unlockCanvasAndPost(canvas);
-					//if ( rc==null ) {
-					long endTs = android.os.SystemClock.uptimeMillis();
-					updateAnimationDurationStats(endTs - startTs);
-					//}
+					if ( rc == null && currentAnimation != null ) {
+						long endTs = android.os.SystemClock.uptimeMillis();
+						updateAnimationDurationStats(endTs - startTs);
+					}
 					if (DeviceInfo.EINK_SCREEN) {
 						// post draw update
 						mEinkScreen.updateController(surface, isPartially);
@@ -4862,7 +4862,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		}
 	}
 
-	private final RingBuffer mAvgDrawAnimationStats = new RingBuffer(16, 50);
+	private final RingBuffer mAvgDrawAnimationStats = new RingBuffer(32, 50);
 
 	private long getAvgAnimationDrawDuration() {
 		return mAvgDrawAnimationStats.average();
