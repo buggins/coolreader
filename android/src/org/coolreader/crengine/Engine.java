@@ -614,6 +614,10 @@ public class Engine {
 
 	private native static String[] getFontFileNameListInternal();
 
+	private native static int[] getAvailableFontWeightInternal(String fontFace);
+
+	private native static int[] getAvailableSynthFontWeightInternal();
+
 	private native static String[] getArchiveItemsInternal(String arcName); // pairs: pathname, size
 
 	private native static boolean setKeyBacklightInternal(int value);
@@ -1065,6 +1069,18 @@ public class Engine {
 	public static String[] getFontFileNameList() {
 		synchronized (lock) {
 			return getFontFileNameListInternal();
+		}
+	}
+
+	public static int[] getAvailableFontWeight(String fontFace) {
+		synchronized (lock) {
+			return getAvailableFontWeightInternal(fontFace);
+		}
+	}
+
+	public static int[] getAvailableSynthFontWeight() {
+		synchronized (lock) {
+			return getAvailableSynthFontWeightInternal();
 		}
 	}
 

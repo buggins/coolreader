@@ -76,6 +76,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	    return res;
 	}
 	*/
+	int[] mSynthWeights;
 	public static int findBacklightSettingIndex( int value ) {
 		int bestIndex = 0;
 		int bestDiff = -1;
@@ -348,7 +349,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionsListView mOptionsBrowser;
 	OptionsListView mOptionsCloudSync;
 	OptionsListView mOptionsTTS;
-	// Disable options
+	// Mutable options
 	OptionBase mHyphDictOption;
 	OptionBase mEmbedFontsOptions;
 	OptionBase mIgnoreDocMargins;
@@ -365,6 +366,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionBase mTTSUseDocLangOption;
 	ListOption mTTSLanguageOption;
 	ListOption mTTSVoiceOption;
+	ListOption mFontWeightOption;
+	OptionBase mFontHintingOption;
 
 	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
 	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
@@ -1112,6 +1115,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			list.add( new Pair(str_value, label) );
 			return this;
 		}
+		public ListOption add(int value, String label) {
+			String str_value = String.valueOf(value);
+			list.add( new Pair(str_value, label) );
+			return this;
+		}
 		public ListOption add(String[]values) {
 			for ( String item : values ) {
 				add(item, item);
@@ -1814,6 +1822,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			isHtmlFormat = readerView.isHtmlFormat();
 		}
 		showIcons = mProperties.getBool(PROP_APP_SETTINGS_SHOW_ICONS, true);
+		mSynthWeights = Engine.getAvailableSynthFontWeight();
+		if (null == mSynthWeights)
+			mSynthWeights = new int[] {};
 		this.mode = mode;
 	}
 	
@@ -2498,6 +2509,102 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		setView(view);
 	}
 
+	private String getWeightName(int weight) {
+		String name = "";
+		switch (weight) {
+			case 100:
+				name = getString(R.string.font_weight_thin);
+				break;
+			case 200:
+				name = getString(R.string.font_weight_extralight);
+				break;
+			case 300:
+				name = getString(R.string.font_weight_light);
+				break;
+			case 350:
+				name = getString(R.string.font_weight_book);
+				break;
+			case 400:
+				name = getString(R.string.font_weight_regular);
+				break;
+			case 500:
+				name = getString(R.string.font_weight_medium);
+				break;
+			case 600:
+				name = getString(R.string.font_weight_semibold);
+				break;
+			case 700:
+				name = getString(R.string.font_weight_bold);
+				break;
+			case 800:
+				name = getString(R.string.font_weight_extrabold);
+				break;
+			case 900:
+				name = getString(R.string.font_weight_black);
+				break;
+			case 950:
+				name = getString(R.string.font_weight_extrablack);
+				break;
+		}
+		return name;
+	}
+
+	private void updateFontWeightValues(ListOption option, String faceName) {
+		// get available weight for font faceName
+		int[] nativeWeights = Engine.getAvailableFontWeight(faceName);
+		if (null == nativeWeights || 0 == nativeWeights.length) {
+			// invalid font
+			option.clear();
+			return;
+		}
+		ArrayList<Integer> nativeWeightsArray = new ArrayList<>();	// for search
+		for (int w : nativeWeights)
+			nativeWeightsArray.add(w);
+		// combine with synthetic weights
+		ArrayList<Integer> weights = new ArrayList<>();
+		int synth_idx = 0;
+		int i, j;
+		int weight = 0, prev_weight = 0;
+		for (i = 0; i < nativeWeights.length; i++) {
+			weight = nativeWeights[i];
+			for (j = synth_idx; j < mSynthWeights.length; j++) {
+				int synth_weight = mSynthWeights[j];
+				if (synth_weight < weight) {
+					if (synth_weight > prev_weight)
+						weights.add(synth_weight);
+				}
+				else
+					break;
+			}
+			synth_idx = j;
+			weights.add(weight);
+			prev_weight = weight;
+		}
+		for (j = synth_idx; j < mSynthWeights.length; j++) {
+			if (mSynthWeights[j] > weight)
+				weights.add(mSynthWeights[j]);
+		}
+		// fill items
+		option.clear();
+		for (i = 0; i < weights.size(); i++) {
+			weight = weights.get(i);
+			String label = String.valueOf(weight);
+			String descr = getWeightName(weight);
+			if (!nativeWeightsArray.contains(weight)) {
+				if (descr.length() > 0)
+					descr += ", " + getString(R.string.font_weight_fake);
+				else
+					descr = getString(R.string.font_weight_fake);
+			}
+			if (descr.length() > 0)
+				label += " (" + descr + ")";
+			option.add(weight, label);
+		}
+		// enable/disable font hinting option
+		int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
+		mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
+	}
+
 	private void setupReaderOptions()
 	{
         mInflater = LayoutInflater.from(getContext());
@@ -2514,10 +2621,29 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				mProperties.getInt(PROP_REQUESTED_DOM_VERSION, 0) < 20180524;
 
 		mOptionsStyles = new OptionsListView(getContext());
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
+		mFontHintingOption = new ListOption(this, getString(R.string.options_font_hinting), PROP_FONT_HINTING).add(mHinting, mHintingTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_hinting_drawable, R.drawable.cr3_option_text_hinting);
+		OptionBase fontOption = new ListOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face);
+		mOptionsStyles.add(fontOption);
 		mOptionsStyles.add(new NumberPickerOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).setMinValue(mActivity.getMinFontSize()).setMaxValue(mActivity.getMaxFontSize()).setDefaultValue("24").setIconIdByAttr(R.attr.cr3_option_font_size_drawable, R.drawable.cr3_option_font_size));
-		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_embolden), PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_text_bold_drawable, R.drawable.cr3_option_text_bold));
-		//mOptionsStyles.add(new BoolOption(getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).setInverse().setDefaultValue("0"));
+		mFontWeightOption = (ListOption) new ListOption(this, getString(R.string.options_font_weight), PROP_FONT_BASE_WEIGHT).setIconIdByAttr(R.attr.cr3_option_text_bold_drawable, R.drawable.cr3_option_text_bold);
+		updateFontWeightValues(mFontWeightOption, mProperties.getProperty(PROP_FONT_FACE, ""));
+		mOptionsStyles.add(mFontWeightOption);
+		fontOption.setOnChangeHandler(() -> {
+			String faceName = mProperties.getProperty(PROP_FONT_FACE, "");
+			updateFontWeightValues(mFontWeightOption, faceName);
+		});
+		mFontWeightOption.setOnChangeHandler(() -> {
+			// enable/disable font hinting option
+			String faceName = mProperties.getProperty(PROP_FONT_FACE, "");
+			int[] nativeWeights = Engine.getAvailableFontWeight(faceName);
+			if (null != nativeWeights && 0 != nativeWeights.length) {
+				ArrayList<Integer> nativeWeightsArray = new ArrayList<>();    // for search
+				for (int w : nativeWeights)
+					nativeWeightsArray.add(w);
+				int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
+				mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
+			}
+		});
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_antialias_drawable, R.drawable.cr3_option_text_antialias));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_interline_space), PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100").setIconIdByAttr(R.attr.cr3_option_line_spacing_drawable, R.drawable.cr3_option_line_spacing));
 		//
@@ -2542,7 +2668,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new ImageScalingOption(this, getString(R.string.options_format_image_scaling)).setIconIdByAttr(R.attr.cr3_option_images_drawable, R.drawable.cr3_option_images));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_render_font_gamma), PROP_FONT_GAMMA).add(mGammas).setDefaultValue("1.0").setIconIdByAttr(R.attr.cr3_option_font_gamma_drawable, R.drawable.cr3_option_font_gamma));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_format_min_space_width_percent), PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT).addPercents(mMinSpaceWidths).setDefaultValue("50").setIconIdByAttr(R.attr.cr3_option_text_width_drawable, R.drawable.cr3_option_text_width));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_hinting), PROP_FONT_HINTING).add(mHinting, mHintingTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_hinting_drawable, R.drawable.cr3_option_text_hinting));
+		mOptionsStyles.add(mFontHintingOption);
 		mOptionsStyles.add(new FallbackFontsOptions(this, getString(R.string.options_font_fallback_faces)).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
 		
 		//

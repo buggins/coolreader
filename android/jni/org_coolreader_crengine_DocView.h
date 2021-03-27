@@ -277,14 +277,6 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_hilightBookmarksInte
 JNIEXPORT jint JNICALL Java_org_coolreader_crengine_DocView_swapToCacheInternal
   (JNIEnv *, jobject);
 
-/*
- * Class:     org_coolreader_crengine_DocView
- * Method:    getPageImageTextureInternal
- * Signature: ([IIII)V
- */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_getPageImageTextureInternal
-  (JNIEnv *, jobject, jintArray, jint, jint, jint);
-
 #ifdef __cplusplus
 }
 #endif
