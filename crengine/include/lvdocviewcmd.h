@@ -34,7 +34,7 @@ enum LVDocCmd
     DCMD_ROTATE_SET, // rotate viewm param = 0..3 (0=normal, 1=90`, ...)
     DCMD_SAVE_HISTORY, // save history and bookmarks
     DCMD_SAVE_TO_CACHE, // save document to cache for fast opening
-    DCMD_TOGGLE_BOLD, // togle font bolder attribute
+    DCMD_SET_BASE_FONT_WEIGHT, // set base font weight globally, replaces DCMD_TOGGLE_BOLD
     DCMD_SCROLL_BY, // scroll by N pixels, for Scroll view mode only
     DCMD_REQUEST_RENDER, // invalidate rendered data
     DCMD_GO_PAGE_DONT_SAVE_HISTORY,

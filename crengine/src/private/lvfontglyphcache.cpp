@@ -90,7 +90,7 @@ LVFontGlyphCacheItem *LVFontGlyphCacheItem::newItem(LVFontLocalGlyphCache* local
         item->bmp_height = (lUInt16) h;
         item->origin_x = 0;
         item->origin_y = 0;
-        item->advance = 0;
+        item->advance_26_6 = 0;
         item->prev_global = NULL;
         item->next_global = NULL;
         item->prev_local = NULL;

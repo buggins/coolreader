@@ -23,6 +23,8 @@
 
 #if (USE_FREETYPE == 1)
 
+inline int myabs(int n) { return n < 0 ? -n : n; }
+
 lString8 familyName(FT_Face face) {
     lString8 faceName(face->family_name);
     if ( face->style_name ) {
@@ -204,6 +206,7 @@ LVFontRef LVFreeTypeFontManager::GetFallbackFont(int size, int weight, bool ital
     // assuming the fallback font is a standalone regular font
     // without any bold/italic sibling.
     // GetFont() works just as fine when we need specified weigh and italic.
+    weight &= 0xFFFE;
     LVFontRef fontRef = GetFont(size, weight, italic, css_ff_sans_serif, _fallbackFontFaces[index], 0, -1, false);
     if (!fontRef.isNull())
         fontRef->setFallbackMask(1 << index);
@@ -646,13 +649,13 @@ bool LVFreeTypeFontManager::SetAlias(lString8 alias, lString8 facename, int id, 
             fontFamily = css_ff_serif;
         */
 
-        bool boldFlag = !facename.empty() ? bold : (face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
+        int weight = !facename.empty() ? (bold ? 700 : 400) : getFontWeight(face);
         bool italicFlag = !facename.empty() ? italic : (face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
 
         LVFontDef def2(
                 item->getDef()->getName(),
                 -1, // height==-1 for scalable fonts
-                boldFlag ? 700 : 400,
+                weight,
                 italicFlag,
                 -1, // OpenType features = -1 for not yet instantiated fonts
                 fontFamily,
@@ -745,10 +748,17 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
             // has features different than the ones requested.
         }
         else {
+#if USE_FT_EMBOLDEN
+            int deltaWeight = myabs(weight - item->getDef()->getWeight());
+            if (deltaWeight >= 50) {
+                // This instantiated cached font has a too different weight
+                // when USE_FT_EMBOLDEN, ignore this other-weight cached font instance
+                // and go loading from the font file again to apply embolden.
+            }
+#else
             int deltaWeight = weight - item->getDef()->getWeight();
             if (deltaWeight >= 200) {
                 // This instantiated cached font has a too low weight
-#if USE_FT_EMBOLDEN!=1
                 // embolden using LVFontBoldTransform
                 CRLog::debug("font: apply Embolding to increase weight from %d to %d",
                                     newDef.getWeight(), newDef.getWeight() + 200 );
@@ -756,10 +766,9 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
                 LVFontRef ref = LVFontRef( new LVFontBoldTransform( item->getFont(), &_globalCache ) );
                 _cache.update( &newDef, ref );
                 return ref;
+            }
 #endif
-                // when USE_FT_EMBOLDEN, ignore this low-weight cached font instance
-                // and go loading from the font file again to apply embolden.
-            } else {
+            else {
                 //fprintf(_log, "    : fount existing\n");
                 return item->getFont();
             }
@@ -815,21 +824,24 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
         newDef.setSize(size);
         //item->setFont( ref );
         //_cache.update( def, ref );
+#if USE_FT_EMBOLDEN
+        int deltaWeight = myabs(weight - newDef.getWeight());
+        if (deltaWeight >= 50) {
+            // embolden
+            // Will make some of this font's methods do embolden the glyphs and widths
+            font->setSynthWeight(weight);
+            newDef.setWeight( font->getWeight() );
+        }
+#else
         int deltaWeight = weight - newDef.getWeight();
         if (deltaWeight >= 200) {
-            // embolden
-#if USE_FT_EMBOLDEN!=1
-                CRLog::debug("font: apply Embolding to increase weight from %d to %d",
-                                    newDef.getWeight(), newDef.getWeight() + 200 );
-                // Create a wrapper with LVFontBoldTransform which will bolden the glyphs
-                newDef.setWeight( newDef.getWeight() + 200 );
-                ref = LVFontRef( new LVFontBoldTransform( ref, &_globalCache ) );
-#else
-                // Will make some of this font's methods do embolden the glyphs and widths
-                font->setEmbolden();
-                newDef.setWeight( font->getWeight() );
-#endif
+            CRLog::debug("font: apply Embolding to increase weight from %d to %d",
+                                newDef.getWeight(), newDef.getWeight() + 200 );
+            // Create a wrapper with LVFontBoldTransform which will bolden the glyphs
+            newDef.setWeight( newDef.getWeight() + 200 );
+            ref = LVFontRef( new LVFontBoldTransform( ref, &_globalCache ) );
         }
+#endif
         for (int i = 0; i < _fallbackFontFaces.length(); i++) {
             if (item->getDef()->getTypeFace() == _fallbackFontFaces[i]) {
                 ref->setFallbackMask(1 << i);
@@ -977,12 +989,13 @@ bool LVFreeTypeFontManager::RegisterDocumentFont(int documentId, LVContainerRef 
         if (familyName == "Times" || familyName == "Times New Roman")
             fontFamily = css_ff_serif;
 
+        int weight = !faceName.empty() ? (bold ? 700 : 400) : getFontWeight(face);
         bool italicFlag = !faceName.empty() ? italic : (face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
 
         LVFontDef def(
                 name8,
                 -1, // height==-1 for scalable fonts
-                getFontWeight(face),
+                weight,
                 italicFlag,
                 -1, // OpenType features = -1 for not yet instantiated fonts
                 fontFamily,

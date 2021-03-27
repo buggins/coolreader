@@ -2841,7 +2841,7 @@ void LVDocView::setRenderProps(int dx, int dy) {
 	lString8 fontName = lString8(DEFAULT_FONT_NAME);
 	m_font_size = scaleFontSizeForDPI(m_requested_font_size);
 	gRootFontSize = m_font_size; // stored as global (for 'rem' css unit)
-	m_font = fontMan->GetFont(m_font_size, 400 + LVRendGetFontEmbolden(),
+	m_font = fontMan->GetFont(m_font_size, LVRendGetBaseFontWeight(),
 			false, DEFAULT_FONT_FAMILY, m_defaultFontFace);
 	//m_font = LVCreateFontTransform( m_font, LVFONT_TRANSFORM_EMBOLDEN );
 	m_infoFont = fontMan->GetFont(m_status_font_size, 400, false,
@@ -5954,14 +5954,13 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
     case DCMD_REQUEST_RENDER:
         REQUEST_RENDER("doCommand-request render")
 		break;
-	case DCMD_TOGGLE_BOLD: {
-		int b = m_props->getIntDef(PROP_FONT_WEIGHT_EMBOLDEN, 0) ? 0 : 1;
-		m_props->setInt(PROP_FONT_WEIGHT_EMBOLDEN, b);
-		LVRendSetFontEmbolden(b ? STYLE_FONT_EMBOLD_MODE_EMBOLD
-				: STYLE_FONT_EMBOLD_MODE_NORMAL);
-        REQUEST_RENDER("doCommand-toggle bold")
-	}
-		break;
+    case DCMD_SET_BASE_FONT_WEIGHT: {
+        // replaces DCMD_TOGGLE_BOLD
+        m_props->setInt(PROP_FONT_BASE_WEIGHT, param);
+        LVRendSetBaseFontWeight(param);
+        REQUEST_RENDER("doCommand-set font weight")
+        break;
+    }
 	case DCMD_TOGGLE_PAGE_SCROLL_VIEW: {
 		toggleViewMode();
 	}
@@ -6418,8 +6417,9 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 #endif
 	static int bool_options_def_true[] = { 1, 0 };
 	static int bool_options_def_false[] = { 0, 1 };
+	static int int_option_weight[] = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 950 };
 
-	props->limitValueList(PROP_FONT_WEIGHT_EMBOLDEN, bool_options_def_false, 2);
+	props->limitValueList(PROP_FONT_BASE_WEIGHT, int_option_weight, sizeof(int_option_weight) / sizeof(int), 3);
 #ifndef ANDROID
 	props->limitValueList(PROP_EMBEDDED_STYLES, bool_options_def_true, 2);
 	props->limitValueList(PROP_EMBEDDED_FONTS, bool_options_def_true, 2);
@@ -6618,13 +6618,12 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 fontMan->SetShapingMode((shaping_mode_t)mode);
                 REQUEST_RENDER("Setting shaping mode");
             }
-        } else if (name == PROP_FONT_WEIGHT_EMBOLDEN) {
-            bool embolden = props->getBoolDef(PROP_FONT_WEIGHT_EMBOLDEN, false);
-            int v = embolden ? STYLE_FONT_EMBOLD_MODE_EMBOLD
-                             : STYLE_FONT_EMBOLD_MODE_NORMAL;
-            if (v != LVRendGetFontEmbolden()) {
-                LVRendSetFontEmbolden(v);
-                REQUEST_RENDER("propsApply - embolden")
+        } else if (name == PROP_FONT_BASE_WEIGHT) {
+            // replaces PROP_FONT_WEIGHT_EMBOLDEN
+            int v = props->getIntDef(PROP_FONT_BASE_WEIGHT, 400);
+            if ( LVRendGetBaseFontWeight() != v ) {
+                LVRendSetBaseFontWeight(v);
+                REQUEST_RENDER("propsApply - font weight")
             }
         } else if (name == PROP_TXT_OPTION_PREFORMATTED) {
             bool preformatted = props->getBoolDef(PROP_TXT_OPTION_PREFORMATTED,

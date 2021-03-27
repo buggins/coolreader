@@ -81,7 +81,7 @@ int LVFontDef::CalcMatch(const LVFontDef &def, bool useBias) const {
     // be re-synthetized. Otherwise, we'll get some italic when not wanting
     // italic (or vice versa), depending on which has been instantiated first...
     //
-    if ( _weight & 1) {           // 'this' is an instantiated fake bold font
+    if ( _weight & 1) {           // 'this' is an instantiated fake weight font
         if ( def._italic > 0 ) {  // italic requested
             if ( _italic == 0 ) { // 'this' is fake bold but non-italic
                 weight_match = 0; // => drop score

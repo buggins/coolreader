@@ -255,7 +255,16 @@ void CRPropAccessor::limitValueList( const char * propName, const char * values[
 
 void CRPropAccessor::limitValueList( const char * propName, int values[], int value_count )
 {
-    lString32 defValue = lString32::itoa( values[0] );
+    limitValueList( propName, values, value_count, 0 );
+}
+
+void CRPropAccessor::limitValueList( const char * propName, int values[], int value_count, int defValueIndex )
+{
+    if ( defValueIndex < 0 )
+        defValueIndex = 0;
+    else if ( defValueIndex >= value_count )
+        defValueIndex = value_count - 1;
+    lString32 defValue = lString32::itoa( values[defValueIndex] );
     lString32 value;
     if ( getString( propName, value ) ) {
         for ( int i=0; i < value_count; i++ ) {

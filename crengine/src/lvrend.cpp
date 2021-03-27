@@ -2211,22 +2211,20 @@ bool isSameFontStyle( css_style_rec_t * style1, css_style_rec_t * style2 )
         && (style1->font_weight == style2->font_weight);
 }
 
-//int rend_font_embolden = STYLE_FONT_EMBOLD_MODE_EMBOLD;
-int rend_font_embolden = STYLE_FONT_EMBOLD_MODE_NORMAL;
+static int rend_font_base_weight = 400;
 
-void LVRendSetFontEmbolden( int addWidth )
+void LVRendSetBaseFontWeight( int weight )
 {
-    if ( addWidth < 0 )
-        addWidth = 0;
-    else if ( addWidth>STYLE_FONT_EMBOLD_MODE_EMBOLD )
-        addWidth = STYLE_FONT_EMBOLD_MODE_EMBOLD;
-
-    rend_font_embolden = addWidth;
+    if ( weight < 1 )
+        weight = 1;
+    else if ( weight>999 )
+        weight = 999;
+    rend_font_base_weight = weight;
 }
 
-int LVRendGetFontEmbolden()
+int LVRendGetBaseFontWeight()
 {
-    return rend_font_embolden;
+    return rend_font_base_weight;
 }
 
 LVFontRef getFont(css_style_rec_t * style, int documentId)
@@ -2253,9 +2251,16 @@ LVFontRef getFont(css_style_rec_t * style, int documentId)
         fw = ((style->font_weight - css_fw_100)+1) * 100;
     else
         fw = 400;
-    fw += rend_font_embolden;
-    if ( fw>900 )
-        fw = 900;
+    fw += (rend_font_base_weight - 400);
+    // Although the css standard does not regulate the use of weight over 900,
+    //   https://www.w3.org/TR/CSS21/fonts.html#propdef-font-weight
+    //   https://developer.mozilla.org/ru/docs/Web/CSS/font-weight
+    // in practice there are fonts with "ExtraBlack" weight (950),
+    // which visually looks more bolder than "Black" (900).
+    if ( fw<1 )
+        fw = 1;
+    else if ( fw>999 )
+        fw = 999;
     // printf("cssd_font_family: %d %s", style->font_family, style->font_name.c_str());
     LVFontRef fnt = fontMan->GetFont(
         sz,
