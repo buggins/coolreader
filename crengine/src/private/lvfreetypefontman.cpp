@@ -25,13 +25,74 @@
 
 lString8 familyName(FT_Face face) {
     lString8 faceName(face->family_name);
-    if (faceName == "Arial" && face->style_name && !strcmp(face->style_name, "Narrow"))
-        faceName << " " << face->style_name;
-    else if ( /*faceName == "Arial" &&*/ face->style_name && strstr(face->style_name, "Condensed"))
-        faceName << " " << "Condensed";
+    if ( face->style_name ) {
+        if (faceName == "Arial" && !strcmp(face->style_name, "Narrow"))
+            faceName << " " << face->style_name;
+        else if (strstr(face->style_name, "ExtraCondensed"))
+            faceName << " " << "ExtraCondensed";
+        else if (strstr(face->style_name, "SemiCondensed"))
+            faceName << " " << "SemiCondensed";
+        else if (strstr(face->style_name, "Condensed"))
+            faceName << " " << "Condensed";
+    }
     return faceName;
 }
 
+int getFontWeight(FT_Face face) {
+    if (!face)
+        return 400;
+    int weight = 400;
+    if (face->style_flags & FT_STYLE_FLAG_BOLD)
+        weight = 700;
+    lString32 style32(face->style_name);
+    style32 = style32.lowercase();
+    /*
+    style32.replace(cs32("extracondensed"), cs32(""));
+    style32.replace(cs32("semicondensed"), cs32(""));
+    style32.replace(cs32("condensed"), cs32(""));
+    style32.replace(cs32("narrow"), cs32(""));
+    style32.replace(cs32("italic"), cs32(""));
+    style32.replace(cs32("oblique"), cs32(""));
+    */
+    style32 = style32.trim();
+    lString32Collection words;
+    words.split(style32, lString32(" "));
+    for (int i = 0; i < words.length(); i++) {
+        const lString32& word = words.at(i);
+        if (word == "thin") {
+            weight = 100;
+            break;
+        } else if (word == "extralight" || word == "ultralight") {
+            weight = 200;
+            break;
+        } else if (word == "light" || word == "demilight") {
+            weight = 300;
+            break;
+        } else if (word == "regular" || word == "normal" || word == "book" || word == "text") {
+            weight = 400;
+            break;
+        } else if (word == "medium") {
+            weight = 500;
+            break;
+        } else if (word == "demibold" || word == "semibold") {
+            weight = 600;
+            break;
+        } else if (word == "bold") {
+            weight = 700;
+            break;
+        } else if (word == "extrabold" || word == "ultrabold") {
+            weight = 800;
+            break;
+        } else if (word == "black" || word == "heavy") {
+            weight = 900;
+            break;
+        } else if (word == "extrablack" || word == "ultrablack") {
+            weight = 950;
+            break;
+        }
+    }
+    return weight;
+}
 
 lUInt32 LVFreeTypeFontManager::GetFontListHash(int documentId) {
     FONT_MAN_GUARD
@@ -301,6 +362,9 @@ bool LVFreeTypeFontManager::initSystemFonts() {
                 weight = 200;
                 break;
             case FC_WEIGHT_LIGHT:         //    50
+            case FC_WEIGHT_DEMILIGHT:     //    55
+                weight = 300;
+                break;
             case FC_WEIGHT_BOOK:          //    75
             case FC_WEIGHT_REGULAR:       //    80
                 //case FC_WEIGHT_NORMAL:            FC_WEIGHT_REGULAR
@@ -327,7 +391,7 @@ bool LVFreeTypeFontManager::initSystemFonts() {
 #ifdef FC_WEIGHT_EXTRABLACK
             case FC_WEIGHT_EXTRABLACK:    //    215
                 //case FC_WEIGHT_ULTRABLACK:        FC_WEIGHT_EXTRABLACK
-                weight = 900;
+                weight = 950;
                 break;
 #endif
             default:
@@ -393,12 +457,14 @@ bool LVFreeTypeFontManager::initSystemFonts() {
             bool italic = (slant!=FC_SLANT_ROMAN);
             
             lString8 face((const char*)family);
-            lString32 style32((const char*)style);
-            style32.lowercase();
-            if (style32.pos("condensed") >= 0)
+            lString8 style8((const char*)style);
+            style8.lowercase();
+            if (style8.pos("extracondensed") >= 0)
+                face << " ExtraCondensed";
+            else if (style8.pos("semicondensed") >= 0)
+                face << " SemiCondensed";
+            else if (style8.pos("condensed") >= 0)
                 face << " Condensed";
-            else if (style32.pos("extralight") >= 0)
-                face << " Extra Light";
             
             LVFontDef def(
                         lString8((const char*)s),
@@ -907,14 +973,12 @@ bool LVFreeTypeFontManager::RegisterDocumentFont(int documentId, LVContainerRef 
         if (familyName == "Times" || familyName == "Times New Roman")
             fontFamily = css_ff_serif;
 
-        bool boldFlag = !faceName.empty() ? bold : (face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
-        bool italicFlag = !faceName.empty() ? italic : (face->style_flags & FT_STYLE_FLAG_ITALIC) !=
-                                                       0;
+        bool italicFlag = !faceName.empty() ? italic : (face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
 
         LVFontDef def(
                 name8,
                 -1, // height==-1 for scalable fonts
-                boldFlag ? 700 : 400,
+                getFontWeight(face),
                 italicFlag,
                 -1, // OpenType features = -1 for not yet instantiated fonts
                 fontFamily,
@@ -1122,7 +1186,7 @@ bool LVFreeTypeFontManager::RegisterFont(lString8 name) {
         LVFontDef def(
                 name,
                 -1, // height==-1 for scalable fonts
-                (face->style_flags & FT_STYLE_FLAG_BOLD) ? 700 : 400,
+                getFontWeight(face),
                 (face->style_flags & FT_STYLE_FLAG_ITALIC) ? true : false,
                 -1, // OpenType features = -1 for not yet instantiated fonts
                 fontFamily,
