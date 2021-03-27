@@ -851,6 +851,10 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
     return LVFontRef(NULL);
 }
 
+void LVFreeTypeFontManager::GetAvailableFontWeights(LVArray<int>& weights, lString8 typeface) {
+    _cache.getAvailableFontWeights(weights, typeface);
+}
+
 bool LVFreeTypeFontManager::checkCharSet(FT_Face face) {
     // TODO: check existance of required characters (e.g. cyrillic)
     if (face == NULL)
