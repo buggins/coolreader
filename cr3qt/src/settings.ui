@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>433</width>
-    <height>756</height>
+    <height>846</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1157,14 +1157,14 @@
            </item>
           </layout>
          </item>
-         <item row="2" column="0">
+         <item row="3" column="0">
           <widget class="QLabel" name="label_14">
            <property name="text">
             <string>Page skin</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
+         <item row="3" column="1">
           <widget class="QComboBox" name="cbPageSkin">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1192,14 +1192,14 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
+         <item row="4" column="0">
           <widget class="QLabel" name="label_8">
            <property name="text">
             <string>Background color</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
+         <item row="4" column="1">
           <layout class="QHBoxLayout" name="horizontalLayout_10">
            <item>
             <widget class="QPushButton" name="btnBgColor">
@@ -1253,14 +1253,14 @@
            </item>
           </layout>
          </item>
-         <item row="4" column="0">
+         <item row="5" column="0">
           <widget class="QLabel" name="label_45">
            <property name="text">
             <string>Rendering flags</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
+         <item row="5" column="1">
           <widget class="QComboBox" name="cbRendFlags">
            <item>
             <property name="text">
@@ -1284,14 +1284,14 @@
            </item>
           </widget>
          </item>
-         <item row="5" column="0">
+         <item row="6" column="0">
           <widget class="QLabel" name="label_46">
            <property name="text">
             <string>DOM level:</string>
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
+         <item row="6" column="1">
           <widget class="QComboBox" name="cbDOMLevel">
            <item>
             <property name="text">
@@ -1305,38 +1305,38 @@
            </item>
           </widget>
          </item>
-         <item row="6" column="0">
+         <item row="7" column="0">
           <widget class="QLabel" name="label_47">
            <property name="text">
             <string>Multi languages</string>
            </property>
           </widget>
          </item>
-         <item row="6" column="1">
+         <item row="7" column="1">
           <widget class="QCheckBox" name="cbMultiLang">
            <property name="text">
             <string>Support for multilingual documents</string>
            </property>
           </widget>
          </item>
-         <item row="8" column="0">
+         <item row="9" column="0">
           <widget class="QLabel" name="label_9">
            <property name="text">
             <string>Hyphenation</string>
            </property>
           </widget>
          </item>
-         <item row="8" column="1">
+         <item row="9" column="1">
           <widget class="QComboBox" name="cbHyphenation"/>
          </item>
-         <item row="9" column="0">
+         <item row="10" column="0">
           <widget class="QLabel" name="label_19">
            <property name="text">
             <string>Font Gamma</string>
            </property>
           </widget>
          </item>
-         <item row="9" column="1">
+         <item row="10" column="1">
           <widget class="QComboBox" name="cbFontGamma">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1519,14 +1519,14 @@
            </item>
           </widget>
          </item>
-         <item row="10" column="0">
+         <item row="11" column="0">
           <widget class="QLabel" name="label_36">
            <property name="text">
             <string>Fallback fonts</string>
            </property>
           </widget>
          </item>
-         <item row="10" column="1">
+         <item row="11" column="1">
           <widget class="QPushButton" name="btnFallbackMan">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1539,14 +1539,14 @@
            </property>
           </widget>
          </item>
-         <item row="11" column="0">
+         <item row="12" column="0">
           <widget class="QLabel" name="label_35">
            <property name="text">
             <string>Font hinting</string>
            </property>
           </widget>
          </item>
-         <item row="11" column="1">
+         <item row="12" column="1">
           <widget class="QComboBox" name="cbFontHinting">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1589,14 +1589,14 @@
            </item>
           </widget>
          </item>
-         <item row="12" column="0">
+         <item row="13" column="0">
           <widget class="QLabel" name="label_44">
            <property name="text">
             <string>Text Shaping</string>
            </property>
           </widget>
          </item>
-         <item row="12" column="1">
+         <item row="13" column="1">
           <widget class="QComboBox" name="cbFontShaping">
            <property name="currentText">
             <string>Simple (FreeType only, fastest)</string>
@@ -1618,108 +1618,108 @@
            </item>
           </widget>
          </item>
-         <item row="13" column="0">
+         <item row="14" column="0">
           <widget class="QLabel" name="label_13">
            <property name="text">
             <string>Interline spacing</string>
            </property>
           </widget>
          </item>
-         <item row="13" column="1">
+         <item row="14" column="1">
           <widget class="QComboBox" name="cbInterlineSpace"/>
          </item>
-         <item row="14" column="0">
+         <item row="15" column="0">
           <widget class="QLabel" name="label_43">
            <property name="text">
             <string>Font kerning</string>
            </property>
           </widget>
          </item>
-         <item row="14" column="1">
+         <item row="15" column="1">
           <widget class="QCheckBox" name="cbFontKerning">
            <property name="text">
             <string>Enable font kerning</string>
            </property>
           </widget>
          </item>
-         <item row="15" column="0">
+         <item row="16" column="0">
           <widget class="QLabel" name="label_18">
            <property name="text">
             <string>Floating punctuation</string>
            </property>
           </widget>
          </item>
-         <item row="15" column="1">
+         <item row="16" column="1">
           <widget class="QCheckBox" name="cbFloatingPunctuation">
            <property name="text">
             <string>Enable floating punctuation</string>
            </property>
           </widget>
          </item>
-         <item row="16" column="0">
+         <item row="17" column="0">
           <widget class="QLabel" name="label_38">
            <property name="text">
             <string>Internal CSS</string>
            </property>
           </widget>
          </item>
-         <item row="16" column="1">
+         <item row="17" column="1">
           <widget class="QCheckBox" name="cbEnableDocumentStyles">
            <property name="text">
             <string>Enable document internal styles</string>
            </property>
           </widget>
          </item>
-         <item row="17" column="0">
+         <item row="18" column="0">
           <widget class="QLabel" name="label_37">
            <property name="text">
             <string>.EPUB</string>
            </property>
           </widget>
          </item>
-         <item row="17" column="1">
+         <item row="18" column="1">
           <widget class="QCheckBox" name="cbEnableEmbeddedFonts">
            <property name="text">
             <string>Enable document embedded fonts</string>
            </property>
           </widget>
          </item>
-         <item row="18" column="0">
+         <item row="19" column="0">
           <widget class="QLabel" name="label_49">
            <property name="text">
             <string>Internal</string>
            </property>
           </widget>
          </item>
-         <item row="18" column="1">
+         <item row="19" column="1">
           <widget class="QCheckBox" name="cbIgnoreDocumentMargins">
            <property name="text">
             <string>Ignore document margins</string>
            </property>
           </widget>
          </item>
-         <item row="19" column="0">
+         <item row="20" column="0">
           <widget class="QLabel" name="label_17">
            <property name="text">
             <string>.TXT files</string>
            </property>
           </widget>
          </item>
-         <item row="19" column="1">
+         <item row="20" column="1">
           <widget class="QCheckBox" name="cbTxtPreFormatted">
            <property name="text">
             <string>Disable automatic formatting</string>
            </property>
           </widget>
          </item>
-         <item row="20" column="0">
+         <item row="21" column="0">
           <widget class="QLabel" name="label_15">
            <property name="text">
             <string>Sample</string>
            </property>
           </widget>
          </item>
-         <item row="20" column="1">
+         <item row="21" column="1">
           <widget class="CR3View" name="crSample" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -1735,17 +1735,34 @@
            </property>
           </widget>
          </item>
-         <item row="7" column="0">
+         <item row="8" column="0">
           <widget class="QLabel" name="label_48">
            <property name="text">
             <string>Hyphenation</string>
            </property>
           </widget>
          </item>
-         <item row="7" column="1">
+         <item row="8" column="1">
           <widget class="QCheckBox" name="cbEnableHyph">
            <property name="text">
             <string>Enable hyphenation</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_51">
+           <property name="text">
+            <string>Font weight</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="cbFontWeightChange">
+           <property name="currentText">
+            <string notr="true"/>
+           </property>
+           <property name="currentIndex">
+            <number>-1</number>
            </property>
           </widget>
          </item>
@@ -1780,7 +1797,7 @@
               <x>0</x>
               <y>0</y>
               <width>389</width>
-              <height>628</height>
+              <height>710</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -2013,6 +2030,7 @@
   <tabstop>btnTextColor</tabstop>
   <tabstop>cbTextFontFace</tabstop>
   <tabstop>cbTextFontSize</tabstop>
+  <tabstop>cbFontWeightChange</tabstop>
   <tabstop>cbPageSkin</tabstop>
   <tabstop>btnBgColor</tabstop>
   <tabstop>cbRendFlags</tabstop>
