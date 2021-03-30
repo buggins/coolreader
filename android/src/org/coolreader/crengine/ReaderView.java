@@ -2454,6 +2454,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				if (isBookLoaded())
 					mActivity.showBookmarksDialog();
 				break;
+			case DCMD_NEW_BOOKMARK:
+				if (0 == param) {	// bookmark to page
+					addBookmark(0);
+				}
+				break;
 			case DCMD_GO_PERCENT_DIALOG:
 				if (isBookLoaded())
 					showGoToPercentDialog();

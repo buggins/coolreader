@@ -717,4 +717,5 @@
     <string name="font_weight_black">Тяжелый</string>
     <string name="font_weight_extrablack">Сверхтяжёлый</string>
     <string name="font_weight_fake">синтетический*</string>
+    <string name="add_bookmark_to_page">Добавить закладку на страницу</string>
 </resources>
