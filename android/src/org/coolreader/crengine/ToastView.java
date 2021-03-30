@@ -2,6 +2,7 @@ package org.coolreader.crengine;
 
 import android.content.Context;
 import android.os.Handler;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -82,7 +83,7 @@ public class ToastView {
         LayoutInflater inflater = (LayoutInflater) t.anchor.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         window.setContentView(inflater.inflate(R.layout.custom_toast, null, true));
         TextView tv = (TextView) window.getContentView().findViewById(R.id.toast);
-        tv.setTextSize(fontSize); //Integer.valueOf(Services.getSettings().getInt(ReaderView.PROP_FONT_SIZE, 20) ) );
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize); //Integer.valueOf(Services.getSettings().getInt(ReaderView.PROP_FONT_SIZE, 20) ) );
         tv.setText(t.msg);
         tv.setGravity(Gravity.CENTER);
         window.showAtLocation(t.anchor, Gravity.NO_GRAVITY, 0, 0);
