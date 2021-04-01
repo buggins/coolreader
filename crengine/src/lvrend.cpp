@@ -9496,6 +9496,8 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
 
     //UPDATE_LEN_FIELD( text_indent );
     spreadParent( pstyle->text_indent, parent_style->text_indent );
+    // acording to https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight#meaning_of_relative_weights
+    // With some liberty at ends if 100 is really too thin
     switch( pstyle->font_weight )
     {
     case css_fw_inherit:
@@ -9505,21 +9507,25 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->font_weight = css_fw_400;
         break;
     case css_fw_bold:
-        pstyle->font_weight = css_fw_600;
+        pstyle->font_weight = css_fw_700;
         break;
     case css_fw_bolder:
-        pstyle->font_weight = parent_style->font_weight;
-        if (pstyle->font_weight < css_fw_800)
-        {
-            pstyle->font_weight = (css_font_weight_t)((int)pstyle->font_weight + 2);
-        }
+        if (parent_style->font_weight < css_fw_400)
+            pstyle->font_weight = css_fw_400;
+        else if (parent_style->font_weight < css_fw_600)
+            pstyle->font_weight = css_fw_700;
+        else
+            pstyle->font_weight = css_fw_900;
         break;
     case css_fw_lighter:
-        pstyle->font_weight = parent_style->font_weight;
-        if (pstyle->font_weight > css_fw_200)
-        {
-            pstyle->font_weight = (css_font_weight_t)((int)pstyle->font_weight - 2);
-        }
+        if (parent_style->font_weight < css_fw_400)
+            pstyle->font_weight = css_fw_100;
+        if (parent_style->font_weight < css_fw_600)
+            pstyle->font_weight = css_fw_300;
+        else if (parent_style->font_weight < css_fw_800)
+            pstyle->font_weight = css_fw_400;
+        else
+            pstyle->font_weight = css_fw_700;
         break;
     case css_fw_100:
     case css_fw_200:
