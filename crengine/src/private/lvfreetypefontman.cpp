@@ -831,6 +831,7 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
             // Will make some of this font's methods do embolden the glyphs and widths
             font->setSynthWeight(weight);
             newDef.setWeight( font->getWeight() );
+            // Now newDef contains fake/synthetic weight
         }
 #else
         int deltaWeight = weight - newDef.getWeight();

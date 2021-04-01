@@ -99,6 +99,11 @@ int LVFontDef::CalcMatch(const LVFontDef &def, bool useBias) const {
                 // than 'this'
             }
         }
+        // Also, never use a synthetized weight font to synthetize another one
+        if ( weight_diff >= 50 ) {
+            weight_match = 0;
+            italic_match = 0;
+        }
     }
 
     // final score
