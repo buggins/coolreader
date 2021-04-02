@@ -315,7 +315,7 @@ bool LVFreeTypeFontManager::initSystemFonts() {
         
         FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_WEIGHT, FC_FAMILY,
                                            FC_SLANT, FC_SPACING, FC_INDEX,
-                                           FC_STYLE, NULL);
+                                           FC_STYLE, FC_SCALABLE, NULL);
         FcPattern *pat = FcPatternCreate();
         //FcBool b = 1;
         FcPatternAddBool(pat, FC_SCALABLE, 1);
@@ -350,7 +350,7 @@ bool LVFreeTypeFontManager::initSystemFonts() {
             if (!fn32.endsWith(".ttf") && !fn32.endsWith(".odf") && !fn32.endsWith(".otf") && !fn32.endsWith(".pfb") && !fn32.endsWith(".pfa") && !fn32.endsWith(".ttc") ) {
                 continue;
             }
-            int weight = FC_WEIGHT_MEDIUM;
+            int weight = FC_WEIGHT_REGULAR;
             res = FcPatternGetInteger(fontset->fonts[i], FC_WEIGHT, 0, &weight);
             if(res != FcResultMatch) {
                 CRLog::debug("no FC_WEIGHT for %s", s);
@@ -401,8 +401,11 @@ bool LVFreeTypeFontManager::initSystemFonts() {
                 weight = 400;
                 break;
             }
-            FcBool scalable = 0;
+            FcBool scalable = FcFalse;
             res = FcPatternGetBool(fontset->fonts[i], FC_SCALABLE, 0, &scalable);
+            if(res != FcResultMatch) {
+                CRLog::debug("no FC_SCALABLE for %s", s);
+            }
             int index = 0;
             res = FcPatternGetInteger(fontset->fonts[i], FC_INDEX, 0, &index);
             if(res != FcResultMatch) {
@@ -479,7 +482,6 @@ bool LVFreeTypeFontManager::initSystemFonts() {
                         face,
                         index
                         );
-            
             CRLog::debug("FONTCONFIG: Font family:%s style:%s weight:%d slant:%d spacing:%d file:%s", family, style, weight, slant, spacing, s);
             if ( _cache.findDuplicate( &def ) ) {
                 CRLog::debug("is duplicate, skipping");
@@ -487,7 +489,7 @@ bool LVFreeTypeFontManager::initSystemFonts() {
             }
             _cache.update( &def, LVFontRef(NULL) );
             
-            if ( scalable && !def.getItalic() ) {
+            if ( scalable != FcFalse && !def.getItalic() ) {
                 LVFontDef newDef( def );
                 newDef.setItalic(2); // can italicize
                 if ( !_cache.findDuplicate( &newDef ) )
