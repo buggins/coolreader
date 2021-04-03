@@ -623,12 +623,14 @@ public class TTSToolbarDlg implements Settings {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
+				/*
 				// round to a multiple of 5
-				int roundedVal = 5*(progress/5);
+				int roundedVal = 5*((progress+2)/5);
 				if (progress != roundedVal) {
 					mSbSpeed.setProgress(roundedVal);
 					return;
 				}
+				*/
 				mTTSSpeedPercent = progress;
 				mTTS.setSpeechRate(speechRateFromPercent(mTTSSpeedPercent));
 				mSpeedTextView.setText(String.format(Locale.getDefault(), "%s (x%.2f)", context.getString(R.string.tts_rate), speechRateFromPercent(progress)));
