@@ -1850,8 +1850,14 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar32 def_char, lUI
 
         item = newItem(&_glyph_cache, (lChar32)ch, _slot); //, _drawMonochrome
         if (item) {
-            if (item->origin_x < 0 && item->advance_26_6 == 0)
-                item->origin_x -= FONT_METRIC_TO_PX(_synth_weight_strength);
+            if (_synth_weight_strength != 0) {
+                // Assume zero advance means it's a diacritic:
+                // The width of the character above/below which
+                // the diacritical mark is located has changed,
+                // so the position of this mark must also be changed.
+                if (item->origin_x < 0 && item->advance_26_6 == 0)
+                    item->origin_x -= FONT_METRIC_TO_PX(_synth_weight_strength);
+            }
             _glyph_cache.put(item);
         }
     }
