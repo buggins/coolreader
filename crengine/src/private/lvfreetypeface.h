@@ -228,10 +228,10 @@ public:
     void setSynthWeight(int synth_weight);
 
     bool loadFromBuffer(LVByteArrayRef buf, int index, int size, css_font_family_t fontFamily,
-                        bool monochrome, bool italicize);
+                        bool monochrome, bool italicize, int weight = -1);
 
     bool loadFromFile(const char *fname, int index, int size, css_font_family_t fontFamily,
-                      bool monochrome, bool italicize);
+                      bool monochrome, bool italicize, int weight = -1);
 
     /** \brief get glyph info
         \param glyph is pointer to glyph_info_t struct to place retrieved info

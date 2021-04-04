@@ -548,8 +548,8 @@ void LVFreeTypeFace::setSynthWeight(int synth_weight)
     clearCache();
 }
 
-bool LVFreeTypeFace::loadFromBuffer(LVByteArrayRef buf, int index, int size,
-                                    css_font_family_t fontFamily, bool monochrome, bool italicize) {
+bool LVFreeTypeFace::loadFromBuffer(LVByteArrayRef buf, int index, int size, css_font_family_t fontFamily,
+                                    bool monochrome, bool italicize, int weight) {
     FONT_GUARD
     _hintingMode = fontMan->GetHintingMode();
     _drawMonochrome = monochrome;
@@ -625,7 +625,7 @@ bool LVFreeTypeFace::loadFromBuffer(LVByteArrayRef buf, int index, int size,
     _height = FONT_METRIC_TO_PX( _face->size->metrics.height );
     _size = size; //(_face->size->metrics.height >> 6);
     _baseline = _height + FONT_METRIC_TO_PX( _face->size->metrics.descender );
-    _weight = getFontWeight(_face);
+    _weight = weight > 0 ? weight : getFontWeight(_face);
     _italic = _face->style_flags & FT_STYLE_FLAG_ITALIC ? 1 : 0;
 
     if (!error && italicize && !_italic) {
@@ -655,7 +655,7 @@ bool LVFreeTypeFace::loadFromBuffer(LVByteArrayRef buf, int index, int size,
 
 bool
 LVFreeTypeFace::loadFromFile(const char *fname, int index, int size, css_font_family_t fontFamily,
-                             bool monochrome, bool italicize) {
+                             bool monochrome, bool italicize, int weight) {
     FONT_GUARD
     _hintingMode = fontMan->GetHintingMode();
     _drawMonochrome = monochrome;
@@ -734,7 +734,10 @@ LVFreeTypeFace::loadFromFile(const char *fname, int index, int size, css_font_fa
     _height = FONT_METRIC_TO_PX( _face->size->metrics.height );
     _size = size; //(_face->size->metrics.height >> 6);
     _baseline = _height + FONT_METRIC_TO_PX( _face->size->metrics.descender );
-    _weight = getFontWeight(_face);
+    // When enumerating fonts using FontConfig, we already got a font weight
+    // it may not match the font weight obtained by parsing the FreeType font style.
+    // Well, let's trust FontConfig for this.
+    _weight = weight > 0 ? weight : getFontWeight(_face);
     _italic = _face->style_flags & FT_STYLE_FLAG_ITALIC ? 1 : 0;
 
     if (!error && italicize && !_italic) {

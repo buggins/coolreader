@@ -42,57 +42,41 @@ lString8 familyName(FT_Face face) {
 
 int getFontWeight(FT_Face face) {
     if (!face)
-        return 400;
-    int weight = 400;
-    if (face->style_flags & FT_STYLE_FLAG_BOLD)
-        weight = 700;
+        return -1;
+    int weight = -1;
+    bool bold_flag = (face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
     lString32 style32(face->style_name);
     style32 = style32.lowercase();
-    /*
-    style32.replace(cs32("extracondensed"), cs32(""));
-    style32.replace(cs32("semicondensed"), cs32(""));
-    style32.replace(cs32("condensed"), cs32(""));
-    style32.replace(cs32("narrow"), cs32(""));
-    style32.replace(cs32("italic"), cs32(""));
-    style32.replace(cs32("oblique"), cs32(""));
-    */
-    style32 = style32.trim();
-    lString32Collection words;
-    words.split(style32, lString32(" "));
-    for (int i = 0; i < words.length(); i++) {
-        const lString32& word = words.at(i);
-        if (word == "thin") {
-            weight = 100;
-            break;
-        } else if (word == "extralight" || word == "ultralight") {
-            weight = 200;
-            break;
-        } else if (word == "light" || word == "demilight") {
-            weight = 300;
-            break;
-        } else if (word == "regular" || word == "normal" || word == "book" || word == "text") {
-            weight = 400;
-            break;
-        } else if (word == "medium") {
-            weight = 500;
-            break;
-        } else if (word == "demibold" || word == "semibold") {
-            weight = 600;
-            break;
-        } else if (word == "bold") {
-            weight = 700;
-            break;
-        } else if (word == "extrabold" || word == "ultrabold") {
-            weight = 800;
-            break;
-        } else if (word == "black" || word == "heavy") {
-            weight = 900;
-            break;
-        } else if (word == "extrablack" || word == "ultrablack") {
-            weight = 950;
-            break;
-        }
-    }
+    if (style32.pos("extrablack") >= 0 || style32.pos("ultrablack") >= 0
+          || style32.pos("extra black") >= 0 || style32.pos("ultra black") >= 0)
+        weight = 950;
+    else if (style32.pos("extrabold") >= 0 || style32.pos("ultrabold") >= 0
+          || style32.pos("extra bold") >= 0 || style32.pos("ultra bold") >= 0)
+        weight = 800;
+    else if (style32.pos("demibold") >= 0 || style32.pos("semibold") >= 0
+          || style32.pos("demi bold") >= 0 || style32.pos("semi bold") >= 0)
+        weight = 600;
+    else if (style32.pos("extralight") >= 0 || style32.pos("ultralight") >= 0
+          || style32.pos("extra light") >= 0 || style32.pos("ultra light") >= 0)
+        weight = 200;
+    else if (style32.pos("demilight") >= 0 || style32.pos("light") >= 0
+          || style32.pos("demi light") >= 0)
+        weight = 300;
+    else if (style32.pos("regular") >= 0 || style32.pos("normal") >= 0 || style32.pos("book") >= 0 || style32.pos("text") >= 0)
+        weight = 400;
+    else if (style32.pos("thin") >= 0)
+        weight = 100;
+    else if (style32.pos("medium") >= 0)
+        weight = 500;
+    else if (style32.pos("bold") >= 0)
+        weight = 700;
+    else if (style32.pos("black") >= 0 || style32.pos("heavy") >= 0)
+        weight = 900;
+
+    if (-1 == weight)
+        weight = bold_flag ? 700 : 400;
+    else if (weight <= 400 && bold_flag)
+        weight = 700;
     return weight;
 }
 
@@ -361,6 +345,7 @@ bool LVFreeTypeFontManager::initSystemFonts() {
                 weight = 100;
                 break;
             case FC_WEIGHT_EXTRALIGHT:    //    40
+            case 45:                      // TODO: find what is it...
                 //case FC_WEIGHT_ULTRALIGHT        FC_WEIGHT_EXTRALIGHT
                 weight = 200;
                 break;
@@ -809,10 +794,10 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
     bool loaded = false;
     if (item->getDef()->getBuf().isNull())
         loaded = font->loadFromFile(pathname.c_str(), item->getDef()->getIndex(), size, family,
-                                    isBitmapModeForSize(size), italicize);
+                                    isBitmapModeForSize(size), italicize, item->getDef()->getWeight());
     else
         loaded = font->loadFromBuffer(item->getDef()->getBuf(), item->getDef()->getIndex(), size,
-                                      family, isBitmapModeForSize(size), italicize);
+                                      family, isBitmapModeForSize(size), italicize, item->getDef()->getWeight());
     if (loaded) {
         //fprintf(_log, "    : loading from file %s : %s %d\n", item->getDef()->getName().c_str(),
         //    item->getDef()->getTypeFace().c_str(), item->getDef()->getSize() );
