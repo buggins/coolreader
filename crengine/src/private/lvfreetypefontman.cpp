@@ -752,7 +752,7 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
         else {
 #if USE_FT_EMBOLDEN
             int deltaWeight = myabs(weight - item->getDef()->getWeight());
-            if (deltaWeight >= 50) {
+            if (deltaWeight >= 25) {
                 // This instantiated cached font has a too different weight
                 // when USE_FT_EMBOLDEN, ignore this other-weight cached font instance
                 // and go loading from the font file again to apply embolden.
@@ -828,11 +828,11 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
         //_cache.update( def, ref );
 #if USE_FT_EMBOLDEN
         int deltaWeight = myabs(weight - newDef.getWeight());
-        if (deltaWeight >= 50) {
+        if (deltaWeight >= 25) {
             // embolden
             // Will make some of this font's methods do embolden the glyphs and widths
             font->setSynthWeight(weight);
-            newDef.setWeight( font->getWeight() );
+            newDef.setWeight( weight, false );
             // Now newDef contains fake/synthetic weight
         }
 #else
@@ -1102,7 +1102,7 @@ bool LVFreeTypeFontManager::RegisterExternalFont(lString32 name, lString8 family
                 fname,
                 -1, // height==-1 for scalable fonts
                 bold ? 700 : 400,
-                italic ? true : false,
+                italic,
                 -1, // OpenType features = -1 for not yet instantiated fonts
                 fontFamily,
                 family_name,

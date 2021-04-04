@@ -6417,7 +6417,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 #endif
 	static int bool_options_def_true[] = { 1, 0 };
 	static int bool_options_def_false[] = { 0, 1 };
-	static int int_option_weight[] = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 950 };
+	static int int_option_weight[] = { 100, 200, 300, 400, 425, 450, 475, 500, 525, 550, 600, 650, 700, 800, 900, 950 };
 
 	props->limitValueList(PROP_FONT_BASE_WEIGHT, int_option_weight, sizeof(int_option_weight) / sizeof(int), 3);
 #ifndef ANDROID

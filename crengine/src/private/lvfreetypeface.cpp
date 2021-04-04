@@ -507,10 +507,6 @@ void LVFreeTypeFace::setSynthWeight(int synth_weight)
         return;
     }
     _synth_weight = synth_weight;
-    // And add +1 so we can know it's a fake/synthetized font, so we
-    // can avoid getting it (and get the original regular font instead)
-    // when synthetizing an other variant of that font.
-    _synth_weight += 1;
     // We will simply call FT_Outline_Embolden()
     // to get the glyphinfo and glyph with synthetized bold.
     // To increase metrics, we add some embolding strength to glyph advance.

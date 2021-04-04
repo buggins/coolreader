@@ -191,8 +191,8 @@ void LVFontCache::getAvailableFontWeights(LVArray<int>& weights, lString8 faceNa
     for (int i = 0; i < _registered_list.length(); i++) {
         const LVFontCacheItem* item = _registered_list[i];
         if (item->_def.getTypeFace() == faceName) {
-            int weight = item->_def.getWeight();
-            if ((weight & 0x01) == 0) {       // ignore fonts with fake weight
+            if (item->_def.isRealWeight()) {       // ignore fonts with fake weight
+                int weight = item->_def.getWeight();
                 if (weights.indexOf(weight) < 0) {
                     weights.add(weight);
                 }

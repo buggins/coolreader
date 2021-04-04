@@ -68,20 +68,22 @@ int LVFontDef::CalcMatch(const LVFontDef &def, bool useBias) const {
     // 'this' (or '', properties not prefixed) is either an instance of a
     //     registered font, or a registered font definition,
     // 'def' is the requested definition.
-    // 'def' can never be italic=2 (fake italic) or weight=601 (fake bold), but
-    //    either 0 or 1, or a 400,700,... any multiple of 100
+    // 'def' can never be italic=2 (fake italic) or !_real_weight (fake weight), but
+    //    either 0 or 1, or a 400, 500, 600, 700, ... for standard weight
+    //    or any multiple of 25 for synthetic weights
     // 'this' registered can be only 400 when the font has no bold sibling,
-    //           or 700 when 'this' is the bold sibling
+    //           or any other real weight: 500, 600, 700 ...
     // 'this' instantiated can be 400 (for the regular original)
     //           or 700 when 'this' is the bold sibling instantiated
-    //           or 601 when it has been synthetised from the regular.
+    //           or any other value with disabled flags _real_weight
+    //           when it has been synthesized from the other font with real weight.
     // We want to avoid an instantiated fake bold (resp. fake bold italic) to
     // have a higher score than the registered original when a fake bold italic
     // (resp. fake bold) is requested, so the italic/non italic requested can
-    // be re-synthetized. Otherwise, we'll get some italic when not wanting
+    // be re-synthesized. Otherwise, we'll get some italic when not wanting
     // italic (or vice versa), depending on which has been instantiated first...
     //
-    if ( _weight & 1) {           // 'this' is an instantiated fake weight font
+    if ( !_real_weight ) {        // 'this' is an instantiated fake weight font
         if ( def._italic > 0 ) {  // italic requested
             if ( _italic == 0 ) { // 'this' is fake bold but non-italic
                 weight_match = 0; // => drop score
@@ -99,8 +101,8 @@ int LVFontDef::CalcMatch(const LVFontDef &def, bool useBias) const {
                 // than 'this'
             }
         }
-        // Also, never use a synthetized weight font to synthetize another one
-        if ( weight_diff >= 50 ) {
+        // Also, never use a synthetic weight font to synthesize another one
+        if ( weight_diff >= 25 ) {
             weight_match = 0;
             italic_match = 0;
         }

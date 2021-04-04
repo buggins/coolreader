@@ -21,7 +21,7 @@ static int def_margins[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 2
 DECL_DEF_CR_FONT_SIZES;
 
 #if USE_FT_EMBOLDEN
-static int synth_weights[] = { 300, 400, 500, 600, 700, 800, 900, 950 };
+static int synth_weights[] = { 300, 400, 500, 600, 700, 800, 900 };
 #else
 static int synth_weights[] = { 600 };
 #endif

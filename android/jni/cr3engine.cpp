@@ -953,7 +953,7 @@ JNIEXPORT jintArray JNICALL Java_org_coolreader_crengine_Engine_getAvailableSynt
 	CRJNIEnv env(penv);
 #if USE_FT_EMBOLDEN
 	int available_synth_weight[] = {
-			300, 400, 500, 600, 700, 800, 900, 950
+			300, 400, 450, 475, 500, 525, 550, 600, 700, 800, 900
 	};
 #else
 	int available_synth_weight[] = {
