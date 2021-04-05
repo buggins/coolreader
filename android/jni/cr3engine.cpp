@@ -923,6 +923,52 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFileNa
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    getAvailableFontWeightInternal
+ * Signature: (Ljava/lang/String;)[I
+ */
+JNIEXPORT jintArray JNICALL Java_org_coolreader_crengine_Engine_getAvailableFontWeightInternal
+		(JNIEnv * penv, jclass cls, jstring fontFace)
+{
+	LOGI("getAvailableFontWeightInternal called");
+	CRJNIEnv env(penv);
+	lString32 fontFace32 = env.fromJavaString(fontFace);
+	LVArray<int> weights;
+	fontMan->GetAvailableFontWeights(weights, UnicodeToUtf8(fontFace32));
+	int len = weights.length();
+	jintArray array = env->NewIntArray(len);
+	if (NULL != array)
+		env->SetIntArrayRegion(array, 0, len, weights.get());
+	return array;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    getAvailableSynthFontWeightInternal
+ * Signature: ()[I
+ */
+JNIEXPORT jintArray JNICALL Java_org_coolreader_crengine_Engine_getAvailableSynthFontWeightInternal
+		(JNIEnv * penv, jclass cls)
+{
+	LOGI("getAvailableSynthFontWeightInternal called");
+	CRJNIEnv env(penv);
+#if USE_FT_EMBOLDEN
+	int available_synth_weight[] = {
+			300, 400, 450, 475, 500, 525, 550, 600, 700, 800, 900
+	};
+#else
+	int available_synth_weight[] = {
+			600
+	};
+#endif
+	int len = sizeof(available_synth_weight)/sizeof(int);
+	jintArray array = env->NewIntArray(len);
+	if (NULL != array)
+		env->SetIntArrayRegion(array, 0, len, available_synth_weight);
+	return array;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    setCacheDirectoryInternal
  * Signature: (Ljava/lang/String;I)Z
  */
@@ -1121,6 +1167,9 @@ static JNINativeMethod sEngineMethods[] = {
   {"uninitInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_uninitInternal},
   {"initDictionaries", "([Lorg/coolreader/crengine/Engine$HyphDict;)Z", (void*)Java_org_coolreader_crengine_Engine_initDictionaries},
   {"getFontFaceListInternal", "()[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getFontFaceListInternal},
+  {"getFontFileNameListInternal", "()[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getFontFileNameListInternal},
+  {"getAvailableFontWeightInternal", "(Ljava/lang/String;)[I", (void*)Java_org_coolreader_crengine_Engine_getAvailableFontWeightInternal},
+  {"getAvailableSynthFontWeightInternal", "()[I", (void*)Java_org_coolreader_crengine_Engine_getAvailableSynthFontWeightInternal},
   {"setCacheDirectoryInternal", "(Ljava/lang/String;I)Z", (void*)Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal},
   {"scanBookPropertiesInternal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal},
   {"updateFileCRC32Internal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_updateFileCRC32Internal},

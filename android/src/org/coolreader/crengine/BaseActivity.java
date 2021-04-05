@@ -1767,6 +1767,12 @@ public class BaseActivity extends Activity implements Settings {
 					props.remove("crengine.hyphenation.dictionary.code");
 				}
 			}
+			String oldEmbolden = props.getProperty(ReaderView.PROP_FONT_WEIGHT_EMBOLDEN_OBSOLETED);
+			if (null != oldEmbolden && oldEmbolden.length() > 0) {
+				boolean flg = "1".equals(oldEmbolden);
+				props.applyDefault(ReaderView.PROP_FONT_BASE_WEIGHT, flg ? 700 : 400);
+				props.remove(PROP_FONT_WEIGHT_EMBOLDEN_OBSOLETED);
+			}
 		}
 
 		public Properties loadSettings(BaseActivity activity, File file) {
@@ -1895,6 +1901,7 @@ public class BaseActivity extends Activity implements Settings {
 			fixFontSettings(props);
 			upgradeSettings(props);
 			props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
+			props.applyDefault(ReaderView.PROP_FONT_BASE_WEIGHT, 400);
 			props.applyDefault(ReaderView.PROP_FONT_HINTING, "2");
 			props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : String.valueOf(statusFontSize));
 			props.applyDefault(ReaderView.PROP_FONT_COLOR, "#000000");

@@ -67,6 +67,7 @@
     <string name="tab_options_clouds">Clouds</string>
     <string name="options_font_size">Font size</string>
     <string name="options_font_face">Font face</string>
+    <string name="options_font_weight">Font weight</string>
     <string name="options_font_embolden">Embolden font</string>
     <string name="options_font_antialias">Font antialiasing</string>
     <string name="options_font_antialias_off">No antialias</string>
@@ -735,4 +736,16 @@
     <string name="inconsistent_options_toolbar">enable toolbar</string>
     <string name="inconsistent_options_tap_reading_menu">add reading menu on the touch screen</string>
     <string name="options_hide_empty_dirs_slowdown">(May slow down the listing of directory contents)</string>
+    <string name="font_weight_thin">Thin</string>
+    <string name="font_weight_extralight">ExtraLight</string>
+    <string name="font_weight_light">Light</string>
+    <string name="font_weight_book">Book</string>
+    <string name="font_weight_regular">Regular</string>
+    <string name="font_weight_medium">Medium</string>
+    <string name="font_weight_semibold">SemiBold</string>
+    <string name="font_weight_bold">Bold</string>
+    <string name="font_weight_extrabold">ExtraBold</string>
+    <string name="font_weight_black">Heavy/Black</string>
+    <string name="font_weight_extrablack">ExtraBlack</string>
+    <string name="font_weight_fake">synthetic*</string>
 </resources>

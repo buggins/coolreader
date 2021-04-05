@@ -23,7 +23,8 @@ public interface Settings {
     public static final String PROP_FONT_GAMMA              ="font.gamma";
     public static final String PROP_FONT_GAMMA_DAY          ="font.gamma.day";
     public static final String PROP_FONT_GAMMA_NIGHT        ="font.gamma.night";
-    public static final String PROP_FONT_WEIGHT_EMBOLDEN    ="font.face.weight.embolden";
+    public static final String PROP_FONT_WEIGHT_EMBOLDEN_OBSOLETED ="font.face.weight.embolden";	// obsoleted
+    public static final String PROP_FONT_BASE_WEIGHT        ="font.face.base.weight";        // replaces PROP_FONT_WEIGHT_EMBOLDEN ("font.face.weight.embolden")
     public static final String PROP_TXT_OPTION_PREFORMATTED ="crengine.file.txt.preformatted";
     public static final String PROP_LOG_FILENAME            ="crengine.log.filename";
     public static final String PROP_LOG_LEVEL               ="crengine.log.level";

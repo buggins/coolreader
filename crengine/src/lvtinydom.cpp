@@ -386,8 +386,7 @@ lUInt32 calcGlobalSettingsHash(int documentId, bool already_rendered)
         hash = hash * 75 + 1761;
     hash = hash * 31 + fontMan->GetFontListHash(documentId);
     hash = hash * 31 + (int)fontMan->GetHintingMode();
-    if ( LVRendGetFontEmbolden() )
-        hash = hash * 75 + 2384761;
+    hash = hash * 31 + LVRendGetBaseFontWeight();
     hash = hash * 31 + fontMan->GetFallbackFontFaces().getHash();
     hash = hash * 31 + gRenderDPI;
     hash = hash * 31 + gRootFontSize;

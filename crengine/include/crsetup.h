@@ -59,6 +59,7 @@
 #define USE_FRIBIDI                          1
 #define USE_LIBUNIBREAK                      1
 #define USE_GLYPHCACHE_HASHTABLE             0
+#define USE_FT_EMBOLDEN                      1
 #define GLYPH_CACHE_SIZE                     0x20000
 #define ZIP_STREAM_BUFFER_SIZE               0x80000
 #define FILE_STREAM_BUFFER_SIZE              0x40000
@@ -91,6 +92,7 @@
 #define USE_ANSI_FILES                       1
 #define GRAY_INVERSE                         0
 #define USE_FREETYPE                         1
+#define USE_FT_EMBOLDEN                      1
 #define USE_HARFBUZZ                         1
 #define USE_FRIBIDI                          1
 #define USE_LIBUNIBREAK                      1
@@ -131,6 +133,7 @@
 #define USE_LIBUNIBREAK                      0
 #else
 #define USE_FREETYPE                         1
+#define USE_FT_EMBOLDEN                      1
 #define USE_HARFBUZZ                         1
 #ifndef _MSC_VER
 #define USE_FRIBIDI                          1
@@ -248,6 +251,10 @@
 
 #ifndef USE_FREETYPE
 #define USE_FREETYPE 0
+#endif
+
+#ifndef USE_FT_EMBOLDEN
+#define USE_FT_EMBOLDEN 0
 #endif
 
 #ifndef USE_WIN32_FONTS

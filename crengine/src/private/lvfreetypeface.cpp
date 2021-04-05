@@ -40,7 +40,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_OUTLINE_H   // for FT_Outline_Embolden()
-#include FT_SYNTHESIS_H // for FT_GlyphSlot_Embolden()
+#include FT_SYNTHESIS_H // for FT_GlyphSlot_Oblique()
 #include FT_GLYPH_H     // for FT_Matrix_Multiply()
 
 // Helpers with font metrics (units are 1/64 px)
@@ -52,13 +52,17 @@
 // Uncomment to use the former >>6 (trunc) with no rounding (instead of previous one)
 // #define FONT_METRIC_TO_PX(x)    ((x) >> 6)
 
+#define PX_TO_FONT_METRIC(x)    ( (x >= 0) ? (x << 6) : -( (-x) << 6 ) )
+
 // Define to add more debug messages
 //#define DEBUG_DRAW_TEXT
 //#define DEBUG_MEASURE_TEXT
 
 extern int gammaIndex;          // lvfntman.cpp
 
+// next two functions from lvfreetypefontman.cpp
 extern lString8 familyName(FT_Face face);
+extern int getFontWeight(FT_Face face);
 
 
 inline int myabs(int n) { return n < 0 ? -n : n; }
@@ -206,7 +210,7 @@ static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lChar32
     }
     item->origin_x = (lInt16) slot->bitmap_left;
     item->origin_y = (lInt16) slot->bitmap_top;
-    item->advance  = (lUInt16)(FONT_METRIC_TO_PX( myabs(slot->metrics.horiAdvance) ));
+    item->advance_26_6 = (lUInt32)( myabs(slot->metrics.horiAdvance) );
     return item;
 }
 
@@ -249,7 +253,7 @@ static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lUInt32
     }
     item->origin_x = (lInt16) slot->bitmap_left;
     item->origin_y = (lInt16) slot->bitmap_top;
-    item->advance =    (lUInt16)(FONT_METRIC_TO_PX( myabs(slot->metrics.horiAdvance) ));
+    item->advance_26_6 = (lUInt32)( myabs(slot->metrics.horiAdvance) );
     return item;
 }
 
@@ -299,8 +303,8 @@ struct LVCharTriplet
 
 struct LVCharPosInfo
 {
-    int offset;
-    int width;
+    lInt32 offset_26_6;
+    lInt32 advance_26_6;
 };
 
 inline lUInt32 getHash( const struct LVCharTriplet& triplet )
@@ -346,7 +350,7 @@ LVFont *LVFreeTypeFace::getFallbackFont(lUInt32 fallbackPassMask) {
             index++;
             if (index == fallback_count)
                 index = 0;
-            _fallbackFont = fontMan->GetFallbackFont(_size, _weight, _italic, index);
+            _fallbackFont = fontMan->GetFallbackFont(_size, getWeight(), _italic, index);
         }
         _fallbackFontIsSet = true;
     }
@@ -371,13 +375,16 @@ LVFreeTypeFace::LVFreeTypeFace(LVMutex &mutex, FT_Library library,
         : LVFont(),
           _mutex(mutex), _fontFamily(css_ff_sans_serif), _library(library), _face(NULL),
           _size(0), _hyphen_width(0), _baseline(0),
-          _weight(400), _italic(0), _embolden(false), _features(0),
+          _weight(400), _italic(0), _features(0),
           _glyph_cache(globalCache),
           _drawMonochrome(false),
           _hintingMode(HINTING_MODE_AUTOHINT),
           _shapingMode(SHAPING_MODE_FREETYPE),
           _fallbackFontIsSet(false),
-          _fallback_mask(0)
+          _fallback_mask(0),
+          _synth_weight(0),
+          _synth_weight_strength(0),
+          _synth_weight_half_strength(0)
 #if USE_HARFBUZZ == 1
         , _glyph_cache2(globalCache),
           _width_cache2(1024)
@@ -489,56 +496,60 @@ void LVFreeTypeFace::setFeatures(int features)
     _hash = 0; // Force lvstyles.cpp calcHash(font_ref_t) to recompute the hash
 }
 
-// Synthetized bold on a font that does not come with a bold variant.
-void LVFreeTypeFace::setEmbolden()
+// Synthetic thin/bold on a font that does not come with a corresponding variant.
+void LVFreeTypeFace::setSynthWeight(int synth_weight)
 {
-    _embolden = true;
-    // A real bold font has weight 700, vs 400 for the regular.
-    // LVFontBoldTransform did +200, so we get 600 (demibold).
-    // Let's do the same (even if I don't see why not +300).
-    _weight = (_weight + 200 > 900) ? 900 : _weight + 200;
-    // And add +1 so we can know it's a fake/synthetized font, so we
-    // can avoid getting it (and get the original regular font instead)
-    // when synthetizing an other variant of that font.
-    _weight += 1;
-    // When not using Harfbuzz, we will simply call FT_GlyphSlot_Embolden()
-    // to get the glyphinfo and glyph with synthetized bold and increased
-    // metrics, and everything should work naturally:
+    if (_weight == synth_weight) {
+        _synth_weight = 0;
+        _synth_weight_half_strength = 0;
+        _synth_weight_strength = 0;
+        clearCache();
+        return;
+    }
+    _synth_weight = synth_weight;
+    // We will simply call FT_Outline_Embolden()
+    // to get the glyphinfo and glyph with synthetized bold.
+    // To increase metrics, we add some embolding strength to glyph advance.
     //   "Embolden a glyph by a 'reasonable' value (which is highly a matter
     //   of taste) [...] For emboldened outlines the height, width, and
     //   advance metrics are increased by the strength of the emboldening".
-    //
-    // When using Harfbuzz, which uses itself the font metrics, that we
-    // can't tweak at all from outside, we'll get positioning based on
-    // the not-bolded font. We can't increase them as that would totally
-    // mess HB work.
-    // We can only do as MuPDF does (source/fitz/font.c): keep the HB
+    // We can do as MuPDF does (source/fitz/font.c): keep the HB
     // positions, offset and advances, embolden the glyph by some value
     // of 'strength', and shift left/bottom by 1/2 'strength', so the
     // boldened glyph is centered on its original: the glyph being a
     // bit larger, it will blend over its neighbour glyphs, but it
     // looks quite allright.
-    // Caveat: words in fake bold will be bolder, but not larger than
-    // the same word in the regular font (unlike with a real bold font
-    // were they would be bolder and larger).
     // We need to compute the strength as done in FT_GlyphSlot_Embolden():
     //   xstr = FT_MulFix( face->units_per_EM, face->size->metrics.y_scale ) / 24;
     //   ystr = xstr;
     //   FT_Outline_EmboldenXY( &slot->outline, xstr, ystr );
-    // and will do as MuPDF does (with some private value of 'strength'):
+    // and will do as MuPDF does (with some private value of 'strength'
+    // but glyph translation is only on the Y axis, since we are using an additional horizontal compensate advance.
     //   FT_Outline_Embolden(&face->glyph->outline, strength);
-    //   FT_Outline_Translate(&face->glyph->outline, -strength/2, -strength/2);
-    // (with strength: 0=no change; 64=1px embolden; 128=2px embolden and 1px x/y translation)
+    //   FT_Outline_Translate(&face->glyph->outline, 0, -strength/2);
+    // (with strength (26.6 fixed point): 0=no change; 64=1px embolden; 128=2px embolden and 1px x/y translation)
     // int strength = (_face->units_per_EM * _face->size->metrics.y_scale) / 24;
-    FT_Pos embolden_strength = FT_MulFix(_face->units_per_EM, _face->size->metrics.y_scale) / 24;
+    // Calculations (old) for 400 -> 600 scaling:
+    //embolden_strength = FT_MulFix(_face->units_per_EM, _face->size->metrics.y_scale) / 24;
     // Make it slightly less bold than Freetype's bold, as we get less spacing
     // around glyphs with HarfBuzz, by getting the unbolded advances.
-    embolden_strength = embolden_strength * 3/4; // (*1/2 is fine but a tad too light)
-    _embolden_half_strength = embolden_strength / 2;
+    //embolden_strength = embolden_strength * 3/4; // (*1/2 is fine but a tad too light)
+    //  Simplifing...
+    //embolden_strength = (_face->units_per_EM*_face->size->metrics.y_scale)/(65536*32)
+    // So for any other scaling:
+    // Introducing scaling coefficient:
+    // diff_weight == 0   -> k = 0
+    // diff_weight == 200 -> k = 1/32
+    // k = ((_synth_weight - _weight) / 200) / 32;
+    // embolden_strength = k * ((_face->units_per_EM * _face->size->metrics.y_scale) / 65536);
+    _synth_weight_strength = FT_MulFix(_face->units_per_EM, _face->size->metrics.y_scale);
+    _synth_weight_strength = FT_MulDiv(_synth_weight_strength, _synth_weight - _weight, 6400);
+    _synth_weight_half_strength = _synth_weight_strength / 2;
+    clearCache();
 }
 
-bool LVFreeTypeFace::loadFromBuffer(LVByteArrayRef buf, int index, int size,
-                                    css_font_family_t fontFamily, bool monochrome, bool italicize) {
+bool LVFreeTypeFace::loadFromBuffer(LVByteArrayRef buf, int index, int size, css_font_family_t fontFamily,
+                                    bool monochrome, bool italicize, int weight) {
     FONT_GUARD
     _hintingMode = fontMan->GetHintingMode();
     _drawMonochrome = monochrome;
@@ -614,7 +625,7 @@ bool LVFreeTypeFace::loadFromBuffer(LVByteArrayRef buf, int index, int size,
     _height = FONT_METRIC_TO_PX( _face->size->metrics.height );
     _size = size; //(_face->size->metrics.height >> 6);
     _baseline = _height + FONT_METRIC_TO_PX( _face->size->metrics.descender );
-    _weight = _face->style_flags & FT_STYLE_FLAG_BOLD ? 700 : 400;
+    _weight = weight > 0 ? weight : getFontWeight(_face);
     _italic = _face->style_flags & FT_STYLE_FLAG_ITALIC ? 1 : 0;
 
     if (!error && italicize && !_italic) {
@@ -644,7 +655,7 @@ bool LVFreeTypeFace::loadFromBuffer(LVByteArrayRef buf, int index, int size,
 
 bool
 LVFreeTypeFace::loadFromFile(const char *fname, int index, int size, css_font_family_t fontFamily,
-                             bool monochrome, bool italicize) {
+                             bool monochrome, bool italicize, int weight) {
     FONT_GUARD
     _hintingMode = fontMan->GetHintingMode();
     _drawMonochrome = monochrome;
@@ -723,7 +734,10 @@ LVFreeTypeFace::loadFromFile(const char *fname, int index, int size, css_font_fa
     _height = FONT_METRIC_TO_PX( _face->size->metrics.height );
     _size = size; //(_face->size->metrics.height >> 6);
     _baseline = _height + FONT_METRIC_TO_PX( _face->size->metrics.descender );
-    _weight = _face->style_flags & FT_STYLE_FLAG_BOLD ? 700 : 400;
+    // When enumerating fonts using FontConfig, we already got a font weight
+    // it may not match the font weight obtained by parsing the FreeType font style.
+    // Well, let's trust FontConfig for this.
+    _weight = weight > 0 ? weight : getFontWeight(_face);
     _italic = _face->style_flags & FT_STYLE_FLAG_ITALIC ? 1 : 0;
 
     if (!error && italicize && !_italic) {
@@ -828,19 +842,18 @@ bool LVFreeTypeFace::hbCalcCharWidth(LVCharPosInfo *posInfo, const LVCharTriplet
             // which will be the one that will be rendered
             FT_UInt ch_glyph_index = FT_Get_Char_Index( _face, triplet.Char );
             if ( glyph_info[cluster].codepoint == ch_glyph_index ) {
-                posInfo->offset = FONT_METRIC_TO_PX(glyph_pos[cluster].x_offset);
-                posInfo->width = FONT_METRIC_TO_PX(glyph_pos[cluster].x_advance);
+                posInfo->offset_26_6 = glyph_pos[cluster].x_offset;
+                posInfo->advance_26_6 = glyph_pos[cluster].x_advance;
                 return true;
             }
         }
-
     }
-    // Otherwise, use plain Freetype getGlyphInfo() which will check
+    // Otherwise, use plain Freetype getGlyph() which will check
     // again with this font, or the fallback one
-    glyph_info_t glyph;
-    if ( getGlyphInfo(triplet.Char, &glyph, def_char, fallbackPassMask) ) {
-        posInfo->offset = 0;
-        posInfo->width = glyph.width;
+    LVFontGlyphCacheItem *glyph = getGlyph(triplet.Char, def_char, fallbackPassMask);
+    if (glyph) {
+        posInfo->offset_26_6 = 0;
+        posInfo->advance_26_6 = glyph->advance_26_6;
         return true;
     }
     return false;
@@ -1035,32 +1048,41 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
             return fallback->getGlyphInfo(code, glyph, def_char, passMask);
         }
     }
-    int flags = FT_LOAD_DEFAULT;
-    flags |= (!_drawMonochrome ? FT_LOAD_TARGET_NORMAL : FT_LOAD_TARGET_MONO);
+    int rend_flags = FT_LOAD_DEFAULT;
+    rend_flags |= (!_drawMonochrome ? FT_LOAD_TARGET_NORMAL : FT_LOAD_TARGET_MONO);
     if (_hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR) {
-        flags |= FT_LOAD_NO_AUTOHINT;
+        rend_flags |= FT_LOAD_NO_AUTOHINT;
     }
     else if (_hintingMode == HINTING_MODE_AUTOHINT) {
-        flags |= FT_LOAD_FORCE_AUTOHINT;
+        rend_flags |= FT_LOAD_FORCE_AUTOHINT;
     }
     else if (_hintingMode == HINTING_MODE_DISABLED) {
-        flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+        rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+    }
+    if (_synth_weight > 0 || _italic == 2) { // Don't render yet
+        rend_flags &= ~FT_LOAD_RENDER;
+        // Also disable any hinting, as it would be wrong after embolden
+        rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
     }
     updateTransform(); // no-op
     int error = FT_Load_Glyph(
             _face,          /* handle to face object */
             glyph_index,   /* glyph index           */
-            flags);  /* load flags, see below */
+            rend_flags);  /* load flags, see below */
     if ( error == FT_Err_Execution_Too_Long && _hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR ) {
         // Native hinting bytecode may fail with some bad fonts: try again with no hinting
-        flags |= FT_LOAD_NO_HINTING;
-        error = FT_Load_Glyph( _face, glyph_index, flags );
+        CRLog::error("Font '%s': loading glyph too long!", _fileName.c_str());
+        rend_flags |= FT_LOAD_NO_HINTING;
+        error = FT_Load_Glyph( _face, glyph_index, rend_flags );
     }
     if (error)
         return false;
-    if (_embolden) { // Embolden so we get the real embolden metrics
-        // See setEmbolden() for details
-        FT_GlyphSlot_Embolden(_slot);
+    if (_synth_weight > 0) { // Synthetized weight so we get the real metrics
+        if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
+            // See setSynthWeight() for details
+            FT_Outline_Embolden(&_slot->outline, _synth_weight_strength);
+            FT_Outline_Translate(&_slot->outline, 0, -_synth_weight_half_strength);
+        }
     }
     if (_italic == 2) {
         // When the font does not provide italic glyphs (_italic = 2), some fake
@@ -1072,8 +1094,7 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
         // So, with such fake italic, the values we'll use below are wrong,
         // and may cause some wrong glyphs positioning or advance.
         FT_GlyphSlot_Oblique(_slot); // This uses FT_Outline_Transform(), see freetype2/src/base/ftsynth.c
-        
-        // QT has some code that seem to fix these metrics in transformBoundingBox() at
+        // Qt has some code that seem to fix these metrics in transformBoundingBox() at
         // https://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/text/freetype/qfontengine_ft.cpp#n909
         // So let's use it:
         if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
@@ -1120,7 +1141,7 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
     glyph->blackBoxY = (lUInt16)( FONT_METRIC_TO_PX( _slot->metrics.height ) );
     glyph->originX =   (lInt16)( FONT_METRIC_TO_PX( _slot->metrics.horiBearingX ) );
     glyph->originY =   (lInt16)( FONT_METRIC_TO_PX( _slot->metrics.horiBearingY ) );
-    glyph->width =     (lUInt16)( FONT_METRIC_TO_PX( myabs(_slot->metrics.horiAdvance )) );
+    glyph->width =     (lUInt16)( FONT_METRIC_TO_PX( myabs(_slot->metrics.horiAdvance) ) );
     if (glyph->blackBoxX == 0) // If a glyph has no blackbox (a spacing
         glyph->rsb =   0;      // character), there is no bearing
     else
@@ -1230,10 +1251,12 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
     else if ( letter_spacing > MAX_LETTER_SPACING ) {
         letter_spacing = MAX_LETTER_SPACING;
     }
+    FT_Pos letter_spacing_26_6 = PX_TO_FONT_METRIC(letter_spacing) + _synth_weight_strength;
 
     int i;
 
-    lUInt16 prev_width = 0;
+    FT_Pos prev_width_26_6 = 0;
+    FT_Pos cur_width_26_6 = 0;
     lUInt32 lastFitChar = 0;
     updateTransform();  // no-op
     // measure character widths
@@ -1324,11 +1347,11 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
 
         // Some additional care might need to be taken, see:
         //   https://www.w3.org/TR/css-text-3/#letter-spacing-property
-        if ( letter_spacing > 0 ) {
+        if ( letter_spacing_26_6 != 0 ) {
             // Don't apply letter-spacing if the script is cursive
             hb_script_t script = hb_buffer_get_script(_hb_buffer);
             if ( isHBScriptCursive(script) )
-                letter_spacing = 0;
+                letter_spacing_26_6 = 0;
         }
         // todo: if letter_spacing, ligatures should be disabled (-liga, -clig)
         // todo: letter-spacing must not be applied at the beginning or at the end of a line
@@ -1403,8 +1426,6 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
         // glyphs) with the fallback font, and update the wrongs width
         // and flags.
 
-        int prev_width = 0;
-        int cur_width = 0;
         int cur_cluster = 0;
         unsigned int hg = 0;  // index in glyph_info/glyph_pos
         int hcl = 0; // cluster glyph at hg
@@ -1418,7 +1439,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
             while ( hg < glyph_count ) {
                 hcl = glyph_info[hg].cluster;
                 if (hcl <= t) {
-                    int advance = 0;
+                    FT_Pos advance_26_6 = 0;
                     if ( glyph_info[hg].codepoint != 0 ) { // Codepoint found in this font
                         #ifdef DEBUG_MEASURE_TEXT
                             printf("(found cp=%x) ", glyph_info[hg].codepoint);
@@ -1456,8 +1477,8 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
                                     widths[tn] += last_good_width;
                                 }
                                 // And fix our current width
-                                cur_width = widths[t_notdef_end-1];
-                                prev_width = cur_width;
+                                cur_width_26_6 = PX_TO_FONT_METRIC(widths[t_notdef_end-1]);
+                                prev_width_26_6 = cur_width_26_6;
                                 #ifdef DEBUG_MEASURE_TEXT
                                     printf("MTHB ### measured past failures > W= %d\n[...]", cur_width);
                                 #endif
@@ -1471,13 +1492,13 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
                             // And go on with the found glyph now that we fixed what was before
                         }
                         // Glyph found in this font
-                        advance = FONT_METRIC_TO_PX(glyph_pos[hg].x_advance);
+                        advance_26_6 = glyph_pos[hg].x_advance;
                     } else {
                         #ifdef DEBUG_MEASURE_TEXT
                             printf("(glyph not found) ");
                         #endif
                         // Keep the advance of .notdef/tofu in case there is no fallback font to correct them
-                        advance = FONT_METRIC_TO_PX(glyph_pos[hg].x_advance);
+                        advance_26_6 = glyph_pos[hg].x_advance;
                         if ( t_notdef_start < 0 ) {
                             t_notdef_start = t;
                         }
@@ -1485,7 +1506,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
                     #ifdef DEBUG_MEASURE_TEXT
                         printf("c%d+%d ", hcl, advance);
                     #endif
-                    cur_width += advance;
+                    cur_width_26_6 += advance_26_6;
                     cur_cluster = hcl;
                     hg++;
                     continue; // keep grabbing glyphs
@@ -1506,20 +1527,21 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
                 flags[t] = GET_CHAR_FLAGS(text[t]);
                 // It seems each soft-hyphen is in its own cluster, of length 1 and width 0,
                 // so HarfBuzz must already deal correctly with soft-hyphens.
-                if (cur_width == prev_width) {
+                if (cur_width_26_6 == prev_width_26_6) {
                     // But if there is no advance (this happens with soft-hyphens),
                     // flag it and don't add any letter spacing.
                     flags[t] |= LCHAR_IS_CLUSTER_TAIL;
                 }
                 else {
-                    cur_width += letter_spacing; // only between clusters/graphemes
-                }            
+                    cur_width_26_6 += letter_spacing_26_6; // only between clusters/graphemes
+                }
             }
+            int cur_width = FONT_METRIC_TO_PX(cur_width_26_6);
             widths[t] = cur_width;
             #ifdef DEBUG_MEASURE_TEXT
                 printf("=> %d (flags=%d) => W=%d\n", cur_width - prev_width, flags[t], cur_width);
             #endif
-            prev_width = cur_width;
+            prev_width_26_6 = cur_width_26_6;
 
             // (Not sure about how that max_width limit could play and if it could mess things)
             if (cur_width > max_width) {
@@ -1554,7 +1576,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
                     widths[tn] += last_good_width;
                 }
                 // And add all that to our current width
-                cur_width = widths[t_notdef_end-1];
+                cur_width_26_6 = PX_TO_FONT_METRIC(widths[t_notdef_end-1]);
                 #ifdef DEBUG_MEASURE_TEXT
                     printf("MTHB ### measured past failures at EOT > W= %d\n[...]", cur_width);
                 #endif
@@ -1588,7 +1610,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
                 // do just what would be done below if zero width (no change
                 // in prev_width), and don't get involved in kerning
                 flags[i] = 0; // no LCHAR_ALLOW_WRAP_AFTER, will be dealt with by hyphenate()
-                widths[i] = prev_width;
+                widths[i] = FONT_METRIC_TO_PX(prev_width_26_6);
                 lastFitChar = i + 1;
                 continue;
             }
@@ -1603,23 +1625,23 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
                 if (hbCalcCharWidth(&posInfo, triplet, def_char, fallbackPassMask))
                     _width_cache2.set(triplet, posInfo);
                 else { // (seems this never happens, unlike with kerning disabled)
-                    widths[i] = prev_width;
+                    widths[i] = FONT_METRIC_TO_PX(prev_width_26_6);
                     lastFitChar = i + 1;
                     continue;  /* ignore errors */
                 }
             }
-            widths[i] = prev_width + posInfo.width;
-            if ( posInfo.width == 0 ) {
+            cur_width_26_6 = prev_width_26_6 + posInfo.advance_26_6;
+            if ( posInfo.advance_26_6 == 0 ) {
                 // Assume zero advance means it's a diacritic, and we should not apply
                 // any letter spacing on this char (now, and when justifying)
                 flags[i] |= LCHAR_IS_CLUSTER_TAIL;
+            } else {
+                cur_width_26_6 += letter_spacing_26_6;
             }
-            else {
-                widths[i] += letter_spacing;
-            }
+            widths[i] = FONT_METRIC_TO_PX(cur_width_26_6);
             if ( !isHyphen ) // avoid soft hyphens inside text string
-                prev_width = widths[i];
-            if ( prev_width > max_width ) {
+                prev_width_26_6 = cur_width_26_6;
+            if ( FONT_METRIC_TO_PX(prev_width_26_6) > max_width ) {
                 if ( lastFitChar < i + 7)
                     break;
             }
@@ -1642,7 +1664,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
             // do just what would be done below if zero width (no change
             // in prev_width), and don't get involved in kerning
             flags[i] = 0; // no LCHAR_ALLOW_WRAP_AFTER, will be dealt with by hyphenate()
-            widths[i] = prev_width;
+            widths[i] = FONT_METRIC_TO_PX(prev_width_26_6);
             lastFitChar = i + 1;
             continue;
         }
@@ -1667,14 +1689,14 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
         flags[i] = GET_CHAR_FLAGS(ch); //calcCharFlags( ch );
 
         /* load glyph image into the slot (erase previous one) */
-        int w = _wcache.get(ch);
+        lUInt16 w = _wcache.get(ch);
         if ( w == CACHED_UNSIGNED_METRIC_NOT_SET ) {
             glyph_info_t glyph;
             if ( getGlyphInfo( ch, &glyph, def_char, fallbackPassMask ) ) {
                 w = glyph.width;
                 _wcache.put(ch, w);
             } else {
-                widths[i] = prev_width;
+                widths[i] = FONT_METRIC_TO_PX(prev_width_26_6);
                 lastFitChar = i + 1;
                 continue;  /* ignore errors */
             }
@@ -1684,18 +1706,19 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
                 ch_glyph_index = getCharIndex( ch, 0 );
             previous = ch_glyph_index;
         }
-        widths[i] = prev_width + w + FONT_METRIC_TO_PX(kerning);
+        cur_width_26_6 += PX_TO_FONT_METRIC(w) + kerning;
         if ( w == 0 ) {
             // Assume zero advance means it's a diacritic, and we should not apply
             // any letter spacing on this char (now, and when justifying)
             flags[i] |= LCHAR_IS_CLUSTER_TAIL;
         }
         else {
-            widths[i] += letter_spacing;
+            cur_width_26_6 += letter_spacing_26_6;
         }
+        widths[i] = FONT_METRIC_TO_PX(cur_width_26_6);
         if ( !isHyphen ) // avoid soft hyphens inside text string
-            prev_width = widths[i];
-        if ( prev_width > max_width ) {
+            prev_width_26_6 = cur_width_26_6;
+        if ( FONT_METRIC_TO_PX(prev_width_26_6) > max_width ) {
             if ( lastFitChar < i + 7)
                 break;
         } else {
@@ -1789,7 +1812,7 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar32 def_char, lUI
         } else if (_hintingMode == HINTING_MODE_DISABLED) {
             rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
         }
-        if (_embolden || _italic == 2) { // Don't render yet
+        if (_synth_weight > 0 || _italic == 2) { // Don't render yet
             rend_flags &= ~FT_LOAD_RENDER;
             // Also disable any hinting, as it would be wrong after embolden
             rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
@@ -1801,6 +1824,7 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar32 def_char, lUI
                 rend_flags );             /* load flags, see below */
         if ( error == FT_Err_Execution_Too_Long && _hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR ) {
             // Native hinting bytecode may fail with some bad fonts: try again with no hinting
+            CRLog::error("Font '%s': loading glyph too long!", _fileName.c_str());
             rend_flags |= FT_LOAD_NO_HINTING;
             error = FT_Load_Glyph( _face, ch_glyph_index, rend_flags );
         }
@@ -1808,20 +1832,33 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar32 def_char, lUI
             return NULL;  /* ignore errors */
         }
 
-        if (_embolden) {
-            FT_GlyphSlot_Embolden(_slot); // See setEmbolden() for details
+        if (_synth_weight > 0) {
+            if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
+                // See setSynthWeight() for details
+                FT_Outline_Embolden(&_slot->outline, _synth_weight_strength);
+                FT_Outline_Translate(&_slot->outline, 0, -_synth_weight_half_strength);
+            }
         }
         if (_italic == 2) {
             FT_GlyphSlot_Oblique(_slot);
         }
-        if (_embolden || _italic==2) {
+        if (_synth_weight > 0 || _italic == 2) {
             // Render now that transformations are applied
             FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
         }
 
         item = newItem(&_glyph_cache, (lChar32)ch, _slot); //, _drawMonochrome
-        if (item)
+        if (item) {
+            if (_synth_weight_strength != 0) {
+                // Assume zero advance means it's a diacritic:
+                // The width of the character above/below which
+                // the diacritical mark is located has changed,
+                // so the position of this mark must also be changed.
+                if (item->origin_x < 0 && item->advance_26_6 == 0)
+                    item->origin_x -= FONT_METRIC_TO_PX(_synth_weight_strength);
+            }
             _glyph_cache.put(item);
+        }
     }
     return item;
 }
@@ -1845,7 +1882,7 @@ LVFontGlyphCacheItem* LVFreeTypeFace::getGlyphByIndex(lUInt32 index) {
             rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
         }
 
-        if (_embolden || _italic == 2) { // Don't render yet
+        if (_synth_weight > 0 || _italic == 2) { // Don't render yet
             rend_flags &= ~FT_LOAD_RENDER;
             // Also disable any hinting, as it would be wrong after embolden
             rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
@@ -1858,6 +1895,7 @@ LVFontGlyphCacheItem* LVFreeTypeFace::getGlyphByIndex(lUInt32 index) {
                 rend_flags );             /* load flags, see below */
         if ( error == FT_Err_Execution_Too_Long && _hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR ) {
             // Native hinting bytecode may fail with some bad fonts: try again with no hinting
+            CRLog::error("Font '%s': loading glyph too long!", _fileName.c_str());
             rend_flags |= FT_LOAD_NO_HINTING;
             error = FT_Load_Glyph( _face, index, rend_flags );
         }
@@ -1865,17 +1903,17 @@ LVFontGlyphCacheItem* LVFreeTypeFace::getGlyphByIndex(lUInt32 index) {
             return NULL;  /* ignore errors */
         }
 
-        if (_embolden) {
+        if (_synth_weight > 0) {
             if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
-                // See setEmbolden() for details
-                FT_Outline_Embolden(&_slot->outline, 2*_embolden_half_strength);
-                FT_Outline_Translate(&_slot->outline, -_embolden_half_strength, -_embolden_half_strength);
+                // See setSynthWeight() for details
+                FT_Outline_Embolden(&_slot->outline, _synth_weight_strength);
+                FT_Outline_Translate(&_slot->outline, 0, -_synth_weight_half_strength);
             }
         }
         if (_italic==2) {
             FT_GlyphSlot_Oblique(_slot);
         }
-        if (_embolden || _italic==2) {
+        if (_synth_weight > 0 || _italic == 2) {
             // Render now that transformations are applied
             FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
         }
@@ -1960,6 +1998,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
     else if ( letter_spacing > MAX_LETTER_SPACING ) {
         letter_spacing = MAX_LETTER_SPACING;
     }
+    FT_Pos letter_spacing_26_6 = PX_TO_FONT_METRIC(letter_spacing) + _synth_weight_strength;
     lvRect clip;
     buf->GetClipRect(&clip);
     updateTransform(); // no-op
@@ -1972,16 +2011,19 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
     // measure character widths
     bool isHyphen = false;
     int x0 = x;
+    FT_Pos x_26_6 = PX_TO_FONT_METRIC(x);
 #if USE_HARFBUZZ == 1
     if (_shapingMode == SHAPING_MODE_HARFBUZZ) {
         // Full HarfBuzz text shaping
-        int w;
+
         // See measureText() for more comments on how to work with Harfbuzz,
         // as we do and must work the same way here.
         unsigned int glyph_count;
         hb_glyph_info_t *glyph_info = 0;
         hb_glyph_position_t *glyph_pos = 0;
         hb_buffer_clear_contents(_hb_buffer);
+
+
         // Fill HarfBuzz buffer
         if ( fallbackFont ) { // It has a fallback font, add chars as-is
             for (i = 0; i < len; i++) {
@@ -2019,11 +2061,11 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
         hb_buffer_guess_segment_properties(_hb_buffer);
 
         // See measureText() for details
-        if ( letter_spacing > 0 ) {
+        if ( letter_spacing_26_6 != 0 ) {
             // Don't apply letter-spacing if the script is cursive
             hb_script_t script = hb_buffer_get_script(_hb_buffer);
             if ( isHBScriptCursive(script) )
-                letter_spacing = 0;
+                letter_spacing_26_6 = 0;
         }
 
         // Shape
@@ -2180,11 +2222,11 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
                 int fb_len = fb_t_end - fb_t_start;
                 // (width and text_decoration_back_gap are only used for
                 // text decoration, that we dropped: no update needed)
-                int fb_advance = fallbackFont->DrawTextString( buf, x, fb_y,
-                   fb_text, fb_len,
+                int fb_advance = fallbackFont->DrawTextString( buf, FONT_METRIC_TO_PX(x_26_6),
+                   fb_y, fb_text, fb_len,
                    def_char, palette, fb_addHyphen, lang_cfg, fb_flags, letter_spacing,
                    width, text_decoration_back_gap, fallbackPassMask | _fallback_mask );
-                x += fb_advance;
+                x_26_6 += PX_TO_FONT_METRIC(fb_advance);
                 #ifdef DEBUG_DRAW_TEXT
                     printf("DTHB ### drawn past notdef > X+= %d\n[...]", fb_advance);
                 #endif
@@ -2194,22 +2236,21 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
                     printf("regular g%d>%d: ", hg, hg2);
                 #endif
                 // Draw glyphs of this same cluster
-                int prev_x = x;
+                int prev_x_26_6 = x_26_6;
                 for (i = hg; i < hg2; i++) {
                     LVFontGlyphCacheItem *item = getGlyphByIndex(glyph_info[i].codepoint);
                     if (item) {
-                        int w = FONT_METRIC_TO_PX(glyph_pos[i].x_advance);
                         #ifdef DEBUG_DRAW_TEXT
                             printf("%x(x=%d+%d,w=%d) ", glyph_info[i].codepoint, x,
                                     item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset), w);
                         #endif
-                        buf->Draw(x + item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset),
+                        buf->Draw(FONT_METRIC_TO_PX(x_26_6 + glyph_pos[i].x_offset) + item->origin_x,
                                   y + _baseline - item->origin_y - FONT_METRIC_TO_PX(glyph_pos[i].y_offset),
                                   item->bmp,
                                   item->bmp_width,
                                   item->bmp_height,
                                   palette);
-                        x += w;
+                        x_26_6 += glyph_pos[i].x_advance;
                     }
                     #ifdef DEBUG_DRAW_TEXT
                     else
@@ -2217,11 +2258,11 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
                     #endif
                 }
                 // Whole cluster drawn: add letter spacing
-                if ( x > prev_x ) {
+                if ( x_26_6 > prev_x_26_6 ) {
                     // But only if this cluster has some advance
                     // (e.g. a soft-hyphen makes its own cluster, that
                     // draws a space glyph, but with no advance)
-                    x += letter_spacing;
+                    x_26_6 += letter_spacing_26_6;
                 }
             }
             hg = hg2;
@@ -2240,14 +2281,13 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
             ch = UNICODE_SOFT_HYPHEN_CODE;
             LVFontGlyphCacheItem *item = getGlyph(ch, def_char);
             if (item) {
-                w = item->advance;
-                buf->Draw( x + item->origin_x,
+                buf->Draw( FONT_METRIC_TO_PX(x_26_6) + item->origin_x,
                            y + _baseline - item->origin_y,
                            item->bmp,
                            item->bmp_width,
                            item->bmp_height,
                            palette);
-                x  += w; // + letter_spacing; (let's not add any letter-spacing after hyphen)
+                x_26_6  += item->advance_26_6; // + letter_spacing; (let's not add any letter-spacing after hyphen)
             }
         }
     } else if (_shapingMode == SHAPING_MODE_HARFBUZZ_LIGHT) {
@@ -2283,19 +2323,24 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
                     triplet.nextChar = 0;
                 if (!_width_cache2.get(triplet, posInfo)) {
                     if (!hbCalcCharWidth(&posInfo, triplet, def_char, fallbackPassMask)) {
-                        posInfo.offset = 0;
-                        posInfo.width = item->advance;
+                        posInfo.offset_26_6 = 0;
+                        posInfo.advance_26_6 = item->advance_26_6;
                     }
                     _width_cache2.set(triplet, posInfo);
                 }
-                buf->Draw(x + item->origin_x + posInfo.offset,
+                buf->Draw(FONT_METRIC_TO_PX(x_26_6 + posInfo.offset_26_6) + item->origin_x,
                     y + _baseline - item->origin_y,
                     item->bmp,
                     item->bmp_width,
                     item->bmp_height,
                     palette);
 
-                x += posInfo.width + letter_spacing;
+                if ( posInfo.advance_26_6 == 0 ) {
+                    // Assume zero advance means it's a diacritic, and we should not apply
+                    // any letter spacing on this char (now, and when justifying)
+                } else {
+                    x_26_6 += posInfo.advance_26_6 + letter_spacing_26_6;
+                }
             }
         }
     } else {
@@ -2319,7 +2364,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
             isHyphen = 0;
         }
         FT_UInt ch_glyph_index = getCharIndex( ch, def_char );
-        int kerning = 0;
+        lInt32 kerning_26_6 = 0;
 #if (ALLOW_KERNING==1)
         if ( use_kerning && previous>0 && ch_glyph_index>0 ) {
             FT_Vector delta;
@@ -2329,22 +2374,27 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
                                     FT_KERNING_DEFAULT,  /* kerning mode          */
                                     &delta );    /* target vector         */
             if ( !error )
-                kerning = delta.x;
+                kerning_26_6 = delta.x;
         }
 #endif
         LVFontGlyphCacheItem * item = getGlyph(ch, def_char, fallbackPassMask);
         if ( !item )
             continue;
         if ( (item && !isHyphen) || i>=len-1 ) { // avoid soft hyphens inside text string
-            int w = item->advance + (kerning >> 6);
-            buf->Draw( x + (kerning>>6) + item->origin_x,
+            lInt32 w_26_6 = item->advance_26_6 + kerning_26_6;
+            buf->Draw( FONT_METRIC_TO_PX(x_26_6 + kerning_26_6) + item->origin_x,
                        y + _baseline - item->origin_y,
                        item->bmp,
                        item->bmp_width,
                        item->bmp_height,
                        palette);
 
-            x  += w + letter_spacing;
+            if ( w_26_6 == 0 ) {
+                // Assume zero advance means it's a diacritic, and we should not apply
+                // any letter spacing on this char (now, and when justifying)
+            } else {
+                x_26_6  += w_26_6 + letter_spacing_26_6;
+            }
             previous = ch_glyph_index;
         }
     }
@@ -2353,6 +2403,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
     } // else fallback to the non harfbuzz code
 #endif
 
+    x = FONT_METRIC_TO_PX(x_26_6);
     int advance = x - x0;
     if ( flags & LFNT_DRAW_DECORATION_MASK ) {
         // text decoration: underline, etc.

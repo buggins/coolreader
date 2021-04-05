@@ -20,12 +20,20 @@ static int def_margins[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 2
 
 DECL_DEF_CR_FONT_SIZES;
 
+#if USE_FT_EMBOLDEN
+static int synth_weights[] = { 300, 400, 500, 600, 700, 800, 900 };
+#else
+static int synth_weights[] = { 600 };
+#endif
+#define SYNTH_WEIGHTS_SZ    (sizeof(synth_weights)/sizeof(int))
+
 static int rend_flags[] = { BLOCK_RENDERING_FLAGS_LEGACY, BLOCK_RENDERING_FLAGS_FLAT, BLOCK_RENDERING_FLAGS_BOOK, BLOCK_RENDERING_FLAGS_WEB };
 #define MAX_REND_FLAGS_INDEX (sizeof(rend_flags)/sizeof(int))
 static int DOM_versions[] = { 0, gDOMVersionCurrent };
 #define MAX_DOM_VERSIONS_INDEX (sizeof(DOM_versions)/sizeof(int))
 
 static bool initDone = false;
+static bool suppressOnChange = false;
 
 static void findImagesFromDirectory( lString32 dir, lString32Collection & files ) {
     LVAppendPathDelimiter(dir);
@@ -59,6 +67,46 @@ static void findBackgrounds( lString32Collection & baseDirs, lString32Collection
         LVAppendPathDelimiter(baseDir);
         findImagesFromDirectory( baseDir + "textures", files );
     }
+}
+
+static QString getWeightName(int weight) {
+    QString name;
+    switch (weight) {
+    case 100:
+        name = QString("Thin");
+        break;
+    case 200:
+        name = QString("ExtraLight");
+        break;
+    case 300:
+        name = QString("Light");
+        break;
+    case 350:
+        name = QString("Book");
+        break;
+    case 400:
+        name = QString("Regular");
+        break;
+    case 500:
+        name = QString("Medium");
+        break;
+    case 600:
+        name = QString("SemiBold");
+        break;
+    case 700:
+        name = QString("Bold");
+        break;
+    case 800:
+        name = QString("ExtraBold");
+        break;
+    case 900:
+        name = QString("Heavy/Black");
+        break;
+    case 950:
+        name = QString("ExtraBlack");
+        break;
+    }
+    return name;
 }
 
 static const char * styleNames[] = {
@@ -261,6 +309,8 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     fontToUi( PROP_FONT_FACE, PROP_FONT_SIZE, m_ui->cbTextFontFace, m_ui->cbTextFontSize, m_defFontFace.toLatin1().data() );
     fontToUi( PROP_STATUS_FONT_FACE, PROP_STATUS_FONT_SIZE, m_ui->cbTitleFontFace, m_ui->cbTitleFontSize, m_defFontFace.toLatin1().data() );
 
+    updateFontWeights();
+
 //		{_("90%"), "90"},
 //		{_("100%"), "100"},
 //		{_("110%"), "110"},
@@ -379,6 +429,7 @@ void SettingsDlg::on_cbFontKerning_stateChanged(int s)
 void SettingsDlg::on_buttonBox_accepted()
 {
     m_docview->setOptions( m_props );
+    m_docview->getDocView()->requestRender();
     close();
 }
 
@@ -917,6 +968,7 @@ void SettingsDlg::on_cbTextFontFace_currentIndexChanged(QString s)
     if ( !initDone )
         return;
     m_props->setString( PROP_FONT_FACE, s );
+    updateFontWeights();
     updateStyleSample();
 }
 
@@ -940,6 +992,76 @@ void SettingsDlg::fontToUi( const char * faceOptionName, const char * sizeOption
         if ( sizeIndex>=0 )
             sizeCombo->setCurrentIndex( sizeIndex );
     }
+}
+
+void SettingsDlg::updateFontWeights() {
+    QString selectedFontFace = m_ui->cbTextFontFace->currentText();
+    lString8 face8 = UnicodeToUtf8(qt2cr(selectedFontFace));
+    int i;
+    int weight = 0;
+    LVArray<int> weights;
+    LVArray<int> nativeWeights;
+    fontMan->GetAvailableFontWeights(nativeWeights, face8);
+    if (nativeWeights.length() > 0) {
+        // combine with synthetic weights
+        int synth_idx = 0;
+        int j;
+        int prev_weight = 0;
+        for (i = 0; i < nativeWeights.length(); i++) {
+            weight = nativeWeights[i];
+            for (j = synth_idx; j < SYNTH_WEIGHTS_SZ; j++) {
+                int synth_weight = synth_weights[j];
+                if (synth_weight < weight) {
+                    if (synth_weight > prev_weight)
+                        weights.add(synth_weight);
+                }
+                else
+                    break;
+            }
+            synth_idx = j;
+            weights.add(weight);
+            prev_weight = weight;
+        }
+        for (j = synth_idx; j < SYNTH_WEIGHTS_SZ; j++) {
+            if (synth_weights[j] > weight)
+                weights.add(synth_weights[j]);
+        }
+    }
+    // fill items
+    suppressOnChange = true;
+    int normalIndex = 0;
+    m_ui->cbFontWeightChange->clear();
+    if (weights.empty()) {
+        // Invalid font
+        return;
+    }
+    for (i = 0; i < weights.length(); i++) {
+        weight = weights[i];
+        if (400 == weight)
+            normalIndex = i;
+        QString label = QString("%1").arg(weight);
+        QString descr = getWeightName(weight);
+        if (nativeWeights.indexOf(weight) < 0) {
+            if (!descr.isEmpty())
+                descr += QString(", %1").arg(tr("synthetic*"));
+            else
+                descr = tr("synthetic");
+        }
+        if (!descr.isEmpty())
+            label = QString("%1 (%2)").arg(label).arg(descr);
+        m_ui->cbFontWeightChange->addItem(label, QVariant(weight));
+    }
+    // select active
+    int fontWeightIndex = normalIndex;
+    int fontWeight = m_props->getIntDef(PROP_FONT_BASE_WEIGHT, 400);
+    for (i = 0; i < weights.length(); i++) {
+        if (fontWeight == weights[i]) {
+            fontWeightIndex = i;
+            break;
+        }
+    }
+    suppressOnChange = false;
+    m_ui->cbFontWeightChange->setCurrentIndex(fontWeightIndex);
 }
 
 void SettingsDlg::on_cbInterlineSpace_currentIndexChanged(int index)
@@ -1221,4 +1343,18 @@ void SettingsDlg::on_btnFallbackMan_clicked()
         m_props->setString( PROP_FALLBACK_FONT_FACES, fallbackFaces );
         updateStyleSample();
     }
+}
+
+void SettingsDlg::on_cbFontWeightChange_currentIndexChanged(int index)
+{
+    if (suppressOnChange)
+        return;
+    QVariant data = m_ui->cbFontWeightChange->currentData(Qt::UserRole);
+    int weight = data.toInt();
+    m_props->setInt(PROP_FONT_BASE_WEIGHT, weight);
+    QString face = m_props->getStringDef( PROP_FONT_FACE, "" );
+    LVArray<int> nativeWeights;
+    fontMan->GetAvailableFontWeights(nativeWeights, UnicodeToUtf8(qt2cr(face)));
+    m_ui->cbFontHinting->setEnabled(nativeWeights.indexOf(weight) >= 0);
+    updateStyleSample();
 }

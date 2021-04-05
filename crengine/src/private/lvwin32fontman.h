@@ -42,7 +42,7 @@ public:
     }
     virtual LVFontRef GetFont(int size, int weight, bool bitalic, css_font_family_t family, lString8 typeface,
                               int features=0, int documentId = -1, bool useBias=false);
-
+    virtual void GetAvailableFontWeights(LVArray<int>& weights, lString8 typeface) {}
     virtual bool RegisterFont( const LOGFONTA * lf );
     virtual bool RegisterFont( lString8 name )
     {

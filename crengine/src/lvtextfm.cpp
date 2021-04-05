@@ -1984,7 +1984,8 @@ public:
                     }
                     */
 
-                    lastWidth += widths[len-1]; //len<m_length ? len : len-1];
+                    if (len > 0)
+                        lastWidth += widths[len-1]; //len<m_length ? len : len-1];
                 }
                 else if ( measuring_object ) {
                     // We have start=i-1 and m_flags[i-1] & LCHAR_IS_OBJECT
