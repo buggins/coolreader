@@ -20,6 +20,7 @@
         android:layout_marginRight="3dip"
         android:layout_marginTop="3dip"
         android:layout_marginBottom="3dip"
+        android:stretchColumns="*"
         >
         <TableRow android:layout_weight="1">
 			<LinearLayout

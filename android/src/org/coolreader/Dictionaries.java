@@ -179,7 +179,7 @@ public class Dictionaries {
 		switch (curDict.internal) {
 		case 0:
 			Intent intent0 = new Intent(curDict.action);
-			if (curDict.className != null || DeviceInfo.getSDKLevel() == 3) {
+			if (curDict.className != null) {
 				intent0.setComponent(new ComponentName(
 						curDict.packageName, curDict.className));
 			} else {

@@ -767,20 +767,18 @@ public class Utils {
 
 	// to support API LEVEL 3: View.setContentDescription() has been added only since API LEVEL 4
 	public static void setContentDescription(View view, CharSequence text) {
-		if (DeviceInfo.getSDKLevel() >= 4) {
-			Method m;
-			try {
-				m = view.getClass().getMethod("setContentDescription", CharSequence.class);
-				m.invoke(view, text);
-			} catch (NoSuchMethodException e) {
-				// Ignore
-			} catch (IllegalArgumentException e) {
-				// Ignore
-			} catch (IllegalAccessException e) {
-				// Ignore
-			} catch (InvocationTargetException e) {
-				// Ignore
-			}
+		Method m;
+		try {
+			m = view.getClass().getMethod("setContentDescription", CharSequence.class);
+			m.invoke(view, text);
+		} catch (NoSuchMethodException e) {
+			// Ignore
+		} catch (IllegalArgumentException e) {
+			// Ignore
+		} catch (IllegalAccessException e) {
+			// Ignore
+		} catch (InvocationTargetException e) {
+			// Ignore
 		}
 	}
 
