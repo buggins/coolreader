@@ -749,4 +749,6 @@
     <string name="font_weight_extrablack">ExtraBlack</string>
     <string name="font_weight_fake">synthetic*</string>
     <string name="add_bookmark_to_page">Add bookmark to page</string>
+    <string name="btn_decrease">decrease</string>
+    <string name="btn_increase">increase</string>
 </resources>
