@@ -820,7 +820,8 @@ public:
                     state = 2;
             else if (state == 1) {                // ex. [<secure/_stdio.h> or 5/3]
                     tmp<<('/');
-                    state = 0;
+                    if (c != ('/'))               // stay in state 1 if [//]
+                        state = 0;
             }
             else if (state == 2 && c == ('*'))    // ex. [/*he*]
                     state = 3;
