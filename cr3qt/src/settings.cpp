@@ -1355,6 +1355,6 @@ void SettingsDlg::on_cbFontWeightChange_currentIndexChanged(int index)
     QString face = m_props->getStringDef( PROP_FONT_FACE, "" );
     LVArray<int> nativeWeights;
     fontMan->GetAvailableFontWeights(nativeWeights, UnicodeToUtf8(qt2cr(face)));
-    m_ui->cbFontHinting->setEnabled(nativeWeights.indexOf(weight) >= 0);
+    //m_ui->cbFontHinting->setEnabled(nativeWeights.indexOf(weight) >= 0);
     updateStyleSample();
 }

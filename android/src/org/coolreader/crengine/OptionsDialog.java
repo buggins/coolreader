@@ -2543,8 +2543,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			option.add(weight, label);
 		}
 		// enable/disable font hinting option
-		int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
-		mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
+		//int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
+		//mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
 	}
 
 	private void setupReaderOptions()
@@ -2582,8 +2582,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				ArrayList<Integer> nativeWeightsArray = new ArrayList<>();    // for search
 				for (int w : nativeWeights)
 					nativeWeightsArray.add(w);
-				int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
-				mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
+				//int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
+				//mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
 			}
 		});
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_antialias_drawable, R.drawable.cr3_option_text_antialias));
