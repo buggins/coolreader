@@ -507,33 +507,42 @@ void LVFreeTypeFace::setSynthWeight(int synth_weight)
         return;
     }
     _synth_weight = synth_weight;
-    // We will simply call FT_Outline_Embolden()
-    // to get the glyphinfo and glyph with synthetized bold.
-    // To increase metrics, we add some embolding strength to glyph advance.
+    
+    // Previously, when not SHAPING_MODE_HARFBUZZ, we were using FT_GlyphSlot_Embolden()
+    // to get the glyphinfo and glyph with synthesized bold (with one FreeType hardcoded
+    // weight strength) and increased metrics, and everything was working naturally:
     //   "Embolden a glyph by a 'reasonable' value (which is highly a matter
     //   of taste) [...] For emboldened outlines the height, width, and
     //   advance metrics are increased by the strength of the emboldening".
-    // We can do as MuPDF does (source/fitz/font.c): keep the HB
-    // positions, offset and advances, embolden the glyph by some value
-    // of 'strength', and shift left/bottom by 1/2 'strength', so the
-    // boldened glyph is centered on its original: the glyph being a
-    // bit larger, it will blend over its neighbour glyphs, but it
-    // looks quite allright.
-    // We need to compute the strength as done in FT_GlyphSlot_Embolden():
-    //   xstr = FT_MulFix( face->units_per_EM, face->size->metrics.y_scale ) / 24;
-    //   ystr = xstr;
-    //   FT_Outline_EmboldenXY( &slot->outline, xstr, ystr );
-    // and will do as MuPDF does (with some private value of 'strength'
-    // but glyph translation is only on the Y axis, since we are using an additional horizontal compensate advance.
-    //   FT_Outline_Embolden(&face->glyph->outline, strength);
-    //   FT_Outline_Translate(&face->glyph->outline, 0, -strength/2);
-    // (with strength (26.6 fixed point): 0=no change; 64=1px embolden; 128=2px embolden and 1px x/y translation)
-    // int strength = (_face->units_per_EM * _face->size->metrics.y_scale) / 24;
-    // Calculations (old) for 400 -> 600 scaling:
-    //embolden_strength = FT_MulFix(_face->units_per_EM, _face->size->metrics.y_scale) / 24;
-    // Make it slightly less bold than Freetype's bold, as we get less spacing
-    // around glyphs with HarfBuzz, by getting the unbolded advances.
-    //embolden_strength = embolden_strength * 3/4; // (*1/2 is fine but a tad too light)
+    //
+    // Previously, when SHAPING_MODE_HARFBUZZ, we were using FT_Outline_Embolden(),
+    // but as HarfBuzz uses itself the original font metrics (so, we got all
+    // positionnings based on not-bolded font), we were not increasing advances:
+    // we did as MuPDF does (source/fitz/font.c), we kept the HB positions, offset
+    // and advances, embolden the glyph by some value of 'strength', and shift
+    // left/bottom by 1/2 'strength', so the boldened glyph is centered on its
+    // original: the glyph being a bit larger, but not the advance, it blended
+    // over its neighbour glyphs, but it looked quite allright (even if words in
+    // fake bold were bolder, but not larger than the same word in the regular
+    // font, unlike with a real bold font).
+    //   We used to compute the strength as done in FT_GlyphSlot_Embolden():
+    //     xstr = FT_MulFix( face->units_per_EM, face->size->metrics.y_scale ) / 24;
+    //     ystr = xstr;
+    //     FT_Outline_EmboldenXY( &slot->outline, xstr, ystr );
+    //   and did as MuPDF does (with some private value of 'strength'):
+    //     FT_Outline_Embolden(&face->glyph->outline, strength);
+    //     FT_Outline_Translate(&face->glyph->outline, -strength/2, -strength/2);
+    //   (with strength: 0=no change; 64=1px embolden; 128=2px embolden and 1px x/y translation)
+    //   int strength = (_face->units_per_EM * _face->size->metrics.y_scale) / 24;
+    //   FT_Pos embolden_strength = FT_MulFix(_face->units_per_EM, _face->size->metrics.y_scale) / 24;
+    //   Make it slightly less bold than Freetype's bold, as we get less spacing
+    //   around glyphs with HarfBuzz, by getting the unbolded advances.
+    //   embolden_strength = embolden_strength * 3/4; // (*1/2 is fine but a tad too light)
+
+    // Now, with the wish for more granular weight strengths, in all kerning modes,
+    // we need to use FT_Outline_Embolden(), and we do adjust the advances to make
+    // synthetic bold look less condensed and a bit more like real bold.
+
     //  Simplifing...
     //embolden_strength = (_face->units_per_EM*_face->size->metrics.y_scale)/(65536*32)
     // So for any other scaling:

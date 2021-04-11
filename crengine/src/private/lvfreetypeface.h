@@ -125,8 +125,8 @@ protected:
     int _height; // full line height in pixels
     int _hyphen_width;
     int _baseline;
-    int _weight;
-    int _italic;
+    int _weight; // original font weight 400: normal, 700: bold, 100..900 thin..black
+    int _italic; // 0: regular, 1: italic, 2: fake/synthesized italic
     LVFontGlyphUnsignedMetricCache _wcache;
     LVFontGlyphSignedMetricCache _lsbcache; // glyph left side bearing cache
     LVFontGlyphSignedMetricCache _rsbcache; // glyph right side bearing cache
@@ -142,9 +142,9 @@ protected:
      * <any> - A mask with only one bit set, the number of which corresponds to the number in the fallback font chain.
      */
     lUInt32 _fallback_mask;
-    int            _synth_weight; // fake/synthetized weight
+    int            _synth_weight; // fake/synthesized weight
     bool           _allowKerning;
-    FT_Pos         _synth_weight_strength;   // for emboldening with Harfbuzz
+    FT_Pos         _synth_weight_strength;   // for emboldening with FT_Outline_Embolden()
     FT_Pos         _synth_weight_half_strength;
     int _features; // requested OpenType features bitmap
 #if USE_HARFBUZZ == 1

@@ -63,7 +63,7 @@ int LVFontDef::CalcMatch(const LVFontDef &def, bool useBias) const {
     // bias
     int bias = useBias ? _bias : 0;
 
-    // Special handling for synthetized fonts:
+    // Special handling for synthesized fonts:
     // The way this function is called:
     // 'this' (or '', properties not prefixed) is either an instance of a
     //     registered font, or a registered font definition,
