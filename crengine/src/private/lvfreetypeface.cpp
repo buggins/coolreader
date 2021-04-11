@@ -1070,8 +1070,9 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
     }
     if (_synth_weight > 0 || _italic == 2) { // Don't render yet
         rend_flags &= ~FT_LOAD_RENDER;
-        // Also disable any hinting, as it would be wrong after embolden
-        rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+        // Also disable any hinting, as it would be wrong after embolden.
+        // But it feels this is now fine after switching to FT_LOAD_TARGET_LIGHT.
+        // rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
     }
     updateTransform(); // no-op
     int error = FT_Load_Glyph(
@@ -1823,8 +1824,9 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar32 def_char, lUI
         }
         if (_synth_weight > 0 || _italic == 2) { // Don't render yet
             rend_flags &= ~FT_LOAD_RENDER;
-            // Also disable any hinting, as it would be wrong after embolden
-            rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+            // Also disable any hinting, as it would be wrong after embolden.
+            // But it feels this is now fine after switching to FT_LOAD_TARGET_LIGHT.
+            // rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
         }
         /* load glyph image into the slot (erase previous one) */
         updateTransform(); // no-op
@@ -1893,8 +1895,9 @@ LVFontGlyphCacheItem* LVFreeTypeFace::getGlyphByIndex(lUInt32 index) {
 
         if (_synth_weight > 0 || _italic == 2) { // Don't render yet
             rend_flags &= ~FT_LOAD_RENDER;
-            // Also disable any hinting, as it would be wrong after embolden
-            rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+            // Also disable any hinting, as it would be wrong after embolden.
+            // But it feels this is now fine after switching to FT_LOAD_TARGET_LIGHT.
+            // rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
         }
 
         /* load glyph image into the slot (erase previous one) */
