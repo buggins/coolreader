@@ -190,7 +190,6 @@ LVFontRef LVFreeTypeFontManager::GetFallbackFont(int size, int weight, bool ital
     // assuming the fallback font is a standalone regular font
     // without any bold/italic sibling.
     // GetFont() works just as fine when we need specified weigh and italic.
-    weight &= 0xFFFE;
     LVFontRef fontRef = GetFont(size, weight, italic, css_ff_sans_serif, _fallbackFontFaces[index], 0, -1, false);
     if (!fontRef.isNull())
         fontRef->setFallbackMask(1 << index);
