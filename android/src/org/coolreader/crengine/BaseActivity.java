@@ -1940,6 +1940,8 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_SELECTION_ACTION, "0");
 			props.applyDefault(ReaderView.PROP_APP_MULTI_SELECTION_ACTION, "0");
 
+			// Here use mActivity.getDensityDpi() is incorrect
+			// since lvrend.cpp assumes a base DPI of 96 and *not* 160 when using the PROP_RENDER_DPI property!
 			props.setProperty(ReaderView.PROP_RENDER_DPI, Integer.valueOf((int)(96*mActivity.getDensityFactor())).toString());
 
 			props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, "1");

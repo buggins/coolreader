@@ -137,7 +137,8 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 #endif
 #endif
 
-#define HEADER_MARGIN       4
+#define HEADER_MARGIN			4
+#define HEADER_NAVBAR_H			5		// marks on navigation bar, scaled by DPI
 #define PAGE_HEADER_POS_NONE    0
 #define PAGE_HEADER_POS_TOP     1
 #define PAGE_HEADER_POS_BOTTOM  2
@@ -1359,11 +1360,20 @@ int LVDocView::getPageHeaderHeight() {
 		return 0;
 	if (!getInfoFont())
 		return 0;
+	// Page header layout
+	//---------------------------------------------------------------------------------------
+	//                                                                                           margin/2
+	//   Author    Title                                                          9,78% [67%]    text
+	//                                |                     |                   |           |    text + navbar (top part)
+	//==== ========== ==========-------------------------------------------------------------    navbar
+	//                                |                     |                   |           |    navbar (bottom part)
+	//---------------------------------------------------------------------------------------
 	int h = getInfoFont()->getHeight();
-	int bh = m_batteryIcons.length()>0 ? m_batteryIcons[0]->GetHeight() * 11/10 + HEADER_MARGIN / 2 : 0;
+	int navbarh = scaleForRenderDPI(HEADER_NAVBAR_H);
+	int bh = m_batteryIcons.length()>0 ? m_batteryIcons[0]->GetHeight() : 0;
 	if ( bh>h )
 		h = bh;
-	return h + HEADER_MARGIN;
+	return h + (navbarh + HEADER_MARGIN + 1)/2;
 }
 
 /// calculate page header rectangle
@@ -1384,8 +1394,10 @@ void LVDocView::getPageHeaderRectangle(int pageIndex, lvRect & headerRc) {
 				break;
 			case PAGE_HEADER_POS_BOTTOM:
 				// header/status at page footer
-				headerRc.bottom -= HEADER_MARGIN;
 				headerRc.top = headerRc.bottom - h;
+				headerRc.bottom -= HEADER_MARGIN;
+				break;
+			default:
 				break;
 		}
 		headerRc.left += HEADER_MARGIN + propHeaderMargin;
@@ -1682,10 +1694,12 @@ void LVDocView::getPageRectangle(int pageIndex, lvRect & pageRect) {
 		pageRect = m_pageRects[1];
 }
 
+// deprecated: ready to remove
 void LVDocView::getNavigationBarRectangle(lvRect & navRect) {
 	getNavigationBarRectangle(getVisiblePageCount() == 2 ? 1 : 2, navRect);
 }
 
+// deprecated: ready to remove
 void LVDocView::getNavigationBarRectangle(int pageIndex, lvRect & navRect) {
 	lvRect headerRect;
 	getPageHeaderRectangle(pageIndex, headerRect);
@@ -1695,6 +1709,7 @@ void LVDocView::getNavigationBarRectangle(int pageIndex, lvRect & navRect) {
 	navRect.top = navRect.bottom - 6;
 }
 
+// deprecated: ready to remove
 void LVDocView::drawNavigationBar(LVDrawBuf * drawbuf, int pageIndex,
 		int percent) {
     CR_UNUSED2(drawbuf, percent);
@@ -1745,72 +1760,53 @@ void LVDocView::setPageHeaderOverride(lString32 s) {
 /// draw page header to buffer
 void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		int pageIndex, int phi, int pageCount) {
+	int w = GetWidth();
+	int h = GetHeight();
+	if (w > h)
+		w = h;
+	int markh = scaleForRenderDPI(HEADER_NAVBAR_H);
+	int markw = scaleForRenderDPI(7)/10;
+	int thinw = scaleForRenderDPI(7)/10;
+	int boldw = scaleForRenderDPI(2);
+	if (markw < 1)
+		markw = 1;
+	if (thinw < 1)
+		thinw = 1;
 	lvRect oldcr;
 	drawbuf->GetClipRect(&oldcr);
-	lvRect hrc = headerRc;
-    hrc.bottom += 2;
-	drawbuf->SetClipRect(&hrc);
-	bool drawGauge = true;
+	drawbuf->SetClipRect(&headerRc);
 	lvRect info = headerRc;
+	int gpos = 0;
+	switch (m_pageHeaderPos) {
+		case PAGE_HEADER_POS_TOP:
+			gpos = info.bottom - (markh+1)/2;
+			break;
+		case PAGE_HEADER_POS_BOTTOM:
+			gpos = info.top + (markh+1)/2;
+			break;
+		default:
+			break;
+	}
 //    if ( m_statusColor!=0xFF000000 ) {
 //        CRLog::trace("Status color = %06x, textColor=%06x", m_statusColor, getTextColor());
 //    } else {
 //        CRLog::trace("Status color = TRANSPARENT, textColor=%06x", getTextColor());
 //    }
 	lUInt32 cl1 = m_statusColor!=0xFF000000 ? m_statusColor : getTextColor();
-    //lUInt32 cl2 = getBackgroundColor();
-    //lUInt32 cl3 = 0xD0D0D0;
-    //lUInt32 cl4 = 0xC0C0C0;
-	drawbuf->SetTextColor(cl1);
-	//lUInt32 pal[4];
 	int percent = getPosPercent();
-	bool leftPage = (getVisiblePageCount() == 2 && !(pageIndex & 1));
-	if (leftPage || !drawGauge)
-		percent = 10000;
-        int percent_pos = /*info.left + */percent * info.width() / 10000;
-	//    int gh = 3; //drawGauge ? 3 : 1;
-	LVArray<int> & sbounds = getSectionBounds();
-	lvRect navBar;
-	getNavigationBarRectangle(pageIndex, navBar);
-	int gpos = 0;
-	switch (m_pageHeaderPos) {
-		case PAGE_HEADER_POS_TOP:
-			gpos = info.bottom;
-			break;
-		case PAGE_HEADER_POS_BOTTOM:
-			gpos = info.top + 4;
-			break;
-		default:
-			break;
-	}
-//	if (drawbuf->GetBitsPerPixel() <= 2) {
-//		// gray
-//		cl3 = 1;
-//		cl4 = cl1;
-//		//pal[0] = cl1;
-//	}
-	if ( leftPage )
-		drawbuf->FillRect(info.left, gpos - 2, info.right, gpos - 2 + 1, cl1);
-        //drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl1 ); //cl3
-        //      drawbuf->FillRect(info.left + percent_pos, gpos - 2, info.right, gpos - 2
-        //                      + 1, cl1); // cl3
 
+	// draw navbar
+	bool leftPage = (getVisiblePageCount() == 2 && !(pageIndex & 1));
+	if (leftPage)
+		percent = 10000;
+	int percent_pos = /*info.left + */percent * info.width() / 10000;
+	LVArray<int> & sbounds = getSectionBounds();
 	int sbound_index = 0;
 	bool enableMarks = !leftPage && (phi & PGHDR_CHAPTER_MARKS) && sbounds.length()<info.width()/5;
-	int w = GetWidth();
-	int h = GetHeight();
-	if (w > h)
-		w = h;
-	int markh = 3;
-	int markw = 1;
-	if (w > 700) {
-		markh = 7;
-        markw = 2;
-	}
 	for ( int x = info.left; x<info.right; x++ ) {
-		int cl = -1;
-		int sz = 1;
-		int szx = 1;
+		lUInt32 cl = 0xFFFFFFFF;
+		int sz = thinw;
+		int szx = thinw;
 		int boundCategory = 0;
 		while ( enableMarks && sbound_index<sbounds.length() ) {
 			int sx = info.left + sbounds[sbound_index] * (info.width() - 1) / 10000;
@@ -1825,51 +1821,45 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		}
 		if ( leftPage ) {
 			cl = cl1;
-			sz = 1;
+			sz = thinw;
 		} else {
-            if ( x < info.left + percent_pos ) {
-                sz = 3;
+			if ( x < info.left + percent_pos ) {
+				sz = boldw;
 				if ( boundCategory==0 )
 					cl = cl1;
-                else
-                    sz = 0;
-            } else {
+				else {
+					sz = 0;
+					x += markw - 1;
+				}
+			} else {
 				if ( boundCategory!=0 )
 					sz = markh;
 				cl = cl1;
 				szx = markw;
 			}
 		}
-        if ( cl!=-1 && sz>0 )
-            drawbuf->FillRect(x, gpos - 2 - sz/2, x + szx, gpos - 2 + sz/2 + 1, cl);
+		if ( cl!=0xFFFFFFFF && sz>0 ) {
+			drawbuf->FillRect(x, gpos - sz / 2, x + szx, gpos + sz / 2 + 1, cl);
+		}
 	}
 
+	// draw icons & text info
+	drawbuf->SetTextColor(cl1);
 	lString32 text;
-	//int iy = info.top; // + (info.height() - m_infoFont->getHeight()) * 2 / 3;
-	int iy = info.top + /*m_infoFont->getHeight() +*/ (info.height() - m_infoFont->getHeight()) / 2 - HEADER_MARGIN/2;
-	if (PAGE_HEADER_POS_BOTTOM == m_pageHeaderPos)
-		iy += 4 + 1;
-
+	int iy = 0;
+	switch (m_pageHeaderPos) {
+		case PAGE_HEADER_POS_TOP:
+			iy = info.top - HEADER_MARGIN/2;
+			break;
+		case PAGE_HEADER_POS_BOTTOM:
+			iy = gpos + 2;
+			break;
+		default:
+			break;
+	}
 	if (!m_pageHeaderOverride.empty()) {
 		text = m_pageHeaderOverride;
 	} else {
-
-//		if (!leftPage) {
-//			drawbuf->FillRect(info.left, gpos - 3, info.left + percent_pos,
-//					gpos - 3 + 1, cl1);
-//			drawbuf->FillRect(info.left, gpos - 1, info.left + percent_pos,
-//					gpos - 1 + 1, cl1);
-//		}
-
-		// disable section marks for left page, and for too many marks
-//		if (!leftPage && (phi & PGHDR_CHAPTER_MARKS) && sbounds.length()<info.width()/5 ) {
-//			for (int i = 0; i < sbounds.length(); i++) {
-//				int x = info.left + sbounds[i] * (info.width() - 1) / 10000;
-//				lUInt32 c = x < info.left + percent_pos ? cl2 : cl1;
-//				drawbuf->FillRect(x, gpos - 4, x + 1, gpos - 0 + 2, c);
-//			}
-//		}
-
 		if (getVisiblePageCount() == 1 || !(pageIndex & 1)) {
 			int dwIcons = 0;
 			int icony = iy + m_infoFont->getHeight() / 2;
@@ -1882,7 +1872,6 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 			}
 			info.left += dwIcons;
 		}
-
 		bool batteryPercentNormalFont = false; // PROP_SHOW_BATTERY_PERCENT
 		if ((phi & PGHDR_BATTERY) && m_battery_state >= CR_BATTERY_STATE_CHARGING) {
 			batteryPercentNormalFont = m_props->getBoolDef(PROP_SHOW_BATTERY_PERCENT, true) || m_batteryIcons.size()<=2;
@@ -1900,7 +1889,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 				//    brc.left = brc.right - brc.height()/2;
 				//else
 				brc.left = brc.right - batteryIconWidth - 2;
-				brc.bottom -= 5;
+				brc.bottom -= markh;
 				drawBatteryState(drawbuf, brc, isVertical);
 				info.right = brc.left - info.height() / 2;
 			}
