@@ -603,6 +603,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			ReaderAction.RECENT_BOOKS,
 			ReaderAction.USER_MANUAL,
 			ReaderAction.OPTIONS,
+			ReaderAction.SAVE_LOGCAT,
 			ReaderAction.EXIT,	
 		};
 		mActivity.showActionsPopupMenu(actions, item -> {
@@ -624,6 +625,8 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			} else if (item == ReaderAction.OPTIONS) {
 				mActivity.showBrowserOptionsDialog();
 				return true;
+			} else if (item == ReaderAction.SAVE_LOGCAT) {
+				mActivity.createLogcatFile();
 			}
 			return false;
 		});
