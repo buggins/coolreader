@@ -610,7 +610,7 @@ CRBookmark::CRBookmark (ldomXPointer ptr )
     //CRLog::trace("CRBookmark::CRBookmark() calling getChaptername");
 	setTitleText( CRBookmark::getChapterName( ptr ) );
     _startpos = ptr.toString();
-    CRLog::debug("new Xpath: %s, old Xpath: %s", LCSTR(_startpos), LCSTR(ptr.toString(XPATH_USE_NAMES)));
+    //CRLog::debug("new Xpath: %s, old Xpath: %s", LCSTR(_startpos), LCSTR(ptr.toString(XPATH_USE_NAMES)));
     _timestamp = (time_t)time(0);
     lvPoint endpt = pt;
     endpt.y += 100;
