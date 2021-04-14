@@ -1318,12 +1318,12 @@ public class Engine {
 		try {
 			String reg = "(?i).*vold.*(vfat|ntfs|exfat|fat32|ext3|ext4).*rw.*";
 			String reg2 = "(?i).*fuse.*(vfat|ntfs|exfat|fat32|ext3|ext4|fuse).*rw.*";
-			StringBuilder s = new StringBuilder();
+			String s = "";
 			try {
 				final Process process = new ProcessBuilder().command("mount")
 						.redirectErrorStream(true).start();
 				ProcessIOWithTimeout processIOWithTimeout = new ProcessIOWithTimeout(process, 1024);
-				int exitCode = processIOWithTimeout.waitForProcess(100);
+				int exitCode = processIOWithTimeout.waitForProcess(200);
 				if (exitCode == ProcessIOWithTimeout.EXIT_CODE_TIMEOUT) {
 					// Timeout
 					log.e("Timed out waiting for mount command output, " +
@@ -1331,19 +1331,13 @@ public class Engine {
 					process.destroy();
 					return out;
 				}
-				try (ByteArrayInputStream inputStream = new ByteArrayInputStream(processIOWithTimeout.receivedData())) {
-					byte[] buffer = new byte[1024];
-					int rb;
-					while ((rb = inputStream.read(buffer)) != -1) {
-						s.append(new String(buffer, 0, rb));
-					}
-				}
+				s = processIOWithTimeout.receivedText();
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 
 			// parse output
-			final String[] lines = s.toString().split("\n");
+			final String[] lines = s.split("\n");
 			for (String line : lines) {
 				if (!line.toLowerCase(Locale.US).contains("asec")) {
 					log.d("mount entry: " + line);

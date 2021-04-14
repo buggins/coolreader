@@ -5,15 +5,88 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 public class LogcatSaver {
 
 	private static final Logger log = L.create("lc");
-	private static final int WAIT_TIMEOUT = 1000;
+	private static final int WAIT_TIMEOUT_MAIN = 10000;
+	private static final int WAIT_TIMEOUT_PRUNE = 1000;
+
+	/*
+	// May be called in Engine static initialization
+	public static boolean logcatPruneSetup() {
+		if (DeviceInfo.getSDKLevel() < Build.VERSION_CODES.M)
+			// logcat prune list is available since Android 6.0 (API 23)
+			return true;
+		// Add this application (pid) to logcat white prune list
+		// https://developer.android.com/studio/command-line/logcat.html#options
+		// Usefully on rooted device.
+		// On non rooted device logcat return error "failed to set the prune list"
+		// Reason: the logcat daemon return "Permission Denied" instead of "success"
+		// in response to the "setPruneList" command.
+		boolean res = false;
+		int pid = android.os.Process.myPid();
+		Process process = null;
+		try {
+			process = new ProcessBuilder().command(
+					//"strace",
+					"logcat", "-P", "/" + pid)
+					.redirectErrorStream(true).start();
+			ProcessIOWithTimeout processIOWithTimeout = new ProcessIOWithTimeout(process);
+			int exitCode = processIOWithTimeout.waitForProcess(WAIT_TIMEOUT_MAIN);
+			if (0 == exitCode) {
+				log.d("Process " + pid + " successfully added to whitelist");
+				res = true;
+			} else if (ProcessIOWithTimeout.EXIT_CODE_TIMEOUT == exitCode) {
+				// timeout
+				log.e("Timed out waiting for logcat command output!");
+			} else {
+				log.e("logcat setPruneList exit code: " + exitCode);
+			}
+		} catch (Exception e) {
+			log.e("Error running logcat: " + e);
+		} finally {
+			if (null != process)
+				process.destroy();
+		}
+		return res;
+	}
+
+	// May be called in Services.stopServices()
+	public static boolean logcatPruneDefault() {
+		// Set default logcat prune list
+		if (DeviceInfo.getSDKLevel() < Build.VERSION_CODES.M)
+			// logcat prune list is available since Android 6.0 (API 23)
+			return true;
+		boolean res = false;
+		Process process = null;
+		try {
+			process = new ProcessBuilder().command(
+					"logcat", "-P", "default")
+					.redirectErrorStream(true).start();
+			ProcessIOWithTimeout processIOWithTimeout = new ProcessIOWithTimeout(process);
+			int exitCode = processIOWithTimeout.waitForProcess(WAIT_TIMEOUT_PRUNE);
+			if (0 == exitCode) {
+				log.d("logcat prune list successfully set to default");
+				res = true;
+			} else if (ProcessIOWithTimeout.EXIT_CODE_TIMEOUT == exitCode) {
+				// timeout
+				log.e("Timed out waiting for logcat command output!");
+			} else {
+				log.e("logcat setPruneList exit code: " + exitCode);
+			}
+		} catch (Exception e) {
+			log.e("Error running logcat: " + e);
+		} finally {
+			if (null != process)
+				process.destroy();
+		}
+		return res;
+	}
+
+	 */
 
 	public static boolean saveLogcat(Date since, File outputFile) {
 		boolean res = false;
@@ -36,37 +109,40 @@ public class LogcatSaver {
 		boolean res = false;
 		SimpleDateFormat dateFormat = new SimpleDateFormat(dateFmt, Locale.US);
 		String dateString = dateFormat.format(since);
-		List<String> logcatCmdArgs = new ArrayList<>();
-		logcatCmdArgs.add("logcat");			// command
-		logcatCmdArgs.add("-t");				// argument 1
-		logcatCmdArgs.add(dateString);			// argument 2
-		logcatCmdArgs.add("-d");				// argument 3
 		Process process = null;
 		try {
-			process = new ProcessBuilder().command(logcatCmdArgs).redirectErrorStream(true).start();
+			// Do not specify the "-b" and "-v" switches, as they do not work on older versions of Android.
+			// "-v", "threadtime",
+			// "-b", "events", "-b", "system", "-b", "main", "-b", "crash",
+			process = new ProcessBuilder().command(
+					"logcat", "-t", dateString, "-d")
+					.redirectErrorStream(true).start();
 			ProcessIOWithTimeout processIOWithTimeout = new ProcessIOWithTimeout(process, 1024);
-			int exitCode = processIOWithTimeout.waitForProcess(WAIT_TIMEOUT);
+			int exitCode = processIOWithTimeout.waitForProcess(WAIT_TIMEOUT_MAIN);
 			if (ProcessIOWithTimeout.EXIT_CODE_TIMEOUT == exitCode) {
 				// timeout
-				process.destroy();
 				log.e("Timed out waiting for logcat command output!");
-			}
-			// copy process output stream to file
-			if (0 == exitCode) {
-				ByteArrayInputStream inputStream = new ByteArrayInputStream(processIOWithTimeout.receivedData());
-				byte[] buffer = new byte[1024];
-				int rb;
-				while ((rb = inputStream.read(buffer)) != -1) {
-					outputStream.write(buffer, 0, rb);
+			} else {
+				// Copy process output stream to file
+				// If exits code != 0 then in outputStream saved logcat error message
+				byte [] data = processIOWithTimeout.receivedData();
+				if (null != data) {
+					ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
+					byte[] buffer = new byte[1024];
+					int rb;
+					while ((rb = inputStream.read(buffer)) > 0) {
+						outputStream.write(buffer, 0, rb);
+					}
+					inputStream.close();
+					res = (0 == exitCode);
 				}
-				inputStream.close();
-				res = true;
 			}
 		} catch (Exception e) {
-			log.e("saveLogcat(): " + e);
+			log.e("Error running logcat: " + e);
+		} finally {
+			if (null != process)
+				process.destroy();
 		}
-		if (null != process)
-			process.destroy();
 		return res;
 	}
 
