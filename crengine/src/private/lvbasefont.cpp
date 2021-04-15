@@ -32,7 +32,7 @@ int LVBaseFont::DrawTextString(LVDrawBuf * buf, int x, int y,
             int w = 0;
             if (item) {
                 // avoid soft hyphens inside text string
-                w = item->advance_26_6 >> 6;
+                w = item->advance;
                 if (item->bmp_width && item->bmp_height) {
                     buf->Draw(x + item->origin_x,
                               y + baseline - item->origin_y,

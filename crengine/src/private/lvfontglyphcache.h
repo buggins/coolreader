@@ -143,7 +143,7 @@ struct LVFontGlyphCacheItem {
     lUInt16 bmp_height;
     lInt16 origin_x;
     lInt16 origin_y;
-    lUInt32 advance_26_6;
+    lUInt16 advance;
     lUInt8 bmp[1];
 
     //=======================================================================
