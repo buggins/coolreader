@@ -135,7 +135,8 @@
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
         <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
-        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="textColorOptionLabel">?android:attr/textColorPrimary</item>
+        <item name="textColorOptionValue">?android:attr/textColorSecondary</item>
         <item name="tts_toolbar_background">#D0808080</item>
 
         <!-- icons -->
@@ -246,7 +247,8 @@
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
         <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
-        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="textColorOptionLabel">?android:attr/textColorPrimary</item>
+        <item name="textColorOptionValue">?android:attr/textColorSecondary</item>
         <item name="tts_toolbar_background">#D0808080</item>
 
         <!-- icons -->
@@ -382,8 +384,9 @@
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background_hc</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#FFFFFFFF</item>
-        <item name="textColorToolBarLabel">@android:color/black</item>
-        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="textColorToolBarLabel">@color/label_hc_light</item>
+        <item name="textColorOptionLabel">@color/label_hc_light</item>
+        <item name="textColorOptionValue">@color/label_hc_light</item>
         <item name="tts_toolbar_background">#FFFFFFFF</item>
 
         <!-- icons -->
@@ -493,8 +496,9 @@
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background_hc</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
-        <item name="textColorToolBarLabel">@android:color/white</item>
-        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="textColorToolBarLabel">@color/label_hc_dark</item>
+        <item name="textColorOptionLabel">@color/label_hc_dark</item>
+        <item name="textColorOptionValue">@color/label_hc_dark</item>
         <item name="tts_toolbar_background">#FFFFFFFF</item>
 
         <!-- icons -->

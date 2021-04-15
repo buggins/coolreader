@@ -11,8 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -20,7 +18,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -1692,7 +1689,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	class NumberPickerOption extends OptionBase {
 		private int minValue = 9;
 		private int maxValue = 340;
-		public NumberPickerOption( OptionOwner owner, String label, String property ) {
+		public NumberPickerOption(OptionOwner owner, String label, String property ) {
 			super(owner, label, property);
 		}
 		public int getItemViewType() {
@@ -1716,79 +1713,24 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public void onSelect() {
 			if (!enabled)
 				return;
-			View view = getView(null, null);
-			EditText valueView = view.findViewById(R.id.option_value);
-			valueView.requestFocus();
-			refreshList();
-		}
-		public View getView(View convertView, ViewGroup parent) {
-			View view;
-			convertView = myView;
-			if (null == convertView) {
-				view = mInflater.inflate(R.layout.option_item_number, null);
-				myView = view;
-				TextView labelView = view.findViewById(R.id.option_label);
-				EditText valueView = view.findViewById(R.id.option_value);
-				ImageButton decButton = view.findViewById(R.id.option_btn_dec);
-				ImageButton incButton = view.findViewById(R.id.option_btn_inc);
-				View marginView = view.findViewById(R.id.margin_view);
-				marginView.setFocusableInTouchMode(true);
-				marginView.requestFocusFromTouch();
-				labelView.setText(label);
-				labelView.setEnabled(enabled);
-				valueView.setText(String.valueOf(getValueInt()));
-				valueView.addTextChangedListener(new TextWatcher() {
-					@Override
-					public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-					}
+			InputDialog dlg = new InputDialog(mActivity, label, false, "", true, minValue, maxValue, getValueInt(), new InputDialog.InputHandler() {
+				@Override
+				public boolean validate(String s) throws Exception {
+					int value = Integer.parseInt(s);
+					return value >= minValue && value <= maxValue;
+				}
 
-					@Override
-					public void onTextChanged(CharSequence s, int start, int before, int count) {
-					}
+				@Override
+				public void onOk(String s) throws Exception {
+					getProperties().setProperty(property, s);
+					refreshItem();
+				}
 
-					@Override
-					public void afterTextChanged(Editable s) {
-						if (!enabled)
-							return;
-						try {
-							int value = Integer.parseInt(s.toString());
-							if (value < minValue) {
-								value = minValue;
-							} else if (value > maxValue) {
-								value = maxValue;
-							}
-							mProperties.setProperty(property, String.valueOf(value));
-						} catch (NumberFormatException ignored) {}
-					}
-				});
-				decButton.setOnClickListener(v -> {
-					if (!enabled)
-						return;
-					int value = getValueInt() - 1;
-					if (value >= minValue) {
-						mProperties.setProperty(property, String.valueOf(value));
-						View view1 = getView(null, null);
-						EditText editText = view1.findViewById(R.id.option_value);
-						editText.setText(String.valueOf(value));
-					}
-				});
-				incButton.setOnClickListener(v -> {
-					if (!enabled)
-						return;
-					int value = getValueInt() + 1;
-					if (value <= maxValue) {
-						mProperties.setProperty(property, String.valueOf(value));
-						View view1 = getView(null, null);
-						EditText editText = view1.findViewById(R.id.option_value);
-						editText.setText(String.valueOf(value));
-					}
-				});
-				valueView.setEnabled(enabled);
-				setupIconView((ImageView)view.findViewById(R.id.option_icon));
-			} else {
-				view = convertView;
-			}
-			return view;
+				@Override
+				public void onCancel() {
+				}
+			});
+			dlg.show();
 		}
 	}
 

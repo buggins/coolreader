@@ -9310,7 +9310,7 @@ ldomXPointer ldomDocument::createXPointerV2( ldomNode * baseNode, const lString3
                 // found element node
                 currNode = foundNode;
                 lString32 nm = currNode->getNodeName();
-                CRLog::trace("%d -> %s", index, LCSTR(nm));
+                //CRLog::trace("%d -> %s", index, LCSTR(nm));
             }
             break;
         case xpath_step_text:

@@ -1259,6 +1259,7 @@ public class CoolReader extends BaseActivity {
 						ReaderAction.SEARCH,
 						ReaderAction.SCAN_DIRECTORY_RECURSIVE,
 						ReaderAction.FILE_BROWSER_SORT_ORDER,
+						ReaderAction.SAVE_LOGCAT,
 						ReaderAction.EXIT
 				), false);
 				mBrowserToolBar.setBackgroundResource(R.drawable.ui_status_background_browser_dark);
@@ -1294,6 +1295,9 @@ public class CoolReader extends BaseActivity {
 							break;
 						case DCMD_FILE_BROWSER_SORT_ORDER:
 							mBrowser.showSortOrderMenu();
+							break;
+						case DCMD_SAVE_LOGCAT:
+							createLogcatFile();
 							break;
 						default:
 							// do nothing

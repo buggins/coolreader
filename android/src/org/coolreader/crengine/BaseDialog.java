@@ -226,6 +226,10 @@ public class BaseDialog extends Dialog {
 	protected void onClose() {
 		// when dialog is closed
 		Log.d("DLG","BaseDialog.onClose()");
+		if (needCancelButton)
+			onNegativeButtonClick();
+		else if (buttonsLayout != null)
+			onPositiveButtonClick();
 		activity.onDialogClosed(this);
 	}
 
