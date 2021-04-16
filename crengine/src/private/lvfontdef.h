@@ -21,6 +21,19 @@
 #include "../../include/cssdef.h"
 #include "../../include/lvarray.h"
 
+// LVFontDef carries a font definition, and can be used to identify:
+// - registered fonts, from available font files (size=-1 if scalable)
+// - instantiated fonts from one of the registered fonts, with some
+//   updated properties:
+//     - the specific size, > -1
+//     - _italic=2 (if font has no real italic, and it is synthesized
+//       thanks to Freetype from the regular font glyphs)
+//     - _weight=600 (updated weight if synthesized weight made from
+//       the regular font glyphs)
+// It can be used as a key by caches to retrieve a registered font
+// or an instantiated one, and as a query to find in the cache an
+// exact or an approximate font.
+
 /**
     @brief Font properties definition
 */

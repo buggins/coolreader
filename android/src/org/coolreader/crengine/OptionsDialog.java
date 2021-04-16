@@ -103,7 +103,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	public static int[] mPagesPerFullSwipe;
 	public static String[] mPagesPerFullSwipeTitles;
 	int[] mInterlineSpaces = new int[] {
-			80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 160, 180, 200
+			 80,  81,  82,  83,  84,  85, 86,   87,  88,  89,
+			 90,  91,  92,  93,  94,  95, 96,   97,  98,  99,
+			100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+			110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
+			120, 125, 130, 135, 140, 145, 150, 155, 160, 165,
+			170, 175, 180, 185, 190, 195, 200
 		};
 	int[] mMinSpaceWidths = new int[] {
 			25, 30, 40, 50, 60, 70, 80, 90, 100
@@ -2543,8 +2548,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			option.add(weight, label);
 		}
 		// enable/disable font hinting option
-		int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
-		mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
+		//int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
+		//mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
 	}
 
 	private void setupReaderOptions()
@@ -2582,8 +2587,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				ArrayList<Integer> nativeWeightsArray = new ArrayList<>();    // for search
 				for (int w : nativeWeights)
 					nativeWeightsArray.add(w);
-				int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
-				mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
+				//int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
+				//mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
 			}
 		});
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_antialias_drawable, R.drawable.cr3_option_text_antialias));

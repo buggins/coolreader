@@ -70,7 +70,7 @@ public:
     /// registers font by name
     virtual bool RegisterFont( lString8 name ) = 0;
     /// registers font by name and face
-    virtual bool RegisterExternalFont(lString32 /*name*/, lString8 /*face*/, bool /*bold*/, bool /*italic*/) { return false; }
+    virtual bool RegisterExternalFont(int /*documentId*/, lString32 /*name*/, lString8 /*face*/, bool /*bold*/, bool /*italic*/) { return false; }
     /// registers document font
     virtual bool
     RegisterDocumentFont(int /*documentId*/, LVContainerRef /*container*/, lString32 /*name*/,

@@ -112,7 +112,7 @@ LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt32 ch, lChar32 def_char
 
     item = LVFontGlyphCacheItem::newItem(&_glyph_cache, (lChar32)ch, dx, dy); //, _drawMonochrome
     if (item) {
-        item->advance_26_6 = olditem->advance_26_6 + (_hShift << 6);
+        item->advance = olditem->advance + _hShift;
         item->origin_x = olditem->origin_x;
         item->origin_y = olditem->origin_y;
     
@@ -183,7 +183,7 @@ int LVFontBoldTransform::DrawTextString(LVDrawBuf *buf, int x, int y, const lCha
         int w  = 0;
         if ( item ) {
             // avoid soft hyphens inside text string
-            w = item->advance_26_6 >> 6;
+            w = item->advance;
             if ( item->bmp_width && item->bmp_height && (!isHyphen || i==len) ) {
                 buf->Draw( x + item->origin_x,
                     y + _baseline - item->origin_y,

@@ -46,6 +46,15 @@ int LVFontDef::CalcMatch(const LVFontDef &def, bool useBias) const {
         weight_diff = 800;
     int weight_match = (_weight == -1 || def._weight == -1) ? 256
                                                             : (256 - weight_diff * 256 / 800);
+    // It might happen that 2 fonts with different weights can get the same
+    // score, e.g. with def._weight=550, a font with _weight=400 and an other
+    // with _weight=700. Any could then be picked depending on their random
+    // ordering in the cache, which may mess a book on re-openings.
+    // To avoid this inconsistency, we give arbitrarily a small increase to
+    // the score of the smaller weight font (mostly so that with the above
+    // case, we keep synthesizing the 550 from the 400)
+    if ( _weight < def._weight )
+        weight_match += 1;
     int italic_match = (_italic == def._italic || _italic == -1 || def._italic == -1) ? 256 : 0;
     if ((_italic == 2 || def._italic == 2) && _italic > 0 && def._italic > 0)
         italic_match = 128;
@@ -63,7 +72,7 @@ int LVFontDef::CalcMatch(const LVFontDef &def, bool useBias) const {
     // bias
     int bias = useBias ? _bias : 0;
 
-    // Special handling for synthetized fonts:
+    // Special handling for synthesized fonts:
     // The way this function is called:
     // 'this' (or '', properties not prefixed) is either an instance of a
     //     registered font, or a registered font definition,

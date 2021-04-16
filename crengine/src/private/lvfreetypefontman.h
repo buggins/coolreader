@@ -132,7 +132,7 @@ public:
     /// unregisters all document fonts
     virtual void UnregisterDocumentFonts(int documentId);
 
-    virtual bool RegisterExternalFont(lString32 name, lString8 family_name, bool bold, bool italic);
+    virtual bool RegisterExternalFont(int documentId, lString32 name, lString8 family_name, bool bold, bool italic);
 
     virtual bool RegisterFont(lString8 name);
 

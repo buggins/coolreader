@@ -190,7 +190,6 @@ LVFontRef LVFreeTypeFontManager::GetFallbackFont(int size, int weight, bool ital
     // assuming the fallback font is a standalone regular font
     // without any bold/italic sibling.
     // GetFont() works just as fine when we need specified weigh and italic.
-    weight &= 0xFFFE;
     LVFontRef fontRef = GetFont(size, weight, italic, css_ff_sans_serif, _fallbackFontFaces[index], 0, -1, false);
     if (!fontRef.isNull())
         fontRef->setFallbackMask(1 << index);
@@ -1028,16 +1027,19 @@ void LVFreeTypeFontManager::UnregisterDocumentFonts(int documentId) {
     _cache.removeDocumentFonts(documentId);
 }
 
-bool LVFreeTypeFontManager::RegisterExternalFont(lString32 name, lString8 family_name, bool bold,
+bool LVFreeTypeFontManager::RegisterExternalFont(int documentId, lString32 name, lString8 family_name, bool bold,
                                                  bool italic) {
     if (name.startsWithNoCase(lString32("res://")))
         name = name.substr(6);
     else if (name.startsWithNoCase(lString32("file://")))
         name = name.substr(7);
     lString8 fname = UnicodeToUtf8(name);
+    CRLog::debug("RegisterExternalFont(documentId=%d, path=%s)", documentId, fname.c_str());
+    if (_cache.findDocumentFontDuplicate(documentId, fname)) {
+        return false;
+    }
 
     bool res = false;
-
     int index = 0;
 
     FT_Face face = NULL;
@@ -1091,7 +1093,8 @@ bool LVFreeTypeFontManager::RegisterExternalFont(lString32 name, lString8 family
                 -1, // OpenType features = -1 for not yet instantiated fonts
                 fontFamily,
                 family_name,
-                index
+                index,
+                documentId
         );
 #if (DEBUG_FONT_MAN == 1)
         if ( _log ) {

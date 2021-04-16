@@ -6276,7 +6276,14 @@ int LVDocView::onSelectionCommand( int cmd, int param )
 }
 
 //static int cr_font_sizes[] = { 24, 29, 33, 39, 44 };
-static int cr_interline_spaces[] = { 100, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 160, 180, 200 };
+static int cr_interline_spaces[] = {
+		 80,  81,  82,  83,  84,  85, 86,   87,  88,  89,
+		 90,  91,  92,  93,  94,  95, 96,   97,  98,  99,
+		100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+		110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
+		120, 125, 130, 135, 140, 145, 150, 155, 160, 165,
+		170, 175, 180, 185, 190, 195, 200
+};
 
 static const char * def_style_macros[] = {
     "styles.def.align", "text-align: justify",
@@ -6399,7 +6406,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->setIntDef(PROP_FONT_SIZE, m_min_font_size + (m_min_font_size + m_max_font_size)/7);
 #endif
 	props->limitValueList(PROP_INTERLINE_SPACE, cr_interline_spaces,
-			sizeof(cr_interline_spaces) / sizeof(int));
+			sizeof(cr_interline_spaces) / sizeof(int), 20);
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	static int def_rot_angle[] = {0, 1, 2, 3};
 	props->limitValueList( PROP_ROTATE_ANGLE, def_rot_angle, 4 );
@@ -6748,7 +6755,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             }
         } else if (name == PROP_INTERLINE_SPACE) {
             int interlineSpace = props->getIntDef(PROP_INTERLINE_SPACE,
-                                                  cr_interline_spaces[0]);
+                                                  cr_interline_spaces[20]);
             setDefaultInterlineSpace(interlineSpace);//cr_font_sizes
             value = lString32::itoa(m_def_interline_space);
 #if CR_INTERNAL_PAGE_ORIENTATION==1
