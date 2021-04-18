@@ -719,10 +719,12 @@ public class Synchronizer {
 	protected class CheckDownloadSettingsSyncOperation extends SyncOperation {
 		private final String localFilePath;
 		private final String remoteFilePath;
+		private boolean accepted;
 
 		CheckDownloadSettingsSyncOperation(String localFilePath, String remoteFilePath) {
 			this.localFilePath = localFilePath;
 			this.remoteFilePath = remoteFilePath;
+			this.accepted = false;
 		}
 
 		@Override
@@ -757,14 +759,18 @@ public class Synchronizer {
 								syncDirDialog.setPositiveButtonLabel(m_coolReader.getString(R.string.googledrive_load_remote));
 								syncDirDialog.setNegativeButtonLabel(m_coolReader.getString(R.string.googledrive_upload_local));
 								syncDirDialog.setOnPositiveClickListener( view -> {
+									accepted = true;
 									insertOperation(this_op, new DownloadSettingsSyncOperation(remoteFilePath));
 									onContinue.run();
 								} );
 								syncDirDialog.setOnNegativeClickListener( view -> {
+									accepted = true;
 									insertOperation(this_op, new UploadSettingsSyncOperation(localFilePath, remoteFilePath));
 									onContinue.run();
 								} );
 								syncDirDialog.setOnCancelListener(dialog -> {
+									if (accepted)
+										return;
 									log.e("CheckDownloadSettingsSyncOperation: canceled");
 									doneFailed("canceled");
 								} );
