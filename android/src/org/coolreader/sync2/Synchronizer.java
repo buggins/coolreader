@@ -255,21 +255,33 @@ public class Synchronizer {
 	}
 
 	protected void doneFailed(String error) {
-		BackgroundThread.instance().executeGUI(() -> {
-			if (null != m_onStatusListener) {
-				m_onStatusListener.onSyncError(m_syncDirection, error);
+		m_removeLockFileOp.setNext(new SyncOperation() {
+			@Override
+			void call(Runnable onContinue) {
+				BackgroundThread.instance().executeGUI(() -> {
+					if (null != m_onStatusListener) {
+						m_onStatusListener.onSyncError(m_syncDirection, error);
+					}
+				});
+				m_isBusy = false;
 			}
 		});
-		m_isBusy = false;
+		m_removeLockFileOp.exec();
 	}
 
 	protected void doneAborted() {
-		BackgroundThread.instance().executeGUI(() -> {
-			if (null != m_onStatusListener) {
-				m_onStatusListener.onAborted(m_syncDirection);
+		m_removeLockFileOp.setNext(new SyncOperation() {
+			@Override
+			void call(Runnable onContinue) {
+				BackgroundThread.instance().executeGUI(() -> {
+					if (null != m_onStatusListener) {
+						m_onStatusListener.onAborted(m_syncDirection);
+					}
+				});
+				m_isBusy = false;
 			}
 		});
-		m_isBusy = false;
+		m_removeLockFileOp.exec();
 	}
 
 	protected void setSyncStarted(SyncDirection dir) {
@@ -1537,6 +1549,7 @@ public class Synchronizer {
 		}
 	}
 
+	protected SyncOperation m_removeLockFileOp = new RemoveLockFileSyncOperation();
 	protected SyncOperation m_doneOp = new SyncOperation() {
 		@Override
 		void call(Runnable onContinue) {
@@ -1579,7 +1592,7 @@ public class Synchronizer {
 			addOperation(new DeleteOldDataSyncOperation());
 		if ((m_flags & SYNC_FLAG_FORCE) != 0 || hasTarget(SyncTarget.CURRENTBOOKINFO))
 			addOperation(new DownloadCurrentBookInfoSyncOperation());
-		addOperation(new RemoveLockFileSyncOperation());
+		addOperation(m_removeLockFileOp);
 		addOperation(m_doneOp);
 		startOperations();
 	}
@@ -1622,7 +1635,7 @@ public class Synchronizer {
 			// bookInfo of fileInfo is null, skipping all operations related to the current book
 			log.d("bookInfo or fileInfo is null, skipping all operations related to the current book");
 		}
-		addOperation(new RemoveLockFileSyncOperation());
+		addOperation(m_removeLockFileOp);
 		addOperation(m_doneOp);
 		startOperations();
 	}
@@ -1671,7 +1684,7 @@ public class Synchronizer {
 					break;
 			}
 		}
-		addOperation(new RemoveLockFileSyncOperation());
+		addOperation(m_removeLockFileOp);
 		addOperation(m_doneOp);
 		startOperations();
 	}
@@ -1723,7 +1736,7 @@ public class Synchronizer {
 					break;
 			}
 		}
-		addOperation(new RemoveLockFileSyncOperation());
+		addOperation(m_removeLockFileOp);
 		addOperation(m_doneOp);
 		startOperations();
 	}
