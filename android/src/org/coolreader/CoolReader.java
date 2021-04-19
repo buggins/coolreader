@@ -1426,9 +1426,6 @@ public class CoolReader extends BaseActivity {
 	}
 
 	public void setBrowserProgressStatus(boolean enable) {
-		if (!enable) {
-			log.e("setBrowserProgressStatus(false)");
-		}
 		if (mBrowserFrame != null)
 			mBrowserFrame.setBrowserProgressStatus(enable);
 	}
