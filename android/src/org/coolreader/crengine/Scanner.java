@@ -99,19 +99,26 @@ public class Scanner extends FileInfoChangeSource {
 		return listDirectory(baseDir, true, true);
 	}
 
+	public boolean listDirectory(FileInfo baseDir, boolean onlySupportedFormats, boolean scanzip) {
+		return listDirectory(baseDir, onlySupportedFormats, scanzip, false);
+	}
+
 	/**
 	 * Adds dir and file children to directory FileInfo item.
 	 * @param baseDir is directory to list files and dirs for
+	 * @param onlySupportedFormats list only supported files
+	 * @param scanzip scan zip-files
+	 * @param rescan full directory rescan
 	 * @return true if successful.
 	 */
-	public boolean listDirectory(FileInfo baseDir, boolean onlySupportedFormats, boolean scanzip)
+	public boolean listDirectory(FileInfo baseDir, boolean onlySupportedFormats, boolean scanzip, boolean rescan)
 	{
 		Set<String> knownItems = null;
 		if ( baseDir.isListed ) {
 			knownItems = new HashSet<String>();
 			for ( int i=baseDir.itemCount()-1; i>=0; i-- ) {
 				FileInfo item = baseDir.getItem(i);
-				if ( !item.exists() ) {
+				if ( !item.exists() || rescan ) {
 					// remove item from list
 					baseDir.removeChild(item);
 				} else {
@@ -152,7 +159,7 @@ public class Scanner extends FileInfoChangeSource {
 							continue;
 						}
 						boolean isZip = pathName.toLowerCase().endsWith(".zip");
-						FileInfo item = mFileList.get(pathName);
+						FileInfo item = !rescan ? mFileList.get(pathName) : null;
 						boolean isNew = false;
 						if ( item==null ) {
 							item = new FileInfo( f );
@@ -322,16 +329,16 @@ public class Scanner extends FileInfoChangeSource {
 							break;
 						progress.setProgress((i + count) * 10000 / (2*count));
 						FileInfo item = filesForParsing.get(i);
-						engine.scanBookProperties(item);
-						filesForSave1.add(item);
+						if (engine.scanBookProperties(item))
+							filesForSave1.add(item);
 					}
 					for ( int i=0; i<count2; i++ ) {
 						if (control.isStopped())
 							break;
 						progress.setProgress((i + count) * 10000 / (2*count));
 						FileInfo item = filesForCRC32Update.get(i);
-						Engine.updateFileCRC32(item);
-						filesForSave1.add(item);
+						if (Engine.updateFileCRC32(item))
+							filesForSave1.add(item);
 					}
 				} catch (Exception e) {
 					L.e("Exception while scanning", e);
@@ -755,7 +762,8 @@ public class Scanner extends FileInfoChangeSource {
 		boolean fullDepthScan = true;
 		if (maxDepth <= 0 || scanControl.isStopped())
 			return false;
-		boolean res = listDirectory(dir, true, true);
+		// full rescan to scan zip-files
+		boolean res = listDirectory(dir, true, true, !dir.isSpecialDir());
 		if (res) {
 			for (int i = dir.dirCount() - 1; i >= -0; i--) {
 				res = listSubtreeBg_impl(dir.getDir(i), maxDepth - 1, scanControl);

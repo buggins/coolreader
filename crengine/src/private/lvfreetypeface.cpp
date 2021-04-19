@@ -350,7 +350,7 @@ LVFont *LVFreeTypeFace::getFallbackFont(lUInt32 fallbackPassMask) {
             index++;
             if (index == fallback_count)
                 index = 0;
-            _fallbackFont = fontMan->GetFallbackFont(_size, getWeight(), _italic, index);
+            _fallbackFont = fontMan->GetFallbackFont(_size, getWeight(), _italic != 0, index);
         }
         _fallbackFontIsSet = true;
     }
@@ -829,7 +829,7 @@ bool LVFreeTypeFace::hbCalcCharWidth(LVCharPosInfo *posInfo, const LVCharTriplet
     }
     hb_buffer_set_content_type(_hb_buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
     hb_buffer_guess_segment_properties(_hb_buffer);
-    hb_shape(_hb_font, _hb_buffer, _hb_features.ptr(), _hb_features.length());
+    hb_shape(_hb_font, _hb_buffer, _hb_features.ptr(), (unsigned int)_hb_features.length());
     unsigned int glyph_count = hb_buffer_get_length(_hb_buffer);
     if (segLen == glyph_count) {
         hb_glyph_info_t *glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, &glyph_count);
@@ -851,8 +851,8 @@ bool LVFreeTypeFace::hbCalcCharWidth(LVCharPosInfo *posInfo, const LVCharTriplet
             // which will be the one that will be rendered
             FT_UInt ch_glyph_index = FT_Get_Char_Index( _face, triplet.Char );
             if ( glyph_info[cluster].codepoint == ch_glyph_index ) {
-                posInfo->offset = FONT_METRIC_TO_PX(glyph_pos[cluster].x_offset);
-                posInfo->advance = FONT_METRIC_TO_PX(glyph_pos[cluster].x_advance);
+                posInfo->offset = (lInt16)FONT_METRIC_TO_PX(glyph_pos[cluster].x_offset);
+                posInfo->advance = (lInt16)FONT_METRIC_TO_PX(glyph_pos[cluster].x_advance);
                 return true;
             }
         }
@@ -863,6 +863,7 @@ bool LVFreeTypeFace::hbCalcCharWidth(LVCharPosInfo *posInfo, const LVCharTriplet
     if ( getGlyphInfo(triplet.Char, &glyph, def_char, fallbackPassMask) ) {
         posInfo->offset = 0;
         posInfo->advance = glyph.width;
+        return true;
     }
     return false;
 }
@@ -1042,7 +1043,7 @@ void LVFreeTypeFace::setupHBFeatures()
 
 bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar32 def_char, lUInt32 fallbackPassMask) {
     //FONT_GUARD
-    int glyph_index = getCharIndex(code, 0);
+    FT_UInt glyph_index = getCharIndex(code, 0);
     if (glyph_index == 0) {
         LVFont *fallback = getFallbackFont(fallbackPassMask);
         if (NULL == fallback) {
@@ -1368,7 +1369,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
         // cf in *some* minikin repositories: libs/minikin/Layout.cpp
 
         // Shape
-        hb_shape(_hb_font, _hb_buffer, _hb_features.ptr(), _hb_features.length());
+        hb_shape(_hb_font, _hb_buffer, _hb_features.ptr(), (unsigned int)_hb_features.length());
 
         // Harfbuzz has guessed and set a direction even if we did not provide one.
         bool is_rtl = false;
@@ -1645,8 +1646,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
                 cur_width += letter_spacing_w;
             }
             widths[i] = cur_width;
-            if ( !isHyphen ) // avoid soft hyphens inside text string
-                prev_width = cur_width;
+            prev_width = cur_width;
             if ( prev_width > max_width ) {
                 if ( lastFitChar < i + 7)
                     break;
@@ -1721,8 +1721,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
             cur_width += letter_spacing_w;
         }
         widths[i] = cur_width;
-        if ( !isHyphen ) // avoid soft hyphens inside text string
-            prev_width = cur_width;
+        prev_width = cur_width;
         if ( prev_width > max_width ) {
             if ( lastFitChar < i + 7)
                 break;
@@ -2075,7 +2074,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
         }
 
         // Shape
-        hb_shape(_hb_font, _hb_buffer, _hb_features.ptr(), _hb_features.length());
+        hb_shape(_hb_font, _hb_buffer, _hb_features.ptr(), (unsigned int)_hb_features.length());
 
         // If direction is RTL, hb_shape() has reversed the order of the glyphs, so
         // they are in visual order and ready to be iterated and drawn. So,
