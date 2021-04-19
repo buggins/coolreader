@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_window_focused="false" android:state_enabled="false" android:color="#808080"/>
+    <item android:state_window_focused="false"                               android:color="#d0d0d0"/>
+    <!-- Since there is only one selector (for both light and dark), the light's selected state shouldn't be inversed like the dark's. -->
+    <item android:state_pressed="true"         android:state_enabled="false" android:color="#808080"/>
+    <item android:state_selected="true"        android:state_enabled="false" android:color="#808080"/>
+    <item android:state_pressed="true"                                       android:color="#d0d0d0"/>
+    <item android:state_selected="true"                                      android:color="#d0d0d0"/>
+    <item                                      android:state_enabled="false" android:color="#808080"/>
+    <item android:color="#d0d0d0"/> <!-- not selected -->
+</selector>
