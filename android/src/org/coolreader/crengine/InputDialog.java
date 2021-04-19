@@ -70,7 +70,7 @@ public class InputDialog extends BaseDialog {
 						String value = String.valueOf(progress + InputDialog.this.mMinValue);
 						try {
 							if (inputHandler.validate(value))
-								mEditText.setText(value);
+								mEditText.setTextKeepState(value);
 						} catch (Exception e) {
 							// ignore
 						}
