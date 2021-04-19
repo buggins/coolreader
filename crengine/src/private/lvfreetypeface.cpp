@@ -863,6 +863,7 @@ bool LVFreeTypeFace::hbCalcCharWidth(LVCharPosInfo *posInfo, const LVCharTriplet
     if ( getGlyphInfo(triplet.Char, &glyph, def_char, fallbackPassMask) ) {
         posInfo->offset = 0;
         posInfo->advance = glyph.width;
+        return true;
     }
     return false;
 }
