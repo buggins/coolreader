@@ -8,7 +8,6 @@ import android.util.Log;
 
 import org.coolreader.R;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
