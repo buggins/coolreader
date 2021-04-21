@@ -118,6 +118,8 @@ public:
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
             int features = 0, int documentId = -1, bool useBias = false);
 
+    virtual void GetAvailableFontWeights(LVArray<int>& weights, lString8 typeface);
+
     bool checkCharSet(FT_Face face);
 
     virtual bool checkFontLangCompat(const lString8 &typeface, const lString8 &langCode);
@@ -130,7 +132,7 @@ public:
     /// unregisters all document fonts
     virtual void UnregisterDocumentFonts(int documentId);
 
-    virtual bool RegisterExternalFont(lString32 name, lString8 family_name, bool bold, bool italic);
+    virtual bool RegisterExternalFont(int documentId, lString32 name, lString8 family_name, bool bold, bool italic);
 
     virtual bool RegisterFont(lString8 name);
 

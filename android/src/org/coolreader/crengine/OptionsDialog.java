@@ -11,8 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -20,7 +18,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -76,6 +73,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	    return res;
 	}
 	*/
+	int[] mSynthWeights;
 	public static int findBacklightSettingIndex( int value ) {
 		int bestIndex = 0;
 		int bestDiff = -1;
@@ -105,7 +103,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	public static int[] mPagesPerFullSwipe;
 	public static String[] mPagesPerFullSwipeTitles;
 	int[] mInterlineSpaces = new int[] {
-			80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 160, 180, 200
+			 80,  81,  82,  83,  84,  85, 86,   87,  88,  89,
+			 90,  91,  92,  93,  94,  95, 96,   97,  98,  99,
+			100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+			110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
+			120, 125, 130, 135, 140, 145, 150, 155, 160, 165,
+			170, 175, 180, 185, 190, 195, 200
 		};
 	int[] mMinSpaceWidths = new int[] {
 			25, 30, 40, 50, 60, 70, 80, 90, 100
@@ -348,7 +351,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionsListView mOptionsBrowser;
 	OptionsListView mOptionsCloudSync;
 	OptionsListView mOptionsTTS;
-	// Disable options
+	// Mutable options
 	OptionBase mHyphDictOption;
 	OptionBase mEmbedFontsOptions;
 	OptionBase mIgnoreDocMargins;
@@ -365,6 +368,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionBase mTTSUseDocLangOption;
 	ListOption mTTSLanguageOption;
 	ListOption mTTSVoiceOption;
+	ListOption mFontWeightOption;
+	OptionBase mFontHintingOption;
 
 	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
 	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
@@ -1112,6 +1117,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			list.add( new Pair(str_value, label) );
 			return this;
 		}
+		public ListOption add(int value, String label) {
+			String str_value = String.valueOf(value);
+			list.add( new Pair(str_value, label) );
+			return this;
+		}
 		public ListOption add(String[]values) {
 			for ( String item : values ) {
 				add(item, item);
@@ -1684,7 +1694,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	class NumberPickerOption extends OptionBase {
 		private int minValue = 9;
 		private int maxValue = 340;
-		public NumberPickerOption( OptionOwner owner, String label, String property ) {
+		public NumberPickerOption(OptionOwner owner, String label, String property ) {
 			super(owner, label, property);
 		}
 		public int getItemViewType() {
@@ -1708,79 +1718,24 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public void onSelect() {
 			if (!enabled)
 				return;
-			View view = getView(null, null);
-			EditText valueView = view.findViewById(R.id.option_value);
-			valueView.requestFocus();
-			refreshList();
-		}
-		public View getView(View convertView, ViewGroup parent) {
-			View view;
-			convertView = myView;
-			if (null == convertView) {
-				view = mInflater.inflate(R.layout.option_item_number, null);
-				myView = view;
-				TextView labelView = view.findViewById(R.id.option_label);
-				EditText valueView = view.findViewById(R.id.option_value);
-				ImageButton decButton = view.findViewById(R.id.option_btn_dec);
-				ImageButton incButton = view.findViewById(R.id.option_btn_inc);
-				View marginView = view.findViewById(R.id.margin_view);
-				marginView.setFocusableInTouchMode(true);
-				marginView.requestFocusFromTouch();
-				labelView.setText(label);
-				labelView.setEnabled(enabled);
-				valueView.setText(String.valueOf(getValueInt()));
-				valueView.addTextChangedListener(new TextWatcher() {
-					@Override
-					public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-					}
+			InputDialog dlg = new InputDialog(mActivity, label, false, "", true, minValue, maxValue, getValueInt(), new InputDialog.InputHandler() {
+				@Override
+				public boolean validate(String s) throws Exception {
+					int value = Integer.parseInt(s);
+					return value >= minValue && value <= maxValue;
+				}
 
-					@Override
-					public void onTextChanged(CharSequence s, int start, int before, int count) {
-					}
+				@Override
+				public void onOk(String s) throws Exception {
+					getProperties().setProperty(property, s);
+					refreshItem();
+				}
 
-					@Override
-					public void afterTextChanged(Editable s) {
-						if (!enabled)
-							return;
-						try {
-							int value = Integer.parseInt(s.toString());
-							if (value < minValue) {
-								value = minValue;
-							} else if (value > maxValue) {
-								value = maxValue;
-							}
-							mProperties.setProperty(property, String.valueOf(value));
-						} catch (NumberFormatException ignored) {}
-					}
-				});
-				decButton.setOnClickListener(v -> {
-					if (!enabled)
-						return;
-					int value = getValueInt() - 1;
-					if (value >= minValue) {
-						mProperties.setProperty(property, String.valueOf(value));
-						View view1 = getView(null, null);
-						EditText editText = view1.findViewById(R.id.option_value);
-						editText.setText(String.valueOf(value));
-					}
-				});
-				incButton.setOnClickListener(v -> {
-					if (!enabled)
-						return;
-					int value = getValueInt() + 1;
-					if (value <= maxValue) {
-						mProperties.setProperty(property, String.valueOf(value));
-						View view1 = getView(null, null);
-						EditText editText = view1.findViewById(R.id.option_value);
-						editText.setText(String.valueOf(value));
-					}
-				});
-				valueView.setEnabled(enabled);
-				setupIconView((ImageView)view.findViewById(R.id.option_icon));
-			} else {
-				view = convertView;
-			}
-			return view;
+				@Override
+				public void onCancel() {
+				}
+			});
+			dlg.show();
 		}
 	}
 
@@ -1814,6 +1769,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			isHtmlFormat = readerView.isHtmlFormat();
 		}
 		showIcons = mProperties.getBool(PROP_APP_SETTINGS_SHOW_ICONS, true);
+		mSynthWeights = Engine.getAvailableSynthFontWeight();
+		if (null == mSynthWeights)
+			mSynthWeights = new int[] {};
 		this.mode = mode;
 	}
 	
@@ -2347,7 +2305,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), PROP_APP_SHOW_COVERPAGES).noIcon());
 		mOptionsBrowser.add(new ListOption(this, getString(R.string.options_app_cover_page_size), PROP_APP_COVERPAGE_SIZE).add(mCoverPageSizes, mCoverPageSizeTitles).setDefaultValue("1").noIcon());
 		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1").noIcon());
-		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0").noIcon());
+		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setComment(getString(R.string.options_hide_empty_dirs_slowdown)).setDefaultValue("0").noIcon());
 		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_genres), PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES).setDefaultValue("0").noIcon());
 		mOptionsBrowser.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1").noIcon());
 		mOptionsBrowser.add(new LangOption(this).noIcon());
@@ -2498,6 +2456,102 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		setView(view);
 	}
 
+	private String getWeightName(int weight) {
+		String name = "";
+		switch (weight) {
+			case 100:
+				name = getString(R.string.font_weight_thin);
+				break;
+			case 200:
+				name = getString(R.string.font_weight_extralight);
+				break;
+			case 300:
+				name = getString(R.string.font_weight_light);
+				break;
+			case 350:
+				name = getString(R.string.font_weight_book);
+				break;
+			case 400:
+				name = getString(R.string.font_weight_regular);
+				break;
+			case 500:
+				name = getString(R.string.font_weight_medium);
+				break;
+			case 600:
+				name = getString(R.string.font_weight_semibold);
+				break;
+			case 700:
+				name = getString(R.string.font_weight_bold);
+				break;
+			case 800:
+				name = getString(R.string.font_weight_extrabold);
+				break;
+			case 900:
+				name = getString(R.string.font_weight_black);
+				break;
+			case 950:
+				name = getString(R.string.font_weight_extrablack);
+				break;
+		}
+		return name;
+	}
+
+	private void updateFontWeightValues(ListOption option, String faceName) {
+		// get available weight for font faceName
+		int[] nativeWeights = Engine.getAvailableFontWeight(faceName);
+		if (null == nativeWeights || 0 == nativeWeights.length) {
+			// invalid font
+			option.clear();
+			return;
+		}
+		ArrayList<Integer> nativeWeightsArray = new ArrayList<>();	// for search
+		for (int w : nativeWeights)
+			nativeWeightsArray.add(w);
+		// combine with synthetic weights
+		ArrayList<Integer> weights = new ArrayList<>();
+		int synth_idx = 0;
+		int i, j;
+		int weight = 0, prev_weight = 0;
+		for (i = 0; i < nativeWeights.length; i++) {
+			weight = nativeWeights[i];
+			for (j = synth_idx; j < mSynthWeights.length; j++) {
+				int synth_weight = mSynthWeights[j];
+				if (synth_weight < weight) {
+					if (synth_weight > prev_weight)
+						weights.add(synth_weight);
+				}
+				else
+					break;
+			}
+			synth_idx = j;
+			weights.add(weight);
+			prev_weight = weight;
+		}
+		for (j = synth_idx; j < mSynthWeights.length; j++) {
+			if (mSynthWeights[j] > weight)
+				weights.add(mSynthWeights[j]);
+		}
+		// fill items
+		option.clear();
+		for (i = 0; i < weights.size(); i++) {
+			weight = weights.get(i);
+			String label = String.valueOf(weight);
+			String descr = getWeightName(weight);
+			if (!nativeWeightsArray.contains(weight)) {
+				if (descr.length() > 0)
+					descr += ", " + getString(R.string.font_weight_fake);
+				else
+					descr = getString(R.string.font_weight_fake);
+			}
+			if (descr.length() > 0)
+				label += " (" + descr + ")";
+			option.add(weight, label);
+		}
+		// enable/disable font hinting option
+		//int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
+		//mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
+	}
+
 	private void setupReaderOptions()
 	{
         mInflater = LayoutInflater.from(getContext());
@@ -2514,10 +2568,29 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				mProperties.getInt(PROP_REQUESTED_DOM_VERSION, 0) < 20180524;
 
 		mOptionsStyles = new OptionsListView(getContext());
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
+		mFontHintingOption = new ListOption(this, getString(R.string.options_font_hinting), PROP_FONT_HINTING).add(mHinting, mHintingTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_hinting_drawable, R.drawable.cr3_option_text_hinting);
+		OptionBase fontOption = new ListOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face);
+		mOptionsStyles.add(fontOption);
 		mOptionsStyles.add(new NumberPickerOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).setMinValue(mActivity.getMinFontSize()).setMaxValue(mActivity.getMaxFontSize()).setDefaultValue("24").setIconIdByAttr(R.attr.cr3_option_font_size_drawable, R.drawable.cr3_option_font_size));
-		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_embolden), PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_text_bold_drawable, R.drawable.cr3_option_text_bold));
-		//mOptionsStyles.add(new BoolOption(getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).setInverse().setDefaultValue("0"));
+		mFontWeightOption = (ListOption) new ListOption(this, getString(R.string.options_font_weight), PROP_FONT_BASE_WEIGHT).setIconIdByAttr(R.attr.cr3_option_text_bold_drawable, R.drawable.cr3_option_text_bold);
+		updateFontWeightValues(mFontWeightOption, mProperties.getProperty(PROP_FONT_FACE, ""));
+		mOptionsStyles.add(mFontWeightOption);
+		fontOption.setOnChangeHandler(() -> {
+			String faceName = mProperties.getProperty(PROP_FONT_FACE, "");
+			updateFontWeightValues(mFontWeightOption, faceName);
+		});
+		mFontWeightOption.setOnChangeHandler(() -> {
+			// enable/disable font hinting option
+			String faceName = mProperties.getProperty(PROP_FONT_FACE, "");
+			int[] nativeWeights = Engine.getAvailableFontWeight(faceName);
+			if (null != nativeWeights && 0 != nativeWeights.length) {
+				ArrayList<Integer> nativeWeightsArray = new ArrayList<>();    // for search
+				for (int w : nativeWeights)
+					nativeWeightsArray.add(w);
+				//int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
+				//mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
+			}
+		});
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_antialias_drawable, R.drawable.cr3_option_text_antialias));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_interline_space), PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100").setIconIdByAttr(R.attr.cr3_option_line_spacing_drawable, R.drawable.cr3_option_line_spacing));
 		//
@@ -2542,7 +2615,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new ImageScalingOption(this, getString(R.string.options_format_image_scaling)).setIconIdByAttr(R.attr.cr3_option_images_drawable, R.drawable.cr3_option_images));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_render_font_gamma), PROP_FONT_GAMMA).add(mGammas).setDefaultValue("1.0").setIconIdByAttr(R.attr.cr3_option_font_gamma_drawable, R.drawable.cr3_option_font_gamma));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_format_min_space_width_percent), PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT).addPercents(mMinSpaceWidths).setDefaultValue("50").setIconIdByAttr(R.attr.cr3_option_text_width_drawable, R.drawable.cr3_option_text_width));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_hinting), PROP_FONT_HINTING).add(mHinting, mHintingTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_hinting_drawable, R.drawable.cr3_option_text_hinting));
+		mOptionsStyles.add(mFontHintingOption);
 		mOptionsStyles.add(new FallbackFontsOptions(this, getString(R.string.options_font_fallback_faces)).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
 		
 		//
@@ -2640,7 +2713,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), PROP_APP_SHOW_COVERPAGES).noIcon());
 		mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_cover_page_size), PROP_APP_COVERPAGE_SIZE).add(mCoverPageSizes, mCoverPageSizeTitles).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1").noIcon());
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0").noIcon());
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setComment(getString(R.string.options_hide_empty_dirs_slowdown)).setDefaultValue("0").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_genres), PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES).setDefaultValue("0").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.mi_book_browser_simple_mode), PROP_APP_FILE_BROWSER_SIMPLE_MODE).noIcon());
 		if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
@@ -2838,6 +2911,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 	@Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (KeyEvent.KEYCODE_BACK == keyCode) {
+			return true;
+		}
 		if (mode == Mode.READER) {
 	        if (mTabs.getCurrentView().onKeyDown(keyCode, event))
 	        	return true;
@@ -2846,5 +2922,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	        	return true;
 		}
         return super.onKeyDown(keyCode, event);
-    }	
+    }
+
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		if (KeyEvent.KEYCODE_BACK == keyCode) {
+			onPositiveButtonClick();
+			return true;
+		}
+		return super.onKeyUp(keyCode, event);
+	}
+
 }

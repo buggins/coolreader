@@ -11,10 +11,12 @@ import android.util.Log;
 import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.Bookmark;
 import org.coolreader.crengine.DeviceInfo;
+import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.MountPathCorrector;
+import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.Utils;
 
 import java.io.File;
@@ -485,11 +487,11 @@ public class CRDBService extends Service {
 		});
 	}
 
-	public void loadFileInfos(final ArrayList<String> pathNames, final FileInfoLoadingCallback callback, final Handler handler) {
+	public void loadFileInfos(final ArrayList<String> pathNames, final Scanner.ScanControl control, final Engine.ProgressControl progress, final FileInfoLoadingCallback callback, final Handler handler) {
 		execTask(new Task("loadFileInfos") {
 			@Override
 			public void work() {
-				final ArrayList<FileInfo> list = mainDB.loadFileInfos(pathNames);
+				final ArrayList<FileInfo> list = mainDB.loadFileInfos(pathNames, control, progress);
 				sendTask(handler, () -> callback.onFileInfoListLoaded(list));
 			}
 		});
@@ -749,8 +751,8 @@ public class CRDBService extends Service {
 			getService().findByPatterns(maxCount, authors, title, series, filename, callback, new Handler());
 		}
 
-		public void loadFileInfos(final ArrayList<String> pathNames, final FileInfoLoadingCallback callback) {
-    		getService().loadFileInfos(pathNames, callback, new Handler());
+		public void loadFileInfos(final ArrayList<String> pathNames, final Scanner.ScanControl control, final Engine.ProgressControl progress, final FileInfoLoadingCallback callback) {
+    		getService().loadFileInfos(pathNames, control, progress, callback, new Handler());
     	}
 
     	public void deleteBook(final FileInfo fileInfo)	{

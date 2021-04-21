@@ -36,6 +36,9 @@ public:
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
                                 int features=0, int documentId = -1, bool useBias=false) = 0;
 
+    /// return available font weight values
+    virtual void GetAvailableFontWeights(LVArray<int>& weights, lString8 typeface) = 0;
+
     /// set fallback font face list semicolon separated (returns true if any font is found)
     virtual bool SetFallbackFontFaces( lString8 faces ) {
         CR_UNUSED(faces);
@@ -67,7 +70,7 @@ public:
     /// registers font by name
     virtual bool RegisterFont( lString8 name ) = 0;
     /// registers font by name and face
-    virtual bool RegisterExternalFont(lString32 /*name*/, lString8 /*face*/, bool /*bold*/, bool /*italic*/) { return false; }
+    virtual bool RegisterExternalFont(int /*documentId*/, lString32 /*name*/, lString8 /*face*/, bool /*bold*/, bool /*italic*/) { return false; }
     /// registers document font
     virtual bool
     RegisterDocumentFont(int /*documentId*/, LVContainerRef /*container*/, lString32 /*name*/,

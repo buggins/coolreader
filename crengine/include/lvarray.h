@@ -225,6 +225,16 @@ public:
         _array[pos] = item;
         _count++;
     }
+
+    /// returns index of specified value, -1 if not found
+    int indexOf(int value) const {
+        for ( int i=0; i<_count; i++ ) {
+            if ( _array[i] == value )
+                return i;
+        }
+        return -1;
+    }
+
     /// returns array pointer
     T * ptr() const { return _array; }
     /// destructor

@@ -41,7 +41,10 @@ public class History extends FileInfoChangeSource {
 			return;
 		}
 		db.loadBookInfo(file, bookInfo -> {
-			if (bookInfo == null) {
+			if (bookInfo == null || bookInfo.getFileInfo() == null
+					|| bookInfo.getFileInfo().arcsize < 0
+					|| bookInfo.getFileInfo().size < 0
+					|| bookInfo.getFileInfo().crc32 < 0) {
 				bookInfo = new BookInfo(file);
 				mBooks.add(0, bookInfo);
 			}

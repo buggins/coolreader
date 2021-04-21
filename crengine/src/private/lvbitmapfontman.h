@@ -44,6 +44,8 @@ public:
     GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
             int features=0, int documentId = -1, bool useBias=false);
 
+    virtual void GetAvailableFontWeights(LVArray<int>& weights, lString8 typeface) {}
+
     virtual bool RegisterFont(lString8 name);
 
     /// returns registered font files

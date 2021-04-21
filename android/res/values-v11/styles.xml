@@ -94,6 +94,8 @@
         <!-- item name="android:textColor">@android:color/black</item-->
         <item name="android:listViewStyle">@style/ListView.Light</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Light</item>
+        <item name="textColorOptionLabel">@color/label_light</item>
+        <item name="textColorOptionValue">@color/value_light</item>
     </style>
     <style name="Theme.Dark" parent="@style/Theme.Black">
         <item name="android:windowBackground">@drawable/background_tiled_dark</item>
@@ -101,6 +103,8 @@
         <!-- item name="android:textColor">@android:color/white</item-->
         <item name="android:listViewStyle">@style/ListView.Dark</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Dark</item>
+        <item name="textColorOptionLabel">@color/label_dark</item>
+        <item name="textColorOptionValue">@color/value_dark</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Holo.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -122,7 +126,8 @@
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
         <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
-        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="textColorOptionLabel">?android:attr/textColorPrimary</item>
+        <item name="textColorOptionValue">?android:attr/textColorSecondary</item>
         <item name="tts_toolbar_background">#D0808080</item>
         <item name="tabIndicatorBackground">@drawable/tab_indicator_holo</item>
 
@@ -234,7 +239,8 @@
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
         <item name="textColorToolBarLabel">?android:attr/textColorSecondary</item>
-        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="textColorOptionLabel">?android:attr/textColorPrimary</item>
+        <item name="textColorOptionValue">?android:attr/textColorSecondary</item>
         <item name="tts_toolbar_background">#D0808080</item>
         <item name="tabIndicatorBackground">@drawable/tab_indicator_holo</item>
 
@@ -367,14 +373,13 @@
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
         <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
-        <item name="rootDelimiterStyle">@style/RootDelimiter.White</item>
-
         <!-- toolbar button background -->
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background_hc</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#FFFFFFFF</item>
-        <item name="textColorToolBarLabel">@android:color/black</item>
-        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="textColorToolBarLabel">@color/label_hc_light</item>
+        <item name="textColorOptionLabel">@color/label_hc_light</item>
+        <item name="textColorOptionValue">@color/label_hc_light</item>
         <item name="tts_toolbar_background">#FFFFFFFF</item>
         <item name="tabIndicatorBackground">@drawable/tab_indicator_hc_light</item>
 
@@ -481,14 +486,13 @@
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
         <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
 
-        <item name="rootDelimiterStyle">@style/RootDelimiter.Black</item>
-
         <!-- toolbar button background -->
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background_hc</item>
         <!-- tabbar background color -->
         <item name="tabbarBackground">#40404040</item>
-        <item name="textColorToolBarLabel">@android:color/white</item>
-        <item name="textColorOptionValue">?attr/textColorToolBarLabel</item>
+        <item name="textColorToolBarLabel">@color/label_hc_dark</item>
+        <item name="textColorOptionLabel">@color/label_hc_dark</item>
+        <item name="textColorOptionValue">@color/label_hc_dark</item>
         <item name="tts_toolbar_background">#FFFFFFFF</item>
         <item name="tabIndicatorBackground">@drawable/tab_indicator_hc_dark</item>
 
@@ -665,7 +669,7 @@
         <item name="android:background">#60808080</item>
     </style>
     <style name="TapZoneGridCell">
-        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">fill_parent</item>
         <item name="android:layout_weight">1</item>
         <item name="android:gravity">center_vertical|center_horizontal</item>
@@ -678,18 +682,20 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_weight">1</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:maxLines">3</item>
+        <item name="android:maxLines">5</item>
         <item name="android:gravity">center_vertical|center_horizontal</item>
         <item name="android:padding">2dip</item>
         <item name="android:layout_margin">2dip</item>
+        <item name="android:ellipsize">end</item>
     </style>
     <style name="TapZoneGridCellTextSecond">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_weight">1</item>
-        <item name="android:maxLines">3</item>
+        <item name="android:maxLines">5</item>
         <item name="android:gravity">center_vertical|center_horizontal</item>
         <item name="android:padding">2dip</item>
         <item name="android:layout_margin">2dip</item>
+        <item name="android:ellipsize">end</item>
     </style>
 </resources>

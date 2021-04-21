@@ -1294,6 +1294,42 @@ public class BaseActivity extends Activity implements Settings {
 		// On e-ink in ReaderView gesture handlers setScreenBacklightLevel() & setScreenWarmBacklightLevel() called directly
 	}
 
+	public void validateSettings() {
+		Properties props = settings();
+		boolean menuKeyActionFound = false;
+		for (SettingsManager.DefKeyAction ka : SettingsManager.DEF_KEY_ACTIONS) {
+			if (ReaderAction.READER_MENU.id.equals(ka.action.id)) {
+				if (ka.keyCode != KeyEvent.KEYCODE_MENU || hasHardwareMenuKey()) {
+					menuKeyActionFound = true;
+					break;
+				}
+			}
+		}
+		boolean menuTapActionFound = false;
+		for (SettingsManager.DefTapAction ka : SettingsManager.DEF_TAP_ACTIONS) {
+			String paramName = ka.longPress ? ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone : ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone;
+			String value = props.getProperty(paramName);
+			if (ReaderAction.READER_MENU.id.equals(value))
+				menuTapActionFound = true;
+		}
+		boolean toolbarEnabled = (props.getInt(Settings.PROP_TOOLBAR_LOCATION, Settings.VIEWER_TOOLBAR_NONE) != Settings.VIEWER_TOOLBAR_NONE
+				&& isFullscreen() && !props.getBool(PROP_TOOLBAR_HIDE_IN_FULLSCREEN, false));
+		if (!menuTapActionFound && !menuKeyActionFound && !toolbarEnabled) {
+			showNotice(R.string.inconsistent_options,
+					R.string.inconsistent_options_toolbar, () -> {
+						// enabled toolbar
+						setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_SHORT_SIDE), true);
+						setSetting(PROP_TOOLBAR_HIDE_IN_FULLSCREEN, String.valueOf(0), true);
+					},
+					R.string.inconsistent_options_tap_reading_menu, () -> {
+						String paramName = ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".5";
+						setSetting(paramName, ReaderAction.READER_MENU.id, true);
+					}
+			);
+		}
+		// TODO: check any other options for compatibility
+	}
+
 
 	public void showNotice(int questionResourceId, final Runnable action, final Runnable cancelAction) {
 		NoticeDialog dlg = new NoticeDialog(this, action, cancelAction);
@@ -1301,8 +1337,15 @@ public class BaseActivity extends Activity implements Settings {
 		dlg.show();
 	}
 
+	public void showNotice(int questionResourceId, int button1TextRes, final Runnable button1Runnable,
+						   int button2TextRes, final Runnable button2Runnable) {
+		NoticeDialog dlg = new NoticeDialog(this, button1TextRes, button1Runnable, button2TextRes, button2Runnable);
+		dlg.setMessage(questionResourceId);
+		dlg.show();
+	}
+
 	public void showNotice(int questionResourceId, final Runnable action) {
-		NoticeDialog dlg = new NoticeDialog(this, action, null);
+		NoticeDialog dlg = new NoticeDialog(this, action);
 		dlg.setMessage(questionResourceId);
 		dlg.show();
 	}
@@ -1724,6 +1767,12 @@ public class BaseActivity extends Activity implements Settings {
 					props.remove("crengine.hyphenation.dictionary.code");
 				}
 			}
+			String oldEmbolden = props.getProperty(ReaderView.PROP_FONT_WEIGHT_EMBOLDEN_OBSOLETED);
+			if (null != oldEmbolden && oldEmbolden.length() > 0) {
+				boolean flg = "1".equals(oldEmbolden);
+				props.applyDefault(ReaderView.PROP_FONT_BASE_WEIGHT, flg ? 700 : 400);
+				props.remove(PROP_FONT_WEIGHT_EMBOLDEN_OBSOLETED);
+			}
 		}
 
 		public Properties loadSettings(BaseActivity activity, File file) {
@@ -1740,16 +1789,24 @@ public class BaseActivity extends Activity implements Settings {
 			}
 
 			// default key actions
-			boolean menuKeyActionFound = false;
 			for (DefKeyAction ka : DEF_KEY_ACTIONS) {
 				props.applyDefault(ka.getProp(), ka.action.id);
-				if (ReaderAction.READER_MENU.id.equals(ka.action.id))
-					menuKeyActionFound = true;
 			}
 			if (DeviceInfo.NOOK_NAVIGATION_KEYS) {
 				// Add default key mappings for Nook devices & also override defaults for some keys (PAGE_UP, PAGE_DOWN)
 				for (DefKeyAction ka : DEF_NOOK_KEY_ACTIONS) {
 					props.applyDefault(ka.getProp(), ka.action.id);
+				}
+			}
+
+			/*
+			 * Moved to function validateSettings()
+			 *
+			boolean menuKeyActionFound = false;
+			for (DefKeyAction ka : DEF_KEY_ACTIONS) {
+				if (ReaderAction.READER_MENU.id.equals(ka.action.id)) {
+					menuKeyActionFound = true;
+					break;
 				}
 			}
 
@@ -1761,17 +1818,21 @@ public class BaseActivity extends Activity implements Settings {
 					menuTapActionFound = true;
 			}
 
+			boolean toolbarEnabled = props.getInt(Settings.PROP_TOOLBAR_LOCATION, Settings.VIEWER_TOOLBAR_NONE) != Settings.VIEWER_TOOLBAR_NONE;
+
 			// default tap zone actions
 			for (DefTapAction ka : DEF_TAP_ACTIONS) {
 				String paramName = ka.longPress ? ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone : ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone;
 
-				if (ka.zone == 5 && !activity.hasHardwareMenuKey() && !menuTapActionFound && !menuKeyActionFound) {
+				if (ka.zone == 5 && !ka.longPress && !menuTapActionFound && !(activity.hasHardwareMenuKey() && menuKeyActionFound) && !toolbarEnabled) {
 					// force assignment of central tap zone
+					log.w("force assignment of central tap zone to " + ka.action.id);
 					props.setProperty(paramName, ka.action.id);
 				} else {
 					props.applyDefault(paramName, ka.action.id);
 				}
 			}
+			*/
 
 			if (DeviceInfo.EINK_NOOK) {
 				props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_NONE);
@@ -1840,6 +1901,7 @@ public class BaseActivity extends Activity implements Settings {
 			fixFontSettings(props);
 			upgradeSettings(props);
 			props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
+			props.applyDefault(ReaderView.PROP_FONT_BASE_WEIGHT, 400);
 			props.applyDefault(ReaderView.PROP_FONT_HINTING, "2");
 			props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : String.valueOf(statusFontSize));
 			props.applyDefault(ReaderView.PROP_FONT_COLOR, "#000000");
@@ -1878,6 +1940,8 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_SELECTION_ACTION, "0");
 			props.applyDefault(ReaderView.PROP_APP_MULTI_SELECTION_ACTION, "0");
 
+			// Here use mActivity.getDensityDpi() is incorrect
+			// since lvrend.cpp assumes a base DPI of 96 and *not* 160 when using the PROP_RENDER_DPI property!
 			props.setProperty(ReaderView.PROP_RENDER_DPI, Integer.valueOf((int)(96*mActivity.getDensityFactor())).toString());
 
 			props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, "1");

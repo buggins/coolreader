@@ -304,9 +304,15 @@ public class Engine {
 	// });
 	// }
 	// }
+
 	public void showProgress(final int mainProgress, final int resourceId) {
 		showProgress(mainProgress,
 				mActivity.getResources().getString(resourceId));
+	}
+
+	public void showProgress(final int mainProgress, final int resourceId, Scanner.ScanControl scanControl) {
+		showProgress(mainProgress,
+				mActivity.getResources().getString(resourceId), scanControl);
 	}
 
 	private String mProgressMessage = null;
@@ -369,6 +375,18 @@ public class Engine {
 	 * @param msg          is progress message
 	 */
 	public void showProgress(final int mainProgress, final String msg) {
+		showProgress(mainProgress, msg, null);
+	}
+
+	/**
+	 * Show progress dialog.
+	 * (thread-safe)
+	 *
+	 * @param mainProgress is percent*100
+	 * @param msg          is progress message
+	 * @param scanControl  control to interrupt process, can be null.
+	 */
+	public void showProgress(final int mainProgress, final String msg, Scanner.ScanControl scanControl) {
 		final int progressId = ++nextProgressId;
 		mProgressMessage = msg;
 		mProgressPos = mainProgress;
@@ -392,21 +410,25 @@ public class Engine {
 					try {
 						if (mActivity != null && mActivity.isStarted()) {
 							mProgress = new ProgressDialog(mActivity);
-							mProgress
-									.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+							mProgress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 							if (progressIcon != null)
 								mProgress.setIcon(progressIcon);
 							else
 								mProgress.setIcon(R.mipmap.cr3_logo);
 							mProgress.setMax(10000);
-							mProgress.setCancelable(false);
+							mProgress.setCancelable(null != scanControl);
 							mProgress.setProgress(mainProgress);
-							mProgress
-									.setTitle(mActivity
+							mProgress.setTitle(mActivity
 											.getResources()
 											.getString(
 													R.string.progress_please_wait));
 							mProgress.setMessage(msg);
+							mProgress.setOnCancelListener(dialog -> {
+								if (null != scanControl) {
+									log.e("scanControl.stop()");
+									scanControl.stop();
+								}
+							});
 							mProgress.show();
 							progressShown = true;
 						}
@@ -420,6 +442,13 @@ public class Engine {
 				} else {
 					mProgress.setProgress(mainProgress);
 					mProgress.setMessage(msg);
+					mProgress.setCancelable(null != scanControl);
+					mProgress.setOnCancelListener(dialog -> {
+						if (null != scanControl) {
+							log.e("scanControl.stop()");
+							scanControl.stop();
+						}
+					});
 					if (!mProgress.isShowing()) {
 						mProgress.show();
 						progressShown = true;
@@ -584,6 +613,10 @@ public class Engine {
 	private native static String[] getFontFaceListInternal();
 
 	private native static String[] getFontFileNameListInternal();
+
+	private native static int[] getAvailableFontWeightInternal(String fontFace);
+
+	private native static int[] getAvailableSynthFontWeightInternal();
 
 	private native static String[] getArchiveItemsInternal(String arcName); // pairs: pathname, size
 
@@ -1039,6 +1072,18 @@ public class Engine {
 		}
 	}
 
+	public static int[] getAvailableFontWeight(String fontFace) {
+		synchronized (lock) {
+			return getAvailableFontWeightInternal(fontFace);
+		}
+	}
+
+	public static int[] getAvailableSynthFontWeight() {
+		synchronized (lock) {
+			return getAvailableSynthFontWeightInternal();
+		}
+	}
+
 	private int currentKeyBacklightLevel = 1;
 
 	public int getKeyBacklight() {
@@ -1273,12 +1318,12 @@ public class Engine {
 		try {
 			String reg = "(?i).*vold.*(vfat|ntfs|exfat|fat32|ext3|ext4).*rw.*";
 			String reg2 = "(?i).*fuse.*(vfat|ntfs|exfat|fat32|ext3|ext4|fuse).*rw.*";
-			StringBuilder s = new StringBuilder();
+			String s = "";
 			try {
 				final Process process = new ProcessBuilder().command("mount")
 						.redirectErrorStream(true).start();
 				ProcessIOWithTimeout processIOWithTimeout = new ProcessIOWithTimeout(process, 1024);
-				int exitCode = processIOWithTimeout.waitForProcess(100);
+				int exitCode = processIOWithTimeout.waitForProcess(200);
 				if (exitCode == ProcessIOWithTimeout.EXIT_CODE_TIMEOUT) {
 					// Timeout
 					log.e("Timed out waiting for mount command output, " +
@@ -1286,19 +1331,13 @@ public class Engine {
 					process.destroy();
 					return out;
 				}
-				try (ByteArrayInputStream inputStream = new ByteArrayInputStream(processIOWithTimeout.receivedData())) {
-					byte[] buffer = new byte[1024];
-					int rb;
-					while ((rb = inputStream.read(buffer)) != -1) {
-						s.append(new String(buffer, 0, rb));
-					}
-				}
+				s = processIOWithTimeout.receivedText();
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 
 			// parse output
-			final String[] lines = s.toString().split("\n");
+			final String[] lines = s.split("\n");
 			for (String line : lines) {
 				if (!line.toLowerCase(Locale.US).contains("asec")) {
 					log.d("mount entry: " + line);
@@ -1747,9 +1786,9 @@ public class Engine {
 			new BackgroundTextureInfo("bg_paper2_dark", "Paper 2 (dark)",
 					R.drawable.bg_paper2_dark),
 			new BackgroundTextureInfo("tx_wood", "Wood",
-					DeviceInfo.getSDKLevel() == 3 ? R.drawable.tx_wood_v3 : R.drawable.tx_wood),
+					R.drawable.tx_wood),
 			new BackgroundTextureInfo("tx_wood_dark", "Wood (dark)",
-					DeviceInfo.getSDKLevel() == 3 ? R.drawable.tx_wood_dark_v3 : R.drawable.tx_wood_dark),
+					R.drawable.tx_wood_dark),
 			new BackgroundTextureInfo("tx_fabric", "Fabric",
 					R.drawable.tx_fabric),
 			new BackgroundTextureInfo("tx_fabric_dark", "Fabric (dark)",
@@ -1944,17 +1983,28 @@ public class Engine {
 		return new ProgressControl(resourceId);
 	}
 
-	private static final int PROGRESS_UPDATE_INTERVAL = DeviceInfo.EINK_SCREEN ? 4000 : 500;
-	private static final int PROGRESS_SHOW_INTERVAL = DeviceInfo.EINK_SCREEN ? 4000 : 1500;
+	public ProgressControl createProgress(int resourceId, Scanner.ScanControl scanControl) {
+		return new ProgressControl(resourceId, scanControl);
+	}
+
+	private static final int PROGRESS_UPDATE_INTERVAL = DeviceInfo.EINK_SCREEN ? 1000 : 500;
+	private static final int PROGRESS_SHOW_INTERVAL = DeviceInfo.EINK_SCREEN ? 1000 : 500;
 
 	public class ProgressControl {
 		private final int resourceId;
-		private long createTime = Utils.timeStamp();
+		private final long createTime = Utils.timeStamp();
+		private final Scanner.ScanControl scanControl;
 		private long lastUpdateTime;
 		private boolean shown;
 
 		private ProgressControl(int resourceId) {
 			this.resourceId = resourceId;
+			this.scanControl = null;
+		}
+
+		private ProgressControl(int resourceId, Scanner.ScanControl scanControl) {
+			this.resourceId = resourceId;
+			this.scanControl = scanControl;
 		}
 
 		public void hide() {
@@ -1974,7 +2024,7 @@ public class Engine {
 				return;
 			shown = true;
 			lastUpdateTime = Utils.timeStamp();
-			showProgress(percent, resourceId);
+			showProgress(percent, resourceId, scanControl);
 		}
 	}
 

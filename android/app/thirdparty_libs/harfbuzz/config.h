@@ -35,7 +35,7 @@
 #define HAVE_FREETYPE 1
 
 /* Define to 1 if you have the `FT_Done_MM_Var' function. */
-/* #undef HAVE_FT_DONE_MM_VAR */
+#define HAVE_FT_DONE_MM_VAR 1
 
 /* Define to 1 if you have the `FT_Get_Var_Blend_Coordinates' function. */
 /* #undef HAVE_FT_GET_VAR_BLEND_COORDINATES */
@@ -64,9 +64,6 @@
 /* Use hb-icu Unicode callbacks */
 /* #undef HAVE_ICU_BUILTIN */
 
-/* Have Intel __sync_* atomic primitives */
-#define HAVE_INTEL_ATOMIC_PRIMITIVES 1
-
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
@@ -87,15 +84,6 @@
 
 /* Have PTHREAD_PRIO_INHERIT. */
 #define HAVE_PTHREAD_PRIO_INHERIT 1
-
-/* Define to 1 if you have the <sched.h> header file. */
-/* #undef HAVE_SCHED_H */
-
-/* Have sched_yield */
-/* #undef HAVE_SCHED_YIELD */
-
-/* Have Solaris __machine_*_barrier and atomic_* operations */
-/* #undef HAVE_SOLARIS_ATOMIC_OPS */
 
 /* Define to 1 if you have the <stdbool.h> header file. */
 #define HAVE_STDBOOL_H 1
@@ -146,7 +134,7 @@
 #define PACKAGE_NAME "HarfBuzz"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "HarfBuzz 2.7.4"
+#define PACKAGE_STRING "HarfBuzz 2.8.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "harfbuzz"
@@ -155,7 +143,7 @@
 #define PACKAGE_URL "http://harfbuzz.org/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.7.4"
+#define PACKAGE_VERSION "2.8.0"
 
 /* Define to necessary symbol if this constant uses a non-standard name on
    your system. */

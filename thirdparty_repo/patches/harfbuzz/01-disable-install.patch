@@ -1,7 +1,7 @@
-diff -urBb harfbuzz-2.7.4-orig/CMakeLists.txt harfbuzz-2.7.4/CMakeLists.txt
---- harfbuzz-2.7.4-orig/CMakeLists.txt	2020-12-27 04:01:18.000000000 +0400
-+++ harfbuzz-2.7.4/CMakeLists.txt	2021-01-26 23:47:31.915012725 +0400
-@@ -691,79 +691,3 @@
+diff -urBb harfbuzz-2.8.0-orig/CMakeLists.txt harfbuzz-2.8.0/CMakeLists.txt
+--- harfbuzz-2.8.0-orig/CMakeLists.txt	2021-03-16 21:32:44.000000000 +0400
++++ harfbuzz-2.8.0/CMakeLists.txt	2021-03-23 08:26:48.249008717 +0400
+@@ -664,79 +664,3 @@
  
    mark_as_advanced(CAIRO_INCLUDE_DIRS CAIRO_LIBRARIESNAMES)
  endif ()

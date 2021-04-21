@@ -820,7 +820,8 @@ public:
                     state = 2;
             else if (state == 1) {                // ex. [<secure/_stdio.h> or 5/3]
                     tmp<<('/');
-                    state = 0;
+                    if (c != ('/'))               // stay in state 1 if [//]
+                        state = 0;
             }
             else if (state == 2 && c == ('*'))    // ex. [/*he*]
                     state = 3;
@@ -1288,8 +1289,8 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     if ( !item )
                         break;
                     EpubItem * epubItem = epubItems.findById( item->getAttributeValue("idref") );
-                    epubItem->nonlinear = lString32(item->getAttributeValue("linear")).lowercase() == U"no";
                     if ( epubItem ) {
+                        epubItem->nonlinear = lString32(item->getAttributeValue("linear")).lowercase() == U"no";
                         // TODO: add to document
                         spineItems.add( epubItem );
                     }

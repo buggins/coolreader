@@ -69,6 +69,22 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFileNa
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    getAvailableFontWeightInternal
+ * Signature: (Ljava/lang/String;)[I
+ */
+JNIEXPORT jintArray JNICALL Java_org_coolreader_crengine_Engine_getAvailableFontWeightInternal
+  (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    getAvailableSynthFontWeightInternal
+ * Signature: ()[I
+ */
+JNIEXPORT jintArray JNICALL Java_org_coolreader_crengine_Engine_getAvailableSynthFontWeightInternal
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    getArchiveItemsInternal
  * Signature: (Ljava/lang/String;)[Ljava/lang/String;
  */

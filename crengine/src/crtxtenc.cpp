@@ -1728,12 +1728,12 @@ bool isValidUtf8Data( const unsigned char * buf, int buf_size )
         lUInt8 ch = *buf++;
         if ( (ch & 0x80) == 0 ) {
         } else if ( (ch & 0xC0) == 0x80 ) {
-            CRLog::trace("unexpected char %02x at position %x, str=%s", ch, (buf-1-start), lString8((const char *)(buf-1), 32).c_str());
+            //CRLog::trace("unexpected char %02x at position %x, str=%s", ch, (buf-1-start), lString8((const char *)(buf-1), 32).c_str());
             return false;
         } else if ( (ch & 0xE0) == 0xC0 ) {
             ch = *buf++;
             if ( (ch & 0xC0) != 0x80 ) {
-                CRLog::trace("unexpected char %02x at position %x, str=%s", ch, (buf-1-start), lString8((const char *)(buf-1), 32).c_str());
+                //CRLog::trace("unexpected char %02x at position %x, str=%s", ch, (buf-1-start), lString8((const char *)(buf-1), 32).c_str());
                 return false;
             }
         } else if ( (ch & 0xF0) == 0xE0 ) {

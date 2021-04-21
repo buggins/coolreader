@@ -67,6 +67,7 @@
     <string name="tab_options_clouds">Clouds</string>
     <string name="options_font_size">Font size</string>
     <string name="options_font_face">Font face</string>
+    <string name="options_font_weight">Font weight</string>
     <string name="options_font_embolden">Embolden font</string>
     <string name="options_font_antialias">Font antialiasing</string>
     <string name="options_font_antialias_off">No antialias</string>
@@ -731,4 +732,23 @@
     <string name="action_show_onyx_backlight_system_dialog">Show the system dialog for setting the backlight</string>
     <string name="confirmation_select_folder_for_log">On the next screen, select a directory to save the log file</string>
     <string name="notice_log_saved_to_">The log file was saved in file \"%s\". This file may contain personal data, for example, which books you read, be careful.</string>
+    <string name="inconsistent_options">Inconsistent options were found: the reading menu was disabled in the "Tap zone actions" section, the reading menu was not associated with any buttons in the "Keys actions" section, and the toolbar was also disabled. In order not to lose the functionality of the program, choose variant: enable the display of the toolbar, or add an action to display the reading menu on the touch screen</string>
+    <string name="inconsistent_options_toolbar">enable toolbar</string>
+    <string name="inconsistent_options_tap_reading_menu">add reading menu on the touch screen</string>
+    <string name="options_hide_empty_dirs_slowdown">(May slow down the listing of directory contents)</string>
+    <string name="font_weight_thin">Thin</string>
+    <string name="font_weight_extralight">ExtraLight</string>
+    <string name="font_weight_light">Light</string>
+    <string name="font_weight_book">Book</string>
+    <string name="font_weight_regular">Regular</string>
+    <string name="font_weight_medium">Medium</string>
+    <string name="font_weight_semibold">SemiBold</string>
+    <string name="font_weight_bold">Bold</string>
+    <string name="font_weight_extrabold">ExtraBold</string>
+    <string name="font_weight_black">Heavy/Black</string>
+    <string name="font_weight_extrablack">ExtraBlack</string>
+    <string name="font_weight_fake">synthetic*</string>
+    <string name="add_bookmark_to_page">Add bookmark to page</string>
+    <string name="btn_decrease">decrease</string>
+    <string name="btn_increase">increase</string>
 </resources>

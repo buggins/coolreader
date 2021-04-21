@@ -242,9 +242,12 @@ public:
         case in_filepath:
             _curr_file->setFilePath( txt );
             break;
-        case in_filesize:
-            _curr_file->setFileSize( txt.atoi() );
+        case in_filesize: {
+            lInt64 size = 0;
+            if (txt.atoi(size))
+                _curr_file->setFileSize( size );
             break;
+        }
         case in_dom_version:
             _curr_file->setDOMversion( txt.atoi() );
             break;
@@ -607,7 +610,7 @@ CRBookmark::CRBookmark (ldomXPointer ptr )
     //CRLog::trace("CRBookmark::CRBookmark() calling getChaptername");
 	setTitleText( CRBookmark::getChapterName( ptr ) );
     _startpos = ptr.toString();
-    CRLog::debug("new Xpath: %s, old Xpath: %s", LCSTR(_startpos), LCSTR(ptr.toString(XPATH_USE_NAMES)));
+    //CRLog::debug("new Xpath: %s, old Xpath: %s", LCSTR(_startpos), LCSTR(ptr.toString(XPATH_USE_NAMES)));
     _timestamp = (time_t)time(0);
     lvPoint endpt = pt;
     endpt.y += 100;

@@ -23,7 +23,8 @@ public interface Settings {
     public static final String PROP_FONT_GAMMA              ="font.gamma";
     public static final String PROP_FONT_GAMMA_DAY          ="font.gamma.day";
     public static final String PROP_FONT_GAMMA_NIGHT        ="font.gamma.night";
-    public static final String PROP_FONT_WEIGHT_EMBOLDEN    ="font.face.weight.embolden";
+    public static final String PROP_FONT_WEIGHT_EMBOLDEN_OBSOLETED ="font.face.weight.embolden";	// obsoleted
+    public static final String PROP_FONT_BASE_WEIGHT        ="font.face.base.weight";        // replaces PROP_FONT_WEIGHT_EMBOLDEN ("font.face.weight.embolden")
     public static final String PROP_TXT_OPTION_PREFORMATTED ="crengine.file.txt.preformatted";
     public static final String PROP_LOG_FILENAME            ="crengine.log.filename";
     public static final String PROP_LOG_LEVEL               ="crengine.log.level";
@@ -188,6 +189,8 @@ public interface Settings {
     String PROP_APP_TTS_USE_DOC_LANG = "app.tts.use.doc.lang";		// The TTS language is set according to the language of the book.
     String PROP_APP_TTS_FORCE_LANGUAGE = "app.tts.force.lang";		// Force use specified language
     String PROP_APP_TTS_VOICE = "app.tts.voice";
+
+    String PROP_APP_VIEW_ANIM_DURATION ="app.view.anim.duration";
 
     // available options for PROP_APP_SELECTION_ACTION setting
     public static final int SELECTION_ACTION_TOOLBAR = 0;

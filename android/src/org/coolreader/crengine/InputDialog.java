@@ -1,92 +1,138 @@
 package org.coolreader.crengine;
 
-import org.coolreader.R;
-
+import android.annotation.SuppressLint;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
 import android.text.method.DigitsKeyListener;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
+import org.coolreader.R;
+
 public class InputDialog extends BaseDialog {
 
 	public interface InputHandler {
-		boolean validate( String s ) throws Exception;
-		void onOk( String s ) throws Exception;
+		boolean validate(String s) throws Exception;
+
+		void onOk(String s) throws Exception;
+
 		void onCancel();
-	};
-	
-	private InputHandler handler;
-	private EditText input;
-	int minValue;
-	int maxValue;
-	public InputDialog( BaseActivity activity, final String title, final String prompt, boolean isNumberEdit, int minValue, int maxValue, int currentValue, final InputHandler handler )
-	{
-		super(activity, title, true, false);
-		this.handler = handler;
-		this.minValue = minValue;
-		this.maxValue = maxValue;
-        LayoutInflater mInflater = LayoutInflater.from(getContext());
-        ViewGroup layout = (ViewGroup)mInflater.inflate(R.layout.line_edit_dlg, null);
-        input = (EditText)layout.findViewById(R.id.input_field);
-        TextView promptView = (TextView)layout.findViewById(R.id.lbl_prompt);
-        if (promptView != null) {
-        	promptView.setText(prompt);
-        }
-        SeekBar seekBar = layout.findViewById(R.id.goto_position_seek_bar);
-        if (seekBar != null) {
-        	seekBar.setMax(maxValue - minValue);
-        	seekBar.setProgress(currentValue);
-        	seekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+	}
+
+	private final InputHandler mInputHandler;
+	private final EditText mEditText;
+	private final int mMinValue;
+	private final int mMaxValue;
+	private SeekBar mSeekBar;
+
+	public InputDialog(BaseActivity activity, final String title, final String prompt, boolean isNumberEdit, int minValue, int maxValue, int currentValue, final InputHandler inputHandler) {
+		this(activity, title, true, prompt, isNumberEdit, minValue, maxValue, currentValue, inputHandler);
+	}
+
+	@SuppressLint("ClickableViewAccessibility")
+	public InputDialog(BaseActivity activity, final String title, boolean showNegativeButton, final String prompt, boolean isNumberEdit, int minValue, int maxValue, int currentValue, final InputHandler inputHandler) {
+		super(activity, title, showNegativeButton, false);
+		mInputHandler = inputHandler;
+		mMinValue = minValue;
+		mMaxValue = maxValue;
+		LayoutInflater mInflater = LayoutInflater.from(getContext());
+		ViewGroup layout = (ViewGroup) mInflater.inflate(R.layout.line_edit_dlg, null);
+		mEditText = (EditText) layout.findViewById(R.id.input_field);
+		TextView promptView = (TextView) layout.findViewById(R.id.lbl_prompt);
+		if (promptView != null) {
+			promptView.setText(prompt);
+		}
+		mSeekBar = layout.findViewById(R.id.goto_position_seek_bar);
+		if (mSeekBar != null) {
+			mSeekBar.setMax(maxValue - minValue);
+			mSeekBar.setProgress(currentValue - minValue);
+			mSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 				@Override
 				public void onStopTrackingTouch(SeekBar seekBar) {
 				}
-				
+
 				@Override
 				public void onStartTrackingTouch(SeekBar seekBar) {
 				}
-				
+
 				@Override
 				public void onProgressChanged(SeekBar seekBar, int progress,
-						boolean fromUser) {
-					if (fromUser) {
-						String value = String.valueOf(progress + InputDialog.this.minValue);
+											  boolean fromUser) {
+					/*if (fromUser)*/
+					{
+						String value = String.valueOf(progress + InputDialog.this.mMinValue);
 						try {
-							if (handler.validate(value))
-								input.setText(value);
+							if (inputHandler.validate(value))
+								mEditText.setTextKeepState(value);
 						} catch (Exception e) {
 							// ignore
 						}
 					}
 				}
 			});
-        }
-        //input = new EditText(getContext());
-        if ( isNumberEdit )
-        	input.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
+		}
+		if (isNumberEdit) {
+			mEditText.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
+			mEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
+			if (currentValue >= minValue)
+				mEditText.setText(String.valueOf(currentValue));
 //	        input.getText().setFilters(new InputFilter[] {
 //	        	new DigitsKeyListener()        
 //	        });
-        setView(layout);
+			mEditText.addTextChangedListener(new TextWatcher() {
+				@Override
+				public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+				}
+
+				@Override
+				public void onTextChanged(CharSequence s, int start, int before, int count) {
+				}
+
+				@Override
+				public void afterTextChanged(Editable s) {
+					try {
+						int value = Integer.parseInt(s.toString());
+						mSeekBar.setProgress(value - InputDialog.this.mMinValue);
+					} catch (Exception ignored) {
+					}
+				}
+			});
+			ImageView decButton = layout.findViewById(R.id.btn_dec);
+			decButton.setVisibility(View.VISIBLE);
+			decButton.setOnTouchListener(new RepeatOnTouchListener(500, 150,
+					view -> mSeekBar.setProgress(mSeekBar.getProgress() - 1)));
+			ImageView incButton = layout.findViewById(R.id.btn_inc);
+			incButton.setVisibility(View.VISIBLE);
+			incButton.setOnTouchListener(new RepeatOnTouchListener(500, 150,
+					view -> mSeekBar.setProgress(mSeekBar.getProgress() + 1)));
+		}
+		setView(layout);
 	}
+
 	@Override
 	protected void onNegativeButtonClick() {
-        cancel();
-        handler.onCancel();
+		cancel();
+		mInputHandler.onCancel();
 	}
+
 	@Override
 	protected void onPositiveButtonClick() {
-        String value = input.getText().toString().trim();
-        try {
-        	if ( handler.validate(value) )
-        		handler.onOk(value);
-        	else
-        		handler.onCancel();
-        } catch ( Exception e ) {
-        	handler.onCancel();
-        }
-        cancel();
+		String value = mEditText.getText().toString().trim();
+		try {
+			if (mInputHandler.validate(value))
+				mInputHandler.onOk(value);
+			else
+				mInputHandler.onCancel();
+		} catch (Exception e) {
+			mInputHandler.onCancel();
+		}
+		cancel();
 	}
 }

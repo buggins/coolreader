@@ -21,6 +21,19 @@
 #include "../../include/cssdef.h"
 #include "../../include/lvarray.h"
 
+// LVFontDef carries a font definition, and can be used to identify:
+// - registered fonts, from available font files (size=-1 if scalable)
+// - instantiated fonts from one of the registered fonts, with some
+//   updated properties:
+//     - the specific size, > -1
+//     - _italic=2 (if font has no real italic, and it is synthesized
+//       thanks to Freetype from the regular font glyphs)
+//     - _weight=600 (updated weight if synthesized weight made from
+//       the regular font glyphs)
+// It can be used as a key by caches to retrieve a registered font
+// or an instantiated one, and as a query to find in the cache an
+// exact or an approximate font.
+
 /**
     @brief Font properties definition
 */
@@ -38,24 +51,26 @@ private:
     int _documentId;
     LVByteArrayRef _buf;
     int _bias;
+    bool _real_weight;
 public:
     LVFontDef(const lString8 &name, int size, int weight, int italic, int features, css_font_family_t family,
               const lString8 &typeface, int index = -1, int documentId = -1,
               LVByteArrayRef buf = LVByteArrayRef())
             : _size(size), _weight(weight), _italic(italic), _features(features), _family(family), _typeface(typeface),
-              _name(name), _index(index), _documentId(documentId), _buf(buf), _bias(0) {
+              _name(name), _index(index), _documentId(documentId), _buf(buf), _bias(0), _real_weight(true) {
     }
 
     LVFontDef(const LVFontDef &def)
             : _size(def._size), _weight(def._weight), _italic(def._italic), _features(def._features), _family(def._family),
               _typeface(def._typeface), _name(def._name), _index(def._index),
-              _documentId(def._documentId), _buf(def._buf), _bias(def._bias) {
+              _documentId(def._documentId), _buf(def._buf), _bias(def._bias), _real_weight(def._real_weight) {
     }
 
     /// returns true if definitions are equal
     bool operator==(const LVFontDef &def) const {
         return (_size == def._size || _size == -1 || def._size == -1)
                && (_weight == def._weight || _weight == -1 || def._weight == -1)
+               && _real_weight == def._real_weight
                && (_italic == def._italic || _italic == -1 || def._italic == -1)
                && _features == def._features
                && _family == def._family
@@ -84,7 +99,9 @@ public:
 
     int getWeight() const { return _weight; }
 
-    void setWeight(int weight) { _weight = weight; }
+    bool isRealWeight() const { return _real_weight; }
+
+    void setWeight(int weight, bool real = true) { _weight = weight; _real_weight = real; }
 
     bool getItalic() const { return _italic != 0; }
 

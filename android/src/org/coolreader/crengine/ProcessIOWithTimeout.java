@@ -16,6 +16,12 @@ public class ProcessIOWithTimeout extends Thread {
 	private final ByteArrayOutputStream m_outputStream;
 	private final byte[] m_buffer;
 
+	public ProcessIOWithTimeout(Process process) {
+		m_process = process;
+		m_outputStream = null;
+		m_buffer = null;
+	}
+
 	public ProcessIOWithTimeout(Process process, int buffSize) {
 		m_process = process;
 		m_buffer = new byte[buffSize];
@@ -33,27 +39,47 @@ public class ProcessIOWithTimeout extends Thread {
 	}
 
 	public byte[] receivedData() {
-		return m_outputStream.toByteArray();
+		if (null != m_outputStream)
+			return m_outputStream.toByteArray();
+		return null;
+	}
+
+	public String receivedText()  {
+		if (null != m_outputStream)
+			return m_outputStream.toString();
+		return "";
 	}
 
 	@Override
 	public void run() {
+		InputStream inputStream = null;
 		try {
-			InputStream inputStream = m_process.getInputStream();
-			int rb;
-			while ((rb = inputStream.read(m_buffer)) != -1) {
-				m_outputStream.write(m_buffer, 0, rb);
-			}
-			// at this point the process should already be terminated
-			// just get exit code
-			m_exitCode = m_process.waitFor();
-			inputStream.close();
+			if (null != m_outputStream && null != m_buffer) {
+				try { m_process.getOutputStream().close(); } catch (IOException ignored) {}
+				try { m_process.getErrorStream().close(); } catch (IOException ignored) {}
+				inputStream = m_process.getInputStream();
+				int rb;
+				while ((rb = inputStream.read(m_buffer)) > 0) {
+					m_outputStream.write(m_buffer, 0, rb);
+				}
+				// at this point the process should already be terminated
+				// just get exit code
+				m_exitCode = m_process.waitFor();
+			} else
+				m_exitCode = m_process.waitFor();
 		} catch (InterruptedException ignore) {
 			// Do nothing
 		} catch (IOException ignored) {
 			// Do nothing
 		} catch (Exception ex) {
 			// Unexpected exception
+		} finally {
+			if (null != inputStream) {
+				try {
+					inputStream.close();
+				} catch (Exception ignored) {
+				}
+			}
 		}
 	}
 }

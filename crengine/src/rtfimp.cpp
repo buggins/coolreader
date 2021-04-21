@@ -403,6 +403,8 @@ bool LVRtfParser::CheckFormat()
     Reset();
     if ( !FillBuffer( 50 ) )
         return false;
+    if (m_buf == NULL)
+        return false;
     res = (m_buf[0]=='{' && m_buf[1]=='\\' && m_buf[2]=='r'
          && m_buf[3]=='t' && m_buf[4]=='f' );
     Reset();

@@ -240,7 +240,7 @@ public class Utils {
 	private static boolean deleteFolderDocTree_impl(FileInfo folder, Context context, Uri sdCardUri, FileInfoOperationListener bookDeleteCallback) {
 		boolean res = true;
 		Scanner scanner = Services.getScanner();
-		scanner.listDirectory(folder, false);
+		scanner.listDirectory(folder, false, false);
 		DocumentFile documentFile;
 		int i;
 		for (i = 0; i < folder.dirCount(); i++) {
@@ -276,7 +276,7 @@ public class Utils {
 	private static boolean deleteFolder_impl(FileInfo folder, FileInfoOperationListener bookDeleteCallback) {
 		boolean res = true;
 		Scanner scanner = Services.getScanner();
-		scanner.listDirectory(folder, false);
+		scanner.listDirectory(folder, false, false);
 		int i;
 		// delete recursively all child folders
 		for (i = 0; i < folder.dirCount(); i++) {
@@ -555,6 +555,23 @@ public class Utils {
 		else
 			return String.valueOf(size/1000000) + "M";
 	}
+	public static String formatSize( long size )
+	{
+		if ( size==0 )
+			return "";
+		if ( size<10000 )
+			return String.valueOf(size);
+		else if ( size<1000000 )
+			return String.valueOf(size/1000) + "K";
+		else if ( size<10000000 )		// < 10M
+			return String.valueOf(size/1000000) + "." + String.valueOf(size%1000000/100000) + "M";
+		else if ( size<1000000000 )		// < 1G
+			return String.valueOf(size/1000000) + "M";
+		else if ( size<10000000000L )	// < 10G
+			return String.valueOf(size/1000000000L) + "." + String.valueOf(size%1000000000L/100000000L) + "G";
+		else
+			return String.valueOf(size/1000000000L) + "G";
+	}
 
 	public static String formatFileInfo(Activity activity, FileInfo item) {
 		return formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(activity, item.createTime);
@@ -750,20 +767,18 @@ public class Utils {
 
 	// to support API LEVEL 3: View.setContentDescription() has been added only since API LEVEL 4
 	public static void setContentDescription(View view, CharSequence text) {
-		if (DeviceInfo.getSDKLevel() >= 4) {
-			Method m;
-			try {
-				m = view.getClass().getMethod("setContentDescription", CharSequence.class);
-				m.invoke(view, text);
-			} catch (NoSuchMethodException e) {
-				// Ignore
-			} catch (IllegalArgumentException e) {
-				// Ignore
-			} catch (IllegalAccessException e) {
-				// Ignore
-			} catch (InvocationTargetException e) {
-				// Ignore
-			}
+		Method m;
+		try {
+			m = view.getClass().getMethod("setContentDescription", CharSequence.class);
+			m.invoke(view, text);
+		} catch (NoSuchMethodException e) {
+			// Ignore
+		} catch (IllegalArgumentException e) {
+			// Ignore
+		} catch (IllegalAccessException e) {
+			// Ignore
+		} catch (InvocationTargetException e) {
+			// Ignore
 		}
 	}
 

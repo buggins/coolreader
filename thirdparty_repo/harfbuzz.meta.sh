@@ -2,9 +2,9 @@
 # Metadata for deploy script
 
 PN="harfbuzz"
-PV="2.7.4"
+PV="2.8.0"
 SRCFILE="${PN}-${PV}.tar.xz"
-SHA512="d2af6a768c397c664f654cf36140e7b5696b3b983f637454604570c348247f7ffea135048d9b02cf6593cbde728567e31bf82a39df5ff38d680c78dff24d4cf0"
+SHA512="0ece78fa5c18be1fd693f40493ff3689a297ef4d5ad82f31054e8f42c1ba4e8b93afe1ed1ccb9eb9a0f165f8d1343c12c0606f1768a4f85bb041ae65018e6d83"
 
 URL="https://github.com/harfbuzz/harfbuzz/releases/download/${PV}/${SRCFILE}"
 

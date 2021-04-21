@@ -130,6 +130,7 @@ protected:
     void setCheckInversed( const char * optionName, int checkState );
     void optionToUiInversed( const char * optionName, QCheckBox * cb );
     void fontToUi( const char * faceOptionName, const char * sizeOptionName, QComboBox * faceCombo, QComboBox * sizeCombo, const char * defFontFace );
+    void updateFontWeights();
 
     void initStyleControls(const char * styleName);
 
@@ -231,6 +232,7 @@ private slots:
     void on_cbMultiLang_stateChanged(int state);
     void on_cbEnableHyph_stateChanged(int state);
     void on_btnFallbackMan_clicked();
+    void on_cbFontWeightChange_currentIndexChanged(int index);
 };
 
 #endif // SETTINGSDLG_H

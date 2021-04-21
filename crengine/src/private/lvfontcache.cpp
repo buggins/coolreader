@@ -179,6 +179,30 @@ void LVFontCache::removeDocumentFonts(int documentId) {
     }
 }
 
+static int s_int_comparator(const void * n1, const void * n2)
+{
+    int* i1 = (int*)n1;
+    int* i2 = (int*)n2;
+    return *i1 == *i2 ? 0 : (*i1 < *i2 ? -1 : 1);
+}
+
+void LVFontCache::getAvailableFontWeights(LVArray<int>& weights, lString8 faceName) {
+    weights.clear();
+    for (int i = 0; i < _registered_list.length(); i++) {
+        const LVFontCacheItem* item = _registered_list[i];
+        if (item->_def.getTypeFace() == faceName) {
+            if (item->_def.isRealWeight()) {       // ignore fonts with fake weight
+                int weight = item->_def.getWeight();
+                if (weights.indexOf(weight) < 0) {
+                    weights.add(weight);
+                }
+            }
+        }
+    }
+    int* ptr = weights.get();
+    qsort(ptr, (size_t)weights.length(), sizeof(int), s_int_comparator);
+}
+
 // garbage collector
 void LVFontCache::gc() {
     int droppedCount = 0;

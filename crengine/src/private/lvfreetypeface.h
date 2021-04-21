@@ -47,12 +47,6 @@
 
 #endif
 
-// Use Freetype embolden API instead of LVFontBoldTransform to
-// make fake bold (for fonts that do not provide a bold face).
-// This gives a chance to get them working with Harfbuzz, even if
-// they won't look as nice as if they came with a real bold font.
-#define USE_FT_EMBOLDEN
-
 #define CACHED_UNSIGNED_METRIC_NOT_SET 0xFFFF
 class LVFontGlyphUnsignedMetricCache
 {
@@ -131,8 +125,8 @@ protected:
     int _height; // full line height in pixels
     int _hyphen_width;
     int _baseline;
-    int _weight;
-    int _italic;
+    int _weight; // original font weight 400: normal, 700: bold, 100..900 thin..black
+    int _italic; // 0: regular, 1: italic, 2: fake/synthesized italic
     LVFontGlyphUnsignedMetricCache _wcache;
     LVFontGlyphSignedMetricCache _lsbcache; // glyph left side bearing cache
     LVFontGlyphSignedMetricCache _rsbcache; // glyph right side bearing cache
@@ -148,9 +142,10 @@ protected:
      * <any> - A mask with only one bit set, the number of which corresponds to the number in the fallback font chain.
      */
     lUInt32 _fallback_mask;
-    bool           _embolden; // fake/synthetized bold
+    int            _synth_weight; // fake/synthesized weight
     bool           _allowKerning;
-    FT_Pos         _embolden_half_strength; // for emboldening with Harfbuzz
+    FT_Pos         _synth_weight_strength;   // for emboldening with FT_Outline_Embolden()
+    FT_Pos         _synth_weight_half_strength;
     int _features; // requested OpenType features bitmap
 #if USE_HARFBUZZ == 1
     hb_font_t *_hb_font;
@@ -180,7 +175,7 @@ public:
     virtual LVFont *getFallbackFont(lUInt32 fallbackPassMask);
 
     /// returns font weight
-    virtual int getWeight() const { return _weight; }
+    virtual int getWeight() const { return _synth_weight > 0 ? _synth_weight : _weight; }
 
     /// returns italic flag
     virtual int getItalic() const { return _italic; }
@@ -230,13 +225,13 @@ public:
     /// set OpenType features (bitmap)
     virtual void setFeatures( int features );
 
-    void setEmbolden();
+    void setSynthWeight(int synth_weight);
 
     bool loadFromBuffer(LVByteArrayRef buf, int index, int size, css_font_family_t fontFamily,
-                        bool monochrome, bool italicize);
+                        bool monochrome, bool italicize, int weight = -1);
 
     bool loadFromFile(const char *fname, int index, int size, css_font_family_t fontFamily,
-                      bool monochrome, bool italicize);
+                      bool monochrome, bool italicize, int weight = -1);
 
     /** \brief get glyph info
         \param glyph is pointer to glyph_info_t struct to place retrieved info

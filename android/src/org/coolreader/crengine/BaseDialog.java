@@ -226,6 +226,10 @@ public class BaseDialog extends Dialog {
 	protected void onClose() {
 		// when dialog is closed
 		Log.d("DLG","BaseDialog.onClose()");
+		if (needCancelButton)
+			onNegativeButtonClick();
+		else if (buttonsLayout != null)
+			onPositiveButtonClick();
 		activity.onDialogClosed(this);
 	}
 
@@ -298,7 +302,6 @@ public class BaseDialog extends Dialog {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 		activity.onUserActivity();
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			onNegativeButtonClick();
 			return true;
 		}
         if( this.view != null ) {
@@ -307,6 +310,15 @@ public class BaseDialog extends Dialog {
         }
         return super.onKeyDown(keyCode, event);
     }
-    
+
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+			onNegativeButtonClick();
+			return true;
+		}
+		return super.onKeyUp(keyCode, event);
+	}
+
 	protected View view;
 }

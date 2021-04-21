@@ -60,6 +60,7 @@
     <string name="tab_options_app">Программа</string>
     <string name="tab_options_controls">Управление</string>
     <string name="options_font_size">Размер шрифта</string>
+    <string name="options_font_weight">Насыщенность шрифта</string>
     <string name="options_font_face">Шрифт</string>
     <string name="options_font_embolden">Жирность</string>
     <string name="options_font_antialias">Сглаживание шрифта</string>
@@ -700,4 +701,21 @@
     <string name="action_show_onyx_backlight_system_dialog">Показать системный диалог для настройки подсветки</string>
     <string name="confirmation_select_folder_for_log">На следующем экране выберите каталог для сохранения файла журнала</string>
     <string name="notice_log_saved_to_">Файл журнала сохранен в файле \"%s\". Этот файл может содержать личные данные, например, какие книги вы читаете, будьте внимательны.</string>
+    <string name="inconsistent_options">Обнаружены противоречивые настройки: в разделе "Сенсорный экран" отключено меню чтения, в разделе "кнопки" меню чтения не связано ни с одной кнопкой, кроме того выключена панель инструментов. Чтобы не потерять функционал программы выберите один вариант: либо включить отображение панели инструментов либо добавить действие для вывода меню чтения на сенсорный экран</string>
+    <string name="inconsistent_options_toolbar">Включить панель инструментов</string>
+    <string name="inconsistent_options_tap_reading_menu">Добавить меню чтения на сенсорный экран</string>
+    <string name="options_hide_empty_dirs_slowdown">(Может замедлить вывод содержимого каталога)</string>
+    <string name="font_weight_thin">Тончайший</string>
+    <string name="font_weight_extralight">Сверхлегкий</string>
+    <string name="font_weight_light">Лёгкий</string>
+    <string name="font_weight_book">Book</string>
+    <string name="font_weight_regular">Нормальный</string>
+    <string name="font_weight_medium">Medium</string>
+    <string name="font_weight_semibold">Полужирный</string>
+    <string name="font_weight_bold">Жирный</string>
+    <string name="font_weight_extrabold">Сверхжирный</string>
+    <string name="font_weight_black">Тяжелый</string>
+    <string name="font_weight_extrablack">Сверхтяжёлый</string>
+    <string name="font_weight_fake">синтетический*</string>
+    <string name="add_bookmark_to_page">Добавить закладку на страницу</string>
 </resources>

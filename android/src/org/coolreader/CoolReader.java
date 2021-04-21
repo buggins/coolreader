@@ -334,6 +334,13 @@ public class CoolReader extends BaseActivity {
 		} else if (key.equals(PROP_APP_CLOUDSYNC_DATA_KEEPALIVE)) {
 			mCloudSyncBookmarksKeepAlive = Utils.parseInt(value, 14, 0, 365);
 			updateGoogleDriveSynchronizer();
+		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS)) {
+			// already in super method:
+			// Services.getScanner().setHideEmptyDirs(flg);
+			// Here only refresh the file browser
+			if (null != mBrowser) {
+				mBrowser.showLastDirectory();
+			}
 		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES)) {
 			if (null != mBrowser) {
 				mBrowser.setHideEmptyGenres(flg);
@@ -550,7 +557,7 @@ public class CoolReader extends BaseActivity {
 						@Override
 						public void run() {
 							if (activityIsRunning && null != mGoogleDriveSync) {
-								mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
+								mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY);
 							}
 						}
 					}, mSyncGoogleDriveAutoSavePeriod * 60000, mSyncGoogleDriveAutoSavePeriod * 60000);
@@ -764,6 +771,9 @@ public class CoolReader extends BaseActivity {
 		activityIsRunning = false;
 		if (mReaderView != null) {
 			mReaderView.onAppPause();
+		}
+		if (mBrowser != null) {
+			mBrowser.stopCurrentScan();
 		}
 		Services.getCoverpageManager().removeCoverpageReadyListener(mHomeFrame);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
@@ -1093,6 +1103,7 @@ public class CoolReader extends BaseActivity {
 		}
 		// Show/Hide soft navbar after OptionDialog is closed.
 		applyFullscreen(getWindow());
+		validateSettings();
 		if (!justCreated) {
 			// Only after onStart()!
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
@@ -1154,6 +1165,9 @@ public class CoolReader extends BaseActivity {
 			if (mCurrentFrame == mBrowserFrame) {
 				// update recent books directory
 				mBrowser.refreshDirectory(Services.getScanner().getRecentDir(), null);
+			} else {
+				if (null != mBrowser)
+					mBrowser.stopCurrentScan();
 			}
 			onUserActivity();
 		}
@@ -1166,6 +1180,8 @@ public class CoolReader extends BaseActivity {
 	}
 
 	public void showRootWindow() {
+		if (null != mBrowser)
+			mBrowser.stopCurrentScan();
 		setCurrentFrame(mHomeFrame);
 		if (activityIsRunning) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
@@ -1178,6 +1194,8 @@ public class CoolReader extends BaseActivity {
 	}
 
 	private void runInReader(final Runnable task) {
+		if (null != mBrowser)
+			mBrowser.stopCurrentScan();
 		waitForCRDBService(() -> {
 			if (mReaderFrame != null) {
 				task.run();
@@ -1241,6 +1259,7 @@ public class CoolReader extends BaseActivity {
 						ReaderAction.SEARCH,
 						ReaderAction.SCAN_DIRECTORY_RECURSIVE,
 						ReaderAction.FILE_BROWSER_SORT_ORDER,
+						ReaderAction.SAVE_LOGCAT,
 						ReaderAction.EXIT
 				), false);
 				mBrowserToolBar.setBackgroundResource(R.drawable.ui_status_background_browser_dark);
@@ -1276,6 +1295,9 @@ public class CoolReader extends BaseActivity {
 							break;
 						case DCMD_FILE_BROWSER_SORT_ORDER:
 							mBrowser.showSortOrderMenu();
+							break;
+						case DCMD_SAVE_LOGCAT:
+							createLogcatFile();
 							break;
 						default:
 							// do nothing
@@ -1401,6 +1423,11 @@ public class CoolReader extends BaseActivity {
 	public void setBrowserTitle(String title) {
 		if (mBrowserFrame != null)
 			mBrowserFrame.setBrowserTitle(title);
+	}
+
+	public void setBrowserProgressStatus(boolean enable) {
+		if (mBrowserFrame != null)
+			mBrowserFrame.setBrowserProgressStatus(enable);
 	}
 
 
@@ -2053,12 +2080,12 @@ public class CoolReader extends BaseActivity {
 		if (hasHardwareMenuKey())
 			return; // don't show notice if hard key present
 		showNotice(R.string.note1_reader_menu,
-				() -> {
+				R.string.dlg_button_yes, () -> {
 					setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_SHORT_SIDE), false);
 					setLastNotificationMask(getLastNotificationMask() | NOTIFICATION_READER_MENU_MASK);
 					showNotifications();
 				},
-				() -> {
+				R.string.dlg_button_no, () -> {
 					setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_NONE), false);
 					setLastNotificationMask(getLastNotificationMask() | NOTIFICATION_READER_MENU_MASK);
 					showNotifications();

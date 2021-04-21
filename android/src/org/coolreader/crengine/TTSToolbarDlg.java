@@ -1,5 +1,6 @@
 package org.coolreader.crengine;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -291,6 +292,7 @@ public class TTSToolbarDlg implements Settings {
 		BackgroundThread.ensureGUI();
 		if (oldSettings == null)
 			oldSettings = new Properties();
+		int oldTTSSpeed = mTTSSpeedPercent;
 		Properties changedSettings = newSettings.diff(oldSettings);
 		for (Map.Entry<Object, Object> entry : changedSettings.entrySet()) {
 			String key = (String) entry.getKey();
@@ -299,8 +301,10 @@ public class TTSToolbarDlg implements Settings {
 		}
 		// Apply settings
 		setupTTSVoice();
-		mTTS.setSpeechRate(speechRateFromPercent(mTTSSpeedPercent));
-		mSbSpeed.setProgress(mTTSSpeedPercent);
+		if (oldTTSSpeed != mTTSSpeedPercent) {
+			mTTS.setSpeechRate(speechRateFromPercent(mTTSSpeedPercent));
+			mSbSpeed.setProgress(mTTSSpeedPercent);
+		}
 	}
 
 	private void processAppSetting(String key, String value) {
@@ -496,6 +500,7 @@ public class TTSToolbarDlg implements Settings {
 		}
 	}
 
+	@SuppressLint("ClickableViewAccessibility")
 	public TTSToolbarDlg(CoolReader coolReader, ReaderView readerView, TextToSpeech tts) {
 		mCoolReader = coolReader;
 		mReaderView = readerView;
@@ -623,12 +628,14 @@ public class TTSToolbarDlg implements Settings {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
+				/*
 				// round to a multiple of 5
-				int roundedVal = 5*(progress/5);
+				int roundedVal = 5*((progress+2)/5);
 				if (progress != roundedVal) {
 					mSbSpeed.setProgress(roundedVal);
 					return;
 				}
+				*/
 				mTTSSpeedPercent = progress;
 				mTTS.setSpeechRate(speechRateFromPercent(mTTSSpeedPercent));
 				mSpeedTextView.setText(String.format(Locale.getDefault(), "%s (x%.2f)", context.getString(R.string.tts_rate), speechRateFromPercent(progress)));
@@ -640,7 +647,7 @@ public class TTSToolbarDlg implements Settings {
 
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
-				mCoolReader.setSetting(PROP_APP_TTS_SPEED, String.valueOf(mTTSSpeedPercent), false);
+				mCoolReader.setSetting(PROP_APP_TTS_SPEED, String.valueOf(mTTSSpeedPercent), true);
 			}
 		});
 		mSbVolume.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
@@ -659,6 +666,22 @@ public class TTSToolbarDlg implements Settings {
 			public void onStopTrackingTouch(SeekBar seekBar) {
 			}
 		});
+		ImageButton btnDecVolume = panel.findViewById(R.id.btn_dec_volume);
+		btnDecVolume.setOnTouchListener(new RepeatOnTouchListener(500, 150,
+				view -> mSbVolume.setProgress(mSbVolume.getProgress() - 1)));
+		ImageButton btnIncVolume = panel.findViewById(R.id.btn_inc_volume);
+		btnIncVolume.setOnTouchListener(new RepeatOnTouchListener(500, 150, view -> mSbVolume.setProgress(mSbVolume.getProgress() + 1)));
+
+		ImageButton btnDecSpeed = panel.findViewById(R.id.btn_dec_speed);
+		btnDecSpeed.setOnTouchListener(new RepeatOnTouchListener(500, 150, view -> {
+			mSbSpeed.setProgress(mSbSpeed.getProgress() - 1);
+			mCoolReader.setSetting(PROP_APP_TTS_SPEED, String.valueOf(mTTSSpeedPercent), true);
+		}));
+		ImageButton btnIncSpeed = panel.findViewById(R.id.btn_inc_speed);
+		btnIncSpeed.setOnTouchListener(new RepeatOnTouchListener(500, 150, view -> {
+			mSbSpeed.setProgress(mSbSpeed.getProgress() + 1);
+			mCoolReader.setSetting(PROP_APP_TTS_SPEED, String.valueOf(mTTSSpeedPercent), true);
+		}));
 
 		BookInfo bookInfo = mReaderView.getBookInfo();
 		if (null != bookInfo) {

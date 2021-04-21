@@ -386,8 +386,7 @@ lUInt32 calcGlobalSettingsHash(int documentId, bool already_rendered)
         hash = hash * 75 + 1761;
     hash = hash * 31 + fontMan->GetFontListHash(documentId);
     hash = hash * 31 + (int)fontMan->GetHintingMode();
-    if ( LVRendGetFontEmbolden() )
-        hash = hash * 75 + 2384761;
+    hash = hash * 31 + LVRendGetBaseFontWeight();
     hash = hash * 31 + fontMan->GetFallbackFontFaces().getHash();
     hash = hash * 31 + gRenderDPI;
     hash = hash * 31 + gRootFontSize;
@@ -9311,7 +9310,7 @@ ldomXPointer ldomDocument::createXPointerV2( ldomNode * baseNode, const lString3
                 // found element node
                 currNode = foundNode;
                 lString32 nm = currNode->getNodeName();
-                CRLog::trace("%d -> %s", index, LCSTR(nm));
+                //CRLog::trace("%d -> %s", index, LCSTR(nm));
             }
             break;
         case xpath_step_text:
@@ -18176,7 +18175,7 @@ void ldomDocument::registerEmbeddedFonts()
             continue;
         }
         if (url.startsWithNoCase(lString32("res://")) || url.startsWithNoCase(lString32("file://"))) {
-            if (!fontMan->RegisterExternalFont(item->getUrl(), item->getFace(), item->getBold(), item->getItalic())) {
+            if (!fontMan->RegisterExternalFont(getDocIndex(), item->getUrl(), item->getFace(), item->getBold(), item->getItalic())) {
                 //CRLog::error("Failed to register external font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
             }
             continue;
