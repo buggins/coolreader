@@ -44,7 +44,9 @@ public class BrowserViewLayout extends ViewGroup {
 		((TextView)titleView.findViewById(R.id.title)).setText(title);
 	}
 
+	private boolean progressStatusEnabled = false;
 	public void setBrowserProgressStatus(boolean enable) {
+		progressStatusEnabled = enable;
 		ProgressBar progressBar = titleView.findViewById(R.id.progress);
 		progressBar.setVisibility(enable ? View.VISIBLE : View.GONE);
 	}
@@ -57,6 +59,7 @@ public class BrowserViewLayout extends ViewGroup {
 		titleView = inflater.inflate(R.layout.browser_status_bar, null);
 		addView(titleView);
 		setBrowserTitle(browserTitle);
+		setBrowserProgressStatus(progressStatusEnabled);
 		toolbarView.setBackgroundResource(theme.getBrowserToolbarBackground(toolbarView.isVertical()));
 		toolbarView.onThemeChanged(theme);
 		requestLayout();

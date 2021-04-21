@@ -115,14 +115,18 @@ public class Scanner extends FileInfoChangeSource {
 	{
 		Set<String> knownItems = null;
 		if ( baseDir.isListed ) {
-			knownItems = new HashSet<String>();
-			for ( int i=baseDir.itemCount()-1; i>=0; i-- ) {
-				FileInfo item = baseDir.getItem(i);
-				if ( !item.exists() || rescan ) {
-					// remove item from list
-					baseDir.removeChild(item);
-				} else {
-					knownItems.add(item.getBasePath());
+			if (rescan) {
+				baseDir.clear();
+			} else {
+				knownItems = new HashSet<String>();
+				for (int i = baseDir.itemCount() - 1; i >= 0; i--) {
+					FileInfo item = baseDir.getItem(i);
+					if (!item.exists()) {
+						// remove item from list
+						baseDir.removeChild(item);
+					} else {
+						knownItems.add(item.getBasePath());
+					}
 				}
 			}
 		}
