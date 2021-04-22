@@ -3086,7 +3086,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			fileName = getManualFileName();
 			log.i("Manual document: " + fileName);
 		}
-		String normalized = mEngine.getPathCorrector().normalize(fileName);
+		String normalized = mEngine.getPathCorrector().normalizeIfPossible(fileName);
 		if (normalized == null) {
 			log.e("Trying to load book from non-standard path " + fileName);
 			mActivity.showToast("Trying to load book from non-standard path " + fileName);

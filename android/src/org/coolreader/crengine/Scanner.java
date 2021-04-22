@@ -721,6 +721,8 @@ public class Scanner extends FileInfoChangeSource {
 		if ( parent==null ) {
 			autoAddRootForFile(new File(file.pathname) );
 			parent = findParentInternal(file, root);
+			if ( parent==null )
+				parent = findParentInternal(file, new FileInfo(mActivity.getFilesDir()));
 			if ( parent==null ) {
 				L.e("Cannot find root directory for file " + file.pathname);
 				return null;
@@ -850,7 +852,7 @@ public class Scanner extends FileInfoChangeSource {
 		// create books by title root
 		addTitleRoot();
 	}
-	
+
 	public boolean autoAddRootForFile( File f ) {
 		File p = f.getParentFile();
 		while ( p!=null ) {
