@@ -2784,6 +2784,9 @@ int LVFreeTypeFace::getExtraMetric(font_extra_metric_t metric, bool scaled_to_px
                 value = 60;
             break;
 #endif // MATHML_SUPPORT==1
+        default:
+            value = 0;
+            break;
         }
         _extra_metrics[metric] = value;
     }

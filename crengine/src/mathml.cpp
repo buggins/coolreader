@@ -144,7 +144,7 @@ static lString8 MATHML_DEFAULT_FONTS = lString8(
     "\""    "Libertinus Math"       "\", "
     "\""    "TeX Gyre Termes Math"  "\", "
     "\""    "TeX Gyre Bonum Math"   "\", "
-    "\""    "TeX Gyre Schola"       "\", "
+    "\""    "TeX Gyre Schola Math"  "\", "
     "\""    "TeX Gyre Pagella Math" "\", "
     "\""    "DejaVu Math TeX Gyre"  "\", "
     "\""    "Asana Math"            "\", "
