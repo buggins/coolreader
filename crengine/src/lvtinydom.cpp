@@ -8580,7 +8580,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
     if ( finalNode==NULL ) {
         lvRect rc;
         p0->getAbsRect( rc );
-        CRLog::debug("node w/o final parent: %d..%d", rc.top, rc.bottom);
+        //CRLog::debug("node w/o final parent: %d..%d", rc.top, rc.bottom);
     }
 
     if ( finalNode!=NULL ) {
