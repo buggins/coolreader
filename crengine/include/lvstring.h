@@ -158,15 +158,16 @@ int decodeDecimal( const lChar32 * str, int len );
 #define CH_PROP_ALPHA_SIGN  0x0200 ///< alpha sign character flag
 #define CH_PROP_DASH        0x0400 ///< minus, emdash, endash, ... (- signs)
 #define CH_PROP_CJK         0x0800 ///< CJK ideographs
-#define CH_PROP_AVOID_WRAP_AFTER   0x1000 ///< avoid wrap on following space
-#define CH_PROP_AVOID_WRAP_BEFORE  0x2000 ///< avoid wrap on preceding space
+#define CH_PROP_RTL         0x1000 ///< RTL character
+#define CH_PROP_AVOID_WRAP_AFTER   0x2000 ///< avoid wrap on following space
+#define CH_PROP_AVOID_WRAP_BEFORE  0x4000 ///< avoid wrap on preceding space
 
 /// retrieve character properties mask array for wide c-string
 void lStr_getCharProps( const lChar32 * str, int sz, lUInt16 * props );
 /// retrieve character properties mask for single wide character
 lUInt16 lGetCharProps( lChar32 ch );
 /// find alpha sequence bounds
-void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int & end );
+void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int & end, bool & has_rtl );
 // is char a word separator
 bool lStr_isWordSeparator( lChar32 ch );
 

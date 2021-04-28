@@ -4125,14 +4125,17 @@ public:
                     // let's go with it as-is as it might be a safety and might help
                     // us not be stuck in some infinite loop here.
                     int wstart, wend;
-                    lStr_findWordBounds( m_text, m_length, wordpos, wstart, wend );
+                    bool has_rtl;
+                    lStr_findWordBounds( m_text, m_length, wordpos, wstart, wend, has_rtl );
                     if ( wend <= lastNormalWrap ) {
                         // We passed back lastNormalWrap: no need to look for more
                         break;
                     }
                     int len = wend - wstart;
-                    if ( len < MIN_WORD_LEN_TO_HYPHENATE ) {
+                    if ( len < MIN_WORD_LEN_TO_HYPHENATE || has_rtl ) {
                         // Too short word found, skip it
+                        // Also skip words containing RTL chars (so, probably full RTL words),
+                        // as we only handle drawing hyphens on the right
                         wordpos = wstart - 1;
                         continue;
                     }

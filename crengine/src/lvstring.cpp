@@ -5456,7 +5456,45 @@ inline lUInt16 getCharProp(lChar32 ch) {
              (ch>=UNICODE_GENERAL_PUNCTUATION_BEGIN && ch<=UNICODE_GENERAL_PUNCTUATION_END) ||
              (ch>=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN && ch<=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END))
         return CH_PROP_PUNCT;
-    return 0;
+
+    // Try to guess a few other things about other chars we don't handle above
+    lUInt16 prop = 0;
+#if (USE_UTF8PROC==1)
+    // For other less known ranges, fallback to detecting letters with utf8proc,
+    // which is enough to be able to ensure hyphenation for Armenian and Georgian.
+    utf8proc_category_t cat = utf8proc_category(ch);
+    switch (cat) {
+        case UTF8PROC_CATEGORY_LU:
+        case UTF8PROC_CATEGORY_LT:
+            prop |= CH_PROP_UPPER;
+            break;
+        case UTF8PROC_CATEGORY_LL:
+        case UTF8PROC_CATEGORY_LM:
+        case UTF8PROC_CATEGORY_LO:
+            prop |= CH_PROP_LOWER;
+            break;
+        default:
+            break;
+    }
+#endif
+    // Detect RTL (details in lvtextfm.cpp)
+    if ( ch >= 0x0590 && ch <= 0x08FF ) // Hebrew, Arabic, Syriac, Thaana, Nko, Samaritan...
+        prop |= CH_PROP_RTL;
+    else if ( ch >= 0xFB1D ) { // Try to balance the searches
+        if ( ch <= 0xFDFF )     // FB1D>FDFF Hebrew and Arabic presentation forms
+            prop |= CH_PROP_RTL;
+        else if ( ch <= 0xFEFF ) {
+            if ( ch >= 0xFE70)   // FE70>FEFF Arabic presentation forms
+                prop |= CH_PROP_RTL;
+        }
+        else if ( ch <= 0x1EEBB ) {
+            if (ch >= 0x1E800)   // 1E800>1EEBB Other rare scripts possibly RTL
+                prop |= CH_PROP_RTL;
+            else if ( ch <= 0x10FFF && ch >= 0x10800 ) // 10800>10FFF Other rare scripts possibly RTL
+                prop |= CH_PROP_RTL;
+        }
+    }
+    return prop;
 }
 
 void lStr_getCharProps( const lChar32 * str, int sz, lUInt16 * props )
@@ -5501,9 +5539,10 @@ bool lStr_isWordSeparator( lChar32 ch )
 }
 
 /// find alpha sequence bounds
-void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int & end )
+void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int & end, bool & has_rtl )
 {
     int hwStart, hwEnd;
+    has_rtl = false;
 
     // 20180615: don't split anymore on UNICODE_SOFT_HYPHEN_CODE, consider
     // it like an alpha char of zero width not drawn.
@@ -5538,7 +5577,7 @@ void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int
     {
         lChar32 ch = str[hwStart];
         lUInt16 props = getCharProp(ch);
-        if ( props & CH_PROP_ALPHA || props & CH_PROP_HYPHEN )
+        if ( props & (CH_PROP_ALPHA|CH_PROP_HYPHEN) )
             break;
     }
     if ( hwStart<0 ) {
@@ -5552,7 +5591,10 @@ void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int
     {
         lChar32 ch = str[hwStart];
         //int lastAlpha = -1;
-        if ( getCharProp(ch) & CH_PROP_ALPHA || getCharProp(ch) & CH_PROP_HYPHEN ) {
+        lUInt16 props = getCharProp(ch);
+        if ( props & (CH_PROP_ALPHA|CH_PROP_HYPHEN) ) {
+            if ( props & CH_PROP_RTL )
+                has_rtl = true;
             //lastAlpha = hwStart;
         } else {
             hwStart++;
@@ -5567,7 +5609,8 @@ void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int
     for (hwEnd=hwStart+1; hwEnd<sz; hwEnd++) // 20080404
     {
         lChar32 ch = str[hwEnd];
-        if (!(getCharProp(ch) & CH_PROP_ALPHA) && !(getCharProp(ch) & CH_PROP_HYPHEN))
+        lUInt16 props = getCharProp(ch);
+        if ( !(props & (CH_PROP_ALPHA|CH_PROP_HYPHEN)) )
             break;
         ch = str[hwEnd-1];
         if ( ch==' ' ) // || ch==UNICODE_SOFT_HYPHEN_CODE) )

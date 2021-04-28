@@ -2189,8 +2189,9 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
             _hyphen_width = getCharWidth(UNICODE_SOFT_HYPHEN_CODE);
         if (lastFitChar > 3) {
             int hwStart, hwEnd;
-            lStr_findWordBounds(text, len, lastFitChar - 1, hwStart, hwEnd);
-            if (hwStart < (int) (lastFitChar - 1) && hwEnd > hwStart + 3) {
+            bool hasRtl;
+            lStr_findWordBounds( text, len, lastFitChar-1, hwStart, hwEnd, hasRtl );
+            if ( !hasRtl && hwStart < (int)(lastFitChar-1) && hwEnd > hwStart+3 ) {
                 //int maxw = max_width - (hwStart>0 ? widths[hwStart-1] : 0);
                 if ( lang_cfg )
                     lang_cfg->getHyphMethod()->hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);

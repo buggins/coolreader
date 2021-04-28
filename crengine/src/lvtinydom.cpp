@@ -4480,14 +4480,15 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
                 // (or the previous word if wordpos happens to be a space or some
                 // punctuation) by looking only for alpha chars in m_text.
                 int start, end;
-                lStr_findWordBounds( text32, txtlen, wordpos, start, end );
+                bool has_rtl;
+                lStr_findWordBounds( text32, txtlen, wordpos, start, end, has_rtl );
                 if ( end <= HYPH_MIN_WORD_LEN_TO_HYPHENATE ) {
                     // Too short word at start, we're done
                     break;
                 }
                 int len = end - start;
-                if ( len < HYPH_MIN_WORD_LEN_TO_HYPHENATE ) {
-                    // Too short word found, skip it
+                if ( len < HYPH_MIN_WORD_LEN_TO_HYPHENATE || has_rtl ) {
+                    // Too short word found, or word containing RTL: skip it
                     wordpos = start - 1;
                     continue;
                 }
