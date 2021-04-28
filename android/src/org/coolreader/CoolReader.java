@@ -1103,7 +1103,6 @@ public class CoolReader extends BaseActivity {
 		}
 		// Show/Hide soft navbar after OptionDialog is closed.
 		applyFullscreen(getWindow());
-		validateSettings();
 		if (!justCreated) {
 			// Only after onStart()!
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
@@ -1130,6 +1129,7 @@ public class CoolReader extends BaseActivity {
 					}, 500);
 				}
 			}
+			validateSettings();
 		}
 	}
 

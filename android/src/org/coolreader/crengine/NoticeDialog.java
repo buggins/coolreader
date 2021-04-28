@@ -1,9 +1,8 @@
 package org.coolreader.crengine;
 
 import android.app.Dialog;
-import android.view.LayoutInflater;
+import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -11,48 +10,62 @@ import org.coolreader.R;
 
 public class NoticeDialog extends Dialog {
 
+	private final String mButton1Text;
+	private final String mButton2Text;
+	private final Runnable mButton1Runnable;
+	private final Runnable mButton2Runnable;
+	private String mMessageText;
+
 	public NoticeDialog(BaseActivity activity, final Runnable onOkButton) {
-		super(activity, activity.getCurrentTheme().getThemeId());
-		init(activity, R.string.dlg_button_ok, onOkButton, R.string.dlg_button_cancel, null);
+		this(activity, R.string.dlg_button_ok, onOkButton, R.string.dlg_button_cancel, null, null);
 	}
 
 	public NoticeDialog(BaseActivity activity, final Runnable onOkButton, final Runnable onCancelButton) {
-		super(activity, activity.getCurrentTheme().getThemeId());
-		init(activity, R.string.dlg_button_ok, onOkButton, R.string.dlg_button_cancel, onCancelButton);
+		this(activity, R.string.dlg_button_ok, onOkButton, R.string.dlg_button_cancel, onCancelButton, null);
 	}
 
-	public NoticeDialog(BaseActivity activity, int button1TextRes, final Runnable button1Runnable, int button2TextRes, final Runnable button2Runnable) {
+	public NoticeDialog(BaseActivity activity, int button1TextRes, final Runnable button1Runnable, int button2TextRes, final Runnable button2Runnable, final Runnable dismissRunnable) {
 		super(activity, activity.getCurrentTheme().getThemeId());
-		init(activity, button1TextRes, button1Runnable, button2TextRes, button2Runnable);
-	}
-
-	private void init(BaseActivity activity, int button1TextRes, final Runnable button1Runnable, int button2TextRes, final Runnable button2Runnable) {
 		setOwnerActivity(activity);
-		LayoutInflater mInflater = LayoutInflater.from(getContext());
-		ViewGroup layout = (ViewGroup) mInflater.inflate(R.layout.notice_dialog, null);
-		setTitle(R.string.app_name);
-		Button button1 = layout.findViewById(R.id.notice_dlg_btn_positive);
-		button1.setText(button1TextRes);
+		mButton1Text = activity.getString(button1TextRes);
+		mButton1Runnable = button1Runnable;
+		mButton2Text = activity.getString(button2TextRes);
+		mButton2Runnable = button2Runnable;
+		setCancelable(false);
+		setCanceledOnTouchOutside(false);
+		if (null != dismissRunnable)
+			setOnDismissListener(dialog -> dismissRunnable.run());
+	}
+
+	public void setMessage(int resourceId) {
+		mMessageText = getContext().getString(resourceId);
+		TextView textView = findViewById(R.id.notice_text_view);
+		if (null != textView)
+			textView.setText(resourceId);
+	}
+
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.notice_dialog);
+		Button button1 = findViewById(R.id.notice_dlg_btn_positive);
+		button1.setText(mButton1Text);
 		button1.setOnClickListener(v -> {
-			if (button1Runnable != null)
-				button1Runnable.run();
+			if (mButton1Runnable != null)
+				mButton1Runnable.run();
 			dismiss();
 		});
-		Button button2 = layout.findViewById(R.id.notice_dlg_btn_negative);
-		button2.setText(button2TextRes);
-		if (button2Runnable != null)
+		Button button2 = findViewById(R.id.notice_dlg_btn_negative);
+		button2.setText(mButton2Text);
+		if (mButton2Runnable != null)
 			button2.setOnClickListener(v -> {
-				button2Runnable.run();
+				mButton2Runnable.run();
 				dismiss();
 			});
 		else
 			button2.setVisibility(View.GONE);
-		setContentView(layout);
+		if (mMessageText.length() > 0) {
+			TextView textView = findViewById(R.id.notice_text_view);
+			textView.setText(mMessageText);
+		}
 	}
-
-	public void setMessage(int resourceId) {
-		TextView textView = findViewById(R.id.notice_text_view);
-		textView.setText(resourceId);
-	}
-
 }
