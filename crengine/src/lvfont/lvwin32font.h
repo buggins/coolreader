@@ -15,10 +15,10 @@
 #ifndef __LV_WIN32FONT_H_INCLUDED__
 #define __LV_WIN32FONT_H_INCLUDED__
 
-#include "../../include/crsetup.h"
-#include "../../include/cssdef.h"
-#include "../../include/lvstring.h"
-#include "../../include/lvdrawbuf.h"
+#include "crsetup.h"
+#include "cssdef.h"
+#include "lvstring.h"
+#include "lvdrawbuf.h"
 #include "lvbasefont.h"
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)

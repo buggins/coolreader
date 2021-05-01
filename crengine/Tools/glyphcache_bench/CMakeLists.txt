@@ -13,7 +13,7 @@ set(crengine_part_SRC_LIST
     ../../src/crlog.cpp
     ../../src/crtxtenc.cpp
     ../../src/cp_stats.cpp
-    ../../src/private/lvfontglyphcache.cpp
+    ../../src/lvfont/lvfontglyphcache.cpp
 )
 
 if(WIN32)

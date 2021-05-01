@@ -43,7 +43,7 @@
 
 #include <hb.h>
 #include <hb-ft.h>
-#include "../../include/lvhashtable.h"
+#include "lvhashtable.h"
 
 #endif
 

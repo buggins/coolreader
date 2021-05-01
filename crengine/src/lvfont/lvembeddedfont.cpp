@@ -1,5 +1,5 @@
-/** \file lvembeddedfont.cpp
-    \brief embedded font definition implementation
+/** @file lvembeddedfont.cpp
+    @brief embedded font definition implementation
 
     CoolReader Engine
 
@@ -12,8 +12,8 @@
 
 */
 
-#include "../include/lvembeddedfont.h"
-#include "../include/serialbuf.h"
+#include "lvembeddedfont.h"
+#include "serialbuf.h"
 
 #include <stdlib.h>
 

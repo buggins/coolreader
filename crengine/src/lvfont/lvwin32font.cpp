@@ -13,7 +13,7 @@
 */
 
 #include "lvwin32font.h"
-#include "../../include/lvfnt.h"
+#include "lvfnt.h"
 
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE != 1

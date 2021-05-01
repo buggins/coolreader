@@ -15,8 +15,8 @@
 #ifndef __LV_FREETYPEFONTMAN_H_INCLUDED__
 #define __LV_FREETYPEFONTMAN_H_INCLUDED__
 
-#include "../../include/lvfntman.h"
-#include "../../include/lvthread.h"
+#include "lvfntman.h"
+#include "lvthread.h"
 #include "lvfontglyphcache.h"
 #include "lvfontdef.h"
 #include "lvfontcache.h"

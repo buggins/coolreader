@@ -15,7 +15,7 @@
 #include "lvfreetypefontman.h"
 #include "lvfreetypeface.h"
 #include "lvfontboldtransform.h"
-#include "../../include/crlog.h"
+#include "crlog.h"
 
 #if (USE_FONTCONFIG == 1)
 #include <fontconfig/fontconfig.h>

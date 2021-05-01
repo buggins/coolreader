@@ -79,11 +79,7 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/txtselector.cpp \
     ../../crengine/src/crtest.cpp \
     ../../crengine/src/lvbmpbuf.cpp \
-    ../../crengine/src/lvfnt.cpp \
     ../../crengine/src/hyphman.cpp \
-    ../../crengine/src/lvfont.cpp \
-    ../../crengine/src/lvembeddedfont.cpp \
-    ../../crengine/src/lvfntman.cpp \
     ../../crengine/src/lvimg.cpp \
     ../../crengine/src/crskin.cpp \
     ../../crengine/src/lvdrawbuf.cpp \
@@ -96,12 +92,16 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/hist.cpp \
     ../../crengine/src/xxhash.c \
     ../../crengine/src/textlang.cpp \
-    ../../crengine/src/private/lvfontglyphcache.cpp \
-    ../../crengine/src/private/lvfontboldtransform.cpp \
-    ../../crengine/src/private/lvfontcache.cpp \
-    ../../crengine/src/private/lvfontdef.cpp \
-    ../../crengine/src/private/lvfreetypeface.cpp \
-    ../../crengine/src/private/lvfreetypefontman.cpp \
+    ../../crengine/src/lvfont/lvfnt.cpp \
+    ../../crengine/src/lvfont/lvembeddedfont.cpp \
+    ../../crengine/src/lvfont/lvfont.cpp \
+    ../../crengine/src/lvfont/lvfntman.cpp \
+    ../../crengine/src/lvfont/lvfontglyphcache.cpp \
+    ../../crengine/src/lvfont/lvfontboldtransform.cpp \
+    ../../crengine/src/lvfont/lvfontcache.cpp \
+    ../../crengine/src/lvfont/lvfontdef.cpp \
+    ../../crengine/src/lvfont/lvfreetypeface.cpp \
+    ../../crengine/src/lvfont/lvfreetypefontman.cpp \
     ../../crengine/fc-lang/fc-lang-cat.c
 #    ../../crengine/src/cri18n.cpp
 #    ../../crengine/src/crgui.cpp \

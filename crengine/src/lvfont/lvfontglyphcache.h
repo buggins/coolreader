@@ -19,7 +19,8 @@
 #include "crsetup.h"
 #include "lvtypes.h"
 #include "lvhashtable.h"
-#include "../../include/crlocks.h"
+#include "crlocks.h"
+
 #define GLYPHCACHE_TABLE_SZ         256
 
 struct LVFontGlyphCacheItem;

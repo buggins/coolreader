@@ -15,8 +15,8 @@
 #ifndef __LV_WIN32FONTMAN_H_INCLUDED__
 #define __LV_WIN32FONTMAN_H_INCLUDED__
 
-#include "../../include/crsetup.h"
-#include "../../include/lvfntman.h"
+#include "crsetup.h"
+#include "lvfntman.h"
 
 #include "lvfontcache.h"
 

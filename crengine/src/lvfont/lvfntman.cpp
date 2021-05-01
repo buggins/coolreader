@@ -12,15 +12,15 @@
 
 */
 
-#include "../include/lvfntman.h"
-#include "../include/lvstyles.h"
-#include "../include/crlog.h"
-#include "private/lvfreetypefontman.h"
-#include "private/lvwin32fontman.h"
-#include "private/lvbitmapfontman.h"
+#include "lvfntman.h"
+#include "lvstyles.h"
+#include "crlog.h"
+#include "lvfreetypefontman.h"
+#include "lvwin32fontman.h"
+#include "lvbitmapfontman.h"
 
 #define GAMMA_TABLES_IMPL
-#include "../include/gammatbl.h"
+#include "gammatbl.h"
 
 LVFontManager *fontMan = NULL;
 
