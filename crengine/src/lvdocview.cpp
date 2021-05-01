@@ -20,6 +20,7 @@
 #include "../include/lvrend.h"
 #include "../include/lvstsheet.h"
 #include "../include/textlang.h"
+#include "../include/lvdrawstatesaver.h"
 
 #include "../include/wolutil.h"
 #include "../include/crtxtenc.h"

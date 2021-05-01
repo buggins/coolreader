@@ -37,7 +37,6 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
         src/crgui.cpp     
         src/lvimg.cpp           
         src/crskin.cpp    
-        src/lvdrawbuf.cpp  
         src/lvdocview.cpp  
         src/lvpagesplitter.cpp  
         src/lvtextfm.cpp
@@ -69,6 +68,11 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
         src/lvfont/lvwin32fontman.cpp
         src/lvfont/lvfreetypeface.cpp
         src/lvfont/lvfreetypefontman.cpp
+        src/lvdrawbuf/lvbasedrawbuf.cpp
+        src/lvdrawbuf/lvgraydrawbuf.cpp
+        src/lvdrawbuf/lvcolordrawbuf.cpp
+        src/lvdrawbuf/lvimagescaleddrawcallback.cpp
+        src/lvdrawbuf/lvdrawbuf_utils.cpp
         #src/xutils.cpp
     )
 endif (NOT ${GUI} STREQUAL FB2PROPS)

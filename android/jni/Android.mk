@@ -82,7 +82,6 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/hyphman.cpp \
     ../../crengine/src/lvimg.cpp \
     ../../crengine/src/crskin.cpp \
-    ../../crengine/src/lvdrawbuf.cpp \
     ../../crengine/src/lvdocview.cpp \
     ../../crengine/src/lvpagesplitter.cpp \
     ../../crengine/src/lvtextfm.cpp \
@@ -102,6 +101,11 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvfont/lvfontdef.cpp \
     ../../crengine/src/lvfont/lvfreetypeface.cpp \
     ../../crengine/src/lvfont/lvfreetypefontman.cpp \
+    ../../crengine/src/lvdrawbuf/lvbasedrawbuf.cpp \
+    ../../crengine/src/lvdrawbuf/lvgraydrawbuf.cpp \
+    ../../crengine/src/lvdrawbuf/lvcolordrawbuf.cpp \
+    ../../crengine/src/lvdrawbuf/lvimagescaleddrawcallback.cpp \
+    ../../crengine/src/lvdrawbuf/lvdrawbuf_utils.cpp \
     ../../crengine/fc-lang/fc-lang-cat.c
 #    ../../crengine/src/cri18n.cpp
 #    ../../crengine/src/crgui.cpp \

@@ -18,7 +18,7 @@
 #include "crsetup.h"
 #include "cssdef.h"
 #include "lvstring.h"
-#include "lvdrawbuf.h"
+#include "lvcolordrawbuf.h"
 #include "lvbasefont.h"
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)

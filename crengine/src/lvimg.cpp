@@ -20,7 +20,11 @@
 
 #include "../include/lvimg.h"
 #include "../include/lvtinydom.h"
+#include "../include/lvcolordrawbuf.h"
 #include "../include/crlog.h"
+
+// lvdrawbuff private stuff
+#include "lvdrawbuf/lvdrawbuf_utils.h"
 
 #if (USE_LIBPNG==1)
 #include <png.h>

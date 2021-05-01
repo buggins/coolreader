@@ -18,6 +18,7 @@
 #include "lvtinydom.h"
 #include "lvpagesplitter.h"
 #include "lvdrawbuf.h"
+#include "lvcolordrawbuf.h"
 #include "hist.h"
 #include "lvthread.h"
 #include "lvdocviewcmd.h"

@@ -149,6 +149,8 @@
 #include "lvdocview.h"
 #include "lvstsheet.h"
 #include "lvdrawbuf.h"
+#include "lvgraydrawbuf.h"
+#include "lvcolordrawbuf.h"
 #include "props.h"
 #include "w32utils.h"
 

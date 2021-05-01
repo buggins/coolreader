@@ -19,6 +19,7 @@
 
 #include "lvfnt.h"
 #include "lvdrawbuf.h"
+#include "lvgraydrawbuf.h"
 
 extern "C" {
 #include <windows.h>
