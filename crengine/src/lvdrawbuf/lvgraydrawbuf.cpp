@@ -17,6 +17,9 @@
 #include "lvdrawbuf_utils.h"
 #include "crlog.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 #define INVERT_PRSERVE_GRAYS
 
 #ifdef INVERT_PRSERVE_GRAYS

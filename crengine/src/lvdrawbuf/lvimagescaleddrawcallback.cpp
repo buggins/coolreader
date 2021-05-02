@@ -15,6 +15,9 @@
 #include "lvimagescaleddrawcallback.h"
 #include "lvdrawbuf_utils.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 // Quantize an 8-bit color value down to a palette of 16 evenly spaced colors, using an ordered 8x8 dithering pattern.
 // With a grayscale input, this happens to match the eInk palette perfectly ;).
 // If the input is not grayscale, and the output fb is not grayscale either,

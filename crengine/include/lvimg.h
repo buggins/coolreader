@@ -17,77 +17,11 @@
 
 #include "lvref.h"
 #include "lvstream.h"
+#include "lvimagesource.h"
 
-class CacheableObject;
-class CacheObjectListener {
-public:
-    virtual void onCachedObjectDeleted(lUInt32 objectId) { CR_UNUSED(objectId); }
-	virtual ~CacheObjectListener() {}
-};
-
-/// object deletion listener callback function type
-typedef void(*onObjectDestroyedCallback_t)(CacheObjectListener * pcache, lUInt32 pobject);
-
-/// to handle object deletion listener
-class CacheableObject {
-	onObjectDestroyedCallback_t _callback;
-	CacheObjectListener * _cache;
-	lUInt32 _objectId;
-public:
-	CacheableObject();
-	virtual ~CacheableObject() {
-		if (_callback)
-			_callback(_cache, _objectId);
-	}
-	virtual lUInt32 getObjectId() { return _objectId; }
-	/// set callback to call on object destroy
-	void setOnObjectDestroyedCallback(onObjectDestroyedCallback_t callback, CacheObjectListener * pcache) {
-		_callback = callback;
-		_cache = pcache;
-	}
-};
-
-class LVImageSource;
-struct ldomNode;
+class LVDrawBuf;
 class LVColorDrawBuf;
-
-/// image decoding callback interface
-class LVImageDecoderCallback
-{
-public:
-    virtual ~LVImageDecoderCallback();
-    virtual void OnStartDecode( LVImageSource * obj ) = 0;
-    virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data ) = 0;
-    virtual void OnEndDecode( LVImageSource * obj, bool errors ) = 0;
-};
-
-struct CR9PatchInfo {
-	lvRect frame;
-	lvRect padding;
-	/// caclulate dst and src rectangles (src rect includes 1 pixel layout frame)
-	void calcRectangles(const lvRect & dst, const lvRect & src, lvRect dstitems[9], lvRect srcitems[9]) const;
-	/// for each side, apply max(padding.C, dstPadding.C) to dstPadding
-	void applyPadding(lvRect & dstPadding) const;
-};
-
-
-class LVImageSource : public CacheableObject
-{
-	CR9PatchInfo * _ninePatch;
-public:
-	virtual const CR9PatchInfo * GetNinePatchInfo() { return _ninePatch; }
-	virtual CR9PatchInfo *  DetectNinePatch();
-    virtual ldomNode * GetSourceNode() = 0;
-    virtual LVStream * GetSourceStream() = 0;
-    virtual void   Compact() = 0;
-    virtual int    GetWidth() = 0;
-    virtual int    GetHeight() = 0;
-    virtual bool   Decode( LVImageDecoderCallback * callback ) = 0;
-    LVImageSource() : _ninePatch(NULL) {}
-    virtual ~LVImageSource();
-};
-
-typedef LVRef< LVImageSource > LVImageSourceRef;
+class LVFont;
 
 /// type of image transform
 enum ImageTransform {
@@ -97,7 +31,8 @@ enum ImageTransform {
     IMG_TRANSFORM_TILE     // tile image
 };
 
-
+#define COLOR_TRANSFORM_BRIGHTNESS_NONE 0x808080
+#define COLOR_TRANSFORM_CONTRAST_NONE 0x404040
 
 /// creates image which stretches source image by filling center with pixels at splitX, splitY
 LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, ImageTransform hTransform=IMG_TRANSFORM_SPLIT, ImageTransform vTransform=IMG_TRANSFORM_SPLIT, int splitX=-1, int splitY=-1 );
@@ -120,17 +55,11 @@ LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int max
 /// creates image source based on draw buffer
 LVImageSourceRef LVCreateDrawBufImageSource( LVColorDrawBuf * buf, bool own );
 
-#define COLOR_TRANSFORM_BRIGHTNESS_NONE 0x808080
-#define COLOR_TRANSFORM_CONTRAST_NONE 0x404040
-
 /// creates image source which transforms colors of another image source (add RGB components added first, then multiplyed by multiplyRGB fixed point components (0x20 is 1.0f)
 LVImageSourceRef LVCreateColorTransformImageSource(LVImageSourceRef srcImage, lUInt32 addRGB, lUInt32 multiplyRGB);
 /// creates image source which applies alpha to another image source (0 is no change, 255 is totally transparent)
 LVImageSourceRef LVCreateAlphaTransformImageSource(LVImageSourceRef srcImage, int alpha);
 
-
-class LVFont;
-class LVDrawBuf;
 
 /// draws battery icon in specified rectangle of draw buffer; if font is specified, draws charge %
 // first icon is for charging, the rest - indicate progress icon[1] is lowest level, icon[n-1] is full power
@@ -146,4 +75,4 @@ unsigned char * convertSVGtoPNG(unsigned char *svg_data, int svg_data_size, floa
         LVCreateMemoryStream( bufvar , bufvar ## _size ) )
 
 
-#endif
+#endif  // __LVIMG_H_INCLUDED__

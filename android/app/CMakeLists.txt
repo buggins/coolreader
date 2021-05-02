@@ -85,7 +85,6 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/crtest.cpp
     ${CR3_ROOT}/crengine/src/lvbmpbuf.cpp
     ${CR3_ROOT}/crengine/src/hyphman.cpp
-    ${CR3_ROOT}/crengine/src/lvimg.cpp
     ${CR3_ROOT}/crengine/src/crskin.cpp
     ${CR3_ROOT}/crengine/src/lvdocview.cpp
     ${CR3_ROOT}/crengine/src/lvpagesplitter.cpp
@@ -96,6 +95,22 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/hist.cpp
     ${CR3_ROOT}/crengine/src/xxhash.c
     ${CR3_ROOT}/crengine/src/textlang.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvcacheableobject.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/crninepatchdecoder.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvjpegimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvpngimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvxpmimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvgifimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvgifframe.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/clzwdecoder.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvsvgimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvstretchimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvcolortransformimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvalphatransformimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvunpackedimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvdrawbufimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvimg.cpp
     ${CR3_ROOT}/crengine/src/lvfont/lvfnt.cpp
     ${CR3_ROOT}/crengine/src/lvfont/lvembeddedfont.cpp
     ${CR3_ROOT}/crengine/src/lvfont/lvfont.cpp

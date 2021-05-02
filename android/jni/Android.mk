@@ -80,7 +80,6 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/crtest.cpp \
     ../../crengine/src/lvbmpbuf.cpp \
     ../../crengine/src/hyphman.cpp \
-    ../../crengine/src/lvimg.cpp \
     ../../crengine/src/crskin.cpp \
     ../../crengine/src/lvdocview.cpp \
     ../../crengine/src/lvpagesplitter.cpp \
@@ -91,6 +90,22 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/hist.cpp \
     ../../crengine/src/xxhash.c \
     ../../crengine/src/textlang.cpp \
+    ../../crengine/src/lvimg/lvcacheableobject.cpp \
+    ../../crengine/src/lvimg/lvimagesource.cpp \
+    ../../crengine/src/lvimg/crninepatchdecoder.cpp \
+    ../../crengine/src/lvimg/lvjpegimagesource.cpp \
+    ../../crengine/src/lvimg/lvpngimagesource.cpp \
+    ../../crengine/src/lvimg/lvxpmimagesource.cpp \
+    ../../crengine/src/lvimg/lvgifimagesource.cpp \
+    ../../crengine/src/lvimg/lvgifframe.cpp \
+    ../../crengine/src/lvimg/clzwdecoder.cpp \
+    ../../crengine/src/lvimg/lvsvgimagesource.cpp \
+    ../../crengine/src/lvimg/lvstretchimgsource.cpp \
+    ../../crengine/src/lvimg/lvcolortransformimgsource.cpp \
+    ../../crengine/src/lvimg/lvalphatransformimgsource.cpp \
+    ../../crengine/src/lvimg/lvunpackedimgsource.cpp \
+    ../../crengine/src/lvimg/lvdrawbufimgsource.cpp \
+    ../../crengine/src/lvimg/lvimg.cpp \
     ../../crengine/src/lvfont/lvfnt.cpp \
     ../../crengine/src/lvfont/lvembeddedfont.cpp \
     ../../crengine/src/lvfont/lvfont.cpp \

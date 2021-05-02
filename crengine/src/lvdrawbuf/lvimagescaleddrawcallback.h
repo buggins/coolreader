@@ -13,7 +13,7 @@
 #ifndef __LVIMAGESCALEDDRAWCALLBACK_H_INCLUDED__
 #define __LVIMAGESCALEDDRAWCALLBACK_H_INCLUDED__
 
-#include "lvimg.h"
+#include "lvimagedecodercallback.h"
 #include "lvbasedrawbuf.h"
 
 class LVImageScaledDrawCallback : public LVImageDecoderCallback

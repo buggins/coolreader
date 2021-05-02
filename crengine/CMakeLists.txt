@@ -35,7 +35,6 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
         src/lvbmpbuf.cpp   
         src/hyphman.cpp  
         src/crgui.cpp     
-        src/lvimg.cpp           
         src/crskin.cpp    
         src/lvdocview.cpp  
         src/lvpagesplitter.cpp  
@@ -53,6 +52,22 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
         src/odtfmt.cpp
         src/odxutil.cpp
         src/crconcurrent.cpp
+        src/lvimg/lvcacheableobject.cpp
+        src/lvimg/lvimagesource.cpp
+        src/lvimg/crninepatchdecoder.cpp
+        src/lvimg/lvjpegimagesource.cpp
+        src/lvimg/lvpngimagesource.cpp
+        src/lvimg/lvxpmimagesource.cpp
+        src/lvimg/lvgifimagesource.cpp
+        src/lvimg/lvgifframe.cpp
+        src/lvimg/clzwdecoder.cpp
+        src/lvimg/lvsvgimagesource.cpp
+        src/lvimg/lvstretchimgsource.cpp
+        src/lvimg/lvcolortransformimgsource.cpp
+        src/lvimg/lvalphatransformimgsource.cpp
+        src/lvimg/lvunpackedimgsource.cpp
+        src/lvimg/lvdrawbufimgsource.cpp
+        src/lvimg/lvimg.cpp
         src/lvfont/lvfont.cpp
         src/lvfont/lvfntman.cpp
         src/lvfont/lvfnt.cpp

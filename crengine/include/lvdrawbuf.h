@@ -23,8 +23,8 @@ extern "C" {
 #include <w32std.h>
 #endif
 
-#include "lvtypes.h"
-#include "lvimg.h"
+#include "lvcacheableobject.h"
+#include "lvimagesource.h"
 
 enum cr_rotate_angle_t {
     CR_ROTATE_ANGLE_0 = 0,
