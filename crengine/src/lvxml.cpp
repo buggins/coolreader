@@ -15,6 +15,7 @@
 #include "../include/crtxtenc.h"
 #include "../include/fb2def.h"
 #include "../include/lvdocview.h"
+#include "../include/lvstreamutils.h"
 
 typedef struct {
    unsigned short indx; /* index into big table */

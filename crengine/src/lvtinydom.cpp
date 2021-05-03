@@ -225,6 +225,11 @@ enum CacheFileBlockType {
 #endif
 #include "../include/crtest.h"
 #include "../include/crlog.h"
+#include "../include/lvstreamfragment.h"
+#include "../include/lvcontaineriteminfo.h"
+#include "../include/lvstreambuffer.h"
+#include "../include/lvstreamutils.h"
+
 #include <stddef.h>
 #include <math.h>
 #include <zlib.h>

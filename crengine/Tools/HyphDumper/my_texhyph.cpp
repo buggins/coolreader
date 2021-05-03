@@ -10,6 +10,7 @@
 #include "lvfnt.h"
 #include "lvstring.h"
 #include "lvstring32collection.h"
+#include "lvstreamutils.h"
 #include "crlog.h"
 
 //#define DUMP_PATTERNS 1

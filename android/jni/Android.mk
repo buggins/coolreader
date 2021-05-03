@@ -64,7 +64,6 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvstyles.cpp \
     ../../crengine/src/crtxtenc.cpp \
     ../../crengine/src/lvtinydom.cpp \
-    ../../crengine/src/lvstream.cpp \
     ../../crengine/src/lvxml.cpp \
     ../../crengine/src/chmfmt.cpp \
     ../../crengine/src/epubfmt.cpp \
@@ -121,6 +120,20 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvdrawbuf/lvcolordrawbuf.cpp \
     ../../crengine/src/lvdrawbuf/lvimagescaleddrawcallback.cpp \
     ../../crengine/src/lvdrawbuf/lvdrawbuf_utils.cpp \
+    ../../crengine/src/lvstream/lvdefstreambuffer.cpp \
+    ../../crengine/src/lvstream/lvfilemappedstream.cpp \
+    ../../crengine/src/lvstream/lvnamedstream.cpp \
+    ../../crengine/src/lvstream/lvfilestream.cpp \
+    ../../crengine/src/lvstream/lvdirectorycontainer.cpp \
+    ../../crengine/src/lvstream/lvcachedstream.cpp \
+    ../../crengine/src/lvstream/lvzipdecodestream.cpp \
+    ../../crengine/src/lvstream/lvziparc.cpp \
+    ../../crengine/src/lvstream/lvrararc.cpp \
+    ../../crengine/src/lvstream/lvmemorystream.cpp \
+    ../../crengine/src/lvstream/lvtcrstream.cpp \
+    ../../crengine/src/lvstream/lvblockwritestream.cpp \
+    ../../crengine/src/lvstream/lvstream.cpp \
+    ../../crengine/src/lvstream/lvstreamutils.cpp \
     ../../crengine/fc-lang/fc-lang-cat.c
 #    ../../crengine/src/cri18n.cpp
 #    ../../crengine/src/crgui.cpp \

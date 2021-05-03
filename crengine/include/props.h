@@ -15,11 +15,11 @@
 #include "lvstring.h"
 #include "lvptrvec.h"
 #include "lvref.h"
-#include "lvstream.h"
 
 class CRPropAccessor;
 typedef LVFastRef<CRPropAccessor> CRPropRef;
 class SerialBuf;
+class LVStream;
 
 /// interface to get/set properties
 class CRPropAccessor : public LVRefCounter {

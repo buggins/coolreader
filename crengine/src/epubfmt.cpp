@@ -1,5 +1,7 @@
 #include "../include/epubfmt.h"
 #include "../include/crlog.h"
+#include "../include/streamproxy.h"
+#include "../include/lvstreamutils.h"
 
 
 class EpubItem {

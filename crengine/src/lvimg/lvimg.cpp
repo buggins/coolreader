@@ -32,6 +32,7 @@
 #include "lvalphatransformimgsource.h"
 #include "lvunpackedimgsource.h"
 #include "lvdrawbufimgsource.h"
+#include "lvstreamutils.h"
 #include "crlog.h"
 
 

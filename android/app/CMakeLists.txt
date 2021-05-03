@@ -69,7 +69,6 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/lvstyles.cpp
     ${CR3_ROOT}/crengine/src/crtxtenc.cpp
     ${CR3_ROOT}/crengine/src/lvtinydom.cpp
-    ${CR3_ROOT}/crengine/src/lvstream.cpp
     ${CR3_ROOT}/crengine/src/lvxml.cpp
     ${CR3_ROOT}/crengine/src/chmfmt.cpp
     ${CR3_ROOT}/crengine/src/epubfmt.cpp
@@ -126,6 +125,20 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/lvdrawbuf/lvcolordrawbuf.cpp
     ${CR3_ROOT}/crengine/src/lvdrawbuf/lvimagescaleddrawcallback.cpp
     ${CR3_ROOT}/crengine/src/lvdrawbuf/lvdrawbuf_utils.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvdefstreambuffer.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvfilemappedstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvnamedstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvfilestream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvdirectorycontainer.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvcachedstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvzipdecodestream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvziparc.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvrararc.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvmemorystream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvtcrstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvblockwritestream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvstreamutils.cpp
     ${CR3_ROOT}/crengine/fc-lang/fc-lang-cat.c
 )
 #    ${CR3_ROOT}/crengine/src/cri18n.cpp

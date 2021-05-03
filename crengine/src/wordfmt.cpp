@@ -1,6 +1,6 @@
 #include "../include/crsetup.h"
 #include "../include/lvstring.h"
-#include "../include/lvstream.h"
+#include "../include/lvstreamutils.h"
 #include "../include/lvtinydom.h"
 #include "../include/crlog.h"
 

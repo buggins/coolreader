@@ -19,7 +19,6 @@ SET (CRENGINE_SOURCES
     src/lvstyles.cpp
     src/crtxtenc.cpp
     src/lvtinydom.cpp
-    src/lvstream.cpp
     src/lvxml.cpp
     src/lvstsheet.cpp
     src/txtselector.cpp
@@ -27,6 +26,20 @@ SET (CRENGINE_SOURCES
     src/crtest.cpp
     src/xxhash.c
     src/textlang.cpp
+    src/lvstream/lvdefstreambuffer.cpp
+    src/lvstream/lvfilemappedstream.cpp
+    src/lvstream/lvnamedstream.cpp
+    src/lvstream/lvfilestream.cpp
+    src/lvstream/lvdirectorycontainer.cpp
+    src/lvstream/lvcachedstream.cpp
+    src/lvstream/lvzipdecodestream.cpp
+    src/lvstream/lvziparc.cpp
+    src/lvstream/lvrararc.cpp
+    src/lvstream/lvmemorystream.cpp
+    src/lvstream/lvtcrstream.cpp
+    src/lvstream/lvblockwritestream.cpp
+    src/lvstream/lvstream.cpp
+    src/lvstream/lvstreamutils.cpp
     fc-lang/fc-lang-cat.c
 )
 

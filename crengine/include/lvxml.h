@@ -17,7 +17,7 @@
 
 #include <time.h>
 #include "lvstring.h"
-#include "lvstream.h"
+#include "lvnamedstream.h"
 #include "crtxtenc.h"
 #include "dtddef.h"
 

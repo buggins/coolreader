@@ -1,8 +1,9 @@
 #include "../include/crsetup.h"
-#include "../include/lvstream.h"
 //#define CHM_SUPPORT_ENABLED 1
 #if CHM_SUPPORT_ENABLED==1
 #include "../include/chmfmt.h"
+#include "../include/lvstreamutils.h"
+#include "../include/lvnamedcontainer.h"
 #include "../include/crlog.h"
 #include <chm_lib.h>
 

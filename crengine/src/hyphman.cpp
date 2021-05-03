@@ -33,11 +33,13 @@
 #endif
 
 #include "../include/lvtypes.h"
-#include "../include/lvstream.h"
+#include "../include/lvstreamutils.h"
+#include "../include/lvcontaineriteminfo.h"
 #include "../include/hyphman.h"
 #include "../include/lvfnt.h"
 #include "../include/lvstring.h"
 #include "../include/lvstring32collection.h"
+
 #include "../include/crlog.h"
 #include "../include/textlang.h"
 

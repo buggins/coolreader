@@ -21,6 +21,7 @@
 #include "lvfontglyphcache.h"
 #include "lvfontdef.h"
 #include "lvfontcache.h"
+#include "lvstreamutils.h"
 
 
 #include "gammatbl.h"

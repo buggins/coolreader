@@ -2,6 +2,7 @@
 #define LVOPC_H
 
 #include "lvstream.h"
+#include "lvcontainer.h"
 #include "lvhashtable.h"
 #include "props.h"
 

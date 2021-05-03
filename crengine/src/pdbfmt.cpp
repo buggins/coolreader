@@ -1,5 +1,8 @@
 #include "../include/pdbfmt.h"
 #include "../include/crlog.h"
+#include "../include/lvstreamfragment.h"
+#include "../include/lvcommoncontaineriteminfo.h"
+#include "../include/lvstreamutils.h"
 #include <ctype.h>
 
 // uncomment following line to save PDB content streams to /tmp

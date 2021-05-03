@@ -16,6 +16,7 @@
 #include "../include/lvstsheet.h"
 #include "../include/crtrace.h"
 #include "../include/lvdrawstatesaver.h"
+#include "../include/lvstreamutils.h"
 
 // uncomment to trace skin XML access errors / not found elements
 //#define TRACE_SKIN_ERRORS

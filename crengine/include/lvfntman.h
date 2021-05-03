@@ -21,7 +21,7 @@
 #include "lvstring32collection.h"
 #include "lvfont.h"
 #include "lvarray.h"
-#include "lvstream.h"
+#include "lvcontainer.h"
 
 /// font manager interface class
 class LVFontManager {

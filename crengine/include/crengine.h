@@ -151,6 +151,8 @@
 #include "lvdrawbuf.h"
 #include "lvgraydrawbuf.h"
 #include "lvcolordrawbuf.h"
+#include "lvcontaineriteminfo.h"
+#include "lvstreamutils.h"
 #include "props.h"
 #include "w32utils.h"
 

@@ -13,15 +13,17 @@
 */
 
 #include "lvfreetypefontman.h"
+
+#if (USE_FREETYPE == 1)
+
 #include "lvfreetypeface.h"
 #include "lvfontboldtransform.h"
+#include "lvcontainer.h"
 #include "crlog.h"
 
 #if (USE_FONTCONFIG == 1)
 #include <fontconfig/fontconfig.h>
 #endif
-
-#if (USE_FREETYPE == 1)
 
 inline int myabs(int n) { return n < 0 ? -n : n; }
 

@@ -11,6 +11,7 @@
 
 #include "../include/props.h"
 #include "../include/serialbuf.h"
+#include "../include/lvstreamutils.h"
 #include <stdio.h>
 
 
