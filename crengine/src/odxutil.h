@@ -1,4 +1,3 @@
-#include <lvxml.h>
 #include <lvtinydom.h>
 
 // build FB2 DOM, comment out to build HTML DOM

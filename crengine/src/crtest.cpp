@@ -1,6 +1,7 @@
 #include "../include/crtest.h"
 #include "../include/lvtinydom.h"
 #include "../include/chmfmt.h"
+#include "../include/lvnamedstream.h"
 
 #ifdef _DEBUG
 

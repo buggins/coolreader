@@ -2,6 +2,7 @@
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
 #include "../include/lvstreamutils.h"
+#include "../include/lvxmlparser.h"
 #include "../include/crlog.h"
 
 static const lChar32 * const fb3_BodyContentType = U"application/fb3-body+xml";

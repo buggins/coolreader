@@ -155,6 +155,7 @@
 #include "lvstreamutils.h"
 #include "props.h"
 #include "w32utils.h"
+#include "crtxtenc.h"
 
 
 

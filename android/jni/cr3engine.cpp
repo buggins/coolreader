@@ -25,6 +25,8 @@
 #include "../../crengine/include/docxfmt.h"
 #include "../../crengine/include/odtfmt.h"
 #include "../../crengine/include/lvstream.h"
+#include "../../crengine/include/lvxmlparser.h"
+#include "../../crengine/include/lvxmlutils.h"
 
 
 #include <../../crengine/include/fb2def.h>

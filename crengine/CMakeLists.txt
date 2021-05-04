@@ -19,7 +19,6 @@ SET (CRENGINE_SOURCES
     src/lvstyles.cpp
     src/crtxtenc.cpp
     src/lvtinydom.cpp
-    src/lvxml.cpp
     src/lvstsheet.cpp
     src/txtselector.cpp
     #src/xutils.cpp
@@ -39,7 +38,19 @@ SET (CRENGINE_SOURCES
     src/lvstream/lvtcrstream.cpp
     src/lvstream/lvblockwritestream.cpp
     src/lvstream/lvstream.cpp
+    src/lvstream/lvbase64stream.cpp
     src/lvstream/lvstreamutils.cpp
+    src/lvxml/lvfileparserbase.cpp
+    src/lvxml/lvtextfilebase.cpp
+    src/lvxml/lvtextparser.cpp
+    src/lvxml/lvtextlinequeue.cpp
+    src/lvxml/pmltextimport.cpp
+    src/lvxml/lvtextrobustparser.cpp
+    src/lvxml/lvtextbookmarkparser.cpp
+    src/lvxml/lvxmlparser.cpp
+    src/lvxml/lvhtmlparser.cpp
+    src/lvxml/fb2coverpageparsercallback.cpp
+    src/lvxml/lvxmlutils.cpp
     fc-lang/fc-lang-cat.c
 )
 

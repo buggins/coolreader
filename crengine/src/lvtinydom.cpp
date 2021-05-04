@@ -229,6 +229,11 @@ enum CacheFileBlockType {
 #include "../include/lvcontaineriteminfo.h"
 #include "../include/lvstreambuffer.h"
 #include "../include/lvstreamutils.h"
+#include "../include/lvbase64stream.h"
+#include "../include/lvxmlutils.h"
+#include "../include/lvfileformatparser.h"
+#include "../include/lvxmlparser.h"
+#include "../include/lvhtmlparser.h"
 
 #include <stddef.h>
 #include <math.h>

@@ -3,6 +3,8 @@
 #include "../include/fb2def.h"
 #include "../include/lvopc.h"
 #include "../include/lvstreamutils.h"
+#include "../include/lvxmlparser.h"
+#include "../include/lvxmlutils.h"
 #include "../include/crlog.h"
 #include "odxutil.h"
 

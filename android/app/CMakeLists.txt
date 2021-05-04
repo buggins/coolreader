@@ -69,7 +69,6 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/lvstyles.cpp
     ${CR3_ROOT}/crengine/src/crtxtenc.cpp
     ${CR3_ROOT}/crengine/src/lvtinydom.cpp
-    ${CR3_ROOT}/crengine/src/lvxml.cpp
     ${CR3_ROOT}/crengine/src/chmfmt.cpp
     ${CR3_ROOT}/crengine/src/epubfmt.cpp
     ${CR3_ROOT}/crengine/src/pdbfmt.cpp
@@ -138,7 +137,19 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/lvstream/lvtcrstream.cpp
     ${CR3_ROOT}/crengine/src/lvstream/lvblockwritestream.cpp
     ${CR3_ROOT}/crengine/src/lvstream/lvstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvbase64stream.cpp
     ${CR3_ROOT}/crengine/src/lvstream/lvstreamutils.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvfileparserbase.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextfilebase.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextlinequeue.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/pmltextimport.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextrobustparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextbookmarkparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvxmlparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvhtmlparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/fb2coverpageparsercallback.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvxmlutils.cpp
     ${CR3_ROOT}/crengine/fc-lang/fc-lang-cat.c
 )
 #    ${CR3_ROOT}/crengine/src/cri18n.cpp

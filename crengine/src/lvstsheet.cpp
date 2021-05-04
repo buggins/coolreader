@@ -17,6 +17,7 @@
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
 #include "../include/lvstreamutils.h"
+#include "../include/lvxmlutils.h"
 #include "../include/lvrend.h"   // for -cr-only-if:
 
 // define to dump all tokens

@@ -26,7 +26,8 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "../include/lvxml.h"
+#include "../include/lvxmlparsercallback.h"
+#include "../include/lvxmlparser.h"
 
 #if !defined(__SYMBIAN32__)
 #include <stdio.h>

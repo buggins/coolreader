@@ -22,6 +22,10 @@
 #include "../include/textlang.h"
 #include "../include/lvdrawstatesaver.h"
 #include "../include/lvcontaineriteminfo.h"
+#include "../include/lvxmlutils.h"
+#include "../include/lvhtmlparser.h"
+#include "../include/lvtextbookmarkparser.h"
+#include "../include/lvtextrobustparser.h"
 
 #include "../include/wolutil.h"
 #include "../include/crtxtenc.h"

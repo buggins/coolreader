@@ -13,7 +13,7 @@
 #ifndef RTFIMP_H_INCLUDED
 #define RTFIMP_H_INCLUDED
 
-#include "lvxml.h"
+#include "lvfileparserbase.h"
 #include "crtxtenc.h"
 #include <string.h>
 
@@ -146,6 +146,7 @@ typedef struct {
 
 class LVRtfParser;
 class LVRtfValueStack;
+class LVXMLParserCallback;
 
 class LVRtfDestination
 {

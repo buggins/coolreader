@@ -64,7 +64,6 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvstyles.cpp \
     ../../crengine/src/crtxtenc.cpp \
     ../../crengine/src/lvtinydom.cpp \
-    ../../crengine/src/lvxml.cpp \
     ../../crengine/src/chmfmt.cpp \
     ../../crengine/src/epubfmt.cpp \
     ../../crengine/src/pdbfmt.cpp \
@@ -133,7 +132,19 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvstream/lvtcrstream.cpp \
     ../../crengine/src/lvstream/lvblockwritestream.cpp \
     ../../crengine/src/lvstream/lvstream.cpp \
+    ../../crengine/src/lvstream/lvbase64stream.cpp \
     ../../crengine/src/lvstream/lvstreamutils.cpp \
+    ../../crengine/src/lvxml/lvfileparserbase.cpp \
+    ../../crengine/src/lvxml/lvtextfilebase.cpp \
+    ../../crengine/src/lvxml/lvtextparser.cpp \
+    ../../crengine/src/lvxml/lvtextlinequeue.cpp \
+    ../../crengine/src/lvxml/pmltextimport.cpp \
+    ../../crengine/src/lvxml/lvtextrobustparser.cpp \
+    ../../crengine/src/lvxml/lvtextbookmarkparser.cpp \
+    ../../crengine/src/lvxml/lvxmlparser.cpp \
+    ../../crengine/src/lvxml/lvhtmlparser.cpp \
+    ../../crengine/src/lvxml/fb2coverpageparsercallback.cpp \
+    ../../crengine/src/lvxml/lvxmlutils.cpp \
     ../../crengine/fc-lang/fc-lang-cat.c
 #    ../../crengine/src/cri18n.cpp
 #    ../../crengine/src/crgui.cpp \
