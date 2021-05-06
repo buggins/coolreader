@@ -1294,7 +1294,10 @@ public class BaseActivity extends Activity implements Settings {
 		// On e-ink in ReaderView gesture handlers setScreenBacklightLevel() & setScreenWarmBacklightLevel() called directly
 	}
 
+	private boolean noticeDialogVisible = false;
 	public void validateSettings() {
+		if (noticeDialogVisible)
+			return;
 		Properties props = settings();
 		boolean menuKeyActionFound = false;
 		for (SettingsManager.DefKeyAction ka : SettingsManager.DEF_KEY_ACTIONS) {
@@ -1312,20 +1315,23 @@ public class BaseActivity extends Activity implements Settings {
 			if (ReaderAction.READER_MENU.id.equals(value))
 				menuTapActionFound = true;
 		}
-		boolean toolbarEnabled = (props.getInt(Settings.PROP_TOOLBAR_LOCATION, Settings.VIEWER_TOOLBAR_NONE) != Settings.VIEWER_TOOLBAR_NONE
-				&& isFullscreen() && !props.getBool(PROP_TOOLBAR_HIDE_IN_FULLSCREEN, false));
+		boolean propToolbarEnabled = props.getInt(Settings.PROP_TOOLBAR_LOCATION, Settings.VIEWER_TOOLBAR_NONE) != Settings.VIEWER_TOOLBAR_NONE;
+		boolean toolbarEnabled = ((propToolbarEnabled && !isFullscreen())
+				|| (propToolbarEnabled && isFullscreen() && !props.getBool(PROP_TOOLBAR_HIDE_IN_FULLSCREEN, false)));
 		if (!menuTapActionFound && !menuKeyActionFound && !toolbarEnabled) {
 			showNotice(R.string.inconsistent_options,
 					R.string.inconsistent_options_toolbar, () -> {
 						// enabled toolbar
-						setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_SHORT_SIDE), true);
+						setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_SHORT_SIDE), false);
 						setSetting(PROP_TOOLBAR_HIDE_IN_FULLSCREEN, String.valueOf(0), true);
 					},
 					R.string.inconsistent_options_tap_reading_menu, () -> {
 						String paramName = ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".5";
 						setSetting(paramName, ReaderAction.READER_MENU.id, true);
-					}
+					},
+					() -> noticeDialogVisible = false
 			);
+			noticeDialogVisible = true;
 		}
 		// TODO: check any other options for compatibility
 	}
@@ -1339,7 +1345,12 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void showNotice(int questionResourceId, int button1TextRes, final Runnable button1Runnable,
 						   int button2TextRes, final Runnable button2Runnable) {
-		NoticeDialog dlg = new NoticeDialog(this, button1TextRes, button1Runnable, button2TextRes, button2Runnable);
+		showNotice(questionResourceId, button1TextRes, button1Runnable, button2TextRes, button2Runnable, null);
+	}
+
+	public void showNotice(int questionResourceId, int button1TextRes, final Runnable button1Runnable,
+						   int button2TextRes, final Runnable button2Runnable, final Runnable dismissRunnable) {
+		NoticeDialog dlg = new NoticeDialog(this, button1TextRes, button1Runnable, button2TextRes, button2Runnable, dismissRunnable);
 		dlg.setMessage(questionResourceId);
 		dlg.show();
 	}
@@ -1799,9 +1810,6 @@ public class BaseActivity extends Activity implements Settings {
 				}
 			}
 
-			/*
-			 * Moved to function validateSettings()
-			 *
 			boolean menuKeyActionFound = false;
 			for (DefKeyAction ka : DEF_KEY_ACTIONS) {
 				if (ReaderAction.READER_MENU.id.equals(ka.action.id)) {
@@ -1832,7 +1840,6 @@ public class BaseActivity extends Activity implements Settings {
 					props.applyDefault(paramName, ka.action.id);
 				}
 			}
-			*/
 
 			if (DeviceInfo.EINK_NOOK) {
 				props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_NONE);
