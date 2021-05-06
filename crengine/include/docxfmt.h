@@ -1,3 +1,16 @@
+/** @file docxfmt.h
+
+    CoolReader Engine
+
+    DOCX support implementation.
+
+    (c) Konstantin Potapov <pkbo@users.sourceforge.net>, 2019-2020
+    This source code is distributed under the terms of
+    GNU General Public License.
+
+    See LICENSE file for details.
+*/
+
 #ifndef DOCXFMT_H
 #define DOCXFMT_H
 

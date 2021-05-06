@@ -1,3 +1,16 @@
+/** @file fb3fmt.h
+
+    CoolReader Engine
+
+    FB3 support implementation.
+
+    (c) Konstantin Potapov <pkbo@users.sourceforge.net>, 2019-2020
+    This source code is distributed under the terms of
+    GNU General Public License.
+
+    See LICENSE file for details.
+*/
+
 #ifndef FB3FMT_H
 #define FB3FMT_H
 
