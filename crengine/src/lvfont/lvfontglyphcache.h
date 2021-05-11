@@ -19,6 +19,7 @@
 #include "crsetup.h"
 #include "lvtypes.h"
 #include "lvhashtable.h"
+#include "lvdrawbuf.h"
 #include "crlocks.h"
 
 #define GLYPHCACHE_TABLE_SZ         256
@@ -142,9 +143,11 @@ struct LVFontGlyphCacheItem {
     LVFontGlyphCacheKeyType data;
     lUInt16 bmp_width;
     lUInt16 bmp_height;
+    lInt16 bmp_pitch;
     lInt16 origin_x;
     lInt16 origin_y;
     lUInt16 advance;
+    FontBmpPixelFormat bmp_fmt;
     lUInt8 bmp[1];
 
     //=======================================================================
@@ -152,7 +155,7 @@ struct LVFontGlyphCacheItem {
         return sizeof(LVFontGlyphCacheItem)
                + (bmp_width * bmp_height - 1) * sizeof(lUInt8);
     }
-    static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, LVFontGlyphCacheKeyType ch_or_index, int w, int h);
+    static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, LVFontGlyphCacheKeyType ch_or_index, int w, int h, unsigned int bmp_pitch, unsigned int bmp_sz);
     static void freeItem(LVFontGlyphCacheItem *item);
 };
 #endif //__LV_FONTGLYPHCACHE_H_INCLUDED__

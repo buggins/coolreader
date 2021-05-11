@@ -16,6 +16,419 @@
 #include "lvimagescaleddrawcallback.h"
 #include "lvdrawbuf_utils.h"
 
+
+// Blend mono 1-bit bitmap (8 pixels per byte)
+static inline void blendBitmap_monoTo16bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt16 color) {
+    lUInt16 * dst;
+    lUInt16 * dstline;
+    const lUInt8* src;
+    unsigned char mask;
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt16*)d->GetScanLine(y++)) + x;
+        dst = dstline;
+        if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+            break;
+        }
+        mask = 0x80;
+        for (int xx = width; xx>0; --xx) {
+            if (*src & mask)
+                *dst = color;
+            mask >>= 1;
+            if (0 == mask) {
+                mask = 0x80;
+                src++;
+            }
+            /* next pixel */
+            dst++;
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
+// Blend gray 8-bit bitmap (1 byte per pixel)
+static inline void blendBitmap_grayTo16bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt16 color) {
+    lUInt16 tr = (color>>11);
+    lUInt16 tg = ((color>>5) & 0x003F);
+    lUInt16 tb = (color & 0x001F);
+    lUInt16 * dst;
+    lUInt16 * dstline;
+    const lUInt8* src;
+    lUInt16 alpha;
+    lUInt16 alpha_r, alpha_g, alpha_b;
+    lUInt16 r, g, b;
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt16*)d->GetScanLine(y++)) + x;
+        dst = dstline;
+        if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+            break;
+        }
+        for (int xx = width; xx>0; --xx) {
+            alpha = *(src++);
+            alpha_r = alpha >> 3;
+            alpha_g = alpha >> 2;
+            alpha_b = alpha >> 3;
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            r = (alpha_r*tr + (31 - alpha_r)*((*dst)>>11) + 15)/31;
+            g = (alpha_g*tg + (63 - alpha_g)*(((*dst)>>5) & 0x003F) + 31)/63;
+            b = (alpha_b*tb + (31 - alpha_b)*((*dst) & 0x00001F) + 15)/31;
+            *dst = (r << 11) | (g << 5) | b;
+            /* next pixel */
+            dst++;
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
+// Blend color 24-bit bitmap (3 bytes per pixel)
+static inline void blendBitmap_rgbTo16bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt16 color) {
+    lUInt16 tr = (color>>11);
+    lUInt16 tg = ((color>>5) & 0x003F);
+    lUInt16 tb = (color & 0x001F);
+    lUInt16 * dst;
+    lUInt16 * dstline;
+    const lUInt8* src;
+    lUInt16 alpha_r, alpha_g, alpha_b;
+    lUInt16 r, g, b;
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt16*)d->GetScanLine(y++)) + x;
+        dst = dstline;
+        if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+            break;
+        }
+        for (int xx = width; xx>0; --xx) {
+            alpha_r = *(src++) >> 3;
+            alpha_g = *(src++) >> 2;
+            alpha_b = *(src++) >> 3;
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            r = (alpha_r*tr + (31 - alpha_r)*((*dst)>>11) + 15)/31;
+            g = (alpha_g*tg + (63 - alpha_g)*(((*dst)>>5) & 0x003F) + 31)/63;
+            b = (alpha_b*tb + (31 - alpha_b)*((*dst) & 0x001F) + 15)/31;
+            *dst = (r << 11) | (g << 5) | b;
+            /* next pixel */
+            dst++;
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
+// Blend color 24-bit bitmap (3 bytes per pixel)
+static inline void blendBitmap_bgrTo16bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt16 color) {
+    lUInt16 tr = (color>>11);
+    lUInt16 tg = ((color>>5) & 0x003F);
+    lUInt16 tb = (color & 0x001F);
+    lUInt16 * dst;
+    lUInt16 * dstline;
+    const lUInt8* src;
+    lUInt16 alpha_r, alpha_g, alpha_b;
+    lUInt16 r, g, b;
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt16*)d->GetScanLine(y++)) + x;
+        dst = dstline;
+        if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+            break;
+        }
+        for (int xx = width; xx>0; --xx) {
+            alpha_b = *(src++) >> 3;
+            alpha_g = *(src++) >> 2;
+            alpha_r = *(src++) >> 3;
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            r = (alpha_r*tr + (31 - alpha_r)*((*dst)>>11) + 15)/31;
+            g = (alpha_g*tg + (63 - alpha_g)*(((*dst)>>5) & 0x003F) + 31)/63;
+            b = (alpha_b*tb + (31 - alpha_b)*((*dst) & 0x001F) + 15)/31;
+            *dst = (r << 11) | (g << 5) | b;
+            /* next pixel */
+            dst++;
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
+// Blend color 24-bit bitmap (3 bytes per pixel, vertical)
+static inline void blendBitmap_rgbvTo16bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt16 color) {
+    lUInt16 tr = (color>>11);
+    lUInt16 tg = ((color>>5) & 0x003F);
+    lUInt16 tb = (color & 0x001F);
+    lUInt16 * dst;
+    lUInt16 * dstline;
+    const lUInt8* src;
+    lUInt16 alpha_r, alpha_g, alpha_b;
+    lUInt16 r, g, b;
+    for (int xx = 0; xx<width; xx++) {
+        src = bitmap;
+        for (int yy = 0; yy < height; yy++) {
+            dstline = ((lUInt16*)d->GetScanLine(y+yy)) + x + xx;
+            dst = dstline;
+            if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+                break;
+            }
+            alpha_r = src[xx] >> 3;
+            alpha_g = src[xx + bmp_pitch] >> 2;
+            alpha_b = src[xx + 2*bmp_pitch] >> 3;
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            r = (alpha_r*tr + (31 - alpha_r)*((*dst)>>11) + 15)/31;
+            g = (alpha_g*tg + (63 - alpha_g)*(((*dst)>>5) & 0x003F) + 31)/63;
+            b = (alpha_b*tb + (31 - alpha_b)*((*dst) & 0x001F) + 15)/31;
+            *dst = (r << 11) | (g << 5) | b;
+            /* next pixel */
+            //dst++;
+            /* new dest line */
+            src += 3*bmp_pitch;
+        }
+    }
+}
+
+// Blend color 24-bit bitmap (3 bytes per pixel, vertical)
+static inline void blendBitmap_bgrvTo16bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt16 color) {
+    lUInt16 tr = (color>>11);
+    lUInt16 tg = ((color>>5) & 0x003F);
+    lUInt16 tb = (color & 0x001F);
+    lUInt16 * dst;
+    lUInt16 * dstline;
+    const lUInt8* src;
+    lUInt16 alpha_r, alpha_g, alpha_b;
+    lUInt16 r, g, b;
+    for (int xx = 0; xx<width; xx++) {
+        src = bitmap;
+        for (int yy = 0; yy < height; yy++) {
+            dstline = ((lUInt16*)d->GetScanLine(y+yy)) + x + xx;
+            dst = dstline;
+            if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+                break;
+            }
+            alpha_b = src[xx] >> 3;
+            alpha_g = src[xx + bmp_pitch] >> 2;
+            alpha_r = src[xx + 2*bmp_pitch] >> 3;
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            r = (alpha_r*tr + (31 - alpha_r)*((*dst)>>11) + 15)/31;
+            g = (alpha_g*tg + (63 - alpha_g)*(((*dst)>>5) & 0x003F) + 31)/63;
+            b = (alpha_b*tb + (31 - alpha_b)*((*dst) & 0x001F) + 15)/31;
+            *dst = (r << 11) | (g << 5) | b;
+            /* next pixel */
+            //dst++;
+            /* new dest line */
+            src += 3*bmp_pitch;
+        }
+    }
+}
+
+
+
+// Blend mono 1-bit bitmap (8 pixels per byte)
+static inline void blendBitmap_monoTo32bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt32 color) {
+    lUInt32 * dst;
+    lUInt32 * dstline;
+    const lUInt8* src;
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt32*)d->GetScanLine(y++)) + x;
+        dst = dstline;
+        if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+            break;
+        }
+        unsigned char mask = 0x80;
+        for (int xx = width; xx>0; --xx) {
+            if (*src & mask)
+                *dst = color;
+            mask >>= 1;
+            if (0 == mask) {
+                mask = 0x80;
+                src++;
+            }
+            /* next pixel */
+            dst++;
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
+// Blend gray 8-bit bitmap (1 byte per pixel)
+static inline void blendBitmap_grayTo32bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt32 color) {
+    lUInt32 tr = (color>>16);
+    lUInt32 tg = ((color>>8) & 0x00FF);
+    lUInt32 tb = (color & 0x00FF);
+    lUInt32 * dst;
+    lUInt32 * dstline;
+    const lUInt8* src;
+    lUInt32 alpha;
+    lUInt32 r, g, b;
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt32*)d->GetScanLine(y++)) + x;
+        dst = dstline;
+        if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+            break;
+        }
+        for (int xx = width; xx>0; --xx) {
+            alpha = *(src++);
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            r = (alpha*tr + (255 - alpha)*((*dst)>>16) + 127)/255;
+            g = (alpha*tg + (255 - alpha)*(((*dst)>>8) & 0x00FF) + 127)/255;
+            b = (alpha*tb + (255 - alpha)*((*dst) & 0x00FF) + 127)/255;
+            *dst = (r << 16) | (g << 8) | b;
+            /* next pixel */
+            dst++;
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
+// Blend color 24-bit bitmap (3 bytes per pixel)
+static inline void blendBitmap_rgbTo32bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt32 color) {
+    lUInt32 tr = (color>>16);
+    lUInt32 tg = ((color>>8) & 0x00FF);
+    lUInt32 tb = (color & 0x00FF);
+    lUInt32 * dst;
+    lUInt32 * dstline;
+    const lUInt8* src;
+    lUInt32 alpha_r, alpha_g, alpha_b;
+    lUInt32 r, g, b;
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt32*)d->GetScanLine(y++)) + x;
+        dst = dstline;
+        if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+            break;
+        }
+        for (int xx = width; xx>0; --xx) {
+            alpha_r = *(src++);
+            alpha_g = *(src++);
+            alpha_b = *(src++);
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            r = (alpha_r*tr + (255 - alpha_r)*((*dst)>>16) + 127)/255;
+            g = (alpha_g*tg + (255 - alpha_g)*(((*dst)>>8) & 0x00FF) + 127)/255;
+            b = (alpha_b*tb + (255 - alpha_b)*((*dst) & 0x00FF) + 127)/255;
+            *dst = (r << 16) | (g << 8) | b;
+            /* next pixel */
+            dst++;
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
+// Blend color 24-bit bitmap (3 bytes per pixel)
+static inline void blendBitmap_bgrTo32bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt32 color) {
+    lUInt32 tr = (color>>16);
+    lUInt32 tg = ((color>>8) & 0x00FF);
+    lUInt32 tb = (color & 0x00FF);
+    lUInt32 * dst;
+    lUInt32 * dstline;
+    const lUInt8* src;
+    lUInt32 alpha_r, alpha_g, alpha_b;
+    lUInt32 r, g, b;
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt32*)d->GetScanLine(y++)) + x;
+        dst = dstline;
+        if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+            break;
+        }
+        for (int xx = width; xx>0; --xx) {
+            alpha_b = *(src++);
+            alpha_g = *(src++);
+            alpha_r = *(src++);
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            r = (alpha_r*tr + (255 - alpha_r)*((*dst)>>16) + 127)/255;
+            g = (alpha_g*tg + (255 - alpha_g)*(((*dst)>>8) & 0x00FF) + 127)/255;
+            b = (alpha_b*tb + (255 - alpha_b)*((*dst) & 0x00FF) + 127)/255;
+            *dst = (r << 16) | (g << 8) | b;
+            /* next pixel */
+            dst++;
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
+// Blend color 24-bit bitmap (3 bytes per pixel, vertical)
+static inline void blendBitmap_rgbvTo32bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt32 color) {
+    lUInt32 tr = (color>>16);
+    lUInt32 tg = ((color>>8) & 0x00FF);
+    lUInt32 tb = (color & 0x00FF);
+    lUInt32 * dst;
+    lUInt32 * dstline;
+    const lUInt8* src;
+    lUInt32 alpha_r, alpha_g, alpha_b;
+    lUInt32 r, g, b;
+    for (int xx = 0; xx<width; xx++) {
+        src = bitmap;
+        for (int yy = 0; yy < height; yy++) {
+            dstline = ((lUInt32*)d->GetScanLine(y+yy)) + x + xx;
+            dst = dstline;
+            if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+                break;
+            }
+            alpha_r = src[xx];
+            alpha_g = src[xx + bmp_pitch];
+            alpha_b = src[xx + 2*bmp_pitch];
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            r = (alpha_r*tr + (255 - alpha_r)*((*dst)>>16) + 127)/255;
+            g = (alpha_g*tg + (255 - alpha_g)*(((*dst)>>8) & 0x00FF) + 127)/255;
+            b = (alpha_b*tb + (255 - alpha_b)*((*dst) & 0x00FF) + 127)/255;
+            *dst = (r << 16) | (g << 8) | b;
+            /* next pixel */
+            //dst++;
+            /* new dest line */
+            src += 3*bmp_pitch;
+        }
+    }
+}
+
+// Blend color 24-bit bitmap (3 bytes per pixel, vertical)
+static inline void blendBitmap_bgrvTo32bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt32 color) {
+    lUInt32 tr = (color>>16);
+    lUInt32 tg = ((color>>8) & 0x00FF);
+    lUInt32 tb = (color & 0x00FF);
+    lUInt32 * dst;
+    lUInt32 * dstline;
+    const lUInt8* src;
+    lUInt32 alpha_r, alpha_g, alpha_b;
+    lUInt32 r, g, b;
+    for (int xx = 0; xx<width; xx++) {
+        src = bitmap;
+        for (int yy = 0; yy < height; yy++) {
+            dstline = ((lUInt32*)d->GetScanLine(y+yy)) + x + xx;
+            dst = dstline;
+            if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+                break;
+            }
+            alpha_b = src[xx];
+            alpha_g = src[xx + bmp_pitch];
+            alpha_r = src[xx + 2*bmp_pitch];
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            r = (alpha_r*tr + (255 - alpha_r)*((*dst)>>16) + 127)/255;
+            g = (alpha_g*tg + (255 - alpha_g)*(((*dst)>>8) & 0x00FF) + 127)/255;
+            b = (alpha_b*tb + (255 - alpha_b)*((*dst) & 0x00FF) + 127)/255;
+            *dst = (r << 16) | (g << 8) | b;
+            /* next pixel */
+            //dst++;
+            /* new dest line */
+            src += 3*bmp_pitch;
+        }
+    }
+}
+
+
 /// rotates buffer contents by specified angle
 void LVColorDrawBuf::Rotate( cr_rotate_angle_t angle )
 {
@@ -251,6 +664,7 @@ void LVColorDrawBuf::DrawLine(int x0,int y0,int x1,int y1,lUInt32 color0 ,int le
         }
     }
 }
+
 /// fills rectangle with specified color
 void LVColorDrawBuf::FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern )
 {
@@ -384,19 +798,15 @@ void LVColorDrawBuf::InvertRect(int x0, int y0, int x1, int y1)
     }
 }
 
-/// draws bitmap (1 byte per pixel) using specified palette
-void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * palette )
+/// blend font bitmap using specified palette
+void LVColorDrawBuf::BlendBitmap(int x, int y, const lUInt8 * bitmap, FontBmpPixelFormat bitmap_fmt, int width, int height, int bmp_pitch, lUInt32 * palette )
 {
     if ( !_data )
         return;
-    //int buf_width = _dx; /* 2bpp */
     int initial_height = height;
     int bx = 0;
     int by = 0;
-    int xx;
-    int bmp_width = width;
     lUInt32 bmpcl = palette?palette[0]:GetTextColor();
-    const lUInt8 * src;
 
     if (x<_clip.left)
     {
@@ -420,7 +830,7 @@ void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int h
     {
         width = _clip.right - x;
     }
-    if (width<=0)
+    if (width<=0 || !bitmap)
         return;
     if (y + height > _clip.bottom)
     {
@@ -435,81 +845,67 @@ void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int h
     if (height<=0)
         return;
 
-    bitmap += bx + by*bmp_width;
+    bitmap += bx + by*bmp_pitch;
 
     if ( _bpp==16 ) {
-
-        lUInt16 bmpcl16 = rgb888to565(bmpcl);
-
-        lUInt16 * dst;
-        lUInt16 * dstline;
-
-
-        for (;height;height--)
-        {
-            src = bitmap;
-            dstline = ((lUInt16*)GetScanLine(y++)) + x;
-            dst = dstline;
-
-            if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
-                bitmap += bmp_width;
-                continue;
-            }
-
-            for (xx = width; xx>0; --xx)
-            {
-                lUInt32 opaque = ((*(src++))>>4)&0x0F;
-                if ( opaque>=0xF )
-                    *dst = bmpcl16;
-                else if ( opaque>0 ) {
-                    lUInt32 alpha = 0xF-opaque;
-                    lUInt16 cl1 = (lUInt16)(((alpha*((*dst)&0xF81F) + opaque*(bmpcl16&0xF81F))>>4) & 0xF81F);
-                    lUInt16 cl2 = (lUInt16)(((alpha*((*dst)&0x07E0) + opaque*(bmpcl16&0x07E0))>>4) & 0x07E0);
-                    *dst = cl1 | cl2;
-                }
-                /* next pixel */
-                dst++;
-            }
-            /* new dest line */
-            bitmap += bmp_width;
+        switch (bitmap_fmt) {
+        case BMP_PIXEL_FORMAT_MONO:
+            blendBitmap_monoTo16bpp(this, x, y, bitmap, width, height, bmp_pitch, rgb888to565(bmpcl));
+            break;
+        case BMP_PIXEL_FORMAT_GRAY:
+            blendBitmap_grayTo16bpp(this, x, y, bitmap, width, height, bmp_pitch, rgb888to565(bmpcl));
+            break;
+        case BMP_PIXEL_FORMAT_GRAY2:
+            // TODO: implement this
+            break;
+        case BMP_PIXEL_FORMAT_GRAY4:
+            // TODO: implement this
+            break;
+        case BMP_PIXEL_FORMAT_RGB:
+            blendBitmap_rgbTo16bpp(this, x, y, bitmap, width, height, bmp_pitch, rgb888to565(bmpcl));
+            break;
+        case BMP_PIXEL_FORMAT_BGR:
+            blendBitmap_bgrTo16bpp(this, x, y, bitmap, width, height, bmp_pitch, rgb888to565(bmpcl));
+            break;
+        case BMP_PIXEL_FORMAT_RGB_V:
+            blendBitmap_rgbvTo16bpp(this, x, y, bitmap, width, height, bmp_pitch, rgb888to565(bmpcl));
+            break;
+        case BMP_PIXEL_FORMAT_BGR_V:
+            blendBitmap_bgrvTo16bpp(this, x, y, bitmap, width, height, bmp_pitch, rgb888to565(bmpcl));
+            break;
+        case BMP_PIXEL_FORMAT_BGRA:
+            // TODO: implement this
+            break;
         }
-
     } else {
-
-
-        lUInt32 bmpcl32 = RevRGBA(bmpcl);
-
-        lUInt32 * dst;
-        lUInt32 * dstline;
-
-
-        for (;height;height--)
-        {
-            src = bitmap;
-            dstline = ((lUInt32*)GetScanLine(y++)) + x;
-            dst = dstline;
-
-            if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
-                bitmap += bmp_width;
-                continue;
-            }
-
-            for (xx = width; xx>0; --xx)
-            {
-                lUInt32 opaque = ((*(src++))>>1)&0x7F;
-                if ( opaque>=0x78 )
-                    *dst = bmpcl32;
-                else if ( opaque>0 ) {
-                    lUInt32 alpha = 0x7F-opaque;
-                    lUInt32 cl1 = ((alpha*((*dst)&0xFF00FF) + opaque*(bmpcl32&0xFF00FF))>>7) & 0xFF00FF;
-                    lUInt32 cl2 = ((alpha*((*dst)&0x00FF00) + opaque*(bmpcl32&0x00FF00))>>7) & 0x00FF00;
-                    *dst = cl1 | cl2;
-                }
-                /* next pixel */
-                dst++;
-            }
-            /* new dest line */
-            bitmap += bmp_width;
+        switch (bitmap_fmt) {
+        case BMP_PIXEL_FORMAT_MONO:
+            blendBitmap_monoTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, RevRGBA(bmpcl));
+            break;
+        case BMP_PIXEL_FORMAT_GRAY:
+            blendBitmap_grayTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, RevRGBA(bmpcl));
+            break;
+        case BMP_PIXEL_FORMAT_GRAY2:
+            // TODO: implement this
+            break;
+        case BMP_PIXEL_FORMAT_GRAY4:
+            // TODO: implement this
+            break;
+        case BMP_PIXEL_FORMAT_RGB:
+            blendBitmap_rgbTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, RevRGBA(bmpcl));
+            break;
+        case BMP_PIXEL_FORMAT_BGR:
+            blendBitmap_bgrTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, RevRGBA(bmpcl));
+            break;
+        case BMP_PIXEL_FORMAT_RGB_V:
+            blendBitmap_rgbvTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, RevRGBA(bmpcl));
+            break;
+        case BMP_PIXEL_FORMAT_BGR_V:
+            blendBitmap_bgrvTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, RevRGBA(bmpcl));
+            break;
+        case BMP_PIXEL_FORMAT_BGRA:
+            // TODO: implement this
+            break;
         }
     }
 }

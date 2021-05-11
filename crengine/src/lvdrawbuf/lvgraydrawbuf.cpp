@@ -77,6 +77,193 @@ static lUInt16 rgb565(int r, int g, int b) {
     return (lUInt16)(((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3));
 }
 
+static inline void blendBitmap_monoTo1bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch) {
+    lUInt8 * dst;
+    lUInt8 * dstline;
+    const lUInt8* src;
+    lUInt8 dmask;
+    lUInt8 smask;
+    lUInt8 shift0 = x % 8;
+    lUInt8 shift, ishift;
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt8*)d->GetScanLine(y++)) + (x >> 3);
+        dst = dstline;
+        if ( !dst )  // Should not happen, but avoid clang-tidy warning below
+            break;
+        shift = shift0;
+        ishift = 7 - shift0;
+        dmask = 0x80 >> shift;
+        smask = 0x80;
+        for (int xx = width; xx>0; --xx) {
+            if (*src & smask) {
+                *dst &= ~dmask;
+#if (GRAY_INVERSE==1)
+                *dst |= (0x01 << ishift);
+#endif
+            }
+            smask >>= 1;
+            if (0 == smask) {
+                smask = 0x80;
+                src++;
+            }
+            /* next pixel */
+            dmask >>= 1;
+            shift += 1;
+            ishift -= 1;
+            if (8 == shift) {
+                shift = 0;
+                ishift = 7;
+                dmask = 0x80;
+                dst++;
+            }
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
+static inline void blendBitmap_monoTo2bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt8 color) {
+    lUInt8 * dst;
+    lUInt8 * dstline;
+    const lUInt8* src;
+    lUInt8 dmask;
+    lUInt8 smask;
+    lUInt8 shift0 = (x % 4) << 1;
+    lUInt8 shift, ishift;
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt8*)d->GetScanLine(y++)) + (x >> 2);
+        dst = dstline;
+        if ( !dst )  // Should not happen, but avoid clang-tidy warning below
+            break;
+        shift = shift0;
+        ishift = 6 - shift0;
+        dmask = 0xC0 >> shift;
+        smask = 0x80;
+        for (int xx = width; xx>0; --xx) {
+            if (*src & smask) {
+                *dst &= ~dmask;
+                *dst |= (color << ishift);
+            }
+            smask >>= 1;
+            if (0 == smask) {
+                smask = 0x80;
+                src++;
+            }
+            /* next pixel */
+            dmask >>= 2;
+            shift += 2;
+            ishift -= 2;
+            //if (0 == mask) {
+            if (8 == shift) {
+                shift = 0;
+                ishift = 6;
+                dmask = 0xC0;
+                dst++;
+            }
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
+static inline void blendBitmap_grayTo2bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt8 color) {
+    lUInt8 * dst;
+    lUInt8 * dstline;
+    const lUInt8* src;
+    int alpha;
+    lUInt8 c;
+    lUInt8 mask;
+    //lUInt8 shift0 = (x & 0x06);
+    lUInt8 shift0 = (x % 4) * 2;
+    lUInt8 shift, ishift;
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt8*)d->GetScanLine(y++)) + (x >> 2);
+        dst = dstline;
+        if ( !dst )  // Should not happen, but avoid clang-tidy warning below
+            break;
+        shift = shift0;
+        ishift = 6 - shift0;
+        mask = 0xC0 >> shift;
+        for (int xx = width; xx>0; --xx) {
+            alpha = (*(src++)) >> 6;
+            c = ((*dst) >> ishift) & 0x03;
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            c = (alpha*color + (3 - alpha)*c + 1)/3;
+            *dst &= ~mask;
+            *dst |= (c << ishift);
+            /* next pixel */
+            mask >>= 2;
+            shift += 2;
+            ishift -= 2;
+            //if (0 == mask) {
+            if (8 == shift) {
+                shift = 0;
+                ishift = 6;
+                mask = 0xC0;
+                dst++;
+            }
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
+static inline void blendBitmap_monoTo8bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt8 color) {
+    lUInt8 * dst;
+    lUInt8 * dstline;
+    const lUInt8* src;
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt8*)d->GetScanLine(y++)) + x;
+        dst = dstline;
+        if ( !dst )  // Should not happen, but avoid clang-tidy warning below
+            break;
+        unsigned char mask = 0x80;
+        for (int xx = width; xx>0; --xx) {
+            if (*src & mask)
+                *dst = color;
+            mask >>= 1;
+            if (0 == mask) {
+                mask = 0x80;
+                src++;
+            }
+            /* next pixel */
+            dst++;
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
+static inline void blendBitmap_grayTo8bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch, lUInt8 color) {
+    lUInt8 * dst;
+    lUInt8 * dstline;
+    const lUInt8* src;
+    lUInt32 alpha;
+    int bpp = d->GetBitsPerPixel();
+    lUInt8 mask = ((1 << bpp) - 1) << (8 - bpp);
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt8*)d->GetScanLine(y++)) + x;
+        dst = dstline;
+        if ( !dst )  // Should not happen, but avoid clang-tidy warning below
+            break;
+        for (int xx = width; xx>0; --xx) {
+            alpha = *(src++);
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            *dst = ((alpha*color + (255 - alpha)*(*dst) + 127)/255) & mask;
+            /* next pixel */
+            dst++;
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
 
 
 
@@ -426,6 +613,7 @@ LVGrayDrawBuf::~LVGrayDrawBuf()
     	free( _data );
     }
 }
+
 void LVGrayDrawBuf::DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0,int length1,int length2,int direction)
 {
     if (x0<_clip.left)
@@ -469,18 +657,12 @@ void LVGrayDrawBuf::DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0,int 
         }
     }
 }
-void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * )
+
+void LVGrayDrawBuf::BlendBitmap(int x, int y, const lUInt8 * bitmap, FontBmpPixelFormat bitmap_fmt, int width, int height, int bmp_pitch, lUInt32 * )
 {
-    //int buf_width = _dx; /* 2bpp */
     int initial_height = height;
     int bx = 0;
     int by = 0;
-    int xx;
-    int bmp_width = width;
-    lUInt8 * dst;
-    lUInt8 * dstline;
-    const lUInt8 * src;
-    int      shift, shift0;
 
     if (x<_clip.left)
     {
@@ -519,104 +701,82 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
     if (height<=0)
         return;
 
-    int bytesPerRow = _rowsize;
-    if ( _bpp==2 ) {
-        dstline = _data + bytesPerRow*y + (x >> 2);
-        shift0 = (x & 3);
-    } else if (_bpp==1) {
-        dstline = _data + bytesPerRow*y + (x >> 3);
-        shift0 = (x & 7);
-    } else {
-        dstline = _data + bytesPerRow*y + x;
-        shift0 = 0;// not used
-    }
-    dst = dstline;
-
-    bitmap += bx + by*bmp_width;
-    shift = shift0;
-
-
-    lUInt8 color = rgbToGrayMask(GetTextColor(), _bpp);
-//    bool white = (color & 0x80) ?
-//#if (GRAY_INVERSE==1)
-//            false : true;
-//#else
-//            true : false;
-//#endif
-    for (;height;height--)
-    {
-        src = bitmap;
-
-        if ( _bpp==2 ) {
-            // foreground color
-            lUInt8 cl = (lUInt8)(rgbToGray(GetTextColor()) >> 6); // 0..3
-            //cl ^= 0x03;
-            for (xx = width; xx>0; --xx)
-            {
-                lUInt8 opaque = (*src >> 4) & 0x0F; // 0..15
-                if ( opaque>0x3 ) {
-                    int shift2 = shift<<1;
-                    int shift2i = 6-shift2;
-                    lUInt8 mask = 0xC0 >> shift2;
-                    lUInt8 dstcolor;
-                    if ( opaque>=0xC ) {
-                        dstcolor = cl;
-                    } else {
-                        lUInt8 bgcolor = ((*dst)>>shift2i)&3; // 0..3
-                        dstcolor = ((opaque*cl + (15-opaque)*bgcolor)>>4)&3;
-                    }
-                    *dst = (*dst & ~mask) | (dstcolor<<shift2i);
-                }
-                src++;
-                /* next pixel */
-                if (!(++shift & 3))
-                {
-                    shift = 0;
-                    dst++;
-                }
-            }
-        } else if ( _bpp==1 ) {
-            for (xx = width; xx>0; --xx)
-            {
-#if (GRAY_INVERSE==1)
-                *dst |= (( (*src++) & 0x80 ) >> ( shift ));
-#else
-                *dst &= ~(( ((*src++) & 0x80) ) >> ( shift ));
-#endif
-                /* next pixel */
-                if (!(++shift & 7))
-                {
-                    shift = 0;
-                    dst++;
-                }
-            }
-        } else { // 3,4,8
-            int mask = ((1<<_bpp)-1)<<(8-_bpp);
-            for (xx = width; xx>0; --xx)
-            {
-                lUInt8 b = (*src++);
-                if ( b ) {
-                    if ( b>=mask )
-                        *dst = color;
-                    else {
-                        int alpha = b ^ 0xFF;
-                        ApplyAlphaGray( *dst, color, alpha, _bpp );
-                    }
-                }
-                dst++;
-            }
+    bitmap += bx + by*bmp_pitch;
+    if (1 == _bpp) {
+        switch (bitmap_fmt) {
+        case BMP_PIXEL_FORMAT_MONO: {
+            blendBitmap_monoTo1bpp(this, x, y, bitmap, width, height, bmp_pitch);
+            break;
         }
-        /* new dest line */
-        bitmap += bmp_width;
-        dstline += bytesPerRow;
-        dst = dstline;
-        shift = shift0;
+        case BMP_PIXEL_FORMAT_GRAY:
+        case BMP_PIXEL_FORMAT_GRAY2:
+        case BMP_PIXEL_FORMAT_GRAY4:
+            CRLog::error("Trying to blend antialiased bitmap on 1bpp drawbuf!");
+            break;
+        case BMP_PIXEL_FORMAT_RGB:
+        case BMP_PIXEL_FORMAT_BGR:
+        case BMP_PIXEL_FORMAT_RGB_V:
+        case BMP_PIXEL_FORMAT_BGR_V:
+        case BMP_PIXEL_FORMAT_BGRA:
+            CRLog::error("Trying to blend rgb bitmap on gray buf!");
+            break;
+        }
+    } else if (2 == _bpp) {
+        switch (bitmap_fmt) {
+        case BMP_PIXEL_FORMAT_MONO: {
+            blendBitmap_monoTo2bpp(this, x, y, bitmap, width, height, bmp_pitch, (lUInt8)(rgbToGray(GetTextColor()) >> 6));
+            break;
+        }
+        case BMP_PIXEL_FORMAT_GRAY: {
+            blendBitmap_grayTo2bpp(this, x, y, bitmap, width, height, bmp_pitch, (lUInt8)(rgbToGray(GetTextColor()) >> 6));
+            break;
+        }
+        case BMP_PIXEL_FORMAT_GRAY2:
+            // TODO: implement this
+            break;
+        case BMP_PIXEL_FORMAT_GRAY4:
+            // TODO: implement this
+            break;
+        case BMP_PIXEL_FORMAT_RGB:
+        case BMP_PIXEL_FORMAT_BGR:
+        case BMP_PIXEL_FORMAT_RGB_V:
+        case BMP_PIXEL_FORMAT_BGR_V:
+        case BMP_PIXEL_FORMAT_BGRA:
+            CRLog::error("Trying to blend rgb bitmap on gray buf!");
+            break;
+        }
+    } else {        // 3,4,8
+        switch (bitmap_fmt) {
+        case BMP_PIXEL_FORMAT_MONO: {
+            blendBitmap_monoTo8bpp(this, x, y, bitmap, width, height, bmp_pitch, rgbToGrayMask(GetTextColor(), _bpp));
+            break;
+        }
+        case BMP_PIXEL_FORMAT_GRAY: {
+            blendBitmap_grayTo8bpp(this, x, y, bitmap, width, height, bmp_pitch, rgbToGrayMask(GetTextColor(), _bpp));
+            break;
+        }
+        case BMP_PIXEL_FORMAT_GRAY2:
+            // TODO: implement this
+            break;
+        case BMP_PIXEL_FORMAT_GRAY4:
+            // TODO: implement this
+            break;
+        case BMP_PIXEL_FORMAT_RGB:
+        case BMP_PIXEL_FORMAT_BGR:
+        case BMP_PIXEL_FORMAT_RGB_V:
+        case BMP_PIXEL_FORMAT_BGR_V:
+        case BMP_PIXEL_FORMAT_BGRA:
+            CRLog::error("Trying to blend rgb bitmap on gray buf!");
+            break;
+        }
     }
-	CHECK_GUARD_BYTE;
+    CHECK_GUARD_BYTE;
 }
 
 lUInt8 * LVGrayDrawBuf::GetScanLine( int y )
 {
+    if (!_data || y<0 || y>=_dy)
+        return NULL;
     return _data + _rowsize*y;
 }
 

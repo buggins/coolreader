@@ -132,6 +132,7 @@ protected:
     LVFontGlyphSignedMetricCache _rsbcache; // glyph right side bearing cache
     LVFontLocalGlyphCache _glyph_cache;
     bool _drawMonochrome;
+    font_antialiasing_t _aa_mode;
     hinting_mode_t _hintingMode;
     shaping_mode_t _shapingMode;
     bool _fallbackFontIsSet;
@@ -219,6 +220,12 @@ public:
     /// set bitmap mode (true=bitmap, false=antialiased)
     virtual void setBitmapMode(bool drawBitmap);
 
+    /// get antialiasing mode
+    virtual font_antialiasing_t GetAntialiasMode() { return _aa_mode; }
+
+    /// set antialiasing mode
+    virtual void SetAntialiasMode(font_antialiasing_t mode);
+    
     /// get OpenType features (bitmap)
     virtual int getFeatures() const { return _features; }
 

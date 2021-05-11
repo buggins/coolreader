@@ -44,6 +44,20 @@ enum DrawBufPixelFormat
     DRAW_BUF_32_BPP = 32  /// color 32bit RGB 888
 };
 
+// Font bitmap format
+enum FontBmpPixelFormat
+{
+    BMP_PIXEL_FORMAT_MONO,  /// 1 bpp w/b, 8 pixels per byte packed, MSB
+    BMP_PIXEL_FORMAT_GRAY,  /// 8 bpp gray, 1 pixel per byte, all 8 bits are significant
+    BMP_PIXEL_FORMAT_GRAY2, /// 2 bpp gray, 4 pixels per byte packed
+    BMP_PIXEL_FORMAT_GRAY4, /// 4 bpp gray, 2 pixel per byte packed
+    BMP_PIXEL_FORMAT_RGB,   /// color 24bit RGB 888
+    BMP_PIXEL_FORMAT_BGR,   /// color 24bit BGR 888
+    BMP_PIXEL_FORMAT_RGB_V, /// color 24bit RGB 888 (vertical order)
+    BMP_PIXEL_FORMAT_BGR_V, /// color 24bit BGR 888 (vertical order)
+    BMP_PIXEL_FORMAT_BGRA,  /// color 32bit BGRA 8888
+};
+
 class GLDrawBuf; // workaround for no-rtti builds
 
 /// Abstract drawing buffer
@@ -189,8 +203,8 @@ public:
     virtual void InvertRect(int x0, int y0, int x1, int y1) = 0;
     /// sets new size
     virtual void Resize( int dx, int dy ) = 0;
-    /// draws bitmap (1 byte per pixel) using specified palette
-    virtual void Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * palette ) = 0;
+    /// blend font bitmap using specified palette
+    virtual void BlendBitmap( int x, int y, const lUInt8 * bitmap, FontBmpPixelFormat bitmap_fmt, int width, int height, int bmp_pitch, lUInt32 * palette ) = 0;
     /// draws image
     virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither=true ) = 0;
     /// draws part of source image, possible rescaled

@@ -122,9 +122,18 @@ enum shaping_mode_t {
 
 
 enum font_antialiasing_t {
-    font_aa_none,
+    font_aa_none = 0,
     font_aa_big,
-    font_aa_all
+    font_aa_all,
+    font_aa_gray,
+    font_aa_lcd_rgb,
+    font_aa_lcd_bgr,
+    font_aa_lcd_pentile,
+    font_aa_lcd_pentile_m,  // mirrorred Pentile
+    font_aa_lcd_v_rgb,
+    font_aa_lcd_v_bgr,
+    font_aa_lcd_v_pentile,
+    font_aa_lcd_v_pentile_m
 };
 
 struct LVFontGlyphCacheItem;
@@ -268,6 +277,12 @@ public:
 
     /// set bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual void setBitmapMode(bool) {}
+
+    /// get antialiasing mode
+    virtual font_antialiasing_t GetAntialiasMode() { return font_aa_gray; }
+
+    /// set antialiasing mode
+    virtual void SetAntialiasMode(font_antialiasing_t mode) {}
 
     /// get OpenType features (bitmap)
     virtual int getFeatures() const { return 0; }

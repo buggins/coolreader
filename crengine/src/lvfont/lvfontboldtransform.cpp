@@ -12,6 +12,7 @@
 */
 
 #include "lvfontboldtransform.h"
+#include "crlog.h"
 
 
 int LVFontBoldTransform::getWeight() const {
@@ -104,14 +105,20 @@ LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt32 ch, lChar32 def_char
     LVFontGlyphCacheItem *olditem = _baseFont->getGlyph(ch, def_char, fallbackPassMask);
     if (!olditem)
         return NULL;
+    if (BMP_PIXEL_FORMAT_GRAY != olditem->bmp_fmt) {
+        CRLog::error("LVFontBoldTransform::getGlyph(): unsupported glyph pixel format=%d", olditem->bmp_fmt);
+        return NULL;
+    }
 
     int oldx = olditem->bmp_width;
     int oldy = olditem->bmp_height;
     int dx = oldx ? oldx + _hShift : 0;
     int dy = oldy ? oldy + _vShift : 0;
+    int bmp_sz = dx*dy;
 
-    item = LVFontGlyphCacheItem::newItem(&_glyph_cache, (lChar32)ch, dx, dy); //, _drawMonochrome
+    item = LVFontGlyphCacheItem::newItem(&_glyph_cache, (lChar32)ch, dx, dy, dx, bmp_sz); //, _drawMonochrome
     if (item) {
+        item->bmp_fmt = olditem->bmp_fmt;
         item->advance = olditem->advance + _hShift;
         item->origin_x = olditem->origin_x;
         item->origin_y = olditem->origin_y;
@@ -185,11 +192,13 @@ int LVFontBoldTransform::DrawTextString(LVDrawBuf *buf, int x, int y, const lCha
             // avoid soft hyphens inside text string
             w = item->advance;
             if ( item->bmp_width && item->bmp_height && (!isHyphen || i==len) ) {
-                buf->Draw( x + item->origin_x,
+                buf->BlendBitmap( x + item->origin_x,
                     y + _baseline - item->origin_y,
                     item->bmp,
+                    item->bmp_fmt,
                     item->bmp_width,
                     item->bmp_height,
+                    item->bmp_pitch,
                     palette);
             }
         }

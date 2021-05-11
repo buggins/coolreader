@@ -68,7 +68,7 @@ public:
     bool isBitmapModeForSize(int size);
 
     /// set antialiasing mode
-    virtual void SetAntialiasMode(int mode);
+    virtual void SetAntialiasMode(font_antialiasing_t mode);
 
     /// sets current gamma level
     virtual void SetHintingMode(hinting_mode_t mode);

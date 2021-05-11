@@ -6364,7 +6364,7 @@ static const char * def_style_macros[] = {
 void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	lString32Collection list;
 	fontMan->getFaceList(list);
-	static int def_aa_props[] = { 2, 1, 0 };
+	static int def_aa_props[] = { font_aa_none, font_aa_big, font_aa_all, font_aa_gray, font_aa_lcd_rgb, font_aa_lcd_bgr, font_aa_lcd_pentile, font_aa_lcd_pentile_m, font_aa_lcd_v_rgb, font_aa_lcd_v_bgr, font_aa_lcd_v_pentile, font_aa_lcd_v_pentile_m };
 
 	props->setIntDef(PROP_MIN_FILE_SIZE_TO_CACHE,
             300000); // ~6M
@@ -6373,7 +6373,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->setIntDef(PROP_PROGRESS_SHOW_FIRST_PAGE, 1);
 
 	props->limitValueList(PROP_FONT_ANTIALIASING, def_aa_props,
-			sizeof(def_aa_props) / sizeof(int));
+			sizeof(def_aa_props) / sizeof(int), 2);
 	props->setHexDef(PROP_FONT_COLOR, 0x000000);
 	props->setHexDef(PROP_BACKGROUND_COLOR, 0xFFFFFF);
 	props->setHexDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
@@ -6583,7 +6583,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         lString8 name(props->getName(i));
         lString32 value = props->getValue(i);
         if (name == PROP_FONT_ANTIALIASING) {
-            int antialiasingMode = props->getIntDef(PROP_FONT_ANTIALIASING, 2);
+            font_antialiasing_t antialiasingMode = (font_antialiasing_t)props->getIntDef(PROP_FONT_ANTIALIASING, (int)font_aa_all);
             fontMan->SetAntialiasMode(antialiasingMode);
             REQUEST_RENDER("propsApply - font antialiasing")
         } else if (name.startsWith(cs8("styles."))) {

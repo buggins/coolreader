@@ -34,11 +34,13 @@ int LVBaseFont::DrawTextString(LVDrawBuf * buf, int x, int y,
                 // avoid soft hyphens inside text string
                 w = item->advance;
                 if (item->bmp_width && item->bmp_height) {
-                    buf->Draw(x + item->origin_x,
+                    buf->BlendBitmap(x + item->origin_x,
                               y + baseline - item->origin_y,
                               item->bmp,
+                              item->bmp_fmt,
                               item->bmp_width,
                               item->bmp_height,
+                              item->bmp_pitch,
                               palette);
                 }
             }

@@ -303,7 +303,7 @@ int main(int /*argc*/, char* /*argv*/[])
             itemB->origin_y = 0;
             localCacheB.put(itemB);
         }
-        item = LVFontGlyphCacheItem::newItem(&localCache, glyphCodes_tofill[i], 10, 10);
+        item = LVFontGlyphCacheItem::newItem(&localCache, glyphCodes_tofill[i], 10, 10, 10, 10);
         if (item)
         {
             item->origin_x = 0;
