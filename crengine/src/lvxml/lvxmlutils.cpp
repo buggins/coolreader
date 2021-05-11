@@ -2256,13 +2256,13 @@ int PreProcessXmlString(lChar32 * str, int len, lUInt32 flags, const lChar32 * e
                 state = 2;
             else if (state==1 && ((ch>='a' && ch<='z') || (ch>='A' && ch<='Z')) ) {
                 int k;
-                lChar32 entname[16];
-                for ( k = 0; k < 16; k++ ) {
+                lChar32 entname[32];
+                for ( k = 0; k < 32; k++ ) {
                     entname[k] = str[k + i];
                     if (!entname[k] || entname[k]==';' || entname[k]==' ')
                         break;
                 }
-                if (16 == k)
+                if (32 == k)
                     k--;
                 entname[k] = 0;
                 int n;
