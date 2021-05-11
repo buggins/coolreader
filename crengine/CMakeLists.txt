@@ -19,29 +19,47 @@ SET (CRENGINE_SOURCES
     src/lvstyles.cpp
     src/crtxtenc.cpp
     src/lvtinydom.cpp
-    src/lvstream.cpp
-    src/lvxml.cpp
     src/lvstsheet.cpp
     src/txtselector.cpp
     #src/xutils.cpp
     src/crtest.cpp
     src/xxhash.c
     src/textlang.cpp
+    src/lvstream/lvdefstreambuffer.cpp
+    src/lvstream/lvfilemappedstream.cpp
+    src/lvstream/lvnamedstream.cpp
+    src/lvstream/lvfilestream.cpp
+    src/lvstream/lvdirectorycontainer.cpp
+    src/lvstream/lvcachedstream.cpp
+    src/lvstream/lvzipdecodestream.cpp
+    src/lvstream/lvziparc.cpp
+    src/lvstream/lvrararc.cpp
+    src/lvstream/lvmemorystream.cpp
+    src/lvstream/lvtcrstream.cpp
+    src/lvstream/lvblockwritestream.cpp
+    src/lvstream/lvstream.cpp
+    src/lvstream/lvbase64stream.cpp
+    src/lvstream/lvstreamutils.cpp
+    src/lvxml/lvfileparserbase.cpp
+    src/lvxml/lvtextfilebase.cpp
+    src/lvxml/lvtextparser.cpp
+    src/lvxml/lvtextlinequeue.cpp
+    src/lvxml/pmltextimport.cpp
+    src/lvxml/lvtextrobustparser.cpp
+    src/lvxml/lvtextbookmarkparser.cpp
+    src/lvxml/lvxmlparser.cpp
+    src/lvxml/lvhtmlparser.cpp
+    src/lvxml/fb2coverpageparsercallback.cpp
+    src/lvxml/lvxmlutils.cpp
     fc-lang/fc-lang-cat.c
 )
 
 if ( NOT ${GUI} STREQUAL FB2PROPS )
     SET (CRENGINE_SOURCES ${CRENGINE_SOURCES}
         src/lvbmpbuf.cpp   
-        src/lvfnt.cpp      
         src/hyphman.cpp  
-        src/lvembeddedfont.cpp
-        src/lvfont.cpp
-        src/lvfntman.cpp        
         src/crgui.cpp     
-        src/lvimg.cpp           
         src/crskin.cpp    
-        src/lvdrawbuf.cpp  
         src/lvdocview.cpp  
         src/lvpagesplitter.cpp  
         src/lvtextfm.cpp
@@ -58,17 +76,42 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
         src/odtfmt.cpp
         src/odxutil.cpp
         src/crconcurrent.cpp
-        src/private/lvbasefont.cpp
-        src/private/lvbitmapfont.cpp
-        src/private/lvbitmapfontman.cpp
-        src/private/lvfontglyphcache.cpp
-        src/private/lvfontcache.cpp
-        src/private/lvfontboldtransform.cpp
-        src/private/lvfontdef.cpp
-        src/private/lvwin32font.cpp
-        src/private/lvwin32fontman.cpp
-        src/private/lvfreetypeface.cpp
-        src/private/lvfreetypefontman.cpp
+        src/lvimg/lvcacheableobject.cpp
+        src/lvimg/lvimagesource.cpp
+        src/lvimg/crninepatchdecoder.cpp
+        src/lvimg/lvjpegimagesource.cpp
+        src/lvimg/lvpngimagesource.cpp
+        src/lvimg/lvxpmimagesource.cpp
+        src/lvimg/lvgifimagesource.cpp
+        src/lvimg/lvgifframe.cpp
+        src/lvimg/clzwdecoder.cpp
+        src/lvimg/lvsvgimagesource.cpp
+        src/lvimg/lvstretchimgsource.cpp
+        src/lvimg/lvcolortransformimgsource.cpp
+        src/lvimg/lvalphatransformimgsource.cpp
+        src/lvimg/lvunpackedimgsource.cpp
+        src/lvimg/lvdrawbufimgsource.cpp
+        src/lvimg/lvimg.cpp
+        src/lvfont/lvfont.cpp
+        src/lvfont/lvfntman.cpp
+        src/lvfont/lvfnt.cpp
+        src/lvfont/lvembeddedfont.cpp
+        src/lvfont/lvbasefont.cpp
+        src/lvfont/lvbitmapfont.cpp
+        src/lvfont/lvbitmapfontman.cpp
+        src/lvfont/lvfontglyphcache.cpp
+        src/lvfont/lvfontcache.cpp
+        src/lvfont/lvfontboldtransform.cpp
+        src/lvfont/lvfontdef.cpp
+        src/lvfont/lvwin32font.cpp
+        src/lvfont/lvwin32fontman.cpp
+        src/lvfont/lvfreetypeface.cpp
+        src/lvfont/lvfreetypefontman.cpp
+        src/lvdrawbuf/lvbasedrawbuf.cpp
+        src/lvdrawbuf/lvgraydrawbuf.cpp
+        src/lvdrawbuf/lvcolordrawbuf.cpp
+        src/lvdrawbuf/lvimagescaleddrawcallback.cpp
+        src/lvdrawbuf/lvdrawbuf_utils.cpp
         #src/xutils.cpp
     )
 endif (NOT ${GUI} STREQUAL FB2PROPS)

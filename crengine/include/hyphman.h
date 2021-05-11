@@ -18,6 +18,7 @@
 #include "lvtypes.h"
 #include "lvstream.h"
 #include "lvhashtable.h"
+#include "lvptrvec.h"
 
 #define WORD_LENGTH   2048
 //#define MAX_REAL_WORD 24

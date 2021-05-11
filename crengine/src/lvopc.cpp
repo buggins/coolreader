@@ -1,5 +1,18 @@
+/**
+    CoolReader Engine
+
+    lvopc.cpp: ODT/DOCX support implementation.
+
+    (c) Konstantin Potapov <pkbo@users.sourceforge.net>, 2019-2020
+    This source code is distributed under the terms of
+    GNU General Public License.
+
+    See LICENSE file for details.
+*/
+
 #include "../include/lvopc.h"
 #include "../include/lvtinydom.h"
+#include "../include/lvstreamutils.h"
 #include "../include/crlog.h"
 
 static const lChar32 * const OPC_PropertiesContentType = U"application/vnd.openxmlformats-package.core-properties+xml";

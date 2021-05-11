@@ -27,6 +27,12 @@
 #include "lvdocview.h"
 #include "crskin.h"
 
+#if (COLOR_BACKBUFFER==1)
+#include "lvcolordrawbuf.h"
+#else
+#include "lvgraydrawbuf.h"
+#endif
+
 #ifdef CR_WX_SUPPORT
 #include <wx/wx.h>
 #endif

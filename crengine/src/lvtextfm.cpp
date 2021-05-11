@@ -23,7 +23,6 @@
 #include "../include/fb2def.h"
 
 #ifdef __cplusplus
-#include "../include/lvimg.h"
 #include "../include/lvtinydom.h"
 #include "../include/lvrend.h"
 #include "../include/textlang.h"

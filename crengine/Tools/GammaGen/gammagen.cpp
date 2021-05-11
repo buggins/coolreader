@@ -43,6 +43,7 @@ int main(int argc, const char ** argv)
     fprintf(out, "// to rebuild, run crengine/Tools/GammaGen/gen.sh\n");
     fprintf(out, "// \n");
     fprintf(out, "#define GAMMA_LEVELS %d\n", GAMMA_LEVELS);
+    fprintf(out, "#define GAMMA_NO_CORRECTION_INDEX %d\n", GAMMA_NORMAL);
     fprintf(out, "\n\n");
     
     fprintf(out, "// gamma correction tables, 0..%d\n", GAMMA_LEVELS-1);

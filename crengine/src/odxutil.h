@@ -1,4 +1,19 @@
-#include <lvxml.h>
+/** @file odxutils.h
+
+    CoolReader Engine
+
+    ODT/DOCX support implementation.
+
+    (c) Konstantin Potapov <pkbo@users.sourceforge.net>, 2019-2020
+    This source code is distributed under the terms of
+    GNU General Public License.
+
+    See LICENSE file for details.
+*/
+
+#ifndef ODXUTIL_H
+#define ODXUTIL_H
+
 #include <lvtinydom.h>
 
 // build FB2 DOM, comment out to build HTML DOM
@@ -488,3 +503,5 @@ private:
     ldomNode *m_section;
     bool m_hasTitle;
 };
+
+#endif  // ODXUTIL_H

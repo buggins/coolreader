@@ -4,9 +4,9 @@
 #ifndef MY_HYPHPATTERNREADER_H
 #define MY_HYPHPATTERNREADER_H
 
-#include "lvxml.h"
 #include "lvstring.h"
 #include "lvstring32collection.h"
+#include "lvxmlparsercallback.h"
 
 class MyHyphPatternReader : public LVXMLParserCallback
 {

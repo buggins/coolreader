@@ -13,6 +13,8 @@
 #include "../include/rtfimp.h"
 #include "../include/crtxtenc.h"
 #include "../include/lvtinydom.h"
+#include "../include/lvstreamutils.h"
+#include "../include/lvxmlutils.h"
 #include <string.h>
 
 //==================================================

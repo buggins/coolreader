@@ -1,6 +1,20 @@
+/**
+    CoolReader Engine
+
+    fb3fmt.cpp: FB3 support implementation.
+
+    (c) Konstantin Potapov <pkbo@users.sourceforge.net>, 2019-2020
+    This source code is distributed under the terms of
+    GNU General Public License.
+
+    See LICENSE file for details.
+*/
+
 #include "../include/fb3fmt.h"
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
+#include "../include/lvstreamutils.h"
+#include "../include/lvxmlparser.h"
 #include "../include/crlog.h"
 
 static const lChar32 * const fb3_BodyContentType = U"application/fb3-body+xml";

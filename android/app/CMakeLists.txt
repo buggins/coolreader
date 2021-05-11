@@ -69,8 +69,6 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/lvstyles.cpp
     ${CR3_ROOT}/crengine/src/crtxtenc.cpp
     ${CR3_ROOT}/crengine/src/lvtinydom.cpp
-    ${CR3_ROOT}/crengine/src/lvstream.cpp
-    ${CR3_ROOT}/crengine/src/lvxml.cpp
     ${CR3_ROOT}/crengine/src/chmfmt.cpp
     ${CR3_ROOT}/crengine/src/epubfmt.cpp
     ${CR3_ROOT}/crengine/src/pdbfmt.cpp
@@ -84,14 +82,8 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/txtselector.cpp
     ${CR3_ROOT}/crengine/src/crtest.cpp
     ${CR3_ROOT}/crengine/src/lvbmpbuf.cpp
-    ${CR3_ROOT}/crengine/src/lvfnt.cpp
     ${CR3_ROOT}/crengine/src/hyphman.cpp
-    ${CR3_ROOT}/crengine/src/lvfont.cpp
-    ${CR3_ROOT}/crengine/src/lvembeddedfont.cpp
-    ${CR3_ROOT}/crengine/src/lvfntman.cpp
-    ${CR3_ROOT}/crengine/src/lvimg.cpp
     ${CR3_ROOT}/crengine/src/crskin.cpp
-    ${CR3_ROOT}/crengine/src/lvdrawbuf.cpp
     ${CR3_ROOT}/crengine/src/lvdocview.cpp
     ${CR3_ROOT}/crengine/src/lvpagesplitter.cpp
     ${CR3_ROOT}/crengine/src/lvtextfm.cpp
@@ -101,12 +93,63 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/hist.cpp
     ${CR3_ROOT}/crengine/src/xxhash.c
     ${CR3_ROOT}/crengine/src/textlang.cpp
-    ${CR3_ROOT}/crengine/src/private/lvfontglyphcache.cpp
-    ${CR3_ROOT}/crengine/src/private/lvfontboldtransform.cpp
-    ${CR3_ROOT}/crengine/src/private/lvfontcache.cpp
-    ${CR3_ROOT}/crengine/src/private/lvfontdef.cpp
-    ${CR3_ROOT}/crengine/src/private/lvfreetypeface.cpp
-    ${CR3_ROOT}/crengine/src/private/lvfreetypefontman.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvcacheableobject.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/crninepatchdecoder.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvjpegimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvpngimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvxpmimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvgifimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvgifframe.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/clzwdecoder.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvsvgimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvstretchimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvcolortransformimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvalphatransformimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvunpackedimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvdrawbufimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvimg.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfnt.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvembeddedfont.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfont.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfntman.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfontglyphcache.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfontboldtransform.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfontcache.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfontdef.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfreetypeface.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfreetypefontman.cpp
+    ${CR3_ROOT}/crengine/src/lvdrawbuf/lvbasedrawbuf.cpp
+    ${CR3_ROOT}/crengine/src/lvdrawbuf/lvgraydrawbuf.cpp
+    ${CR3_ROOT}/crengine/src/lvdrawbuf/lvcolordrawbuf.cpp
+    ${CR3_ROOT}/crengine/src/lvdrawbuf/lvimagescaleddrawcallback.cpp
+    ${CR3_ROOT}/crengine/src/lvdrawbuf/lvdrawbuf_utils.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvdefstreambuffer.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvfilemappedstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvnamedstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvfilestream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvdirectorycontainer.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvcachedstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvzipdecodestream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvziparc.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvrararc.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvmemorystream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvtcrstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvblockwritestream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvbase64stream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvstreamutils.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvfileparserbase.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextfilebase.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextlinequeue.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/pmltextimport.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextrobustparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextbookmarkparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvxmlparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvhtmlparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/fb2coverpageparsercallback.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvxmlutils.cpp
     ${CR3_ROOT}/crengine/fc-lang/fc-lang-cat.c
 )
 #    ${CR3_ROOT}/crengine/src/cri18n.cpp

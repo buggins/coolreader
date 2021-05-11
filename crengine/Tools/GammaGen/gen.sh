@@ -1,3 +1,3 @@
 g++ -o ./gammagen gammagen.cpp
-./gammagen ../../include/gammatbl.h
+./gammagen ../../src/lvfont/gammatbl.h
 rm -f ./gammagen

@@ -1,5 +1,7 @@
 #include "cr3java.h"
-#include "../../crengine/include/crlog.h"
+#include "crlog.h"
+#include "lvcolordrawbuf.h"
+#include "lvstreamutils.h"
 
 #include <dlfcn.h>
 #include <android/api-level.h>

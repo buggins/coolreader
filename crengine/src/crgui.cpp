@@ -14,6 +14,8 @@
 //include <unistd.h>      /* pause() */
 #include "../include/crgui.h"
 #include "../include/crtrace.h"
+#include "../include/lvdrawstatesaver.h"
+#include "../include/lvstreamutils.h"
 
 //TODO: place to skin file
 #define ITEM_MARGIN 8

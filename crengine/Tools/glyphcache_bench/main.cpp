@@ -1,7 +1,7 @@
 
 #include "lvfontglyphcache_a.h"
 #include "lvfontglyphcache_b.h"
-#include "../../src/private/lvfontglyphcache.h"
+#include "../../src/lvfont/lvfontglyphcache.h"
 #include "lvtypes.h"
 
 #include <stdio.h>

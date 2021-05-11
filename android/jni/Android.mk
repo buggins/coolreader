@@ -64,8 +64,6 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvstyles.cpp \
     ../../crengine/src/crtxtenc.cpp \
     ../../crengine/src/lvtinydom.cpp \
-    ../../crengine/src/lvstream.cpp \
-    ../../crengine/src/lvxml.cpp \
     ../../crengine/src/chmfmt.cpp \
     ../../crengine/src/epubfmt.cpp \
     ../../crengine/src/pdbfmt.cpp \
@@ -79,14 +77,8 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/txtselector.cpp \
     ../../crengine/src/crtest.cpp \
     ../../crengine/src/lvbmpbuf.cpp \
-    ../../crengine/src/lvfnt.cpp \
     ../../crengine/src/hyphman.cpp \
-    ../../crengine/src/lvfont.cpp \
-    ../../crengine/src/lvembeddedfont.cpp \
-    ../../crengine/src/lvfntman.cpp \
-    ../../crengine/src/lvimg.cpp \
     ../../crengine/src/crskin.cpp \
-    ../../crengine/src/lvdrawbuf.cpp \
     ../../crengine/src/lvdocview.cpp \
     ../../crengine/src/lvpagesplitter.cpp \
     ../../crengine/src/lvtextfm.cpp \
@@ -96,12 +88,63 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/hist.cpp \
     ../../crengine/src/xxhash.c \
     ../../crengine/src/textlang.cpp \
-    ../../crengine/src/private/lvfontglyphcache.cpp \
-    ../../crengine/src/private/lvfontboldtransform.cpp \
-    ../../crengine/src/private/lvfontcache.cpp \
-    ../../crengine/src/private/lvfontdef.cpp \
-    ../../crengine/src/private/lvfreetypeface.cpp \
-    ../../crengine/src/private/lvfreetypefontman.cpp \
+    ../../crengine/src/lvimg/lvcacheableobject.cpp \
+    ../../crengine/src/lvimg/lvimagesource.cpp \
+    ../../crengine/src/lvimg/crninepatchdecoder.cpp \
+    ../../crengine/src/lvimg/lvjpegimagesource.cpp \
+    ../../crengine/src/lvimg/lvpngimagesource.cpp \
+    ../../crengine/src/lvimg/lvxpmimagesource.cpp \
+    ../../crengine/src/lvimg/lvgifimagesource.cpp \
+    ../../crengine/src/lvimg/lvgifframe.cpp \
+    ../../crengine/src/lvimg/clzwdecoder.cpp \
+    ../../crengine/src/lvimg/lvsvgimagesource.cpp \
+    ../../crengine/src/lvimg/lvstretchimgsource.cpp \
+    ../../crengine/src/lvimg/lvcolortransformimgsource.cpp \
+    ../../crengine/src/lvimg/lvalphatransformimgsource.cpp \
+    ../../crengine/src/lvimg/lvunpackedimgsource.cpp \
+    ../../crengine/src/lvimg/lvdrawbufimgsource.cpp \
+    ../../crengine/src/lvimg/lvimg.cpp \
+    ../../crengine/src/lvfont/lvfnt.cpp \
+    ../../crengine/src/lvfont/lvembeddedfont.cpp \
+    ../../crengine/src/lvfont/lvfont.cpp \
+    ../../crengine/src/lvfont/lvfntman.cpp \
+    ../../crengine/src/lvfont/lvfontglyphcache.cpp \
+    ../../crengine/src/lvfont/lvfontboldtransform.cpp \
+    ../../crengine/src/lvfont/lvfontcache.cpp \
+    ../../crengine/src/lvfont/lvfontdef.cpp \
+    ../../crengine/src/lvfont/lvfreetypeface.cpp \
+    ../../crengine/src/lvfont/lvfreetypefontman.cpp \
+    ../../crengine/src/lvdrawbuf/lvbasedrawbuf.cpp \
+    ../../crengine/src/lvdrawbuf/lvgraydrawbuf.cpp \
+    ../../crengine/src/lvdrawbuf/lvcolordrawbuf.cpp \
+    ../../crengine/src/lvdrawbuf/lvimagescaleddrawcallback.cpp \
+    ../../crengine/src/lvdrawbuf/lvdrawbuf_utils.cpp \
+    ../../crengine/src/lvstream/lvdefstreambuffer.cpp \
+    ../../crengine/src/lvstream/lvfilemappedstream.cpp \
+    ../../crengine/src/lvstream/lvnamedstream.cpp \
+    ../../crengine/src/lvstream/lvfilestream.cpp \
+    ../../crengine/src/lvstream/lvdirectorycontainer.cpp \
+    ../../crengine/src/lvstream/lvcachedstream.cpp \
+    ../../crengine/src/lvstream/lvzipdecodestream.cpp \
+    ../../crengine/src/lvstream/lvziparc.cpp \
+    ../../crengine/src/lvstream/lvrararc.cpp \
+    ../../crengine/src/lvstream/lvmemorystream.cpp \
+    ../../crengine/src/lvstream/lvtcrstream.cpp \
+    ../../crengine/src/lvstream/lvblockwritestream.cpp \
+    ../../crengine/src/lvstream/lvstream.cpp \
+    ../../crengine/src/lvstream/lvbase64stream.cpp \
+    ../../crengine/src/lvstream/lvstreamutils.cpp \
+    ../../crengine/src/lvxml/lvfileparserbase.cpp \
+    ../../crengine/src/lvxml/lvtextfilebase.cpp \
+    ../../crengine/src/lvxml/lvtextparser.cpp \
+    ../../crengine/src/lvxml/lvtextlinequeue.cpp \
+    ../../crengine/src/lvxml/pmltextimport.cpp \
+    ../../crengine/src/lvxml/lvtextrobustparser.cpp \
+    ../../crengine/src/lvxml/lvtextbookmarkparser.cpp \
+    ../../crengine/src/lvxml/lvxmlparser.cpp \
+    ../../crengine/src/lvxml/lvhtmlparser.cpp \
+    ../../crengine/src/lvxml/fb2coverpageparsercallback.cpp \
+    ../../crengine/src/lvxml/lvxmlutils.cpp \
     ../../crengine/fc-lang/fc-lang-cat.c
 #    ../../crengine/src/cri18n.cpp
 #    ../../crengine/src/crgui.cpp \

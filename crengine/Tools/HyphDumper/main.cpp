@@ -4,7 +4,7 @@
 
 #include "lvtypes.h"
 #include "my_texhyph.h"
-#include "lvstream.h"
+#include "lvstreamutils.h"
 #include "crlog.h"
 
 int pdb2pattern(const char* srcfilename, const char* dstfilename);

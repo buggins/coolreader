@@ -1,7 +1,22 @@
+/**
+    CoolReader Engine
+
+    odtfmt.cpp: ODT support implementation.
+
+    (c) Konstantin Potapov <pkbo@users.sourceforge.net>, 2020
+    This source code is distributed under the terms of
+    GNU General Public License.
+
+    See LICENSE file for details.
+*/
+
 #include "../include/odtfmt.h"
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
 #include "../include/lvopc.h"
+#include "../include/lvstreamutils.h"
+#include "../include/lvxmlparser.h"
+#include "../include/lvxmlutils.h"
 #include "../include/crlog.h"
 #include "odxutil.h"
 
