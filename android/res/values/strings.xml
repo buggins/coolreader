@@ -71,8 +71,12 @@
     <string name="options_font_embolden">Embolden font</string>
     <string name="options_font_antialias">Font antialiasing</string>
     <string name="options_font_antialias_off">No antialias</string>
-    <string name="options_font_antialias_on_for_big">On for big fonts</string>
-    <string name="options_font_antialias_on_for_all">On for all fonts</string>
+    <string name="options_font_antialias_on_for_big">On for big fonts (shades of gray)</string>
+    <string name="options_font_antialias_on_for_all">On for all fonts (shades of gray)</string>
+    <string name="options_font_antialias_lcd_rgb">LCD (RGB)</string>
+    <string name="options_font_antialias_lcd_bgr">LCD (BGR)</string>
+    <string name="options_font_antialias_lcd_v_rgb">LCD_V (RGB)</string>
+    <string name="options_font_antialias_lcd_v_bgr">LCD_V (BGR)</string>
     <string name="options_interline_space">Interline space</string>
     <string name="options_inverse_view">Night mode</string>
     <string name="options_color_text">Text color</string>
