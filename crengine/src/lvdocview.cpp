@@ -198,6 +198,9 @@ LVDocView::LVDocView(int bitsPerPixel, bool noDefaultDocument) :
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 			, m_rotateAngle(CR_ROTATE_ANGLE_0)
 #endif
+#ifdef ANDROID
+		, m_rotateAngleInfo(CR_ROTATE_ANGLE_0)
+#endif
 			, m_section_bounds_externally_updated(false)
 			, m_section_bounds_valid(false), m_doc_format(doc_format_none),
 			m_callback(NULL), m_swapDone(false), m_drawBufferBits(
@@ -3748,21 +3751,66 @@ int LVDocView::GetWidth() {
 /// sets rotate angle
 void LVDocView::SetRotateAngle( cr_rotate_angle_t angle )
 {
-	if ( m_rotateAngle==angle )
-	return;
-	m_props->setInt( PROP_ROTATE_ANGLE, ((int)angle) & 3 );
-	clearImageCache();
-	LVLock lock(getMutex());
-	if ( (m_rotateAngle & 1) == (angle & 1) ) {
-		m_rotateAngle = angle;
-		return;
-	}
-	m_rotateAngle = angle;
-	int ndx = (angle&1) ? m_dx : m_dy;
-	int ndy = (angle&1) ? m_dy : m_dx;
-	Resize( ndx, ndy );
+    if ( m_rotateAngle==angle )
+        return;
+    cr_rotate_angle_t old_angle = m_rotateAngle;
+    m_props->setInt( PROP_ROTATE_ANGLE, ((int)angle) & 3 );
+    clearImageCache();
+    LVLock lock(getMutex());
+    m_rotateAngle = angle;
+    font_antialiasing_t rotated_aa_mode = rotateFontAntialiasMode(
+            (font_antialiasing_t) m_props->getIntDef(PROP_FONT_ANTIALIASING, (int) font_aa_all),
+            m_rotateAngle);
+    if (rotated_aa_mode != fontMan->GetAntialiasMode()) {
+        fontMan->SetAntialiasMode(rotated_aa_mode);
+        REQUEST_RENDER("SetRotateAngle - font antialiasing mapping")
+    }
+    if ( (old_angle & 1) == (angle & 1) ) {
+        return;
+    }
+    int ndx = (angle&1) ? m_dx : m_dy;
+    int ndy = (angle&1) ? m_dy : m_dx;
+    Resize( ndx, ndy );
 }
-#endif
+
+/// Select appropriate AA LCD subpixel rendering mode for chosen rotate angle
+font_antialiasing_t LVDocView::rotateFontAntialiasMode(font_antialiasing_t aa_mode, cr_rotate_angle_t angle) {
+	static const font_antialiasing_t replace_matrix[8][4] = {
+			// LCD RGB
+			//      0°                    90°                   180°                    270°
+			{ font_aa_lcd_rgb,       font_aa_lcd_v_bgr,     font_aa_lcd_bgr,         font_aa_lcd_v_rgb },
+			// LCD BGR
+			//      0°                    90°                   180°                    270°
+			{ font_aa_lcd_bgr,       font_aa_lcd_v_rgb,     font_aa_lcd_rgb,         font_aa_lcd_v_bgr },
+			// AMOLED Pentile (stub, test & fix this)
+			//     0°                    90°                   180°                    270°
+			{ font_aa_lcd_pentile,   font_aa_lcd_v_pentile_m, font_aa_lcd_pentile_m,   font_aa_lcd_v_pentile },
+			// AMOLED Pentile mirror (stub, test & fix this)
+			//     0°                    90°                   180°                     270°
+			{ font_aa_lcd_pentile_m, font_aa_lcd_pentile_m, font_aa_lcd_pentile_m,   font_aa_lcd_pentile_m },
+			// LCD_V RGB
+			//      0°                    90°                   180°                    270°
+			{ font_aa_lcd_v_rgb,     font_aa_lcd_rgb,       font_aa_lcd_v_bgr,       font_aa_lcd_bgr },
+			// LCD_V BGR
+			//      0°                    90°                   180°                    270°
+			{ font_aa_lcd_v_bgr,     font_aa_lcd_bgr,       font_aa_lcd_v_rgb,       font_aa_lcd_rgb },
+			// AMOLED_V Pentile (stub, test & fix this)
+			//      0°                    90°                   180°                    270°
+			{ font_aa_lcd_v_pentile, font_aa_lcd_pentile,   font_aa_lcd_v_pentile_m, font_aa_lcd_pentile_m },
+			// AMOLED_V Pentile mirror (stub, test & fix this)
+			//     0°                    90°                   180°                     270°
+			{ font_aa_lcd_v_pentile_m, font_aa_lcd_v_pentile_m, font_aa_lcd_v_pentile_m, font_aa_lcd_v_pentile_m },
+	};
+	if (angle >= CR_ROTATE_ANGLE_0 && angle <= CR_ROTATE_ANGLE_270) {
+		int mat_idx = aa_mode - (int) font_aa_lcd_rgb;
+		if (mat_idx >= 0 && mat_idx < 8) {
+			return replace_matrix[mat_idx][angle];
+		}
+	}
+	return aa_mode;
+}
+
+#endif  // CR_INTERNAL_PAGE_ORIENTATION==1
 
 void LVDocView::Resize(int dx, int dy) {
 	//LVCHECKPOINT("Resize");
@@ -6021,6 +6069,18 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
 		}
 		break;
 #endif
+#ifdef ANDROID
+	case DCMD_SET_ROTATION_INFO_FOR_AA: {
+		// values of the enum cr_rotate_angle_t completely matches with android.view.Surface.ROTATION_XX fields
+		m_rotateAngleInfo = (cr_rotate_angle_t)param;
+		font_antialiasing_t aaMode = (font_antialiasing_t) m_props->getIntDef(PROP_FONT_ANTIALIASING,
+																			  (int) font_aa_all);
+		font_antialiasing_t rotatedAAMode = rotateFontAntialiasMode(aaMode, m_rotateAngleInfo);
+		if (fontMan->GetAntialiasMode() != rotatedAAMode)
+			fontMan->SetAntialiasMode(rotatedAAMode);
+		break;
+	}
+#endif
 	case DCMD_LINK_GO: {
 		goSelectedLink();
 	}
@@ -6583,8 +6643,13 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         lString8 name(props->getName(i));
         lString32 value = props->getValue(i);
         if (name == PROP_FONT_ANTIALIASING) {
-            font_antialiasing_t antialiasingMode = (font_antialiasing_t)props->getIntDef(PROP_FONT_ANTIALIASING, (int)font_aa_all);
-            fontMan->SetAntialiasMode(antialiasingMode);
+            font_antialiasing_t aaMode = (font_antialiasing_t)props->getIntDef(PROP_FONT_ANTIALIASING, (int)font_aa_all);
+#ifdef ANDROID
+            font_antialiasing_t rotatedAAMode = rotateFontAntialiasMode(aaMode, m_rotateAngleInfo);
+#else
+            font_antialiasing_t rotatedAAMode = rotateFontAntialiasMode(aaMode, m_rotateAngle);
+#endif
+            fontMan->SetAntialiasMode(rotatedAAMode);
             REQUEST_RENDER("propsApply - font antialiasing")
         } else if (name.startsWith(cs8("styles."))) {
             REQUEST_RENDER("propsApply - styles.*")

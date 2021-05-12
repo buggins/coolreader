@@ -120,7 +120,8 @@ enum shaping_mode_t {
 // No more room for: (let's hope it's really the default in fonts)
 // #define LFNT_OT_FEATURES_P_JP90 0x80000000 // +jp90      (font-variant-east-asian: jis90)
 
-
+// Changing this enum also update method LVDocView::rotateFontAntialiasMode()
+// & org.coolreader.crengine.OptionsDialog.mAntialias array.
 enum font_antialiasing_t {
     font_aa_none = 0,
     font_aa_big,
