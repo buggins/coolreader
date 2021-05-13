@@ -393,7 +393,8 @@ bool LVFreeTypeFontManager::initSystemFonts() {
         
         FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_WEIGHT, FC_FAMILY,
                                            FC_SLANT, FC_SPACING, FC_INDEX,
-                                           FC_STYLE, FC_SCALABLE, NULL);
+                                           FC_STYLE, FC_SCALABLE, FC_COLOR,
+                                           NULL);
         FcPattern *pat = FcPatternCreate();
         //FcBool b = 1;
         FcPatternAddBool(pat, FC_SCALABLE, 1);
@@ -1149,6 +1150,7 @@ bool LVFreeTypeFontManager::RegisterExternalFont(int documentId, lString32 name,
             break;
         }
         bool scal = FT_IS_SCALABLE(face);
+        bool color = FT_HAS_COLOR(face) != 0;
         bool charset = checkCharSet(face);
         if (!charset) {
             if (FT_Select_Charmap(face, FT_ENCODING_UNICODE)) // returns 0 on success
@@ -1158,10 +1160,10 @@ bool LVFreeTypeFontManager::RegisterExternalFont(int documentId, lString32 name,
                     charset = true;
         }
         //bool monospaced = isMonoSpaced( face );
-        if (!scal || !charset) {
+        if ((!scal && !color) || !charset) {
             CRLog::debug("    won't register font %s: %s",
                          name.c_str(),
-                         !charset ? "no mandatory characters in charset" : "font is not scalable"
+                         !charset ? "no mandatory characters in charset" : "font nor scalable nor color"
             );
             if (face) {
                 FT_Done_Face(face);
@@ -1255,6 +1257,7 @@ bool LVFreeTypeFontManager::RegisterFont(lString8 name) {
             break;
         }
         bool scal = FT_IS_SCALABLE(face) != 0;
+        bool color = FT_HAS_COLOR(face) != 0;
         bool charset = checkCharSet(face);
         if (!charset) {
             if (FT_Select_Charmap(face, FT_ENCODING_UNICODE)) // returns 0 on success
@@ -1264,10 +1267,10 @@ bool LVFreeTypeFontManager::RegisterFont(lString8 name) {
                     charset = true;
         }
         //bool monospaced = isMonoSpaced( face );
-        if (!scal || !charset) {
+        if ((!scal && !color) || !charset) {
             CRLog::debug("    won't register font %s: %s",
                          name.c_str(),
-                         !charset ? "no mandatory characters in charset" : "font is not scalable"
+                         !charset ? "no mandatory characters in charset" : "font nor scalable nor color"
             );
             if (face) {
                 FT_Done_Face(face);

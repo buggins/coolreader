@@ -222,6 +222,7 @@ target_link_libraries( # Specifies the target library.
                        antiword
                        fribidi
                        unibreak
+                       qimagescale
 
                        # Links the target library to the log library
                        # included in the NDK.

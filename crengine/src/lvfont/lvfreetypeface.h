@@ -147,6 +147,8 @@ protected:
     bool           _allowKerning;
     FT_Pos         _synth_weight_strength;   // for emboldening with FT_Outline_Embolden()
     FT_Pos         _synth_weight_half_strength;
+    FT_Pos         _scale_mul;                  // only for fixed-size color fonts
+    FT_Pos         _scale_div;                  // only for fixed-size color fonts
     int _features; // requested OpenType features bitmap
 #if USE_HARFBUZZ == 1
     hb_font_t *_hb_font;

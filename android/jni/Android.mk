@@ -191,7 +191,8 @@ LOCAL_STATIC_LIBRARIES := \
     local_chmlib \
     local_antiword \
     local_fribidi \
-    local_libunibreak
+    local_libunibreak \
+    local_qimagescale
 
 LOCAL_LDLIBS    := -lm -llog -lz -ldl -flto
 # 

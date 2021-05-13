@@ -175,7 +175,6 @@ static inline void blendBitmap_grayTo2bpp(LVDrawBuf* d, int x, int y, const lUIn
     int alpha;
     lUInt8 c;
     lUInt8 mask;
-    //lUInt8 shift0 = (x & 0x06);
     lUInt8 shift0 = (x % 4) * 2;
     lUInt8 shift, ishift;
     for (;height;height--) {
@@ -260,6 +259,47 @@ static inline void blendBitmap_grayTo8bpp(LVDrawBuf* d, int x, int y, const lUIn
             /* next pixel */
             dst++;
         }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
+// Blend color 32-bit bitmap (4 bytes per pixel, BGRA)
+static inline void blendBitmap_bgraTo8bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch) {
+    lUInt8 * dst;
+    lUInt8 * dstline;
+    const lUInt8* src;
+    lUInt32 alpha;
+    lUInt32 r, g, b;
+    lUInt8 gray;
+    int bpp = d->GetBitsPerPixel();
+    lUInt8 mask = ((1 << bpp) - 1) << (8 - bpp);
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt8*)d->GetScanLine(y++)) + x;
+        dst = dstline;
+        if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+            break;
+        }
+        for (int xx = width; xx>0; --xx) {
+            b = *(src++);
+            g = *(src++);
+            r = *(src++);
+            alpha = *(src++);
+            // BGRA bitmap from FreeType are premultipled
+            // Unpremultiply:
+            if (alpha > 0 && alpha < 255) {
+                r = 255*r/alpha;
+                g = 255*g/alpha;
+                b = 255*b/alpha;
+            }
+            gray = rgbToGray((r << 16) | (g << 8) | b, bpp);
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            *dst = ((alpha*gray + (255 - alpha)*(*dst) + 127)/255) & mask;
+             /* next pixel */
+             dst++;
+         }
         /* new dest line */
         bitmap += bmp_pitch;
     }
@@ -765,8 +805,10 @@ void LVGrayDrawBuf::BlendBitmap(int x, int y, const lUInt8 * bitmap, FontBmpPixe
         case BMP_PIXEL_FORMAT_BGR:
         case BMP_PIXEL_FORMAT_RGB_V:
         case BMP_PIXEL_FORMAT_BGR_V:
-        case BMP_PIXEL_FORMAT_BGRA:
             CRLog::error("Trying to blend rgb bitmap on gray buf!");
+            break;
+        case BMP_PIXEL_FORMAT_BGRA:
+            blendBitmap_bgraTo8bpp(this, x, y, bitmap, width, height, bmp_pitch);
             break;
         }
     }

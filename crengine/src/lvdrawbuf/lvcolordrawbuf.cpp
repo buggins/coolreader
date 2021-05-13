@@ -428,6 +428,46 @@ static inline void blendBitmap_bgrvTo32bpp(LVDrawBuf* d, int x, int y, const lUI
     }
 }
 
+// Blend color 32-bit bitmap (4 bytes per pixel, BGRA)
+static inline void blendBitmap_bgraTo32bpp(LVDrawBuf* d, int x, int y, const lUInt8 * bitmap, int width, int height, int bmp_pitch) {
+    lUInt32 * dst;
+    lUInt32 * dstline;
+    const lUInt8* src;
+    lUInt32 alpha;
+    lUInt32 r, g, b;
+    for (;height;height--) {
+        src = bitmap;
+        dstline = ((lUInt32*)d->GetScanLine(y++)) + x;
+        dst = dstline;
+        if ( !dst ) { // Should not happen, but avoid clang-tidy warning below
+            break;
+        }
+        for (int xx = width; xx>0; --xx) {
+            b = *(src++);
+            g = *(src++);
+            r = *(src++);
+            alpha = *(src++);
+            // BGRA bitmap from FreeType are premultipled
+            // Unpremultiply:
+            if (alpha > 0 && alpha < 255) {
+                r = 255*r/alpha;
+                g = 255*g/alpha;
+                b = 255*b/alpha;
+            }
+            // blending function (OVER operator)
+            // See https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_render_glyph
+            r = (alpha*r + (255 - alpha)*((*dst)>>16) + 127)/255;
+            g = (alpha*g + (255 - alpha)*(((*dst)>>8) & 0x00FF) + 127)/255;
+            b = (alpha*b + (255 - alpha)*((*dst) & 0x00FF) + 127)/255;
+            *dst = (r << 16) | (g << 8) | b;
+            /* next pixel */
+            dst++;
+        }
+        /* new dest line */
+        bitmap += bmp_pitch;
+    }
+}
+
 
 /// rotates buffer contents by specified angle
 void LVColorDrawBuf::Rotate( cr_rotate_angle_t angle )
@@ -904,7 +944,7 @@ void LVColorDrawBuf::BlendBitmap(int x, int y, const lUInt8 * bitmap, FontBmpPix
             blendBitmap_bgrvTo32bpp(this, x, y, bitmap, width, height, bmp_pitch, RevRGBA(bmpcl));
             break;
         case BMP_PIXEL_FORMAT_BGRA:
-            // TODO: implement this
+            blendBitmap_bgraTo32bpp(this, x, y, bitmap, width, height, bmp_pitch);
             break;
         }
     }
