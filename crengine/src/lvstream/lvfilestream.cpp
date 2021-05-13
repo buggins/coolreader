@@ -156,15 +156,12 @@ LVFileStream::~LVFileStream()
 extern "C" {
 #include <windows.h>
 }
+#include "io.h"
 #else
 #include <sys/types.h>
 #include <sys/stat.h>
-//#include <dirent.h>
 #include <unistd.h>
 #include <fcntl.h>
-//#include <sys/mman.h>
-//#include <dlfcn.h>
-//#include <errno.h>
 #endif
 
 

@@ -16,6 +16,9 @@
 #include "lvimagescaleddrawcallback.h"
 #include "lvdrawbuf_utils.h"
 #include "crlog.h"
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
+#include "lvcolordrawbuf.h"
+#endif
 
 #include <stdlib.h>
 #include <string.h>
