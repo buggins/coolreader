@@ -404,7 +404,7 @@ static void qt_qimageScaleAARGBA(QImageScaleInfo *isi, unsigned int *dest,
     }
 }
 
-inline static void qt_qimageScaleAARGBA_helper(const unsigned int *pix, int xyap, int Cxy, int step, int &r, int &g, int &b, int &a)
+inline static void qt_qimageScaleAARGBA_helper(const unsigned int *pix, int xyap, int Cxy, int step, unsigned int &r, unsigned int &g, unsigned int &b, unsigned int &a)
 {
     r = qRed(*pix)   * xyap;
     g = qGreen(*pix) * xyap;
@@ -441,12 +441,12 @@ static void qt_qimageScaleAARGBA_up_x_down_y(QImageScaleInfo *isi, unsigned int 
         unsigned int *dptr = dest + (y * dow);
         for (int x = 0; x < dw; x++) {
             const unsigned int *sptr = ypoints[y] + xpoints[x];
-            int r, g, b, a;
+            unsigned int r, g, b, a;
             qt_qimageScaleAARGBA_helper(sptr, yap, Cy, sow, r, g, b, a);
 
             int xap = xapoints[x];
             if (xap > 0) {
-                int rr, gg, bb, aa;
+                unsigned int rr, gg, bb, aa;
                 qt_qimageScaleAARGBA_helper(sptr + 1, yap, Cy, sow, rr, gg, bb, aa);
 
                 r = r * (256 - xap);
@@ -479,12 +479,12 @@ static void qt_qimageScaleAARGBA_down_x_up_y(QImageScaleInfo *isi, unsigned int 
             int xap = xapoints[x] & 0xffff;
 
             const unsigned int *sptr = ypoints[y] + xpoints[x];
-            int r, g, b, a;
+            unsigned int r, g, b, a;
             qt_qimageScaleAARGBA_helper(sptr, xap, Cx, 1, r, g, b, a);
 
             int yap = yapoints[y];
             if (yap > 0) {
-                int rr, gg, bb, aa;
+                unsigned int rr, gg, bb, aa;
                 qt_qimageScaleAARGBA_helper(sptr + sow, xap, Cx, 1, rr, gg, bb, aa);
 
                 r = r * (256 - yap);
@@ -511,22 +511,22 @@ static void qt_qimageScaleAARGBA_down_xy(QImageScaleInfo *isi, unsigned int *des
     int *yapoints = isi->yapoints;
 
     for (int y = 0; y < dh; y++) {
-        int Cy = (yapoints[y]) >> 16;
-        int yap = (yapoints[y]) & 0xffff;
+        unsigned int Cy = (yapoints[y]) >> 16;
+        unsigned int yap = (yapoints[y]) & 0xffff;
 
         unsigned int *dptr = dest + (y * dow);
         for (int x = 0; x < dw; x++) {
-            int Cx = xapoints[x] >> 16;
-            int xap = xapoints[x] & 0xffff;
+            unsigned int Cx = xapoints[x] >> 16;
+            unsigned int xap = xapoints[x] & 0xffff;
 
             const unsigned int *sptr = ypoints[y] + xpoints[x];
-            int rx, gx, bx, ax;
+            unsigned int rx, gx, bx, ax;
             qt_qimageScaleAARGBA_helper(sptr, xap, Cx, 1, rx, gx, bx, ax);
 
-            int r = ((rx>>4) * yap);
-            int g = ((gx>>4) * yap);
-            int b = ((bx>>4) * yap);
-            int a = ((ax>>4) * yap);
+            unsigned int r = ((rx>>4) * yap);
+            unsigned int g = ((gx>>4) * yap);
+            unsigned int b = ((bx>>4) * yap);
+            unsigned int a = ((ax>>4) * yap);
 
             int j;
             for (j = (1 << 14) - yap; j > Cy; j -= Cy) {
