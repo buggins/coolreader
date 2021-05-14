@@ -2500,7 +2500,6 @@ public:
             align = m_para_dir_is_rtl ? LTEXT_ALIGN_RIGHT : LTEXT_ALIGN_LEFT;
 
         TR("addLine(%d, %d) y=%d  align=%d", start, end, m_y, align);
-        // printf("addLine(%d, %d) y=%d  align=%d maxWidth=%d\n", start, end, m_y, align, maxWidth);
 
         // Note: parameter needReduceSpace and variable splitBySpaces (which
         // was always true) have been removed, as we always split by space:
@@ -2747,15 +2746,13 @@ public:
         }
         // Ignore space at start of line (this rarely happens, as line
         // splitting discards the space on which a split is made - but it
-        // can happen in other rare wrap cases like lastDeprecatedWrap)
-        if ( (m_flags[start] & LCHAR_IS_SPACE) && !(lastSrc->flags & LTEXT_FLAG_PREFORMATTED) ) {
-            // But do it only if we're going to stay in same text node (if not
-            // the space may have some reason - there's sometimes a no-break-space
-            // before an image)
-            if (start < end-1 && m_srcs[start+1] == m_srcs[start]) {
-                start++;
-                lastSrc = m_srcs[start];
-            }
+        // can happen in other rare wrap cases like lastDeprecatedWrap
+        // or if a wrap happened to be allowed before a no-break-space).
+        // Do it only for the 2nd++ lines of a paragraph, as a leading
+        // no-break-space may be used to add some indentation.
+        if ( !first && (m_flags[start] & LCHAR_IS_SPACE) && !(lastSrc->flags & LTEXT_FLAG_PREFORMATTED) ) {
+            start++;
+            lastSrc = m_srcs[start];
         }
 
         // Some words vertical-align positioning might need to be fixed
