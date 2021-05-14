@@ -390,7 +390,15 @@ bool LVXMLParser::Parse()
                     // Process &#124; and HTML entities, but don't touch space
                     PreProcessXmlString( attrvalue, TXTFLG_PROCESS_ATTRIBUTE );
                 }
-                attrvalue.trimDoubleSpaces(false,false,false);
+                // attrvalue.trimDoubleSpaces(false,false,false);
+                // According to the XML specs, all spaces (leading, trailing, consecutives)
+                // should be kept as-is in attributes.
+                // Given the few bits of our code that checks for lowercase equality, it feels
+                // safer to trim leading and trailing spaces, which have better chances to be
+                // typos from the author than have a specific meaning.
+                // We should not trim double spaces, which may be found in filenames in
+                // an EPUB's .opf (filenames with leading/trailing spaces ought to be rare).
+                attrvalue.trim();
                 m_callback->OnAttribute(attrns.c_str(), attrname.c_str(), attrvalue.c_str());
 
                 if (inXmlTag && attrname == "encoding")
