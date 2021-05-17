@@ -172,10 +172,6 @@ public class GoogleDriveRemoteAccess implements RemoteAccess {
 		}
 	}
 
-	public GoogleSignInAccount getGoogleAccount() {
-		return m_account;
-	}
-
 	private String simplifyFilePath(String path) {
 		String result = path;
 		// 1. Remove redundant '/' at end of path

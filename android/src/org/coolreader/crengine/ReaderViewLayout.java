@@ -4,6 +4,7 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.view.ViewGroup;
 
+import org.coolreader.BuildConfig;
 import org.coolreader.CoolReader;
 
 import java.util.ArrayList;
@@ -117,7 +118,7 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 				}
 				// TODO: add other e-ink devices with backlight support
 			}
-			if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			if (BuildConfig.GSUITE_AVAILABLE && DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				actionsList.add(ReaderAction.GDRIVE_SYNCTO);
 				actionsList.add(ReaderAction.GDRIVE_SYNCFROM);
 			}
