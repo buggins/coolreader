@@ -6445,7 +6445,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	lString8 defFontFace;
 	static const char * goodFonts[] = { "DejaVu Sans", "FreeSans",
 			"Liberation Sans", "Arial", "Verdana", NULL };
-	static const char * fallbackFonts = "Droid Sans Fallback; Noto Sans CJK SC; Noto Sans Arabic UI; Noto Sans Devanagari UI; FreeSans; FreeSerif; Noto Serif; Noto Sans; Arial Unicode MS";
+	static const char * fallbackFonts = "Noto Color Emoji; Droid Sans Fallback; Noto Sans CJK SC; Noto Sans Arabic UI; Noto Sans Devanagari UI; FreeSans; FreeSerif; Noto Serif; Noto Sans; Arial Unicode MS";
 	for (int i = 0; goodFonts[i]; i++) {
 		if (list.contains(lString32(goodFonts[i]))) {
 			defFontFace = lString8(goodFonts[i]);
