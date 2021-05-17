@@ -380,6 +380,8 @@ public class CoolReader extends BaseActivity {
 	}
 
 	private void buildGoogleDriveSynchronizer() {
+		if (!BuildConfig.GSUITE_AVAILABLE)
+			return;
 		if (null != mGoogleDriveSync)
 			return;
 		// build synchronizer instance
@@ -548,6 +550,8 @@ public class CoolReader extends BaseActivity {
 	}
 
 	private void updateGoogleDriveSynchronizer() {
+		if (!BuildConfig.GSUITE_AVAILABLE)
+			return;
 		// DeviceInfo.getSDKLevel() not applicable here -> lint error about Android API compatibility
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (mSyncGoogleDriveEnabled) {
@@ -614,6 +618,8 @@ public class CoolReader extends BaseActivity {
 	}
 
 	public void forceSyncToGoogleDrive() {
+		if (!BuildConfig.GSUITE_AVAILABLE)
+			return;
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (null == mGoogleDriveSync)
 				buildGoogleDriveSynchronizer();
@@ -623,6 +629,8 @@ public class CoolReader extends BaseActivity {
 	}
 
 	public void forceSyncFromGoogleDrive() {
+		if (!BuildConfig.GSUITE_AVAILABLE)
+			return;
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (null == mGoogleDriveSync)
 				buildGoogleDriveSynchronizer();
@@ -789,7 +797,7 @@ public class CoolReader extends BaseActivity {
 			mBrowser.stopCurrentScan();
 		}
 		Services.getCoverpageManager().removeCoverpageReadyListener(mHomeFrame);
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+		if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (mSyncGoogleDriveEnabled && mGoogleDriveSync != null && !mGoogleDriveSync.isBusy()) {
 				mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
 			}
@@ -849,7 +857,7 @@ public class CoolReader extends BaseActivity {
 				}
 			}
 		}
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+		if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (mSyncGoogleDriveEnabled && mGoogleDriveSync != null) {
 				// when the program starts, the local settings file is already updated, so the local file is always newer than the remote one
 				// Therefore, the synchronization mode is quiet, i.e. without comparing modification times and without prompting the user for action.
@@ -1118,7 +1126,7 @@ public class CoolReader extends BaseActivity {
 		applyFullscreen(getWindow());
 		if (!justCreated) {
 			// Only after onStart()!
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				if (mSyncGoogleDriveEnabled && !mSyncGoogleDriveEnabledPrev && null != mGoogleDriveSync) {
 					// if cloud sync has just been enabled in options dialog
 					mGoogleDriveSync.startSyncFrom(Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | (mCloudSyncAskConfirmations ? Synchronizer.SYNC_FLAG_ASK_CHANGED : 0) );
@@ -1197,7 +1205,7 @@ public class CoolReader extends BaseActivity {
 			mBrowser.stopCurrentScan();
 		setCurrentFrame(mHomeFrame);
 		if (activityIsRunning) {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				// Save bookmarks and current reading position on the cloud
 				if (mSyncGoogleDriveEnabled && null != mGoogleDriveSync && !mGoogleDriveSync.isBusy()) {
 					mGoogleDriveSync.startSyncToOnly(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY, Synchronizer.SyncTarget.BOOKMARKS);
@@ -1346,7 +1354,7 @@ public class CoolReader extends BaseActivity {
 		runInReader(() -> mReaderView.loadDocument(item, forceSync ? () -> {
 			if (null != doneCallback)
 				doneCallback.run();
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				// Save last opened document on cloud
 				if (mSyncGoogleDriveEnabled && null != mGoogleDriveSync && !mGoogleDriveSync.isBusy()) {
 					ArrayList<Synchronizer.SyncTarget> targets = new ArrayList<Synchronizer.SyncTarget>();
