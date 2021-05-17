@@ -57,6 +57,9 @@ enum LVDocCmd
     DCMD_SET_REQUESTED_DOM_VERSION,     // set requested dom version for document parsing
     DCMD_RENDER_BLOCK_RENDERING_FLAGS,  // set requested dom version for document parsing
 
+    // 140
+    DCMD_SET_ROTATION_INFO_FOR_AA,     // set screen rotation info (but don't rotate screen) to remap font AA subpixel modes
+
     //=======================================
     DCMD_EDIT_CURSOR_LEFT,
     DCMD_EDIT_CURSOR_RIGHT,
@@ -69,7 +72,7 @@ enum LVDocCmd
     DCMD_EDIT_INSERT_CHAR,
     DCMD_EDIT_REPLACE_CHAR
 };
-#define LVDOCVIEW_COMMANDS_END DCMD_SET_DOC_FONTS
+#define LVDOCVIEW_COMMANDS_END DCMD_SET_ROTATION_INFO_FOR_AA
 
 
 #endif // LVDOCVIEWCMD_H

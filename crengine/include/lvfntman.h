@@ -27,7 +27,7 @@
 class LVFontManager {
 protected:
     bool _allowKerning;
-    int _antialiasMode;
+    font_antialiasing_t _antialiasMode;
     shaping_mode_t _shapingMode;
     hinting_mode_t _hintingMode;
 public:
@@ -94,10 +94,10 @@ public:
     virtual void clearGlyphCache() {}
 
     /// get antialiasing mode
-    virtual int GetAntialiasMode() { return _antialiasMode; }
+    virtual font_antialiasing_t GetAntialiasMode() { return _antialiasMode; }
 
     /// set antialiasing mode
-    virtual void SetAntialiasMode(int mode) {
+    virtual void SetAntialiasMode(font_antialiasing_t mode) {
         _antialiasMode = mode;
         gc();
         clearGlyphCache();

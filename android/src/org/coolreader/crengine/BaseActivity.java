@@ -272,6 +272,12 @@ public class BaseActivity extends Activity implements Settings {
 		mPaused = false;
 		mIsStarted = true;
 		backlightControl.onUserActivity();
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+			Display display = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+			if (null != display) {
+				onScreenRotationChanged(display.getRotation());
+			}
+		}
 		super.onResume();
 	}
 
@@ -602,6 +608,12 @@ public class BaseActivity extends Activity implements Settings {
 	public void onConfigurationChanged(Configuration newConfig) {
 		// pass
 		orientationFromSensor = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ? 1 : 0;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+			Display display = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+			if (null != display) {
+				onScreenRotationChanged(display.getRotation());
+			}
+		}
 		//final int orientation = newConfig.orientation==Configuration.ORIENTATION_LANDSCAPE ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 //		if ( orientation!=screenOrientation ) {
 //			log.d("Screen orientation has been changed: ask for change");
@@ -623,6 +635,10 @@ public class BaseActivity extends Activity implements Settings {
 //			});
 //		}
 		super.onConfigurationChanged(newConfig);
+	}
+
+	protected void onScreenRotationChanged(int rotation) {
+		// Override this...
 	}
 
 	private boolean mFullscreen = false;
@@ -1757,7 +1773,7 @@ public class BaseActivity extends Activity implements Settings {
 			boolean res = false;
 			res = applyDefaultFont(props, ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE) || res;
 			res = applyDefaultFont(props, ReaderView.PROP_STATUS_FONT_FACE, DeviceInfo.DEF_FONT_FACE) || res;
-			res = applyDefaultFallbackFontList(props, ReaderView.PROP_FALLBACK_FONT_FACES, "Droid Sans Fallback; Noto Sans CJK SC; Noto Sans Arabic UI; Noto Sans Devanagari UI; Roboto; FreeSans; FreeSerif; Noto Serif; Noto Sans; Arial Unicode MS") || res;
+			res = applyDefaultFallbackFontList(props, ReaderView.PROP_FALLBACK_FONT_FACES, "Noto Color Emoji; Droid Sans Fallback; Noto Sans CJK SC; Noto Sans Arabic UI; Noto Sans Devanagari UI; Roboto; FreeSans; FreeSerif; Noto Serif; Noto Sans; Arial Unicode MS") || res;
 			return res;
 		}
 

@@ -332,6 +332,9 @@ private:
 #if CR_INTERNAL_PAGE_ORIENTATION==1
     cr_rotate_angle_t m_rotateAngle;
 #endif
+#ifdef ANDROID
+    cr_rotate_angle_t m_rotateAngleInfo;
+#endif
 
     CRFileHist m_hist;
 
@@ -629,6 +632,8 @@ public:
 #if CR_INTERNAL_PAGE_ORIENTATION==1
     /// sets rotate angle
     void SetRotateAngle( cr_rotate_angle_t angle );
+    /// Select appropriate AA LCD subpixel rendering mode for chosen rotate angle
+    font_antialiasing_t rotateFontAntialiasMode(font_antialiasing_t aa_mode, cr_rotate_angle_t angle);
 #endif
     /// rotate rectangle by current angle, winToDoc==false for doc->window translation, true==ccw
     lvRect rotateRect( lvRect & rc, bool winToDoc );

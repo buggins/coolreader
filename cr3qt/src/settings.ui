@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>433</width>
-    <height>846</height>
+    <height>878</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1329,14 +1329,14 @@
          <item row="9" column="1">
           <widget class="QComboBox" name="cbHyphenation"/>
          </item>
-         <item row="10" column="0">
+         <item row="11" column="0">
           <widget class="QLabel" name="label_19">
            <property name="text">
             <string>Font Gamma</string>
            </property>
           </widget>
          </item>
-         <item row="10" column="1">
+         <item row="11" column="1">
           <widget class="QComboBox" name="cbFontGamma">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1361,6 +1361,9 @@
              <width>60</width>
              <height>0</height>
             </size>
+           </property>
+           <property name="currentIndex">
+            <number>15</number>
            </property>
            <item>
             <property name="text">
@@ -1519,34 +1522,14 @@
            </item>
           </widget>
          </item>
-         <item row="11" column="0">
-          <widget class="QLabel" name="label_36">
-           <property name="text">
-            <string>Fallback fonts</string>
-           </property>
-          </widget>
-         </item>
-         <item row="11" column="1">
-          <widget class="QPushButton" name="btnFallbackMan">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Manage...</string>
-           </property>
-          </widget>
-         </item>
-         <item row="12" column="0">
+         <item row="13" column="0">
           <widget class="QLabel" name="label_35">
            <property name="text">
             <string>Font hinting</string>
            </property>
           </widget>
          </item>
-         <item row="12" column="1">
+         <item row="13" column="1">
           <widget class="QComboBox" name="cbFontHinting">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1589,14 +1572,14 @@
            </item>
           </widget>
          </item>
-         <item row="13" column="0">
+         <item row="14" column="0">
           <widget class="QLabel" name="label_44">
            <property name="text">
             <string>Text Shaping</string>
            </property>
           </widget>
          </item>
-         <item row="13" column="1">
+         <item row="14" column="1">
           <widget class="QComboBox" name="cbFontShaping">
            <property name="currentText">
             <string>Simple (FreeType only, fastest)</string>
@@ -1618,108 +1601,108 @@
            </item>
           </widget>
          </item>
-         <item row="14" column="0">
+         <item row="15" column="0">
           <widget class="QLabel" name="label_13">
            <property name="text">
             <string>Interline spacing</string>
            </property>
           </widget>
          </item>
-         <item row="14" column="1">
+         <item row="15" column="1">
           <widget class="QComboBox" name="cbInterlineSpace"/>
          </item>
-         <item row="15" column="0">
+         <item row="16" column="0">
           <widget class="QLabel" name="label_43">
            <property name="text">
             <string>Font kerning</string>
            </property>
           </widget>
          </item>
-         <item row="15" column="1">
+         <item row="16" column="1">
           <widget class="QCheckBox" name="cbFontKerning">
            <property name="text">
             <string>Enable font kerning</string>
            </property>
           </widget>
          </item>
-         <item row="16" column="0">
+         <item row="17" column="0">
           <widget class="QLabel" name="label_18">
            <property name="text">
             <string>Floating punctuation</string>
            </property>
           </widget>
          </item>
-         <item row="16" column="1">
+         <item row="17" column="1">
           <widget class="QCheckBox" name="cbFloatingPunctuation">
            <property name="text">
             <string>Enable floating punctuation</string>
            </property>
           </widget>
          </item>
-         <item row="17" column="0">
+         <item row="18" column="0">
           <widget class="QLabel" name="label_38">
            <property name="text">
             <string>Internal CSS</string>
            </property>
           </widget>
          </item>
-         <item row="17" column="1">
+         <item row="18" column="1">
           <widget class="QCheckBox" name="cbEnableDocumentStyles">
            <property name="text">
             <string>Enable document internal styles</string>
            </property>
           </widget>
          </item>
-         <item row="18" column="0">
+         <item row="19" column="0">
           <widget class="QLabel" name="label_37">
            <property name="text">
             <string>.EPUB</string>
            </property>
           </widget>
          </item>
-         <item row="18" column="1">
+         <item row="19" column="1">
           <widget class="QCheckBox" name="cbEnableEmbeddedFonts">
            <property name="text">
             <string>Enable document embedded fonts</string>
            </property>
           </widget>
          </item>
-         <item row="19" column="0">
+         <item row="20" column="0">
           <widget class="QLabel" name="label_49">
            <property name="text">
             <string>Internal</string>
            </property>
           </widget>
          </item>
-         <item row="19" column="1">
+         <item row="20" column="1">
           <widget class="QCheckBox" name="cbIgnoreDocumentMargins">
            <property name="text">
             <string>Ignore document margins</string>
            </property>
           </widget>
          </item>
-         <item row="20" column="0">
+         <item row="21" column="0">
           <widget class="QLabel" name="label_17">
            <property name="text">
             <string>.TXT files</string>
            </property>
           </widget>
          </item>
-         <item row="20" column="1">
+         <item row="21" column="1">
           <widget class="QCheckBox" name="cbTxtPreFormatted">
            <property name="text">
             <string>Disable automatic formatting</string>
            </property>
           </widget>
          </item>
-         <item row="21" column="0">
+         <item row="22" column="0">
           <widget class="QLabel" name="label_15">
            <property name="text">
             <string>Sample</string>
            </property>
           </widget>
          </item>
-         <item row="21" column="1">
+         <item row="22" column="1">
           <widget class="CR3View" name="crSample" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -1766,6 +1749,70 @@
            </property>
           </widget>
          </item>
+         <item row="10" column="0">
+          <widget class="QLabel" name="label_36">
+           <property name="text">
+            <string>Fallback fonts</string>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="1">
+          <widget class="QPushButton" name="btnFallbackMan">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Manage...</string>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="0">
+          <widget class="QLabel" name="label_52">
+           <property name="text">
+            <string>Antialiasing</string>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="1">
+          <widget class="QComboBox" name="cbAntialiasingMode">
+           <property name="currentIndex">
+            <number>1</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>None</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Gray</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>LCD (RGB)</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>LCD (BGR)</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>LCD (RGB) vertical</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>LCD (BGR) vertical</string>
+            </property>
+           </item>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -1797,7 +1844,7 @@
               <x>0</x>
               <y>0</y>
               <width>389</width>
-              <height>710</height>
+              <height>742</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -2036,9 +2083,11 @@
   <tabstop>cbRendFlags</tabstop>
   <tabstop>cbDOMLevel</tabstop>
   <tabstop>cbMultiLang</tabstop>
+  <tabstop>cbEnableHyph</tabstop>
   <tabstop>cbHyphenation</tabstop>
-  <tabstop>cbFontGamma</tabstop>
   <tabstop>btnFallbackMan</tabstop>
+  <tabstop>cbFontGamma</tabstop>
+  <tabstop>cbAntialiasingMode</tabstop>
   <tabstop>cbFontHinting</tabstop>
   <tabstop>cbFontShaping</tabstop>
   <tabstop>cbInterlineSpace</tabstop>
@@ -2046,6 +2095,7 @@
   <tabstop>cbFloatingPunctuation</tabstop>
   <tabstop>cbEnableDocumentStyles</tabstop>
   <tabstop>cbEnableEmbeddedFonts</tabstop>
+  <tabstop>cbIgnoreDocumentMargins</tabstop>
   <tabstop>cbTxtPreFormatted</tabstop>
   <tabstop>cbStyleName</tabstop>
   <tabstop>scrollArea</tabstop>

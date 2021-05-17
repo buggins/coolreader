@@ -22,6 +22,7 @@
 #include "lvfontdef.h"
 #include "lvfontcache.h"
 #include "lvstreamutils.h"
+#include "lvimg.h"
 
 
 #include "gammatbl.h"
@@ -64,7 +65,6 @@ extern int gammaIndex;          // lvfntman.cpp
 // next two functions from lvfreetypefontman.cpp
 extern lString8 familyName(FT_Face face);
 extern int getFontWeight(FT_Face face);
-
 
 inline int myabs(int n) { return n < 0 ? -n : n; }
 
@@ -134,6 +134,91 @@ static lChar32 getReplacementChar(lUInt32 code, bool * can_be_ignored = NULL) {
     return 0;
 }
 
+static inline int getLoadTargetForAA(font_antialiasing_t aa_mode) {
+    switch (aa_mode) {
+    case font_aa_none:
+        return FT_LOAD_TARGET_MONO;
+        break;
+    case font_aa_gray:
+    case font_aa_all:
+    case font_aa_big:
+        return FT_LOAD_TARGET_LIGHT;
+        break;
+    case font_aa_lcd_rgb:
+    case font_aa_lcd_bgr:
+    case font_aa_lcd_pentile:
+    case font_aa_lcd_pentile_m:
+        return FT_LOAD_TARGET_LCD;
+        break;
+    case font_aa_lcd_v_rgb:
+    case font_aa_lcd_v_bgr:
+    case font_aa_lcd_v_pentile:
+    case font_aa_lcd_v_pentile_m:
+        return FT_LOAD_TARGET_LCD_V;
+        break;
+    default:
+        return FT_LOAD_TARGET_NORMAL;
+        break;
+    }
+}
+
+static inline FT_Render_Mode getRenderModeForAA(font_antialiasing_t aa_mode) {
+    switch (aa_mode) {
+    case font_aa_none:
+        return FT_RENDER_MODE_MONO;
+        break;
+    case font_aa_gray:
+    case font_aa_all:
+    case font_aa_big:
+        return FT_RENDER_MODE_LIGHT;
+        break;
+    case font_aa_lcd_rgb:
+    case font_aa_lcd_bgr:
+    case font_aa_lcd_pentile:
+    case font_aa_lcd_pentile_m:
+        return FT_RENDER_MODE_LCD;
+        break;
+    case font_aa_lcd_v_rgb:
+    case font_aa_lcd_v_bgr:
+    case font_aa_lcd_v_pentile:
+    case font_aa_lcd_v_pentile_m:
+        return FT_RENDER_MODE_LCD_V;
+        break;
+    default:
+        return FT_RENDER_MODE_NORMAL;
+        break;
+    }
+}
+
+static inline FontBmpPixelFormat getBmpFormat(FT_Pixel_Mode mode) {
+    switch (mode) {
+    case FT_PIXEL_MODE_MONO:
+        return BMP_PIXEL_FORMAT_MONO;
+        break;
+    case FT_PIXEL_MODE_GRAY:
+        return BMP_PIXEL_FORMAT_GRAY;
+        break;
+    case FT_PIXEL_MODE_GRAY2:
+        return BMP_PIXEL_FORMAT_GRAY2;
+        break;
+    case FT_PIXEL_MODE_GRAY4:
+        return BMP_PIXEL_FORMAT_GRAY4;
+        break;
+    case FT_PIXEL_MODE_LCD:
+        return BMP_PIXEL_FORMAT_RGB;
+        break;
+    case FT_PIXEL_MODE_LCD_V:
+        return BMP_PIXEL_FORMAT_RGB_V;
+        break;
+    case FT_PIXEL_MODE_BGRA:
+        return BMP_PIXEL_FORMAT_BGRA;
+        break;
+    default:
+        return BMP_PIXEL_FORMAT_GRAY;   // ???
+        break;
+    }
+}
+
 #if USE_HARFBUZZ==1
 bool isHBScriptCursive( hb_script_t script ) {
     // https://github.com/harfbuzz/harfbuzz/issues/64
@@ -156,57 +241,39 @@ bool isHBScriptCursive( hb_script_t script ) {
 }
 #endif
 
-static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lChar32 ch, FT_GlyphSlot slot) // , bool drawMonochrome
+static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lChar32 ch, FT_GlyphSlot slot, font_antialiasing_t aa_mode) // , bool drawMonochrome
 {
     FONT_LOCAL_GLYPH_CACHE_GUARD
     FT_Bitmap *bitmap = &slot->bitmap;
-    int w = bitmap->width;
-    int h = bitmap->rows;
-    LVFontGlyphCacheItem *item = LVFontGlyphCacheItem::newItem(local_cache, ch, w, h);
+    unsigned int w = (FT_PIXEL_MODE_LCD == bitmap->pixel_mode) ? bitmap->width/3 : bitmap->width;
+    unsigned int h = (FT_PIXEL_MODE_LCD_V == bitmap->pixel_mode) ? bitmap->rows/3 : bitmap->rows;
+    unsigned int bmp_sz = myabs(bitmap->pitch)*bitmap->rows;
+    LVFontGlyphCacheItem *item = LVFontGlyphCacheItem::newItem(local_cache, ch, w, h, bitmap->pitch, bmp_sz);
     if (!item)
         return 0;
-    if (bitmap->pixel_mode == FT_PIXEL_MODE_MONO) { //drawMonochrome
-        lUInt8 mask = 0x80;
-        const lUInt8 *ptr = (const lUInt8 *) bitmap->buffer;
-        lUInt8 *dst = item->bmp;
-        //int rowsize = ((w + 15) / 16) * 2;
-        for (int y = 0; y < h; y++) {
-            const lUInt8 *row = ptr;
-            mask = 0x80;
-            for (int x = 0; x < w; x++) {
-                *dst++ = (*row & mask) ? 0xFF : 00;
-                mask >>= 1;
-                if (!mask && x != w - 1) {
-                    mask = 0x80;
-                    row++;
-                }
-            }
-            ptr += bitmap->pitch;//rowsize;
-        }
-    } else {
-#if 0
-        if ( bitmap->pixel_mode==FT_PIXEL_MODE_MONO ) {
-            memset( item->bmp, 0, w*h );
-            lUInt8 * srcrow = bitmap->buffer;
-            lUInt8 * dstrow = item->bmp;
-            for ( int y=0; y<h; y++ ) {
-                lUInt8 * src = srcrow;
-                for ( int x=0; x<w; x++ ) {
-                    dstrow[x] =  ( (*src)&(0x80>>(x&7)) ) ? 255 : 0;
-                    if ((x&7)==7)
-                        src++;
-                }
-                srcrow += bitmap->pitch;
-                dstrow += w;
-            }
-        } else {
+    item->bmp_fmt = getBmpFormat((FT_Pixel_Mode)bitmap->pixel_mode);
+#ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
+    // For ClearType-style LCD rendering we must swap R & B channels (for BGR format)
+    if (font_aa_lcd_bgr == aa_mode && BMP_PIXEL_FORMAT_RGB == item->bmp_fmt)
+        item->bmp_fmt = BMP_PIXEL_FORMAT_BGR;
+    else if (font_aa_lcd_v_bgr == aa_mode && BMP_PIXEL_FORMAT_RGB_V == item->bmp_fmt)
+        item->bmp_fmt = BMP_PIXEL_FORMAT_BGR_V;
+#else
+    // In Harmony LCD rendering R & B channels already swapped (for BGR format)
 #endif
-        if (bitmap->buffer && w > 0 && h > 0)
-        {
-            memcpy(item->bmp, bitmap->buffer, w * h);
+    if (bitmap->buffer && w > 0 && h > 0 && bmp_sz > 0)
+    {
+        memcpy(item->bmp, bitmap->buffer, bmp_sz);
+        switch (item->bmp_fmt) {
+        case BMP_PIXEL_FORMAT_GRAY:
+        case BMP_PIXEL_FORMAT_RGB:
+        case BMP_PIXEL_FORMAT_BGR:
+        case BMP_PIXEL_FORMAT_RGB_V:
+        case BMP_PIXEL_FORMAT_BGR_V:
             // correct gamma
             if ( gammaIndex!=GAMMA_NO_CORRECTION_INDEX )
-                cr_correct_gamma_buf(item->bmp, w * h, gammaIndex);
+                cr_correct_gamma_buf(item->bmp, bmp_sz, gammaIndex);
+            break;
         }
     }
     item->origin_x = (lInt16) slot->bitmap_left;
@@ -217,39 +284,38 @@ static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lChar32
 
 #if USE_HARFBUZZ == 1
 
-static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lUInt32 index, FT_GlyphSlot slot) {
+static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lUInt32 index, FT_GlyphSlot slot, font_antialiasing_t aa_mode) {
     FONT_LOCAL_GLYPH_CACHE_GUARD
     FT_Bitmap *bitmap = &slot->bitmap;
-    int w = bitmap->width;
-    int h = bitmap->rows;
-    LVFontGlyphCacheItem *item = LVFontGlyphCacheItem::newItem(local_cache, index, w, h);
+    unsigned int w = (FT_PIXEL_MODE_LCD == bitmap->pixel_mode) ? bitmap->width/3 : bitmap->width;
+    unsigned int h = (FT_PIXEL_MODE_LCD_V == bitmap->pixel_mode) ? bitmap->rows/3 : bitmap->rows;
+    unsigned int bmp_sz = myabs(bitmap->pitch)*bitmap->rows;
+    LVFontGlyphCacheItem *item = LVFontGlyphCacheItem::newItem(local_cache, index, w, h, bitmap->pitch, bmp_sz);
     if (!item)
         return 0;
-    if (bitmap->pixel_mode == FT_PIXEL_MODE_MONO) { //drawMonochrome
-        lUInt8 mask = 0x80;
-        const lUInt8 *ptr = (const lUInt8 *) bitmap->buffer;
-        lUInt8 *dst = item->bmp;
-        //int rowsize = ((w + 15) / 16) * 2;
-        for (int y = 0; y < h; y++) {
-            const lUInt8 *row = ptr;
-            mask = 0x80;
-            for (int x = 0; x < w; x++) {
-                *dst++ = (*row & mask) ? 0xFF : 00;
-                mask >>= 1;
-                if (!mask && x != w - 1) {
-                    mask = 0x80;
-                    row++;
-                }
-            }
-            ptr += bitmap->pitch;//rowsize;
-        }
-    } else {
-        if (bitmap->buffer && w > 0 && h > 0)
-        {
-            memcpy(item->bmp, bitmap->buffer, w * h);
+    item->bmp_fmt = getBmpFormat((FT_Pixel_Mode)bitmap->pixel_mode);
+#ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
+    // For ClearType-style LCD rendering we must swap R & B channels (for BGR format)
+    if (font_aa_lcd_bgr == aa_mode && BMP_PIXEL_FORMAT_RGB == item->bmp_fmt)
+        item->bmp_fmt = BMP_PIXEL_FORMAT_BGR;
+    else if (font_aa_lcd_v_bgr == aa_mode && BMP_PIXEL_FORMAT_RGB_V == item->bmp_fmt)
+        item->bmp_fmt = BMP_PIXEL_FORMAT_BGR_V;
+#else
+    // In Harmony LCD rendering R & B channels already swapped (for BGR format)
+#endif
+    if (bitmap->buffer && w > 0 && h > 0 && bmp_sz > 0)
+    {
+        memcpy(item->bmp, bitmap->buffer, bmp_sz);
+        switch (item->bmp_fmt) {
+        case BMP_PIXEL_FORMAT_GRAY:
+        case BMP_PIXEL_FORMAT_RGB:
+        case BMP_PIXEL_FORMAT_BGR:
+        case BMP_PIXEL_FORMAT_RGB_V:
+        case BMP_PIXEL_FORMAT_BGR_V:
             // correct gamma
             if ( gammaIndex!=GAMMA_NO_CORRECTION_INDEX )
-                cr_correct_gamma_buf(item->bmp, w * h, gammaIndex);
+                cr_correct_gamma_buf(item->bmp, bmp_sz, gammaIndex);
+            break;
         }
     }
     item->origin_x = (lInt16) slot->bitmap_left;
@@ -259,6 +325,62 @@ static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lUInt32
 }
 
 #endif
+
+static bool downScaleColorGlyphBitmap(FT_GlyphSlot slot, int scale_mul, int scale_div, bool onlyMetrics) {
+    // Downscale glyph's bitmap & hack glyph slot to update metadata...
+    if (scale_mul == scale_div)
+        return true;
+    if (scale_mul > scale_div) {
+        // Don't upscale, not enough memory in the slot...
+        return false;
+    }
+    bool res = true;
+    if (FT_PIXEL_MODE_BGRA == slot->bitmap.pixel_mode ||
+        FT_PIXEL_MODE_MONO == slot->bitmap.pixel_mode) {    // invisible glyph, only update metrics
+        // Scale glyph bitmap
+        lUInt8* scaled_bmp = NULL;
+        unsigned int new_h = scale_mul;     // new size
+        unsigned int new_w = scale_mul*slot->bitmap.width/scale_div;
+        int new_bmp_pitch = new_w*4;
+        if (/*new_w < slot->bitmap.width &&*/ new_h < slot->bitmap.rows) {
+            // need to downscale
+            if (!onlyMetrics) {
+                if (slot->bitmap.width > 0 && slot->bitmap.rows > 0 && slot->bitmap.buffer != NULL) {
+                    if (FT_PIXEL_MODE_BGRA == slot->bitmap.pixel_mode) {
+                        scaled_bmp = CRe::qSmoothScaleImage(slot->bitmap.buffer, slot->bitmap.width, slot->bitmap.rows, false, new_w, new_h);
+                        // update bitmap
+                        if (scaled_bmp != NULL) {
+                            // We can safely overwrite bitmap since new bitmap is always is less than original
+                            memcpy(slot->bitmap.buffer, scaled_bmp, new_bmp_pitch*new_h);
+                            free(scaled_bmp);
+                        } else {
+                            // downscale failed
+                            res = false;
+                        }
+                    }
+                }
+            }
+        }
+        // update metrics regardless of the scaling result
+        // also for invisible glyphs (spaces, etc...)
+        slot->bitmap.pitch = slot->bitmap.pitch > 0 ? new_bmp_pitch : 0;
+        slot->bitmap.width = slot->bitmap.width > 0 ? new_w : 0;
+        slot->bitmap.rows = slot->bitmap.rows > 0 ? new_h : 0;
+        slot->bitmap_left = scale_mul*slot->bitmap_left/scale_div;
+        slot->bitmap_top = scale_mul*slot->bitmap_top/scale_div;
+        slot->metrics.height = scale_mul*slot->metrics.height/scale_div;
+        slot->metrics.width = scale_mul*slot->metrics.width/scale_div;
+        slot->metrics.horiAdvance = scale_mul*slot->metrics.horiAdvance/scale_div;
+        slot->metrics.vertAdvance = scale_mul*slot->metrics.vertAdvance/scale_div;
+        slot->metrics.horiBearingX = scale_mul*slot->metrics.horiBearingX/scale_div;
+        slot->metrics.horiBearingY = scale_mul*slot->metrics.horiBearingY/scale_div;
+        slot->metrics.vertBearingX = scale_mul*slot->metrics.vertBearingX/scale_div;
+        slot->metrics.vertBearingY = scale_mul*slot->metrics.vertBearingY/scale_div;
+        slot->advance.x = scale_mul*slot->advance.x/scale_div;
+        slot->advance.y = scale_mul*slot->advance.y/scale_div;
+    }
+    return res;
+}
 
 // The 2 slots with "LCHAR_IS_SPACE | LCHAR_ALLOW_WRAP_AFTER" on the 2nd line previously
 // were: "LCHAR_IS_SPACE | LCHAR_IS_EOL | LCHAR_ALLOW_WRAP_AFTER".
@@ -323,6 +445,7 @@ inline lUInt32 getHash( const struct LVCharTriplet& triplet )
 
 #endif  // USE_HARFBUZZ==1
 
+
 void LVFreeTypeFace::setFallbackFont(LVFontRef font) {
     _fallbackFont = font;
     _fallbackFontIsSet = !font.isNull();
@@ -379,18 +502,22 @@ LVFreeTypeFace::LVFreeTypeFace(LVMutex &mutex, FT_Library library,
           _weight(400), _italic(0), _features(0),
           _glyph_cache(globalCache),
           _drawMonochrome(false),
+          _aa_mode(font_aa_all),
           _hintingMode(HINTING_MODE_AUTOHINT),
           _shapingMode(SHAPING_MODE_FREETYPE),
           _fallbackFontIsSet(false),
           _fallback_mask(0),
           _synth_weight(0),
           _synth_weight_strength(0),
-          _synth_weight_half_strength(0)
+          _synth_weight_half_strength(0),
+          _scale_mul(1),
+          _scale_div(1)
 #if USE_HARFBUZZ == 1
         , _glyph_cache2(globalCache),
           _width_cache2(1024)
 #endif
 {
+    _aa_mode = fontMan->GetAntialiasMode();
     _hintingMode = fontMan->GetHintingMode();
 #if USE_HARFBUZZ == 1
     _hb_font = 0;
@@ -488,6 +615,13 @@ void LVFreeTypeFace::setBitmapMode(bool drawBitmap) {
     if (_drawMonochrome == drawBitmap)
         return;
     _drawMonochrome = drawBitmap;
+    _hash = 0; // Force lvstyles.cpp calcHash(font_ref_t) to recompute the hash
+    clearCache();
+}
+
+void LVFreeTypeFace::SetAntialiasMode(font_antialiasing_t mode)
+{
+    _aa_mode = mode;
     clearCache();
 }
 
@@ -562,6 +696,7 @@ bool LVFreeTypeFace::loadFromBuffer(LVByteArrayRef buf, int index, int size, css
                                     bool monochrome, bool italicize, int weight) {
     FONT_GUARD
     _hintingMode = fontMan->GetHintingMode();
+    _aa_mode = fontMan->GetAntialiasMode();
     _drawMonochrome = monochrome;
     _fontFamily = fontFamily;
     if (_face)
@@ -590,10 +725,40 @@ bool LVFreeTypeFace::loadFromBuffer(LVByteArrayRef buf, int index, int size, css
     //    Clear();
     //    return false;
     // }
-    error = FT_Set_Pixel_Sizes(
-            _face,    /* handle to face object */
-            0,        /* pixel_width           */
-            size);  /* pixel_height          */
+    if (FT_Err_Ok == error) {
+        error = FT_Set_Pixel_Sizes(
+                _face,    /* handle to face object */
+                0,        /* pixel_width           */
+                size);  /* pixel_height          */
+        if (FT_Err_Invalid_Pixel_Size == error) {
+            CRLog::warn("fixed size font, can't be scaled by FreeType...");
+            // We scale required glyph's bitmap later...
+            if (_face->num_fixed_sizes > 0 && _face->available_sizes != NULL) {
+                // Find nearest fixed size
+                int idx = 0;
+                int prev_delta = myabs(_face->available_sizes[0].height - size);
+                int delta;
+                int nearest_size = _face->available_sizes[0].height;
+                for (int i = 1; i < _face->num_fixed_sizes; i++) {
+                    delta = myabs(_face->available_sizes[i].height - size);
+                    if (delta < prev_delta) {
+                        idx = i;
+                        nearest_size = _face->available_sizes[i].height;
+                    }
+                    else
+                        break;
+                }
+                error = FT_Select_Size(_face, idx);
+                if (FT_Err_Ok == error) {
+                    if (size < nearest_size) {
+                        // Don't allow upscaling
+                        _scale_mul = size;
+                        _scale_div = nearest_size;
+                    }
+                }
+            }
+        }
+    }
 #if USE_HARFBUZZ == 1
     if (FT_Err_Ok == error) {
         if (_hb_font)
@@ -602,7 +767,7 @@ bool LVFreeTypeFace::loadFromBuffer(LVByteArrayRef buf, int index, int size, css
         if ( _hb_font ) {
             // Use the same load flags as we do when using FT directly, to avoid mismatching advances & raster
             int flags = FT_LOAD_DEFAULT;
-            flags |= (!_drawMonochrome ? FT_LOAD_TARGET_LIGHT : FT_LOAD_TARGET_MONO);
+            flags |= (!_drawMonochrome ? getLoadTargetForAA(_aa_mode) : FT_LOAD_TARGET_MONO);
             if (_hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR) {
                 flags |= FT_LOAD_NO_AUTOHINT;
             }
@@ -638,6 +803,14 @@ bool LVFreeTypeFace::loadFromBuffer(LVByteArrayRef buf, int index, int size, css
     _weight = weight > 0 ? weight : getFontWeight(_face);
     _italic = _face->style_flags & FT_STYLE_FLAG_ITALIC ? 1 : 0;
 
+    if (FT_HAS_COLOR(_face) && !FT_IS_SCALABLE(_face)) {
+        if (_scale_mul != 1 || _scale_div != 1) {
+            // assumed fixed size color font
+            _height = _scale_mul*_height/_scale_div;
+            _baseline = _scale_mul*_baseline/_scale_div;
+        }
+    }
+
     if (!error && italicize && !_italic) {
         _italic = 2;
         // We must use the same matrix values as FT_GlyphSlot_Oblique()
@@ -668,6 +841,7 @@ LVFreeTypeFace::loadFromFile(const char *fname, int index, int size, css_font_fa
                              bool monochrome, bool italicize, int weight) {
     FONT_GUARD
     _hintingMode = fontMan->GetHintingMode();
+    _aa_mode = fontMan->GetAntialiasMode();
     _drawMonochrome = monochrome;
     _fontFamily = fontFamily;
     if (fname)
@@ -699,10 +873,40 @@ LVFreeTypeFace::loadFromFile(const char *fname, int index, int size, css_font_fa
     //    Clear();
     //    return false;
     // }
-    error = FT_Set_Pixel_Sizes(
-            _face,    /* handle to face object */
-            0,        /* pixel_width           */
-            size);  /* pixel_height          */
+    if (FT_Err_Ok == error) {
+        error = FT_Set_Pixel_Sizes(
+                _face,    /* handle to face object */
+                0,        /* pixel_width           */
+                size);  /* pixel_height          */
+        if (FT_Err_Invalid_Pixel_Size == error) {
+            CRLog::warn("fixed size font, can't be scaled by FreeType...");
+            // We scale required glyph's bitmap later...
+            if (_face->num_fixed_sizes > 0 && _face->available_sizes != NULL) {
+                // Find nearest fixed size
+                int idx = 0;
+                int prev_delta = myabs(_face->available_sizes[0].height - size);
+                int delta;
+                int nearest_size = _face->available_sizes[0].height;
+                for (int i = 1; i < _face->num_fixed_sizes; i++) {
+                    delta = myabs(_face->available_sizes[i].height - size);
+                    if (delta < prev_delta) {
+                        idx = i;
+                        nearest_size = _face->available_sizes[i].height;
+                    }
+                    else
+                        break;
+                }
+                error = FT_Select_Size(_face, idx);
+                if (FT_Err_Ok == error) {
+                    if (size < nearest_size) {
+                        // Don't allow upscaling
+                        _scale_mul = size;
+                        _scale_div = nearest_size;
+                    }
+                }
+            }
+        }
+    }
 #if USE_HARFBUZZ == 1
     if (FT_Err_Ok == error) {
         if (_hb_font)
@@ -714,7 +918,7 @@ LVFreeTypeFace::loadFromFile(const char *fname, int index, int size, css_font_fa
         else {
             // Use the same load flags as we do when using FT directly, to avoid mismatching advances & raster
             int flags = FT_LOAD_DEFAULT;
-            flags |= (!_drawMonochrome ? FT_LOAD_TARGET_LIGHT : FT_LOAD_TARGET_MONO);
+            flags |= (!_drawMonochrome ? getLoadTargetForAA(_aa_mode) : FT_LOAD_TARGET_MONO);
             if (_hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR) {
                 flags |= FT_LOAD_NO_AUTOHINT;
             }
@@ -749,6 +953,14 @@ LVFreeTypeFace::loadFromFile(const char *fname, int index, int size, css_font_fa
     // Well, let's trust FontConfig for this.
     _weight = weight > 0 ? weight : getFontWeight(_face);
     _italic = _face->style_flags & FT_STYLE_FLAG_ITALIC ? 1 : 0;
+
+    if (FT_HAS_COLOR(_face) && !FT_IS_SCALABLE(_face)) {
+        if (_scale_mul != 1 || _scale_div != 1) {
+            // assumed fixed size color font
+            _height = _scale_mul*_height/_scale_div;
+            _baseline = _scale_mul*_baseline/_scale_div;
+        }
+    }
 
     if (!error && italicize && !_italic) {
         _italic = 2;
@@ -852,8 +1064,13 @@ bool LVFreeTypeFace::hbCalcCharWidth(LVCharPosInfo *posInfo, const LVCharTriplet
             // which will be the one that will be rendered
             FT_UInt ch_glyph_index = FT_Get_Char_Index( _face, triplet.Char );
             if ( glyph_info[cluster].codepoint == ch_glyph_index ) {
-                posInfo->offset = (lInt16)FONT_METRIC_TO_PX(glyph_pos[cluster].x_offset);
-                posInfo->advance = (lInt16)FONT_METRIC_TO_PX(glyph_pos[cluster].x_advance);
+                if (_scale_mul != 1 || _scale_div != 1) {
+                    posInfo->offset = (lInt16)FONT_METRIC_TO_PX(_scale_mul*glyph_pos[cluster].x_offset/_scale_div);
+                    posInfo->advance = (lInt16)FONT_METRIC_TO_PX(_scale_mul*glyph_pos[cluster].x_advance/_scale_div);
+                } else {
+                    posInfo->offset = (lInt16)FONT_METRIC_TO_PX(glyph_pos[cluster].x_offset);
+                    posInfo->advance = (lInt16)FONT_METRIC_TO_PX(glyph_pos[cluster].x_advance);
+                }
                 return true;
             }
         }
@@ -1059,7 +1276,7 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
         }
     }
     int rend_flags = FT_LOAD_DEFAULT;
-    rend_flags |= (!_drawMonochrome ? FT_LOAD_TARGET_NORMAL : FT_LOAD_TARGET_MONO);
+    rend_flags |= (!_drawMonochrome ? getLoadTargetForAA(_aa_mode) : FT_LOAD_TARGET_MONO);
     if (_hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR) {
         rend_flags |= FT_LOAD_NO_AUTOHINT;
     }
@@ -1069,8 +1286,10 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
     else if (_hintingMode == HINTING_MODE_DISABLED) {
         rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
     }
+    if (FT_HAS_COLOR(_face))
+        rend_flags |= FT_LOAD_COLOR;
     if (_synth_weight > 0 || _italic == 2) { // Don't render yet
-        rend_flags &= ~FT_LOAD_RENDER;
+        //rend_flags &= ~FT_LOAD_RENDER;
         // Also disable any hinting, as it would be wrong after embolden.
         // But it feels this is now fine after switching to FT_LOAD_TARGET_LIGHT.
         // rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
@@ -1148,6 +1367,10 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
         }
     }
 
+    if (FT_HAS_COLOR(_face) && !FT_IS_SCALABLE(_face)) {
+        // Updating metrics for downscaled bitmap (which we will do later)
+        downScaleColorGlyphBitmap(_slot, _scale_mul, _scale_div, true);
+    }
     glyph->blackBoxX = (lUInt16)( FONT_METRIC_TO_PX( _slot->metrics.width ) );
     glyph->blackBoxY = (lUInt16)( FONT_METRIC_TO_PX( _slot->metrics.height ) );
     glyph->originX =   (lInt16)( FONT_METRIC_TO_PX( _slot->metrics.horiBearingX ) );
@@ -1393,6 +1616,15 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
         glyph_count = hb_buffer_get_length(_hb_buffer);
         glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, 0);
         glyph_pos = hb_buffer_get_glyph_positions(_hb_buffer, 0);
+
+        if (_scale_mul != 1 || _scale_div != 1) {
+            for (i = 0; i < (int)glyph_count; i++) {
+                glyph_pos[i].x_advance = _scale_mul*glyph_pos[i].x_advance/_scale_div;
+                glyph_pos[i].y_advance = _scale_mul*glyph_pos[i].y_advance/_scale_div;
+                glyph_pos[i].x_offset = _scale_mul*glyph_pos[i].x_offset/_scale_div;
+                glyph_pos[i].y_offset = _scale_mul*glyph_pos[i].y_offset/_scale_div;
+            }
+        }
 
         #ifdef DEBUG_MEASURE_TEXT
             printf("MTHB >>> measureText %x len %d is_rtl=%d [%s]\n", text, len, is_rtl, _faceName.c_str());
@@ -1808,7 +2040,7 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar32 def_char, lUI
     }
     LVFontGlyphCacheItem *item = _glyph_cache.get(ch);
     if (!item) {
-        int rend_flags = FT_LOAD_RENDER | (!_drawMonochrome ? FT_LOAD_TARGET_LIGHT
+        int rend_flags = FT_LOAD_RENDER | (!_drawMonochrome ? getLoadTargetForAA(_aa_mode)
                                                             : (FT_LOAD_TARGET_MONO)); //|FT_LOAD_MONOCHROME|FT_LOAD_FORCE_AUTOHINT
         if (_hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR) {
             rend_flags |= FT_LOAD_NO_AUTOHINT;
@@ -1817,6 +2049,8 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar32 def_char, lUI
         } else if (_hintingMode == HINTING_MODE_DISABLED) {
             rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
         }
+        if (FT_HAS_COLOR(_face))
+            rend_flags |= FT_LOAD_COLOR;
         if (_synth_weight > 0 || _italic == 2) { // Don't render yet
             rend_flags &= ~FT_LOAD_RENDER;
             // Also disable any hinting, as it would be wrong after embolden.
@@ -1848,12 +2082,15 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar32 def_char, lUI
         if (_italic == 2) {
             FT_GlyphSlot_Oblique(_slot);
         }
-        if (_synth_weight > 0 || _italic == 2) {
+        if (FT_IS_SCALABLE(_face) && (_synth_weight > 0 || _italic == 2)) {
             // Render now that transformations are applied
-            FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
+            FT_Render_Glyph(_slot, _drawMonochrome ? FT_RENDER_MODE_MONO : getRenderModeForAA(_aa_mode));
         }
-
-        item = newItem(&_glyph_cache, (lChar32)ch, _slot); //, _drawMonochrome
+        if (FT_HAS_COLOR(_face) && !FT_IS_SCALABLE(_face)) {
+            // Downscale fixed-size color glyph & update metrics
+            downScaleColorGlyphBitmap(_slot, _scale_mul, _scale_div, false);
+        }
+        item = newItem(&_glyph_cache, (lChar32)ch, _slot, _aa_mode); //, _drawMonochrome
         if (item) {
             if (_synth_weight_strength != 0) {
                 // Assume zero advance means it's a diacritic:
@@ -1876,7 +2113,7 @@ LVFontGlyphCacheItem* LVFreeTypeFace::getGlyphByIndex(lUInt32 index) {
     LVFontGlyphCacheItem *item = _glyph_cache2.get(index);
     if (!item) {
         // glyph not found in cache, rendering...
-        int rend_flags = FT_LOAD_RENDER | (!_drawMonochrome ? FT_LOAD_TARGET_LIGHT
+        int rend_flags = FT_LOAD_RENDER | (!_drawMonochrome ? getLoadTargetForAA(_aa_mode)
                                                             : (FT_LOAD_TARGET_MONO)); //|FT_LOAD_MONOCHROME|FT_LOAD_FORCE_AUTOHINT
         if (_hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR) {
             rend_flags |= FT_LOAD_NO_AUTOHINT;
@@ -1887,7 +2124,8 @@ LVFontGlyphCacheItem* LVFreeTypeFace::getGlyphByIndex(lUInt32 index) {
         else if (_hintingMode == HINTING_MODE_DISABLED) {
             rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
         }
-
+        if (FT_HAS_COLOR(_face))
+            rend_flags |= FT_LOAD_COLOR;
         if (_synth_weight > 0 || _italic == 2) { // Don't render yet
             rend_flags &= ~FT_LOAD_RENDER;
             // Also disable any hinting, as it would be wrong after embolden.
@@ -1920,12 +2158,15 @@ LVFontGlyphCacheItem* LVFreeTypeFace::getGlyphByIndex(lUInt32 index) {
         if (_italic==2) {
             FT_GlyphSlot_Oblique(_slot);
         }
-        if (_synth_weight > 0 || _italic == 2) {
+        if (FT_IS_SCALABLE(_face) && (_synth_weight > 0 || _italic == 2)) {
             // Render now that transformations are applied
-            FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
+            FT_Render_Glyph(_slot, _drawMonochrome ? FT_RENDER_MODE_MONO : getRenderModeForAA(_aa_mode));
         }
-
-        item = newItem(&_glyph_cache2, index, _slot);
+        if (FT_HAS_COLOR(_face) && !FT_IS_SCALABLE(_face)) {
+            // Downscale fixed-size color glyph & update metrics
+            downScaleColorGlyphBitmap(_slot, _scale_mul, _scale_div, false);
+        }
+        item = newItem(&_glyph_cache2, index, _slot, _aa_mode);
         if (item)
             _glyph_cache2.put(item);
     }
@@ -2085,6 +2326,15 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
         glyph_count = hb_buffer_get_length(_hb_buffer);
         glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, 0);
         glyph_pos = hb_buffer_get_glyph_positions(_hb_buffer, 0);
+
+        if (_scale_mul != 1 || _scale_div != 1) {
+            for (i = 0; i < (int)glyph_count; i++) {
+                glyph_pos[i].x_advance = _scale_mul*glyph_pos[i].x_advance/_scale_div;
+                glyph_pos[i].y_advance = _scale_mul*glyph_pos[i].y_advance/_scale_div;
+                glyph_pos[i].x_offset = _scale_mul*glyph_pos[i].x_offset/_scale_div;
+                glyph_pos[i].y_offset = _scale_mul*glyph_pos[i].y_offset/_scale_div;
+            }
+        }
 
         #ifdef DEBUG_DRAW_TEXT
             printf("DTHB >>> drawTextString %x len %d is_rtl=%d [%s]\n", text, len, is_rtl, _faceName.c_str());
@@ -2250,11 +2500,13 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
                             printf("%x(x=%d+%d,w=%d) ", glyph_info[i].codepoint, x,
                                     item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset), FONT_METRIC_TO_PX(glyph_pos[i].x_advance));
                         #endif
-                        buf->Draw(x + item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset),
+                        buf->BlendBitmap(x + item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset),
                                   y + _baseline - item->origin_y - FONT_METRIC_TO_PX(glyph_pos[i].y_offset),
                                   item->bmp,
+                                  item->bmp_fmt,
                                   item->bmp_width,
                                   item->bmp_height,
+                                  item->bmp_pitch,
                                   palette);
                         x += FONT_METRIC_TO_PX(glyph_pos[i].x_advance);
                     }
@@ -2287,11 +2539,13 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
             ch = UNICODE_SOFT_HYPHEN_CODE;
             LVFontGlyphCacheItem *item = getGlyph(ch, def_char);
             if (item) {
-                buf->Draw( x + item->origin_x,
+                buf->BlendBitmap( x + item->origin_x,
                            y + _baseline - item->origin_y,
                            item->bmp,
+                           item->bmp_fmt,
                            item->bmp_width,
                            item->bmp_height,
+                           item->bmp_pitch,
                            palette);
                 x += item->advance; // + letter_spacing; (let's not add any letter-spacing after hyphen)
             }
@@ -2334,11 +2588,13 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
                     }
                     _width_cache2.set(triplet, posInfo);
                 }
-                buf->Draw(x + item->origin_x + posInfo.offset,
+                buf->BlendBitmap(x + item->origin_x + posInfo.offset,
                     y + _baseline - item->origin_y,
                     item->bmp,
+                    item->bmp_fmt,
                     item->bmp_width,
                     item->bmp_height,
+                    item->bmp_pitch,
                     palette);
 
                 if ( posInfo.advance == 0 ) {
@@ -2388,11 +2644,13 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
             continue;
         if ( (item && !isHyphen) || i>=len-1 ) { // avoid soft hyphens inside text string
             lInt32 w = item->advance + FONT_METRIC_TRUNC(kerning_26_6);
-            buf->Draw( x + FONT_METRIC_TRUNC(kerning_26_6) + item->origin_x,
+            buf->BlendBitmap( x + FONT_METRIC_TRUNC(kerning_26_6) + item->origin_x,
                        y + _baseline - item->origin_y,
                        item->bmp,
+                       item->bmp_fmt,
                        item->bmp_width,
                        item->bmp_height,
+                       item->bmp_pitch,
                        palette);
 
             if ( w == 0 ) {

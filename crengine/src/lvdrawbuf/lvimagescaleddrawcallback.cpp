@@ -14,6 +14,7 @@
 
 #include "lvimagescaleddrawcallback.h"
 #include "lvdrawbuf_utils.h"
+#include "lvimg.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -58,11 +59,6 @@ static inline lUInt8 dither_o8x8(int x, int y, lUInt8 v)
 	//       The only overflow we should ever catch should be for a few white (v = 0xFF) input pixels
 	//       that get shifted to the next step (i.e., q = 272 (0xFF + 17)).
 	return (q > UINT8_MAX ? UINT8_MAX : static_cast<lUInt8>(q));
-}
-
-// Declare our bit of scaler ripped from Qt5...
-namespace CRe {
-lUInt8* qSmoothScaleImage(const lUInt8* src, int sw, int sh, bool ignore_alpha, int dw, int dh);
 }
 
 

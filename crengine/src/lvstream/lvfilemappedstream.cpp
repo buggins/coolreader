@@ -27,6 +27,7 @@
 extern "C" {
 #include <windows.h>
 }
+#include <io.h>
 #else
 #include <sys/types.h>
 #include <sys/stat.h>

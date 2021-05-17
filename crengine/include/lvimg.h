@@ -68,6 +68,11 @@ void LVDrawBatteryIcon( LVDrawBuf * drawbuf, const lvRect & batteryRc, int perce
 
 unsigned char * convertSVGtoPNG(unsigned char *svg_data, int svg_data_size, float zoom_factor, int *png_data_len);
 
+// Declare our bit of scaler ripped from Qt5...
+namespace CRe {
+    lUInt8* qSmoothScaleImage(const lUInt8* src, int sw, int sh, bool ignore_alpha, int dw, int dh);
+}
+
 #define IMAGE_SOURCE_FROM_BYTES( imgvar , bufvar ) \
     extern unsigned char bufvar []; \
     extern int bufvar ## _size ; \

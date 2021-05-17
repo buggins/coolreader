@@ -120,11 +120,21 @@ enum shaping_mode_t {
 // No more room for: (let's hope it's really the default in fonts)
 // #define LFNT_OT_FEATURES_P_JP90 0x80000000 // +jp90      (font-variant-east-asian: jis90)
 
-
+// Changing this enum also update method LVDocView::rotateFontAntialiasMode()
+// & org.coolreader.crengine.OptionsDialog.mAntialias array.
 enum font_antialiasing_t {
-    font_aa_none,
+    font_aa_none = 0,
     font_aa_big,
-    font_aa_all
+    font_aa_all,
+    font_aa_gray,
+    font_aa_lcd_rgb,
+    font_aa_lcd_bgr,
+    font_aa_lcd_pentile,
+    font_aa_lcd_pentile_m,  // mirrorred Pentile
+    font_aa_lcd_v_rgb,
+    font_aa_lcd_v_bgr,
+    font_aa_lcd_v_pentile,
+    font_aa_lcd_v_pentile_m
 };
 
 struct LVFontGlyphCacheItem;
@@ -268,6 +278,12 @@ public:
 
     /// set bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual void setBitmapMode(bool) {}
+
+    /// get antialiasing mode
+    virtual font_antialiasing_t GetAntialiasMode() { return font_aa_gray; }
+
+    /// set antialiasing mode
+    virtual void SetAntialiasMode(font_antialiasing_t mode) {}
 
     /// get OpenType features (bitmap)
     virtual int getFeatures() const { return 0; }

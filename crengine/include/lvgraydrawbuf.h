@@ -68,8 +68,8 @@ public:
     virtual void Resize( int dx, int dy );
     /// draws image
     virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither );
-    /// draws bitmap (1 byte per pixel) using specified palette
-    virtual void Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * palette );
+    /// blend font bitmap using specified palette
+    virtual void BlendBitmap( int x, int y, const lUInt8 * bitmap, FontBmpPixelFormat bitmap_fmt, int width, int height, int bmp_pitch, lUInt32 * palette );
     /// constructor
     LVGrayDrawBuf(int dx, int dy, int bpp=2, void * auxdata = NULL );
     /// destructor

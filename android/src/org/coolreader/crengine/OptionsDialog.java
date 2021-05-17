@@ -273,11 +273,22 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.options_selection_action_dictionary, 
 			R.string.options_selection_action_bookmark, 
 		};
-	int[] mAntialias = new int[] {
+	int[] mAntialiasEINK = new int[] {
 			0, 1, 2
+	};
+	int[] mAntialiasEINKTitles = new int[] {
+			R.string.options_font_antialias_off, R.string.options_font_antialias_on_for_big, R.string.options_font_antialias_on_for_all
+	};
+	// possible values see in crengine/include/lvfont.h: enum font_antialiasing_t
+	int[] mAntialias = new int[] {
+			0, 1, 2,
+			4, 5,
+			8, 9
 		};
 	int[] mAntialiasTitles = new int[] {
-			R.string.options_font_antialias_off, R.string.options_font_antialias_on_for_big, R.string.options_font_antialias_on_for_all
+			R.string.options_font_antialias_off, R.string.options_font_antialias_on_for_big, R.string.options_font_antialias_on_for_all,
+			R.string.options_font_antialias_lcd_rgb, R.string.options_font_antialias_lcd_bgr,
+			R.string.options_font_antialias_lcd_v_rgb, R.string.options_font_antialias_lcd_v_bgr
 		};
 	int[] mLandscapePages = new int[] {
 			1, 2
@@ -2591,7 +2602,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				//mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
 			}
 		});
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_antialias_drawable, R.drawable.cr3_option_text_antialias));
+		if ( DeviceInfo.EINK_SCREEN )
+			mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialiasEINK, mAntialiasEINKTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_antialias_drawable, R.drawable.cr3_option_text_antialias));
+		else
+			mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_antialias_drawable, R.drawable.cr3_option_text_antialias));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_interline_space), PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100").setIconIdByAttr(R.attr.cr3_option_line_spacing_drawable, R.drawable.cr3_option_line_spacing));
 		//
 		mEnableMultiLangOption = new BoolOption(this, getString(R.string.options_style_multilang), PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_text_multilang_drawable, R.drawable.cr3_option_text_multilang)

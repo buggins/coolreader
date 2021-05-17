@@ -21,6 +21,9 @@
 #include "lvcontainer.h"
 #include "crlog.h"
 
+#include FT_LCD_FILTER_H
+#include FT_CONFIG_OPTIONS_H
+
 #if (USE_FONTCONFIG == 1)
 #include <fontconfig/fontconfig.h>
 #endif
@@ -215,15 +218,105 @@ bool LVFreeTypeFontManager::isBitmapModeForSize(int size) {
     return isBitmap;
 }
 
-void LVFreeTypeFontManager::SetAntialiasMode(int mode) {
+void LVFreeTypeFontManager::SetAntialiasMode(font_antialiasing_t mode) {
     _antialiasMode = mode;
+    int error;
+#ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
+    // ClearType-style LCD rendering
+    switch (mode)
+    {
+    case font_aa_lcd_rgb:
+    case font_aa_lcd_bgr:
+    case font_aa_lcd_v_rgb:
+    case font_aa_lcd_v_bgr:
+        error = FT_Library_SetLcdFilter(_library, FT_LCD_FILTER_DEFAULT);
+        if (FT_Err_Ok != error)
+            CRLog::debug("FT_Library_SetLcdFilter() failed, error=%d", error);
+        break;
+    case font_aa_lcd_pentile:
+    case font_aa_lcd_pentile_m:
+    case font_aa_lcd_v_pentile:
+    case font_aa_lcd_v_pentile_m:
+        CRLog::warn("Pentile unavailable with ClearType-style LCD rendering");
+        CRLog::warn("Recompile FreeType without FT_CONFIG_OPTION_SUBPIXEL_RENDERING");
+        break;
+    default:
+        error = FT_Library_SetLcdFilter(_library, FT_LCD_FILTER_NONE);
+        if (FT_Err_Ok != error)
+            CRLog::debug("FT_Library_SetLcdFilter() failed, error=%d", error);
+        break;
+    }
+#else
+    // Harmony LCD rendering
+    switch (mode) {
+        case font_aa_lcd_rgb:
+        case font_aa_lcd_v_rgb: {
+            // {{-⅓, 0}, {0, 0}, {⅓, 0}}
+            FT_Vector sub[3] = {{-21, 0}, {0, 0}, { 21, 0}};
+            error = FT_Library_SetLcdGeometry(_library, sub);
+            if (FT_Err_Ok != error)
+                CRLog::debug("FT_Library_SetLcdGeometry() failed, error=%d", error);
+            break;
+        }
+        case font_aa_lcd_bgr:
+        case font_aa_lcd_v_bgr: {
+            // {{⅓, 0}, {0, 0}, {-⅓, 0}}
+            FT_Vector sub[3] = {{21, 0}, {0, 0}, {-21, 0}};
+            error = FT_Library_SetLcdGeometry(_library, sub);
+            if (FT_Err_Ok != error)
+                CRLog::debug("FT_Library_SetLcdGeometry() failed, error=%d", error);
+            break;
+        }
+        case font_aa_lcd_pentile: {
+            // {{-⅙, ¼}, {-⅙, -¼}, {⅓, 0}}
+            FT_Vector sub[3] = {{-11, 16}, {-11, -16}, { 22, 0}};
+            error = FT_Library_SetLcdGeometry(_library, sub);
+            if (FT_Err_Ok != error)
+                CRLog::debug("FT_Library_SetLcdGeometry() failed, error=%d", error);
+            break;
+        }
+        case font_aa_lcd_pentile_m: {
+            // TODO: test & fix this
+            FT_Vector sub[3] = {{ -22, 0}, {11, 16}, {11, -16}};
+            error = FT_Library_SetLcdGeometry(_library, sub);
+            if (FT_Err_Ok != error)
+                CRLog::debug("FT_Library_SetLcdGeometry() failed, error=%d", error);
+                break;
+            }
+        case font_aa_lcd_v_pentile: {
+            // TODO: test & fix this
+            FT_Vector sub[3] = {{ 16, -11}, {-16, -11}, {0, 22}};
+            error = FT_Library_SetLcdGeometry(_library, sub);
+            if (FT_Err_Ok != error)
+                CRLog::debug("FT_Library_SetLcdGeometry() failed, error=%d", error);
+            break;
+        }
+        case font_aa_lcd_v_pentile_m: {
+            // TODO: test & fix this
+            FT_Vector sub[3] = {{ 22, 0}, {-11, -16}, {-11, 16}};
+            error = FT_Library_SetLcdGeometry(_library, sub);
+            if (FT_Err_Ok != error)
+                CRLog::debug("FT_Library_SetLcdGeometry() failed, error=%d", error);
+            break;
+        }
+        default: {
+            FT_Vector sub[3] = {{0, 0},
+                                {0, 0},
+                                {0, 0}};
+            error = FT_Library_SetLcdGeometry(_library, sub);
+            if (FT_Err_Ok != error)
+                CRLog::debug("FT_Library_SetLcdGeometry() failed, error=%d", error);
+        }
+    }
+#endif
     gc();
     clearGlyphCache();
     FONT_MAN_GUARD
     LVPtrVector<LVFontCacheItem> *fonts = _cache.getInstances();
     for (int i = 0; i < fonts->length(); i++) {
-        fonts->get(i)->getFont()->setBitmapMode(
-                isBitmapModeForSize(fonts->get(i)->getFont()->getHeight()));
+        LVFontRef font = fonts->get(i)->getFont();
+        font->SetAntialiasMode(_antialiasMode);
+        font->setBitmapMode(isBitmapModeForSize(font->getHeight()));
     }
 }
 
@@ -300,7 +393,8 @@ bool LVFreeTypeFontManager::initSystemFonts() {
         
         FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_WEIGHT, FC_FAMILY,
                                            FC_SLANT, FC_SPACING, FC_INDEX,
-                                           FC_STYLE, FC_SCALABLE, NULL);
+                                           FC_STYLE, FC_SCALABLE, FC_COLOR,
+                                           NULL);
         FcPattern *pat = FcPatternCreate();
         //FcBool b = 1;
         FcPatternAddBool(pat, FC_SCALABLE, 1);
@@ -1056,6 +1150,7 @@ bool LVFreeTypeFontManager::RegisterExternalFont(int documentId, lString32 name,
             break;
         }
         bool scal = FT_IS_SCALABLE(face);
+        bool color = FT_HAS_COLOR(face) != 0;
         bool charset = checkCharSet(face);
         if (!charset) {
             if (FT_Select_Charmap(face, FT_ENCODING_UNICODE)) // returns 0 on success
@@ -1065,10 +1160,10 @@ bool LVFreeTypeFontManager::RegisterExternalFont(int documentId, lString32 name,
                     charset = true;
         }
         //bool monospaced = isMonoSpaced( face );
-        if (!scal || !charset) {
+        if ((!scal && !color) || !charset) {
             CRLog::debug("    won't register font %s: %s",
                          name.c_str(),
-                         !charset ? "no mandatory characters in charset" : "font is not scalable"
+                         !charset ? "no mandatory characters in charset" : "font nor scalable nor color"
             );
             if (face) {
                 FT_Done_Face(face);
@@ -1162,6 +1257,7 @@ bool LVFreeTypeFontManager::RegisterFont(lString8 name) {
             break;
         }
         bool scal = FT_IS_SCALABLE(face) != 0;
+        bool color = FT_HAS_COLOR(face) != 0;
         bool charset = checkCharSet(face);
         if (!charset) {
             if (FT_Select_Charmap(face, FT_ENCODING_UNICODE)) // returns 0 on success
@@ -1171,10 +1267,10 @@ bool LVFreeTypeFontManager::RegisterFont(lString8 name) {
                     charset = true;
         }
         //bool monospaced = isMonoSpaced( face );
-        if (!scal || !charset) {
+        if ((!scal && !color) || !charset) {
             CRLog::debug("    won't register font %s: %s",
                          name.c_str(),
-                         !charset ? "no mandatory characters in charset" : "font is not scalable"
+                         !charset ? "no mandatory characters in charset" : "font nor scalable nor color"
             );
             if (face) {
                 FT_Done_Face(face);

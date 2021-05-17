@@ -132,6 +132,7 @@ protected:
     LVFontGlyphSignedMetricCache _rsbcache; // glyph right side bearing cache
     LVFontLocalGlyphCache _glyph_cache;
     bool _drawMonochrome;
+    font_antialiasing_t _aa_mode;
     hinting_mode_t _hintingMode;
     shaping_mode_t _shapingMode;
     bool _fallbackFontIsSet;
@@ -146,6 +147,8 @@ protected:
     bool           _allowKerning;
     FT_Pos         _synth_weight_strength;   // for emboldening with FT_Outline_Embolden()
     FT_Pos         _synth_weight_half_strength;
+    FT_Pos         _scale_mul;                  // only for fixed-size color fonts
+    FT_Pos         _scale_div;                  // only for fixed-size color fonts
     int _features; // requested OpenType features bitmap
 #if USE_HARFBUZZ == 1
     hb_font_t *_hb_font;
@@ -219,6 +222,12 @@ public:
     /// set bitmap mode (true=bitmap, false=antialiased)
     virtual void setBitmapMode(bool drawBitmap);
 
+    /// get antialiasing mode
+    virtual font_antialiasing_t GetAntialiasMode() { return _aa_mode; }
+
+    /// set antialiasing mode
+    virtual void SetAntialiasMode(font_antialiasing_t mode);
+    
     /// get OpenType features (bitmap)
     virtual int getFeatures() const { return _features; }
 

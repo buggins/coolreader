@@ -80,14 +80,15 @@ void LVFontGlobalGlyphCache::clear() {
     }
 }
 
-LVFontGlyphCacheItem *LVFontGlyphCacheItem::newItem(LVFontLocalGlyphCache* local_cache, LVFontGlyphCacheKeyType ch_or_index, int w, int h)
+LVFontGlyphCacheItem *LVFontGlyphCacheItem::newItem(LVFontLocalGlyphCache* local_cache, LVFontGlyphCacheKeyType ch_or_index, int w, int h, unsigned int bmp_pitch, unsigned int bmp_sz)
 {
     LVFontGlyphCacheItem *item = (LVFontGlyphCacheItem *) malloc(sizeof(LVFontGlyphCacheItem)
-                                                                 + (w * h - 1) * sizeof(lUInt8));
+                                                                 + bmp_sz - 1);
     if (item) {
         item->data = ch_or_index;
         item->bmp_width = (lUInt16) w;
         item->bmp_height = (lUInt16) h;
+        item->bmp_pitch = (lInt16) bmp_pitch;
         item->origin_x = 0;
         item->origin_y = 0;
         item->advance = 0;

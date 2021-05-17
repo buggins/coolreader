@@ -55,6 +55,19 @@ deploy_package()
 	cd "${pkg_datadir}" || die "chdir failed!"
 
 	# Check consistency
+	if [ -f .prepared ]
+	then
+		local pkg_rev=`cat .prepared 2>/dev/null`
+		test "x${pkg_rev}" = "x" && pkg_rev=0
+		if [ "x${pkg_rev}" != "x${REV}" ]
+		then
+			echo "The existing source package is older."
+			echo -n "Cleaning it... "
+			rm -r "${thirdparty_dir}/${SOURCESDIR}" >/dev/null 2>&1 || die "rm (dir) failed!"
+			echo "done"
+		fi
+	fi
+
 	if [ ! -d "${thirdparty_dir}/${SOURCESDIR}" ]
 	then
 		rm -f .unpacked .prepared
@@ -83,7 +96,7 @@ deploy_package()
 	then
 		# make sha512 sum file
 		echo "${SHA512} *${SRCFILE}" > "${SRCFILE}.sha512"
-		sha512sum -c "${SRCFILE}.sha512" || if [ "x" = "x" ]; then rm -f .downloaded; die "Failed to verify checksum!"; fi
+		sha512sum -c "${SRCFILE}.sha512" || if [ "x" = "x" ]; then rm -f .downloaded; rm -f "${SRCFILE}.sha512"; die "Failed to verify checksum!"; fi
 		echo "1" > .verified
 		rm -f "${SRCFILE}.sha512"
 		echo "Checksum OK."
@@ -107,13 +120,14 @@ deploy_package()
 			patch -p1 -i "${patchesdir}/${p}" || die "Failed to patch!"
 		done
 		cd "${pkg_datadir}" || die "chdir failed!"
-		echo "1" > .prepared
+		echo "${REV}" > .prepared
 		echo "Prepared OK."
 	fi
 
 	# clean vars
 	unset -v PN
 	unset -v PV
+	unset -v REV
 	unset -v SRCFILE
 	unset -v SHA512
 	unset -v URL

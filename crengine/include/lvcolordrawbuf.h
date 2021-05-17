@@ -16,7 +16,7 @@
 
 #include "lvbasedrawbuf.h"
 
-/// 32-bit RGB buffer
+/// 16/32-bit RGB buffer
 class LVColorDrawBuf : public LVBaseDrawBuf
 {
 private:
@@ -56,13 +56,13 @@ public:
     /// fills rectangle with pattern
     virtual void FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern );
     /// inverts specified rectangle
-	virtual void InvertRect( int x0, int y0, int x1, int y1 );
+    virtual void InvertRect( int x0, int y0, int x1, int y1 );
     /// sets new size
     virtual void Resize( int dx, int dy );
     /// draws image
     virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither );
-    /// draws bitmap (1 byte per pixel) using specified palette
-    virtual void Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * palette );
+    /// blend font bitmap using specified palette
+    virtual void BlendBitmap( int x, int y, const lUInt8 * bitmap, FontBmpPixelFormat bitmap_fmt, int width, int height, int bmp_pitch, lUInt32 * palette );
     /// returns scanline pointer
     virtual lUInt8 * GetScanLine( int y );
 

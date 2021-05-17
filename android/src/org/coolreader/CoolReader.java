@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.os.Debug;
 import android.speech.tts.TextToSpeech;
 import android.view.LayoutInflater;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -49,6 +50,7 @@ import org.coolreader.crengine.OptionsDialog;
 import org.coolreader.crengine.PositionProperties;
 import org.coolreader.crengine.Properties;
 import org.coolreader.crengine.ReaderAction;
+import org.coolreader.crengine.ReaderCommand;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
@@ -269,6 +271,17 @@ public class CoolReader extends BaseActivity {
 
 	public ReaderView getReaderView() {
 		return mReaderView;
+	}
+
+	// Absolute screen rotation
+	int screenRotation = Surface.ROTATION_0;
+
+	@Override
+	protected void onScreenRotationChanged(int rotation) {
+		screenRotation = rotation;
+		if (null != mReaderView) {
+			mReaderView.doEngineCommand(ReaderCommand.DCMD_SET_ROTATION_INFO_FOR_AA, rotation);
+		}
 	}
 
 	@Override
@@ -1224,6 +1237,7 @@ public class CoolReader extends BaseActivity {
 				}
 				if (initialBatteryState >= 0)
 					mReaderView.setBatteryState(initialBatteryState);
+				mReaderView.doEngineCommand(ReaderCommand.DCMD_SET_ROTATION_INFO_FOR_AA, screenRotation);
 			}
 		});
 	}

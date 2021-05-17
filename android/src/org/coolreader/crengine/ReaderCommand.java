@@ -52,6 +52,7 @@ public enum ReaderCommand
 	DCMD_SET_REQUESTED_DOM_VERSION(138),
 	DCMD_SET_RENDER_BLOCK_RENDERING_FLAGS(139),
 
+	DCMD_SET_ROTATION_INFO_FOR_AA(140),
 
 	// definitions from android/jni/readerview.h
 	DCMD_OPEN_RECENT_BOOK(2000),
