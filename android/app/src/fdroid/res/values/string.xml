@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<resources>
+    <string name="dlg_about_donation_paypal">Cool Reader is free and will always be free. If you want to support development of this project, you can do this via PayPal:</string>
+    <string name="dlg_about_donation_paypal_link">PayPal: <a href="https://www.paypal.com/donate/?item_name=Donation+to+Cool+Reader&amp;cmd=_donations&amp;business=coolreader.org%40gmail.com">coolreader.org@gmail.com</a></string>
+</resources>
