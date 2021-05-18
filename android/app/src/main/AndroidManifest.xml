@@ -26,8 +26,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <!-- Hide Android3 soft buttons on Archos -->
     <!--uses-permission android:name="archos.permission.FULLSCREEN.FULL"/-->
-    <!-- Required permission to use in-app billing. -->
-    <uses-permission android:name="com.android.vending.BILLING" />
 
     <application
             android:allowBackup="true"
