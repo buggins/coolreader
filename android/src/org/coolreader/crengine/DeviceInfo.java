@@ -5,9 +5,8 @@ import android.graphics.PixelFormat;
 import android.os.Build;
 import android.util.Log;
 
-import com.onyx.android.sdk.api.device.epd.EpdController;
-import com.onyx.android.sdk.device.Device;
-import com.onyx.android.sdk.utils.ReflectUtil;
+import org.eink_onyx_reflections.OnyxDevice;
+import org.eink_onyx_reflections.OnyxEinkDeviceImpl;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -152,15 +151,19 @@ public class DeviceInfo {
 		boolean onyx_support_regal = false;
 		boolean onyx_have_brightness_system_dialog = false;
 		if (EINK_ONYX) {
-			onyx_support_regal = EpdController.supportRegal();
-			Class<?> clazz = ReflectUtil.classForName("android.app.ActivityThread");
-			Method method = ReflectUtil.getMethodSafely(clazz, "currentApplication");
-			Application app = (Application) ReflectUtil.invokeMethodSafely(method, null);
+			OnyxEinkDeviceImpl onyxEinkDevice = OnyxDevice.currentDevice();
+			onyx_support_regal = onyxEinkDevice.supportRegal();
+			Application app = null;
+			try {
+				Class<?> clazz = Class.forName("android.app.ActivityThread");
+				Method method = clazz.getMethod("currentApplication");
+				app = (Application) method.invoke(null);
+			} catch (Exception ignored) {}
 			if (null != app) {
-				onyx_have_frontlight = Device.currentDevice().hasFLBrightness(app);
+				onyx_have_frontlight = onyxEinkDevice.hasFLBrightness(app);
 				List<Integer> list = null;
 				try {
-					list = Device.currentDevice().getFrontLightValueList(app);
+					list = onyxEinkDevice.getFrontLightValueList(app);
 				} catch (Exception ignored) {}
 				if (list != null && list.size() > 0) {
 					onyx_max_screen_brightness_value = list.get(list.size() - 1);
@@ -170,26 +173,26 @@ public class DeviceInfo {
 					}
 				}
 				// natural (cold & warm) backlight support
-				onyx_have_natural_backlight = Device.currentDevice().hasCTMBrightness(app);
+				onyx_have_natural_backlight = onyxEinkDevice.hasCTMBrightness(app);
 				if (onyx_have_natural_backlight) {
-					Integer[] values = Device.currentDevice().getWarmLightValues(app);
-					if (values != null && values.length > 0) {
-						onyx_max_screen_brightness_warm_value = values[values.length - 1];
+					list = onyxEinkDevice.getWarmLightValues(app);
+					if (list != null && list.size() > 0) {
+						onyx_max_screen_brightness_warm_value = list.get(list.size() - 1);
 					}
 				}
 				if (!onyx_have_frontlight && onyx_have_natural_backlight) {
 					onyx_have_frontlight = true;
-					Integer[] values = Device.currentDevice().getColdLightValues(app);
-					if (values != null && values.length > 0) {
-						onyx_max_screen_brightness_value = values[values.length - 1];
+					list = onyxEinkDevice.getColdLightValues(app);
+					if (list != null && list.size() > 0) {
+						onyx_max_screen_brightness_value = list.get(list.size() - 1);
 					}
 				}
 			}
-			switch (Device.currentDeviceIndex()) {
-				case Rk31xx:
-				case Rk32xx:
-				case Rk33xx:
-				case SDM:
+			switch (OnyxDevice.currentDeviceType()) {
+				case rk31xx:
+				case rk32xx:
+				case rk33xx:
+				case sdm:
 					onyx_have_brightness_system_dialog = true;
 					break;
 			}
