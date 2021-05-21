@@ -27,6 +27,7 @@ import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
 import android.widget.TextView;
 
+import org.coolreader.BuildConfig;
 import org.coolreader.CoolReader;
 import org.coolreader.Dictionaries;
 import org.coolreader.Dictionaries.DictInfo;
@@ -360,7 +361,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionsListView mOptionsApplication;
 	OptionsListView mOptionsControls;
 	OptionsListView mOptionsBrowser;
-	OptionsListView mOptionsCloudSync;
+	OptionsListView mOptionsCloudSync = null;
 	OptionsListView mOptionsTTS;
 	// Mutable options
 	OptionBase mHyphDictOption;
@@ -594,7 +595,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsPage.refresh();
 			mOptionsApplication.refresh();
 			mOptionsControls.refresh();
-			if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			if (null != mOptionsCloudSync) {
 				mOptionsCloudSync.refresh();
 			}
 		}
@@ -1900,10 +1901,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			return mOptionsControls;
 		else if ( "Page".equals(tag))
 			return mOptionsPage;
-		if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			if ( "Clouds".equals(tag) )
+		if ( "Clouds".equals(tag) )
+			if (null != mOptionsCloudSync) {
 				return mOptionsCloudSync;
-		}
+			}
 
 		return null;
 	}
@@ -2730,7 +2731,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setComment(getString(R.string.options_hide_empty_dirs_slowdown)).setDefaultValue("0").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_genres), PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES).setDefaultValue("0").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.mi_book_browser_simple_mode), PROP_APP_FILE_BROWSER_SIMPLE_MODE).noIcon());
-		if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+		if (BuildConfig.GSUITE_AVAILABLE && DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			boolean gdriveSyncEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, false);
 			boolean gdriveSyncBookInfoEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO, false);
 			mOptionsCloudSync = new OptionsListView(getContext());
@@ -2779,7 +2780,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsCSS.refresh();
 		mOptionsPage.refresh();
 		mOptionsApplication.refresh();
-		if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+		if (null != mOptionsCloudSync) {
 			mOptionsCloudSync.refresh();
 		}
 
@@ -2788,7 +2789,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		addTab("Page", R.drawable.cr3_tab_page);
 		addTab("Controls", R.drawable.cr3_tab_controls);
 		addTab("App", R.drawable.cr3_tab_application);
-		if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+		if (null != mOptionsCloudSync) {
 			addTab("Clouds", R.drawable.cr3_tab_clouds);
 		}
 
