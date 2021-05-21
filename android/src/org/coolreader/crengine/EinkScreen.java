@@ -54,4 +54,6 @@ public interface EinkScreen {
 	List<Integer> getFrontLightLevels(Context context);
 
 	List<Integer> getWarmLightLevels(Context context);
+
+	boolean isAppOptimizationEnabled();
 }

@@ -138,6 +138,11 @@ public class EinkScreenNook implements EinkScreen {
 		return null;
 	}
 
+	@Override
+	public boolean isAppOptimizationEnabled() {
+		return false;
+	}
+
 
 	// private methods
 	private void nookSleepController(boolean toSleep, View view) {

@@ -407,6 +407,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public String label;
 		public String property;
 		public String defaultValue;
+		public String disabledNote;
 		public int drawableAttrId = R.attr.cr3_option_other_drawable;
 		public int fallbackIconId = R.drawable.cr3_option_other;
 		public OptionsListView optionsListView;
@@ -438,6 +439,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			this.defaultValue = value;
 			if ( mProperties.getProperty(property)==null )
 				mProperties.setProperty(property, value);
+			return this;
+		}
+		public OptionBase setDisabledNote(String note) {
+			disabledNote = note;
 			return this;
 		}
 		public OptionBase setOnChangeHandler( Runnable handler ) {
@@ -503,7 +508,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			labelView.setEnabled(enabled);
 			if (valueView != null) {
 				String valueLabel = getValueLabel();
-				if (valueLabel != null && valueLabel.length() > 0) {
+				if (!enabled && null != disabledNote && disabledNote.length() > 0) {
+					if (null != valueLabel && valueLabel.length() > 0)
+						valueLabel = valueLabel + " (" + disabledNote + ")";
+					else
+						valueLabel = disabledNote;
+				}
+				if (null != valueLabel && valueLabel.length() > 0) {
 					valueView.setText(valueLabel);
 					valueView.setVisibility(View.VISIBLE);
 				} else {
@@ -638,9 +649,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			}
 			myView = view;
 			TextView labelView = view.findViewById(R.id.option_label);
+			TextView commentView = view.findViewById(R.id.option_comment);
 			CheckBox valueView = view.findViewById(R.id.option_value_cb);
 			labelView.setText(label);
 			labelView.setEnabled(enabled);
+			String commentLabel = null;
+			if (!enabled && null != disabledNote && disabledNote.length() > 0) {
+				commentLabel = disabledNote;
+			}
+			if (null != commentLabel) {
+				commentView.setText(commentLabel);
+				commentView.setEnabled(enabled);
+				commentView.setVisibility(View.VISIBLE);
+			} else {
+				commentView.setVisibility(View.GONE);
+			}
 			valueView.setChecked(getValueBoolean());
 			setupIconView((ImageView)view.findViewById(R.id.option_icon));
 			valueView.setEnabled(enabled);
@@ -685,9 +708,19 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 //			valueView.setClickable(false);
 			labelView.setText(label);
 			labelView.setEnabled(enabled);
-			if (null != comment) {
-				commentView.setText(comment);
+			String commentLabel = comment;
+			if (!enabled && null != disabledNote && disabledNote.length() > 0) {
+				if (null != commentLabel && commentLabel.length() > 0)
+					commentLabel = commentLabel + " (" + disabledNote + ")";
+				else
+					commentLabel = disabledNote;
+			}
+			if (null != commentLabel) {
+				commentView.setText(commentLabel);
+				commentView.setEnabled(enabled);
 				commentView.setVisibility(View.VISIBLE);
+			} else {
+				commentView.setVisibility(View.GONE);
 			}
 			valueView.setChecked(getValueBoolean());
 			valueView.setOnCheckedChangeListener((arg0, checked) -> {
@@ -1824,7 +1857,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			setFocusableInTouchMode(true);
 			mAdapter = new BaseAdapter() {
 				public boolean areAllItemsEnabled() {
-					return false;
+					return true;
 				}
 
 				public boolean isEnabled(int position) {
@@ -1882,8 +1915,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		}
 		@Override
 		public boolean performItemClick(View view, int position, long id) {
-			mOptions.get(position).onSelect();
-			return true;
+			try {
+				OptionBase option = mOptions.get(position);
+				if (option.enabled) {
+					option.onSelect();
+					return true;
+				}
+			} catch (Exception ignored) {}
+			return false;
 		}
 		public int size() {
 			return mOptions.size();
@@ -2249,9 +2288,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mEmbedFontsOptions = new BoolOption(this, getString(R.string.options_font_embedded_document_font_enabled), PROP_EMBEDDED_FONTS).setDefaultValue("1").noIcon();
 		boolean value = mProperties.getBool(PROP_EMBEDDED_STYLES, false);
 		mEmbedFontsOptions.setEnabled(isEpubFormat && value);
+		mEmbedFontsOptions.setDisabledNote(getString(R.string.options_disabled_document_styles));
 		mOptionsCSS.add(mEmbedFontsOptions);
 		mIgnoreDocMargins = new StyleBoolOption(this, getString(R.string.options_ignore_document_margins), "styles.body.margin", "margin: 0em !important", "").setDefaultValueBoolean(false).noIcon();
 		mIgnoreDocMargins.setEnabled(isFormatWithEmbeddedStyle && value);
+		mIgnoreDocMargins.setDisabledNote(getString(R.string.options_disabled_document_styles));
 		mOptionsCSS.add(mIgnoreDocMargins);
 		if (isTextFormat) {
 			mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_text_autoformat_enable), PROP_TXT_OPTION_PREFORMATTED).setDefaultValue("1").noIcon());
@@ -2616,12 +2657,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 					mEnableHyphOption.setEnabled(value);
 				});
 		mEnableMultiLangOption.enabled = !legacyRender;
+		mEnableMultiLangOption.setDisabledNote(getString(R.string.options_legacy_rendering_enabled));
 		mOptionsStyles.add(mEnableMultiLangOption);
 		mEnableHyphOption = new BoolOption(this, getString(R.string.options_style_enable_hyphenation), PROP_TEXTLANG_HYPHENATION_ENABLED).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_text_hyphenation_drawable, R.drawable.cr3_option_text_hyphenation);
 		mEnableHyphOption.enabled = !legacyRender && mProperties.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
+		mEnableHyphOption.setDisabledNote(getString(R.string.options_multilingual_disabled));
 		mOptionsStyles.add(mEnableHyphOption);
 		mHyphDictOption = new HyphenationOptions(this, getString(R.string.options_hyphenation_dictionary)).setIconIdByAttr(R.attr.cr3_option_text_hyphenation_drawable, R.drawable.cr3_option_text_hyphenation);
 		mHyphDictOption.enabled = legacyRender || !mProperties.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
+		mHyphDictOption.setDisabledNote(getString(R.string.options_multilingual_enabled));
 		mOptionsStyles.add(mHyphDictOption);
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_style_floating_punctuation), PROP_FLOATING_PUNCTUATION).setDefaultValue("1").setIconIdByAttr(R.attr.cr3_option_text_floating_punct_drawable, R.drawable.cr3_option_text_other));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_text_shaping), PROP_FONT_SHAPING).add(mShaping, mShapingTitles).setDefaultValue("1").setIconIdByAttr(R.attr.cr3_option_text_ligatures_drawable, R.drawable.cr3_option_text_ligatures));
@@ -2658,18 +2702,23 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsPage.add(new TextureOptions(this, getString(R.string.options_background_texture)).setIconId(R.drawable.cr3_option_background_image));
 		if ( DeviceInfo.EINK_SCREEN_UPDATE_MODES_SUPPORTED ) {
+			ListOption optionMode;
 			if ( DeviceInfo.EINK_ONYX ) {
-				ListOption option = new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE);
+				optionMode = new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE);
 				if (DeviceInfo.EINK_SCREEN_REGAL)
-					option = option.add(mOnyxScreenUpdateModes[0], mOnyxScreenUpdateModesTitles[0]);
-				option = option.add(mOnyxScreenUpdateModes[1], mOnyxScreenUpdateModesTitles[1]);
-				option = option.add(mOnyxScreenUpdateModes[2], mOnyxScreenUpdateModesTitles[2]);
-				option = option.add(mOnyxScreenUpdateModes[3], mOnyxScreenUpdateModesTitles[3]);
-				mOptionsPage.add(option.setDefaultValue(String.valueOf(DeviceInfo.EINK_SCREEN_REGAL ? EinkScreen.EinkUpdateMode.Regal.code : EinkScreen.EinkUpdateMode.Clear.code)));
+					optionMode = optionMode.add(mOnyxScreenUpdateModes[0], mOnyxScreenUpdateModesTitles[0]);
+				optionMode = optionMode.add(mOnyxScreenUpdateModes[1], mOnyxScreenUpdateModesTitles[1]);
+				optionMode = optionMode.add(mOnyxScreenUpdateModes[2], mOnyxScreenUpdateModesTitles[2]);
+				optionMode = optionMode.add(mOnyxScreenUpdateModes[3], mOnyxScreenUpdateModesTitles[3]);
+				mOptionsPage.add(optionMode.setDefaultValue(String.valueOf(DeviceInfo.EINK_SCREEN_REGAL ? EinkScreen.EinkUpdateMode.Regal.code : EinkScreen.EinkUpdateMode.Clear.code)).setDisabledNote(getString(R.string.options_eink_app_optimization_enabled)));
 			} else {
-				mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE).add(mScreenUpdateModes, mScreenUpdateModesTitles).setDefaultValue(String.valueOf(EinkScreen.EinkUpdateMode.Clear.code)));
+				optionMode = new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE).add(mScreenUpdateModes, mScreenUpdateModesTitles);
+				mOptionsPage.add(optionMode.setDefaultValue(String.valueOf(EinkScreen.EinkUpdateMode.Clear.code)).setDisabledNote(getString(R.string.options_eink_app_optimization_enabled)));
 			}
-			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_interval), PROP_APP_SCREEN_UPDATE_INTERVAL).add("0", getString(R.string.options_screen_update_interval_none)).add(mScreenFullUpdateInterval).setDefaultValue("10"));
+			ListOption optionInterval = new ListOption(this, getString(R.string.options_screen_update_interval), PROP_APP_SCREEN_UPDATE_INTERVAL).add("0", getString(R.string.options_screen_update_interval_none)).add(mScreenFullUpdateInterval);
+			mOptionsPage.add(optionInterval.setDefaultValue("10").setDisabledNote(getString(R.string.options_eink_app_optimization_enabled)));
+			optionMode.setEnabled(!activity.getEinkScreen().isAppOptimizationEnabled());
+			optionInterval.setEnabled(!activity.getEinkScreen().isAppOptimizationEnabled());
 		}
 
 		mOptionsPage.add(new StatusBarOption(this, getString(R.string.options_page_titlebar)));

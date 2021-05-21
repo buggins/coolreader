@@ -273,6 +273,11 @@ public class EinkScreenOnyx implements EinkScreen {
 		return mWarmLightLevels;
 	}
 
+	@Override
+	public boolean isAppOptimizationEnabled() {
+		return mIsAppOptimizationEnabled;
+	}
+
 	private void onyxRepaintEveryThing(View view, boolean invalidate) {
 		switch (OnyxDevice.currentDeviceType()) {
 			case rk31xx:
