@@ -175,6 +175,13 @@ int main(int argc, char *argv[])
         //    return 3;
         //}
         {
+            if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)) {
+                // Not allowed to scale widgets for HiDPI.
+                // crengine renders text to image using anti-aliasing,
+                // so scaling is prohibited after this rendering!
+                QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, false);
+                QCoreApplication::setAttribute(Qt::AA_DisableHighDpiScaling, true);
+            }
             QApplication a(argc, argv);
 #if MAC == 1
             QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/Contents/Resources/"); //QDir::separator();

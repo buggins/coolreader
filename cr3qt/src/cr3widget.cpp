@@ -9,6 +9,7 @@
 #include <qglobal.h>
 #if QT_VERSION >= 0x050000
 #include <QResizeEvent>
+#include <QtGui/QScreen>
 #include <QtWidgets/QScrollBar>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QStyleFactory>
@@ -358,6 +359,14 @@ void CR3View::updateDefProps()
     _data->_props->setStringDef( PROP_WINDOW_SHOW_STATUSBAR, "0" );
     _data->_props->setStringDef( PROP_APP_START_ACTION, "0" );
 
+    if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)) {
+        QScreen* screen = QGuiApplication::primaryScreen();
+        lString32 str;
+        str.appendDecimal((int)screen->logicalDotsPerInch());
+        _data->_props->setString( PROP_RENDER_DPI, str );
+        // But we don't apply PROP_RENDER_SCALE_FONT_WITH_DPI property,
+        // since for now we are setting the font size in pixels.
+    }
 
     QStringList styles = QStyleFactory::keys();
     QStyle * s = QApplication::style();
