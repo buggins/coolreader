@@ -43,32 +43,32 @@ public:
     /// set to true to switch to a more costly smooth scaler instead of nearest neighbor
     virtual void setSmoothScalingImages( bool smooth ) { _smoothImages = smooth; }
     /// returns current background color
-    virtual lUInt32 GetBackgroundColor() { return _backgroundColor; }
+    virtual lUInt32 GetBackgroundColor() const { return _backgroundColor; }
     /// sets current background color
     virtual void SetBackgroundColor( lUInt32 cl ) { _backgroundColor=cl; }
     /// returns current text color
-    virtual lUInt32 GetTextColor() { return _textColor; }
+    virtual lUInt32 GetTextColor() const { return _textColor; }
     /// sets current text color
     virtual void SetTextColor( lUInt32 cl ) { _textColor = cl; }
     /// gets clip rect
-    virtual void GetClipRect( lvRect * clipRect ) { *clipRect = _clip; }
+    virtual void GetClipRect( lvRect * clipRect ) const { *clipRect = _clip; }
     /// sets clip rect
     virtual void SetClipRect( const lvRect * clipRect );
     /// get average pixel value for area (coordinates are fixed floating points *16)
-    virtual lUInt32 GetAvgColor(lvRect & rc16);
+    virtual lUInt32 GetAvgColor(lvRect & rc16) const;
     /// get linearly interpolated pixel value (coordinates are fixed floating points *16)
-    virtual lUInt32 GetInterpolatedColor(int x16, int y16);
+    virtual lUInt32 GetInterpolatedColor(int x16, int y16) const;
     /// get buffer width, pixels
-    virtual int  GetWidth() { return _dx; }
+    virtual int  GetWidth() const { return _dx; }
     /// get buffer height, pixels
-    virtual int  GetHeight() { return _dy; }
+    virtual int  GetHeight() const { return _dy; }
     /// get row size (bytes)
-    virtual int  GetRowSize() { return _rowsize; }
+    virtual int  GetRowSize() const { return _rowsize; }
     virtual void DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0,int length1,int length2,int direction)=0;
     /// Get nb of images drawn on buffer
-    int getDrawnImagesCount() { return _drawnImagesCount; }
+    int getDrawnImagesCount() const { return _drawnImagesCount; }
     /// Get surface of images drawn on buffer
-    int getDrawnImagesSurface() { return _drawnImagesSurface; }
+    int getDrawnImagesSurface() const { return _drawnImagesSurface; }
 
     LVBaseDrawBuf() : _dx(0), _dy(0), _rowsize(0), _data(NULL), _hidePartialGlyphs(true),
                         _invertImages(false), _ditherImages(false), _smoothImages(false),

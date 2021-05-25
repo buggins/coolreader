@@ -48,13 +48,13 @@ static inline lUInt8 dither_o8x8(int x, int y, lUInt8 v)
         lUInt32 t;
         DIV255(v * ((15U << 6) + 1U), t);
 	// level = t / (D-1);
-	lUInt32 l = (t >> 6);
+	lUInt32 l = (t >> 6U);
 	// t -= l * (D-1);
-	t = (t - (l << 6));
+	t = (t - (l << 6U));
 
 	// map width & height = 8
 	// c = ClampToQuantum((l+(t >= map[(x % mw) + mw * (y % mh)])) * QuantumRange / (L-1));
-	lUInt32 q = ((l + (t >= threshold_map_o8x8[(x & 7U) + 8U * (y & 7U)])) * 17);
+	lUInt32 q = ((l + (t >= threshold_map_o8x8[(x & 7U) + 8U * (y & 7U)])) * 17U);
 	// NOTE: We're doing unsigned maths, so, clamping is basically MIN(q, UINT8_MAX) ;).
 	//       The only overflow we should ever catch should be for a few white (v = 0xFF) input pixels
 	//       that get shifted to the next step (i.e., q = 272 (0xFF + 17)).

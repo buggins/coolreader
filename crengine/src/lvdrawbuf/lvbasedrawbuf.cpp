@@ -66,7 +66,7 @@ void LVBaseDrawBuf::SetClipRect( const lvRect * clipRect )
 
 
 /// get linearly interpolated pixel value (coordinates are fixed floating points *16)
-lUInt32 LVBaseDrawBuf::GetInterpolatedColor(int x16, int y16)
+lUInt32 LVBaseDrawBuf::GetInterpolatedColor(int x16, int y16) const
 {
 	int shx = x16 & 0x0F;
 	int shy = y16 & 0x0F;
@@ -96,7 +96,7 @@ lUInt32 LVBaseDrawBuf::GetInterpolatedColor(int x16, int y16)
 }
 
 /// get average pixel value for area (coordinates are fixed floating points *16)
-lUInt32 LVBaseDrawBuf::GetAvgColor(lvRect & rc16)
+lUInt32 LVBaseDrawBuf::GetAvgColor(lvRect & rc16) const
 {
     if (!_data)
         return 0;

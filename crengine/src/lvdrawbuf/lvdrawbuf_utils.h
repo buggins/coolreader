@@ -61,7 +61,7 @@ inline lUInt16 rgb888to565( lUInt32 cl ) {
 
 // Because of course we're not using <stdint.h> -_-".
 #ifndef UINT8_MAX
-	#define UINT8_MAX (255)
+	#define UINT8_MAX (255U)
 #endif
 
 lUInt32 Dither1BitColor( lUInt32 color, lUInt32 x, lUInt32 y );

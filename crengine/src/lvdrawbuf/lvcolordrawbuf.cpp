@@ -577,7 +577,7 @@ void  LVColorDrawBuf::Invert()
 }
 
 /// get buffer bits per pixel
-int  LVColorDrawBuf::GetBitsPerPixel()
+int  LVColorDrawBuf::GetBitsPerPixel() const
 {
     return _bpp;
 }
@@ -598,19 +598,22 @@ void LVColorDrawBuf::Clear( lUInt32 color )
         lUInt16 cl16 = rgb888to565(color);
         for (int y=0; y<_dy; y++)
         {
-            lUInt16 * line = (lUInt16 *)GetScanLine(y);
-            for (int x=0; x<_dx; x++)
+            lUInt16 * dst = (lUInt16 *)GetScanLine(y);
+            size_t px_count = _dx;
+            while (px_count--)
             {
-                line[x] = cl16;
+                *dst++ = cl16;
             }
         }
     } else {
+        lUInt32 cl32 = RevRGBA(color);
         for (int y=0; y<_dy; y++)
         {
-            lUInt32 * line = (lUInt32 *)GetScanLine(y);
-            for (int x=0; x<_dx; x++)
+            lUInt32 * dst = (lUInt32 *)GetScanLine(y);
+            size_t px_count = _dx;
+            while (px_count--)
             {
-                line[x] = RevRGBA(color);
+                *dst++ = cl32;
             }
         }
     }
@@ -618,7 +621,7 @@ void LVColorDrawBuf::Clear( lUInt32 color )
 
 
 /// get pixel value
-lUInt32 LVColorDrawBuf::GetPixel( int x, int y )
+lUInt32 LVColorDrawBuf::GetPixel( int x, int y ) const
 {
     if (!_data || y<0 || x<0 || y>=_dy || x>=_dx)
         return 0;
@@ -1297,7 +1300,7 @@ void LVColorDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy,
 }
 
 /// returns scanline pointer
-lUInt8 * LVColorDrawBuf::GetScanLine( int y )
+lUInt8 * LVColorDrawBuf::GetScanLine( int y ) const
 {
     if (!_data || y<0 || y>=_dy)
         return NULL;
@@ -1309,12 +1312,12 @@ lUInt8 * LVColorDrawBuf::GetScanLine( int y )
 }
 
 /// returns white pixel value
-lUInt32 LVColorDrawBuf::GetWhiteColor()
+lUInt32 LVColorDrawBuf::GetWhiteColor() const
 {
     return 0xFFFFFF;
 }
 /// returns black pixel value
-lUInt32 LVColorDrawBuf::GetBlackColor()
+lUInt32 LVColorDrawBuf::GetBlackColor() const
 {
     return 0x000000;
 }
