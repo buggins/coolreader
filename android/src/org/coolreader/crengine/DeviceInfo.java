@@ -143,7 +143,7 @@ public class DeviceInfo {
 
 		// On Onyx Boox Monte Cristo 3 (and possible Monte Cristo, Monte Cristo 2) long press action on buttons are catch by system and not available for application
 		// TODO: check this on other ONYX BOOX Readers
-		ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE = EINK_ONYX && MODEL.toLowerCase().startsWith("mc_kepler");
+		ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE = EINK_ONYX;
 		boolean onyx_have_frontlight = false;
 		boolean onyx_have_natural_backlight = false;
 		int onyx_max_screen_brightness_value = 100;
