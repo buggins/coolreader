@@ -239,7 +239,7 @@ enum CacheFileBlockType {
 #include <math.h>
 #include <zlib.h>
 #define XXH_INLINE_ALL
-#include <xxhash.h>
+#include "xxhash.h"
 #include <lvtextfm.h>
 
 // define to store new text nodes as persistent text, instead of mutable
