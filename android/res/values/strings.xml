@@ -332,6 +332,12 @@
     <string name="options_controls_tap_secondary_action_type">Tap secondary action type</string>
     <string name="options_controls_tap_type_double">Double tap</string>
     <string name="options_controls_tap_type_long">Long tap</string>
+    <string name="options_controls_bonce_protection">Bounce filter</string>
+    <string name="options_controls_bonce_protection_disabled">Disabled</string>
+    <string name="options_controls_bonce_protection_100">100 ms (10 Hz)</string>
+    <string name="options_controls_bonce_protection_143">143 ms (7 Hz)</string>
+    <string name="options_controls_bonce_protection_200">200 ms (5 Hz)</string>
+    <string name="options_controls_bonce_protection_333">333 ms (3 Hz)</string>
     <string name="mi_bookmark_send">Send</string>
     <string name="folder_name_books_by_genre">Genres</string>
     <string name="folder_name_books_by_author">Authors</string>

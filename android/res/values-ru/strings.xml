@@ -315,6 +315,12 @@
     <string name="options_controls_tap_secondary_action_type">Тип нажатия для доп. действия</string>
     <string name="options_controls_tap_type_double">Двойное нажатие</string>
     <string name="options_controls_tap_type_long">Длинное нажатие</string>
+    <string name="options_controls_bonce_protection">Фильтр лишних нажатий</string>
+    <string name="options_controls_bonce_protection_disabled">Отключено</string>
+    <string name="options_controls_bonce_protection_100">100 мс (10 Гц)</string>
+    <string name="options_controls_bonce_protection_143">143 мс (7 Гц)</string>
+    <string name="options_controls_bonce_protection_200">200 мс (5 Гц)</string>
+    <string name="options_controls_bonce_protection_333">333 мс (3 Гц)</string>
     <string name="mi_bookmark_send">Отправить</string>
     <string name="folder_name_books_by_genre">Жанры</string>
     <string name="folder_name_books_by_author">Авторы</string>

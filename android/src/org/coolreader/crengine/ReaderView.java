@@ -664,6 +664,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 //	private int selectionEndX = 0;
 //	private int selectionEndY = 0;
 	private boolean doubleTapSelectionEnabled = false;
+	private int mBounceTapInterval = 150;
 	private int mGesturePageFlipsPerFullSwipe;
 	private boolean mIsPageMode;
 	private int secondaryTapActionType = TAP_ACTION_TYPE_LONGPRESS;
@@ -941,6 +942,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	private TapHandler currentTapHandler = null;
+	private long firstTapTimeStamp;
 
 	public class TapHandler {
 
@@ -1210,6 +1212,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			if (state == STATE_INITIAL && event.getAction() != MotionEvent.ACTION_DOWN)
 				return unexpectedEvent(); // ignore unexpected event
 
+			if (!doubleTapSelectionEnabled && secondaryTapActionType != TAP_ACTION_TYPE_DOUBLE) {
+				// filter bounce (only when double taps not enabled)
+				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					if (state == STATE_INITIAL && Utils.timeInterval(firstTapTimeStamp) < mBounceTapInterval)
+						return unexpectedEvent(); // ignore bounced taps
+				}
+			}
+
 			// Uncomment to disable user interaction during cloud sync
 			//if (isCloudSyncProgressActive())
 			//	return unexpectedEvent();
@@ -1265,6 +1275,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 						longTapAction = findTapZoneAction(zone, TAP_ACTION_TYPE_LONGPRESS);
 						doubleTapAction = findTapZoneAction(zone, TAP_ACTION_TYPE_DOUBLE);
 						firstDown = Utils.timeStamp();
+						firstTapTimeStamp = firstDown;
 						if (selectionModeActive) {
 							startSelection();
 						} else {
@@ -2813,6 +2824,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			hiliteTapZoneOnTap = flg;
 		} else if (key.equals(PROP_APP_DOUBLE_TAP_SELECTION)) {
 			doubleTapSelectionEnabled = flg;
+		} else if (key.equals(PROP_APP_BOUNCE_TAP_INTERVAL)) {
+			mBounceTapInterval = Utils.parseInt(value, -1, 50, 250);
 		} else if (key.equals(PROP_APP_GESTURE_PAGE_FLIPPING)) {
 			mGesturePageFlipsPerFullSwipe = Integer.valueOf(value);
 		} else if (key.equals(PROP_PAGE_VIEW_MODE)) {
@@ -2875,6 +2888,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					|| PROP_APP_TAP_ZONE_HILIGHT.equals(key)
 					|| PROP_APP_DICTIONARY.equals(key)
 					|| PROP_APP_DOUBLE_TAP_SELECTION.equals(key)
+					|| PROP_APP_BOUNCE_TAP_INTERVAL.equals(key)
 					|| PROP_APP_FLICK_BACKLIGHT_CONTROL.equals(key)
 					|| PROP_APP_FLICK_WARMLIGHT_CONTROL.equals(key)
 					|| PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS.equals(key)
