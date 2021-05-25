@@ -25,6 +25,7 @@
 #define NANOSVG_IMPLEMENTATION
 #define NANOSVGRAST_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_STATIC
 #include <nanosvg.h>
 #include <nanosvgrast.h>
 #include <stb_image_write.h> // for svg to png conversion

@@ -38,8 +38,8 @@ public:
     virtual ldomNode * GetSourceNode() = 0;
     virtual LVStream * GetSourceStream() = 0;
     virtual void   Compact() = 0;
-    virtual int    GetWidth() = 0;
-    virtual int    GetHeight() = 0;
+    virtual int    GetWidth() const = 0;
+    virtual int    GetHeight() const = 0;
     virtual bool   Decode( LVImageDecoderCallback * callback ) = 0;
     LVImageSource() : _ninePatch(NULL) {}
     virtual ~LVImageSource();

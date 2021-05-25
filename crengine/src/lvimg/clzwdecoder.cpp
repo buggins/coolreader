@@ -100,7 +100,17 @@ CLZWDecoder::CLZWDecoder() {
         str_table = NULL;
         str_size = NULL;
         */
-    lastadd=0;
+    p_in_stream = NULL;
+    in_stream_size = 0;
+    in_bit_pos = 0;
+
+    p_out_stream = NULL;
+    out_stream_size = 0;
+
+    clearcode = 0;
+    eoicode = 0;
+    bits = 0;
+    lastadd = 0;
 }
 
 void CLZWDecoder::Clear() {
