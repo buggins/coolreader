@@ -332,6 +332,12 @@
     <string name="options_controls_tap_secondary_action_type">Tap secondary action type</string>
     <string name="options_controls_tap_type_double">Double tap</string>
     <string name="options_controls_tap_type_long">Long tap</string>
+    <string name="options_controls_bonce_protection">Bounce filter</string>
+    <string name="options_controls_bonce_protection_disabled">Disabled</string>
+    <string name="options_controls_bonce_protection_100">100 ms (10 Hz)</string>
+    <string name="options_controls_bonce_protection_143">143 ms (7 Hz)</string>
+    <string name="options_controls_bonce_protection_200">200 ms (5 Hz)</string>
+    <string name="options_controls_bonce_protection_333">333 ms (3 Hz)</string>
     <string name="mi_bookmark_send">Send</string>
     <string name="folder_name_books_by_genre">Genres</string>
     <string name="folder_name_books_by_author">Authors</string>
@@ -757,4 +763,9 @@
     <string name="add_bookmark_to_page">Add bookmark to page</string>
     <string name="btn_decrease">decrease</string>
     <string name="btn_increase">increase</string>
+    <string name="options_eink_app_optimization_enabled">disabled because App Optimization is enabled</string>
+    <string name="options_legacy_rendering_enabled">disabled because legacy rendering is enabled</string>
+    <string name="options_disabled_document_styles">disabled embedded document styles or unsupported document type</string>
+    <string name="options_multilingual_enabled">disabled because support for multilingual documents is enabled</string>
+    <string name="options_multilingual_disabled">disabled because support for multilingual documents is disabled or legacy rendering is enabled</string>
 </resources>

@@ -258,7 +258,7 @@ public class MainDB extends BaseDB {
 						"value VARCHAR NOT NULL)");
 				execSQLIgnoreErrors("CREATE TABLE IF NOT EXISTS genre_group (" +
 						"id INTEGER NOT NULL PRIMARY KEY, " +
-						"code VARCHAR NOT NULL");
+						"code VARCHAR NOT NULL)");
 				execSQLIgnoreErrors("CREATE TABLE IF NOT EXISTS genre (" +
 						"id INTEGER NOT NULL, " +
 						"parent INTEGER NOT NULL REFERENCES genre_group(id), " +

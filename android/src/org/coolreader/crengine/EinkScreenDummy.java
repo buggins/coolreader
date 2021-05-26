@@ -61,4 +61,9 @@ public class EinkScreenDummy implements EinkScreen {
 	public List<Integer> getWarmLightLevels(Context context) {
 		return null;
 	}
+
+	@Override
+	public boolean isAppOptimizationEnabled() {
+		return false;
+	}
 }

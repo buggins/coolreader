@@ -233,6 +233,20 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mTapSecondaryActionTypeTitles = new int[] {
 			R.string.options_controls_tap_type_long, R.string.options_controls_tap_type_double
 		};
+	int[] mBounceProtectionValues = new int[] {
+			-1,
+			100,
+			143,
+			200,
+			333,
+	};
+	int[] mBounceProtectionTitles = new int[] {
+			R.string.options_controls_bonce_protection_disabled,
+			R.string.options_controls_bonce_protection_100,
+			R.string.options_controls_bonce_protection_143,
+			R.string.options_controls_bonce_protection_200,
+			R.string.options_controls_bonce_protection_333,
+	};
 	int[] mAnimation = new int[] {
 			ReaderView.PAGE_ANIMATION_NONE, ReaderView.PAGE_ANIMATION_SLIDE, ReaderView.PAGE_ANIMATION_SLIDE2, 
 			ReaderView.PAGE_ANIMATION_PAPER
@@ -382,6 +396,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	ListOption mTTSVoiceOption;
 	ListOption mFontWeightOption;
 	OptionBase mFontHintingOption;
+	OptionBase mBounceProtectionOption;
 
 	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
 	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
@@ -407,6 +422,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public String label;
 		public String property;
 		public String defaultValue;
+		public String disabledNote;
 		public int drawableAttrId = R.attr.cr3_option_other_drawable;
 		public int fallbackIconId = R.drawable.cr3_option_other;
 		public OptionsListView optionsListView;
@@ -438,6 +454,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			this.defaultValue = value;
 			if ( mProperties.getProperty(property)==null )
 				mProperties.setProperty(property, value);
+			return this;
+		}
+		public OptionBase setDisabledNote(String note) {
+			disabledNote = note;
 			return this;
 		}
 		public OptionBase setOnChangeHandler( Runnable handler ) {
@@ -503,7 +523,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			labelView.setEnabled(enabled);
 			if (valueView != null) {
 				String valueLabel = getValueLabel();
-				if (valueLabel != null && valueLabel.length() > 0) {
+				if (!enabled && null != disabledNote && disabledNote.length() > 0) {
+					if (null != valueLabel && valueLabel.length() > 0)
+						valueLabel = valueLabel + " (" + disabledNote + ")";
+					else
+						valueLabel = disabledNote;
+				}
+				if (null != valueLabel && valueLabel.length() > 0) {
 					valueView.setText(valueLabel);
 					valueView.setVisibility(View.VISIBLE);
 				} else {
@@ -638,9 +664,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			}
 			myView = view;
 			TextView labelView = view.findViewById(R.id.option_label);
+			TextView commentView = view.findViewById(R.id.option_comment);
 			CheckBox valueView = view.findViewById(R.id.option_value_cb);
 			labelView.setText(label);
 			labelView.setEnabled(enabled);
+			String commentLabel = null;
+			if (!enabled && null != disabledNote && disabledNote.length() > 0) {
+				commentLabel = disabledNote;
+			}
+			if (null != commentLabel) {
+				commentView.setText(commentLabel);
+				commentView.setEnabled(enabled);
+				commentView.setVisibility(View.VISIBLE);
+			} else {
+				commentView.setVisibility(View.GONE);
+			}
 			valueView.setChecked(getValueBoolean());
 			setupIconView((ImageView)view.findViewById(R.id.option_icon));
 			valueView.setEnabled(enabled);
@@ -685,9 +723,19 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 //			valueView.setClickable(false);
 			labelView.setText(label);
 			labelView.setEnabled(enabled);
-			if (null != comment) {
-				commentView.setText(comment);
+			String commentLabel = comment;
+			if (!enabled && null != disabledNote && disabledNote.length() > 0) {
+				if (null != commentLabel && commentLabel.length() > 0)
+					commentLabel = commentLabel + " (" + disabledNote + ")";
+				else
+					commentLabel = disabledNote;
+			}
+			if (null != commentLabel) {
+				commentView.setText(commentLabel);
+				commentView.setEnabled(enabled);
 				commentView.setVisibility(View.VISIBLE);
+			} else {
+				commentView.setVisibility(View.GONE);
 			}
 			valueView.setChecked(getValueBoolean());
 			valueView.setOnCheckedChangeListener((arg0, checked) -> {
@@ -1824,7 +1872,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			setFocusableInTouchMode(true);
 			mAdapter = new BaseAdapter() {
 				public boolean areAllItemsEnabled() {
-					return false;
+					return true;
 				}
 
 				public boolean isEnabled(int position) {
@@ -1882,8 +1930,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		}
 		@Override
 		public boolean performItemClick(View view, int position, long id) {
-			mOptions.get(position).onSelect();
-			return true;
+			try {
+				OptionBase option = mOptions.get(position);
+				if (option.enabled) {
+					option.onSelect();
+					return true;
+				}
+			} catch (Exception ignored) {}
+			return false;
 		}
 		public int size() {
 			return mOptions.size();
@@ -2249,9 +2303,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mEmbedFontsOptions = new BoolOption(this, getString(R.string.options_font_embedded_document_font_enabled), PROP_EMBEDDED_FONTS).setDefaultValue("1").noIcon();
 		boolean value = mProperties.getBool(PROP_EMBEDDED_STYLES, false);
 		mEmbedFontsOptions.setEnabled(isEpubFormat && value);
+		mEmbedFontsOptions.setDisabledNote(getString(R.string.options_disabled_document_styles));
 		mOptionsCSS.add(mEmbedFontsOptions);
 		mIgnoreDocMargins = new StyleBoolOption(this, getString(R.string.options_ignore_document_margins), "styles.body.margin", "margin: 0em !important", "").setDefaultValueBoolean(false).noIcon();
 		mIgnoreDocMargins.setEnabled(isFormatWithEmbeddedStyle && value);
+		mIgnoreDocMargins.setDisabledNote(getString(R.string.options_disabled_document_styles));
 		mOptionsCSS.add(mIgnoreDocMargins);
 		if (isTextFormat) {
 			mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_text_autoformat_enable), PROP_TXT_OPTION_PREFORMATTED).setDefaultValue("1").noIcon());
@@ -2616,12 +2672,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 					mEnableHyphOption.setEnabled(value);
 				});
 		mEnableMultiLangOption.enabled = !legacyRender;
+		mEnableMultiLangOption.setDisabledNote(getString(R.string.options_legacy_rendering_enabled));
 		mOptionsStyles.add(mEnableMultiLangOption);
 		mEnableHyphOption = new BoolOption(this, getString(R.string.options_style_enable_hyphenation), PROP_TEXTLANG_HYPHENATION_ENABLED).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_text_hyphenation_drawable, R.drawable.cr3_option_text_hyphenation);
 		mEnableHyphOption.enabled = !legacyRender && mProperties.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
+		mEnableHyphOption.setDisabledNote(getString(R.string.options_multilingual_disabled));
 		mOptionsStyles.add(mEnableHyphOption);
 		mHyphDictOption = new HyphenationOptions(this, getString(R.string.options_hyphenation_dictionary)).setIconIdByAttr(R.attr.cr3_option_text_hyphenation_drawable, R.drawable.cr3_option_text_hyphenation);
 		mHyphDictOption.enabled = legacyRender || !mProperties.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
+		mHyphDictOption.setDisabledNote(getString(R.string.options_multilingual_enabled));
 		mOptionsStyles.add(mHyphDictOption);
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_style_floating_punctuation), PROP_FLOATING_PUNCTUATION).setDefaultValue("1").setIconIdByAttr(R.attr.cr3_option_text_floating_punct_drawable, R.drawable.cr3_option_text_other));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_text_shaping), PROP_FONT_SHAPING).add(mShaping, mShapingTitles).setDefaultValue("1").setIconIdByAttr(R.attr.cr3_option_text_ligatures_drawable, R.drawable.cr3_option_text_ligatures));
@@ -2658,18 +2717,23 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsPage.add(new TextureOptions(this, getString(R.string.options_background_texture)).setIconId(R.drawable.cr3_option_background_image));
 		if ( DeviceInfo.EINK_SCREEN_UPDATE_MODES_SUPPORTED ) {
+			ListOption optionMode;
 			if ( DeviceInfo.EINK_ONYX ) {
-				ListOption option = new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE);
+				optionMode = new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE);
 				if (DeviceInfo.EINK_SCREEN_REGAL)
-					option = option.add(mOnyxScreenUpdateModes[0], mOnyxScreenUpdateModesTitles[0]);
-				option = option.add(mOnyxScreenUpdateModes[1], mOnyxScreenUpdateModesTitles[1]);
-				option = option.add(mOnyxScreenUpdateModes[2], mOnyxScreenUpdateModesTitles[2]);
-				option = option.add(mOnyxScreenUpdateModes[3], mOnyxScreenUpdateModesTitles[3]);
-				mOptionsPage.add(option.setDefaultValue(String.valueOf(DeviceInfo.EINK_SCREEN_REGAL ? EinkScreen.EinkUpdateMode.Regal.code : EinkScreen.EinkUpdateMode.Clear.code)));
+					optionMode = optionMode.add(mOnyxScreenUpdateModes[0], mOnyxScreenUpdateModesTitles[0]);
+				optionMode = optionMode.add(mOnyxScreenUpdateModes[1], mOnyxScreenUpdateModesTitles[1]);
+				optionMode = optionMode.add(mOnyxScreenUpdateModes[2], mOnyxScreenUpdateModesTitles[2]);
+				optionMode = optionMode.add(mOnyxScreenUpdateModes[3], mOnyxScreenUpdateModesTitles[3]);
+				mOptionsPage.add(optionMode.setDefaultValue(String.valueOf(DeviceInfo.EINK_SCREEN_REGAL ? EinkScreen.EinkUpdateMode.Regal.code : EinkScreen.EinkUpdateMode.Clear.code)).setDisabledNote(getString(R.string.options_eink_app_optimization_enabled)));
 			} else {
-				mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE).add(mScreenUpdateModes, mScreenUpdateModesTitles).setDefaultValue(String.valueOf(EinkScreen.EinkUpdateMode.Clear.code)));
+				optionMode = new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE).add(mScreenUpdateModes, mScreenUpdateModesTitles);
+				mOptionsPage.add(optionMode.setDefaultValue(String.valueOf(EinkScreen.EinkUpdateMode.Clear.code)).setDisabledNote(getString(R.string.options_eink_app_optimization_enabled)));
 			}
-			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_interval), PROP_APP_SCREEN_UPDATE_INTERVAL).add("0", getString(R.string.options_screen_update_interval_none)).add(mScreenFullUpdateInterval).setDefaultValue("10"));
+			ListOption optionInterval = new ListOption(this, getString(R.string.options_screen_update_interval), PROP_APP_SCREEN_UPDATE_INTERVAL).add("0", getString(R.string.options_screen_update_interval_none)).add(mScreenFullUpdateInterval);
+			mOptionsPage.add(optionInterval.setDefaultValue("10").setDisabledNote(getString(R.string.options_eink_app_optimization_enabled)));
+			optionMode.setEnabled(!activity.getEinkScreen().isAppOptimizationEnabled());
+			optionInterval.setEnabled(!activity.getEinkScreen().isAppOptimizationEnabled());
 		}
 
 		mOptionsPage.add(new StatusBarOption(this, getString(R.string.options_page_titlebar)));
@@ -2694,8 +2758,16 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)).setIconIdByAttr(R.attr.cr3_option_controls_keys_drawable, R.drawable.cr3_option_controls_keys));
 		mOptionsControls.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), PROP_APP_TAP_ZONE_ACTIONS_TAP).setIconIdByAttr(R.attr.cr3_option_controls_tapzones_drawable, R.drawable.cr3_option_controls_tapzones));
-		mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_tap_secondary_action_type), PROP_APP_SECONDARY_TAP_ACTION_TYPE).add(mTapSecondaryActionType, mTapSecondaryActionTypeTitles).setDefaultValue(String.valueOf(TAP_ACTION_TYPE_LONGPRESS)));
-		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), PROP_APP_DOUBLE_TAP_SELECTION).setComment(getString(R.string.options_app_double_tap_selection_slowdown)).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_touch_drawable, R.drawable.cr3_option_touch));
+		Runnable doubleTapOnChange = () -> {
+			int type = mProperties.getInt(PROP_APP_SECONDARY_TAP_ACTION_TYPE, TAP_ACTION_TYPE_LONGPRESS);
+			boolean dblText = mProperties.getBool(PROP_APP_DOUBLE_TAP_SELECTION, false);
+			mBounceProtectionOption.setEnabled(type == TAP_ACTION_TYPE_LONGPRESS && !dblText);
+		};
+		mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_tap_secondary_action_type), PROP_APP_SECONDARY_TAP_ACTION_TYPE).add(mTapSecondaryActionType, mTapSecondaryActionTypeTitles).setDefaultValue(String.valueOf(TAP_ACTION_TYPE_LONGPRESS)).setOnChangeHandler(doubleTapOnChange));
+		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), PROP_APP_DOUBLE_TAP_SELECTION).setComment(getString(R.string.options_app_double_tap_selection_slowdown)).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_touch_drawable, R.drawable.cr3_option_touch).setOnChangeHandler(doubleTapOnChange));
+		mBounceProtectionOption = new ListOption(this, getString(R.string.options_controls_bonce_protection), PROP_APP_BOUNCE_TAP_INTERVAL).add(mBounceProtectionValues, mBounceProtectionTitles).setDefaultValue(String.valueOf(150));
+		mOptionsControls.add(mBounceProtectionOption);
+		doubleTapOnChange.run();
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsControls.add(new BoolOption(this, getString(R.string.options_controls_enable_volume_keys), PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
 		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_touch_drawable, R.drawable.cr3_option_touch));
@@ -2732,39 +2804,33 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_genres), PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES).setDefaultValue("0").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.mi_book_browser_simple_mode), PROP_APP_FILE_BROWSER_SIMPLE_MODE).noIcon());
 		if (BuildConfig.GSUITE_AVAILABLE && DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			boolean gdriveSyncEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, false);
-			boolean gdriveSyncBookInfoEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO, false);
 			mOptionsCloudSync = new OptionsListView(getContext());
+			Runnable onGoogleDriveEnable = () -> {
+				boolean syncEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, false);
+				boolean syncBookInfoEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO, false);
+				mCloudSyncAskConfirmationsOption.setEnabled(syncEnabled);
+				mGoogleDriveEnableSettingsOption.setEnabled(syncEnabled);
+				mGoogleDriveEnableBookmarksOption.setEnabled(syncEnabled);
+				mGoogleDriveEnableCurrentBookInfoOption.setEnabled(syncEnabled);
+				mGoogleDriveEnableCurrentBookBodyOption.setEnabled(syncEnabled && syncBookInfoEnabled);
+				mGoogleDriveAutoSavePeriodOption.setEnabled(syncEnabled);
+				// mCloudSyncBookmarksKeepAliveOptions should be enabled regardless of PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED
+			};
 			mOptionsCloudSync.add(new BoolOption(this, getString(R.string.options_app_googledrive_sync_auto), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED).setDefaultValue("0").noIcon()
-				.setOnChangeHandler(() -> {
-					boolean syncEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, false);
-					boolean syncBookInfoEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO, false);
-					mCloudSyncAskConfirmationsOption.setEnabled(syncEnabled);
-					mGoogleDriveEnableSettingsOption.setEnabled(syncEnabled);
-					mGoogleDriveEnableBookmarksOption.setEnabled(syncEnabled);
-					mGoogleDriveEnableCurrentBookInfoOption.setEnabled(syncEnabled);
-					mGoogleDriveEnableCurrentBookBodyOption.setEnabled(syncEnabled && syncBookInfoEnabled);
-					mGoogleDriveAutoSavePeriodOption.setEnabled(syncEnabled);
-					// mCloudSyncBookmarksKeepAliveOptions should be enabled regardless of PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED
-				}));
+				.setOnChangeHandler(onGoogleDriveEnable));
 			mCloudSyncAskConfirmationsOption = new BoolOption(this, getString(R.string.options_app_cloudsync_confirmations), PROP_APP_CLOUDSYNC_CONFIRMATIONS).setDefaultValue("1").noIcon();
-			mCloudSyncAskConfirmationsOption.enabled = gdriveSyncEnabled;
 			mGoogleDriveEnableSettingsOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_settings), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_SETTINGS).setDefaultValue("0").noIcon();
-			mGoogleDriveEnableSettingsOption.enabled = gdriveSyncEnabled;
 			mGoogleDriveEnableBookmarksOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_bookmarks), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_BOOKMARKS).setDefaultValue("0").noIcon();
-			mGoogleDriveEnableBookmarksOption.enabled = gdriveSyncEnabled;
 			mGoogleDriveEnableCurrentBookInfoOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_currentbook_info), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO).setDefaultValue("0").noIcon();
-			mGoogleDriveEnableCurrentBookInfoOption.enabled = gdriveSyncEnabled;
 			mGoogleDriveEnableCurrentBookInfoOption.setOnChangeHandler(() -> {
 				boolean syncBookInfoEnabled = mProperties.getBool(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_INFO, false);
 				mGoogleDriveEnableCurrentBookBodyOption.setEnabled(syncBookInfoEnabled);
 			});
 			mGoogleDriveEnableCurrentBookBodyOption = new BoolOption(this, getString(R.string.options_app_googledrive_sync_currentbook_body), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_CURRENTBOOK_BODY).setDefaultValue("0").noIcon();
-			mGoogleDriveEnableCurrentBookBodyOption.enabled = gdriveSyncEnabled && gdriveSyncBookInfoEnabled;
+			mGoogleDriveEnableCurrentBookInfoOption.onChangeHandler.run();
 			mGoogleDriveAutoSavePeriodOption = new ListOption(this, getString(R.string.autosave_period), PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD).add(mGoogleDriveAutoSavePeriod, mGoogleDriveAutoSavePeriodTitles).setDefaultValue(Integer.valueOf(5).toString()).noIcon();
-			mGoogleDriveAutoSavePeriodOption.enabled = gdriveSyncEnabled;
 			mCloudSyncDataKeepAliveOptions = new ListOption(this, getString(R.string.sync_data_keepalive_), PROP_APP_CLOUDSYNC_DATA_KEEPALIVE).add(mCloudBookmarksKeepAlive, mCloudBookmarksKeepAliveTitles).setDefaultValue(Integer.valueOf(14).toString()).noIcon();
-			// mCloudSyncBookmarksKeepAliveOptions should be enabled regardless of PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED
+			onGoogleDriveEnable.run();
 			mOptionsCloudSync.add(mCloudSyncAskConfirmationsOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableSettingsOption);
 			mOptionsCloudSync.add(mGoogleDriveEnableBookmarksOption);
