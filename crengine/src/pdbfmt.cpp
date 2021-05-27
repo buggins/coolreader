@@ -9,6 +9,9 @@
 #include "../include/lvtextparser.h"
 #include <ctype.h>
 
+#include <zlib.h>
+#define UNPACK_BUF_SIZE 0x40000
+
 // uncomment following line to save PDB content streams to /tmp
 //#define DUMP_PDB_CONTENTS
 
@@ -419,8 +422,7 @@ private:
     CRPropRef m_doc_props;
 
     // c.f., lvtinydom.cpp's legacy ldomUnpack
-    bool zlibUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  )
-    {
+    bool zlibUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  ) {
         lUInt8 tmp[UNPACK_BUF_SIZE]; // 256K buffer for uncompressed data
         int ret;
         z_stream z = { 0 };
@@ -434,7 +436,7 @@ private:
         z.next_in = (unsigned char *)compbuf;
         lUInt32 uncompressed_size = 0;
         lUInt8 *uncompressed_buf = NULL;
-        while (true) {
+        do {
             z.avail_out = UNPACK_BUF_SIZE;
             z.next_out = tmp;
             ret = inflate( &z, Z_SYNC_FLUSH );
@@ -442,6 +444,8 @@ private:
                 inflateEnd(&z);
                 if (uncompressed_buf)
                     free(uncompressed_buf);
+                dstbuf = NULL;
+                dstsize = 0;
                 // printf("inflate() error: %d (%d > %d)\n", ret, compsize, uncompressed_size);
                 return false;
             }
@@ -449,11 +453,8 @@ private:
             uncompressed_buf = cr_realloc(uncompressed_buf, uncompressed_size + have);
             memcpy(uncompressed_buf + uncompressed_size, tmp, have );
             uncompressed_size += have;
-            if (ret == Z_STREAM_END) {
-                break;
-            }
             // printf("inflate() additional call needed (%d > %d)\n", compsize, uncompressed_size);
-        }
+        } while (ret != Z_STREAM_END);
         inflateEnd(&z);
         dstsize = uncompressed_size;
         dstbuf = uncompressed_buf;

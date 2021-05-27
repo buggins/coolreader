@@ -2863,8 +2863,14 @@ void runTinyDomUnitTests();
 /// pass true to enable CRC check for
 void enableCacheFileContentsValidation(bool enable);
 
+enum CacheCompressionType {
+    CacheCompressionNone = 0,
+    CacheCompressionZlib = 1,
+    CacheCompressionZSTD = 2,
+};
+
 /// pass false to not compress data in cache files
-void compressCachedData(bool enable);
+void setCacheCompressionType(CacheCompressionType type);
 
 /// increase the 4 hardcoded TEXT_CACHE_UNPACKED_SPACE, ELEM_CACHE_UNPACKED_SPACE,
 // RECT_CACHE_UNPACKED_SPACE and STYLE_CACHE_UNPACKED_SPACE by this factor
