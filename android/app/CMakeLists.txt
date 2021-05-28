@@ -27,6 +27,7 @@ include_directories(${CR3_ROOT}/thirdparty_unman/nanosvg/src)
 include_directories(${CR3_ROOT}/thirdparty/${REPO_FRIBIDI_SRCDIR}/lib)
 include_directories(thirdparty_libs/fribidi/lib)
 include_directories(${CR3_ROOT}/thirdparty/${REPO_LIBUNIBREAK_SRCDIR}/src)
+include_directories(${CR3_ROOT}/thirdparty/${REPO_ZSTD_SRCDIR}/lib)
 
 add_definitions(-DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH)
 add_definitions(-DFT_CONFIG_MODULES_H=<android/config/ftmodule.h> -DFT_CONFIG_OPTIONS_H=<android/config/ftoption.h>)
@@ -223,6 +224,7 @@ target_link_libraries( # Specifies the target library.
                        fribidi
                        unibreak
                        qimagescale
+                       zstd
 
                        # Links the target library to the log library
                        # included in the NDK.

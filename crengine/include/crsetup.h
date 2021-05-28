@@ -37,6 +37,7 @@
 
 #if (BUILD_LITE==1)
 
+#define USE_ZSTD                             0
 #define USE_LIBJPEG                          0
 #define USE_LIBPNG                           0
 #define USE_GIF                              0
@@ -51,6 +52,7 @@
 
 #else
 
+#define USE_ZSTD                             1
 #define USE_LIBJPEG                          1
 #define USE_LIBPNG                           1
 #define USE_GIF                              1
@@ -84,6 +86,7 @@
 #define USE_LIBPNG                           1
 #define USE_GIF                              1
 #define USE_ZLIB                             1
+#define USE_ZSTD                             1
 
 #ifndef COLOR_BACKBUFFER
 #define COLOR_BACKBUFFER                     1
@@ -126,6 +129,7 @@
 #ifndef MAX_IMAGE_SCALE_MUL
 #define MAX_IMAGE_SCALE_MUL                  1
 #endif
+#define USE_ZSTD                             1
 #if defined(CYGWIN)
 #define USE_FREETYPE                         0
 #define USE_HARFBUZZ                         0
@@ -180,6 +184,10 @@
 #ifndef USE_ZLIB
 ///allow PNG support via libpng
 #define USE_ZLIB 1
+#endif
+
+#ifndef USE_ZSTD
+#define USE_ZSTD 0
 #endif
 
 #ifndef GRAY_INVERSE

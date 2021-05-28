@@ -36,6 +36,7 @@ LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/thirdparty_unman/nanosvg/src \
     $(CR3_ROOT)/thirdparty/$(REPO_FRIBIDI_SRCDIR)/lib \
     $(CR3_ROOT)/thirdparty/$(REPO_LIBUNIBREAK_SRCDIR)/src \
+    $(CR3_ROOT)/thirdparty/$(REPO_ZSTD_SRCDIR)/lib \
     $(CR3_ROOT)/android/app/thirdparty_libs/freetype \
     $(CR3_ROOT)/android/app/thirdparty_libs/fribidi/lib \
     $(CR3_ROOT)/android/app/thirdparty_libs/libpng/lib
@@ -192,7 +193,8 @@ LOCAL_STATIC_LIBRARIES := \
     local_antiword \
     local_fribidi \
     local_libunibreak \
-    local_qimagescale
+    local_qimagescale \
+    local_zstd
 
 LOCAL_LDLIBS    := -lm -llog -lz -ldl -flto
 # 

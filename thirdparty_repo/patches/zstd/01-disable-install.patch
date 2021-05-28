@@ -1,0 +1,114 @@
+diff -urBb zstd-1.5.0-orig/build/cmake/CMakeLists.txt zstd-1.5.0/build/cmake/CMakeLists.txt
+--- zstd-1.5.0-orig/build/cmake/CMakeLists.txt	2021-05-14 18:59:34.000000000 +0400
++++ zstd-1.5.0/build/cmake/CMakeLists.txt	2021-05-28 09:19:57.329176770 +0400
+@@ -179,25 +179,7 @@
+     COMPATIBILITY SameMajorVersion
+     )
+ 
+-# A Package Config file that works from the build directory
+-export(EXPORT zstdExports
+-    FILE "${CMAKE_CURRENT_BINARY_DIR}/zstdTargets.cmake"
+-    NAMESPACE zstd::
+-    )
+ configure_file(zstdConfig.cmake
+     "${CMAKE_CURRENT_BINARY_DIR}/zstdConfig.cmake"
+     COPYONLY
+     )
+-
+-# A Package Config file that works from the installation directory
+-set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/zstd)
+-install(EXPORT zstdExports
+-    FILE zstdTargets.cmake
+-    NAMESPACE zstd::
+-    DESTINATION ${ConfigPackageLocation}
+-    )
+-install(FILES
+-    zstdConfig.cmake
+-    "${CMAKE_CURRENT_BINARY_DIR}/zstdConfigVersion.cmake"
+-    DESTINATION ${ConfigPackageLocation}
+-    )
+diff -urBb zstd-1.5.0-orig/build/cmake/contrib/gen_html/CMakeLists.txt zstd-1.5.0/build/cmake/contrib/gen_html/CMakeLists.txt
+--- zstd-1.5.0-orig/build/cmake/contrib/gen_html/CMakeLists.txt	2021-05-14 18:59:34.000000000 +0400
++++ zstd-1.5.0/build/cmake/contrib/gen_html/CMakeLists.txt	2021-05-28 09:12:11.229183870 +0400
+@@ -26,5 +26,3 @@
+ add_custom_target(zstd_manual.html ALL
+                   ${GENHTML_BINARY} "${LIBVERSION}" "${LIBRARY_DIR}/zstd.h" "${PROJECT_BINARY_DIR}/zstd_manual.html"
+                   DEPENDS gen_html COMMENT "Update zstd manual")
+-
+-install(FILES "${PROJECT_BINARY_DIR}/zstd_manual.html" DESTINATION "${CMAKE_INSTALL_DOCDIR}")
+diff -urBb zstd-1.5.0-orig/build/cmake/contrib/pzstd/CMakeLists.txt zstd-1.5.0/build/cmake/contrib/pzstd/CMakeLists.txt
+--- zstd-1.5.0-orig/build/cmake/contrib/pzstd/CMakeLists.txt	2021-05-14 18:59:34.000000000 +0400
++++ zstd-1.5.0/build/cmake/contrib/pzstd/CMakeLists.txt	2021-05-28 09:12:01.379341944 +0400
+@@ -28,5 +28,3 @@
+ else()
+     message(SEND_ERROR "ZSTD currently does not support thread libraries other than pthreads")
+ endif()
+-
+-install(TARGETS pzstd RUNTIME DESTINATION "bin")
+diff -urBb zstd-1.5.0-orig/build/cmake/lib/CMakeLists.txt zstd-1.5.0/build/cmake/lib/CMakeLists.txt
+--- zstd-1.5.0-orig/build/cmake/lib/CMakeLists.txt	2021-05-14 18:59:34.000000000 +0400
++++ zstd-1.5.0/build/cmake/lib/CMakeLists.txt	2021-05-28 09:11:47.186236385 +0400
+@@ -155,21 +155,6 @@
+     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libzstd.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+ endif ()
+ 
+-# install target
+-install(FILES
+-    "${LIBRARY_DIR}/zstd.h"
+-    "${LIBRARY_DIR}/zdict.h"
+-    "${LIBRARY_DIR}/zstd_errors.h"
+-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+-
+-install(TARGETS ${library_targets}
+-    EXPORT zstdExports
+-    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+-    )
+-
+ # uninstall target
+ if (NOT TARGET uninstall)
+     configure_file(
+diff -urBb zstd-1.5.0-orig/build/cmake/programs/CMakeLists.txt zstd-1.5.0/build/cmake/programs/CMakeLists.txt
+--- zstd-1.5.0-orig/build/cmake/programs/CMakeLists.txt	2021-05-14 18:59:34.000000000 +0400
++++ zstd-1.5.0/build/cmake/programs/CMakeLists.txt	2021-05-28 09:13:23.344693198 +0400
+@@ -37,15 +37,10 @@
+ if (CMAKE_SYSTEM_NAME MATCHES "(Solaris|SunOS)")
+     target_link_libraries(zstd rt)
+ endif ()
+-install(TARGETS zstd RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+ 
+ if (UNIX)
+     add_custom_target(zstdcat ALL ${CMAKE_COMMAND} -E create_symlink zstd zstdcat DEPENDS zstd COMMENT "Creating zstdcat symlink")
+     add_custom_target(unzstd ALL ${CMAKE_COMMAND} -E create_symlink zstd unzstd DEPENDS zstd COMMENT "Creating unzstd symlink")
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zstdcat DESTINATION "${CMAKE_INSTALL_BINDIR}")
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/unzstd DESTINATION "${CMAKE_INSTALL_BINDIR}")
+-    install(PROGRAMS ${PROGRAMS_DIR}/zstdgrep DESTINATION "${CMAKE_INSTALL_BINDIR}")
+-    install(PROGRAMS ${PROGRAMS_DIR}/zstdless DESTINATION "${CMAKE_INSTALL_BINDIR}")
+ 
+     add_custom_target(zstd.1 ALL
+         ${CMAKE_COMMAND} -E copy ${PROGRAMS_DIR}/zstd.1 .
+@@ -65,14 +60,6 @@
+         set(MAN_INSTALL_DIR ${CMAKE_INSTALL_MANDIR}/man1)
+     endif ()
+ 
+-    install(FILES
+-        ${CMAKE_CURRENT_BINARY_DIR}/zstd.1
+-        ${CMAKE_CURRENT_BINARY_DIR}/zstdcat.1
+-        ${CMAKE_CURRENT_BINARY_DIR}/unzstd.1
+-        ${CMAKE_CURRENT_BINARY_DIR}/zstdgrep.1
+-        ${CMAKE_CURRENT_BINARY_DIR}/zstdless.1
+-        DESTINATION "${MAN_INSTALL_DIR}")
+-
+     add_executable(zstd-frugal ${PROGRAMS_DIR}/zstdcli.c ${PROGRAMS_DIR}/util.c ${PROGRAMS_DIR}/timefn.c ${PROGRAMS_DIR}/fileio.c)
+     target_link_libraries(zstd-frugal ${PROGRAMS_ZSTD_LINK_TARGET})
+     set_property(TARGET zstd-frugal APPEND PROPERTY COMPILE_DEFINITIONS "ZSTD_NOBENCH;ZSTD_NODICT;ZSTD_NOTRACE")
+@@ -87,7 +74,6 @@
+         target_link_libraries(zstd ${THREADS_LIBS})
+ 
+         add_custom_target(zstdmt ALL ${CMAKE_COMMAND} -E create_symlink zstd zstdmt DEPENDS zstd COMMENT "Creating zstdmt symlink")
+-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zstdmt DESTINATION "${CMAKE_INSTALL_BINDIR}")
+     endif ()
+ endif ()
+ 

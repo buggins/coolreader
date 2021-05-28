@@ -160,3 +160,4 @@ deploy_package freetype
 deploy_package harfbuzz
 deploy_package fribidi
 deploy_package zlib
+deploy_package zstd
