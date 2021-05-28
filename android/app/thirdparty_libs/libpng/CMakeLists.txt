@@ -1,5 +1,5 @@
 
-project(png)
+project(local_png)
 
 set(PNG_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/${REPO_LIBPNG_SRCDIR})
 set(PNG_CONFIG_DIR ${PROJECT_SOURCE_DIR})
@@ -103,4 +103,4 @@ set(PNG_SRC_FILES
     ${libpng_intel_sources}
 )
 
-add_library(png STATIC ${PNG_SRC_FILES})
+add_library(local_png STATIC ${PNG_SRC_FILES})

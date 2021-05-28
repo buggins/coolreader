@@ -1,5 +1,5 @@
 
-project(chmlib)
+project(local_chmlib)
 
 set(CHM_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty_unman/chmlib)
 
@@ -10,4 +10,4 @@ set(CHM_SRC_FILES
     ${CHM_SRC_DIR}/src/lzx.c
 )
 
-add_library(chmlib STATIC ${CHM_SRC_FILES})
+add_library(local_chmlib STATIC ${CHM_SRC_FILES})

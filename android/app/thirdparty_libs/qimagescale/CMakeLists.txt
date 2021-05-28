@@ -1,5 +1,5 @@
 
-project(qimagescale)
+project(local_qimagescale)
 
 set(QIMAGESCALE_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty_unman/qimagescale)
 
@@ -9,4 +9,4 @@ set(QIMAGESCALE_SRC_FILES
     ${QIMAGESCALE_SRC_DIR}/qimagescale.cpp
 )
 
-add_library(qimagescale STATIC ${QIMAGESCALE_SRC_FILES})
+add_library(local_qimagescale STATIC ${QIMAGESCALE_SRC_FILES})

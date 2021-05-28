@@ -212,21 +212,21 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       cr3engine-3-2-X
+        cr3engine-3-2-X
 
-                       # thirdparty static libs
-                       png
-                       jpeg
-                       freetype
-                       harfbuzz
-                       chmlib
-                       antiword
-                       fribidi
-                       unibreak
-                       qimagescale
-                       zstd
+        # thirdparty static libs
+        local_png
+        local_jpeg
+        local_freetype
+        local_harfbuzz
+        local_chmlib
+        local_antiword
+        local_fribidi
+        local_unibreak
+        local_qimagescale
+        local_zstd
 
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib}
-                       -lm -lz -ldl)
+        # Links the target library to the log library
+        # included in the NDK.
+        ${log-lib}
+        -lm -lz -ldl)

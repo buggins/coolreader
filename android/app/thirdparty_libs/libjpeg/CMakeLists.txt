@@ -1,5 +1,5 @@
 
-project(jpeg)
+project(local_jpeg)
 
 set(JPEG_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/${REPO_LIBJPEG_SRCDIR})
 
@@ -54,4 +54,4 @@ set(JPEG_SRC_FILES
     ${JPEG_SRC_DIR}/jmemnobs.c
 )
 
-add_library(jpeg STATIC ${JPEG_SRC_FILES})
+add_library(local_jpeg STATIC ${JPEG_SRC_FILES})

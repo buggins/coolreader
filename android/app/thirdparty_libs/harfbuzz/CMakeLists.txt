@@ -1,5 +1,5 @@
 
-project(harfbuzz)
+project(local_harfbuzz)
 
 set(HARFBUZZ_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/${REPO_HARFBUZZ_SRCDIR})
 set(HARFBUZZ_CONFIG_DIR ${PROJECT_SOURCE_DIR})
@@ -61,4 +61,4 @@ set(HARFBUZZ_SRC_FILES
     ${HARFBUZZ_SRC_DIR}/src/hb-unicode.cc
 )
 
-add_library(harfbuzz STATIC ${HARFBUZZ_SRC_FILES})
+add_library(local_harfbuzz STATIC ${HARFBUZZ_SRC_FILES})

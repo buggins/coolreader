@@ -1,5 +1,5 @@
 
-project(zstd)
+project(local_zstd)
 
 set(ZSTD_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/${REPO_ZSTD_SRCDIR})
 
@@ -42,4 +42,4 @@ set(ZSTD_SRC_FILES
     ${ZSTD_SRC_DIR}/lib/dictBuilder/zdict.c
 )
 
-add_library(zstd STATIC ${ZSTD_SRC_FILES})
+add_library(local_zstd STATIC ${ZSTD_SRC_FILES})
