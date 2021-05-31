@@ -2151,7 +2151,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 }
 
 /// returns page count
-int LVDocView::getPageCount() {
+int LVDocView::getPageCount() const {
 	return m_pages.length();
 }
 
@@ -2948,7 +2948,7 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
 /// A changed hash let frontends know their cached values of some document
 /// properties (full height, TOC pages...) may have changed and that they
 /// need to fetch them again
-lUInt32 LVDocView::getDocumentRenderingHash() {
+lUInt32 LVDocView::getDocumentRenderingHash() const {
     if (m_doc) {
         // Also account for the number of pages, as toggling m_twoVisiblePagesAsOnePageNumber
         // does not change the document rendering hash, but it does change page numbers

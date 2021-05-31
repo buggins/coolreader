@@ -900,7 +900,7 @@ public:
     /// move to specified page
     bool goToPage(int page, bool updatePosBookmark = true, bool regulateTwoPages = true);
     /// returns page count
-    int getPageCount();
+    int getPageCount() const;
     /// get the flow the specified page belongs to
     int getPageFlow(int pageIndex);
     /// returns whether there are any flows besides the linear flow 0
@@ -940,7 +940,7 @@ public:
     /// A changed hash let frontends know their cached values of some document
     /// properties (full height, TOC pages...) may have changed and that they
     /// need to fetch them again
-    lUInt32 getDocumentRenderingHash();
+    lUInt32 getDocumentRenderingHash() const;
 
     /// Constructor
     LVDocView( int bitsPerPixel=-1, bool noDefaultDocument=false );

@@ -2398,7 +2398,7 @@ protected:
 public:
 
 #if BUILD_LITE!=1
-    lUInt32 getDocumentRenderingHash() { return _doc_rendering_hash; }
+    lUInt32 getDocumentRenderingHash() const { return _doc_rendering_hash; }
     void forceReinitStyles() {
         dropStyles();
         _hdr.render_style_hash = 0;
