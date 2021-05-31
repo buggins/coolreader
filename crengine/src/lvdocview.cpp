@@ -256,7 +256,7 @@ void LVDocView::setPageSkin(CRPageSkinRef skin) {
 }
 
 /// get text format options
-txt_format_t LVDocView::getTextFormatOptions() {
+txt_format_t LVDocView::getTextFormatOptions() const {
     return m_doc && m_doc->getDocFlag(DOC_FLAG_PREFORMATTED_TEXT) ? txt_format_pre
 			: txt_format_auto;
 }
@@ -324,7 +324,7 @@ bool LVDocView::isDocumentOpened() {
 }
 
 /// rotate rectangle by current angle, winToDoc==false for doc->window translation, true==ccw
-lvRect LVDocView::rotateRect(lvRect & rc, bool winToDoc) {
+lvRect LVDocView::rotateRect(lvRect & rc, bool winToDoc) const {
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	lvRect rc2;
 	cr_rotate_angle_t angle = m_rotateAngle;
@@ -382,7 +382,7 @@ lvRect LVDocView::rotateRect(lvRect & rc, bool winToDoc) {
 }
 
 /// rotate point by current angle, winToDoc==false for doc->window translation, true==ccw
-lvPoint LVDocView::rotatePoint(lvPoint & pt, bool winToDoc) {
+lvPoint LVDocView::rotatePoint(lvPoint & pt, bool winToDoc) const {
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	lvPoint pt2;
 	cr_rotate_angle_t angle = m_rotateAngle;
@@ -1360,7 +1360,7 @@ int LVDocView::GetFullHeight() {
 }
 
 /// calculate page header height
-int LVDocView::getPageHeaderHeight() {
+int LVDocView::getPageHeaderHeight() const {
 	if (getPageheaderPosition() == 0)
 		return 0;
 	if (!getPageHeaderInfo())
@@ -1384,7 +1384,7 @@ int LVDocView::getPageHeaderHeight() {
 }
 
 /// calculate page header rectangle
-void LVDocView::getPageHeaderRectangle(int pageIndex, lvRect & headerRc) {
+void LVDocView::getPageHeaderRectangle(int pageIndex, lvRect & headerRc) const {
 	lvRect pageRc;
 	getPageRectangle(pageIndex, pageRc);
 	headerRc = pageRc;
@@ -1413,7 +1413,7 @@ void LVDocView::getPageHeaderRectangle(int pageIndex, lvRect & headerRc) {
 }
 
 /// returns current time representation string
-lString32 LVDocView::getTimeString() {
+lString32 LVDocView::getTimeString() const {
 	time_t t = (time_t) time(0);
 	tm * bt = localtime(&t);
 	char str[12];
@@ -1694,7 +1694,7 @@ int LVDocView::getPosPercent() {
 	}
 }
 
-void LVDocView::getPageRectangle(int pageIndex, lvRect & pageRect) {
+void LVDocView::getPageRectangle(int pageIndex, lvRect & pageRect) const {
 	if ((pageIndex & 1) == 0 || (getVisiblePageCount() < 2))
 		pageRect = m_pageRects[0];
 	else
@@ -2186,14 +2186,14 @@ bool LVDocView::hasNonLinearFlows()
 	return m_pages.hasNonLinearFlows();
 }
 
-int LVDocView::getPageHeight(int pageIndex)
+int LVDocView::getPageHeight(int pageIndex) const
 {
 	if (isPageMode() && pageIndex >= 0 && pageIndex < m_pages.length())
 		return m_pages[pageIndex]->height;
 	return 0;
 }
 
-int LVDocView::getPageStartY(int pageIndex)
+int LVDocView::getPageStartY(int pageIndex) const
 {
 	if (isPageMode() && pageIndex >= 0 && pageIndex < m_pages.length())
 		return m_pages[pageIndex]->start;
@@ -3262,7 +3262,7 @@ bool splitNavigationPos(lString32 pos, lString32 & fname, lString32 & path) {
 }
 
 /// packs current file path and name
-lString32 LVDocView::getNavigationPath() {
+lString32 LVDocView::getNavigationPath() const {
 	lString32 fname = m_doc_props->getStringDef(DOC_PROP_FILE_NAME, "");
 	lString32 fpath = m_doc_props->getStringDef(DOC_PROP_FILE_PATH, "");
 	LVAppendPathDelimiter(fpath);
@@ -3505,7 +3505,7 @@ void LVDocView::setViewMode(LVDocViewMode view_mode, int visiblePageCount) {
 }
 
 /// get view mode (pages/scroll)
-LVDocViewMode LVDocView::getViewMode() {
+LVDocViewMode LVDocView::getViewMode() const {
 	return m_view_mode;
 }
 
@@ -3519,13 +3519,13 @@ void LVDocView::toggleViewMode() {
 }
 
 /// returns current pages visible setting value
-int LVDocView::getPagesVisibleSetting() {
+int LVDocView::getPagesVisibleSetting() const {
     if (m_view_mode == DVM_PAGES && m_pagesVisible == 2)
         return 2;
     return 1;
 }
 
-int LVDocView::getVisiblePageCount() {
+int LVDocView::getVisiblePageCount() const {
     if (m_view_mode == DVM_SCROLL || m_pagesVisible == 1)
         return 1;
     if (m_pagesVisibleOverride > 0)
@@ -3728,7 +3728,7 @@ void LVDocView::setBookmark(ldomXPointer bm) {
 }
 
 /// get view height
-int LVDocView::GetHeight() {
+int LVDocView::GetHeight() const {
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	return (m_rotateAngle & 1) ? m_dx : m_dy;
 #else
@@ -3737,7 +3737,7 @@ int LVDocView::GetHeight() {
 }
 
 /// get view width
-int LVDocView::GetWidth() {
+int LVDocView::GetWidth() const {
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	return (m_rotateAngle & 1) ? m_dy : m_dx;
 #else

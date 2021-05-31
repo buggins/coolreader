@@ -567,11 +567,11 @@ public:
         _array[index] = item;
     }
     /// returns size of buffer
-    int size() { return _size; }
+    int size() const { return _size; }
     /// returns number of items in vector
-    int length() { return _count; }
+    int length() const { return _count; }
     /// returns true if there are no items in vector
-    bool empty() { return _count==0; }
+    bool empty() const { return _count==0; }
     /// clears all items
     void clear()
     {
