@@ -16,7 +16,7 @@
 
 #if (USE_GIF==1)
 
-#include <cstddef>
+#include <stddef.h>
 
 void CLZWDecoder::SetInputStream(const unsigned char *p, int sz) {
     p_in_stream = p;

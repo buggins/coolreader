@@ -739,6 +739,7 @@ lChar32 TextLangCfg::getCssLbCharSub(css_line_break_t css_linebreak, css_word_br
                        // Everything becoming ID, it can break anywhere
     }
     lChar32 ch = tweaked_ch ? tweaked_ch : text[pos];
+#if KO_LIBUNIBREAK_PATCH==1
     enum LineBreakClass lbc = lb_get_char_class(lbpCtx, ch);
     if ( css_wordbreak == css_wb_break_all ) {
         if ( lbc == LBP_AI || lbc == LBP_AL || lbc == LBP_NU || lbc == LBP_SA ) {
@@ -836,9 +837,10 @@ lChar32 TextLangCfg::getCssLbCharSub(css_line_break_t css_linebreak, css_word_br
             #endif
         }
     }
+#endif  // KO_LIBUNIBREAK_PATCH==1
     return ch;
 }
-#endif
+#endif  // USE_LIBUNIBREAK==1
 
 // Instantiate a new TextLangCfg with properties adequate to the provided lang_tag
 TextLangCfg::TextLangCfg( lString32 lang_tag ) {

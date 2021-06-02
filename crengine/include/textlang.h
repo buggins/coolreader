@@ -4,6 +4,7 @@
 #include "crsetup.h"
 #include "lvptrvec.h"
 #include "lvstring.h"
+#include "cssdef.h"
 
 #if USE_HARFBUZZ==1
 #include <hb.h>
