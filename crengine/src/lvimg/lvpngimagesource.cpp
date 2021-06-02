@@ -59,6 +59,7 @@ void LVPngImageSource::Compact()
 
 bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
 {
+    bool res = false;
     png_structp png_ptr = NULL;
     png_infop info_ptr = NULL;
     _stream->SetPos( 0 );
@@ -124,6 +125,7 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
         if (bit_depth == 16)
             png_set_strip_16(png_ptr);
 
+        // CRe expects inverted alpha
         png_set_invert_alpha(png_ptr);
 
         if (bit_depth < 8)
@@ -144,29 +146,37 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
 
         //if (color_type == PNG_COLOR_TYPE_RGB ||
         //    color_type == PNG_COLOR_TYPE_RGB_ALPHA)
+        // CRe expects BGR pixel order
         png_set_bgr(png_ptr);
 
         png_set_interlace_handling(png_ptr);
         png_read_update_info(png_ptr,info_ptr);//update after set
         png_bytep *image=NULL;
-        image =  new png_bytep[height];
-        for (lUInt32 i=0; i<height; i++)
-            image[i] =  new png_byte[png_get_rowbytes(png_ptr,info_ptr)];
-        png_read_image(png_ptr,image);
-        for (lUInt32 y = 0; y < height; y++)
-        {
-            callback->OnLineDecoded( this, y,  (lUInt32*) image[y] );
-        }
-        png_read_end(png_ptr, info_ptr);
+        size_t rowbytes = png_get_rowbytes(png_ptr, info_ptr);
+        size_t index_size = sizeof(png_bytep)*height;
+        image = (png_bytep*)malloc(index_size           // array of pointers
+                                 + height*rowbytes);    // image data
+        if (image) {
+            for (size_t y = 0; y < height; y++)
+                image[y] = (png_bytep)image + index_size + y*rowbytes;
+            png_read_image(png_ptr,image);
+            for (lUInt32 y = 0; y < height; y++)
+                callback->OnLineDecoded( this, y,  (lUInt32*) image[y] );
+            png_read_end(png_ptr, info_ptr);
 
-        callback->OnEndDecode(this, false);
-        for (lUInt32 i=0; i<height; i++)
-            delete [] image[i];
-        delete [] image;
+            free(image);
+            res = true;
+        } else {
+            _width = 0;
+            _height = 0;
+        }
+        callback->OnEndDecode(this, !res);
+    } else {
+        res = true;
     }
     png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
-    return true;
+    return res;
 }
 
 bool LVPngImageSource::CheckPattern( const lUInt8 * buf, int )
