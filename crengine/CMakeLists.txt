@@ -75,6 +75,7 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
         src/odtfmt.cpp
         src/odxutil.cpp
         src/crconcurrent.cpp
+        src/mathml.cpp
         src/lvimg/lvcacheableobject.cpp
         src/lvimg/lvimagesource.cpp
         src/lvimg/crninepatchdecoder.cpp

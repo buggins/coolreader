@@ -49,6 +49,7 @@
 #define GLYPH_CACHE_SIZE                     0x1000
 #define ZIP_STREAM_BUFFER_SIZE               0x1000
 #define FILE_STREAM_BUFFER_SIZE              0x1000
+#define MATHML_SUPPORT                       0
 
 #else
 
@@ -65,6 +66,7 @@
 #define GLYPH_CACHE_SIZE                     0x20000
 #define ZIP_STREAM_BUFFER_SIZE               0x80000
 #define FILE_STREAM_BUFFER_SIZE              0x40000
+#define MATHML_SUPPORT                       1
 
 #endif  // (BUILD_LITE==1)
 
@@ -100,6 +102,7 @@
 #define USE_FRIBIDI                          1
 #define USE_LIBUNIBREAK                      1
 #define USE_GLYPHCACHE_HASHTABLE             1
+#define MATHML_SUPPORT                       1
 
 #ifndef ANDROID
 #ifndef MAC
@@ -150,6 +153,7 @@
 #define ZIP_STREAM_BUFFER_SIZE               0x80000
 #define FILE_STREAM_BUFFER_SIZE              0x40000
 //#define USE_LIBJPEG 0
+#define MATHML_SUPPORT                       1
 #endif  // !defined(__SYMBIAN32__) && defined(_WIN32)
 
 #ifndef GLYPH_CACHE_SIZE
@@ -255,6 +259,10 @@
 
 #ifndef CHM_SUPPORT_ENABLED
 #define CHM_SUPPORT_ENABLED 1
+#endif
+
+#ifndef MATHML_SUPPORT
+#define MATHML_SUPPORT 0
 #endif
 
 #ifndef USE_FREETYPE

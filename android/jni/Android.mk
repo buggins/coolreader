@@ -86,6 +86,7 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvrend.cpp \
     ../../crengine/src/wolutil.cpp \
     ../../crengine/src/crconcurrent.cpp \
+    ../../crengine/src/mathml.cpp \
     ../../crengine/src/hist.cpp \
     ../../crengine/src/xxhash.c \
     ../../crengine/src/textlang.cpp \
@@ -118,6 +119,7 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvdrawbuf/lvbasedrawbuf.cpp \
     ../../crengine/src/lvdrawbuf/lvgraydrawbuf.cpp \
     ../../crengine/src/lvdrawbuf/lvcolordrawbuf.cpp \
+    ../../crengine/src/lvdrawbuf/lvinkmeasurementdrawbuf.cpp \
     ../../crengine/src/lvdrawbuf/lvimagescaleddrawcallback.cpp \
     ../../crengine/src/lvdrawbuf/lvdrawbuf_utils.cpp \
     ../../crengine/src/lvstream/lvdefstreambuffer.cpp \

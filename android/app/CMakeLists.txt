@@ -91,6 +91,7 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/lvrend.cpp
     ${CR3_ROOT}/crengine/src/wolutil.cpp
     ${CR3_ROOT}/crengine/src/crconcurrent.cpp
+    ${CR3_ROOT}/crengine/src/mathml.cpp
     ${CR3_ROOT}/crengine/src/hist.cpp
     ${CR3_ROOT}/crengine/src/xxhash.c
     ${CR3_ROOT}/crengine/src/textlang.cpp
@@ -123,6 +124,7 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/lvdrawbuf/lvbasedrawbuf.cpp
     ${CR3_ROOT}/crengine/src/lvdrawbuf/lvgraydrawbuf.cpp
     ${CR3_ROOT}/crengine/src/lvdrawbuf/lvcolordrawbuf.cpp
+    ${CR3_ROOT}/crengine/src/lvdrawbuf/lvinkmeasurementdrawbuf.cpp
     ${CR3_ROOT}/crengine/src/lvdrawbuf/lvimagescaleddrawcallback.cpp
     ${CR3_ROOT}/crengine/src/lvdrawbuf/lvdrawbuf_utils.cpp
     ${CR3_ROOT}/crengine/src/lvstream/lvdefstreambuffer.cpp

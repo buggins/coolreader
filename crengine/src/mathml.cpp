@@ -109,6 +109,8 @@ Current limitations:
 
 */
 
+#include "crsetup.h"
+
 #if MATHML_SUPPORT==1
 
 #include "../include/lvtypes.h"
