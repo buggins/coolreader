@@ -51,6 +51,10 @@ LVFontBoldTransform::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
     return true;
 }
 
+bool LVFontBoldTransform::getGlyphExtraMetric(glyph_extra_metric_t metric, lUInt32 code, int &value, bool scaled_to_px, lChar32 def_char, lUInt32 fallbackPassMask) {
+    return _baseFont->getGlyphExtraMetric(metric, code, value, scaled_to_px, def_char, fallbackPassMask);
+}
+
 lUInt16
 LVFontBoldTransform::measureText(const lChar32 *text, int len, lUInt16 *widths, lUInt8 *flags,
                                  int max_width, lChar32 def_char, TextLangCfg *lang_cfg, int letter_spacing,
@@ -146,6 +150,14 @@ LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt32 ch, lChar32 def_char
         _glyph_cache.put(item);
     }
     return item;
+}
+
+int LVFontBoldTransform::getExtraMetric(font_extra_metric_t metric, bool scaled_to_px) {
+    return _baseFont->getExtraMetric(metric, scaled_to_px);
+}
+
+bool LVFontBoldTransform::hasOTMathSupport() const {
+    return _baseFont->hasOTMathSupport();
 }
 
 int LVFontBoldTransform::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *text, int len,

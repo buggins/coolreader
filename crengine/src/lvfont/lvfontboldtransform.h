@@ -71,6 +71,10 @@ public:
     */
     virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar32 def_char = 0, lUInt32 fallbackPassMask = 0);
 
+    /** \brief get extra glyph metric
+    */
+    virtual bool getGlyphExtraMetric( glyph_extra_metric_t metric, lUInt32 code, int & value, bool scaled_to_px=true, lChar32 def_char=0, lUInt32 fallbackPassMask = 0 );
+
     /** \brief measure text
         \param text is text string pointer
         \param len is number of characters to measure
@@ -144,6 +148,12 @@ public:
     virtual int getRightSideBearing( lChar32 ch, bool negative_only=false, bool italic_only=false ) {
         return _baseFont->getRightSideBearing( ch, negative_only, italic_only );
     }
+
+    /// returns extra metric
+    virtual int getExtraMetric(font_extra_metric_t metric, bool scaled_to_px=true);
+
+    /// returns if font has OpenType Math tables
+    virtual bool hasOTMathSupport() const;
 
     /// retrieves font handle
     virtual void *GetHandle() {

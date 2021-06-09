@@ -57,6 +57,18 @@ public:
         return _height;
     }
 
+    /** \brief get extra glyph metric
+    */
+    virtual bool getGlyphExtraMetric( glyph_extra_metric_t metric, lUInt32 code, int & value, bool scaled_to_px=true, lChar32 def_char=0, lUInt32 fallbackPassMask=0 ) {
+        return false;
+    }
+
+    /// returns extra metric
+    virtual int getExtraMetric(font_extra_metric_t metric, bool scaled_to_px=true) = 0;
+
+    /// returns if font has OpenType Math tables
+    virtual bool hasOTMathSupport() const = 0;
+
     /// retrieves font handle
     virtual void * GetHandle()
     {

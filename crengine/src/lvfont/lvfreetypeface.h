@@ -22,6 +22,7 @@
 #include "lvfontglyphcache.h"
 #include "lvfontdef.h"
 #include "lvfontcache.h"
+#include "lvarray.h"
 
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
@@ -127,7 +128,7 @@ protected:
     int _baseline;
     int _weight; // original font weight 400: normal, 700: bold, 100..900 thin..black
     int _italic; // 0: regular, 1: italic, 2: fake/synthesized italic
-    int* _extra_metric;
+    LVArray<int> _extra_metrics;
     LVFontGlyphUnsignedMetricCache _wcache;
     LVFontGlyphSignedMetricCache _lsbcache; // glyph left side bearing cache
     LVFontGlyphSignedMetricCache _rsbcache; // glyph right side bearing cache

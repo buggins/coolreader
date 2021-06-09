@@ -504,7 +504,7 @@ LVFreeTypeFace::LVFreeTypeFace(LVMutex &mutex, FT_Library library,
         : LVFont(),
           _mutex(mutex), _fontFamily(css_ff_sans_serif), _library(library), _face(NULL),
           _size(0), _hyphen_width(0), _baseline(0),
-          _weight(400), _italic(0), _extra_metric(NULL), _features(0),
+          _weight(400), _italic(0), _features(0),
           _glyph_cache(globalCache),
           _drawMonochrome(false),
           _aa_mode(font_aa_all),
@@ -2287,13 +2287,11 @@ int LVFreeTypeFace::getRightSideBearing( lChar32 ch, bool negative_only, bool it
 }
 
 int LVFreeTypeFace::getExtraMetric(font_extra_metric_t metric, bool scaled_to_px) {
-    if ( _extra_metric == NULL ) {
-        _extra_metric = (int *)malloc(sizeof(int)*FONT_METRIC_MAX);
-        for (int i=0; i<FONT_METRIC_MAX; i++) {
-            _extra_metric[i] = CACHED_SIGNED_METRIC_NOT_SET;
-        }
-    }
-    if ( _extra_metric[metric] == CACHED_SIGNED_METRIC_NOT_SET ) {
+    if (metric < 0 || metric >= FONT_METRIC_MAX)
+        return 0;
+    if ( _extra_metrics.empty() )
+        _extra_metrics = LVArray<int>((int)FONT_METRIC_MAX, CACHED_SIGNED_METRIC_NOT_SET);
+    if ( _extra_metrics[metric] == CACHED_SIGNED_METRIC_NOT_SET ) {
         // We can get ideas from:
         // https://github.com/mozilla/gecko-dev/blob/master/gfx/thebes/gfxFT2Utils.cpp
         bool value_set = false;
@@ -2636,9 +2634,9 @@ int LVFreeTypeFace::getExtraMetric(font_extra_metric_t metric, bool scaled_to_px
             break;
 #endif // MATHML_SUPPORT==1
         }
-        _extra_metric[metric] = value;
+        _extra_metrics[metric] = value;
     }
-    return scaled_to_px ? FONT_METRIC_TO_PX(_extra_metric[metric]) : _extra_metric[metric];
+    return scaled_to_px ? FONT_METRIC_TO_PX(_extra_metrics[metric]) : _extra_metrics[metric];
 }
 
 bool LVFreeTypeFace::hasOTMathSupport() const {
@@ -3129,10 +3127,7 @@ void LVFreeTypeFace::Clear() {
         FT_Done_Face(_face);
         _face = NULL;
     }
-    if ( _extra_metric ) {
-        free(_extra_metric);
-        _extra_metric = NULL;
-    }
+    _extra_metrics.clear();
 }
 
 #endif  // (USE_FREETYPE==1)
