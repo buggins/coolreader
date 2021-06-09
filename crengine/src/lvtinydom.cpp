@@ -9056,8 +9056,14 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
                 }
 
                 lUInt32 hints = WORD_FLAGS_TO_FNT_FLAGS(word->flags);
-                font->measureText( str.c_str()+word->t.start, word->t.len, width, flg, word->width+50, '?',
-                            src->lang_cfg, src->letter_spacing + word->added_letter_spacing, false, hints);
+                if (str.empty() && word->t.len > 0) {
+                    // Don't know that the fuck up, but it happens
+                    for (int i = 0; i < word->t.len; i++)
+                        width[i] = 0;
+                } else {
+                    font->measureText( str.c_str()+word->t.start, word->t.len, width, flg, word->width+50, '?',
+                                src->lang_cfg, src->letter_spacing + word->added_letter_spacing, false, hints);
+                }
 
                 bool word_is_rtl = word->flags & LTEXT_WORD_DIRECTION_IS_RTL;
                 if ( word_is_rtl ) {
