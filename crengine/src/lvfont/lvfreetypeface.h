@@ -406,6 +406,7 @@ public:
 protected:
     void updateTransform();
     FT_UInt getCharIndex(lUInt32 code, lChar32 def_char);
+    bool getGlyphIndexInfo(lUInt32 glyph_index, glyph_info_t *glyph);
     void DrawStretchedGlyph(LVDrawBuf * buf, int glyph_index, int x, int y, int w, int h, lUInt32 * palette=NULL);
 #if USE_HARFBUZZ==1
     LVFontGlyphCacheItem *getGlyphByIndex(lUInt32 index);

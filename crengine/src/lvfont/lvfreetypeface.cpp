@@ -1122,6 +1122,122 @@ FT_UInt LVFreeTypeFace::getCharIndex(lUInt32 code, lChar32 def_char) {
     return ch_glyph_index;
 }
 
+bool LVFreeTypeFace::getGlyphIndexInfo(lUInt32 glyph_index, LVFont::glyph_info_t *glyph)
+{
+    int rend_flags = FT_LOAD_DEFAULT;
+    rend_flags |= (!_drawMonochrome ? getLoadTargetForAA(_aa_mode) : FT_LOAD_TARGET_MONO);
+    if (_hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR) {
+        rend_flags |= FT_LOAD_NO_AUTOHINT;
+    }
+    else if (_hintingMode == HINTING_MODE_AUTOHINT) {
+        rend_flags |= FT_LOAD_FORCE_AUTOHINT;
+    }
+    else if (_hintingMode == HINTING_MODE_DISABLED) {
+        rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+    }
+    if (FT_HAS_COLOR(_face))
+        rend_flags |= FT_LOAD_COLOR;
+    if (_synth_weight > 0 || _italic == 2) { // Don't render yet
+        //rend_flags &= ~FT_LOAD_RENDER;
+        // Also disable any hinting, as it would be wrong after embolden.
+        // But it feels this is now fine after switching to FT_LOAD_TARGET_LIGHT.
+        // rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+    }
+    updateTransform(); // no-op
+    int error = FT_Load_Glyph(
+            _face,          /* handle to face object */
+            glyph_index,   /* glyph index           */
+            rend_flags);  /* load flags, see below */
+    if ( error == FT_Err_Execution_Too_Long && _hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR ) {
+        // Native hinting bytecode may fail with some bad fonts: try again with no hinting
+        CRLog::error("Font '%s': loading glyph too long!", _fileName.c_str());
+        rend_flags |= FT_LOAD_NO_HINTING;
+        error = FT_Load_Glyph( _face, glyph_index, rend_flags );
+    }
+    if (error)
+        return false;
+    if (_synth_weight > 0) { // Synthetized weight so we get the real metrics
+        if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
+            // See setSynthWeight() for details
+            FT_Outline_Embolden(&_slot->outline, _synth_weight_strength);
+            FT_Outline_Translate(&_slot->outline, 0, -_synth_weight_half_strength);
+        }
+    }
+    if (_italic == 2) {
+        // When the font does not provide italic glyphs (_italic = 2), some fake
+        // italic/oblique is obtained with FreeType transformation (formerly with
+        // _matrix.xy and FT_Set_Transform(), now with FT_GlyphSlot_Oblique()).
+        // freetype.h states about FT_Set_Transform():
+        //     Note that this also transforms the `face.glyph.advance' field,
+        //     but *not* the values in `face.glyph.metrics'.
+        // So, with such fake italic, the values we'll use below are wrong,
+        // and may cause some wrong glyphs positioning or advance.
+        FT_GlyphSlot_Oblique(_slot); // This uses FT_Outline_Transform(), see freetype2/src/base/ftsynth.c
+        // Qt has some code that seem to fix these metrics in transformBoundingBox() at
+        // https://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/text/freetype/qfontengine_ft.cpp#n909
+        // So let's use it:
+        if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
+            int left   = _slot->metrics.horiBearingX;
+            int right  = _slot->metrics.horiBearingX + _slot->metrics.width;
+            int top    = _slot->metrics.horiBearingY;
+            int bottom = _slot->metrics.horiBearingY - _slot->metrics.height;
+            int l, r, t, b;
+            FT_Vector vector;
+            vector.x = left;
+            vector.y = top;
+            FT_Vector_Transform(&vector, &_matrix);
+            l = r = vector.x;
+            t = b = vector.y;
+            vector.x = right;
+            vector.y = top;
+            FT_Vector_Transform(&vector, &_matrix);
+            if (l > vector.x) l = vector.x;
+            if (r < vector.x) r = vector.x;
+            if (t < vector.y) t = vector.y;
+            if (b > vector.y) b = vector.y;
+            vector.x = right;
+            vector.y = bottom;
+            FT_Vector_Transform(&vector, &_matrix);
+            if (l > vector.x) l = vector.x;
+            if (r < vector.x) r = vector.x;
+            if (t < vector.y) t = vector.y;
+            if (b > vector.y) b = vector.y;
+            vector.x = left;
+            vector.y = bottom;
+            FT_Vector_Transform(&vector, &_matrix);
+            if (l > vector.x) l = vector.x;
+            if (r < vector.x) r = vector.x;
+            if (t < vector.y) t = vector.y;
+            if (b > vector.y) b = vector.y;
+            _slot->metrics.horiBearingX = l;
+            _slot->metrics.horiBearingY = t;
+            _slot->metrics.width        = r - l;
+            _slot->metrics.height       = t - b;
+        }
+    }
+
+    if (FT_HAS_COLOR(_face) && !FT_IS_SCALABLE(_face)) {
+        // Updating metrics for downscaled bitmap (which we will do later)
+        downScaleColorGlyphBitmap(_slot, _scale_mul, _scale_div, true);
+    }
+    glyph->blackBoxX = (lUInt16)( FONT_METRIC_TO_PX( _slot->metrics.width ) );
+    glyph->blackBoxY = (lUInt16)( FONT_METRIC_TO_PX( _slot->metrics.height ) );
+    glyph->originX =   (lInt16)( FONT_METRIC_TO_PX( _slot->metrics.horiBearingX ) );
+    glyph->originY =   (lInt16)( FONT_METRIC_TO_PX( _slot->metrics.horiBearingY ) );
+    glyph->width =     (lUInt16)( FONT_METRIC_TO_PX( myabs(_slot->metrics.horiAdvance) ) );
+    if (glyph->blackBoxX == 0) // If a glyph has no blackbox (a spacing
+        glyph->rsb =   0;      // character), there is no bearing
+    else
+        glyph->rsb =   (lInt16)(FONT_METRIC_TO_PX( (myabs(_slot->metrics.horiAdvance)
+                                    - _slot->metrics.horiBearingX - _slot->metrics.width) ) );
+    // printf("%c: %d + %d + %d = %d (y: %d + %d)\n", code, glyph->originX, glyph->blackBoxX,
+    //                            glyph->rsb, glyph->width, glyph->originY, glyph->blackBoxY);
+    // (Old) Note: these >>6 on a negative number will floor() it, so we'll get
+    // a ceil()'ed value when considering negative numbers as some overflow,
+    // which is good when we're using it for adding some padding.
+    return true;
+}
+
 void LVFreeTypeFace::DrawStretchedGlyph(LVDrawBuf *buf, int glyph_index, int x, int y, int w, int h, lUInt32 *palette)
 {
     // This is used for drawing stretched MathML operators,
@@ -1140,7 +1256,7 @@ void LVFreeTypeFace::DrawStretchedGlyph(LVDrawBuf *buf, int glyph_index, int x, 
 
     // We don't want to cache anything about these stretched glyphs
     glyph_info_t glyph;
-    if ( !getGlyphInfo( glyph_index, &glyph, 0, true ) ) {
+    if ( !getGlyphIndexInfo( glyph_index, &glyph ) ) {
         return; // no glyph
     }
 
@@ -1426,118 +1542,7 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
             return fallback->getGlyphInfo(code, glyph, def_char, passMask);
         }
     }
-    int rend_flags = FT_LOAD_DEFAULT;
-    rend_flags |= (!_drawMonochrome ? getLoadTargetForAA(_aa_mode) : FT_LOAD_TARGET_MONO);
-    if (_hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR) {
-        rend_flags |= FT_LOAD_NO_AUTOHINT;
-    }
-    else if (_hintingMode == HINTING_MODE_AUTOHINT) {
-        rend_flags |= FT_LOAD_FORCE_AUTOHINT;
-    }
-    else if (_hintingMode == HINTING_MODE_DISABLED) {
-        rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
-    }
-    if (FT_HAS_COLOR(_face))
-        rend_flags |= FT_LOAD_COLOR;
-    if (_synth_weight > 0 || _italic == 2) { // Don't render yet
-        //rend_flags &= ~FT_LOAD_RENDER;
-        // Also disable any hinting, as it would be wrong after embolden.
-        // But it feels this is now fine after switching to FT_LOAD_TARGET_LIGHT.
-        // rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
-    }
-    updateTransform(); // no-op
-    int error = FT_Load_Glyph(
-            _face,          /* handle to face object */
-            glyph_index,   /* glyph index           */
-            rend_flags);  /* load flags, see below */
-    if ( error == FT_Err_Execution_Too_Long && _hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR ) {
-        // Native hinting bytecode may fail with some bad fonts: try again with no hinting
-        CRLog::error("Font '%s': loading glyph too long!", _fileName.c_str());
-        rend_flags |= FT_LOAD_NO_HINTING;
-        error = FT_Load_Glyph( _face, glyph_index, rend_flags );
-    }
-    if (error)
-        return false;
-    if (_synth_weight > 0) { // Synthetized weight so we get the real metrics
-        if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
-            // See setSynthWeight() for details
-            FT_Outline_Embolden(&_slot->outline, _synth_weight_strength);
-            FT_Outline_Translate(&_slot->outline, 0, -_synth_weight_half_strength);
-        }
-    }
-    if (_italic == 2) {
-        // When the font does not provide italic glyphs (_italic = 2), some fake
-        // italic/oblique is obtained with FreeType transformation (formerly with
-        // _matrix.xy and FT_Set_Transform(), now with FT_GlyphSlot_Oblique()).
-        // freetype.h states about FT_Set_Transform():
-        //     Note that this also transforms the `face.glyph.advance' field,
-        //     but *not* the values in `face.glyph.metrics'.
-        // So, with such fake italic, the values we'll use below are wrong,
-        // and may cause some wrong glyphs positioning or advance.
-        FT_GlyphSlot_Oblique(_slot); // This uses FT_Outline_Transform(), see freetype2/src/base/ftsynth.c
-        // Qt has some code that seem to fix these metrics in transformBoundingBox() at
-        // https://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/text/freetype/qfontengine_ft.cpp#n909
-        // So let's use it:
-        if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
-            int left   = _slot->metrics.horiBearingX;
-            int right  = _slot->metrics.horiBearingX + _slot->metrics.width;
-            int top    = _slot->metrics.horiBearingY;
-            int bottom = _slot->metrics.horiBearingY - _slot->metrics.height;
-            int l, r, t, b;
-            FT_Vector vector;
-            vector.x = left;
-            vector.y = top;
-            FT_Vector_Transform(&vector, &_matrix);
-            l = r = vector.x;
-            t = b = vector.y;
-            vector.x = right;
-            vector.y = top;
-            FT_Vector_Transform(&vector, &_matrix);
-            if (l > vector.x) l = vector.x;
-            if (r < vector.x) r = vector.x;
-            if (t < vector.y) t = vector.y;
-            if (b > vector.y) b = vector.y;
-            vector.x = right;
-            vector.y = bottom;
-            FT_Vector_Transform(&vector, &_matrix);
-            if (l > vector.x) l = vector.x;
-            if (r < vector.x) r = vector.x;
-            if (t < vector.y) t = vector.y;
-            if (b > vector.y) b = vector.y;
-            vector.x = left;
-            vector.y = bottom;
-            FT_Vector_Transform(&vector, &_matrix);
-            if (l > vector.x) l = vector.x;
-            if (r < vector.x) r = vector.x;
-            if (t < vector.y) t = vector.y;
-            if (b > vector.y) b = vector.y;
-            _slot->metrics.horiBearingX = l;
-            _slot->metrics.horiBearingY = t;
-            _slot->metrics.width        = r - l;
-            _slot->metrics.height       = t - b;
-        }
-    }
-
-    if (FT_HAS_COLOR(_face) && !FT_IS_SCALABLE(_face)) {
-        // Updating metrics for downscaled bitmap (which we will do later)
-        downScaleColorGlyphBitmap(_slot, _scale_mul, _scale_div, true);
-    }
-    glyph->blackBoxX = (lUInt16)( FONT_METRIC_TO_PX( _slot->metrics.width ) );
-    glyph->blackBoxY = (lUInt16)( FONT_METRIC_TO_PX( _slot->metrics.height ) );
-    glyph->originX =   (lInt16)( FONT_METRIC_TO_PX( _slot->metrics.horiBearingX ) );
-    glyph->originY =   (lInt16)( FONT_METRIC_TO_PX( _slot->metrics.horiBearingY ) );
-    glyph->width =     (lUInt16)( FONT_METRIC_TO_PX( myabs(_slot->metrics.horiAdvance) ) );
-    if (glyph->blackBoxX == 0) // If a glyph has no blackbox (a spacing
-        glyph->rsb =   0;      // character), there is no bearing
-    else
-        glyph->rsb =   (lInt16)(FONT_METRIC_TO_PX( (myabs(_slot->metrics.horiAdvance)
-                                    - _slot->metrics.horiBearingX - _slot->metrics.width) ) );
-    // printf("%c: %d + %d + %d = %d (y: %d + %d)\n", code, glyph->originX, glyph->blackBoxX,
-    //                            glyph->rsb, glyph->width, glyph->originY, glyph->blackBoxY);
-    // (Old) Note: these >>6 on a negative number will floor() it, so we'll get
-    // a ceil()'ed value when considering negative numbers as some overflow,
-    // which is good when we're using it for adding some padding.
-    return true;
+    return getGlyphIndexInfo(glyph_index, glyph);
 }
 
 bool LVFreeTypeFace::getGlyphExtraMetric( glyph_extra_metric_t metric, lUInt32 code, int & value, bool scaled_to_px, lChar32 def_char, lUInt32 fallbackPassMask ) {
