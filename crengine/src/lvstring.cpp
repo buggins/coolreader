@@ -70,7 +70,7 @@ static int size_8 = 0;
 
 /// get reference to atomic constant string for string literal e.g. cs8("abc") -- fast and memory effective
 const lString8 & cs8(const char * str) {
-    int index =  (int)(((ptrdiff_t)str * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK);
+    unsigned int index =  (unsigned int)(((ptrdiff_t)str * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK);
     for (;;) {
         const void * p = const_ptrs_8[index];
         if (p == str) {
@@ -99,7 +99,7 @@ static int size_32 = 0;
 
 /// get reference to atomic constant wide string for string literal e.g. cs32("abc") -- fast and memory effective
 const lString32 & cs32(const char * str) {
-    int index =  (int)(((ptrdiff_t)str * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK);
+    unsigned int index =  (unsigned int)(((ptrdiff_t)str * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK);
     for (;;) {
         const void * p = const_ptrs_32[index];
         if (p == str) {
@@ -124,7 +124,7 @@ const lString32 & cs32(const char * str) {
 
 /// get reference to atomic constant wide string for string literal e.g. cs32(U"abc") -- fast and memory effective
 const lString32 & cs32(const lChar32 * str) {
-    int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
+    unsigned int index = (((unsigned int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
     for (;;) {
         const void * p = const_ptrs_32[index];
         if (p == str) {
