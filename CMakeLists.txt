@@ -277,10 +277,8 @@ if (NOT MSVC)
 endif(NOT MSVC)
 
 if (FONTCONFIG_FOUND)
-	message("System FontConfig found")
 	set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_FONTCONFIG=1)
 else()
-	message("System FontConfig not found")
 	set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_FONTCONFIG=0)
 endif (FONTCONFIG_FOUND)
 
@@ -321,6 +319,14 @@ if (NOT ZSTD_FOUND)
     SET(ZSTD_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${REPO_ZSTD_SRCDIR}/lib CACHE PATH "Include directories needed to use ZSTD" FORCE)
     SET(ZSTD_LIBRARIES libzstd_static CACHE FILEPATH "Libraries needed to link to ZSTD" FORCE)
 endif(NOT ZSTD_FOUND)
+
+find_package(utf8proc)
+
+if (UTF8PROC_FOUND)
+	set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_UTF8PROC=1)
+else()
+	set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_UTF8PROC=0)
+endif (UTF8PROC_FOUND)
 
 endif (NOT MAC)
 
@@ -379,6 +385,9 @@ SET(STD_LIBS
 if (FONTCONFIG_FOUND)
 	set(STD_LIBS ${STD_LIBS} ${FONTCONFIG_LIBRARIES})
 endif (FONTCONFIG_FOUND)
+if (UTF8PROC_FOUND)
+	set(STD_LIBS ${STD_LIBS} ${UTF8PROC_LIBRARIES})
+endif (UTF8PROC_FOUND)
 include_directories(${FT_INCLUDE_PATH})
 endif ( ${GUI} STREQUAL FB2PROPS )
 
@@ -390,8 +399,6 @@ message("Will make tinydict library - .dict format support")
 ADD_SUBDIRECTORY(tinydict)
 endif ( NOT ${GUI} STREQUAL FB2PROPS )
 
-
-include(FindPkgConfig)
 
 if ( ${GUI} STREQUAL CRGUI_XCB )
   message("Will make CR3GUI for XCB")
