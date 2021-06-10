@@ -28,6 +28,7 @@ include_directories(${CR3_ROOT}/thirdparty/${REPO_FRIBIDI_SRCDIR}/lib)
 include_directories(thirdparty_libs/fribidi/lib)
 include_directories(${CR3_ROOT}/thirdparty/${REPO_LIBUNIBREAK_SRCDIR}/src)
 include_directories(${CR3_ROOT}/thirdparty/${REPO_ZSTD_SRCDIR}/lib)
+include_directories(${CR3_ROOT}/thirdparty/${REPO_UTF8PROC_SRCDIR})
 
 add_definitions(-DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH)
 add_definitions(-DFT_CONFIG_MODULES_H=<android/config/ftmodule.h> -DFT_CONFIG_OPTIONS_H=<android/config/ftoption.h>)
@@ -40,6 +41,7 @@ add_definitions(-DMAX_IMAGE_SCALE_MUL=2)
 add_definitions(-DUSE_NANOSVG=1)
 add_definitions(-DBUNDLED_FRIBIDI=1)
 add_definitions(-DKO_LIBUNIBREAK_PATCH=1)       # patch "add_lb_get_char_class.patch" for libunibreak from koreader
+add_definitions(-DUSE_UTF8PROC=1)
 
 #set(LOCAL_CFLAGS "-Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall")
 # Option '-Wl,--no-merge-exidx-entries' removed as incompatible with clang.
@@ -227,6 +229,7 @@ target_link_libraries( # Specifies the target library.
         local_unibreak
         local_qimagescale
         local_zstd
+        local_utf8proc
 
         # Links the target library to the log library
         # included in the NDK.

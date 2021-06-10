@@ -161,3 +161,4 @@ deploy_package harfbuzz
 deploy_package fribidi
 deploy_package zlib
 deploy_package zstd
+deploy_package utf8proc
