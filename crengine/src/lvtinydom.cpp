@@ -6406,9 +6406,11 @@ int initTableRendMethods( ldomNode * enode, int state )
 
 bool hasInvisibleParent( ldomNode * node )
 {
-    for ( ; !node->isRoot(); node = node->getParentNode() )
-        if ( node->getStyle()->display==css_d_none )
+    for ( ; node && !node->isRoot(); node = node->getParentNode() ) {
+        css_style_ref_t style = node->getStyle();
+        if (!style.isNull() && style->display == css_d_none)
             return true;
+    }
     return false;
 }
 
