@@ -75,7 +75,7 @@ void CCRTable::MathML_checkAndTweakTableElement() {
                     i++; // keep it in row1 as a filler for the missing cell at top right
                 }
                 else {
-                    row1->cells.remove(i); // remove it
+                    delete row1->cells.remove(i); // remove it
                 }
                 insert_at = 0; // next cells will be moved at start of rows
                 next_is_sup = false; // next is a sub

@@ -1735,6 +1735,7 @@ static void fixupMathMLRecursive( ldomNode * node, bool is_in_script ) {
         }
     }
     fixupMathML( node, is_in_script );
+    node->persist();
     return;
         // If we would be inseting nodes in the upper tree, we might
         // want to use a non-recursive subtree walker
