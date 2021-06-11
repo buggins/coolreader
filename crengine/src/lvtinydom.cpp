@@ -4133,14 +4133,8 @@ ldomDocument::ldomDocument()
 , lists(100)
 {
     _docIndex = ldomNode::registerDocument(this);
-    allocTinyElement(NULL, 0, 0);
-    // Note: valgrind reports (sometimes, when some document is opened or closed,
-    // with metadataOnly or not) a memory leak (64 bytes in 1 blocks are definitely
-    // lost), about this, created in allocTinyElement():
-    //    tinyElement * elem = new tinyElement(...)
-    // possibly because it's not anchored anywhere.
-    // Attempt at anchoring into a _nullNode, and calling ->detroy()
-    // in ~ldomDocument(), did not prevent this report, and caused other ones...
+    ldomNode* node = allocTinyElement(NULL, 0, 0);
+    node->persist();
 
     //new ldomElement( this, NULL, 0, 0, 0 );
     //assert( _instanceMapCount==2 );
