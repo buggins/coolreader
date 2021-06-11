@@ -19,7 +19,13 @@ static const lChar32 * const OPC_PropertiesContentType = U"application/vnd.openx
 
 OpcPart::~OpcPart()
 {
-    m_relations.clear();
+    LVHashTable<lString32, LVHashTable<lString32, lString32> *>::iterator it = m_relations.forwardIterator();
+    LVHashTable<lString32, LVHashTable<lString32, lString32> *>::pair* p;
+    while ((p = it.next()) != NULL) {
+        LVHashTable<lString32, lString32>* relationsTable = p->value;
+        if (relationsTable)
+            delete relationsTable;
+    }
 }
 
 LVStreamRef OpcPart::open()
