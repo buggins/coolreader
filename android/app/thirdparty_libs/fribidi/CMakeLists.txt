@@ -1,4 +1,4 @@
-project(fribidi C)
+project(local_fribidi C)
 
 cmake_minimum_required(VERSION 3.4)
 
@@ -31,4 +31,4 @@ set(FRIBIDI_SOURCE
 		${FRIBIDI_SOURCE_DIR}/lib/fribidi-shape.c
 )
 
-add_library(fribidi STATIC ${FRIBIDI_SOURCE})
+add_library(local_fribidi STATIC ${FRIBIDI_SOURCE})

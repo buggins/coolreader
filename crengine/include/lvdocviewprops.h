@@ -42,6 +42,7 @@
 #define PROP_BOOKMARK_ICONS          "crengine.bookmarks.icons"
 #define PROP_FOOTNOTES               "crengine.footnotes"
 #define PROP_SHOW_TIME               "window.status.clock"
+#define PROP_SHOW_TIME_12HOURS       "window.status.clock.12hours"
 #define PROP_SHOW_TITLE              "window.status.title"
 #define PROP_STATUS_CHAPTER_MARKS    "crengine.page.header.chapter.marks"
 #define PROP_SHOW_BATTERY            "window.status.battery"

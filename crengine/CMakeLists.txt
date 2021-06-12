@@ -23,7 +23,6 @@ SET (CRENGINE_SOURCES
     src/txtselector.cpp
     #src/xutils.cpp
     src/crtest.cpp
-    src/xxhash.c
     src/textlang.cpp
     src/lvstream/lvdefstreambuffer.cpp
     src/lvstream/lvfilemappedstream.cpp
@@ -76,6 +75,7 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
         src/odtfmt.cpp
         src/odxutil.cpp
         src/crconcurrent.cpp
+        src/mathml.cpp
         src/lvimg/lvcacheableobject.cpp
         src/lvimg/lvimagesource.cpp
         src/lvimg/crninepatchdecoder.cpp
@@ -110,6 +110,7 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
         src/lvdrawbuf/lvbasedrawbuf.cpp
         src/lvdrawbuf/lvgraydrawbuf.cpp
         src/lvdrawbuf/lvcolordrawbuf.cpp
+        src/lvdrawbuf/lvinkmeasurementdrawbuf.cpp
         src/lvdrawbuf/lvimagescaleddrawcallback.cpp
         src/lvdrawbuf/lvdrawbuf_utils.cpp
         #src/xutils.cpp

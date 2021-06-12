@@ -83,12 +83,11 @@
 
 extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 
-
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.12.75"
+#define CACHE_FILE_FORMAT_VERSION "3.12.80"
 
 /// increment following value to force re-formatting of old book after load
-#define FORMATTING_VERSION_ID 0x0026
+#define FORMATTING_VERSION_ID 0x0027
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -160,9 +159,6 @@ extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 #define WRITE_CACHE_BLOCK_COUNT (WRITE_CACHE_TOTAL_SIZE/WRITE_CACHE_BLOCK_SIZE)
 #define TEST_BLOCK_STREAM 0
 
-#define PACK_BUF_SIZE 0x10000
-#define UNPACK_BUF_SIZE 0x40000
-
 #define RECT_DATA_CHUNK_ITEMS (1<<RECT_DATA_CHUNK_ITEMS_SHIFT)
 #define RECT_DATA_CHUNK_SIZE (RECT_DATA_CHUNK_ITEMS*sizeof(lvdomElementFormatRec))
 #define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
@@ -176,10 +172,16 @@ extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 #define FONT_HASH_TABLE_SIZE      256
 
 
-static const char COMPRESSED_CACHE_FILE_MAGIC[] = "CoolReader 3 Cache"
+static const char COMPRESSED_ZLIB_CACHE_FILE_MAGIC[] = "CoolReader 3 Cache"
                                        " File v" CACHE_FILE_FORMAT_VERSION ": "
                                        "c0"
                                        "m1"
+                                        "\n";
+
+static const char COMPRESSED_ZSTD_CACHE_FILE_MAGIC[] = "CoolReader 3 Cache"
+                                       " File v" CACHE_FILE_FORMAT_VERSION ": "
+                                       "c0"
+                                       "mS"
                                         "\n";
 
 static const char UNCOMPRESSED_CACHE_FILE_MAGIC[] = "CoolReader 3 Cache"
@@ -237,19 +239,36 @@ enum CacheFileBlockType {
 
 #include <stddef.h>
 #include <math.h>
+#if (USE_ZSTD == 1)
+#include <zstd.h>
+#endif
+#if (USE_ZLIB == 1)
 #include <zlib.h>
-#include <xxhash.h>
+#endif
+#define XXH_INLINE_ALL
+#include "xxhash.h"
 #include <lvtextfm.h>
+
+#if (USE_ZLIB == 1)
+#define PACK_BUF_SIZE 0x10000
+#define UNPACK_BUF_SIZE 0x40000
+#endif
 
 // define to store new text nodes as persistent text, instead of mutable
 #define USE_PERSISTENT_TEXT 1
 
-
 // default is to compress to use smaller cache files (but slower rendering
 // and page turns with big documents)
-static bool _compressCachedData = true;
-void compressCachedData(bool enable) {
-	_compressCachedData = enable;
+static CacheCompressionType _cacheCompressionType = 
+#if (USE_ZSTD==1)
+        CacheCompressionZSTD;
+#elif (USE_ZLIB==1)
+        CacheCompressionZlib;
+#else
+        CacheCompressionNone;
+#endif
+void setCacheCompressionType(CacheCompressionType type) {
+	_cacheCompressionType = type;
 }
 
 // default is to use the TEXT_CACHE_UNPACKED_SPACE & co defined above as is
@@ -345,12 +364,6 @@ public:
 //#define INDEX1 105
 //#define INDEX2 106
 
-/// pack data from _buf to _compbuf
-bool ldomPack( const lUInt8 * buf, int bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize );
-/// unpack data from _compbuf to _buf
-bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  );
-
-
 #if BUILD_LITE!=1
 
 //static lUInt32 calcHash32( const lUInt8 * s, int len )
@@ -386,7 +399,7 @@ static lUInt64 calcHash64( const lUInt8 * s, int len )
 }*/
 static lUInt32 calcHash(const lUInt8 * s, int len)
 {
-return XXH32(s,len,0);
+    return XXH32(s, len, 0);
 }
 lUInt32 calcGlobalSettingsHash(int documentId, bool already_rendered)
 {
@@ -399,7 +412,6 @@ lUInt32 calcGlobalSettingsHash(int documentId, bool already_rendered)
     hash = hash * 31 + LVRendGetBaseFontWeight();
     hash = hash * 31 + fontMan->GetFallbackFontFaces().getHash();
     hash = hash * 31 + gRenderDPI;
-    hash = hash * 31 + gRootFontSize;
     // If not yet rendered (initial loading with XML parsing), we can
     // ignore some global flags that have not yet produced any effect,
     // so they can possibly be updated between loading and rendering
@@ -490,8 +502,19 @@ struct SimpleCacheFileHeader
     char _magic[CACHE_FILE_MAGIC_SIZE] = { 0 }; // magic
     lUInt32 _dirty;
     lUInt32 _dom_version;
-    SimpleCacheFileHeader( lUInt32 dirtyFlag, lUInt32 domVersion ) {
-        memcpy( _magic, _compressCachedData ? COMPRESSED_CACHE_FILE_MAGIC : UNCOMPRESSED_CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE );
+    SimpleCacheFileHeader( lUInt32 dirtyFlag, lUInt32 domVersion, CacheCompressionType comptype ) {
+        switch (comptype) {
+        case CacheCompressionZSTD:
+            memcpy( _magic, COMPRESSED_ZSTD_CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE );
+            break;
+        case CacheCompressionZlib:
+            memcpy( _magic, COMPRESSED_ZLIB_CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE );
+            break;
+        case CacheCompressionNone:
+        default:
+            memcpy( _magic, UNCOMPRESSED_CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE );
+            break;
+        }
         _dirty = dirtyFlag;
         _dom_version = domVersion;
     }
@@ -507,7 +530,13 @@ struct CacheFileHeader : public SimpleCacheFileHeader
     // duplicate of one of index records which contains
     bool validate(lUInt32 domVersionRequested)
     {
-        if (memcmp(_magic, _compressCachedData ? COMPRESSED_CACHE_FILE_MAGIC : UNCOMPRESSED_CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE) != 0) {
+        bool comp_match = false;
+        comp_match = memcmp(_magic, COMPRESSED_ZSTD_CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE) == 0;
+        if (!comp_match)
+            comp_match = memcmp(_magic, COMPRESSED_ZLIB_CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE) == 0;
+        if (!comp_match)
+            comp_match = memcmp(_magic, UNCOMPRESSED_CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE) == 0;
+        if (!comp_match) {
             CRLog::error("CacheFileHeader::validate: magic doesn't match");
             return false;
         }
@@ -523,10 +552,21 @@ struct CacheFileHeader : public SimpleCacheFileHeader
         }
         return true;
     }
-    CacheFileHeader( CacheFileItem * indexRec, int fsize, lUInt32 dirtyFlag, lUInt32 domVersion )
-    : SimpleCacheFileHeader(dirtyFlag, domVersion), _indexBlock(0,0)
-    , _padding(0)
-    {
+    CacheCompressionType compressionType() {
+        if (memcmp(_magic, COMPRESSED_ZSTD_CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE) == 0)
+            return CacheCompressionZSTD;
+        if (memcmp(_magic, COMPRESSED_ZLIB_CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE) == 0)
+            return CacheCompressionZlib;
+        return CacheCompressionNone;
+    }
+    CacheFileHeader()
+    : SimpleCacheFileHeader(0, 0, CacheCompressionNone)
+     , _fsize(0), _padding(0), _indexBlock(0,0) {
+        memset( &_indexBlock, 0, sizeof(CacheFileItem));
+    }
+    CacheFileHeader( CacheFileItem * indexRec, int fsize, lUInt32 dirtyFlag, lUInt32 domVersion, CacheCompressionType comptype )
+    : SimpleCacheFileHeader(dirtyFlag, domVersion, comptype)
+    , _padding(0), _indexBlock(0,0) {
         if ( indexRec ) {
             memcpy( &_indexBlock, indexRec, sizeof(CacheFileItem));
         } else
@@ -538,6 +578,27 @@ struct CacheFileHeader : public SimpleCacheFileHeader
 /**
  * Cache file implementation.
  */
+#if (USE_ZSTD == 1)
+typedef struct {
+    void* buffOut;
+    size_t buffOutSize;
+    ZSTD_CCtx* cctx;
+} zstd_comp_res_t;
+typedef struct {
+    void* buffOut;
+    size_t buffOutSize;
+    ZSTD_DCtx* dctx;
+} zstd_decomp_res_t;
+#endif
+
+#if (USE_ZLIB == 1)
+typedef struct {
+    size_t buffSize;
+    z_stream zstream;
+    Bytef buff[1];
+} zlib_res_t;
+#endif
+
 class CacheFile
 {
     int _sectorSize; // block position and size granularity
@@ -545,11 +606,20 @@ class CacheFile
     bool _indexChanged;
     bool _dirty;
     lUInt32 _domVersion;
+    CacheCompressionType _compType;
     lString32 _cachePath;
     LVStreamRef _stream; // file stream
     LVPtrVector<CacheFileItem, true> _index; // full file block index
     LVPtrVector<CacheFileItem, false> _freeIndex; // free file block index
     LVHashTable<lUInt32, CacheFileItem*> _map; // hash map for fast search
+#if (USE_ZSTD == 1)
+    zstd_comp_res_t* _zstd_comp_res;
+    zstd_decomp_res_t* _zstd_decomp_res;
+#endif
+#if (USE_ZLIB == 1)
+    zlib_res_t* _zlib_comp_res;
+    zlib_res_t* _zlib_uncomp_res;
+#endif
     // searches for existing block
     CacheFileItem * findBlock( lUInt16 type, lUInt16 index );
     // alocates block at index, reuses existing one, if possible
@@ -564,11 +634,32 @@ class CacheFile
     bool readIndex();
     // reads all blocks of index and checks CRCs
     bool validateContents();
+    
+#if (USE_ZSTD == 1)
+    bool zstdAllocComp();
+    void zstdCleanComp();
+    bool zstdAllocDecomp();
+    void zstdCleanDecomp();
+    /// pack data from buf to dstbuf (using zstd)
+    bool zstdPack( const lUInt8 * buf, size_t bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize );
+    /// unpack data from compbuf to dstbuf (using zstd)
+    bool zstdUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize );
+#endif
+#if (USE_ZLIB == 1)
+    bool zlibAllocCompRes();
+    void zlibCompCleanup();
+    bool zlibAllocUncompRes();
+    void zlibUncompCleanup();
+    /// pack data from buf to dstbuf (using zlib)
+    bool zlibPack( const lUInt8 * buf, size_t bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize );
+    /// unpack data from compbuf to dstbuf (using zlib)
+    bool zlibUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize );
+#endif
 public:
     // return current file size
     int getSize() { return _size; }
     // create uninitialized cache file, call open or create to initialize
-    CacheFile(lUInt32 domVersion);
+    CacheFile(lUInt32 domVersion, CacheCompressionType compType);
     // free resources
     ~CacheFile();
     // try open existing cache file
@@ -602,6 +693,15 @@ public:
     /// reads block as a stream
     LVStreamRef readStream(lUInt16 type, lUInt16 index);
 
+    /// cleanup resources used by the compressor
+    void cleanupCompressor();
+    /// cleanup resources used by the decompressor
+    void cleanupUncompressor();
+    /// pack data from buf to dstbuf
+    bool ldomPack(const lUInt8 * buf, size_t bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize);
+    /// unpack data from compbuf to dstbuf
+    bool ldomUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize );
+
     /// sets dirty flag value, returns true if value is changed
     bool setDirtyFlag( bool dirty );
     /// sets DOM version value, returns true if value is changed
@@ -625,8 +725,14 @@ public:
 
 
 // create uninitialized cache file, call open or create to initialize
-CacheFile::CacheFile(lUInt32 domVersion)
-: _sectorSize( CACHE_FILE_SECTOR_SIZE ), _size(0), _indexChanged(false), _dirty(true), _domVersion(domVersion), _map(1024), _cachePath(lString32::empty_str)
+CacheFile::CacheFile(lUInt32 domVersion, CacheCompressionType compType)
+: _sectorSize( CACHE_FILE_SECTOR_SIZE ), _size(0), _indexChanged(false), _dirty(true), _domVersion(domVersion), _compType(compType), _map(1024), _cachePath(lString32::empty_str)
+#if (USE_ZSTD == 1)
+    , _zstd_comp_res(nullptr), _zstd_decomp_res(nullptr)
+#endif
+#if (USE_ZLIB == 1)
+    , _zlib_comp_res(nullptr), _zlib_uncomp_res(nullptr)
+#endif
 {
 }
 
@@ -638,6 +744,14 @@ CacheFile::~CacheFile()
         //CRTimerUtil infinite;
         //flush( true, infinite );
     }
+#if (USE_ZSTD == 1)
+    zstdCleanComp();
+    zstdCleanDecomp();
+#endif
+#if (USE_ZLIB == 1)
+    zlibCompCleanup();
+    zlibUncompCleanup();
+#endif
 }
 
 /// sets dirty flag value, returns true if value is changed
@@ -652,7 +766,7 @@ bool CacheFile::setDirtyFlag( bool dirty )
         CRLog::info("CacheFile::setting Dirty flag");
     }
     _dirty = dirty;
-    SimpleCacheFileHeader hdr(_dirty?1:0, _domVersion);
+    SimpleCacheFileHeader hdr(_dirty?1:0, _domVersion, _compType);
     _stream->SetPos(0);
     lvsize_t bytesWritten = 0;
     _stream->Write(&hdr, sizeof(hdr), &bytesWritten );
@@ -668,7 +782,7 @@ bool CacheFile::setDOMVersion( lUInt32 domVersion ) {
         return false;
     CRLog::info("CacheFile::setting DOM version value");
     _domVersion = domVersion;
-    SimpleCacheFileHeader hdr(_dirty?1:0, _domVersion);
+    SimpleCacheFileHeader hdr(_dirty?1:0, _domVersion, _compType);
     _stream->SetPos(0);
     lvsize_t bytesWritten = 0;
     _stream->Write(&hdr, sizeof(hdr), &bytesWritten );
@@ -714,7 +828,7 @@ bool CacheFile::validateContents()
 // reads index from file
 bool CacheFile::readIndex()
 {
-    CacheFileHeader hdr(NULL, _size, 0, 0);
+    CacheFileHeader hdr;
     _stream->SetPos(0);
     lvsize_t bytesRead = 0;
     _stream->Read(&hdr, sizeof(hdr), &bytesRead );
@@ -722,10 +836,15 @@ bool CacheFile::readIndex()
         return false;
     CRLog::info("Header read: DirtyFlag=%d", hdr._dirty);
     CRLog::info("Header read: DOM level=%u", hdr._dom_version);
+    CRLog::info("Header read: compression type=%u", (int)hdr.compressionType());
     if ( !hdr.validate(_domVersion) )
         return false;
     if ( (int)hdr._fsize > _size + 4096-1 ) {
         CRLog::error("CacheFile::readIndex: file size doesn't match with header");
+        return false;
+    }
+    if ( hdr.compressionType() != _compType ) {
+        CRLog::error("CacheFile::readIndex: compression type does not match the target");
         return false;
     }
     if ( !hdr._indexBlock._blockFilePos )
@@ -830,7 +949,7 @@ bool CacheFile::updateHeader()
 {
     CacheFileItem * indexItem = NULL;
     indexItem = findBlock(CBT_INDEX, 0);
-    CacheFileHeader hdr(indexItem, _size, _dirty?1:0, _domVersion);
+    CacheFileHeader hdr(indexItem, _size, _dirty?1:0, _domVersion, _compType);
     _stream->SetPos(0);
     lvsize_t bytesWritten = 0;
     _stream->Write(&hdr, sizeof(hdr), &bytesWritten );
@@ -985,9 +1104,9 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
         return false;
     }
 
-    bool compress = block->_uncompressedSize!=0;
+    bool compressed = block->_uncompressedSize!=0;
 
-    if ( compress ) {
+    if ( compressed ) {
         // block is compressed
 
         // check crc separately only for compressed data
@@ -1052,7 +1171,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
 
     lUInt32 uncompressedSize = 0;
     lUInt64 newpackedhash = newhash;
-    if (!_compressCachedData)
+    if (_compType == CacheCompressionNone)
         compress = false;
     if ( compress ) {
         lUInt8 * dstbuf = NULL;
@@ -1233,6 +1352,459 @@ bool CacheFile::create( LVStreamRef stream )
     return true;
 }
 
+#if (USE_ZSTD == 1)
+bool CacheFile::zstdAllocComp()
+{
+    // printf("zstdtag: CacheFile::zstdAllocComp\n");
+    _zstd_comp_res = (zstd_comp_res_t*)malloc(sizeof(zstd_comp_res_t));
+    if (!_zstd_comp_res)
+        return false;
+
+    _zstd_comp_res->buffOutSize = ZSTD_CStreamOutSize();
+    _zstd_comp_res->buffOut = malloc(_zstd_comp_res->buffOutSize);
+    if (!_zstd_comp_res->buffOut) {
+        free(_zstd_comp_res);
+        _zstd_comp_res = nullptr;
+        return false;
+    }
+    _zstd_comp_res->cctx = ZSTD_createCCtx();
+    if (_zstd_comp_res->cctx == nullptr) {
+        free(_zstd_comp_res->buffOut);
+        free(_zstd_comp_res);
+        _zstd_comp_res = nullptr;
+        return false;
+    }
+
+    // Parameters are sticky
+    // NOTE: ZSTD_CLEVEL_DEFAULT is currently 3, sane range is 1-19
+    ZSTD_CCtx_setParameter(_zstd_comp_res->cctx, ZSTD_c_compressionLevel, ZSTD_CLEVEL_DEFAULT);
+    // This would be redundant with CRe's own calcHash, AFAICT?
+    //ZSTD_CCtx_setParameter(_comp_ress->cctx, ZSTD_c_checksumFlag, 1);
+
+    // Threading? (Requires libzstd built w/ threading support)
+    // NOTE: Since we always use ZSTD_e_end, which basically defers to ZSTD_compress2(), this will *not* make it async,
+    //       it'll still block.
+    //ZSTD_CCtx_setParameter(_comp_ress->cctx, ZSTD_c_nbWorkers, 4);
+
+    return true;
+}
+
+void CacheFile::zstdCleanComp()
+{
+    // printf("zstdtag: CacheFile::zstdCleanComp\n");
+    if (_zstd_comp_res) {
+        if (_zstd_comp_res->cctx)
+            ZSTD_freeCCtx(_zstd_comp_res->cctx);
+        if (_zstd_comp_res->buffOut)
+            free(_zstd_comp_res->buffOut);
+        free(_zstd_comp_res);
+        _zstd_comp_res = nullptr;
+    }
+}
+
+/// pack data from buf to dstbuf (using zstd)
+bool CacheFile::zstdPack( const lUInt8 * buf, size_t bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize )
+{
+    // printf("zstdtag: zstdPack() <- %p (%zu)\n", buf, bufsize);
+
+    // Lazy init our resources, and keep 'em around
+    if (!_zstd_comp_res) {
+        if(!zstdAllocComp()) {
+            CRLog::error("zstdPack() failed to allocate resources");
+            return false;
+        }
+    }
+
+    // c.f., ZSTD's examples/streaming_compression.c
+    // NOTE: We could probably gain much by training zstd and using a dictionary, here ;).
+    size_t const buffOutSize = _zstd_comp_res->buffOutSize;
+    void*  const buffOut = _zstd_comp_res->buffOut;
+    ZSTD_CCtx* const cctx = _zstd_comp_res->cctx;
+
+    // Reset the context
+    size_t const err = ZSTD_CCtx_reset(cctx, ZSTD_reset_session_only);
+    if (ZSTD_isError(err)) {
+        CRLog::error("ZSTD_CCtx_reset() error: %s", ZSTD_getErrorName(err));
+        return false;
+    }
+
+    // Tell the compressor just how much data we need to compress
+    ZSTD_CCtx_setPledgedSrcSize(cctx, bufsize);
+
+    // Debug: compare current buffOutSize against the worst-case
+    // printf("zstdtag: ZSTD_compressBound(): %zu\n", ZSTD_compressBound(bufsize));
+
+    size_t compressed_size = 0;
+    lUInt8 *compressed_buf = NULL;
+
+    ZSTD_EndDirective const mode = ZSTD_e_end;
+    ZSTD_inBuffer input;
+    ZSTD_outBuffer output;
+    input.src = buf;
+    input.size = bufsize;
+    input.pos = 0;
+    int finished = 0;
+    do {
+        output.dst = buffOut;
+        output.size = buffOutSize;
+        output.pos = 0;
+        size_t const remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
+        if (ZSTD_isError(remaining)) {
+            CRLog::error("zstdtag: ZSTD_compressStream2() error: %s (%zu -> %zu)", ZSTD_getErrorName(remaining), bufsize, compressed_size);
+            if (compressed_buf) {
+                free(compressed_buf);
+            }
+            return false;
+        }
+
+        compressed_buf = cr_realloc(compressed_buf, compressed_size + output.pos);
+        memcpy(compressed_buf + compressed_size, buffOut, output.pos);
+        compressed_size += output.pos;
+
+        finished = (remaining == 0);
+        // printf("zstdtag: zstdPack(): finished? %d (current chunk: %zu/%zu; total in: %zu; total out: %zu)\n", finished, output.pos, output.size, bufsize, compressed_size);
+    } while (!finished);
+
+    dstsize = compressed_size;
+    dstbuf = compressed_buf;
+    // printf("zstdtag: zstdPack() done: %zu -> %zu\n", bufsize, compressed_size);
+    return true;
+}
+
+bool CacheFile::zstdAllocDecomp()
+{
+    // printf("zstdtag: CacheFile::zstdAllocDecomp\n");
+    _zstd_decomp_res = (zstd_decomp_res_t*)malloc(sizeof(zstd_decomp_res_t));
+    if (!_zstd_decomp_res)
+        return false;
+
+    _zstd_decomp_res->buffOutSize = ZSTD_DStreamOutSize();
+    _zstd_decomp_res->buffOut = malloc(_zstd_decomp_res->buffOutSize);
+    if (!_zstd_decomp_res->buffOut) {
+        free(_zstd_decomp_res);
+        _zstd_decomp_res = nullptr;
+        return false;
+    }
+    _zstd_decomp_res->dctx = ZSTD_createDCtx();
+    if (_zstd_decomp_res->dctx == nullptr) {
+        free(_zstd_decomp_res->buffOut);
+        free(_zstd_decomp_res);
+        _zstd_decomp_res = nullptr;
+        return false;
+    }
+
+    return true;
+}
+
+void CacheFile::zstdCleanDecomp()
+{
+    // printf("zstdtag: CacheFile::zstdCleanDecomp\n");
+    if (_zstd_decomp_res) {
+        if (_zstd_decomp_res->dctx)
+            ZSTD_freeDCtx(_zstd_decomp_res->dctx);
+        if (_zstd_decomp_res->buffOut)
+            free(_zstd_decomp_res->buffOut);
+        free(_zstd_decomp_res);
+        _zstd_decomp_res = nullptr;
+    }
+}
+
+/// unpack data from compbuf to dstbuf (using zstd)
+bool CacheFile::zstdUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  )
+{
+    // printf("zstdtag: zstdUnpack() <- %p (%zu)\n", compbuf, compsize);
+
+    // Lazy init our resources, and keep 'em around
+    if (!_zstd_decomp_res) {
+        if(!zstdAllocDecomp()) {
+            CRLog::error("zstdUnpack() failed to allocate resources");
+            return false;
+        }
+    }
+
+    // c.f., ZSTD's examples/streaming_decompression.c
+    size_t const buffOutSize = _zstd_decomp_res->buffOutSize;
+    void*  const buffOut = _zstd_decomp_res->buffOut;
+    ZSTD_DCtx* const dctx = _zstd_decomp_res->dctx;
+
+    // Reset the context
+    size_t const err = ZSTD_DCtx_reset(dctx, ZSTD_reset_session_only);
+    if (ZSTD_isError(err)) {
+        CRLog::error("ZSTD_DCtx_reset() error: %s", ZSTD_getErrorName(err));
+        return false;
+    }
+
+    size_t uncompressed_size = 0;
+    lUInt8 *uncompressed_buf = NULL;
+
+    size_t lastRet = 0;
+    ZSTD_inBuffer input;
+    ZSTD_outBuffer output;
+    input.src = compbuf;
+    input.size = compsize;
+    input.pos = 0;
+    while (input.pos < input.size) {
+        output.dst = buffOut;
+        output.size = buffOutSize;
+        output.pos = 0;
+        size_t const ret = ZSTD_decompressStream(dctx, &output , &input);
+        if (ZSTD_isError(ret)) {
+            CRLog::error("zstdtag: ZSTD_decompressStream() error: %s (%zu -> %zu)", ZSTD_getErrorName(ret), compsize, uncompressed_size);
+            if (uncompressed_buf) {
+                free(uncompressed_buf);
+            }
+            return false;
+        }
+
+        uncompressed_buf = cr_realloc(uncompressed_buf, uncompressed_size + output.pos);
+        memcpy(uncompressed_buf + uncompressed_size, buffOut, output.pos);
+        uncompressed_size += output.pos;
+
+        lastRet = ret;
+        // printf("zstdtag: zstdUnpack(): ret: %zu (current chunk: %zu/%zu)\n", ret, output.pos, output.size);
+    }
+
+    if (lastRet != 0) {
+        CRLog::error("zstdtag: zstdUnpack(): EOF before end of stream: %zu", lastRet);
+        if (uncompressed_buf) {
+            free(uncompressed_buf);
+        }
+        return false;
+    }
+
+    dstsize = uncompressed_size;
+    dstbuf = uncompressed_buf;
+    // printf("zstdtag: zstdUnpack() done: %zu -> %zu\n", compsize, uncompressed_size);
+    return true;
+}
+#endif  // (USE_ZSTD==1)
+
+#if (USE_ZLIB == 1)
+bool CacheFile::zlibAllocCompRes() {
+    // printf("zlibtag: CacheFile::zlibAllocCompRes\n");
+    if (_zlib_comp_res)
+        return true;
+    _zlib_comp_res = (zlib_res_t*)malloc(sizeof(zlib_res_t) + PACK_BUF_SIZE - 1);
+    if (!_zlib_comp_res)
+        return false;
+    _zlib_comp_res->buffSize = PACK_BUF_SIZE;
+    z_streamp z = &_zlib_comp_res->zstream;
+    z->zalloc = Z_NULL;
+    z->zfree = Z_NULL;
+    z->opaque = Z_NULL;
+    int ret = deflateInit( z, DOC_DATA_COMPRESSION_LEVEL );
+    if ( ret != Z_OK ) {
+        free(_zlib_comp_res);
+        _zlib_comp_res = NULL;
+        return false;
+    }
+    return true;
+}
+
+void CacheFile::zlibCompCleanup() {
+    // printf("zlibtag: CacheFile::zlibCompCleanup\n");
+    if (_zlib_comp_res) {
+        zlib_res_t* res = (zlib_res_t*)_zlib_comp_res;
+        deflateEnd(&res->zstream);
+        free(_zlib_comp_res);
+        _zlib_comp_res = NULL;
+    }
+}
+
+bool CacheFile::zlibAllocUncompRes() {
+    // printf("zlibtag: CacheFile::zlibAllocUncompRes\n");
+    if (_zlib_uncomp_res)
+        return true;
+    _zlib_uncomp_res = (zlib_res_t*)malloc(sizeof(zlib_res_t) + UNPACK_BUF_SIZE - 1);
+    if (!_zlib_uncomp_res)
+        return false;
+    _zlib_uncomp_res->buffSize = UNPACK_BUF_SIZE;
+    z_streamp z = &_zlib_uncomp_res->zstream;
+    z->zalloc = Z_NULL;
+    z->zfree = Z_NULL;
+    z->opaque = Z_NULL;
+    int ret = inflateInit( z );
+    if ( ret != Z_OK ) {
+        free(_zlib_uncomp_res);
+        _zlib_uncomp_res = NULL;
+        return false;
+    }
+    return true;
+}
+
+void CacheFile::zlibUncompCleanup() {
+    // printf("zlibtag: CacheFile::zlibUncompCleanup\n");
+    if (_zlib_uncomp_res) {
+        zlib_res_t* res = (zlib_res_t*)_zlib_uncomp_res;
+        inflateEnd(&res->zstream);
+        free(_zlib_uncomp_res);
+        _zlib_uncomp_res = NULL;
+    }
+}
+
+/// pack data from buf to dstbuf (using zlib)
+bool CacheFile::zlibPack( const lUInt8 * buf, size_t bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize ) {
+    // printf("zlibtag: zlibPack() <- %p (%zu)\n", buf, bufsize);
+
+    // Lazy init our resources, and keep 'em around
+    if (!_zlib_comp_res) {
+        if(!zlibAllocCompRes()) {
+            CRLog::error("zlibtag: zlibPack() failed to allocate resources");
+            return false;
+        }
+    }
+
+    int ret;
+    z_streamp z = &_zlib_comp_res->zstream;
+    ret = deflateReset(z);
+    if (ret != Z_OK) {
+        CRLog::error("zlibtag: deflateReset() error: %d", ret);
+        return false;
+    }
+    z->avail_in = bufsize;
+    z->next_in = (unsigned char *)buf;
+    int compressed_size = 0;
+    lUInt8 *compressed_buf = NULL;
+    do {
+        z->avail_out = _zlib_comp_res->buffSize;
+        z->next_out = &_zlib_comp_res->buff[0];
+        ret = deflate( z, Z_FINISH );
+        if (ret == Z_STREAM_ERROR) { // some error occured while packing
+            deflateEnd(z);
+            if (compressed_buf)
+                free(compressed_buf);
+            // printf("zlibtag: deflate() error: %d (%d > %d)\n", ret, bufsize, compressed_size);
+            return false;
+        }
+        int have = _zlib_comp_res->buffSize - z->avail_out;
+        compressed_buf = cr_realloc(compressed_buf, compressed_size + have);
+        memcpy(compressed_buf + compressed_size, &_zlib_comp_res->buff[0], have );
+        compressed_size += have;
+        // printf("zlibtag: deflate() additional call needed (%d > %d)\n", bufsize, compressed_size);
+    } while (z->avail_out == 0);     // buffer fully filled => deflate in progress
+    dstsize = compressed_size;
+    dstbuf = compressed_buf;
+    // printf("zlibtag: deflate() done: %d > %d\n", bufsize, compressed_size);
+    return true;
+}
+
+/// unpack data from compbuf to dstbuf (using zlib)
+bool CacheFile::zlibUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  ) {
+    // printf("zlibtag: zlibUnpack() <- %p (%zu)\n", compbuf, compsize);
+
+    // Lazy init our resources, and keep 'em around
+    if (!_zlib_uncomp_res) {
+        if(!zlibAllocUncompRes()) {
+            CRLog::error("zlibtag: zlibUnpack() failed to allocate resources");
+            return false;
+        }
+    }
+
+    int ret;
+    z_streamp z = &_zlib_uncomp_res->zstream;
+    ret = inflateReset(z);
+    if (ret != Z_OK) {
+        CRLog::error("zlibtag: inflateReset() error: %d", ret);
+        return false;
+    }
+
+    z->avail_in = compsize;
+    z->next_in = (unsigned char *)compbuf;
+    lUInt32 uncompressed_size = 0;
+    lUInt8 *uncompressed_buf = NULL;
+    do {
+        z->avail_out = _zlib_uncomp_res->buffSize;
+        z->next_out = &_zlib_uncomp_res->buff[0];
+        ret = inflate( z, Z_SYNC_FLUSH );
+        if (ret != Z_OK && ret != Z_STREAM_END) { // some error occured while unpacking
+            inflateEnd(z);
+            if (uncompressed_buf)
+                free(uncompressed_buf);
+            dstbuf = NULL;
+            dstsize = 0;
+            // printf("zlibtag: inflate() error: %d (%d > %d)\n", ret, compsize, uncompressed_size);
+            return false;
+        }
+        lUInt32 have = _zlib_uncomp_res->buffSize - z->avail_out;
+        uncompressed_buf = cr_realloc(uncompressed_buf, uncompressed_size + have);
+        memcpy(uncompressed_buf + uncompressed_size, &_zlib_uncomp_res->buff[0], have );
+        uncompressed_size += have;
+        // printf("zlibtag: inflate() additional call needed (%d > %d)\n", compsize, uncompressed_size);
+    } while (ret != Z_STREAM_END);
+    dstsize = uncompressed_size;
+    dstbuf = uncompressed_buf;
+    // printf("zlibtag: inflate() done %d > %d\n", compsize, uncompressed_size);
+    return true;
+}
+#endif  // (USE_ZLIB==1)
+
+void CacheFile::cleanupCompressor() {
+    switch (_compType) {
+    case CacheCompressionZSTD:
+#if (USE_ZSTD==1)
+        zstdCleanComp();
+#endif
+        break;
+    case CacheCompressionZlib:
+#if (USE_ZLIB==1)
+        zlibCompCleanup();
+#endif
+        break;
+    }
+}
+
+void CacheFile::cleanupUncompressor() {
+    switch (_compType) {
+    case CacheCompressionZSTD:
+#if (USE_ZSTD==1)
+        zstdCleanDecomp();
+#endif
+        break;
+    case CacheCompressionZlib:
+#if (USE_ZLIB==1)
+        zlibUncompCleanup();
+#endif
+        break;
+    }
+}
+
+/// pack data from buf to dstbuf
+bool CacheFile::ldomPack( const lUInt8 * buf, size_t bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize ) {
+    switch (_compType) {
+    case CacheCompressionZSTD:
+#if (USE_ZSTD==1)
+        return zstdPack(buf, bufsize, dstbuf, dstsize);
+#endif
+        break;
+    case CacheCompressionZlib:
+#if (USE_ZLIB==1)
+        return zlibPack(buf, bufsize, dstbuf, dstsize);
+#endif
+        break;
+    case CacheCompressionNone:
+    default:
+        return false;
+    }
+    return false;
+}
+
+/// unpack data from compbuf to dstbuf
+bool CacheFile::ldomUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize ) {
+    switch (_compType) {
+    case CacheCompressionZSTD:
+#if (USE_ZSTD==1)
+        return zstdUnpack(compbuf, compsize, dstbuf, dstsize);
+#endif
+        break;
+    case CacheCompressionZlib:
+#if (USE_ZLIB==1)
+        return zlibUnpack(compbuf, compsize, dstbuf, dstsize);
+#endif
+        break;
+    }
+    return false;
+}
+
 // BLOB storage
 
 class ldomBlobItem {
@@ -1283,7 +1855,7 @@ ldomBlobCache::ldomBlobCache() : _cacheFile(NULL), _changed(false)
 bool ldomBlobCache::loadIndex()
 {
     bool res;
-    SerialBuf buf(0,true);
+    SerialBuf buf(0, true);
     res = _cacheFile->read(CBT_BLOB_INDEX, buf);
     if (!res) {
         _list.clear();
@@ -1311,7 +1883,7 @@ bool ldomBlobCache::loadIndex()
 bool ldomBlobCache::saveIndex()
 {
     bool res;
-    SerialBuf buf(0,true);
+    SerialBuf buf(0, true);
     buf.putMagic(BLOB_INDEX_MAGIC);
     lUInt32 len = _list.length();
     buf << len;
@@ -2145,7 +2717,7 @@ bool tinyNodeCollection::openCacheFile()
 {
     if ( _cacheFile )
         return true;
-    CacheFile * f = new CacheFile(_DOMVersionRequested);
+    CacheFile * f = new CacheFile(_DOMVersionRequested, _cacheCompressionType);
     //lString32 cacheFileName("/tmp/cr3swap.tmp");
 
     lString32 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
@@ -2195,7 +2767,7 @@ bool tinyNodeCollection::createCacheFile()
 {
     if ( _cacheFile )
         return true;
-    CacheFile * f = new CacheFile(_DOMVersionRequested);
+    CacheFile * f = new CacheFile(_DOMVersionRequested, _cacheCompressionType);
     //lString32 cacheFileName("/tmp/cr3swap.tmp");
 
     lString32 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
@@ -2213,11 +2785,13 @@ bool tinyNodeCollection::createCacheFile()
     lString32 cache_path;
     LVStreamRef map = ldomDocCache::createNew( fname, crc, getPersistenceFlags(), sz, cache_path );
     if ( map.isNull() ) {
+        CRLog::error("Cannot swap: failed to allocate cache map");
         delete f;
         return false;
     }
 
     if ( !f->create( map ) ) {
+        CRLog::error("Cannot swap: failed to create map file");
         delete f;
         return false;
     }
@@ -3259,92 +3833,6 @@ lString8 ldomTextStorageChunk::getText( int offset )
 }
 #endif
 
-
-/// pack data from _buf to _compbuf
-bool ldomPack( const lUInt8 * buf, int bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize )
-{
-    lUInt8 tmp[PACK_BUF_SIZE]; // 64K buffer for compressed data
-    int ret;
-    z_stream z;
-    z.zalloc = Z_NULL;
-    z.zfree = Z_NULL;
-    z.opaque = Z_NULL;
-    ret = deflateInit( &z, DOC_DATA_COMPRESSION_LEVEL );
-    if ( ret != Z_OK )
-        return false;
-    z.avail_in = bufsize;
-    z.next_in = (unsigned char *)buf;
-    int compressed_size = 0;
-    lUInt8 *compressed_buf = NULL;
-    while (true) {
-        z.avail_out = PACK_BUF_SIZE;
-        z.next_out = tmp;
-        ret = deflate( &z, Z_FINISH );
-        if (ret == Z_STREAM_ERROR) { // some error occured while packing
-            deflateEnd(&z);
-            if (compressed_buf)
-                free(compressed_buf);
-            // printf("deflate() error: %d (%d > %d)\n", ret, bufsize, compressed_size);
-            return false;
-        }
-        int have = PACK_BUF_SIZE - z.avail_out;
-        compressed_buf = cr_realloc(compressed_buf, compressed_size + have);
-        memcpy(compressed_buf + compressed_size, tmp, have );
-        compressed_size += have;
-        if (z.avail_out != 0) // buffer not fully filled = deflate is done
-            break;
-        // printf("deflate() additional call needed (%d > %d)\n", bufsize, compressed_size);
-    }
-    deflateEnd(&z);
-    dstsize = compressed_size;
-    dstbuf = compressed_buf;
-    // printf("deflate() done: %d > %d\n", bufsize, compressed_size);
-    return true;
-}
-
-/// unpack data from _compbuf to _buf
-bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  )
-{
-    lUInt8 tmp[UNPACK_BUF_SIZE]; // 256K buffer for uncompressed data
-    int ret;
-    z_stream z = { 0 };
-    z.zalloc = Z_NULL;
-    z.zfree = Z_NULL;
-    z.opaque = Z_NULL;
-    ret = inflateInit( &z );
-    if ( ret != Z_OK )
-        return false;
-    z.avail_in = compsize;
-    z.next_in = (unsigned char *)compbuf;
-    lUInt32 uncompressed_size = 0;
-    lUInt8 *uncompressed_buf = NULL;
-    while (true) {
-        z.avail_out = UNPACK_BUF_SIZE;
-        z.next_out = tmp;
-        ret = inflate( &z, Z_SYNC_FLUSH );
-        if (ret != Z_OK && ret != Z_STREAM_END) { // some error occured while unpacking
-            inflateEnd(&z);
-            if (uncompressed_buf)
-                free(uncompressed_buf);
-            // printf("inflate() error: %d (%d > %d)\n", ret, compsize, uncompressed_size);
-            return false;
-        }
-        lUInt32 have = UNPACK_BUF_SIZE - z.avail_out;
-        uncompressed_buf = cr_realloc(uncompressed_buf, uncompressed_size + have);
-        memcpy(uncompressed_buf + uncompressed_size, tmp, have );
-        uncompressed_size += have;
-        if (ret == Z_STREAM_END) {
-            break;
-        }
-        // printf("inflate() additional call needed (%d > %d)\n", compsize, uncompressed_size);
-    }
-    inflateEnd(&z);
-    dstsize = uncompressed_size;
-    dstbuf = uncompressed_buf;
-    // printf("inflate() done %d > %d\n", compsize, uncompressed_size);
-    return true;
-}
-
 void ldomTextStorageChunk::setunpacked( const lUInt8 * buf, int bufsize )
 {
     if ( _buf ) {
@@ -3372,10 +3860,10 @@ void ldomTextStorageChunk::ensureUnpacked()
                 CRTimerUtil timer;
                 timer.infinite();
                 _manager->_cache->flush(false,timer);
-                CRLog::warn( "restoreFromCache() failed for chunk %c%d,will try after flush", _type, _index);
-            if ( !restoreFromCache() ) {
-                CRLog::error( "restoreFromCache() failed for chunk %c%d", _type, _index);
-                crFatalError( 111, "restoreFromCache() failed for chunk");
+                CRLog::warn( "restoreFromCache() failed for chunk %c%d, will try after flush", _type, _index);
+                if ( !restoreFromCache() ) {
+                    CRLog::error( "restoreFromCache() failed for chunk %c%d", _type, _index);
+                    crFatalError( 111, "restoreFromCache() failed for chunk");
                 }
             }
             _manager->compact( 0, this );
@@ -3635,22 +4123,18 @@ ldomDocument::ldomDocument()
 , _last_docflags(0)
 , _page_height(0)
 , _page_width(0)
+, _parsing(false)
 , _rendered(false)
 , _just_rendered_from_cache(false)
 , _toc_from_cache_valid(false)
 , _warnings_seen_bitmap(0)
+, _doc_rendering_hash(0)
 #endif
 , lists(100)
 {
     _docIndex = ldomNode::registerDocument(this);
-    allocTinyElement(NULL, 0, 0);
-    // Note: valgrind reports (sometimes, when some document is opened or closed,
-    // with metadataOnly or not) a memory leak (64 bytes in 1 blocks are definitely
-    // lost), about this, created in allocTinyElement():
-    //    tinyElement * elem = new tinyElement(...)
-    // possibly because it's not anchored anywhere.
-    // Attempt at anchoring into a _nullNode, and calling ->detroy()
-    // in ~ldomDocument(), did not prevent this report, and caused other ones...
+    ldomNode* node = allocTinyElement(NULL, 0, 0);
+    node->persist();
 
     //new ldomElement( this, NULL, 0, 0, 0 );
     //assert( _instanceMapCount==2 );
@@ -3990,14 +4474,15 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
                 // (or the previous word if wordpos happens to be a space or some
                 // punctuation) by looking only for alpha chars in m_text.
                 int start, end;
-                lStr_findWordBounds( text32, txtlen, wordpos, start, end );
+                bool has_rtl;
+                lStr_findWordBounds( text32, txtlen, wordpos, start, end, has_rtl );
                 if ( end <= HYPH_MIN_WORD_LEN_TO_HYPHENATE ) {
                     // Too short word at start, we're done
                     break;
                 }
                 int len = end - start;
-                if ( len < HYPH_MIN_WORD_LEN_TO_HYPHENATE ) {
-                    // Too short word found, skip it
+                if ( len < HYPH_MIN_WORD_LEN_TO_HYPHENATE || has_rtl ) {
+                    // Too short word found, or word containing RTL: skip it
                     wordpos = start - 1;
                     continue;
                 }
@@ -4523,6 +5008,9 @@ bool ldomDocument::setRenderProps( int width, int dy, bool /*showCover*/, int /*
     s->float_ = css_f_none;
     s->clear = css_c_none;
     s->direction = css_dir_inherit;
+    s->visibility = css_v_visible;
+    s->line_break = css_lb_auto;
+    s->word_break = css_wb_normal;
     s->cr_hint.type = css_val_unspecified;
     s->cr_hint.value = CSS_CR_HINT_NONE;
     //lUInt32 defStyleHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
@@ -4756,7 +5244,7 @@ bool ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback,
         pages->clear();
         if ( showCover )
             pages->add( new LVRendPageInfo( _page_height ) );
-        LVRendPageContext context( pages, _page_height );
+        LVRendPageContext context( pages, _page_height, _def_font->getSize() );
         int numFinalBlocks = calcFinalBlocks();
         CRLog::info("Final block count: %d", numFinalBlocks);
         context.setCallback(callback, numFinalBlocks);
@@ -5072,6 +5560,10 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
 
     _isSection = (id==el_section);
 
+    #if MATHML_SUPPORT==1
+        _insideMathML = (_parent && _parent->_insideMathML) || (id==el_math);
+    #endif
+
     // Default (for elements not specified in fb2def.h) is to allow text
     // (except for the root node which must have children)
     _allowText = _typeDef ? _typeDef->allow_text : (_parent?true:false);
@@ -5300,7 +5792,7 @@ void ldomNode::ensurePseudoElement( bool is_before ) {
             ldomNode * child = getChildNode(nb_children-1); // should always be found as the last node
             // pseudoElem might have been wrapped by a inlineBox, autoBoxing, floatBox...
             while ( child && child->isBoxingNode() && child->getChildCount()>0 )
-                child = child->getChildNode(0);
+                child = child->getChildNode(child->getChildCount()-1);
             if ( child && child->getNodeId() == el_pseudoElem && child->hasAttribute(attr_After) ) {
                 // Already there, no need to create it
                 insertChildIndex = -1;
@@ -5899,6 +6391,7 @@ int initTableRendMethods( ldomNode * enode, int state )
             first_unproper = -1;
             last_unproper = -1;
         }
+        child->persist();
     }
     // if ( state==0 ) {
     //     dumpRendMethods( enode, cs32("   ") );
@@ -5908,9 +6401,11 @@ int initTableRendMethods( ldomNode * enode, int state )
 
 bool hasInvisibleParent( ldomNode * node )
 {
-    for ( ; !node->isRoot(); node = node->getParentNode() )
-        if ( node->getStyle()->display==css_d_none )
+    for ( ; node && !node->isRoot(); node = node->getParentNode() ) {
+        css_style_ref_t style = node->getStyle();
+        if (!style.isNull() && style->display == css_d_none)
             return true;
+    }
     return false;
 }
 
@@ -7271,6 +7766,17 @@ void ldomNode::initNodeRendMethod()
             }
         }
     }
+
+    #if MATHML_SUPPORT==1
+        if ( getNodeId()==el_math && getDocument()->isBeingParsed() ) {
+            // Skip that uneeded work if the <math> element is "display:none"
+            if ( getRendMethod() != erm_invisible ) {
+                fixupMathMLMathElement( this );
+            }
+        }
+    #endif
+
+    persist();
 }
 #endif
 
@@ -7549,9 +8055,33 @@ void ldomDocumentWriter::OnTagBody()
         CRLog::trace("added BODY>stylesheet child element with HEAD>STYLE&LINKS content");
     }
     else if ( _currNode ) { // for all other tags (including BODY when no style)
+        #if MATHML_SUPPORT==1
+            if ( _currNode->_insideMathML ) {
+                // All attributes are set, this may add other attributes depending
+                // on ancestors: to be done before onBodyEnter() if these attributes
+                // may affect styling.
+                _mathMLHelper.handleMathMLtag(this, MATHML_STEP_NODE_SET, el_NULL);
+            }
+        #endif
         _currNode->onBodyEnter();
         _flags = _currNode->getFlags(); // _flags may have been updated (if white-space: pre)
     }
+
+    #if MATHML_SUPPORT==1
+        if ( _currNode->_insideMathML ) {
+            // At this point, the style for this node has been applied.
+            // Check if the <math> element (or any of its parent) is display:none,
+            // in which case we don't need to spend time handling MathML that
+            // won't be shown.
+            if ( _currNode->getElement()->getNodeId()==el_math && hasInvisibleParent(_currNode->getElement()) ) {
+                _currNode->_insideMathML = false;
+            }
+            else {
+                // This may create a wrapping mathBox around all this element's children
+                _mathMLHelper.handleMathMLtag(this, MATHML_STEP_NODE_ENTERED, el_NULL);
+            }
+        }
+    #endif
 }
 
 ldomNode * ldomDocumentWriter::OnTagOpen( const lChar32 * nsname, const lChar32 * tagname )
@@ -7560,6 +8090,13 @@ ldomNode * ldomDocumentWriter::OnTagOpen( const lChar32 * nsname, const lChar32 
     //CRLog::trace("OnTagOpen(%s)", UnicodeToUtf8(lString32(tagname)).c_str());
     lUInt16 id = _document->getElementNameIndex(tagname);
     lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
+
+    #if MATHML_SUPPORT==1
+        if ( (_currNode && _currNode->_insideMathML) || (id == el_math) ) {
+            // This may create a wrapping mathBox around this new element
+            _mathMLHelper.handleMathMLtag(this, MATHML_STEP_BEFORE_NEW_CHILD, id);
+        }
+    #endif
 
     // Set a flag for OnText to accumulate the content of any <HEAD><STYLE>
     if ( id == el_style && _currNode && _currNode->getElement()->getNodeId() == el_head ) {
@@ -7620,6 +8157,7 @@ ldomDocumentWriter::~ldomDocumentWriter()
             // on all nodes.)
             _document->getRootNode()->clearRenderDataRecursive();
         }
+        _document->_parsing = false; // done parsing
     }
 
 #endif
@@ -7662,8 +8200,26 @@ void ldomDocumentWriter::OnTagClose( const lChar32 *, const lChar32 * tagname, b
         }
     }
 
+    #if MATHML_SUPPORT==1
+        if ( _currNode->_insideMathML ) {
+            if ( _mathMLHelper.handleMathMLtag(this, MATHML_STEP_NODE_CLOSING, id) ) {
+                // curnode may have changed
+                curNodeId = _currNode->getElement()->getNodeId();
+                id = tagname ? _document->getElementNameIndex(tagname) : curNodeId;
+                _errFlag |= (id != curNodeId); // (we seem to not do anything with _errFlag)
+            }
+        }
+    #endif
+
     _currNode = pop( _currNode, id );
         // _currNode is now the parent
+
+    #if MATHML_SUPPORT==1
+        if ( _currNode->_insideMathML ) {
+            // This may close wrapping mathBoxes
+            _mathMLHelper.handleMathMLtag(this, MATHML_STEP_NODE_CLOSED, id);
+        }
+    #endif
 
     if ( _currNode )
         _flags = _currNode->getFlags();
@@ -7729,6 +8285,16 @@ void ldomDocumentWriter::OnText( const lChar32 * text, int len, lUInt32 flags )
         if ( (_flags & XML_FLAG_NO_SPACE_TEXT)
              && IsEmptySpace(text, len)  && !(flags & TXTFLG_PRE))
              return;
+        #if MATHML_SUPPORT==1
+            if ( _currNode->_insideMathML ) {
+                lString32 math_text = _mathMLHelper.getMathMLAdjustedText(_currNode->getElement(), text, len);
+                if ( !math_text.empty() ) {
+                    _mathMLHelper.handleMathMLtag(this, MATHML_STEP_BEFORE_NEW_CHILD, el_NULL);
+                    _currNode->onText( math_text.c_str(), math_text.length(), flags );
+                }
+                return;
+            }
+        #endif
         if (_currNode->_allowText)
             _currNode->onText( text, len, flags );
     }
@@ -7746,6 +8312,7 @@ ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document, bool headerOnly)
     _stylesheetLinks.clear();
     _stopTagId = 0xFFFE;
     IS_FIRST_BODY = true;
+    _document->_parsing = true;
 
 #if BUILD_LITE!=1
     if ( _document->isDefStyleSet() ) {
@@ -7756,12 +8323,6 @@ ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document, bool headerOnly)
 
     //CRLog::trace("ldomDocumentWriter() headerOnly=%s", _headerOnly?"true":"false");
 }
-
-
-
-
-
-
 
 
 bool FindNextNode( ldomNode * & node, ldomNode * root )
@@ -8301,10 +8862,9 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
         // In legacy mode, we just got the erm_final coordinates, and we must
         // compute and remove left/top border and padding (using rc.width() as
         // the base for % is wrong here, and so is rc.height() for padding top)
-        int em = finalNode->getFont()->getSize();
-        int padding_left = measureBorder(finalNode,3)+lengthToPx(finalNode->getStyle()->padding[0],rc.width(),em);
-        int padding_right = measureBorder(finalNode,1)+lengthToPx(finalNode->getStyle()->padding[1],rc.width(),em);
-        int padding_top = measureBorder(finalNode,0)+lengthToPx(finalNode->getStyle()->padding[2],rc.height(),em);
+        int padding_left = measureBorder(finalNode,3)+lengthToPx(finalNode, finalNode->getStyle()->padding[0],rc.width());
+        int padding_right = measureBorder(finalNode,1)+lengthToPx(finalNode, finalNode->getStyle()->padding[1],rc.width());
+        int padding_top = measureBorder(finalNode,0)+lengthToPx(finalNode, finalNode->getStyle()->padding[2],rc.height());
         pt.x -= padding_left;
         pt.y -= padding_top;
         // As well as the inner width
@@ -8496,8 +9056,14 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
                 }
 
                 lUInt32 hints = WORD_FLAGS_TO_FNT_FLAGS(word->flags);
-                font->measureText( str.c_str()+word->t.start, word->t.len, width, flg, word->width+50, '?',
-                            src->lang_cfg, src->letter_spacing + word->added_letter_spacing, false, hints);
+                if (str.empty() && word->t.len > 0) {
+                    // Don't know that the fuck up, but it happens
+                    for (int i = 0; i < word->t.len; i++)
+                        width[i] = 0;
+                } else {
+                    font->measureText( str.c_str()+word->t.start, word->t.len, width, flg, word->width+50, '?',
+                                src->lang_cfg, src->letter_spacing + word->added_letter_spacing, false, hints);
+                }
 
                 bool word_is_rtl = word->flags & LTEXT_WORD_DIRECTION_IS_RTL;
                 if ( word_is_rtl ) {
@@ -8616,12 +9182,11 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
             // In legacy mode, we just got the erm_final coordinates, and we must
             // compute and remove left/top border and padding (using rc.width() as
             // the base for % is wrong here)
-            int em = finalNode->getFont()->getSize();
-            int padding_left = measureBorder(finalNode,3) + lengthToPx(finalNode->getStyle()->padding[0], rc.width(), em);
-            int padding_right = measureBorder(finalNode,1) + lengthToPx(finalNode->getStyle()->padding[1], rc.width(), em);
+            int padding_left = measureBorder(finalNode,3) + lengthToPx(finalNode, finalNode->getStyle()->padding[0], rc.width());
+            int padding_right = measureBorder(finalNode,1) + lengthToPx(finalNode, finalNode->getStyle()->padding[1], rc.width());
             inner_width  = fmt.getWidth() - padding_left - padding_right;
             if (extended) {
-                int padding_top = measureBorder(finalNode,0) + lengthToPx(finalNode->getStyle()->padding[2], rc.width(), em);
+                int padding_top = measureBorder(finalNode,0) + lengthToPx(finalNode, finalNode->getStyle()->padding[2], rc.width());
                 rc.top += padding_top;
                 rc.left += padding_left;
                 // rc.right += padding_left; // wrong, but not used
@@ -9484,10 +10049,18 @@ lString32 ldomXPointer::toStringV2()
         }
     }
     else {
-        if ( offset < p->getChildCount() )
+        // Be really sure we get a non boxing node
+        if ( offset < p->getChildCount() ) {
             p = p->getChildNode(offset);
-        else
-            p = p->getParentNode();
+            if ( p->isBoxingNode(true) ) {
+                p = p->getUnboxedFirstChild();
+                if ( !p )
+                    p = node->getUnboxedParent();
+            }
+        }
+        else {
+            p = p->getUnboxedParent();
+        }
     }
     ldomNode * mainNode = node->getDocument()->getRootNode();
     while (p && p!=mainNode) {
@@ -10600,18 +11173,16 @@ bool ldomXRange::getRectEx( lvRect & rect, bool & isSingleLine )
     // compute and add left/top border and padding (using rc.width() as
     // the base for % is wrong here, and so is rc.height() for padding top)
     if ( ! RENDER_RECT_HAS_FLAG(fmt1, INNER_FIELDS_SET) ) {
-        int em = finalNode1->getFont()->getSize();
-        int padding_left = measureBorder(finalNode1,3) + lengthToPx(finalNode1->getStyle()->padding[0], fmt1.getWidth(), em);
-        int padding_top = measureBorder(finalNode1,0) + lengthToPx(finalNode1->getStyle()->padding[2], fmt1.getWidth(), em);
+        int padding_left = measureBorder(finalNode1,3) + lengthToPx(finalNode1, finalNode1->getStyle()->padding[0], fmt1.getWidth());
+        int padding_top = measureBorder(finalNode1,0) + lengthToPx(finalNode1, finalNode1->getStyle()->padding[2], fmt1.getWidth());
         rc1.top += padding_top;
         rc1.left += padding_left;
         rc1.right += padding_left;
         rc1.bottom += padding_top;
     }
     if ( ! RENDER_RECT_HAS_FLAG(fmt2, INNER_FIELDS_SET) ) {
-        int em = finalNode2->getFont()->getSize();
-        int padding_left = measureBorder(finalNode2,3) + lengthToPx(finalNode2->getStyle()->padding[0], fmt2.getWidth(), em);
-        int padding_top = measureBorder(finalNode2,0) + lengthToPx(finalNode2->getStyle()->padding[2], fmt2.getWidth(), em);
+        int padding_left = measureBorder(finalNode2,3) + lengthToPx(finalNode2, finalNode2->getStyle()->padding[0], fmt2.getWidth());
+        int padding_top = measureBorder(finalNode2,0) + lengthToPx(finalNode2, finalNode2->getStyle()->padding[2], fmt2.getWidth());
         rc2.top += padding_top;
         rc2.left += padding_left;
         rc2.right += padding_left;
@@ -11189,6 +11760,14 @@ bool ldomXPointerEx::isVisible()
     while ( p ) {
         if ( p->getRendMethod() == erm_invisible )
             return false;
+        /* This would feel needed now that we added support for visibility:hidden.
+         * But it may have side effects that I don't want to investigate.
+         * Let's say that hidden (not visible) does not mean it should not be
+         * audible, searchable and selectable; if it's hidden, we should be
+         * allowed to find it :)
+        if ( p->getStyle()->visibility >= css_v_hidden )
+            return false;
+        */
         p = p->getParentNode();
     }
     return true;
@@ -13148,6 +13727,8 @@ HTML_SCOPE_TABLE_OPENING_TD_TH, // = SCOPE_TABLE: close any TD/TH
 // and pass by the element.
 // So, we shouldn't meet any in popUpTo() and don't have to wonder
 // if we should stop at them, or pass by them.
+// Except <mathBox> that might be added when parsing MathML,
+// and so can be met when poping up nodes.
 
 lUInt16 ldomDocumentWriterFilter::popUpTo( ldomElementWriter * target, lUInt16 target_id, int scope )
 {
@@ -13156,8 +13737,8 @@ lUInt16 ldomDocumentWriterFilter::popUpTo( ldomElementWriter * target, lUInt16 t
         ldomElementWriter * tmp = _currNode;
         while ( tmp ) {
             lUInt16 tmpId = tmp->getElement()->getNodeId();
-            if ( tmpId < el_DocFragment && tmpId > el_NULL) {
-                // We shouldn't meet any (see comment above)
+            if ( tmpId < el_DocFragment && tmpId > el_NULL && tmpId != el_mathBox ) {
+                // We shouldn't meet any (see comment above), except mathBox
                 // (but we can meet the root node when poping </html>)
                 crFatalError( 127, "Unexpected boxing element met in ldomDocumentWriterFilter::popUpTo()" );
             }
@@ -13745,6 +14326,13 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar32 * nsname, const lC
         }
     }
 
+    #if MATHML_SUPPORT==1
+        if ( (_currNode && _currNode->_insideMathML) || (id == el_math) ) {
+            // This may create a wrapping mathBox around this new element
+            _mathMLHelper.handleMathMLtag(this, MATHML_STEP_BEFORE_NEW_CHILD, id);
+        }
+    #endif
+
     bool tag_accepted = true;
     bool insert_before_last_child = false;
     if (_document->getDOMVersionRequested() >= 20200824) { // A little bit more HTML5 conformance
@@ -13780,13 +14368,6 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar32 * nsname, const lC
         AutoClose( id, true );
     }
 
-    // Set a flag for OnText to accumulate the content of any <HEAD><STYLE>
-    // (We do that after the autoclose above, so that with <HEAD><META><STYLE>,
-    // the META is properly closed and we find HEAD as the current node.)
-    if ( id == el_style && _currNode && _currNode->getElement()->getNodeId() == el_head ) {
-        _inHeadStyle = true;
-    }
-
     // From now on, we don't create/close any elements, so expect
     // the next event to be OnTagBody (except OnTagAttribute)
     _tagBodyCalled = false;
@@ -13798,6 +14379,13 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar32 * nsname, const lC
         // No issue with OnTagClose, that can usually ignore stuff.
         _curTagIsIgnored = true;
         return _currNode ? _currNode->getElement() : NULL;
+    }
+
+    // Set a flag for OnText to accumulate the content of any <HEAD><STYLE>
+    // (We do that after the autoclose above, so that with <HEAD><META><STYLE>,
+    // the META is properly closed and we find HEAD as the current node.)
+    if ( id == el_style && _currNode && _currNode->getElement()->getNodeId() == el_head ) {
+        _inHeadStyle = true;
     }
 
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode, insert_before_last_child );
@@ -13897,6 +14485,17 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar32 * nsname, const lChar3
     // Hopefully, a document use either one or the other.
     // (Alternative: in lvrend.cpp when used, as fallback when there is
     // none specified in node->getStyle().)
+    #if MATHML_SUPPORT==1
+        // We should really remove this handling below and support them via CSS
+        // for HTML5 elements that support them.
+        // In the meantime, just don't mess with MathML
+        if ( id >= EL_MATHML_START && id <= EL_MATHML_END ) {
+            lUInt16 attr_ns = (nsname && nsname[0]) ? _document->getNsNameIndex( nsname ) : 0;
+            lUInt16 attr_id = (attrname && attrname[0]) ? _document->getAttrNameIndex( attrname ) : 0;
+            _currNode->addAttribute( attr_ns, attr_id, attrvalue );
+            return;
+        }
+    #endif
 
     // HTML align= => CSS text-align:
     // Done for all elements, except IMG and TABLE (for those, it should
@@ -14039,6 +14638,17 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar32 * /*nsname*/, const lCh
         }
     }
 
+    #if MATHML_SUPPORT==1
+        if ( _currNode->_insideMathML ) {
+            if ( _mathMLHelper.handleMathMLtag(this, MATHML_STEP_NODE_CLOSING, id) ) {
+                // curnode may have changed
+                curNodeId = _currNode->getElement()->getNodeId();
+                id = tagname ? _document->getElementNameIndex(tagname) : curNodeId;
+                _errFlag |= (id != curNodeId); // (we seem to not do anything with _errFlag)
+            }
+        }
+    #endif
+
     if (_document->getDOMVersionRequested() >= 20200824) { // A little bit more HTML5 conformance
         if ( _curNodeIsSelfClosing ) { // Internal call (not from XMLParser)
             _currNode = pop( _currNode, id );
@@ -14059,6 +14669,13 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar32 * /*nsname*/, const lCh
         _currNode = pop( _currNode, id );
             // _currNode is now the parent
     }
+
+    #if MATHML_SUPPORT==1
+        if ( _currNode->_insideMathML ) {
+            // This may close wrapping mathBoxes
+            _mathMLHelper.handleMathMLtag(this, MATHML_STEP_NODE_CLOSED, id);
+        }
+    #endif
 
     if ( _currNode ) {
         _flags = _currNode->getFlags();
@@ -14132,6 +14749,16 @@ void ldomDocumentWriterFilter::OnText( const lChar32 * text, int len, lUInt32 fl
             if ( !_currNode->_allowText )
                 return;
         }
+        #if MATHML_SUPPORT==1
+            if ( _currNode->_insideMathML ) {
+                lString32 math_text = _mathMLHelper.getMathMLAdjustedText(_currNode->getElement(), text, len);
+                if ( !math_text.empty() ) {
+                    _mathMLHelper.handleMathMLtag(this, MATHML_STEP_BEFORE_NEW_CHILD, el_NULL);
+                    _currNode->onText( math_text.c_str(), math_text.length(), flags, insert_before_last_child );
+                }
+            }
+            else // skip the next checks if we are _insideMathML
+        #endif
         if ( !_libRuDocumentDetected ) {
             _currNode->onText( text, len, flags, insert_before_last_child );
         }
@@ -14542,6 +15169,11 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback, L
     CRLog::trace("ldomDocument::loadCacheFileContent() - completed successfully");
     if (progressCallback) progressCallback->OnLoadFileProgress(95);
 
+    // NOTE: And now might have been a good place to release uncompression resources...
+    //       Except not quite...
+    //       While the ldomDocument instance exists, the getElem() and getText() сalls access the cache
+    //_cacheFile->cleanupUncompressor();
+
     return true;
 }
 
@@ -14790,6 +15422,10 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime, LVDo
     }
     CRLog::trace("ldomDocument::saveChanges() - done");
     if (progressCallback) progressCallback->OnSaveCacheFileEnd();
+
+    // And now should be a good place to release compression resources...
+    _cacheFile->cleanupCompressor();
+
     return CR_DONE;
 }
 
@@ -15052,7 +15688,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
                     if ( !s.isNull() ) {
                         lUInt16 fntIndex = _fontMap.get( style );
                         if ( fntIndex==0 ) {
-                            LVFontRef fnt = getFont(s.get(), getFontContextDocIndex());
+                            LVFontRef fnt = getFont(&buf[j], s.get(), getFontContextDocIndex());
                             fntIndex = (lUInt16)_fonts.cache( fnt );
                             if ( fnt.isNull() ) {
                                 CRLog::error("font not found for style!");
@@ -15140,11 +15776,13 @@ ContinuousOperationResult ldomDocument::swapToCache( CRTimerUtil & maxTime )
 /// saves recent changes to mapped file
 ContinuousOperationResult ldomDocument::updateMap(CRTimerUtil & maxTime, LVDocViewCallback * progressCallback)
 {
-    if ( !_cacheFile || !_mapped )
+    if ( !_cacheFile || !_mapped ) {
+        CRLog::info("No cache file or not mapped");
         return CR_DONE;
+    }
 
     if ( _cacheFileLeaveAsDirty ) {
-        CRLog::info("requested to set cache file as dirty without any update");
+        CRLog::info("Requested to set cache file as dirty without any update");
         _cacheFile->setDirtyFlag(true);
         return CR_DONE;
     }
@@ -15156,8 +15794,7 @@ ContinuousOperationResult ldomDocument::updateMap(CRTimerUtil & maxTime, LVDocVi
     CRLog::info("Updating cache file");
 
     ContinuousOperationResult res = saveChanges(maxTime, progressCallback); // NOLINT: Call to virtual function during destruction
-    if ( res==CR_ERROR )
-    {
+    if ( res==CR_ERROR ) {
         CRLog::error("Error while saving changes to cache file");
         return CR_ERROR;
     }
@@ -15637,6 +16274,13 @@ void ldomDocument::updateRenderContext()
     _hdr.node_displaystyle_hash = _nodeDisplayStyleHashInitial; // we keep using the initial one
     CRLog::info("Updating render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x, nodeDisplayStyleHash=%x",
                 _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy, _hdr.node_displaystyle_hash);
+    _doc_rendering_hash = ((((((
+         + (lUInt32)dx) * 31
+         + (lUInt32)dy) * 31
+         + (lUInt32)_docFlags) * 31
+         + (lUInt32)_nodeDisplayStyleHashInitial) * 31
+         + (lUInt32)stylesheetHash) * 31
+         + (lUInt32)styleHash);
 }
 
 /// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
@@ -17112,13 +17756,13 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction, bool strict_bo
         // (erm_table_row_group, erm_table_header_group, erm_table_footer_group, erm_table_row)
         bool ignore_margins = rm >= erm_table_row_group && rm <= erm_table_row;
 
-        int top_margin = ignore_margins ? 0 : lengthToPx(enode->getStyle()->margin[2], fmt.getWidth(), enode->getFont()->getSize());
+        int top_margin = ignore_margins ? 0 : lengthToPx(enode, enode->getStyle()->margin[2], fmt.getWidth());
         if ( pt.y < fmt.getY() - top_margin) {
             if ( direction >= PT_DIR_SCAN_FORWARD && rm == erm_final )
                 return this;
             return NULL;
         }
-        int bottom_margin = ignore_margins ? 0 : lengthToPx(enode->getStyle()->margin[3], fmt.getWidth(), enode->getFont()->getSize());
+        int bottom_margin = ignore_margins ? 0 : lengthToPx(enode, enode->getStyle()->margin[3], fmt.getWidth());
         if ( pt.y >= fmt.getY() + fmt.getHeight() + bottom_margin ) {
             if ( direction <= PT_DIR_SCAN_BACKWARD && rm == erm_final )
                 return this;
@@ -17288,7 +17932,7 @@ bool ldomNode::initNodeFont()
             CRLog::error("style not found for index %d", style);
             s = getDocument()->_styles.get( style );
         }
-        LVFontRef fnt = ::getFont(s.get(), getDocument()->getFontContextDocIndex());
+        LVFontRef fnt = ::getFont(this, s.get(), getDocument()->getFontContextDocIndex());
         fntIndex = (lUInt16)getDocument()->_fonts.cache( fnt );
         if ( fnt.isNull() ) {
             CRLog::error("font not found for style!");
@@ -17368,11 +18012,11 @@ void ldomNode::initNodeStyle()
 }
 #endif
 
-bool ldomNode::isBoxingNode( bool orPseudoElem ) const
+bool ldomNode::isBoxingNode( bool orPseudoElem, lUInt16 exceptBoxingNodeId ) const
 {
     if( isElement() ) {
         lUInt16 id = getNodeId();
-        if( id >= el_autoBoxing && id <= el_inlineBox ) {
+        if( id >= EL_BOXING_START && id <= EL_BOXING_END && id != exceptBoxingNodeId ) {
             return true;
         }
         if ( orPseudoElem && id == el_pseudoElem ) {
@@ -17382,10 +18026,10 @@ bool ldomNode::isBoxingNode( bool orPseudoElem ) const
     return false;
 }
 
-ldomNode * ldomNode::getUnboxedParent() const
+ldomNode * ldomNode::getUnboxedParent( lUInt16 exceptBoxingNodeId ) const
 {
     ldomNode * parent = getParentNode();
-    while ( parent && parent->isBoxingNode() )
+    while ( parent && parent->isBoxingNode(false, exceptBoxingNodeId) )
         parent = parent->getParentNode();
     return parent;
 }
@@ -17393,12 +18037,12 @@ ldomNode * ldomNode::getUnboxedParent() const
 // The following 4 methods are mostly used when checking CSS siblings/child
 // rules and counting list items siblings: we have them skip pseudoElems by
 // using isBoxingNode(orPseudoElem=true).
-ldomNode * ldomNode::getUnboxedFirstChild( bool skip_text_nodes ) const
+ldomNode * ldomNode::getUnboxedFirstChild( bool skip_text_nodes, lUInt16 exceptBoxingNodeId ) const
 {
     for ( int i=0; i<getChildCount(); i++ ) {
         ldomNode * child = getChildNode(i);
-        if ( child && child->isBoxingNode(true) ) {
-            child = child->getUnboxedFirstChild( skip_text_nodes );
+        if ( child && child->isBoxingNode(true, exceptBoxingNodeId) ) {
+            child = child->getUnboxedFirstChild( skip_text_nodes, exceptBoxingNodeId );
             // (child will then be NULL if it was a pseudoElem)
         }
         if ( child && (!skip_text_nodes || !child->isText()) )
@@ -17407,12 +18051,12 @@ ldomNode * ldomNode::getUnboxedFirstChild( bool skip_text_nodes ) const
     return NULL;
 }
 
-ldomNode * ldomNode::getUnboxedLastChild( bool skip_text_nodes ) const
+ldomNode * ldomNode::getUnboxedLastChild( bool skip_text_nodes, lUInt16 exceptBoxingNodeId ) const
 {
     for ( int i=getChildCount()-1; i>=0; i-- ) {
         ldomNode * child = getChildNode(i);
-        if ( child && child->isBoxingNode(true) ) {
-            child = child->getUnboxedLastChild( skip_text_nodes );
+        if ( child && child->isBoxingNode(true, exceptBoxingNodeId) ) {
+            child = child->getUnboxedLastChild( skip_text_nodes, exceptBoxingNodeId );
         }
         if ( child && (!skip_text_nodes || !child->isText()) )
             return child;
@@ -17446,13 +18090,13 @@ ldomNode * ldomNode::getUnboxedLastChild( bool skip_text_nodes ) const
     }
 */
 
-ldomNode * ldomNode::getUnboxedNextSibling( bool skip_text_nodes ) const
+ldomNode * ldomNode::getUnboxedNextSibling( bool skip_text_nodes, lUInt16 exceptBoxingNodeId ) const
 {
     // We use a variation of the above non-recursive node subtree walker,
     // but with an arbitrary starting node (this) inside the unboxed_parent
     // tree, and checks to not walk down non-boxing nodes - but still
     // walking up any node (which ought to be a boxing node).
-    ldomNode * unboxed_parent = getUnboxedParent(); // don't walk outside of it
+    ldomNode * unboxed_parent = getUnboxedParent(exceptBoxingNodeId); // don't walk outside of it
     if ( !unboxed_parent )
         return NULL;
     ldomNode * n = (ldomNode *) this;
@@ -17474,7 +18118,7 @@ ldomNode * ldomNode::getUnboxedNextSibling( bool skip_text_nodes ) const
                 if ( !skip_text_nodes )
                     return n;
             }
-            else if ( !n->isBoxingNode(true) ) // Not a boxing node nor pseudoElem
+            else if ( !n->isBoxingNode(true, exceptBoxingNodeId) ) // Not a boxing node nor pseudoElem
                 return n;
             // Otherwise, this node is a boxing node (or a text node or a pseudoElem
             // with no child, and we'll get back to its parent)
@@ -17484,7 +18128,7 @@ ldomNode * ldomNode::getUnboxedNextSibling( bool skip_text_nodes ) const
         //   we want to check
         // - if n->isBoxingNode() (and node_entered=true, and index=0): enter the first
         //   child of this boxingNode (not if pseudoElem, that doesn't box anything)
-        if ( (!node_entered || n->isBoxingNode()) && index < n->getChildCount() ) {
+        if ( (!node_entered || n->isBoxingNode(false, exceptBoxingNodeId)) && index < n->getChildCount() ) {
             n = n->getChildNode(index);
             index = 0;
             node_entered = true;
@@ -17503,10 +18147,10 @@ ldomNode * ldomNode::getUnboxedNextSibling( bool skip_text_nodes ) const
     return NULL;
 }
 
-ldomNode * ldomNode::getUnboxedPrevSibling( bool skip_text_nodes ) const
+ldomNode * ldomNode::getUnboxedPrevSibling( bool skip_text_nodes, lUInt16 exceptBoxingNodeId ) const
 {
     // Similar to getUnboxedNextSibling(), but walking backward
-    ldomNode * unboxed_parent = getUnboxedParent();
+    ldomNode * unboxed_parent = getUnboxedParent(exceptBoxingNodeId);
     if ( !unboxed_parent )
         return NULL;
     ldomNode * n = (ldomNode *) this;
@@ -17519,10 +18163,10 @@ ldomNode * ldomNode::getUnboxedPrevSibling( bool skip_text_nodes ) const
                 if ( !skip_text_nodes )
                     return n;
             }
-            else if ( !n->isBoxingNode(true) )
+            else if ( !n->isBoxingNode(true, exceptBoxingNodeId) )
                 return n;
         }
-        if ( (!node_entered || n->isBoxingNode()) && index >= 0 && index < n->getChildCount() ) {
+        if ( (!node_entered || n->isBoxingNode(false, exceptBoxingNodeId)) && index >= 0 && index < n->getChildCount() ) {
             n = n->getChildNode(index);
             index = n->getChildCount() - 1;
             node_entered = true;
@@ -17833,6 +18477,7 @@ void ldomNode::moveItemsTo( ldomNode * destination, int startChildIndex, int end
         item->setParentNode(destination);
         destination->addChild( item->getDataIndex() );
     }
+    destination->persist();
     // TODO: renumber rest of children in necessary
 /*#ifdef _DEBUG
     if ( !_document->checkConsistency( false ) )
@@ -18065,8 +18710,8 @@ public:
     }
 
     virtual void   Compact() { }
-    virtual int    GetWidth() { return _dx; }
-    virtual int    GetHeight() { return _dy; }
+    virtual int    GetWidth() const { return _dx; }
+    virtual int    GetHeight() const { return _dy; }
     virtual bool   Decode( LVImageDecoderCallback * callback )
     {
         LVImageSourceRef img = _node->getDocument()->getObjectImageSource(_refName);
@@ -18229,8 +18874,15 @@ LVStreamRef ldomDocument::getObjectImageStream( lString32 refName )
         lString32 data = refName.substr(0, 50);
         int pos = data.pos(U";base64,");
         if ( pos > 0 ) {
-            lString8 b64data = UnicodeToLocal(refName.substr(pos+8));
+            lString8 b64data = UnicodeToUtf8(refName.substr(pos+8));
             ref = LVStreamRef(new LVBase64Stream(b64data));
+            return ref;
+        }
+        // Non-standard plain string data (can be used to provide SVG)
+        pos = data.pos(U";-cr-plain,");
+        if ( pos > 0 ) {
+            lString8 plaindata = UnicodeToUtf8(refName.substr(pos+11));
+            ref = LVCreateStringStream(plaindata);
             return ref;
         }
     }
@@ -18310,12 +18962,11 @@ int ldomNode::getSurroundingAddedHeight()
                 RenderRectAccessor fmt( parent );
                 base_width = fmt.getWidth();
             }
-            int em = n->getFont()->getSize();
             css_style_ref_t style = n->getStyle();
-            h += lengthToPx( style->margin[2], base_width, em );  // top margin
-            h += lengthToPx( style->margin[3], base_width, em );  // bottom margin
-            h += lengthToPx( style->padding[2], base_width, em ); // top padding
-            h += lengthToPx( style->padding[3], base_width, em ); // bottom padding
+            h += lengthToPx( n, style->margin[2], base_width );  // top margin
+            h += lengthToPx( n, style->margin[3], base_width );  // bottom margin
+            h += lengthToPx( n, style->padding[2], base_width ); // top padding
+            h += lengthToPx( n, style->padding[3], base_width ); // bottom padding
             h += measureBorder(n, 0); // top border
             h += measureBorder(n, 2); // bottom border
         }
@@ -18434,8 +19085,8 @@ bool ldomNode::refreshFinalBlock()
     LFormattedTextRef txtform;
     int width = fmt.getWidth();
     renderFinalBlock( txtform, &fmt, width-measureBorder(this,1)-measureBorder(this,3)
-         -lengthToPx(this->getStyle()->padding[0],fmt.getWidth(),this->getFont()->getSize())
-         -lengthToPx(this->getStyle()->padding[1],fmt.getWidth(),this->getFont()->getSize()));
+         -lengthToPx(this, this->getStyle()->padding[0],fmt.getWidth())
+         -lengthToPx(this, this->getStyle()->padding[1],fmt.getWidth()) );
     fmt.getRect( newRect );
     if ( oldRect == newRect )
         return false;

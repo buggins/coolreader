@@ -32,8 +32,8 @@ public:
     virtual ldomNode * GetSourceNode() { return NULL; }
     virtual LVStream * GetSourceStream() { return NULL; }
     virtual void   Compact() { }
-    virtual int    GetWidth() { return _src->GetWidth(); }
-    virtual int    GetHeight() { return _src->GetHeight(); }
+    virtual int    GetWidth() const { return _src->GetWidth(); }
+    virtual int    GetHeight() const { return _src->GetHeight(); }
     virtual bool   Decode( LVImageDecoderCallback * callback );
 };
 

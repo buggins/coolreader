@@ -32,12 +32,14 @@
 #define RENDER_RECT_FLAG_DIRECTION_INVERTED                 0x0002
 #define RENDER_RECT_FLAG_DIRECTION_VERTICAL                 0x0004 // not used (only horizontal currently supported)
 #define RENDER_RECT_FLAG_INNER_FIELDS_SET                   0x0008
-#define RENDER_RECT_FLAG_BOX_IS_RENDERED                    0x0010 // for floatBox and inlineBox
+#define RENDER_RECT_FLAG_BOX_IS_RENDERED                    0x0010 // for floatBox and inlineBox (when width/height set)
 #define RENDER_RECT_FLAG_NO_CLEAR_OWN_FLOATS                0x0020
 #define RENDER_RECT_FLAG_FINAL_FOOTPRINT_AS_SAVED_FLOAT_IDS 0x0040
 #define RENDER_RECT_FLAG_FLOATBOX_IS_RIGHT                  0x0080
 #define RENDER_RECT_FLAG_NO_INTERLINE_SCALE_UP              0x0100 // for ruby elements to not scale up
-#define RENDER_RECT_FLAG_CHILDREN_RENDERING_REORDERED       0x0200 // for table rows/thead/tfoot reordering
+#define RENDER_RECT_FLAG_CHILDREN_RENDERING_REORDERED       0x0200 // for table rows/thead/tfoot/cells reordering
+#define RENDER_RECT_FLAG_BOX_IS_POSITIONNED                 0x0400 // for inlineBox (when X/Y set in its erm_final)
+#define RENDER_RECT_FLAG_DO_MATH_TRANSFORM                  0x0800 // do math glyph stretching
 #define RENDER_RECT_FLAG_TEMP_USED_AS_CSS_CHECK_CACHE       0x8000 // has been cleared and is used as a CSS checks cache
 
 #define RENDER_RECT_SET_FLAG(r, f)     ( r.setFlags( r.getFlags() | RENDER_RECT_FLAG_##f ) )
@@ -117,7 +119,7 @@ bool isSameFontStyle( css_style_rec_t * style1, css_style_rec_t * style2 );
 /// removes format data from node
 void freeFormatData( ldomNode * node );
 /// returns best suitable font for style
-LVFontRef getFont(css_style_rec_t * style, int documentId);
+LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId);
 /// initializes format data for node
 void initFormatData( ldomNode * node );
 /// initializes rendering method for node
@@ -135,7 +137,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         int usable_left_overflow, int usable_right_overflow, int direction, int * baseline, lUInt32 rend_flags );
 /// renders table element
 int renderTable( LVRendPageContext & context, ldomNode * element, int x, int y, int width,
-                 bool shrink_to_fit, int & fitted_width, int direction=REND_DIRECTION_UNSET,
+                 bool shrink_to_fit, int min_width, int & fitted_width, int direction=REND_DIRECTION_UNSET,
                  bool pb_inside_avoid=false, bool enhanced_rendering=false, bool is_ruby_table=false );
 /// sets node style
 void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef parent_font );
@@ -145,7 +147,7 @@ void copystyle( css_style_ref_t sourcestyle, css_style_ref_t deststyle );
 /// draws formatted document to drawing buffer
 void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx, int dy, int doc_x, int doc_y,
                    int page_height, ldomMarkedRangeList * marks, ldomMarkedRangeList * bookmarks = NULL,
-                   bool draw_content=true, bool draw_background=true );
+                   bool draw_content=true, bool draw_background=true, bool skip_initial_borders=false );
 
 // Estimate width of node when rendered:
 //   maxWidth: width if it would be rendered on an infinite width area
@@ -153,7 +155,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
 // full function for recursive use:
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction, bool ignorePadding, int rendFlags,
             int &curMaxWidth, int &curWordWidth, bool &collapseNextSpace, int &lastSpaceWidth,
-            int indent, TextLangCfg * lang_cfg, bool processNodeAsText=false, bool isStartNode=false);
+            int indent, bool nowrap, TextLangCfg * lang_cfg, bool processNodeAsText=false, bool isStartNode=false);
 // simpler function for first call:
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction=REND_DIRECTION_UNSET, bool ignorePadding=false, int rendFlags=0);
 
@@ -169,8 +171,13 @@ void LVRendSetBaseFontWeight(int weight);
 int LVRendGetBaseFontWeight();
 
 int measureBorder(ldomNode *enode,int border);
-int lengthToPx( css_length_t val, int base_px, int base_em, bool unspecified_as_em=false );
+int lengthToPx( ldomNode *node, css_length_t val, int base_px, int base_em = -1, bool unspecified_as_em=false );
 int scaleForRenderDPI( int value );
+bool getStyledImageSize( ldomNode * enode, int & img_width, int & img_height, int container_width=-1, int container_height=-1 );
+
+// Returns ink offsets from the node's RenderRectAccessor (its border box), positive when inward
+bool getInkOffsets( ldomNode * node, lvRect &inkOffsets, bool measure_hidden_content=false,
+                    bool ignore_decorations=false, bool skip_initial_borders=false, lvRect * borderBox=NULL );
 
 #define BASE_CSS_DPI 96 // at 96 dpi, 1 css px = 1 screen px
 #define DEF_RENDER_DPI 96

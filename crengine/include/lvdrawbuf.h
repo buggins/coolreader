@@ -72,27 +72,27 @@ public:
 
     // tiles support
     /// returns true if drawing buffer is tiled
-    virtual bool isTiled() { return false; }
+    virtual bool isTiled() const { return false; }
     /// returns tile width (or just width if no tiles)
-    virtual int tileWidth() { return GetWidth(); }
+    virtual int tileWidth() const { return GetWidth(); }
     /// returns tile height (or just height if no tiles)
-    virtual int tileHeight() { return GetHeight(); }
+    virtual int tileHeight() const { return GetHeight(); }
     /// returns tile drawbuf for tiled image, returns this for non tiled draw buffer
     virtual LVDrawBuf * getTile(int x, int y) {
         CR_UNUSED2(x, y);
         return this;
     }
     /// returns number of tiles in row
-    virtual int getXtiles() {
+    virtual int getXtiles() const {
         return 1;
     }
     /// returns number of tiles in column
-    virtual int getYtiles() {
+    virtual int getYtiles() const {
         return 1;
     }
 
     /// returns tile rectangle
-    virtual void getTileRect(lvRect & rc, int x, int y) {
+    virtual void getTileRect(lvRect & rc, int x, int y) const {
         CR_UNUSED2(x, y);
         rc.left = rc.top = 0;
         rc.right = GetWidth();
@@ -102,21 +102,23 @@ public:
     /// rotates buffer contents by specified angle
     virtual void Rotate( cr_rotate_angle_t angle ) = 0;
     /// returns white pixel value
-    virtual lUInt32 GetWhiteColor() = 0;
+    virtual lUInt32 GetWhiteColor() const = 0;
     /// returns black pixel value
-    virtual lUInt32 GetBlackColor() = 0;
+    virtual lUInt32 GetBlackColor() const = 0;
     /// returns current background color
-    virtual lUInt32 GetBackgroundColor() = 0;
+    virtual lUInt32 GetBackgroundColor() const = 0;
     /// sets current background color
     virtual void SetBackgroundColor( lUInt32 cl ) = 0;
     /// returns current text color
-    virtual lUInt32 GetTextColor() = 0;
+    virtual lUInt32 GetTextColor() const = 0;
     /// sets current text color
     virtual void SetTextColor( lUInt32 cl ) = 0;
     /// gets clip rect
-    virtual void GetClipRect( lvRect * clipRect ) = 0;
+    virtual void GetClipRect( lvRect * clipRect ) const = 0;
     /// sets clip rect
     virtual void SetClipRect( const lvRect * clipRect ) = 0;
+    /// wants to be fed hidden content (only LVInkMeasurementDrawBuf may return true)
+    virtual bool WantsHiddenContent() const { return false; }
     /// set to true for drawing in Paged mode, false for Scroll mode
     virtual void setHidePartialGlyphs( bool hide ) = 0;
     /// set to true to invert images only (so they get inverted back to normal by nightmode)
@@ -126,23 +128,23 @@ public:
     /// set to true to switch to a more costly smooth scaler instead of nearest neighbor
     virtual void setSmoothScalingImages( bool smooth ) = 0;
     /// invert image
-    virtual void  Invert() = 0;
+    virtual void Invert() = 0;
     /// get buffer width, pixels
-    virtual int  GetWidth() = 0;
+    virtual int  GetWidth() const = 0;
     /// get buffer height, pixels
-    virtual int  GetHeight() = 0;
+    virtual int  GetHeight() const = 0;
     /// get buffer bits per pixel
-    virtual int  GetBitsPerPixel() = 0;
-    /// fills buffer with specified color
-    virtual int  GetRowSize() = 0;
+    virtual int  GetBitsPerPixel() const = 0;
+    /// get row size (bytes)
+    virtual int  GetRowSize() const = 0;
     /// fills buffer with specified color
     virtual void Clear( lUInt32 color ) = 0;
     /// get pixel value
-    virtual lUInt32 GetPixel( int x, int y ) = 0;
+    virtual lUInt32 GetPixel( int x, int y ) const = 0;
     /// get average pixel value for area (coordinates are fixed floating points *16)
-    virtual lUInt32 GetAvgColor(lvRect & rc16) = 0;
+    virtual lUInt32 GetAvgColor(lvRect & rc16) const = 0;
     /// get linearly interpolated pixel value (coordinates are fixed floating points *16)
-    virtual lUInt32 GetInterpolatedColor(int x16, int y16) = 0;
+    virtual lUInt32 GetInterpolatedColor(int x16, int y16) const = 0;
     /// draw gradient filled rectangle with colors for top-left, top-right, bottom-right, bottom-left
     virtual void GradientRect(int x0, int y0, int x1, int y1, lUInt32 color1, lUInt32 color2, lUInt32 color3, lUInt32 color4) {
         CR_UNUSED8(x0, x1, y0, y1, color1, color2, color3, color4);
@@ -228,10 +230,10 @@ public:
     virtual void DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette ) = 0;
 #endif
     /// returns scanline pointer
-    virtual lUInt8 * GetScanLine( int y ) = 0;
+    virtual lUInt8 * GetScanLine( int y ) const = 0;
 
 
-    virtual int getAlpha() { return 0; }
+    virtual int getAlpha() const { return 0; }
     virtual void setAlpha(int alpha) { CR_UNUSED(alpha); }
     virtual lUInt32 applyAlpha(lUInt32 cl) { return cl; }
 

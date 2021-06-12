@@ -34,13 +34,16 @@ enum css_decl_code {
     cssd_white_space,
     cssd_text_align,
     cssd_text_align_last,
+    cssd_text_align_last2, // -epub-text-align-last (mentioned in early versions of EPUB3)
     cssd_text_decoration,
+    cssd_text_decoration2, // -epub-text-decoration (WebKit css extension)
     cssd_text_transform,
     cssd_hyphenate,  // hyphens (proper css property name)
     cssd_hyphenate2, // -webkit-hyphens (used by authors as an alternative to adobe-hyphenate)
     cssd_hyphenate3, // adobe-hyphenate (used by late Adobe RMSDK)
     cssd_hyphenate4, // adobe-text-layout (used by earlier Adobe RMSDK)
     cssd_hyphenate5, // hyphenate (fb2? used in obsoleted css files))
+    cssd_hyphenate6, // -epub-hyphens (mentioned in early versions of EPUB3)
     cssd_color,
     cssd_border_top_color,
     cssd_border_right_color,
@@ -56,6 +59,7 @@ enum css_decl_code {
     cssd_font_features,           // font-feature-settings (not yet parsed)
     cssd_font_variant,            // all these are parsed specifically and mapped into
     cssd_font_variant_ligatures,  // the same style->font_features 31 bits bitmap
+    cssd_font_variant_ligatures2, // -webkit-font-variant-ligatures (former Webkit property)
     cssd_font_variant_caps,
     cssd_font_variant_position,
     cssd_font_variant_numeric,
@@ -66,6 +70,10 @@ enum css_decl_code {
     cssd_letter_spacing,
     cssd_width,
     cssd_height,
+    cssd_min_width,
+    cssd_min_height,
+    cssd_max_width,
+    cssd_max_height,
     cssd_margin_left,
     cssd_margin_right,
     cssd_margin_top,
@@ -107,6 +115,7 @@ enum css_decl_code {
     cssd_background_repeat,
     cssd_background_position,
     cssd_background_size,
+    cssd_background_size2, // -webkit-background-size (former Webkit property)
     cssd_border_collapse,
     cssd_border_spacing,
     cssd_orphans,
@@ -114,6 +123,11 @@ enum css_decl_code {
     cssd_float,
     cssd_clear,
     cssd_direction,
+    cssd_visibility,
+    cssd_line_break,
+    cssd_line_break2,
+    cssd_line_break3,
+    cssd_word_break,
     cssd_content,
     cssd_cr_ignore_if_dom_version_greater_or_equal,
     cssd_cr_hint,
@@ -127,13 +141,16 @@ static const char * css_decl_name[] = {
     "white-space",
     "text-align",
     "text-align-last",
+    "-epub-text-align-last",
     "text-decoration",
+    "-epub-text-decoration",
     "text-transform",
     "hyphens",
     "-webkit-hyphens",
     "adobe-hyphenate",
     "adobe-text-layout",
     "hyphenate",
+    "-epub-hyphens",
     "color",
     "border-top-color",
     "border-right-color",
@@ -149,6 +166,7 @@ static const char * css_decl_name[] = {
     "font-feature-settings",
     "font-variant",
     "font-variant-ligatures",
+    "-webkit-font-variant-ligatures",
     "font-variant-caps",
     "font-variant-position",
     "font-variant-numeric",
@@ -159,6 +177,10 @@ static const char * css_decl_name[] = {
     "letter-spacing",
     "width",
     "height",
+    "min-width",
+    "min-height",
+    "max-width",
+    "max-height",
     "margin-left",
     "margin-right",
     "margin-top",
@@ -200,6 +222,7 @@ static const char * css_decl_name[] = {
     "background-repeat",
     "background-position",
     "background-size",
+    "-webkit-background-size",
     "border-collapse",
     "border-spacing",
     "orphans",
@@ -207,6 +230,11 @@ static const char * css_decl_name[] = {
     "float",
     "clear",
     "direction",
+    "visibility",
+    "line-break",
+    "-epub-line-break",
+    "-webkit-line-break",
+    "word-break",
     "content",
     "-cr-ignore-if-dom-version-greater-or-equal",
     "-cr-hint",
@@ -445,13 +473,14 @@ static bool parse_integer( const char * & str, int & value)
     return true;
 }
 
-static bool parse_number_value( const char * & str, css_length_t & value,
-                                    bool accept_percent=true,
-                                    bool accept_negative=false,
-                                    bool accept_auto=false,
-                                    bool accept_normal=false,
-                                    bool accept_contain_cover=false,
-                                    bool is_font_size=false )
+bool parse_number_value( const char * & str, css_length_t & value,
+                                    bool accept_percent,    // Defaults to true
+                                    bool accept_negative,   // This and next ones default to false
+                                    bool accept_auto,
+                                    bool accept_none,
+                                    bool accept_normal,
+                                    bool accept_contain_cover,
+                                    bool is_font_size )
 {
     const char * orig_pos = str;
     value.type = css_val_unspecified;
@@ -465,6 +494,11 @@ static bool parse_number_value( const char * & str, css_length_t & value,
     if ( accept_auto && substr_icompare( "auto", str ) ) {
         value.type = css_val_unspecified;
         value.value = css_generic_auto;
+        return true;
+    }
+    if ( accept_none && substr_icompare( "none", str ) ) {
+        value.type = css_val_unspecified;
+        value.value = css_generic_none;
         return true;
     }
     if ( accept_normal && substr_icompare( "normal", str ) ) {
@@ -573,6 +607,8 @@ static bool parse_number_value( const char * & str, css_length_t & value,
         value.type = css_val_pt;
     else if ( substr_icompare( "ex", str ) )
         value.type = css_val_ex;
+    else if ( substr_icompare( "ch", str ) )
+        value.type = css_val_ch;
     else if ( substr_icompare( "rem", str ) )
         value.type = css_val_rem;
     else if ( substr_icompare( "px", str ) )
@@ -593,6 +629,14 @@ static bool parse_number_value( const char * & str, css_length_t & value,
             return false;
         }
     }
+    else if ( substr_icompare( "vw", str ) )
+        value.type = css_val_vw;
+    else if ( substr_icompare( "vh", str ) )
+        value.type = css_val_vh;
+    else if ( substr_icompare( "vmin", str ) )
+        value.type = css_val_vmin;
+    else if ( substr_icompare( "vmax", str ) )
+        value.type = css_val_vmax;
     else if (n == 0 && frac == 0)
         value.type = css_val_px;
     // allow unspecified unit (for line-height)
@@ -1012,6 +1056,11 @@ bool parse_color_value( const char * & str, css_length_t & value )
         // can be inherited or flagged with !important
         value.type = css_val_unspecified;
         value.value = css_generic_transparent;
+        return true;
+    }
+    if ( substr_icompare( "currentcolor", str ) ) {
+        value.type = css_val_unspecified;
+        value.value = css_generic_currentcolor;
         return true;
     }
     if ( substr_compare( "inherit", str ) )
@@ -1797,6 +1846,39 @@ static const char * css_dir_names[] =
     NULL
 };
 
+// visibility value names
+static const char * css_v_names[] =
+{
+    "inherit",
+    "visible",
+    "hidden",
+    "collapse",
+    NULL
+};
+
+// line-break value names
+static const char * css_lb_names[] =
+{
+    "inherit",
+    "auto",
+    "normal",
+    "loose",
+    "strict",
+    "anywhere",
+    NULL
+};
+
+// word-break value names
+static const char * css_wb_names[] =
+{
+    "inherit",
+    "normal",
+    "break-word",
+    "break-all",
+    "keep-all",
+    NULL
+};
+
 static const char * css_cr_only_if_names[]={
         "any",
         "always",
@@ -2010,9 +2092,13 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                     n = -1;
                 break;
             case cssd_text_align_last:
+            case cssd_text_align_last2:
+                prop_code = cssd_text_align_last;
                 n = parse_name( decl, css_ta_names, -1 );
                 break;
             case cssd_text_decoration:
+            case cssd_text_decoration2:
+                prop_code = cssd_text_decoration;
                 n = parse_name( decl, css_td_names, -1 );
                 break;
             case cssd_text_transform:
@@ -2023,6 +2109,7 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
             case cssd_hyphenate3:
             case cssd_hyphenate4:
             case cssd_hyphenate5:
+            case cssd_hyphenate6:
                 prop_code = cssd_hyphenate;
                 n = parse_name( decl, css_hyph_names, -1 );
                 if ( n==-1 )
@@ -2107,32 +2194,82 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                 {
                     lString8Collection list;
                     int processed = splitPropertyValueList( decl, list );
+                    // printf("font-family: %s\n", lString8(decl, processed).c_str());
                     decl += processed;
                     n = -1;
+                    bool check_for_important = true;
                     if ( list.length() ) {
                         for (int i=list.length()-1; i>=0; i--) {
                             const char * name = list[i].c_str();
+                            // printf("  %d: #%s#\n", i, name);
+                            if ( check_for_important ) {
+                                check_for_important = false;
+                                // The last item from splitPropertyValueList may be or include '!important':
+                                //   "serif !important"      (when generic family name)
+                                //   "Bitter !important"     (when unquoted font name)
+                                //   "Noto Sans !important"  (when unquoted font name)
+                                //   "!important"            (when preceded by a quoted font name)
+                                // We want to notice it and clean the previous part
+                                const char * str = name;
+                                bool drop_item = false;
+                                while (*str) {
+                                    parsed_important = parse_important(str);
+                                    if ( parsed_important ) {
+                                        // Found it
+                                        if ( name == str ) {
+                                            // No advance: standalone "!important"
+                                            // remove it from the list of font names
+                                            drop_item = true;
+                                        }
+                                        else {
+                                            // Otherwise, truncate name up to where we
+                                            // were when finding !important
+                                            list[i] = lString8(name, str - name);
+                                            name = list[i].c_str();
+                                        }
+                                        break;
+                                    }
+                                    else { // skip current char that might be a space
+                                        str++;
+                                    }
+                                    // skip next char until we find a space, that would start a new token
+                                    while (*str && *str != ' ' ) {
+                                        str++;
+                                    }
+                                }
+                                if ( drop_item ) {
+                                    list.erase( i, 1 );
+                                    continue;
+                                }
+                            }
                             int nn = parse_name( name, css_ff_names, -1 );
-                            // Ignore "inherit" (nn=0) in font-family, as its the default
-                            // behaviour, and it may prevent (the way we handle
-                            // it in setNodeStyle()) the use of the font names
-                            // specified alongside.
-                            if (n==-1 && nn!=-1 && nn!=0) {
-                                n = nn;
-                            }
-                            if (nn!=-1) {
-                                // remove family name from font list
+                            if ( nn != -1 ) {
+                                if ( nn == css_ff_inherit ) {
+                                    // "inherit" is invalid when not standalone
+                                    // We have seen books with 'font-family: "Some Font", inherit',
+                                    // that Calibre 3.x would render with "Some Font", while Firefox
+                                    // and Calibre 5.x would consider the whole declaration invalid.
+                                    // So, best to just ignore any non-standalone "inherit", and
+                                    // keep parsing the font names.
+                                    if ( i == 0 && list.length() == 1) {
+                                        // At start and single (we have removed "!important" from the list
+                                        // above, as well as any other generic name that was after)
+                                        n = css_ff_inherit;
+                                    }
+                                }
+                                else {
+                                    // As we browse list from the right, keep replacing
+                                    // the generic family name with the left most one
+                                    n = nn;
+                                }
+                                // remove generic family name from font list
                                 list.erase( i, 1 );
-                            }
-                            else if ( substr_icompare( "!important", name ) ) {
-                                // !important may be caught by splitPropertyValueList()
-                                list.erase( i, 1 );
-                                parsed_important = IMPORTANT_DECL_SET;
                             }
                         }
                         strValue = joinPropertyValueList( list );
                     }
-                    // default to sans-serif generic font-family (the default
+                    // printf("  n=%d imp=%x strValue=%s\n", n, parsed_important, strValue.c_str());
+                    // Default to sans-serif generic font-family (the default
                     // in lvfntman.cpp, as FreeType can't know the family of
                     // a font)
                     if (n == -1)
@@ -2162,6 +2299,7 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                 break;
             case cssd_font_variant:
             case cssd_font_variant_ligatures:
+            case cssd_font_variant_ligatures2:
             case cssd_font_variant_caps:
             case cssd_font_variant_position:
             case cssd_font_variant_numeric:
@@ -2170,7 +2308,8 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                 {
                     // https://drafts.csswg.org/css-fonts-3/#propdef-font-variant
                     // https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant
-                    bool parse_ligatures =  prop_code == cssd_font_variant || prop_code == cssd_font_variant_ligatures;
+                    bool parse_ligatures =  prop_code == cssd_font_variant || prop_code == cssd_font_variant_ligatures
+                                                                           || prop_code == cssd_font_variant_ligatures2;
                     bool parse_caps =       prop_code == cssd_font_variant || prop_code == cssd_font_variant_caps;
                     bool parse_position =   prop_code == cssd_font_variant || prop_code == cssd_font_variant_position;
                     bool parse_numeric =    prop_code == cssd_font_variant || prop_code == cssd_font_variant_numeric;
@@ -2330,6 +2469,10 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
             case cssd_font_size:
             case cssd_width:
             case cssd_height:
+            case cssd_min_width:
+            case cssd_min_height:
+            case cssd_max_width:
+            case cssd_max_height:
             case cssd_margin_left:
             case cssd_margin_right:
             case cssd_margin_top:
@@ -2349,12 +2492,21 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                     if ( prop_code==cssd_margin_bottom || prop_code==cssd_margin_top ||
                             prop_code==cssd_margin_left || prop_code==cssd_margin_right )
                         accept_negative = true;
-                    // only margin, width and height accept keyword "auto"
+                    // only margin, width, height, min-width, min-height accept keyword "auto"
+                    // (also accept it with max-width, max-height for style tweaks user sake)
                     bool accept_auto = false;
                     if ( prop_code==cssd_margin_bottom || prop_code==cssd_margin_top ||
                             prop_code==cssd_margin_left || prop_code==cssd_margin_right ||
-                            prop_code==cssd_width || prop_code==cssd_height )
+                            prop_code==cssd_width || prop_code==cssd_height ||
+                            prop_code==cssd_min_width || prop_code==cssd_min_height ||
+                            prop_code==cssd_max_width || prop_code==cssd_max_height )
                         accept_auto = true;
+                    // only max-width, max-height accept keyword "none"
+                    // (also accepts it with min-width, min-height for style tweaks user sake)
+                    bool accept_none = false;
+                    if ( prop_code==cssd_max_width || prop_code==cssd_max_height ||
+                            prop_code==cssd_min_width || prop_code==cssd_min_height )
+                        accept_none = true;
                     // only line-height and letter-spacing accept keyword "normal"
                     bool accept_normal = false;
                     if ( prop_code==cssd_line_height || prop_code==cssd_letter_spacing )
@@ -2364,7 +2516,7 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                     if ( prop_code==cssd_font_size )
                         is_font_size = true;
                     css_length_t len;
-                    if ( parse_number_value( decl, len, accept_percent, accept_negative, accept_auto, accept_normal, false, is_font_size) ) {
+                    if ( parse_number_value( decl, len, accept_percent, accept_negative, accept_auto, accept_none, accept_normal, false, is_font_size) ) {
                         buf<<(lUInt32) (prop_code | importance | parse_important(decl));
                         buf<<(lUInt32) len.type;
                         buf<<(lUInt32) len.value;
@@ -2615,9 +2767,8 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                             width.value = 3*256;
                         }
                         if ( !found_color ) {
-                            // We don't support "currentColor": fallback to black
-                            color.type = css_val_color;
-                            color.value = 0x000000;
+                            color.type = css_val_unspecified;
+                            color.value = css_generic_currentcolor;
                         }
                         if ( prop_code==cssd_border ) {
                             buf<<(lUInt32) (cssd_border_style | importance | parsed_important);
@@ -2810,12 +2961,14 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                 }
                 break;
             case cssd_background_size:
+            case cssd_background_size2:
                 {
+                    prop_code = cssd_background_size;
                     // https://developer.mozilla.org/en-US/docs/Web/CSS/background-size
                     css_length_t len[2];
                     int i;
                     for (i = 0; i < 2; i++) {
-                        if ( !parse_number_value( decl, len[i], true, false, true, false, true ) )
+                        if ( !parse_number_value( decl, len[i], true, false, true, false, false, true ) )
                             break;
                     }
                     if (i) {
@@ -2874,6 +3027,18 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                 break;
             case cssd_direction:
                 n = parse_name( decl, css_dir_names, -1 );
+                break;
+            case cssd_visibility:
+                n = parse_name( decl, css_v_names, -1 );
+                break;
+            case cssd_line_break:
+            case cssd_line_break2:
+            case cssd_line_break3:
+                prop_code = cssd_line_break;
+                n = parse_name( decl, css_lb_names, -1 );
+                break;
+            case cssd_word_break:
+                n = parse_name( decl, css_wb_names, -1 );
                 break;
             case cssd_content:
                 {
@@ -3044,6 +3209,18 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
         case cssd_height:
             style->Apply( read_length(p), &style->height, imp_bit_height, is_important );
             break;
+        case cssd_min_width:
+            style->Apply( read_length(p), &style->min_width, imp_bit_min_width, is_important );
+            break;
+        case cssd_min_height:
+            style->Apply( read_length(p), &style->min_height, imp_bit_min_height, is_important );
+            break;
+        case cssd_max_width:
+            style->Apply( read_length(p), &style->max_width, imp_bit_max_width, is_important );
+            break;
+        case cssd_max_height:
+            style->Apply( read_length(p), &style->max_height, imp_bit_max_height, is_important );
+            break;
         case cssd_margin_left:
             style->Apply( read_length(p), &style->margin[0], imp_bit_margin_left, is_important );
             break;
@@ -3176,6 +3353,15 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             break;
         case cssd_direction:
             style->Apply( (css_direction_t) *p++, &style->direction, imp_bit_direction, is_important );
+            break;
+        case cssd_visibility:
+            style->Apply( (css_visibility_t) *p++, &style->visibility, imp_bit_visibility, is_important );
+            break;
+        case cssd_line_break:
+            style->Apply( (css_line_break_t) *p++, &style->line_break, imp_bit_line_break, is_important );
+            break;
+        case cssd_word_break:
+            style->Apply( (css_word_break_t) *p++, &style->word_break, imp_bit_word_break, is_important );
             break;
         case cssd_cr_hint:
             {
@@ -3324,11 +3510,27 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
     // or be updated to the node on which next selectors (on the left in the
     // chain) must be checked against. When returning 'false', we can let
     // node be in any state, even messy.
+
+    // We allow internal/boxing elements element names in selectors,
+    // so if one is specified, we should not skip it with getUnboxed*().
+    // We expect to find only a single kind of them per selector though.
+    lUInt16 exceptBoxingNodeId = 0;
+    if ( _id >= EL_BOXING_START && _id <= EL_BOXING_END ) { // _id from rule
+        exceptBoxingNodeId = _id;
+    }
+    else {
+        // Also check current node: if we stopped on it from a previous
+        // rule, it's because the previous rule was checking for this
+        // boxing element name
+        lUInt16 curNodeId = node->getNodeId();
+        if ( curNodeId >= EL_BOXING_START && curNodeId <= EL_BOXING_END )
+            exceptBoxingNodeId = curNodeId;
+    }
     switch (_type)
     {
     case cssrt_parent:        // E > F (child combinator)
         {
-            node = node->getUnboxedParent();
+            node = node->getUnboxedParent(exceptBoxingNodeId);
             if (!node || node->isNull())
                 return false;
             // If _id=0, we are the parent and we match
@@ -3340,7 +3542,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
     case cssrt_ancessor:      // E F (descendant combinator)
         {
             for (;;) {
-                node = node->getUnboxedParent();
+                node = node->getUnboxedParent(exceptBoxingNodeId);
                 if (!node || node->isNull())
                     return false;
                 // cssrt_ancessor is a non-deterministic rule: next rules
@@ -3368,7 +3570,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         break;
     case cssrt_predecessor:   // E + F (adjacent sibling combinator)
         {
-            node = node->getUnboxedPrevSibling(true); // skip text nodes
+            node = node->getUnboxedPrevSibling(true, exceptBoxingNodeId); // skip text nodes
             if (!node || node->isNull())
                 return false;
             if (!_id || node->getNodeId() == _id) {
@@ -3381,7 +3583,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
     case cssrt_predsibling:   // E ~ F (preceding sibling / general sibling combinator)
         {
             for (;;) {
-                node = node->getUnboxedPrevSibling(true); // skip text nodes
+                node = node->getUnboxedPrevSibling(true, exceptBoxingNodeId); // skip text nodes
                 if (!node || node->isNull())
                     return false;
                 if ( !_id || node->getNodeId() == _id ) {
@@ -3570,7 +3772,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                     // the first <body> or the <html> node, but to avoid applyng the
                     // style twice (to the 2 <body>s), we want to NOT match the first
                     // node.
-                    ldomNode * parent = node->getUnboxedParent();
+                    ldomNode * parent = node->getUnboxedParent(exceptBoxingNodeId);
                     if ( !parent || parent->isRoot() )
                         return false; // we do not want to return true;
                     lUInt16 parentNodeId = parent->getNodeId();
@@ -3614,7 +3816,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                             nodeId = node->getNodeId();
                         const ldomNode * elem = node;
                         for (;;) {
-                            elem = elem->getUnboxedPrevSibling(true); // skip text nodes
+                            elem = elem->getUnboxedPrevSibling(true, exceptBoxingNodeId); // skip text nodes
                             if (!elem)
                                 break;
                             // We have a previous sibling
@@ -3638,7 +3840,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                             nodeId = node->getNodeId();
                         const ldomNode * elem = node;
                         for (;;) {
-                            elem = elem->getUnboxedNextSibling(true); // skip text nodes
+                            elem = elem->getUnboxedNextSibling(true, exceptBoxingNodeId); // skip text nodes
                             if (!elem)
                                 break;
                             // We have a next sibling
@@ -3662,7 +3864,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                         const ldomNode * elem = node;
                         n = 1;
                         for (;;) {
-                            elem = elem->getUnboxedPrevSibling(true); // skip text nodes
+                            elem = elem->getUnboxedPrevSibling(true, exceptBoxingNodeId); // skip text nodes
                             if (!elem)
                                 break;
                             if (_attrid == csspc_nth_child || elem->getNodeId() == nodeId)
@@ -3683,7 +3885,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                         const ldomNode * elem = node;
                         n = 1;
                         for (;;) {
-                            elem = elem->getUnboxedNextSibling(true); // skip text nodes
+                            elem = elem->getUnboxedNextSibling(true, exceptBoxingNodeId); // skip text nodes
                             if (!elem)
                                 break;
                             if (_attrid == csspc_nth_last_child || elem->getNodeId() == nodeId)
@@ -3702,7 +3904,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                         n = 2; // true
                         if ( _attrid == csspc_only_of_type )
                             nodeId = node->getNodeId();
-                        const ldomNode * elem = node->getUnboxedParent()->getUnboxedFirstChild(true);
+                        const ldomNode * elem = node->getUnboxedParent(exceptBoxingNodeId)->getUnboxedFirstChild(true, exceptBoxingNodeId);
                         while (elem) {
                             if (elem != node) {
                                 if (_attrid == csspc_only_child || elem->getNodeId() == nodeId) {
@@ -3710,7 +3912,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                                     break;
                                 }
                             }
-                            elem = elem->getUnboxedNextSibling(true);
+                            elem = elem->getUnboxedNextSibling(true, exceptBoxingNodeId);
                         }
                         cache_node_checked_property(node, _attrid, n);
                     }
@@ -3753,8 +3955,13 @@ bool LVCssSelector::check( const ldomNode * node ) const
         }
         else {
             // We might be the pseudoElem that was created by this selector.
-            // Start checking the rules starting from the real parent.
-            node = node->getUnboxedParent();
+            // Start checking the rules starting from the real parent
+            // (except if this selector target a boxing element: we should
+            // stop unboxing at that boxing element).
+            if ( _id >= EL_BOXING_START && _id <= EL_BOXING_END )
+                node = node->getUnboxedParent(_id);
+            else
+                node = node->getUnboxedParent();
             nodeId = node->getNodeId();
         }
     }
@@ -4087,8 +4294,10 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
                 // is shorter than the shortest of them (rubyBox)
                 element = element.lowercase();
             }
-            else if ( element != "DocFragment" && element != "autoBoxing" && element != "tabularBox" &&
-                      element != "rubyBox"     && element != "floatBox"   && element != "inlineBox"  &&
+            else if ( element != "DocFragment" &&
+                      element != "autoBoxing"  && element != "tabularBox" &&
+                      element != "rubyBox"     && element != "mathBox"    &&
+                      element != "floatBox"    && element != "inlineBox"  &&
                       element != "pseudoElem"  && element != "FictionBook" ) {
                 element = element.lowercase();
             }
@@ -4313,7 +4522,10 @@ void LVStyleSheet::apply( const ldomNode * node, css_style_rec_t * style )
     lUInt16 id = node->getNodeId();
     if ( id == el_pseudoElem ) { // get the id chain from the parent element
         // Note that a "div:before {float:left}" will result in: <div><floatBox><pseudoElem>
-        id = node->getUnboxedParent()->getNodeId();
+        // There is just one kind of boxing element that is explicitely
+        // added when parsing MathML (and can't be implicitely added) that
+        // could generate pseudo elements: <mathBox>. So, don't skip them
+        id = node->getUnboxedParent(el_mathBox)->getNodeId();
     }
     
     // _selectors[0] holds the ordered chain of selectors starting (from

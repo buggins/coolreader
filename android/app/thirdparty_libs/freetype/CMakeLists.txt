@@ -1,5 +1,5 @@
 
-project(freetype)
+project(local_freetype)
 
 set(FREETYPE_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/${REPO_FREETYPE_SRCDIR})
 set(FREETYPE_CONFIG_DIR ${PROJECT_SOURCE_DIR})
@@ -42,4 +42,4 @@ set(FREETYPE_SRC_FILES
 #   ${FREETYPE_SRC_DIR}/src/gxvalid/gxvalid.c
 #   ${FREETYPE_SRC_DIR}/src/otvalid/otvalid.c
 
-add_library(freetype STATIC ${FREETYPE_SRC_FILES})
+add_library(local_freetype STATIC ${FREETYPE_SRC_FILES})

@@ -1,4 +1,4 @@
-project(unibreak C)
+project(local_unibreak C)
 
 cmake_minimum_required(VERSION 3.4)
 
@@ -17,4 +17,4 @@ set(LIBUNIBREAK_SOURCE
 	${LIBUNIBREAK_SOURCE_DIR}/wordbreak.c
 )
 
-add_library(unibreak STATIC ${LIBUNIBREAK_SOURCE})
+add_library(local_unibreak STATIC ${LIBUNIBREAK_SOURCE})

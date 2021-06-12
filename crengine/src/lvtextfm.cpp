@@ -159,7 +159,6 @@ formatted_text_fragment_t * lvtextAllocFormatter( lUInt16 width )
     pbuffer->light_formatting = false;
     int defMode = MAX_IMAGE_SCALE_MUL > 1 ? (ARBITRARY_IMAGE_SCALE_ENABLED==1 ? 2 : 1) : 0;
     int defMult = MAX_IMAGE_SCALE_MUL;
-    // Notes from thornyreader:
     // mode: 0=disabled, 1=integer scaling factors, 2=free scaling
     // scale: 0=auto based on font size, 1=no zoom, 2=scale up to *2, 3=scale up to *3
     pbuffer->img_zoom_in_mode_block = defMode; /**< can zoom in block images: 0=disabled, 1=integer scale, 2=free scale */
@@ -313,10 +312,34 @@ void lvtextAddSourceObject(
 #define DEPRECATED_LINE_BREAK_WORD_COUNT    3
 #define DEPRECATED_LINE_BREAK_SPACE_LIMIT   64
 
+// Fetch some extra LTEXT properties from the node style (mostly used for rare inherited
+// CSS properties that don't require us to waste a bit in srcline->flags)
+int getLTextExtraProperty( src_text_fragment_t * srcline, ltext_extra_t extra_property ) {
+    // We return 0 when no property: be sure if returning one of multiple css_xx_something enums,
+    // the one with a value of 0 is the one that requires no specific handling (inherit, none, auto...)
+    if ( !(srcline->flags & LTEXT_HAS_EXTRA) )
+        return 0;
+    if ( !srcline->object )
+        return 0;
+    ldomNode * node = (ldomNode *) srcline->object;
+    if ( node->isText() )
+        node = node->getParentNode();
+    if ( !node || node->isNull() )
+        return 0;
+    css_style_ref_t style = node->getStyle();
+    if ( extra_property == LTEXT_EXTRA_CSS_HIDDEN ) {
+        return style->visibility >= css_v_hidden ? 1 : 0;
+    }
+    if ( extra_property == LTEXT_EXTRA_CSS_LINE_BREAK ) {
+        return style->line_break; // more than 1 possibly interesting value
+    }
+    if ( extra_property == LTEXT_EXTRA_CSS_WORD_BREAK ) {
+        return style->word_break; // more than 1 possibly interesting value
+    }
+    return 0;
+}
 
 #ifdef __cplusplus
-
-#define DUMMY_IMAGE_SIZE 16
 
 void LFormattedText::AddSourceObject(
             lUInt32         flags,     /* flags */
@@ -333,71 +356,26 @@ void LFormattedText::AddSourceObject(
         TR("LFormattedText::AddSourceObject(): node is NULL!");
         return;
     }
-
-    if (flags & LTEXT_SRC_IS_FLOAT) { // not an image but a float:'ing node
-        // Nothing much to do with it at this point
-        lvtextAddSourceObject(m_pbuffer, 0, 0,
-            flags, interval, valign_dy, indent, object, lang_cfg, letter_spacing );
-            // lvtextAddSourceObject will itself add to flags: | LTEXT_SRC_IS_OBJECT
-            // (only flags & object parameter will be used, the others are not,
-            // but they matter if this float is the first node in a paragraph,
-            // as the code may grab them from the first source)
-        return;
-    }
-    if (flags & LTEXT_SRC_IS_INLINE_BOX) { // not an image but a inline-block wrapping node
-        // Nothing much to do with it at this point: we can't yet render it to
-        // get its width & neight, as they might be in % of our main width, that
-        // we don't know yet (but only when ->Format() is called).
-        lvtextAddSourceObject(m_pbuffer, 0, 0,
-            flags, interval, valign_dy, indent, object, lang_cfg, letter_spacing );
-            // lvtextAddSourceObject will itself add to flags: | LTEXT_SRC_IS_OBJECT
-        return;
-    }
-
-    LVImageSourceRef img = node->getObjectImageSource();
-    if ( img.isNull() )
-        img = LVCreateDummyImageSource( node, DUMMY_IMAGE_SIZE, DUMMY_IMAGE_SIZE );
-    lInt16 width = (lUInt16)img->GetWidth();
-    lInt16 height = (lUInt16)img->GetHeight();
-
-    // Scale image native size according to gRenderDPI
-    width = scaleForRenderDPI(width);
-    height = scaleForRenderDPI(height);
-
-    css_style_ref_t style = node->getStyle();
-    lInt16 w = 0, h = 0;
-    int em = node->getFont()->getSize();
-    w = lengthToPx(style->width, 100, em);
-    h = lengthToPx(style->height, 100, em);
-    // width in % will be computed in measureText() as a % of m_pbuffer->width
-    // For height in %, it's more complicated... see:
-    //   https://www.w3.org/TR/CSS2/visudet.html#the-width-property
-    //   https://www.w3.org/TR/CSS2/visudet.html#the-height-property
-    //   https://www.w3.org/TR/CSS2/visudet.html#inline-replaced-height
-    //   https://drafts.csswg.org/css-sizing-3/#extrinsic
-    if (style->width.type == css_val_percent)
-        w = -w;
-    if (style->height.type == css_val_percent)
-        h = w*height/width;
-
-    if ( w*h==0 ) {
-        if ( w==0 ) {
-            if ( h==0 ) { // use image native size
-                h = height;
-                w = width;
-            } else { // use style height, keep aspect ratio
-                w = width*h/height;
-            }
-        } else if ( h==0 ) { // use style width, keep aspect ratio
-            h = w*height/width;
-            if (h == 0) h = height;
-        }
-    }
-    width = w;
-    height = h;
-
-    lvtextAddSourceObject(m_pbuffer, width, height,
+    // Whether the object is a float, an inline-block or an image,
+    // nothing much to do with it at this point: we add it with
+    // 0-width/height, they will be computed later.
+    // (lvtextAddSourceObject will itself add to flags: | LTEXT_SRC_IS_OBJECT)
+    lvtextAddSourceObject(m_pbuffer, 0, 0,
         flags, interval, valign_dy, indent, object, lang_cfg, letter_spacing );
+
+    // Notes about the 3 cases:
+    // if (flags & LTEXT_SRC_IS_FLOAT):
+    //   Only flags & object parameter will be used, the others are not,
+    //   but they matter if this float is the first node in a paragraph,
+    //   as the code may grab them from the first source
+    // if (flags & LTEXT_SRC_IS_INLINE_BOX):
+    //   We can't yet render it to get its width & neight, as they might
+    //   be in % of our main width, that we don't know yet (but only
+    //   when ->Format() is called).
+    // otherwise, it's an image:
+    //   Handling CSS width and height (and min/max-width/height) will be done
+    //   in measureText(), where we know about the buffer width (its container
+    //   width) and can better apply values in %
 }
 
 class LVFormatter {
@@ -628,7 +606,7 @@ public:
             // But let's be fully deterministic with that, and redo it.
         }
         if ( !already_rendered ) {
-            LVRendPageContext alt_context( NULL, m_pbuffer->page_height, false );
+            LVRendPageContext alt_context( NULL, m_pbuffer->page_height, 0, false );
             // We render the float with the specified direction (from upper dir=), even
             // if UNSET (and not with the direction determined by fribidi from the text).
             // We provide 0,0 as the usable left/right overflows, so no glyph/hanging
@@ -928,8 +906,13 @@ public:
                         m_max_img_height = m_pbuffer->page_height;
                         // remove parent nodes' margin/border/padding
                         m_max_img_height -= node->getSurroundingAddedHeight();
-                        // remove height taken by the strut baseline
-                        m_max_img_height -= (m_pbuffer->strut_height - m_pbuffer->strut_baseline);
+                        // remove height taken by the strut baseline (but not
+                        // if negative, ie. when a small line-height has pushed
+                        // the baseline below the line box)
+                        int baseline_to_bottom = m_pbuffer->strut_height - m_pbuffer->strut_baseline;
+                        if ( baseline_to_bottom > 0 ) {
+                            m_max_img_height -= baseline_to_bottom;
+                        }
                         m_has_images = true;
                     }
                 }
@@ -1144,6 +1127,19 @@ public:
                     }
                 }
             }
+
+            // CSS tweaks to line breaking via line-break: and word-break:
+            // ("white-space: nowrap" has precedence)
+            #if (USE_LIBUNIBREAK==1)
+            css_line_break_t css_linebreak = css_lb_auto; // no specific tweak
+            css_word_break_t css_wordbreak = css_wb_normal; // no specific tweak
+            bool has_css_line_breaking_tweaks = false;
+            if ( !nowrap && src->flags & LTEXT_HAS_EXTRA ) {
+                css_linebreak = (css_line_break_t)getLTextExtraProperty(src, LTEXT_EXTRA_CSS_LINE_BREAK);
+                css_wordbreak = (css_word_break_t)getLTextExtraProperty(src, LTEXT_EXTRA_CSS_WORD_BREAK);
+                has_css_line_breaking_tweaks = css_linebreak > css_lb_auto || css_wordbreak > css_wb_break_word;
+            }
+            #endif
 
             if ( src->flags & LTEXT_SRC_IS_FLOAT ) {
                 m_text[pos] = 0;
@@ -1428,6 +1424,13 @@ public:
                         // Lang specific function may want to substitute char (for
                         // libunibreak only) to tweak line breaking around it
                         ch = src->lang_cfg->getLBCharSubFunc()(&lbCtx, m_text, pos, len-1 - k);
+                        // We do this before the following, to allow this lang specific function
+                        // to possibly tweak the more generic getCssLbCharSub()
+                    }
+                    if ( has_css_line_breaking_tweaks ) {
+                        // CSS line breaking tweaks by char substitution (we need to provide our 'ch'
+                        // as it may have been tweaked and differ from m_text[pos]...)
+                        ch = src->lang_cfg->getCssLbCharSub(css_linebreak, css_wordbreak, &lbCtx, m_text, pos, len-1 - k, ch);
                     }
                     int brk = lb_process_next_char(&lbCtx, (utf32_t)ch);
                     if ( pos > 0 ) {
@@ -1600,24 +1603,24 @@ public:
                 if ( m_pbuffer->img_zoom_in_mode_inline==0 )
                     return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_in_mode_inline == 2;
-                // maxScale = m_pbuffer->img_zoom_in_scale_inline;
+                maxScale = m_pbuffer->img_zoom_in_scale_inline;
             } else {
 //                if ( m_pbuffer->img_zoom_out_mode_inline==0 )
 //                    return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_out_mode_inline == 2;
-                // maxScale = m_pbuffer->img_zoom_out_scale_inline;
+                maxScale = m_pbuffer->img_zoom_out_scale_inline;
             }
         } else {
             if ( zoomIn ) {
                 if ( m_pbuffer->img_zoom_in_mode_block==0 )
                     return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_in_mode_block == 2;
-                // maxScale = m_pbuffer->img_zoom_in_scale_block;
+                maxScale = m_pbuffer->img_zoom_in_scale_block;
             } else {
 //                if ( m_pbuffer->img_zoom_out_mode_block==0 )
 //                    return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_out_mode_block == 2;
-                // maxScale = m_pbuffer->img_zoom_out_scale_block;
+                maxScale = m_pbuffer->img_zoom_out_scale_block;
             }
         }
         resizeImage( width, height, maxw, maxh, arbitraryImageScaling, maxScale );
@@ -1625,57 +1628,58 @@ public:
 
     void resizeImage( int & width, int & height, int maxw, int maxh, bool arbitraryImageScaling, int maxScaleMult )
     {
-        if (width == 0 || height == 0) {
-            // Avoid a floating point exception (division by zero) crash.
-            printf("CRE WARNING: resizeImage(width=0 or height=0)\n");
+        if (width <= 0 || height <= 0) {
+            // Reject nonsensical values (and avoids the potential for an FPE if 0)
+            printf("CRE WARNING: resizeImage(width<=0 or height<=0)\n");
             return;
         }
-        if (width < 0 || height < 0) {
-            // Avoid invalid resizing if we are provided with negative values
-            printf("CRE WARNING: resizeImage(width<0 or height<0)\n");
-            return;
-        }
-        if (maxw < 0 || maxh < 0) {
-            // Avoid invalid resizing if we are provided with negative max values
-            printf("CRE WARNING: resizeImage(maxw<0 or maxh<0)\n");
+        if (maxw <= 0 || maxh <= 0) {
+            // Ditto
+            printf("CRE WARNING: resizeImage(maxw<=0 or maxh<=0)\n");
             return;
         }
         //CRLog::trace("Resize image (%dx%d) max %dx%d %s  *%d", width, height, maxw, maxh, arbitraryImageScaling ? "arbitrary" : "integer", maxScaleMult);
-        if ( maxScaleMult<1 ) maxScaleMult = 1;
-        if ( arbitraryImageScaling ) {
-            int pscale_x = 1000 * maxw / width;
-            int pscale_y = 1000 * maxh / height;
-            int pscale = pscale_x < pscale_y ? pscale_x : pscale_y;
-            int maxscale = maxScaleMult * 1000;
-            if ( pscale>maxscale )
-                pscale = maxscale;
-            height = height * pscale / 1000;
-            width = width * pscale / 1000;
-        } else {
-            if (maxw == 0 || maxh == 0) {
-                // Avoid a floating point exception (division by zero) crash.
-                printf("CRE WARNING: resizeImage(maxw=0 or maxh=0)\n");
-                return;
-            }
-            int scale_div = 1;
-            int scale_mul = 1;
-            int div_x = (width * 1000 / maxw);
-            int div_y = (height * 1000 / maxh);
-            if ( maxScaleMult>=3 && height*3 < maxh - 20
-                    && width*3 < maxw - 20 ) {
-                scale_mul = 3;
-            } else if ( maxScaleMult>=2 && height * 2 < maxh - 20
-                    && width * 2 < maxw - 20 ) {
-                scale_mul = 2;
-            } else if (div_x>1 || div_y>1) {
-                if (div_x>div_y)
-                    scale_div = div_x;
-                else
-                    scale_div = div_y;
-            }
-            height = height * 1000 * scale_mul / scale_div;
-            width = width * 1000 * scale_mul / scale_div;
+
+        if ( maxScaleMult<1 ) {
+            maxScaleMult = 1;
         }
+
+        if ( !arbitraryImageScaling ) {
+            // Integer scaling, constrained to maxScaleMult
+            for ( int i = maxScaleMult; i > 0; i-- ) {
+                // Use the largest integer multiplier that fits
+                int scaled_width = width * i;
+                int scaled_height = height * i;
+                if ( scaled_width <= maxw && scaled_height <= maxh ) {
+                    width = scaled_width;
+                    height = scaled_height;
+                    return;
+                }
+            }
+
+            // Fall through to arbitrary scaling
+        }
+
+        // Make sure we never blow past maxScaleMult while still fitting inside maxw/maxh
+        int bbox_width = width * maxScaleMult > maxw ? maxw : width * maxScaleMult;
+        int bbox_height = height * maxScaleMult > maxh ? maxh : height * maxScaleMult;
+
+        int scaled_width;
+        int scaled_height;
+        // And now see whether we need to compute width or height to honor the AR.
+        // c.f., QSize::scaled @ https://github.com/qt/qtbase/blob/dev/src/corelib/tools/qsize.cpp for Qt::KeepAspectRatio
+        int rescaled_width = bbox_height * width / height;
+        if ( rescaled_width <= bbox_width ) {
+            scaled_width = rescaled_width;
+            scaled_height = bbox_height;
+        } else {
+            scaled_width = bbox_width;
+            scaled_height = bbox_width * height / width;
+        }
+
+        // We're done, update out pointers
+        width = scaled_width;
+        height = scaled_height;
     }
 
     /// measure word
@@ -1920,6 +1924,7 @@ public:
                             // remove, from the measured cumulative width, what we just, and previously, removed
                             widths[k] -= cumulative_width_removed;
                             if ( first_word_len >= 0 ) { // This is the space (or nbsp) after first word
+                                bool keep_checking = false;
                                 if ( first_word_len == 1 ) { // Previous word is a single char
                                     if ( k > 0 && isLeftPunctuation(m_text[k-1]) ) {
                                         // This space follows one of the common opening quotation marks or
@@ -1932,6 +1937,10 @@ public:
                                         // Also prevent that quotation mark or dash from getting
                                         // additional letter spacing for justification
                                         flags[k-1] |= LCHAR_LOCKED_SPACING;
+                                        // If what's coming next is also such a char, continue doing that
+                                        if ( k+1 < len && isLeftPunctuation(m_text[k+1]) ) {
+                                            keep_checking = true;
+                                        }
                                         //
                                         // Note: we do this check here, with the text still in logical
                                         // order, so we get that working with RTL text too (where, in
@@ -1939,7 +1948,10 @@ public:
                                         // first word - untested though).
                                     }
                                 }
-                                first_word_len = -1; // We don't need to deal with this anymore
+                                if ( keep_checking )
+                                    first_word_len = 0;
+                                else
+                                    first_word_len = -1; // We don't need to deal with this anymore
                             }
                         }
                         else {
@@ -2009,7 +2021,7 @@ public:
                             }
                         }
                         if ( !already_rendered ) {
-                            LVRendPageContext alt_context( NULL, m_pbuffer->page_height, false );
+                            LVRendPageContext alt_context( NULL, m_pbuffer->page_height, 0, false );
                             // inline-block and inline-table have a baseline, that renderBlockElement()
                             // will compute and give us back.
                             int baseline = REQ_BASELINE_FOR_INLINE_BLOCK;
@@ -2081,17 +2093,16 @@ public:
                     else {
                         // measure image
                         // assume i==start+1
-                        int width = m_srcs[start]->o.width;
-                        int height = m_srcs[start]->o.height;
-                        // Negative width and height mean the value is a % (of our final block width)
-                        width = width<0 ? (-width * (m_pbuffer->width) / 100) : width;
-                        height = height<0 ? (-height * (m_pbuffer->width) / 100) : height;
-                        /*
-                        printf("measureText img: o.w=%d o.h=%d > w=%d h=%d (max %d %d is_inline=%d) %s\n",
-                            m_srcs[start]->o.width, m_srcs[start]->o.height, width, height,
-                            m_pbuffer->width, m_max_img_height, m_length>1,
-                            UnicodeToLocal(ldomXPointer((ldomNode*)m_srcs[start]->object, 0).toString()).c_str());
-                        */
+                        src_text_fragment_t * src = m_srcs[start];
+                        ldomNode * node = (ldomNode *) src->object;
+                        int width = 0;
+                        int height = 0;
+                        // We have yet no container height to provide for CSS heights in %,
+                        // so they won't apply
+                        getStyledImageSize( node, width, height, m_pbuffer->width, -1 );
+                        // Ensure they are constrained to this paragraph width and page height
+                        // Note: resizeImage() may do some additional scaling depending on image_scaling_options,
+                        // use mode=0 scale=1 for these if this is not desirable.
                         resizeImage(width, height, m_pbuffer->width, m_max_img_height, m_length>1);
                         if ( (m_srcs[start]->flags & LTEXT_STRUT_CONFINED) && m_allow_strut_confining ) {
                             // Text with "-cr-hint: strut-confined" might just be vertically shifted,
@@ -2104,12 +2115,16 @@ public:
                                 height = m_pbuffer->strut_height;
                             }
                         }
-                        // Store the possibly resized dimensions back, so we don't have
-                        // to recompute them later
+                        // Store the computed image dimensions
                         m_srcs[start]->o.width = width;
                         m_srcs[start]->o.height = height;
                         lastWidth += width;
                         m_widths[start] = lastWidth;
+                        /*
+                        printf("measureText img: o.w=%d o.h=%d (max %d %d is_inline=%d) %s\n",
+                            width, height, m_pbuffer->width, m_max_img_height, m_length>1,
+                            UnicodeToLocal(ldomXPointer((ldomNode*)m_srcs[start]->object, 0).toString()).c_str());
+                        */
                     }
                 }
                 else {
@@ -2356,6 +2371,10 @@ public:
             }
         }
         if ( hasInlineBoxes ) {
+            #if MATHML_SUPPORT==1
+                lUInt16 needed_baseline = frmline->baseline;
+                lUInt16 needed_height = frmline->height;
+            #endif
             // Now that we have the final x of each word, we can update
             // the RenderRectAccessor x/y of each word that is a inlineBox
             // (needed to correctly draw highlighted text in them).
@@ -2365,10 +2384,45 @@ public:
                     src_text_fragment_t * srcline = &m_pbuffer->srctext[word->src_text_index];
                     ldomNode * node = (ldomNode *) srcline->object;
                     RenderRectAccessor fmt( node );
+                    if ( RENDER_RECT_HAS_FLAG(fmt, BOX_IS_POSITIONNED) )
+                        continue;
+                    RENDER_RECT_SET_FLAG(fmt, BOX_IS_POSITIONNED);
                     fmt.setX( frmline->x + word->x );
                     fmt.setY( frmline->y + frmline->baseline - word->o.baseline + word->y );
+                    fmt.push();
+                    #if MATHML_SUPPORT==1
+                        ldomNode * unboxedParent = node->getUnboxedParent();
+                        if ( unboxedParent ) {
+                            lUInt16 unboxedParentId = unboxedParent->getNodeId();
+                            if ( unboxedParentId >= EL_MATHML_START && unboxedParentId <= EL_MATHML_END ) {
+                                ensureMathMLVerticalStretch(node, frmline->y, frmline->baseline, frmline->height,
+                                                                                needed_baseline, needed_height);
+                            }
+                        }
+                    #endif
                 }
             }
+            #if MATHML_SUPPORT==1
+                if ( needed_height > frmline->height ) {
+                    frmline->height = needed_height;
+                }
+                if ( needed_baseline > frmline->baseline ) {
+                    int baseline_shift = needed_baseline - frmline->baseline;
+                    frmline->baseline = needed_baseline;
+                    // We need to update all the inlineBoxes absolute positions in the paragraph,
+                    // as they are all to be positionned relative to the baseline, which has moved.
+                    for ( int i=0; i<frmline->word_count; i++ ) {
+                        if ( frmline->words[i].flags & LTEXT_WORD_IS_INLINE_BOX ) {
+                            formatted_word_t * word = &frmline->words[i];
+                            src_text_fragment_t * srcline = &m_pbuffer->srctext[word->src_text_index];
+                            ldomNode * node = (ldomNode *) srcline->object;
+                            RenderRectAccessor fmt( node );
+                            fmt.setY( fmt.getY() + baseline_shift );
+                            fmt.push();
+                        }
+                    }
+                }
+            #endif
         }
     }
 
@@ -2446,7 +2500,6 @@ public:
             align = m_para_dir_is_rtl ? LTEXT_ALIGN_RIGHT : LTEXT_ALIGN_LEFT;
 
         TR("addLine(%d, %d) y=%d  align=%d", start, end, m_y, align);
-        // printf("addLine(%d, %d) y=%d  align=%d maxWidth=%d\n", start, end, m_y, align, maxWidth);
 
         // Note: parameter needReduceSpace and variable splitBySpaces (which
         // was always true) have been removed, as we always split by space:
@@ -2693,15 +2746,13 @@ public:
         }
         // Ignore space at start of line (this rarely happens, as line
         // splitting discards the space on which a split is made - but it
-        // can happen in other rare wrap cases like lastDeprecatedWrap)
-        if ( (m_flags[start] & LCHAR_IS_SPACE) && !(lastSrc->flags & LTEXT_FLAG_PREFORMATTED) ) {
-            // But do it only if we're going to stay in same text node (if not
-            // the space may have some reason - there's sometimes a no-break-space
-            // before an image)
-            if (start < end-1 && m_srcs[start+1] == m_srcs[start]) {
-                start++;
-                lastSrc = m_srcs[start];
-            }
+        // can happen in other rare wrap cases like lastDeprecatedWrap
+        // or if a wrap happened to be allowed before a no-break-space).
+        // Do it only for the 2nd++ lines of a paragraph, as a leading
+        // no-break-space may be used to add some indentation.
+        if ( !first && (m_flags[start] & LCHAR_IS_SPACE) && !(lastSrc->flags & LTEXT_FLAG_PREFORMATTED) ) {
+            start++;
+            lastSrc = m_srcs[start];
         }
 
         // Some words vertical-align positioning might need to be fixed
@@ -4071,14 +4122,17 @@ public:
                     // let's go with it as-is as it might be a safety and might help
                     // us not be stuck in some infinite loop here.
                     int wstart, wend;
-                    lStr_findWordBounds( m_text, m_length, wordpos, wstart, wend );
+                    bool has_rtl;
+                    lStr_findWordBounds( m_text, m_length, wordpos, wstart, wend, has_rtl );
                     if ( wend <= lastNormalWrap ) {
                         // We passed back lastNormalWrap: no need to look for more
                         break;
                     }
                     int len = wend - wstart;
-                    if ( len < MIN_WORD_LEN_TO_HYPHENATE ) {
+                    if ( len < MIN_WORD_LEN_TO_HYPHENATE || has_rtl ) {
                         // Too short word found, skip it
+                        // Also skip words containing RTL chars (so, probably full RTL words),
+                        // as we only handle drawing hyphens on the right
                         wordpos = wstart - 1;
                         continue;
                     }
@@ -4723,6 +4777,17 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
     const lChar32 * str;
     int line_y = y;
 
+    bool ignore_clip = false;
+    if ( m_pbuffer->frmlinecount == 1 && m_pbuffer->frmlines[0]->word_count > 0 ) {
+        // If the first word of a single line block has LTEXT_MATH_TRANSFORM,
+        // it's a single word that is a <mo> that might be stretched by the
+        // font drawing code: ignore the clip as the original glyph might be
+        // outside, but we want any part of the stretched glyph to be rendered.
+        srcline = &m_pbuffer->srctext[m_pbuffer->frmlines[0]->words[0].src_text_index];
+        if ( srcline->flags & LTEXT_MATH_TRANSFORM )
+            ignore_clip = true;
+    }
+
     // We might need to translate "marks" (native highlights) from relative
     // coordinates to absolute coordinates if we have to draw floats or
     // inlineBoxes: we'll do that when dealing with the first of these if any.
@@ -4737,10 +4802,10 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
 
     for (i=0; i<m_pbuffer->frmlinecount; i++)
     {
-        if (line_y >= clip.bottom)
+        if ( line_y >= clip.bottom && !ignore_clip )
             break;
         frmline = m_pbuffer->frmlines[i];
-        if (line_y + frmline->height > clip.top)
+        if ( line_y + frmline->height > clip.top || ignore_clip )
         {
             // process background
 
@@ -4761,6 +4826,8 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
             {
                 word = &frmline->words[j];
                 srcline = &m_pbuffer->srctext[word->src_text_index];
+                if ( (srcline->flags & LTEXT_HAS_EXTRA) && getLTextExtraProperty(srcline, LTEXT_EXTRA_CSS_HIDDEN) && !buf->WantsHiddenContent() )
+                    continue;
                 if (word->flags & LTEXT_WORD_IS_OBJECT)
                 {
                     // no background, TODO
@@ -4833,9 +4900,11 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
             for (j=0; j<frmline->word_count; j++)
             {
                 word = &frmline->words[j];
+                srcline = &m_pbuffer->srctext[word->src_text_index];
+                if ( (srcline->flags & LTEXT_HAS_EXTRA) && getLTextExtraProperty(srcline, LTEXT_EXTRA_CSS_HIDDEN) && !buf->WantsHiddenContent() )
+                    continue;
                 if (word->flags & LTEXT_WORD_IS_OBJECT)
                 {
-                    srcline = &m_pbuffer->srctext[word->src_text_index];
                     ldomNode * node = (ldomNode *) srcline->object;
                     if (node) {
                         LVImageSourceRef img = node->getObjectImageSource();
@@ -4849,7 +4918,6 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                 }
                 else if (word->flags & LTEXT_WORD_IS_INLINE_BOX)
                 {
-                    srcline = &m_pbuffer->srctext[word->src_text_index];
                     ldomNode * node = (ldomNode *) srcline->object;
                     // Logically, the coordinates of the top left of the box are:
                     // int x0 = x + frmline->x + word->x;
@@ -4911,7 +4979,6 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                         else if (frmline->flags & LTEXT_LINE_IS_BIDI)
                             flgHyphen = true;
                     }
-                    srcline = &m_pbuffer->srctext[word->src_text_index];
                     font = (LVFont *) srcline->t.font;
                     str = srcline->t.text + word->t.start;
                     /*
@@ -4937,18 +5004,40 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     lUInt32 oldBgColor = buf->GetBackgroundColor();
                     lUInt32 cl = srcline->color;
                     lUInt32 bgcl = srcline->bgcolor;
-                    if ( cl!=0xFFFFFFFF )
-                        buf->SetTextColor( cl );
+                    if ( cl!=0xFFFFFFFF ) {
+                        if ( cl==0xDDFFFFFF ) // color: transparent
+                            continue; // Don't draw this word
+                        else
+                            buf->SetTextColor( cl );
+                    }
                     if ( bgcl!=0xFFFFFFFF )
                         buf->SetBackgroundColor( bgcl );
                     // Add drawing flags: text decoration (underline...)
                     lUInt32 drawFlags = srcline->flags & LTEXT_TD_MASK;
                     // and chars direction, and if word begins or ends paragraph (for Harfbuzz)
                     drawFlags |= WORD_FLAGS_TO_FNT_FLAGS(word->flags);
+                    int x0, y0, w, h;
+                    if ( srcline->flags & LTEXT_MATH_TRANSFORM ) {
+                        ldomNode * node = (ldomNode *) srcline->object;
+                        // Parent of text node, which, having this flag, must be erm_final
+                        // We want the glyph to be stretched to cover the erm_final rect
+                        RenderRectAccessor fmt( node->getParentNode() );
+                        x0 = x;
+                        y0 = y;
+                        w = fmt.getWidth();
+                        h = fmt.getHeight();
+                        drawFlags |= LFNT_HINT_TRANSFORM_STRETCH;
+                    }
+                    else {
+                        // Regular drawing of glyphs at word position and baseline
+                        x0 = x + frmline->x + word->x;
+                        y0 = line_y + (frmline->baseline - font->getBaseline()) + word->y;
+                        w = h = 0; // unused
+                    }
                     font->DrawTextString(
                         buf,
-                        x + frmline->x + word->x,
-                        line_y + (frmline->baseline - font->getBaseline()) + word->y,
+                        x0,
+                        y0,
                         str,
                         word->t.len,
                         '?',
@@ -4958,7 +5047,8 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                         drawFlags,
                         srcline->letter_spacing + word->added_letter_spacing,
                         word->width,
-                        text_decoration_back_gap);
+                        text_decoration_back_gap,
+                        w, h);
                     /* To display the added letter spacing % at end of line
                     if (j == frmline->word_count-1 && word->added_letter_spacing ) {
                         // lString32 val = lString32::itoa(word->added_letter_spacing);

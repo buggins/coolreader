@@ -310,7 +310,7 @@ static inline void blendBitmap_bgraTo8bpp(LVDrawBuf* d, int x, int y, const lUIn
 
 
 
-int  LVGrayDrawBuf::GetBitsPerPixel()
+int  LVGrayDrawBuf::GetBitsPerPixel() const
 {
     return _bpp;
 }
@@ -394,7 +394,7 @@ void LVGrayDrawBuf::Draw( LVImageSourceRef img, int x, int y, int width, int hei
 
 
 /// get pixel value
-lUInt32 LVGrayDrawBuf::GetPixel( int x, int y )
+lUInt32 LVGrayDrawBuf::GetPixel( int x, int y ) const
 {
     if (x<0 || y<0 || x>=_dx || y>=_dy)
         return 0;
@@ -603,7 +603,7 @@ void LVGrayDrawBuf::Resize( int dx, int dy )
 }
 
 /// returns white pixel value
-lUInt32 LVGrayDrawBuf::GetWhiteColor()
+lUInt32 LVGrayDrawBuf::GetWhiteColor() const
 {
     return 0xFFFFFF;
     /*
@@ -615,7 +615,7 @@ lUInt32 LVGrayDrawBuf::GetWhiteColor()
     */
 }
 /// returns black pixel value
-lUInt32 LVGrayDrawBuf::GetBlackColor()
+lUInt32 LVGrayDrawBuf::GetBlackColor() const
 {
     return 0;
     /*
@@ -818,7 +818,7 @@ void LVGrayDrawBuf::BlendBitmap(int x, int y, const lUInt8 * bitmap, FontBmpPixe
     CHECK_GUARD_BYTE;
 }
 
-lUInt8 * LVGrayDrawBuf::GetScanLine( int y )
+lUInt8 * LVGrayDrawBuf::GetScanLine( int y ) const
 {
     if (!_data || y<0 || y>=_dy)
         return NULL;
@@ -827,9 +827,11 @@ lUInt8 * LVGrayDrawBuf::GetScanLine( int y )
 
 void LVGrayDrawBuf::Invert()
 {
-    int sz = _rowsize * _dy;
-    for (int i=sz-1; i>=0; i--)
-        _data[i] = ~_data[i];
+    unsigned char * p = _data;
+    size_t px_count = _rowsize * _dy;
+    while (px_count--) {
+        *p++ ^= 0xFF;
+    }
 }
 
 void LVGrayDrawBuf::ConvertToBitmap(bool flgDither)

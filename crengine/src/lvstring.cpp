@@ -70,7 +70,7 @@ static int size_8 = 0;
 
 /// get reference to atomic constant string for string literal e.g. cs8("abc") -- fast and memory effective
 const lString8 & cs8(const char * str) {
-    int index =  (int)(((ptrdiff_t)str * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK);
+    unsigned int index =  (unsigned int)(((ptrdiff_t)str * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK);
     for (;;) {
         const void * p = const_ptrs_8[index];
         if (p == str) {
@@ -99,7 +99,7 @@ static int size_32 = 0;
 
 /// get reference to atomic constant wide string for string literal e.g. cs32("abc") -- fast and memory effective
 const lString32 & cs32(const char * str) {
-    int index =  (int)(((ptrdiff_t)str * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK);
+    unsigned int index =  (unsigned int)(((ptrdiff_t)str * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK);
     for (;;) {
         const void * p = const_ptrs_32[index];
         if (p == str) {
@@ -124,7 +124,7 @@ const lString32 & cs32(const char * str) {
 
 /// get reference to atomic constant wide string for string literal e.g. cs32(U"abc") -- fast and memory effective
 const lString32 & cs32(const lChar32 * str) {
-    int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
+    unsigned int index = (((unsigned int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
     for (;;) {
         const void * p = const_ptrs_32[index];
         if (p == str) {
@@ -1291,8 +1291,8 @@ lString32 & lString32::insert(size_type p0, size_type count, lChar32 ch)
     if (p0>pchunk->len)
         p0 = pchunk->len;
     reserve( pchunk->len+count );
-    for (size_type i=pchunk->len+count; i>p0; i--)
-        pchunk->buf32[i] = pchunk->buf32[i-1];
+    for (size_type i=pchunk->len-1; i>=p0; i--)
+        pchunk->buf32[i+count] = pchunk->buf32[i];
     _lStr_memset(pchunk->buf32+p0, ch, count);
     pchunk->len += count;
     pchunk->buf32[pchunk->len] = 0;
@@ -1305,8 +1305,8 @@ lString32 & lString32::insert(size_type p0, const lString32 & str)
         p0 = pchunk->len;
     int count = str.length();
     reserve( pchunk->len+count );
-    for (size_type i=pchunk->len+count; i>p0; i--)
-        pchunk->buf32[i] = pchunk->buf32[i-1];
+    for (size_type i=pchunk->len-1; i>=p0; i--)
+        pchunk->buf32[i+count] = pchunk->buf32[i];
     _lStr_memcpy(pchunk->buf32 + p0, str.c_str(), count);
     pchunk->len += count;
     pchunk->buf32[pchunk->len] = 0;
@@ -2722,8 +2722,8 @@ lString8 & lString8::insert(size_type p0, size_type count, lChar8 ch)
     if (p0>pchunk->len)
         p0 = pchunk->len;
     reserve( pchunk->len+count );
-    for (size_type i=pchunk->len+count; i>p0; i--)
-        pchunk->buf8[i] = pchunk->buf8[i-1];
+    for (size_type i=pchunk->len-1; i>=p0; i--)
+        pchunk->buf8[i+count] = pchunk->buf8[i];
     //_lStr_memset(pchunk->buf8+p0, ch, count);
     memset(pchunk->buf8+p0, ch, count);
     pchunk->len += count;
@@ -3164,6 +3164,7 @@ lInt64 lString8::atoi64() const
     while (*s>='0' && *s<='9')
     {
         n = n * 10 + ( (*s)-'0' );
+        s++;
     }
     return (sgn>0) ? n : -n;
 }
@@ -5455,7 +5456,45 @@ inline lUInt16 getCharProp(lChar32 ch) {
              (ch>=UNICODE_GENERAL_PUNCTUATION_BEGIN && ch<=UNICODE_GENERAL_PUNCTUATION_END) ||
              (ch>=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN && ch<=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END))
         return CH_PROP_PUNCT;
-    return 0;
+
+    // Try to guess a few other things about other chars we don't handle above
+    lUInt16 prop = 0;
+#if (USE_UTF8PROC==1)
+    // For other less known ranges, fallback to detecting letters with utf8proc,
+    // which is enough to be able to ensure hyphenation for Armenian and Georgian.
+    utf8proc_category_t cat = utf8proc_category(ch);
+    switch (cat) {
+        case UTF8PROC_CATEGORY_LU:
+        case UTF8PROC_CATEGORY_LT:
+            prop |= CH_PROP_UPPER;
+            break;
+        case UTF8PROC_CATEGORY_LL:
+        case UTF8PROC_CATEGORY_LM:
+        case UTF8PROC_CATEGORY_LO:
+            prop |= CH_PROP_LOWER;
+            break;
+        default:
+            break;
+    }
+#endif
+    // Detect RTL (details in lvtextfm.cpp)
+    if ( ch >= 0x0590 && ch <= 0x08FF ) // Hebrew, Arabic, Syriac, Thaana, Nko, Samaritan...
+        prop |= CH_PROP_RTL;
+    else if ( ch >= 0xFB1D ) { // Try to balance the searches
+        if ( ch <= 0xFDFF )     // FB1D>FDFF Hebrew and Arabic presentation forms
+            prop |= CH_PROP_RTL;
+        else if ( ch <= 0xFEFF ) {
+            if ( ch >= 0xFE70)   // FE70>FEFF Arabic presentation forms
+                prop |= CH_PROP_RTL;
+        }
+        else if ( ch <= 0x1EEBB ) {
+            if (ch >= 0x1E800)   // 1E800>1EEBB Other rare scripts possibly RTL
+                prop |= CH_PROP_RTL;
+            else if ( ch <= 0x10FFF && ch >= 0x10800 ) // 10800>10FFF Other rare scripts possibly RTL
+                prop |= CH_PROP_RTL;
+        }
+    }
+    return prop;
 }
 
 void lStr_getCharProps( const lChar32 * str, int sz, lUInt16 * props )
@@ -5500,9 +5539,10 @@ bool lStr_isWordSeparator( lChar32 ch )
 }
 
 /// find alpha sequence bounds
-void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int & end )
+void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int & end, bool & has_rtl )
 {
     int hwStart, hwEnd;
+    has_rtl = false;
 
     // 20180615: don't split anymore on UNICODE_SOFT_HYPHEN_CODE, consider
     // it like an alpha char of zero width not drawn.
@@ -5537,7 +5577,7 @@ void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int
     {
         lChar32 ch = str[hwStart];
         lUInt16 props = getCharProp(ch);
-        if ( props & CH_PROP_ALPHA || props & CH_PROP_HYPHEN )
+        if ( props & (CH_PROP_ALPHA|CH_PROP_HYPHEN) )
             break;
     }
     if ( hwStart<0 ) {
@@ -5551,7 +5591,10 @@ void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int
     {
         lChar32 ch = str[hwStart];
         //int lastAlpha = -1;
-        if ( getCharProp(ch) & CH_PROP_ALPHA || getCharProp(ch) & CH_PROP_HYPHEN ) {
+        lUInt16 props = getCharProp(ch);
+        if ( props & (CH_PROP_ALPHA|CH_PROP_HYPHEN) ) {
+            if ( props & CH_PROP_RTL )
+                has_rtl = true;
             //lastAlpha = hwStart;
         } else {
             hwStart++;
@@ -5566,7 +5609,8 @@ void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int
     for (hwEnd=hwStart+1; hwEnd<sz; hwEnd++) // 20080404
     {
         lChar32 ch = str[hwEnd];
-        if (!(getCharProp(ch) & CH_PROP_ALPHA) && !(getCharProp(ch) & CH_PROP_HYPHEN))
+        lUInt16 props = getCharProp(ch);
+        if ( !(props & (CH_PROP_ALPHA|CH_PROP_HYPHEN)) )
             break;
         ch = str[hwEnd-1];
         if ( ch==' ' ) // || ch==UNICODE_SOFT_HYPHEN_CODE) )

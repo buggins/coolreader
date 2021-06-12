@@ -232,7 +232,6 @@ LVDocView::LVDocView(int bitsPerPixel, bool noDefaultDocument) :
                     U"Welcome to CoolReader! Please select file to open"));
 
     m_font_size = scaleFontSizeForDPI(m_requested_font_size);
-    gRootFontSize = m_font_size; // stored as global (for 'rem' css unit)
     m_font = fontMan->GetFont(m_font_size, 400, false, DEFAULT_FONT_FAMILY,
 			m_defaultFontFace);
 	m_infoFont = fontMan->GetFont(m_status_font_size, 700, false,
@@ -256,7 +255,7 @@ void LVDocView::setPageSkin(CRPageSkinRef skin) {
 }
 
 /// get text format options
-txt_format_t LVDocView::getTextFormatOptions() {
+txt_format_t LVDocView::getTextFormatOptions() const {
     return m_doc && m_doc->getDocFlag(DOC_FLAG_PREFORMATTED_TEXT) ? txt_format_pre
 			: txt_format_auto;
 }
@@ -324,7 +323,7 @@ bool LVDocView::isDocumentOpened() {
 }
 
 /// rotate rectangle by current angle, winToDoc==false for doc->window translation, true==ccw
-lvRect LVDocView::rotateRect(lvRect & rc, bool winToDoc) {
+lvRect LVDocView::rotateRect(lvRect & rc, bool winToDoc) const {
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	lvRect rc2;
 	cr_rotate_angle_t angle = m_rotateAngle;
@@ -382,7 +381,7 @@ lvRect LVDocView::rotateRect(lvRect & rc, bool winToDoc) {
 }
 
 /// rotate point by current angle, winToDoc==false for doc->window translation, true==ccw
-lvPoint LVDocView::rotatePoint(lvPoint & pt, bool winToDoc) {
+lvPoint LVDocView::rotatePoint(lvPoint & pt, bool winToDoc) const {
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	lvPoint pt2;
 	cr_rotate_angle_t angle = m_rotateAngle;
@@ -1173,9 +1172,7 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
         if (dst_dy > rc.height() * 6 / 8)
 			dst_dy = imgrc.height();
 		//CRLog::trace("drawCoverTo() - drawing image");
-        // It's best to use a 16bpp LVColorDrawBuf as the intermediate buffer,
-        // as using 32bpp would mess colors up when drawBuf is itself 32bpp.
-        LVColorDrawBuf buf2(src_dx, src_dy, 16);
+        LVColorDrawBuf buf2(src_dx, src_dy, 32);
         buf2.Draw(imgsrc, 0, 0, src_dx, src_dy, true);
         drawBuf->DrawRescaled(&buf2, imgrc.left + (imgrc.width() - dst_dx) / 2,
                 imgrc.top + (imgrc.height() - dst_dy) / 2, dst_dx, dst_dy, 0);
@@ -1362,7 +1359,7 @@ int LVDocView::GetFullHeight() {
 }
 
 /// calculate page header height
-int LVDocView::getPageHeaderHeight() {
+int LVDocView::getPageHeaderHeight() const {
 	if (getPageheaderPosition() == 0)
 		return 0;
 	if (!getPageHeaderInfo())
@@ -1386,7 +1383,7 @@ int LVDocView::getPageHeaderHeight() {
 }
 
 /// calculate page header rectangle
-void LVDocView::getPageHeaderRectangle(int pageIndex, lvRect & headerRc) {
+void LVDocView::getPageHeaderRectangle(int pageIndex, lvRect & headerRc) const {
 	lvRect pageRc;
 	getPageRectangle(pageIndex, pageRc);
 	headerRc = pageRc;
@@ -1415,11 +1412,16 @@ void LVDocView::getPageHeaderRectangle(int pageIndex, lvRect & headerRc) {
 }
 
 /// returns current time representation string
-lString32 LVDocView::getTimeString() {
+lString32 LVDocView::getTimeString() const {
 	time_t t = (time_t) time(0);
 	tm * bt = localtime(&t);
 	char str[12];
-	sprintf(str, "%02d:%02d", bt->tm_hour, bt->tm_min);
+	if ( m_props->getBoolDef(PROP_SHOW_TIME_12HOURS, false) ) {
+		sprintf(str, "%d:%02d", bt->tm_hour > 12 ? bt->tm_hour % 12 : bt->tm_hour, bt->tm_min);
+	}
+	else {
+		sprintf(str, "%02d:%02d", bt->tm_hour, bt->tm_min);
+	}
 	return Utf8ToUnicode(lString8(str));
 }
 
@@ -1696,7 +1698,7 @@ int LVDocView::getPosPercent() {
 	}
 }
 
-void LVDocView::getPageRectangle(int pageIndex, lvRect & pageRect) {
+void LVDocView::getPageRectangle(int pageIndex, lvRect & pageRect) const {
 	if ((pageIndex & 1) == 0 || (getVisiblePageCount() < 2))
 		pageRect = m_pageRects[0];
 	else
@@ -1923,10 +1925,14 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
                     pageinfo << "0";
                 pageinfo << fmt::decimal(pp) << "%";
             }
-            if ( batteryPercentNormalFont && m_battery_state>=0 ) {
-                pageinfo << "  [" << fmt::decimal(m_battery_state) << "%]";
+            if ( batteryPercentNormalFont ) {
+                if (m_battery_state >= 0)
+                    pageinfo << "  [" << fmt::decimal(m_battery_state) << "%]";
+                else if (m_battery_state == CR_BATTERY_STATE_CHARGING)
+                    pageinfo << "  [ + ]";
             }
-		}
+        }
+
 		int piw = 0;
 		if (!pageinfo.empty()) {
 			piw = m_infoFont->getTextWidth(pageinfo.c_str(), pageinfo.length());
@@ -2071,7 +2077,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 			//CRLog::trace("Done DrawDocument() for main text");
 			// draw footnotes
 #define FOOTNOTE_MARGIN_REM 1 // as in lvpagesplitter.cpp
-			int footnote_margin = FOOTNOTE_MARGIN_REM * gRootFontSize;
+			int footnote_margin = FOOTNOTE_MARGIN_REM * m_font_size;
 			int fny = clip.top + (page.height ? page.height + footnote_margin
 					: footnote_margin);
 			// Try to push footnotes to the bottom of page if possible
@@ -2148,7 +2154,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 }
 
 /// returns page count
-int LVDocView::getPageCount() {
+int LVDocView::getPageCount() const {
 	return m_pages.length();
 }
 
@@ -2188,14 +2194,14 @@ bool LVDocView::hasNonLinearFlows()
 	return m_pages.hasNonLinearFlows();
 }
 
-int LVDocView::getPageHeight(int pageIndex)
+int LVDocView::getPageHeight(int pageIndex) const
 {
 	if (isPageMode() && pageIndex >= 0 && pageIndex < m_pages.length())
 		return m_pages[pageIndex]->height;
 	return 0;
 }
 
-int LVDocView::getPageStartY(int pageIndex)
+int LVDocView::getPageStartY(int pageIndex) const
 {
 	if (isPageMode() && pageIndex >= 0 && pageIndex < m_pages.length())
 		return m_pages[pageIndex]->start;
@@ -2838,7 +2844,6 @@ void LVDocView::setRenderProps(int dx, int dy) {
 
 	lString8 fontName = lString8(DEFAULT_FONT_NAME);
 	m_font_size = scaleFontSizeForDPI(m_requested_font_size);
-	gRootFontSize = m_font_size; // stored as global (for 'rem' css unit)
 	m_font = fontMan->GetFont(m_font_size, LVRendGetBaseFontWeight(),
 			false, DEFAULT_FONT_FAMILY, m_defaultFontFace);
 	//m_font = LVCreateFontTransform( m_font, LVFONT_TRANSFORM_EMBOLDEN );
@@ -2939,6 +2944,22 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
 
         updateBookMarksRanges();
 	}
+}
+
+/// Return a hash accounting for the rendering and the pages layout
+/// A changed hash let frontends know their cached values of some document
+/// properties (full height, TOC pages...) may have changed and that they
+/// need to fetch them again
+lUInt32 LVDocView::getDocumentRenderingHash() const {
+    if (m_doc) {
+        // Also account for the number of pages, as toggling m_twoVisiblePagesAsOnePageNumber
+        // does not change the document rendering hash, but it does change page numbers
+        // Also account for the document height, just to be sure
+        return ((( (lUInt32)m_doc->getDocumentRenderingHash()) * 31
+                 + (lUInt32)m_doc->getFullHeight()) * 31
+                 + (lUInt32)getPageCount());
+    }
+    return 0;
 }
 
 /// sets selection for whole element, clears previous selection
@@ -3264,7 +3285,7 @@ bool splitNavigationPos(lString32 pos, lString32 & fname, lString32 & path) {
 }
 
 /// packs current file path and name
-lString32 LVDocView::getNavigationPath() {
+lString32 LVDocView::getNavigationPath() const {
 	lString32 fname = m_doc_props->getStringDef(DOC_PROP_FILE_NAME, "");
 	lString32 fpath = m_doc_props->getStringDef(DOC_PROP_FILE_PATH, "");
 	LVAppendPathDelimiter(fpath);
@@ -3507,7 +3528,7 @@ void LVDocView::setViewMode(LVDocViewMode view_mode, int visiblePageCount) {
 }
 
 /// get view mode (pages/scroll)
-LVDocViewMode LVDocView::getViewMode() {
+LVDocViewMode LVDocView::getViewMode() const {
 	return m_view_mode;
 }
 
@@ -3521,13 +3542,13 @@ void LVDocView::toggleViewMode() {
 }
 
 /// returns current pages visible setting value
-int LVDocView::getPagesVisibleSetting() {
+int LVDocView::getPagesVisibleSetting() const {
     if (m_view_mode == DVM_PAGES && m_pagesVisible == 2)
         return 2;
     return 1;
 }
 
-int LVDocView::getVisiblePageCount() {
+int LVDocView::getVisiblePageCount() const {
     if (m_view_mode == DVM_SCROLL || m_pagesVisible == 1)
         return 1;
     if (m_pagesVisibleOverride > 0)
@@ -3648,7 +3669,6 @@ void LVDocView::setFontSize(int newSize) {
 #endif
         propsGetCurrent()->setInt(PROP_FONT_SIZE, m_requested_font_size);
         m_font_size = scaleFontSizeForDPI(m_requested_font_size);
-        gRootFontSize = m_font_size; // stored as global (for 'rem' css unit)
         CRLog::debug("New requested font size: %d (asked: %d)", m_requested_font_size, newSize);
         REQUEST_RENDER("setFontSize")
     }
@@ -3730,7 +3750,7 @@ void LVDocView::setBookmark(ldomXPointer bm) {
 }
 
 /// get view height
-int LVDocView::GetHeight() {
+int LVDocView::GetHeight() const {
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	return (m_rotateAngle & 1) ? m_dx : m_dy;
 #else
@@ -3739,7 +3759,7 @@ int LVDocView::GetHeight() {
 }
 
 /// get view width
-int LVDocView::GetWidth() {
+int LVDocView::GetWidth() const {
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	return (m_rotateAngle & 1) ? m_dy : m_dx;
 #else
@@ -6539,6 +6559,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->setIntDef(PROP_STATUS_LINE, 1);
 	props->setIntDef(PROP_SHOW_TITLE, 1);
 	props->setIntDef(PROP_SHOW_TIME, 1);
+	props->setIntDef(PROP_SHOW_TIME_12HOURS, 0);
 	props->setIntDef(PROP_SHOW_BATTERY, 1);
     props->setIntDef(PROP_SHOW_BATTERY_PERCENT, 0);
     props->setIntDef(PROP_SHOW_PAGE_COUNT, 1);

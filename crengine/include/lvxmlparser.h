@@ -28,6 +28,8 @@ private:
     LVXMLParserCallback * m_callback;
     bool m_trimspaces;
     int  m_state;
+    bool m_in_cdata;
+    bool m_in_html_script_tag;
     bool SkipSpaces();
     bool SkipTillChar( lChar32 ch );
     bool ReadIdent( lString32 & ns, lString32 & str );

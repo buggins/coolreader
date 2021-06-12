@@ -44,6 +44,11 @@
 #include FT_OUTLINE_H   // for FT_Outline_Embolden()
 #include FT_SYNTHESIS_H // for FT_GlyphSlot_Oblique()
 #include FT_GLYPH_H     // for FT_Matrix_Multiply()
+#include FT_TRUETYPE_TABLES_H   // for FT_Get_Sfnt_Table()
+
+#if (USE_HARFBUZZ == 1)
+#include <hb-ot.h>
+#endif
 
 // Helpers with font metrics (units are 1/64 px)
 // #define FONT_METRIC_FLOOR(x)    ((x) & -64)
@@ -1117,6 +1122,268 @@ FT_UInt LVFreeTypeFace::getCharIndex(lUInt32 code, lChar32 def_char) {
     return ch_glyph_index;
 }
 
+bool LVFreeTypeFace::getGlyphIndexInfo(lUInt32 glyph_index, LVFont::glyph_info_t *glyph)
+{
+    int rend_flags = FT_LOAD_DEFAULT;
+    rend_flags |= (!_drawMonochrome ? getLoadTargetForAA(_aa_mode) : FT_LOAD_TARGET_MONO);
+    if (_hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR) {
+        rend_flags |= FT_LOAD_NO_AUTOHINT;
+    }
+    else if (_hintingMode == HINTING_MODE_AUTOHINT) {
+        rend_flags |= FT_LOAD_FORCE_AUTOHINT;
+    }
+    else if (_hintingMode == HINTING_MODE_DISABLED) {
+        rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+    }
+    if (FT_HAS_COLOR(_face))
+        rend_flags |= FT_LOAD_COLOR;
+    if (_synth_weight > 0 || _italic == 2) { // Don't render yet
+        //rend_flags &= ~FT_LOAD_RENDER;
+        // Also disable any hinting, as it would be wrong after embolden.
+        // But it feels this is now fine after switching to FT_LOAD_TARGET_LIGHT.
+        // rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+    }
+    updateTransform(); // no-op
+    int error = FT_Load_Glyph(
+            _face,          /* handle to face object */
+            glyph_index,   /* glyph index           */
+            rend_flags);  /* load flags, see below */
+    if ( error == FT_Err_Execution_Too_Long && _hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR ) {
+        // Native hinting bytecode may fail with some bad fonts: try again with no hinting
+        CRLog::error("Font '%s': loading glyph too long!", _fileName.c_str());
+        rend_flags |= FT_LOAD_NO_HINTING;
+        error = FT_Load_Glyph( _face, glyph_index, rend_flags );
+    }
+    if (error)
+        return false;
+    if (_synth_weight > 0) { // Synthetized weight so we get the real metrics
+        if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
+            // See setSynthWeight() for details
+            FT_Outline_Embolden(&_slot->outline, _synth_weight_strength);
+            FT_Outline_Translate(&_slot->outline, 0, -_synth_weight_half_strength);
+        }
+    }
+    if (_italic == 2) {
+        // When the font does not provide italic glyphs (_italic = 2), some fake
+        // italic/oblique is obtained with FreeType transformation (formerly with
+        // _matrix.xy and FT_Set_Transform(), now with FT_GlyphSlot_Oblique()).
+        // freetype.h states about FT_Set_Transform():
+        //     Note that this also transforms the `face.glyph.advance' field,
+        //     but *not* the values in `face.glyph.metrics'.
+        // So, with such fake italic, the values we'll use below are wrong,
+        // and may cause some wrong glyphs positioning or advance.
+        FT_GlyphSlot_Oblique(_slot); // This uses FT_Outline_Transform(), see freetype2/src/base/ftsynth.c
+        // Qt has some code that seem to fix these metrics in transformBoundingBox() at
+        // https://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/text/freetype/qfontengine_ft.cpp#n909
+        // So let's use it:
+        if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
+            int left   = _slot->metrics.horiBearingX;
+            int right  = _slot->metrics.horiBearingX + _slot->metrics.width;
+            int top    = _slot->metrics.horiBearingY;
+            int bottom = _slot->metrics.horiBearingY - _slot->metrics.height;
+            int l, r, t, b;
+            FT_Vector vector;
+            vector.x = left;
+            vector.y = top;
+            FT_Vector_Transform(&vector, &_matrix);
+            l = r = vector.x;
+            t = b = vector.y;
+            vector.x = right;
+            vector.y = top;
+            FT_Vector_Transform(&vector, &_matrix);
+            if (l > vector.x) l = vector.x;
+            if (r < vector.x) r = vector.x;
+            if (t < vector.y) t = vector.y;
+            if (b > vector.y) b = vector.y;
+            vector.x = right;
+            vector.y = bottom;
+            FT_Vector_Transform(&vector, &_matrix);
+            if (l > vector.x) l = vector.x;
+            if (r < vector.x) r = vector.x;
+            if (t < vector.y) t = vector.y;
+            if (b > vector.y) b = vector.y;
+            vector.x = left;
+            vector.y = bottom;
+            FT_Vector_Transform(&vector, &_matrix);
+            if (l > vector.x) l = vector.x;
+            if (r < vector.x) r = vector.x;
+            if (t < vector.y) t = vector.y;
+            if (b > vector.y) b = vector.y;
+            _slot->metrics.horiBearingX = l;
+            _slot->metrics.horiBearingY = t;
+            _slot->metrics.width        = r - l;
+            _slot->metrics.height       = t - b;
+        }
+    }
+
+    if (FT_HAS_COLOR(_face) && !FT_IS_SCALABLE(_face)) {
+        // Updating metrics for downscaled bitmap (which we will do later)
+        downScaleColorGlyphBitmap(_slot, _scale_mul, _scale_div, true);
+    }
+    glyph->blackBoxX = (lUInt16)( FONT_METRIC_TO_PX( _slot->metrics.width ) );
+    glyph->blackBoxY = (lUInt16)( FONT_METRIC_TO_PX( _slot->metrics.height ) );
+    glyph->originX =   (lInt16)( FONT_METRIC_TO_PX( _slot->metrics.horiBearingX ) );
+    glyph->originY =   (lInt16)( FONT_METRIC_TO_PX( _slot->metrics.horiBearingY ) );
+    glyph->width =     (lUInt16)( FONT_METRIC_TO_PX( myabs(_slot->metrics.horiAdvance) ) );
+    if (glyph->blackBoxX == 0) // If a glyph has no blackbox (a spacing
+        glyph->rsb =   0;      // character), there is no bearing
+    else
+        glyph->rsb =   (lInt16)(FONT_METRIC_TO_PX( (myabs(_slot->metrics.horiAdvance)
+                                    - _slot->metrics.horiBearingX - _slot->metrics.width) ) );
+    // printf("%c: %d + %d + %d = %d (y: %d + %d)\n", code, glyph->originX, glyph->blackBoxX,
+    //                            glyph->rsb, glyph->width, glyph->originY, glyph->blackBoxY);
+    // (Old) Note: these >>6 on a negative number will floor() it, so we'll get
+    // a ceil()'ed value when considering negative numbers as some overflow,
+    // which is good when we're using it for adding some padding.
+    return true;
+}
+
+void LVFreeTypeFace::DrawStretchedGlyph(LVDrawBuf *buf, int glyph_index, int x, int y, int w, int h, lUInt32 *palette)
+{
+    // This is used for drawing stretched MathML operators,
+    // and we do it the "cheap" way by just scaling the glyph
+    // (which will have the edges of glyphs like '[' or '{'
+    // look blury when scaled a lot on the y-asis only)
+    //
+    // More proper drawing could be done with the help of
+    // the math font OpenType features. See:
+    // Harfbuzz OT math support:
+    //  https://github.com/harfbuzz/harfbuzz/issues/235
+    //  https://github.com/harfbuzz/harfbuzz/issues/2585
+    // Harfbuzz code (not merged) to properly shape/draw stretchy operators:
+    //  https://github.com/fred-wang/harfbuzz/tree/MATH-3
+    //  https://frederic-wang.fr/opentype-math-in-harfbuzz.html
+
+    // We don't want to cache anything about these stretched glyphs
+    glyph_info_t glyph;
+    if ( !getGlyphIndexInfo( glyph_index, &glyph ) ) {
+        return; // no glyph
+    }
+
+    if ( glyph.width == 0 || glyph.blackBoxY == 0 ) {
+        return; // blank glyph
+    }
+
+    // Initial idea:
+    // (Best to use the advance instead of the ink width, so that we keep a bit of the original lsb/rsb)
+    // int scale_x = w * 256 / glyph.width; // instead of glyph.blackBoxX
+    // int scale_y = h * 256 / glyph.blackBoxY;
+
+    // But it feels better to try to get this a bit more adjusted:
+    // We want to keep the original glyph lsb/rsb, so they feel naturally adjusted
+    // to neighbours, as when unscaled:
+    int pad_left = glyph.originX > 0 ? glyph.originX : 0;
+    int pad_right = glyph.rsb > 0 ? glyph.rsb : 0;
+    int target_w = w - pad_left - pad_right;
+    // For the height, we can't really trust the font glyphs vertical position
+    // and top/bottom side bearings. So, keep 1px on each side if we are stretching
+    // vertically, but none if we are horizontally stretching (as these are usually
+    // quite thin, and some vertical spacing is already accounted in munder/mover).
+    int pad_top_bottom = h > w ? 1 : 0;
+    int target_h = h - 2*pad_top_bottom;
+
+    // Be sure we don't go negative in our computations
+    if ( target_w <= 0 )
+        target_w = 1;
+    if ( target_h <= 0 )
+        target_h = 1;
+
+    int scale_x = target_w * 256 / glyph.blackBoxX;
+    int scale_y = target_h * 256 / glyph.blackBoxY;
+
+    // Hijack pixel size to let FreeType scale the glyph to our target size
+    int size_x = _size * scale_x / 256;
+    int size_y = _size * scale_y / 256;
+    if ( size_x <= 0 )
+        size_x = 1;
+    if ( size_y <= 0 )
+        size_y = 1;
+    int error = FT_Set_Pixel_Sizes(
+        _face,       /* handle to face object */
+        size_x,      /* pixel_width  */
+        size_y);     /* pixel_height */
+
+    int rend_flags = FT_LOAD_RENDER | ( !_drawMonochrome ? FT_LOAD_TARGET_LIGHT : FT_LOAD_TARGET_MONO );
+    if (_hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR) {
+        rend_flags |= FT_LOAD_NO_AUTOHINT;
+    }
+    else if (_hintingMode == HINTING_MODE_AUTOHINT) {
+        rend_flags |= FT_LOAD_FORCE_AUTOHINT;
+    }
+    else if (_hintingMode == HINTING_MODE_DISABLED) {
+        rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+    }
+    if (_synth_weight > 0 || _italic == 2) { // Don't render yet
+        rend_flags &= ~FT_LOAD_RENDER;
+        // Also disable any hinting, as it would be wrong after embolden.
+        // But it feels this is now fine after switching to FT_LOAD_TARGET_LIGHT.
+        // rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+    }
+    /* load glyph image into the slot (erase previous one) */
+    updateTransform(); // no-op
+    error = FT_Load_Glyph( _face, /* handle to face object */
+            glyph_index,           /* glyph index           */
+            rend_flags );             /* load flags, see below */
+    if ( error == FT_Err_Execution_Too_Long && _hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR ) {
+        // Native hinting bytecode may fail with some bad fonts: try again with no hinting
+        rend_flags |= FT_LOAD_NO_HINTING;
+        error = FT_Load_Glyph( _face, glyph_index, rend_flags );
+    }
+    if ( error ) {
+        return;
+    }
+    if (_synth_weight > 0) {
+        // See setSynthWeight() for details
+        if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
+            FT_Outline_Embolden(&_slot->outline, _synth_weight_strength);
+            FT_Outline_Translate(&_slot->outline, 0, -_synth_weight_half_strength);
+        }
+    }
+    if (_italic==2) {
+        FT_GlyphSlot_Oblique(_slot);
+    }
+    if (_synth_weight > 0 || _italic == 2) {
+        // Render now that transformations are applied
+        FT_Render_Glyph(_slot, _drawMonochrome?FT_RENDER_MODE_MONO:FT_RENDER_MODE_LIGHT);
+    }
+
+    FT_Bitmap * bitmap = &_slot->bitmap;
+
+    // Position the resulting bitmap in the targeted area (and center the rounding errors)
+    int pad_x = pad_left + (target_w > bitmap->width ? (target_w - bitmap->width)/2 : 0);
+    int pad_y = pad_top_bottom + (target_h > bitmap->rows ? (target_h - bitmap->rows)/2 : 0);
+
+    // This felt needed at some point to draw tall stretchy glyphs, but seems no longer needed
+    // buf->setHidePartialGlyphs(false);
+
+    FontBmpPixelFormat bmp_fmt = getBmpFormat((FT_Pixel_Mode)bitmap->pixel_mode);
+#ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
+    // For ClearType-style LCD rendering we must swap R & B channels (for BGR format)
+    if (font_aa_lcd_bgr == _aa_mode && BMP_PIXEL_FORMAT_RGB == bmp_fmt)
+        bmp_fmt = BMP_PIXEL_FORMAT_BGR;
+    else if (font_aa_lcd_v_bgr == _aa_mode && BMP_PIXEL_FORMAT_RGB_V == bmp_fmt)
+        bmp_fmt = BMP_PIXEL_FORMAT_BGR_V;
+#else
+    // In Harmony LCD rendering R & B channels already swapped (for BGR format)
+#endif
+
+    buf->BlendBitmap(x + pad_x,
+        y + pad_y,
+        bitmap->buffer,
+        bmp_fmt,
+        bitmap->width,
+        bitmap->rows,
+        bitmap->pitch,
+        palette);
+
+    // Restore original pixel size
+    error = FT_Set_Pixel_Sizes(
+        _face,    /* handle to face object */
+        0,        /* pixel_width           */
+        _size );  /* pixel_height          */
+    return;
+}
+
 #if USE_HARFBUZZ == 1
 bool LVFreeTypeFace::setHBFeatureValue(const char *tag, uint32_t value)
 {
@@ -1275,118 +1542,59 @@ bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lCh
             return fallback->getGlyphInfo(code, glyph, def_char, passMask);
         }
     }
-    int rend_flags = FT_LOAD_DEFAULT;
-    rend_flags |= (!_drawMonochrome ? getLoadTargetForAA(_aa_mode) : FT_LOAD_TARGET_MONO);
-    if (_hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR) {
-        rend_flags |= FT_LOAD_NO_AUTOHINT;
-    }
-    else if (_hintingMode == HINTING_MODE_AUTOHINT) {
-        rend_flags |= FT_LOAD_FORCE_AUTOHINT;
-    }
-    else if (_hintingMode == HINTING_MODE_DISABLED) {
-        rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
-    }
-    if (FT_HAS_COLOR(_face))
-        rend_flags |= FT_LOAD_COLOR;
-    if (_synth_weight > 0 || _italic == 2) { // Don't render yet
-        //rend_flags &= ~FT_LOAD_RENDER;
-        // Also disable any hinting, as it would be wrong after embolden.
-        // But it feels this is now fine after switching to FT_LOAD_TARGET_LIGHT.
-        // rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
-    }
-    updateTransform(); // no-op
-    int error = FT_Load_Glyph(
-            _face,          /* handle to face object */
-            glyph_index,   /* glyph index           */
-            rend_flags);  /* load flags, see below */
-    if ( error == FT_Err_Execution_Too_Long && _hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR ) {
-        // Native hinting bytecode may fail with some bad fonts: try again with no hinting
-        CRLog::error("Font '%s': loading glyph too long!", _fileName.c_str());
-        rend_flags |= FT_LOAD_NO_HINTING;
-        error = FT_Load_Glyph( _face, glyph_index, rend_flags );
-    }
-    if (error)
-        return false;
-    if (_synth_weight > 0) { // Synthetized weight so we get the real metrics
-        if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
-            // See setSynthWeight() for details
-            FT_Outline_Embolden(&_slot->outline, _synth_weight_strength);
-            FT_Outline_Translate(&_slot->outline, 0, -_synth_weight_half_strength);
-        }
-    }
-    if (_italic == 2) {
-        // When the font does not provide italic glyphs (_italic = 2), some fake
-        // italic/oblique is obtained with FreeType transformation (formerly with
-        // _matrix.xy and FT_Set_Transform(), now with FT_GlyphSlot_Oblique()).
-        // freetype.h states about FT_Set_Transform():
-        //     Note that this also transforms the `face.glyph.advance' field,
-        //     but *not* the values in `face.glyph.metrics'.
-        // So, with such fake italic, the values we'll use below are wrong,
-        // and may cause some wrong glyphs positioning or advance.
-        FT_GlyphSlot_Oblique(_slot); // This uses FT_Outline_Transform(), see freetype2/src/base/ftsynth.c
-        // Qt has some code that seem to fix these metrics in transformBoundingBox() at
-        // https://code.qt.io/cgit/qt/qtbase.git/tree/src/gui/text/freetype/qfontengine_ft.cpp#n909
-        // So let's use it:
-        if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
-            int left   = _slot->metrics.horiBearingX;
-            int right  = _slot->metrics.horiBearingX + _slot->metrics.width;
-            int top    = _slot->metrics.horiBearingY;
-            int bottom = _slot->metrics.horiBearingY - _slot->metrics.height;
-            int l, r, t, b;
-            FT_Vector vector;
-            vector.x = left;
-            vector.y = top;
-            FT_Vector_Transform(&vector, &_matrix);
-            l = r = vector.x;
-            t = b = vector.y;
-            vector.x = right;
-            vector.y = top;
-            FT_Vector_Transform(&vector, &_matrix);
-            if (l > vector.x) l = vector.x;
-            if (r < vector.x) r = vector.x;
-            if (t < vector.y) t = vector.y;
-            if (b > vector.y) b = vector.y;
-            vector.x = right;
-            vector.y = bottom;
-            FT_Vector_Transform(&vector, &_matrix);
-            if (l > vector.x) l = vector.x;
-            if (r < vector.x) r = vector.x;
-            if (t < vector.y) t = vector.y;
-            if (b > vector.y) b = vector.y;
-            vector.x = left;
-            vector.y = bottom;
-            FT_Vector_Transform(&vector, &_matrix);
-            if (l > vector.x) l = vector.x;
-            if (r < vector.x) r = vector.x;
-            if (t < vector.y) t = vector.y;
-            if (b > vector.y) b = vector.y;
-            _slot->metrics.horiBearingX = l;
-            _slot->metrics.horiBearingY = t;
-            _slot->metrics.width        = r - l;
-            _slot->metrics.height       = t - b;
-        }
-    }
+    return getGlyphIndexInfo(glyph_index, glyph);
+}
 
-    if (FT_HAS_COLOR(_face) && !FT_IS_SCALABLE(_face)) {
-        // Updating metrics for downscaled bitmap (which we will do later)
-        downScaleColorGlyphBitmap(_slot, _scale_mul, _scale_div, true);
+bool LVFreeTypeFace::getGlyphExtraMetric( glyph_extra_metric_t metric, lUInt32 code, int & value, bool scaled_to_px, lChar32 def_char, lUInt32 fallbackPassMask ) {
+    int glyph_index = getCharIndex( code, 0 );
+    if ( glyph_index==0 ) {
+        LVFont *fallback = getFallbackFont(fallbackPassMask);
+        if (NULL == fallback) {
+            // No fallback
+            glyph_index = getCharIndex(code, def_char);
+            if (glyph_index == 0)
+                return false;
+        } else {
+            // Fallback
+            lUInt32 passMask = fallbackPassMask | _fallback_mask;
+            return fallback->getGlyphExtraMetric(metric, code, value, scaled_to_px, def_char, passMask);
+        }
     }
-    glyph->blackBoxX = (lUInt16)( FONT_METRIC_TO_PX( _slot->metrics.width ) );
-    glyph->blackBoxY = (lUInt16)( FONT_METRIC_TO_PX( _slot->metrics.height ) );
-    glyph->originX =   (lInt16)( FONT_METRIC_TO_PX( _slot->metrics.horiBearingX ) );
-    glyph->originY =   (lInt16)( FONT_METRIC_TO_PX( _slot->metrics.horiBearingY ) );
-    glyph->width =     (lUInt16)( FONT_METRIC_TO_PX( myabs(_slot->metrics.horiAdvance) ) );
-    if (glyph->blackBoxX == 0) // If a glyph has no blackbox (a spacing
-        glyph->rsb =   0;      // character), there is no bearing
-    else
-        glyph->rsb =   (lInt16)(FONT_METRIC_TO_PX( (myabs(_slot->metrics.horiAdvance)
-                                    - _slot->metrics.horiBearingX - _slot->metrics.width) ) );
-    // printf("%c: %d + %d + %d = %d (y: %d + %d)\n", code, glyph->originX, glyph->blackBoxX,
-    //                            glyph->rsb, glyph->width, glyph->originY, glyph->blackBoxY);
-    // (Old) Note: these >>6 on a negative number will floor() it, so we'll get
-    // a ceil()'ed value when considering negative numbers as some overflow,
-    // which is good when we're using it for adding some padding.
-    return true;
+    switch (metric) {
+    case glyph_metric_dummy:
+        value = 0;
+        return true;
+        break;
+#if MATHML_SUPPORT==1
+    case glyph_metric_math_italics_correction:
+        {
+            #if USE_HARFBUZZ==1
+            if ( hb_ot_math_has_data(hb_font_get_face(_hb_font)) ) {
+                value = hb_ot_math_get_glyph_italics_correction(_hb_font, glyph_index);
+                if ( scaled_to_px )
+                    value = FONT_METRIC_TO_PX(value);
+                return true;
+            }
+            #endif
+            return false;
+        }
+        break;
+    case glyph_metric_math_top_accent_attachment:
+        {
+            #if USE_HARFBUZZ==1
+            if ( hb_ot_math_has_data(hb_font_get_face(_hb_font)) ) {
+                value = hb_ot_math_get_glyph_top_accent_attachment(_hb_font, glyph_index);
+                if ( scaled_to_px )
+                    value = FONT_METRIC_TO_PX(value);
+                return true;
+            }
+            #endif
+            return false;
+        }
+        break;
+#endif // MATHML_SUPPORT==1
+    }
+    return false;
 }
 
 bool LVFreeTypeFace::checkFontLangCompat(const lString8 &langCode) {
@@ -1981,8 +2189,9 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
             _hyphen_width = getCharWidth(UNICODE_SOFT_HYPHEN_CODE);
         if (lastFitChar > 3) {
             int hwStart, hwEnd;
-            lStr_findWordBounds(text, len, lastFitChar - 1, hwStart, hwEnd);
-            if (hwStart < (int) (lastFitChar - 1) && hwEnd > hwStart + 3) {
+            bool hasRtl;
+            lStr_findWordBounds( text, len, lastFitChar-1, hwStart, hwEnd, hasRtl );
+            if ( !hasRtl && hwStart < (int)(lastFitChar-1) && hwEnd > hwStart+3 ) {
                 //int maxw = max_width - (hwStart>0 ? widths[hwStart-1] : 0);
                 if ( lang_cfg )
                     lang_cfg->getHyphMethod()->hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
@@ -2229,9 +2438,373 @@ int LVFreeTypeFace::getRightSideBearing( lChar32 ch, bool negative_only, bool it
     return (int) b;
 }
 
+int LVFreeTypeFace::getExtraMetric(font_extra_metric_t metric, bool scaled_to_px) {
+    if (metric < 0 || metric >= FONT_METRIC_MAX)
+        return 0;
+    if ( _extra_metrics.empty() )
+        _extra_metrics = LVArray<int>((int)FONT_METRIC_MAX, CACHED_SIGNED_METRIC_NOT_SET);
+    if ( _extra_metrics[metric] == CACHED_SIGNED_METRIC_NOT_SET ) {
+        // We can get ideas from:
+        // https://github.com/mozilla/gecko-dev/blob/master/gfx/thebes/gfxFT2Utils.cpp
+        bool value_set = false;
+        int value = 0;
+        // Tables we might look at
+        TT_OS2 * os2 = (TT_OS2 *)FT_Get_Sfnt_Table(_face, FT_SFNT_OS2);
+        bool has_ot_math_data = false;
+#if MATHML_SUPPORT==1
+        #if USE_HARFBUZZ==1
+            has_ot_math_data = hb_ot_math_has_data(hb_font_get_face(_hb_font));
+            #define VALUE_FROM_OT_MATH_CONSTANT(x) if ( has_ot_math_data ) { \
+                    value = hb_ot_math_get_constant(_hb_font, HB_OT_MATH_CONSTANT_##x); \
+                    value_set = true; }
+        #else
+            #define VALUE_FROM_OT_MATH_CONSTANT(x)
+        #endif
+#endif
+
+        switch (metric) {
+        case font_metric_x_height: {
+            int glyph_index = getCharIndex( 'x', 0 );
+            if ( glyph_index ) {
+                int error = FT_Load_Glyph( _face, glyph_index, FT_LOAD_DEFAULT );
+                if ( !error ) {
+                    value = _slot->metrics.horiBearingY;
+                    value_set = true;
+                }
+            }
+            if ( !value_set && os2 && os2->sxHeight > 0 ) {
+                // The os2 table values are each a constant, that we need to scale
+                value = FT_MulFix(os2->sxHeight, _face->size->metrics.y_scale);
+                value_set = true;
+            }
+            if ( !value_set ) {
+                value = _size*64 / 2; // 0.5em
+            }
+            break;
+        }
+        case font_metric_ch_width: {
+            // Could be used for CSS unit 'ch': equal to the used advance measure
+            // of the "0" (ZERO, U+0030) glyph. But let's keep approximating it
+            // with 0.5em, which may be good enough.
+            int glyph_index = getCharIndex( '0', 0 );
+            if ( glyph_index ) {
+                int error = FT_Load_Glyph( _face, glyph_index, FT_LOAD_DEFAULT );
+                if ( !error ) {
+                    value = myabs(_slot->metrics.horiAdvance);
+                    // printf("glyph: %d", value);
+                    value_set = true;
+                }
+            }
+            if ( !value_set ) {
+                value = _size*64 / 2; // assumed to be 0.5em wide
+            }
+            break;
+        }
+        case font_metric_y_superscript_y_offset: {
+            if ( os2 && os2->ySuperscriptYOffset != 0 ) {
+                value = FT_MulFix(os2->ySuperscriptYOffset, _face->size->metrics.y_scale);
+                if (value < 0) // Probable font bug (the os2 value should be positive)
+                    value = -value;
+                value_set = true;
+            }
+            if ( !value_set ) {
+                // As Firefox, which itself uses this instead of the OS/2 metric
+                // https://bugzilla.mozilla.org/show_bug.cgi?id=1029307
+                // https://github.com/mozilla/gecko-dev/commit/1e79307a4f068f29247d1db3ca897b2785e22b6f
+                value = _face->size->metrics.height * 1/3;
+            }
+            break;
+        }
+        case font_metric_y_subscript_y_offset: {
+            if ( os2 && os2->ySubscriptYOffset != 0 ) {
+                value = FT_MulFix(os2->ySubscriptYOffset, _face->size->metrics.y_scale);
+                if (value < 0) // Probable font bug (the os2 value should be positive)
+                    value = -value;
+                value_set = true;
+            }
+            if ( !value_set ) {
+                // As Firefox, which itself uses this instead of the OS/2 metric
+                value = _face->size->metrics.height * 1/5;
+            }
+            break;
+        }
+#if MATHML_SUPPORT==1
+        // Reference (and fallback values) from
+        // https://mathml-refresh.github.io/mathml-core/#layout-constants-mathconstants
+        case font_metric_underline_thickness: {
+            #if USE_HARFBUZZ==1
+            // This will make HB fetch the value from post->table.underlineThickness
+            if ( hb_ot_metrics_get_position(_hb_font, HB_OT_METRICS_TAG_UNDERLINE_SIZE, &value) )
+                value_set = true;
+            #endif
+            if ( !value_set )
+                value = 0;
+            break;
+        }
+        case font_metric_math_axis_height: {
+            VALUE_FROM_OT_MATH_CONSTANT(AXIS_HEIGHT)
+            // FreeSerif seems to have this a bit too large, but tweaking it causes other
+            // issues as some other math metric constants interplay with this one - also,
+            // the factor correction needed (to align the fraction bar with +/-/=) would
+            // vary with the font size...
+            //   if ( value_set && _faceName == "FreeSerif" ) value = value * 90/100;
+            //   if ( value_set && _faceName == "FreeSerif" ) value_set = false;
+            if ( !value_set ) {
+                // Firefox nsMathMLFrame.cpp does this (which feels better than x_height/2)
+                int glyph_index = getCharIndex( 0x2212, 0 ); // minus sign
+                if ( !glyph_index )
+                    glyph_index = getCharIndex( '-', 0 ); // ASCII minus
+                if ( glyph_index ) {
+                    int error = FT_Load_Glyph( _face, glyph_index, FT_LOAD_DEFAULT );
+                    if ( !error ) {
+                        value = _slot->metrics.horiBearingY;
+                        value_set = true;
+                    }
+                }
+            }
+            if ( !value_set )
+                value = getExtraMetric(font_metric_x_height, false) * 1/2;
+            break;
+        }
+        case font_metric_math_fraction_rule_thickness:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_RULE_THICKNESS)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_fraction_numerator_shift_up:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_NUMERATOR_SHIFT_UP)
+            // Default to 0
+            break;
+        case font_metric_math_fraction_numerator_display_style_shift_up:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_NUMERATOR_DISPLAY_STYLE_SHIFT_UP)
+            // Default to 0
+            break;
+        case font_metric_math_fraction_numerator_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_NUMERATOR_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_fraction_num_display_style_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_NUM_DISPLAY_STYLE_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 3; // 3 x default rule thickness
+            break;
+        case font_metric_math_fraction_denominator_shift_down:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_DENOMINATOR_SHIFT_DOWN)
+            // Default to 0
+            break;
+        case font_metric_math_fraction_denominator_display_style_shift_down:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_DENOMINATOR_DISPLAY_STYLE_SHIFT_DOWN)
+            // Default to 0
+            break;
+        case font_metric_math_fraction_denominator_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_DENOMINATOR_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_fraction_denom_display_style_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(FRACTION_DENOM_DISPLAY_STYLE_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 3; // 3 x default rule thickness
+            break;
+        case font_metric_math_stack_top_shift_up:
+            VALUE_FROM_OT_MATH_CONSTANT(STACK_TOP_SHIFT_UP)
+            // Default to 0
+            break;
+        case font_metric_math_stack_top_display_style_shift_up:
+            VALUE_FROM_OT_MATH_CONSTANT(STACK_TOP_DISPLAY_STYLE_SHIFT_UP)
+            // Default to 0
+            break;
+        case font_metric_math_stack_bottom_shift_down:
+            VALUE_FROM_OT_MATH_CONSTANT(STACK_BOTTOM_SHIFT_DOWN)
+            // Default to 0
+            break;
+        case font_metric_math_stack_bottom_display_style_shift_down:
+            VALUE_FROM_OT_MATH_CONSTANT(STACK_BOTTOM_DISPLAY_STYLE_SHIFT_DOWN)
+            // Default to 0
+            break;
+        case font_metric_math_stack_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(STACK_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 3; // 3 x default rule thickness
+            break;
+        case font_metric_math_stack_display_style_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(STACK_DISPLAY_STYLE_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 7; // 7 x default rule thickness
+            break;
+        case font_metric_math_script_percent_scale_down:
+            VALUE_FROM_OT_MATH_CONSTANT(SCRIPT_PERCENT_SCALE_DOWN)
+            if ( !value_set || value <= 0)
+                value = 71;
+            break;
+        case font_metric_math_script_script_percent_scale_down:
+            VALUE_FROM_OT_MATH_CONSTANT(SCRIPT_SCRIPT_PERCENT_SCALE_DOWN)
+            if ( !value_set || value <= 0)
+                value = 50;
+            break;
+        case font_metric_math_display_operator_min_height:
+            VALUE_FROM_OT_MATH_CONSTANT(DISPLAY_OPERATOR_MIN_HEIGHT)
+            if ( !value_set || value <= 0)
+                // Specs say 0, but we want something > 1 and sqrt(2) is mentionned in a few places
+                value = _size*64 * 1.41; // sqrt(2)
+            break;
+        case font_metric_math_accent_base_height:
+            VALUE_FROM_OT_MATH_CONSTANT(ACCENT_BASE_HEIGHT)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_x_height, false);
+            break;
+        case font_metric_math_overbar_vertical_gap:
+            VALUE_FROM_OT_MATH_CONSTANT(OVERBAR_VERTICAL_GAP)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 3; // 3 x default rule thickness
+            break;
+        case font_metric_math_underbar_vertical_gap:
+            VALUE_FROM_OT_MATH_CONSTANT(UNDERBAR_VERTICAL_GAP)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 3; // 3 x default rule thickness
+            break;
+        case font_metric_math_overbar_extra_ascender:
+            VALUE_FROM_OT_MATH_CONSTANT(OVERBAR_EXTRA_ASCENDER)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_underbar_extra_descender:
+            VALUE_FROM_OT_MATH_CONSTANT(UNDERBAR_EXTRA_DESCENDER)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_upper_limit_baseline_rise_min:
+            VALUE_FROM_OT_MATH_CONSTANT(UPPER_LIMIT_BASELINE_RISE_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_upper_limit_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(UPPER_LIMIT_GAP_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_stretch_stack_top_shift_up:
+            VALUE_FROM_OT_MATH_CONSTANT(STRETCH_STACK_TOP_SHIFT_UP)
+            // Defaults to 0
+            break;
+        case font_metric_math_stretch_stack_gap_below_min:
+            VALUE_FROM_OT_MATH_CONSTANT(STRETCH_STACK_GAP_BELOW_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_lower_limit_baseline_drop_min:
+            VALUE_FROM_OT_MATH_CONSTANT(LOWER_LIMIT_BASELINE_DROP_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_lower_limit_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(LOWER_LIMIT_GAP_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_stretch_stack_bottom_shift_down:
+            VALUE_FROM_OT_MATH_CONSTANT(STRETCH_STACK_BOTTOM_SHIFT_DOWN)
+            // Defaults to 0
+            break;
+        case font_metric_math_stretch_stack_gap_above_min:
+            VALUE_FROM_OT_MATH_CONSTANT(STRETCH_STACK_GAP_ABOVE_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_superscript_shift_up:
+            VALUE_FROM_OT_MATH_CONSTANT(SUPERSCRIPT_SHIFT_UP)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_y_superscript_y_offset, false);
+            break;
+        case font_metric_math_superscript_shift_up_cramped:
+            VALUE_FROM_OT_MATH_CONSTANT(SUPERSCRIPT_SHIFT_UP_CRAMPED)
+            // Defaults to 0
+            break;
+        case font_metric_math_superscript_bottom_min:
+            VALUE_FROM_OT_MATH_CONSTANT(SUPERSCRIPT_BOTTOM_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_x_height, false) * 1/4;
+            break;
+        case font_metric_math_superscript_baseline_drop_max:
+            VALUE_FROM_OT_MATH_CONSTANT(SUPERSCRIPT_BASELINE_DROP_MAX)
+            // Defaults to 0
+            break;
+        case font_metric_math_subscript_shift_down:
+            VALUE_FROM_OT_MATH_CONSTANT(SUBSCRIPT_SHIFT_DOWN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_y_subscript_y_offset, false);
+            break;
+        case font_metric_math_subscript_top_max:
+            VALUE_FROM_OT_MATH_CONSTANT(SUBSCRIPT_TOP_MAX)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_x_height, false) * 4/5;
+            break;
+        case font_metric_math_subscript_baseline_drop_min:
+            VALUE_FROM_OT_MATH_CONSTANT(SUBSCRIPT_BASELINE_DROP_MIN)
+            // Defaults to 0
+            break;
+        case font_metric_math_sub_superscript_gap_min:
+            VALUE_FROM_OT_MATH_CONSTANT(SUB_SUPERSCRIPT_GAP_MIN)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 4; // 4 x default rule thickness
+            break;
+        case font_metric_math_superscript_bottom_max_with_subscript:
+            VALUE_FROM_OT_MATH_CONSTANT(SUPERSCRIPT_BOTTOM_MAX_WITH_SUBSCRIPT)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_x_height, false) * 4/5;
+            break;
+        case font_metric_math_radical_vertical_gap:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_VERTICAL_GAP)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) * 5/4; // 1.25 x default rule thickness
+            break;
+        case font_metric_math_radical_display_style_vertical_gap:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_DISPLAY_STYLE_VERTICAL_GAP)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false) // default rule thickness + 1/4 OS/2.sxHeight
+                            + getExtraMetric(font_metric_x_height, false) * 1/4;
+            break;
+        case font_metric_math_radical_rule_thickness:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_RULE_THICKNESS)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_radical_extra_ascender:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_EXTRA_ASCENDER)
+            if ( !value_set )
+                value = getExtraMetric(font_metric_underline_thickness, false); // default rule thickness
+            break;
+        case font_metric_math_radical_kern_before_degree:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_KERN_BEFORE_DEGREE)
+            if ( !value_set )
+                value = _size*64 * 5/18; // 5/18em
+            break;
+        case font_metric_math_radical_kern_after_degree:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_KERN_AFTER_DEGREE)
+            if ( !value_set )
+                value = - _size*64 * 10/18; // -10/18em
+            break;
+        case font_metric_math_radical_degree_bottom_raise_percent:
+            VALUE_FROM_OT_MATH_CONSTANT(RADICAL_DEGREE_BOTTOM_RAISE_PERCENT)
+            if ( !value_set || value <= 0)
+                value = 60;
+            break;
+#endif // MATHML_SUPPORT==1
+        default:
+            value = 0;
+            break;
+        }
+        _extra_metrics[metric] = value;
+    }
+    return scaled_to_px ? FONT_METRIC_TO_PX(_extra_metrics[metric]) : _extra_metrics[metric];
+}
+
+bool LVFreeTypeFace::hasOTMathSupport() const {
+#if USE_HARFBUZZ==1
+    return hb_ot_math_has_data(hb_font_get_face(_hb_font));
+#endif
+    return false;
+}
+
 int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *text, int len,
                                    lChar32 def_char, lUInt32 *palette, bool addHyphen, TextLangCfg *lang_cfg,
-                                    lUInt32 flags, int letter_spacing, int width, int text_decoration_back_gap, lUInt32 fallbackPassMask) {
+                                   lUInt32 flags, int letter_spacing, int width, int text_decoration_back_gap,
+                                   int target_w, int target_h, lUInt32 fallbackPassMask) {
     FONT_GUARD
     if (len <= 0 || _face == NULL)
         return 0;
@@ -2250,7 +2823,9 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
     lvRect clip;
     buf->GetClipRect(&clip);
     updateTransform(); // no-op
-    if (y + _height < clip.top || y >= clip.bottom)
+    bool transform_stretch = flags & LFNT_HINT_TRANSFORM_STRETCH;
+    int text_height = transform_stretch ? target_h : _height;
+    if ( y + text_height < clip.top || y >= clip.bottom )
         return 0;
 
     unsigned int i;
@@ -2481,7 +3056,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
                 int fb_advance = fallbackFont->DrawTextString( buf, x,
                    fb_y, fb_text, fb_len,
                    def_char, palette, fb_addHyphen, lang_cfg, fb_flags, letter_spacing,
-                   width, text_decoration_back_gap, fallbackPassMask | _fallback_mask );
+                   width, text_decoration_back_gap, target_w, target_h, fallbackPassMask | _fallback_mask );
                 x += fb_advance;
                 #ifdef DEBUG_DRAW_TEXT
                     printf("DTHB ### drawn past notdef > X+= %d\n[...]", fb_advance);
@@ -2496,19 +3071,29 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
                 for (i = hg; i < hg2; i++) {
                     LVFontGlyphCacheItem *item = getGlyphByIndex(glyph_info[i].codepoint);
                     if (item) {
-                        #ifdef DEBUG_DRAW_TEXT
-                            printf("%x(x=%d+%d,w=%d) ", glyph_info[i].codepoint, x,
-                                    item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset), FONT_METRIC_TO_PX(glyph_pos[i].x_advance));
-                        #endif
-                        buf->BlendBitmap(x + item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset),
-                                  y + _baseline - item->origin_y - FONT_METRIC_TO_PX(glyph_pos[i].y_offset),
-                                  item->bmp,
-                                  item->bmp_fmt,
-                                  item->bmp_width,
-                                  item->bmp_height,
-                                  item->bmp_pitch,
-                                  palette);
-                        x += FONT_METRIC_TO_PX(glyph_pos[i].x_advance);
+                        if ( transform_stretch ) {
+                            // Stretched drawing of glyph to the x/y/w/h provided (used with MathML)
+                            // Split the targeted width to each glyph in case we have more than one
+                            int w = target_w / glyph_count;
+                            DrawStretchedGlyph(buf, glyph_info[i].codepoint, x, y, w, target_h, palette);
+                            x += w;
+                        }
+                        else {
+                            // Regular drawing of glyph at the baseline
+                            #ifdef DEBUG_DRAW_TEXT
+                                printf("%x(x=%d+%d,w=%d) ", glyph_info[i].codepoint, x,
+                                        item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset), FONT_METRIC_TO_PX(glyph_pos[i].x_advance));
+                            #endif
+                            buf->BlendBitmap(x + item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset),
+                                      y + _baseline - item->origin_y - FONT_METRIC_TO_PX(glyph_pos[i].y_offset),
+                                      item->bmp,
+                                      item->bmp_fmt,
+                                      item->bmp_width,
+                                      item->bmp_height,
+                                      item->bmp_pitch,
+                                      palette);
+                            x += FONT_METRIC_TO_PX(glyph_pos[i].x_advance);
+                        }
                     }
                     #ifdef DEBUG_DRAW_TEXT
                     else
@@ -2588,20 +3173,30 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
                     }
                     _width_cache2.set(triplet, posInfo);
                 }
-                buf->BlendBitmap(x + item->origin_x + posInfo.offset,
-                    y + _baseline - item->origin_y,
-                    item->bmp,
-                    item->bmp_fmt,
-                    item->bmp_width,
-                    item->bmp_height,
-                    item->bmp_pitch,
-                    palette);
-
-                if ( posInfo.advance == 0 ) {
-                    // Assume zero advance means it's a diacritic, and we should not apply
-                    // any letter spacing on this char (now, and when justifying)
-                } else {
-                    x += posInfo.advance + letter_spacing_w;
+                if ( transform_stretch ) {
+                    // Stretched drawing of glyph to the x/y/w/h provided (used with MathML)
+                    // Split the targeted width to each glyph in case we have more than one
+                    int w = target_w / len;
+                    DrawStretchedGlyph(buf, getCharIndex(ch, def_char), x, y, w, target_h, palette);
+                    x += w;
+                }
+                else {
+                    // Regular drawing of glyph at the baseline
+                    buf->BlendBitmap(x + item->origin_x + posInfo.offset,
+                        y + _baseline - item->origin_y,
+                        item->bmp,
+                        item->bmp_fmt,
+                        item->bmp_width,
+                        item->bmp_height,
+                        item->bmp_pitch,
+                        palette);
+    
+                    if ( posInfo.advance == 0 ) {
+                        // Assume zero advance means it's a diacritic, and we should not apply
+                        // any letter spacing on this char (now, and when justifying)
+                    } else {
+                        x += posInfo.advance + letter_spacing_w;
+                    }
                 }
             }
         }
@@ -2643,21 +3238,30 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
         if ( !item )
             continue;
         if ( (item && !isHyphen) || i>=len-1 ) { // avoid soft hyphens inside text string
-            lInt32 w = item->advance + FONT_METRIC_TRUNC(kerning_26_6);
-            buf->BlendBitmap( x + FONT_METRIC_TRUNC(kerning_26_6) + item->origin_x,
-                       y + _baseline - item->origin_y,
-                       item->bmp,
-                       item->bmp_fmt,
-                       item->bmp_width,
-                       item->bmp_height,
-                       item->bmp_pitch,
-                       palette);
-
-            if ( w == 0 ) {
-                // Assume zero advance means it's a diacritic, and we should not apply
-                // any letter spacing on this char (now, and when justifying)
-            } else {
-                x  += w + letter_spacing_w;
+            if ( transform_stretch ) {
+                // Stretched drawing of glyph to the x/y/w/h provided (used with MathML)
+                // Split the targeted width to each glyph in case we have more than one
+                int w = target_w / len;
+                DrawStretchedGlyph(buf, getCharIndex(ch, def_char), x, y, w, target_h, palette);
+                x += w;
+            }
+            else {
+                lInt32 w = item->advance + FONT_METRIC_TRUNC(kerning_26_6);
+                buf->BlendBitmap( x + FONT_METRIC_TRUNC(kerning_26_6) + item->origin_x,
+                           y + _baseline - item->origin_y,
+                           item->bmp,
+                           item->bmp_fmt,
+                           item->bmp_width,
+                           item->bmp_height,
+                           item->bmp_pitch,
+                           palette);
+    
+                if ( w == 0 ) {
+                    // Assume zero advance means it's a diacritic, and we should not apply
+                    // any letter spacing on this char (now, and when justifying)
+                } else {
+                    x  += w + letter_spacing_w;
+                }
             }
             previous = ch_glyph_index;
         }
@@ -2710,6 +3314,7 @@ void LVFreeTypeFace::Clear() {
         FT_Done_Face(_face);
         _face = NULL;
     }
+    _extra_metrics.clear();
 }
 
 #endif  // (USE_FREETYPE==1)

@@ -17,7 +17,8 @@ CRFLAGS := -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH \
      -DMAX_IMAGE_SCALE_MUL=2 \
      -DUSE_NANOSVG=1 \
      -DBUNDLED_FRIBIDI=1 \
-     -DKO_LIBUNIBREAK_PATCH=1
+     -DKO_LIBUNIBREAK_PATCH=1 \
+     -DUSE_UTF8PROC=1
 
 CR3_ROOT := $(LOCAL_PATH)/../..
 
@@ -36,6 +37,8 @@ LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/thirdparty_unman/nanosvg/src \
     $(CR3_ROOT)/thirdparty/$(REPO_FRIBIDI_SRCDIR)/lib \
     $(CR3_ROOT)/thirdparty/$(REPO_LIBUNIBREAK_SRCDIR)/src \
+    $(CR3_ROOT)/thirdparty/$(REPO_ZSTD_SRCDIR)/lib \
+    $(CR3_ROOT)/thirdparty/$(REPO_UTF8PROC_SRCDIR) \
     $(CR3_ROOT)/android/app/thirdparty_libs/freetype \
     $(CR3_ROOT)/android/app/thirdparty_libs/fribidi/lib \
     $(CR3_ROOT)/android/app/thirdparty_libs/libpng/lib
@@ -85,6 +88,7 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvrend.cpp \
     ../../crengine/src/wolutil.cpp \
     ../../crengine/src/crconcurrent.cpp \
+    ../../crengine/src/mathml.cpp \
     ../../crengine/src/hist.cpp \
     ../../crengine/src/xxhash.c \
     ../../crengine/src/textlang.cpp \
@@ -117,6 +121,7 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvdrawbuf/lvbasedrawbuf.cpp \
     ../../crengine/src/lvdrawbuf/lvgraydrawbuf.cpp \
     ../../crengine/src/lvdrawbuf/lvcolordrawbuf.cpp \
+    ../../crengine/src/lvdrawbuf/lvinkmeasurementdrawbuf.cpp \
     ../../crengine/src/lvdrawbuf/lvimagescaleddrawcallback.cpp \
     ../../crengine/src/lvdrawbuf/lvdrawbuf_utils.cpp \
     ../../crengine/src/lvstream/lvdefstreambuffer.cpp \
@@ -192,7 +197,9 @@ LOCAL_STATIC_LIBRARIES := \
     local_antiword \
     local_fribidi \
     local_libunibreak \
-    local_qimagescale
+    local_qimagescale \
+    local_zstd \
+    local_utf8proc
 
 LOCAL_LDLIBS    := -lm -llog -lz -ldl -flto
 # 

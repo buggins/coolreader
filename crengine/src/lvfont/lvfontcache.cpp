@@ -70,13 +70,19 @@ LVFontCacheItem *LVFontCache::find(const LVFontDef *fntdef, bool useBias) {
     LVFontDef def(*fntdef);
     lString8Collection list;
     splitPropertyValueList(fntdef->getTypeFace().c_str(), list);
-    for (int nindex = 0; nindex == 0 || nindex < list.length(); nindex++) {
-        if (nindex < list.length())
+    int nlen = list.length();
+    for (int nindex=0; nindex==0 || nindex<nlen; nindex++) {
+        // Give more weight to first fonts, so we don't risk (with the test at end)
+        // picking an already instantiated second font over a not yet instantiated
+        // first font with the same match.
+        int ordering_weight = nlen - nindex;
+        if ( nindex < nlen )
             def.setTypeFace(list[nindex]);
         else
             def.setTypeFace(lString8::empty_str);
         for (i = 0; i < _instance_list.length(); i++) {
             int match = _instance_list[i]->_def.CalcMatch(def, useBias);
+            match = match * 256 + ordering_weight;
             if (match > best_instance_match) {
                 best_instance_match = match;
                 best_instance_index = i;
@@ -84,6 +90,7 @@ LVFontCacheItem *LVFontCache::find(const LVFontDef *fntdef, bool useBias) {
         }
         for (i = 0; i < _registered_list.length(); i++) {
             int match = _registered_list[i]->_def.CalcMatch(def, useBias);
+            match = match * 256 + ordering_weight;
             if (match > best_match) {
                 best_match = match;
                 best_index = i;

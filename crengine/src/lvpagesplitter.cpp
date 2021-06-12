@@ -45,10 +45,12 @@ int LVRendPageList::FindNearestPage( int y, int direction )
     return length()-1;
 }
 
-LVRendPageContext::LVRendPageContext(LVRendPageList * pageList, int pageHeight, bool gatherLines)
+static LVRendPageContext * main_context = NULL;
+
+LVRendPageContext::LVRendPageContext(LVRendPageList * pageList, int pageHeight, int docFontSize, bool gatherLines)
     : callback(NULL), totalFinalBlocks(0)
     , renderedFinalBlocks(0), lastPercent(-1), page_list(pageList), page_h(pageHeight)
-    , gather_lines(gatherLines), footNotes(64), curr_note(NULL)
+    , doc_font_size(docFontSize), gather_lines(gatherLines), footNotes(64), curr_note(NULL)
     , current_flow(0), max_flow(0)
 {
     if ( callback ) {
@@ -58,6 +60,17 @@ LVRendPageContext::LVRendPageContext(LVRendPageList * pageList, int pageHeight, 
 
 bool LVRendPageContext::updateRenderProgress( int numFinalBlocksRendered )
 {
+    if ( !callback ) {
+        if ( main_context ) {
+            main_context->updateRenderProgress( numFinalBlocksRendered );
+        }
+        return false;
+    }
+    if ( !main_context && callback ) {
+        // Save the main context (with the progress callback), so other
+        // flows' contexts can forward their progress to it
+        main_context = this;
+    }
     renderedFinalBlocks += numFinalBlocksRendered;
     int percent = totalFinalBlocks>0 ? renderedFinalBlocks * 100 / totalFinalBlocks : 0;
     if ( percent<0 )
@@ -158,14 +171,14 @@ void LVRendPageContext::AddLine( int starty, int endy, int flags )
 }
 
 // We use 1.0rem (1x root font size) as the footnote margin (vertical margin
-// between text and first foornote)
+// between text and first footnote)
 #define FOOTNOTE_MARGIN_REM 1
-extern int gRootFontSize;
 
 // helper class
 struct PageSplitState {
 public:
     int page_h;
+    int doc_font_size;
     LVRendPageList * page_list;
     const LVRendLineInfo * pagestart;
     const LVRendLineInfo * pageend;
@@ -186,8 +199,9 @@ public:
     int nb_footnotes_lines_rtl;
     int current_flow;
 
-    PageSplitState(LVRendPageList * pl, int pageHeight)
+    PageSplitState(LVRendPageList * pl, int pageHeight, int docFontSize)
         : page_h(pageHeight)
+        , doc_font_size(docFontSize)
         , page_list(pl)
         , pagestart(NULL)
         , pageend(NULL)
@@ -312,7 +326,7 @@ public:
                 page_list->length(), start, start+h, h);
             if (footheight || hasFootnotes)
                 printf(" (+ %d footnotes, fh=%d => h=%d)", footnotes.length(),
-                    footheight, h+footheight+FOOTNOTE_MARGIN_REM*gRootFontSize);
+                    footheight, h+footheight+FOOTNOTE_MARGIN_REM*doc_font_size);
             printf(" [rtl l:%d/%d fl:%d/%d]\n", nb_lines_rtl, nb_lines, nb_footnotes_lines_rtl, nb_footnotes_lines);
         #endif
         LVRendPageInfo * page = new LVRendPageInfo(start, h, page_list->length());
@@ -360,7 +374,7 @@ public:
             h = 0;
         int footh = 0 /*currentFootnoteHeight()*/ + footheight;
         if ( footh )
-            h += FOOTNOTE_MARGIN_REM*gRootFontSize + footh;
+            h += FOOTNOTE_MARGIN_REM*doc_font_size + footh;
         return h;
     }
     void SplitLineIfOverflowPage( LVRendLineInfo * line )
@@ -668,7 +682,7 @@ public:
     {
         int dh = line->getEnd()
             - (footstart ? footstart->getStart() : line->getStart())
-            + (footheight==0 ? FOOTNOTE_MARGIN_REM*gRootFontSize : 0);
+            + (footheight==0 ? FOOTNOTE_MARGIN_REM*doc_font_size : 0);
         int h = currentHeight(NULL); //next
         #ifdef DEBUG_FOOTNOTES
             CRLog::trace("Add footnote line %d  footheight=%d  h=%d  dh=%d  page_h=%d",
@@ -762,7 +776,7 @@ void LVRendPageContext::split()
 {
     if ( !page_list )
         return;
-    PageSplitState s(page_list, page_h);
+    PageSplitState s(page_list, page_h, doc_font_size);
     #ifdef DEBUG_PAGESPLIT
         printf("PS: splitting lines into pages, page height=%d\n", page_h);
     #endif
@@ -810,6 +824,9 @@ void LVRendPageContext::Finalize()
     split();
     lines.clear();
     footNotes.clear();
+    if ( main_context == this ) {
+        main_context = NULL;
+    }
 }
 
 static const char * pagelist_magic = "PageList";

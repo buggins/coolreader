@@ -16,6 +16,7 @@
 #define __LV_FONTGLYPHCACHE_H_INCLUDED__
 
 #include <stdlib.h>
+#include <stddef.h>
 #include "crsetup.h"
 #include "lvtypes.h"
 #include "lvhashtable.h"
@@ -141,19 +142,19 @@ struct LVFontGlyphCacheItem {
     LVFontGlyphCacheItem *next_local;
     LVFontLocalGlyphCache *local_cache;
     LVFontGlyphCacheKeyType data;
+    FontBmpPixelFormat bmp_fmt;
     lUInt16 bmp_width;
     lUInt16 bmp_height;
     lInt16 bmp_pitch;
     lInt16 origin_x;
     lInt16 origin_y;
     lUInt16 advance;
-    FontBmpPixelFormat bmp_fmt;
     lUInt8 bmp[1];
 
     //=======================================================================
     int getSize() {
-        return sizeof(LVFontGlyphCacheItem)
-               + (bmp_width * bmp_height - 1) * sizeof(lUInt8);
+        return offsetof(LVFontGlyphCacheItem, bmp)
+               + (bmp_pitch * bmp_height) * sizeof(lUInt8);
     }
     static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, LVFontGlyphCacheKeyType ch_or_index, int w, int h, unsigned int bmp_pitch, unsigned int bmp_sz);
     static void freeItem(LVFontGlyphCacheItem *item);

@@ -2206,6 +2206,7 @@ int PreProcessXmlString(lChar32 * str, int len, lUInt32 flags, const lChar32 * e
     lChar32 nch = 0;
     lChar32 lch = 0;
     lChar32 nsp = 0;
+    bool cdata = (flags & TXTFLG_CDATA) != 0;
     bool pre = (flags & TXTFLG_PRE) != 0;
     bool pre_para_splitting = (flags & TXTFLG_PRE_PARA_SPLITTING)!=0;
     if ( pre_para_splitting )
@@ -2233,7 +2234,7 @@ int PreProcessXmlString(lChar32 * str, int len, lUInt32 flags, const lChar32 * e
             if (ch=='\r' || ch=='\n' || ch=='\t')
                 ch = ' ';
         }
-        if (ch == '&') {
+        if (ch == '&' && !cdata) {
             state = 1;
             nch = 0;
         } else if (state == 0) {

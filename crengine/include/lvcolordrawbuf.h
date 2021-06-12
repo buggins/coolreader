@@ -30,9 +30,9 @@ public:
     /// rotates buffer contents by specified angle
     virtual void Rotate( cr_rotate_angle_t angle );
     /// returns white pixel value
-    virtual lUInt32 GetWhiteColor();
+    virtual lUInt32 GetWhiteColor() const;
     /// returns black pixel value
-    virtual lUInt32 GetBlackColor();
+    virtual lUInt32 GetBlackColor() const;
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette );
     // draws buffer on top of another buffer to implement background
@@ -46,11 +46,11 @@ public:
     /// invert image
     virtual void  Invert();
     /// get buffer bits per pixel
-    virtual int  GetBitsPerPixel();
+    virtual int  GetBitsPerPixel() const;
     /// fills buffer with specified color
     virtual void Clear( lUInt32 color );
     /// get pixel value
-    virtual lUInt32 GetPixel( int x, int y );
+    virtual lUInt32 GetPixel( int x, int y ) const;
     /// fills rectangle with specified color
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color );
     /// fills rectangle with pattern
@@ -64,7 +64,7 @@ public:
     /// blend font bitmap using specified palette
     virtual void BlendBitmap( int x, int y, const lUInt8 * bitmap, FontBmpPixelFormat bitmap_fmt, int width, int height, int bmp_pitch, lUInt32 * palette );
     /// returns scanline pointer
-    virtual lUInt8 * GetScanLine( int y );
+    virtual lUInt8 * GetScanLine( int y ) const;
 
     /// create own draw buffer
     LVColorDrawBuf(int dx, int dy, int bpp=32);

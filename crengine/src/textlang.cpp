@@ -7,17 +7,43 @@
 #include "../include/fb2def.h"
 #include "../include/crlog.h"
 
+#if (USE_UTF8PROC==1)
+#include <utf8proc.h>
+#endif
+
 // Uncomment to see which lang_tags are seen and lang_cfg created
 // #define DEBUG_LANG_USAGE
 
+// Check a lang tag (or its first part) against a lang (without subparts)
+static bool langStartsWith(const lString32 lang_tag, const char * prefix) {
+    if (!prefix || !prefix[0])
+        return true;
+    int prefix_len = 0;
+    for (const char * p=prefix; *p; p++)
+        prefix_len++;
+    int lang_len = lang_tag.length();
+    if ( lang_len < prefix_len )
+        return false;
+    const lChar32 * s1 = lang_tag.c_str();
+    const lChar8 * s2 = prefix;
+    for ( int i=0; i<prefix_len; i++ )
+        if (s1[i] != s2[i])
+            return false;
+    if ( lang_len == prefix_len ) // "en" starts with "en"
+        return true;
+    if ( s1[prefix_len] == '-' ) // "en-" starts with "en", but "eno" does not
+        return true;
+    return false;
+}
+
 // Some macros to expand: LANG_STARTS_WITH(("fr") ("es"))   (no comma!)
-// to: lang_tag.startsWith("fr") || lang_tag.startsWith("es") || false
+// to langStartsWith(lang_tag, "fr") || langStartsWith(lang_tag, "es") || false
 // (from https://stackoverflow.com/questions/19680962/translate-sequence-in-macro-parameters-to-separate-macros )
 #define PRIMITIVE_SEQ_ITERATE(...) __VA_ARGS__ ## _END
 #define SEQ_ITERATE(...) PRIMITIVE_SEQ_ITERATE(__VA_ARGS__)
 #define LANG_STARTS_WITH(seq) SEQ_ITERATE(LANG_STARTS_WITH_EACH_1 seq)
-#define LANG_STARTS_WITH_EACH_1(...) lang_tag.startsWith(__VA_ARGS__) || LANG_STARTS_WITH_EACH_2
-#define LANG_STARTS_WITH_EACH_2(...) lang_tag.startsWith(__VA_ARGS__) || LANG_STARTS_WITH_EACH_1
+#define LANG_STARTS_WITH_EACH_1(...) langStartsWith(lang_tag, __VA_ARGS__) || LANG_STARTS_WITH_EACH_2
+#define LANG_STARTS_WITH_EACH_2(...) langStartsWith(lang_tag, __VA_ARGS__) || LANG_STARTS_WITH_EACH_1
 #define LANG_STARTS_WITH_EACH_1_END false
 #define LANG_STARTS_WITH_EACH_2_END false
 
@@ -672,7 +698,149 @@ lChar32 lb_char_sub_func_czech_slovak(struct LineBreakContext *lbpCtx, const lCh
     }
     return text[pos];
 }
-#endif
+
+// (Mostly) non-language specific char substitution to ensure CSS line-break and word-break properties
+//
+// Note: the (hardcoded in many places) default behaviour (without these tweaks) in crengine
+// resembles "word-break: break-word; overflow-wrap: break-word", that is: we don't let text
+// overflow their container. So, we don't differentiate "word-break: normal" from "break-word",
+// and we don't handle "overflow-wrap" (normal/break-word/anywhere).
+//
+// Specs:
+//   https://drafts.csswg.org/css-text-3/#word-break-property
+//   https://drafts.csswg.org/css-text-3/#line-break-property
+// Also see:
+//   https://florian.rivoal.net/talks/line-breaking/
+// Rust implementation of UAX#14 and these CSS properties:
+//   https://github.com/makotokato/uax14_rs
+// WebKit:
+//   https://bugs.webkit.org/show_bug.cgi?id=89235
+//   https://trac.webkit.org/changeset/176473/webkit
+//   https://trac.webkit.org/wiki/LineBreakingCSS3Mapping
+// Firefox:
+//   https://bugzilla.mozilla.org/show_bug.cgi?id=1011369
+//   https://bugzilla.mozilla.org/show_bug.cgi?id=1531715
+//   https://hg.mozilla.org/integration/autoland/rev/436e3199c386
+//   https://hg.mozilla.org/releases/mozilla-esr78/file/tip/intl/lwbrk/LineBreaker.cpp
+//
+// Most of these implementation handles line breaking themselves, which we do not
+// exactly do here: we just masquerade an original char with another one with
+// different line-breaking properties, before invoking libunibreak pure UAX#14
+// implementation, expecting this to exhibit the wished behaviour.
+// Below, we mostly always use a random LBP_ID (CJK ideographic char) that should
+// break on both sides: this allows breaking on the unbreakable side, but it may
+// change the original LB class behaviour on the other side...
+//
+lChar32 TextLangCfg::getCssLbCharSub(css_line_break_t css_linebreak, css_word_break_t css_wordbreak,
+                struct LineBreakContext *lbpCtx, const lChar32 * text, int pos, int next_usable, lChar32 tweaked_ch) {
+    // "line-break: anywhere" has precedence over everything
+    if ( css_linebreak == css_lb_anywhere ) {
+        return 0x5000; // Random CJK ideographic character LBP_ID
+                       // Everything becoming ID, it can break anywhere
+    }
+    lChar32 ch = tweaked_ch ? tweaked_ch : text[pos];
+#if KO_LIBUNIBREAK_PATCH==1
+    enum LineBreakClass lbc = lb_get_char_class(lbpCtx, ch);
+    if ( css_wordbreak == css_wb_break_all ) {
+        if ( lbc == LBP_AI || lbc == LBP_AL || lbc == LBP_NU || lbc == LBP_SA ) {
+            // Alphabetic, ambiguous (ID in CJK lang, AL otherwise) numeric, south-east asian:
+            // treated as ideographic
+            // (Note: Firefox includes others: CJ H2 H3 JL JT JV
+            return 0x5000; // Random CJK ideographic character LBP_ID
+        }
+    }
+    else if ( css_wordbreak == css_wb_keep_all ) {
+	// A char of classes AI AL ID NU HY H2 H3 JL JV JT CJ shouldn't break
+        // between another char of any of these class.
+        // (Note: uax14_rs includes LBP_HY but Firefox does not)
+        // Feels like treating a char of these classes just as AL
+        if ( lbc == LBP_AI || lbc == LBP_AL || lbc == LBP_ID || lbc == LBP_NU || lbc == LBP_HY || lbc == LBP_H2 ||
+                    lbc == LBP_H3 || lbc == LBP_JL || lbc == LBP_JV || lbc == LBP_JT || lbc == LBP_CJ ) {
+            return 0x41; // 'A' LBP_AL
+        }
+    }
+    if ( css_linebreak > css_lb_auto ) {
+        // Following rules from https://drafts.csswg.org/css-text-3/#line-break-property:
+
+        // "The following breaks are forbidden in strict line breaking and allowed in normal and loose:
+        // - breaks before Japanese small kana or the Katakana-Hiragana prolonged sound mark,
+        // i.e. character from the Unicode line breaking class CJ [UAX14]."
+        if ( css_linebreak == css_lb_strict && lbc == LBP_CJ) {
+            // Conditional Japanese Starter => Nonstarter (as done by libunibreak itself
+            // when the lang tag ends with "-strict')
+            return 0x2047; // '⁇' LBP_NS
+        }
+
+        // "The following breaks are allowed for normal and loose line breaking if the writing
+        // system is Chinese or Japanese, and are otherwise forbidden:
+        // - breaks before certain CJK hyphen-like characters: U+301C,  U+30A0"
+        if ( _is_ja_zh && css_linebreak != css_lb_strict && ( ch==0x301C || ch==0x30A0 ) ) {
+            // By default, libunibreak considers them LBP_NS (Nonstarter, non breakable before).
+            // https://unicode.org/reports/tr14/#NS: "Optionally, the NS restriction may be relaxed
+            // by tailoring, with some or all characters treated like ID to achieve a more permissive
+            // style of line breaking, especially in some East Asian document styles"
+            return 0x5000; // Random CJK ideographic character LBP_ID
+        }
+
+        // "The following breaks are allowed for loose line breaking if the preceding character
+        // belongs to the Unicode line breaking class ID [UAX14] (including when the preceding
+        // character is treated as ID due to word-break: break-all), and are otherwise forbidden:
+        // - breaks before hyphens: U+2010, U+2013"
+        if ( css_linebreak == css_lb_loose && pos > 1 && ( ch==0x2010 || ch==0x2013 ) ) {
+            // By default, libunibreak considers them LBP_NS (Nonstarter, non breakable before).
+            enum LineBreakClass plbc = lb_get_char_class(lbpCtx, text[pos-1]);
+            if ( plbc == LBP_ID || (css_wordbreak == css_wb_break_all &&
+                                    ( plbc == LBP_AI || plbc == LBP_AL || plbc == LBP_NU || plbc == LBP_SA )) ) {
+                return 0x5000; // Random CJK ideographic character LBP_ID
+            }
+        }
+
+        // "The following breaks are forbidden for normal and strict line breaking and allowed in loose:
+        // - breaks before iteration marks: U+3005, U+303B, U+309D, U+309E, U+30FD, U+30FE
+        // - breaks between inseparable characters (such as U+2025, U+2026) i.e. characters
+        //   from the Unicode line breaking class IN [UAX14]. "
+        if ( css_linebreak == css_lb_loose && ( ch==0x3005 || ch==0x303B || ch==0x309D ||
+                                                ch==0x309E || ch==0x30FD || ch==0x30FE ||
+                                                lbc == LBP_IN ) ) {
+            // By default, libunibreak considers these codepoints LBP_NS (Nonstarter, non breakable before).
+            // LBP_IN are inseparable from other of the same class, so making them ID should allow breaking.
+            return 0x5000; // Random CJK ideographic character LBP_ID
+        }
+
+        // "The following breaks are allowed for loose if the writing system is Chinese or Japanese
+        // and are otherwise forbidden:
+        // - breaks before certain centered punctuation marks: U+30FB, U+FF1A, U+FF1B, U+FF65, U+203C,
+        //   U+2047, U+2048, U+2049, U+FF01, U+FF1F
+        // - breaks before suffixes: Characters with the Unicode line breaking class PO [UAX14]
+        //   and the East Asian Width property [UAX11] Ambiguous, Fullwidth, or Wide.
+        // - breaks after prefixes: Characters with the Unicode line breaking class PR [UAX14]
+        //   and the East Asian Width property [UAX11] Ambiguous, Fullwidth, or Wide."
+        if ( _is_ja_zh && css_linebreak == css_lb_loose ) {
+            // By default, libunibreak considers these codepoints LBP_NS (Nonstarter, non breakable before)
+            // or (the last 2 ones) LBP_EX (Exclamation, Interrogation, Prohibit line breaks before)
+            if ( ch==0x30FB || ch==0xFF1A || ch==0xFF1B || ch==0xFF65 ||
+                 ch==0x203C || ch==0x2047 || ch==0x2048 || ch==0x2049 ||
+                 ch==0xFF01 || ch==0xFF1F ) {
+                return 0x5000; // Random CJK ideographic character LBP_ID
+            }
+            // For the 2 last cases, we need utf8proc to know the East Asian Width property
+            #if (USE_UTF8PROC==1)
+            if ( lbc == LBP_PO || lbc == LBP_PR ) {
+                // LBP_PO are Postfix Numeric ("do not break following a numeric expression")
+                // LBP_PR are Prefix Numeric ("do not break in front of a numeric expression")
+                if ( utf8proc_charwidth(ch) == 2 ) {
+                    // Note: utf8proc returns 2 for Fullwidth and Wide, 1 or 0 otherwise.
+                    // It may return 1 for "Ambiguous", so we may not handle this case well.
+                    return 0x5000; // Random CJK ideographic character LBP_ID
+                }
+            }
+            #endif
+        }
+    }
+#endif  // KO_LIBUNIBREAK_PATCH==1
+    return ch;
+}
+#endif  // USE_LIBUNIBREAK==1
 
 // Instantiate a new TextLangCfg with properties adequate to the provided lang_tag
 TextLangCfg::TextLangCfg( lString32 lang_tag ) {
@@ -725,6 +893,9 @@ TextLangCfg::TextLangCfg( lString32 lang_tag ) {
     // https://unicode.org/reports/tr14/#Hyphen : in Polish and Portuguese,
     // a real hyphen at end of line must be duplicated at start of next line.
     _duplicate_real_hyphen_on_next_line = false;
+
+    // getCssLbCharSub(), possibly called on each glyph, has some different behaviours with 'ja' and 'zh'
+    _is_ja_zh = LANG_STARTS_WITH(("ja") ("zh"));
 
 #if USE_HARFBUZZ==1
     _hb_language = hb_language_from_string(UnicodeToLocal(hb_lang_tag).c_str(), -1);
@@ -867,7 +1038,7 @@ TextLangCfg::TextLangCfg( lString32 lang_tag ) {
     //   "q::after  { content: close-quote }"
     quotes_spec * quotes = &_quotes_spec_default;
     for (int i=0; _quotes_spec_table[i].lang_tag!=NULL; i++) {
-        if ( lang_tag.startsWith( _quotes_spec_table[i].lang_tag ) ) {
+        if ( langStartsWith(lang_tag, _quotes_spec_table[i].lang_tag ) ) {
             quotes = &_quotes_spec_table[i];
             break;
         }
@@ -886,6 +1057,8 @@ TextLangCfg::TextLangCfg( lString32 lang_tag ) {
 }
 
 TextLangCfg::~TextLangCfg() {
+    // NOTE: _hyph_method may be dangling now, not *quite* sure what it points to,
+    //       and how it relates to HyphMan::uninit & TextLangMan::uninit
 }
 
 void TextLangCfg::resetCounters() {
