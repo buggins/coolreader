@@ -31,7 +31,7 @@
 #include <QDesktopServices>
 #include <QLocale>
 
-#include "fc-lang-cat.h"
+#include "fc-lang-data.h"
 
 /// to hide non-qt implementation, place all crengine-related fields here
 class CR3View::DocViewData
@@ -1196,8 +1196,8 @@ bool CR3View::haveFcLangCode(lString8 langCode)
 {
     bool res = false;
     if (!langCode.empty()) {
-        struct fc_lang_catalog* lang_ptr = fc_lang_cat;
-        for (int i = 0; i < fc_lang_cat_sz; i++) {
+        const struct fc_lang_rec* lang_ptr = get_fc_lang_data();
+        for (int i = 0; i < get_fc_lang_data_size(); i++) {
             if (langCode.compare(lang_ptr->lang_code) == 0) {
                 res = true;
                 break;

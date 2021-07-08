@@ -31,7 +31,7 @@
 
 #include <../../crengine/include/fb2def.h>
 
-#include "fc-lang-cat.h"
+#include "fc-lang-data.h"
 
 #define XS_IMPLEMENT_SCHEME 1
 #include <../../crengine/include/fb2def.h>
@@ -994,8 +994,8 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_haveFcLangCodeInt
 	jboolean res = JNI_FALSE;
 	const char* langCode_ptr = env->GetStringUTFChars(langCode, 0);
 	if (langCode_ptr) {
-		struct fc_lang_catalog* lang_ptr = fc_lang_cat;
-		for (int i = 0; i < fc_lang_cat_sz; i++)
+		const struct fc_lang_rec* lang_ptr = get_fc_lang_data();
+		for (int i = 0; i < get_fc_lang_data_size(); i++)
 		{
 			if (strcmp(lang_ptr->lang_code, langCode_ptr) == 0)
 			{

@@ -29,7 +29,7 @@
 
 
 // fc-lang database
-#include "fc-lang-cat.h"
+#include "fc-lang-data.h"
 
 #if COLOR_BACKBUFFER == 0
 //#define USE_BITMAP_FONT
@@ -1598,13 +1598,13 @@ bool LVFreeTypeFace::getGlyphExtraMetric( glyph_extra_metric_t metric, lUInt32 c
 }
 
 bool LVFreeTypeFace::checkFontLangCompat(const lString8 &langCode) {
-#define FC_LANG_START_INTERVAL_CODE     2
+#define FC_LANG_START_INTERVAL_CODE     0xF0F0FFFF
     bool fullSupport = false;
     bool partialSupport = false;
-    struct fc_lang_catalog *lang_ptr = fc_lang_cat;
+    const struct fc_lang_rec *lang_ptr = get_fc_lang_data();
     unsigned int i;
     bool found = false;
-    for (i = 0; i < fc_lang_cat_sz; i++) {
+    for (i = 0; i < get_fc_lang_data_size(); i++) {
         if (langCode.compare(lang_ptr->lang_code) == 0) {
             found = true;
             break;
