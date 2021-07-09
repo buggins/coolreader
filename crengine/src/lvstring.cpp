@@ -5936,6 +5936,16 @@ lString8 & lString8::replace(size_type p0, size_type n0, const lString8 & str) {
     return *this;
 }
 
+lString8 & lString8::replace(value_type before, value_type after) {
+    value_type* ptr = modify();
+    while (*ptr) {
+        if (*ptr == before)
+            *ptr = after;
+        ++ptr;
+    }
+    return *this;
+}
+
 lString32 & lString32::replace(size_type p0, size_type n0, const lString32 & str)
 {
     lString32 s1 = substr( 0, p0 );

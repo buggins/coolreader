@@ -2694,21 +2694,30 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			FileInfo fileInfo = mBookInfo.getFileInfo();
 			final String bookLanguage = fileInfo.getLanguage();
 			final String fontFace = props.getProperty(PROP_FONT_FACE);
-			String fcLangCode = null;
 			if (null != bookLanguage && bookLanguage.length() > 0) {
-				fcLangCode = Engine.findCompatibleFcLangCode(bookLanguage);
 				if (props.getBool(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false))
 					props.setProperty(PROP_TEXTLANG_MAIN_LANG, bookLanguage);
-			}
-			if (null != fcLangCode && fcLangCode.length() > 0) {
-				boolean res = Engine.checkFontLanguageCompatibility(fontFace, fcLangCode);
-				log.d("Checking font \"" + fontFace + "\" for compatibility with language \"" + bookLanguage + "\" fcLangCode=" + fcLangCode + ": res=" + res);
-				if (!res) {
-					BackgroundThread.instance().executeGUI(() -> mActivity.showToast(R.string.font_not_compat_with_language, fontFace, bookLanguage));
+				final String langDescr = Engine.getHumanReadableLocaleName(bookLanguage);
+				if (null != langDescr && langDescr.length() > 0) {
+					Engine.font_lang_compat compat = Engine.checkFontLanguageCompatibility(fontFace, bookLanguage);
+					log.d("Checking font \"" + fontFace + "\" for compatibility with language \"" + bookLanguage + "\" fcLangCode=" + langDescr + ": compat=" + compat);
+					switch (compat) {
+						case font_lang_compat_invalid_tag:
+							log.w("Can't find compatible language code in embedded FontConfig catalog: language=\"" + bookLanguage + "\", filename=\"" + fileInfo + "\"");
+							break;
+						case font_lang_compat_none:
+							BackgroundThread.instance().executeGUI(() -> mActivity.showToast(R.string.font_not_compat_with_language, fontFace, langDescr));
+							break;
+						case font_lang_compat_partial:
+							BackgroundThread.instance().executeGUI(() -> mActivity.showToast(R.string.font_compat_partial_with_language, fontFace, langDescr));
+							break;
+						case font_lang_compat_full:
+							// good, do nothing
+							break;
+					}
+				} else {
+						log.d("Invalid language tag: \"" + bookLanguage + "\", filename=\"" + fileInfo + "\"");
 				}
-			} else {
-				if (null != bookLanguage)
-					log.d("Can't find compatible language code in embedded FontConfig catalog: language=\"" + bookLanguage + "\" bookInfo=" + fileInfo);
 			}
 		}
 		doc.applySettings(props);

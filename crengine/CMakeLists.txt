@@ -51,6 +51,7 @@ SET (CRENGINE_SOURCES
     src/lvxml/fb2coverpageparsercallback.cpp
     src/lvxml/lvxmlutils.cpp
     src/locale_data/fc-lang-data.c
+    src/locale_data/crlocaledata.cpp
 )
 
 if ( NOT ${GUI} STREQUAL FB2PROPS )

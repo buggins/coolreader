@@ -151,6 +151,7 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvxml/fb2coverpageparsercallback.cpp \
     ../../crengine/src/lvxml/lvxmlutils.cpp \
     ../../crengine/src/locale_data/fc-lang-data.c \
+    ../../crengine/src/locale_data/crlocaledata.cpp
 #    ../../crengine/src/cri18n.cpp
 #    ../../crengine/src/crgui.cpp \
 

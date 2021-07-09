@@ -156,6 +156,7 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/lvxml/fb2coverpageparsercallback.cpp
     ${CR3_ROOT}/crengine/src/lvxml/lvxmlutils.cpp
     ${CR3_ROOT}/crengine/src/locale_data/fc-lang-data.c
+    ${CR3_ROOT}/crengine/src/locale_data/crlocaledata.cpp
 )
 #    ${CR3_ROOT}/crengine/src/cri18n.cpp
 #    ${CR3_ROOT}/crengine/src/crgui.cpp
