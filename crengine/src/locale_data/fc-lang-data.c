@@ -5,6 +5,9 @@
 // https://gitlab.freedesktop.org/fontconfig/fontconfig/tree/master/fc-lang
 // by convert utility from https://github.com/virxkane/freetype_textdraw
 
+#include "crsetup.h"
+#if USE_LOCALE_DATA==1
+
 #include <string.h>
 
 #include "fc-lang-data.h"
@@ -533,3 +536,4 @@ const struct fc_lang_rec* fc_lang_find(const char* lang_code) {
 	return 0;
 }
 
+#endif  // USE_LOCALE_DATA==1
