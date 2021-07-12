@@ -31,7 +31,9 @@
 #include <QDesktopServices>
 #include <QLocale>
 
-#include "fc-lang-cat.h"
+#if USE_LOCALE_DATA==1
+#include "crlocaledata.h"
+#endif
 
 /// to hide non-qt implementation, place all crengine-related fields here
 class CR3View::DocViewData
@@ -1094,6 +1096,7 @@ bool CR3View::updateSelection( ldomXPointer p )
 
 void CR3View::checkFontLanguageCompatibility()
 {
+#if USE_LOCALE_DATA==1
     lString32 fontFace;
     lString32 fileName;
     _data->_props->getString(PROP_FONT_FACE, fontFace);
@@ -1106,106 +1109,39 @@ void CR3View::checkFontLanguageCompatibility()
         return;
     }
     if (fontFace_u8.length() > 0) {
-        lString8 fcLang = findCompatibleFcLangCode(langCode_u8);
-        if (!fcLang.empty()) {
-            bool res = fontMan->checkFontLangCompat(fontFace_u8, fcLang);
-            CRLog::debug("Checking font \"%s\" for compatibility with language \"%s\": %d", fontFace_u8.c_str(), langCode_u8.c_str(), res);
-            if (!res)
-            {
-                QMessageBox::warning(this, tr("Warning"), 
-                                            tr("Font \"%1\" isn't compatible with language \"%2\". Instead will be used fallback font.").arg(fontFace_u8.c_str()).arg(langCode_u8.c_str()), 
-                                            QMessageBox::Ok);
+        CRLocaleData loc(langCode_u8);
+        if (loc.isValid()) {
+            QString langDescr = loc.langName().c_str();
+            if (loc.scriptNumeric() > 0) {
+                langDescr.append("-");
+                langDescr.append(loc.scriptName().c_str());
+            }
+            if (loc.regionNumeric() > 0) {
+                langDescr.append(" (");
+                langDescr.append(loc.regionAlpha3().c_str());
+                langDescr.append(")");
+            }
+            font_lang_compat compat = fontMan->checkFontLangCompat(fontFace_u8, langCode_u8);
+            CRLog::debug("Checking font \"%s\" for compatibility with language \"%s\": %d", fontFace_u8.c_str(), langCode_u8.c_str(), (int)compat);
+            switch (compat) {
+                case font_lang_compat_invalid_tag:
+                    CRLog::warn("Can't find compatible language code in embedded FontConfig catalog: language=\"%s\", filename=\"%s\"", langCode_u8.c_str(), LCSTR(fileName));
+                    break;
+                case font_lang_compat_none:
+                case font_lang_compat_partial:
+                    QMessageBox::warning(this, tr("Warning"), 
+                                         tr("Font \"%1\" isn't compatible with language \"%2\". Instead will be used fallback font.").arg(fontFace_u8.c_str()).arg(langDescr), 
+                                         QMessageBox::Ok);
+                    break;
+                case font_lang_compat_full:
+                    // good, do nothing
+                    break;
             }
         } else {
-            CRLog::warn("Can't find compatible language code in embedded FontConfig catalog: language=\"%s\", filename=\"%s\"", langCode_u8.c_str(), LCSTR(fileName));
+            CRLog::warn("Invalid language tag: \"%s\", filename=\"%s\"", langCode_u8.c_str(), LCSTR(fileName));
         }
     }
-}
-
-lString8 CR3View::findCompatibleFcLangCode(lString8 language)
-{
-    lString8 langCode;
-
-    lString8 lang_part;
-    lString8 country_part;
-    lString8 testLang;
-
-    language = language.lowercase();
-    
-    // Split language and country codes
-    int pos = language.pos('-');
-    if (-1 == pos)
-        pos = language.pos('_');
-    if (pos > 0) {
-        lang_part = language.substr(0, pos);
-        if (pos < language.length() - 1)
-            country_part = language.substr(pos + 1);
-        else
-            country_part = "";
-    } else {
-        lang_part = language;
-        country_part = "";
-    }
-    lang_part = lang_part.lowercase();
-    country_part = country_part.lowercase();
-
-    if (country_part.length() > 0)
-        testLang = lang_part + "_" + country_part;
-    else
-        testLang = lang_part;
-    // 1. Check if testLang is already language code accepted by FontConfig languages symbols database
-    if (haveFcLangCode(testLang))
-        langCode = testLang;
-    else {
-        // TODO: convert three letter language code to two-letter language code
-        // TODO: convert three letter country code to two-letter country code
-        // TODO: test with two letter codes
-        // See android/src: org.coolreader.crengine.Engine.findCompatibleFcLangCode()
-        if (langCode.empty()) {
-            // 2. test lang_part
-            testLang = lang_part;
-            if (haveFcLangCode(testLang))
-                langCode = testLang;
-        }
-    }
-    if (langCode.empty()) {
-        QString match_lang;
-        // 3. Try to find by full language name
-        QList<QLocale> allLocales = QLocale::matchingLocales(QLocale::AnyLanguage, QLocale::AnyScript, QLocale::AnyCountry);
-        QList<QLocale>::const_iterator it;
-        for (it = allLocales.begin(); it != allLocales.end(); ++it) {
-            const QLocale& loc = *it;
-            QString full_lang = QLocale::languageToString(loc.language()).toLower();
-            if (language.compare(full_lang.toLatin1().data()) == 0) {
-                match_lang = loc.name();
-                pos = match_lang.indexOf('_');
-                if (pos > 0)
-                    match_lang = match_lang.mid(0, pos);
-            }
-        }
-        if (!match_lang.isEmpty()) {
-            testLang = lString8(match_lang.toLatin1().data());
-            if (haveFcLangCode(testLang))
-                langCode = testLang;
-        }
-    }
-    return langCode;
-}
-
-bool CR3View::haveFcLangCode(lString8 langCode)
-{
-    bool res = false;
-    if (!langCode.empty()) {
-        struct fc_lang_catalog* lang_ptr = fc_lang_cat;
-        for (int i = 0; i < fc_lang_cat_sz; i++) {
-            if (langCode.compare(lang_ptr->lang_code) == 0) {
-                res = true;
-                break;
-            }
-            lang_ptr++;
-        }
-    }
-    return res;
+#endif
 }
 
 void CR3View::mousePressEvent ( QMouseEvent * event )

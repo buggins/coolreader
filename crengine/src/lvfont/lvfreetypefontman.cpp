@@ -965,13 +965,13 @@ bool LVFreeTypeFontManager::checkCharSet(FT_Face face) {
     return true;
 }
 
-bool LVFreeTypeFontManager::checkFontLangCompat(const lString8 &typeface, const lString8 &langCode) {
-    LVFontRef fntRef = GetFont(10, 400, false, css_ff_inherit, typeface, -1);
+font_lang_compat LVFreeTypeFontManager::checkFontLangCompat(const lString8 &typeface, const lString8 &langCode) {
+    LVFontRef fntRef = GetFont(-1, 400, false, css_ff_inherit, typeface, -1);
     if (!fntRef.isNull())
         return fntRef->checkFontLangCompat(langCode);
     else
         CRLog::debug("checkFontLangCompat(): typeface not found: %s", typeface.c_str());
-    return true;
+    return font_lang_compat_invalid_tag;
 }
 
 /*

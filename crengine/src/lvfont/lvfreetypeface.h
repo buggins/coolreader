@@ -278,7 +278,7 @@ public:
      * @param langCode language code, for example, "en" - English, "ru" - Russian
      * @return true if font contains all glyphs for given language, false otherwise.
      */
-    virtual bool checkFontLangCompat(const lString8 &langCode);
+    virtual font_lang_compat checkFontLangCompat(const lString8 &langCode);
 
     /** \brief measure text
         \param text is text string pointer

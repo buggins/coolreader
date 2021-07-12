@@ -122,7 +122,7 @@ public:
 
     bool checkCharSet(FT_Face face);
 
-    virtual bool checkFontLangCompat(const lString8 &typeface, const lString8 &langCode);
+    virtual font_lang_compat checkFontLangCompat(const lString8 &typeface, const lString8 &langCode);
 
     //bool isMonoSpaced( FT_Face face );
     /// registers document font

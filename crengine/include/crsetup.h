@@ -50,6 +50,7 @@
 #define ZIP_STREAM_BUFFER_SIZE               0x1000
 #define FILE_STREAM_BUFFER_SIZE              0x1000
 #define MATHML_SUPPORT                       0
+#define USE_LOCALE_DATA                      0
 
 #else
 
@@ -67,6 +68,7 @@
 #define ZIP_STREAM_BUFFER_SIZE               0x80000
 #define FILE_STREAM_BUFFER_SIZE              0x40000
 #define MATHML_SUPPORT                       1
+#define USE_LOCALE_DATA                      1
 
 #endif  // (BUILD_LITE==1)
 
@@ -103,6 +105,7 @@
 #define USE_LIBUNIBREAK                      1
 #define USE_GLYPHCACHE_HASHTABLE             1
 #define MATHML_SUPPORT                       1
+#define USE_LOCALE_DATA                      1
 
 #ifndef ANDROID
 #ifndef MAC
@@ -154,6 +157,7 @@
 #define FILE_STREAM_BUFFER_SIZE              0x40000
 //#define USE_LIBJPEG 0
 #define MATHML_SUPPORT                       1
+#define USE_LOCALE_DATA                      1
 #endif  // !defined(__SYMBIAN32__) && defined(_WIN32)
 
 #ifndef GLYPH_CACHE_SIZE
@@ -263,6 +267,10 @@
 
 #ifndef MATHML_SUPPORT
 #define MATHML_SUPPORT 0
+#endif
+
+#ifndef USE_LOCALE_DATA
+#define USE_LOCALE_DATA 0
 #endif
 
 #ifndef USE_FREETYPE

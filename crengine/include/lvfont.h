@@ -210,6 +210,13 @@ enum font_antialiasing_t {
     font_aa_lcd_v_pentile_m
 };
 
+enum font_lang_compat {
+    font_lang_compat_invalid_tag = 0,
+    font_lang_compat_none,
+    font_lang_compat_partial,
+    font_lang_compat_full,
+};
+
 struct LVFontGlyphCacheItem;
 class TextLangCfg;
 
@@ -412,7 +419,7 @@ public:
         return 0;
     }
 
-    virtual bool checkFontLangCompat(const lString8 &langCode) { return true; }
+    virtual font_lang_compat checkFontLangCompat(const lString8 &langCode) { return font_lang_compat_invalid_tag; }
 
     /// set fallback font for this font
     virtual void setFallbackFont(LVFontRef font) { CR_UNUSED(font); }

@@ -169,24 +169,6 @@ class CR3View : public QWidget, public LVDocViewCallback
         bool endSelection( ldomXPointer p );
         bool updateSelection( ldomXPointer p );
         void checkFontLanguageCompatibility();
-        /**
-         * Finds the corresponding language code in embedded FontConfig language orthography catalog.
-         *
-         * @param language language code in free form: ISO 639-1, ISO 639-2 or full name of the language in English. Also allowed concatenation of country code in ISO 3166-1 alpha-2 or ISO 3166-1 alpha-3.
-         * @return language code in the FontConfig language orthography catalog if it's found, null - otherwise.
-         *
-         * If a country code in any form is added to the language, but the record with the country code is not found - it is simply ignored and the search continues without a country code.
-         */
-        lString8 findCompatibleFcLangCode(lString8 language);
-        /**
-         * Test if in embedded FontConfig language orthography catalog have record with language code langCode.
-         *
-         * @param langCode language code
-         * @return true if record with langCode found, false - otherwise.
-         *
-         * Language code compared as is without any modifications.
-         */
-        bool haveFcLangCode(lString8 langCode);
 
         DocViewData * _data; // to hide non-qt implementation
         LVDocView * _docview;
