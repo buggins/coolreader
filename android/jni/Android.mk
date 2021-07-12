@@ -26,7 +26,6 @@ include $(CR3_ROOT)/thirdparty_repo/repo_srcdirs.mk
 
 LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/crengine/include \
-    $(CR3_ROOT)/crengine/fc-lang \
     $(CR3_ROOT)/thirdparty/$(REPO_LIBPNG_SRCDIR) \
     $(CR3_ROOT)/thirdparty/$(REPO_FREETYPE_SRCDIR)/include \
     $(CR3_ROOT)/thirdparty/$(REPO_FREETYPE_SRCDIR) \

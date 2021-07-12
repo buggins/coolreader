@@ -1,8 +1,6 @@
 
 option(BUILD_TOOLS "Build tools" OFF)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/fc-lang)
-
 SET (CRENGINE_SOURCES
     src/cp_stats.cpp
     src/lvstring.cpp

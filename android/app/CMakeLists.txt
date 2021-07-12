@@ -13,7 +13,6 @@ set(CR3_ROOT ${PROJECT_SOURCE_DIR}/../..)
 include(${CR3_ROOT}/thirdparty_repo/repo_srcdirs.cmake)
 
 include_directories(${CR3_ROOT}/crengine/include)
-include_directories(${CR3_ROOT}/crengine/fc-lang)
 include_directories(${CR3_ROOT}/thirdparty/${REPO_LIBPNG_SRCDIR})
 include_directories(thirdparty_libs/libpng/lib)
 include_directories(${CR3_ROOT}/thirdparty/${REPO_FREETYPE_SRCDIR})
