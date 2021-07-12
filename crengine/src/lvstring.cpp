@@ -1541,6 +1541,88 @@ bool lString32::atoi( lInt64 &n ) const
     return *s=='\0' || *s==' ' || *s=='\t';
 }
 
+double lString32::atod() const {
+    double d = 0.0;
+    bool res = atod(d, '.');
+    return res ? d : 0.0;
+}
+
+bool lString32::atod( double &d, char dp ) const {
+    // Simplified implementation without overflow checking
+    int sign = 1;
+    unsigned long intg = 0;
+    unsigned long frac = 0;
+    unsigned long frac_div = 1;
+    unsigned int exp = 0;
+    int exp_sign = 1;
+    bool res = false;
+    const value_type * s = c_str();
+    while (*s == ' ' || *s == '\t')
+        s++;
+    if (*s == '-') {
+        sign = -1;
+        s++;
+    }
+    else if (*s == '+') {
+        s++;
+    }
+    if (*s>='0' && *s<='9') {
+        res = true;
+        while (*s>='0' && *s<='9') {
+            intg = intg * 10 + ( (*s)-'0' );
+            s++;
+        }
+    }
+    if (res && *s == dp) {
+        // decimal point found
+        s++;
+        res = false;
+        if (*s>='0' && *s<='9') {
+            res = true;
+            while (*s>='0' && *s<='9') {
+                frac = frac * 10 + ( (*s)-'0' );
+                s++;
+                frac_div *= 10;
+            }
+        }
+    }
+    if (res && (*s == 'e' || *s == 'E')) {
+        // exponent part
+        s++;
+        if (*s == '-') {
+            exp_sign = -1;
+            s++;
+        }
+        else if (*s == '+') {
+            s++;
+        }
+        res = false;
+        if (*s>='0' && *s<='9') {
+            res = true;
+            while (*s>='0' && *s<='9') {
+                exp = exp * 10 + ( (*s)-'0' );
+                s++;
+            }
+        }
+    }
+    if (res && (*s != '\0' && *s != ' ' && *s != '\t')) {
+        // unprocessed characters left
+        res = false;
+    }
+    d = (double)intg;
+    if (frac_div > 1)
+        d += ((double)frac)/((double)frac_div);
+    if (exp > 1) {
+        double pwr = exp_sign > 0 ? 10.0 : 0.1;
+        for (unsigned int i = 0; i < exp; i++) {
+            d *= pwr;
+        }
+    }
+    if (sign < 0)
+        d = -d;
+    return res;
+}
+
 #define STRING_HASH_MULT 31
 lUInt32 lString32::getHash() const
 {

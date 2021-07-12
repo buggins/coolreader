@@ -6676,10 +6676,14 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         } else if (name == PROP_FONT_GAMMA) {
             double gamma = 1.0;
             lString32 s = props->getStringDef(PROP_FONT_GAMMA, "1.0");
-            lString8 s8 = UnicodeToUtf8(s);
-            if ( sscanf(s8.c_str(), "%lf", &gamma)==1 ) {
+            // When parsing a gamma value string, the decimal point is always '.' char.
+            // So if a different decimal point character is used in the current locale,
+            // and if we use some library function to convert the string to floating point number, then it may fail.
+            if (s.atod(gamma, '.')) {
                 fontMan->SetGamma(gamma);
                 clearImageCache();
+            } else {
+                CRLog::error("Invalid gamma value (%s)", LCSTR(s));
             }
         } else if (name == PROP_FONT_HINTING) {
             int mode = props->getIntDef(PROP_FONT_HINTING, (int)HINTING_MODE_AUTOHINT);

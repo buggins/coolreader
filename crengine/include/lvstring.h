@@ -1042,6 +1042,10 @@ public:
     bool atoi( int &n ) const;
     /// converts to 64 bit integer, returns true if success
     bool atoi( lInt64 &n ) const;
+    /// convert to double
+    double atod() const;
+    /// convert to double, returns true if success
+    bool atod( double &d, char dp = '.' ) const;
     /// returns constant c-string pointer
     const value_type * c_str() const { return pchunk->buf32; }
     /// returns constant c-string pointer, same as c_str()
