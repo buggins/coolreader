@@ -241,7 +241,7 @@ endif (NOT JPEG_FOUND)
 
 if (NOT MSVC AND NOT CR3_FREETYPE)
 FIND_PACKAGE(Freetype 2.10.0)
-FIND_PACKAGE(HarfBuzz)
+FIND_PACKAGE(HarfBuzz 2.6.0)
 endif (NOT MSVC AND NOT CR3_FREETYPE)
 
 ADD_SUBDIRECTORY(thirdparty_unman/qimagescale)
@@ -273,7 +273,7 @@ if (NOT HarfBuzz_FOUND)
 endif (NOT HarfBuzz_FOUND)
 
 if (NOT MSVC)
-	find_package(FontConfig)
+	find_package(FontConfig 2.11.0)
 endif(NOT MSVC)
 
 if (FONTCONFIG_FOUND)
@@ -283,7 +283,7 @@ else()
 endif (FONTCONFIG_FOUND)
 
 if (NOT MSVC)
-find_package(FriBidi)
+find_package(FriBidi 1.0.0)
 if (NOT FRIBIDI_FOUND)
   message("System FriBidi not found, will build local one\n")
   ADD_SUBDIRECTORY(thirdparty/${REPO_FRIBIDI_SRCDIR})
@@ -295,7 +295,7 @@ endif(NOT MSVC)
 
 
 if (NOT MSVC)
-	find_package(libunibreak)
+	find_package(libunibreak 4.0)
 endif(NOT MSVC)
 
 if (NOT LIBUNIBREAK_FOUND)
@@ -305,7 +305,7 @@ if (NOT LIBUNIBREAK_FOUND)
   SET(LIBUNIBREAK_LIBRARIES unibreak)
 endif (NOT LIBUNIBREAK_FOUND)
 
-find_package(ZSTD)
+find_package(ZSTD 1.4.0)
 if (NOT ZSTD_FOUND)
     message("\nSystem zstd not found, will build local one\n")
     set(ZSTD_LEGACY_SUPPORT OFF CACHE BOOL "LEGACY SUPPORT" FORCE)
