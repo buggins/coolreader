@@ -393,7 +393,10 @@ bool LVFreeTypeFontManager::initSystemFonts() {
         
         FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_WEIGHT, FC_FAMILY,
                                            FC_SLANT, FC_SPACING, FC_INDEX,
-                                           FC_STYLE, FC_SCALABLE, FC_COLOR,
+                                           FC_STYLE, FC_SCALABLE,
+#ifdef FC_COLOR
+                                           FC_COLOR,
+#endif
                                            NULL);
         FcPattern *pat = FcPatternCreate();
         //FcBool b = 1;
@@ -445,7 +448,9 @@ bool LVFreeTypeFontManager::initSystemFonts() {
                 weight = 200;
                 break;
             case FC_WEIGHT_LIGHT:         //    50
+#ifdef FC_WEIGHT_DEMILIGHT
             case FC_WEIGHT_DEMILIGHT:     //    55
+#endif
                 weight = 300;
                 break;
             case FC_WEIGHT_BOOK:          //    75
