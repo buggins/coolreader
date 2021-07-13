@@ -13,7 +13,6 @@ set(CR3_ROOT ${PROJECT_SOURCE_DIR}/../..)
 include(${CR3_ROOT}/thirdparty_repo/repo_srcdirs.cmake)
 
 include_directories(${CR3_ROOT}/crengine/include)
-include_directories(${CR3_ROOT}/crengine/fc-lang)
 include_directories(${CR3_ROOT}/thirdparty/${REPO_LIBPNG_SRCDIR})
 include_directories(thirdparty_libs/libpng/lib)
 include_directories(${CR3_ROOT}/thirdparty/${REPO_FREETYPE_SRCDIR})
@@ -155,7 +154,8 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/lvxml/lvhtmlparser.cpp
     ${CR3_ROOT}/crengine/src/lvxml/fb2coverpageparsercallback.cpp
     ${CR3_ROOT}/crengine/src/lvxml/lvxmlutils.cpp
-    ${CR3_ROOT}/crengine/fc-lang/fc-lang-cat.c
+    ${CR3_ROOT}/crengine/src/locale_data/fc-lang-data.c
+    ${CR3_ROOT}/crengine/src/locale_data/crlocaledata.cpp
 )
 #    ${CR3_ROOT}/crengine/src/cri18n.cpp
 #    ${CR3_ROOT}/crengine/src/crgui.cpp

@@ -149,19 +149,19 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_suspendLongOperationI
 
 /*
  * Class:     org_coolreader_crengine_Engine
- * Method:    haveFcLangCodeInternal
- * Signature: (Ljava/lang/String;)Z
+ * Method:    checkFontLanguageCompatibilityInternal
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)I
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_haveFcLangCodeInternal
-  (JNIEnv *, jclass, jstring);
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal
+  (JNIEnv *, jclass, jstring, jstring);
 
 /*
  * Class:     org_coolreader_crengine_Engine
- * Method:    checkFontLanguageCompatibilityInternal
- * Signature: (Ljava/lang/String;Ljava/lang/String;)Z
+ * Method:    getHumanReadableLocaleNameInternal
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal
-  (JNIEnv *, jclass, jstring, jstring);
+JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_Engine_getHumanReadableLocaleNameInternal
+  (JNIEnv *, jclass, jstring);
 
 /*
  * Class:     org_coolreader_crengine_Engine

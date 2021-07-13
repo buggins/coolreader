@@ -28,8 +28,11 @@
 #include "gammatbl.h"
 
 
+#if USE_LOCALE_DATA==1
 // fc-lang database
-#include "fc-lang-cat.h"
+#include "fc-lang-data.h"
+#include "crlocaledata.h"
+#endif
 
 #if COLOR_BACKBUFFER == 0
 //#define USE_BITMAP_FONT
@@ -1597,24 +1600,34 @@ bool LVFreeTypeFace::getGlyphExtraMetric( glyph_extra_metric_t metric, lUInt32 c
     return false;
 }
 
-bool LVFreeTypeFace::checkFontLangCompat(const lString8 &langCode) {
-#define FC_LANG_START_INTERVAL_CODE     2
+font_lang_compat LVFreeTypeFace::checkFontLangCompat(const lString8 &langCode) {
+    font_lang_compat res = font_lang_compat_invalid_tag;
+#if USE_LOCALE_DATA==1
+#define FC_LANG_START_INTERVAL_CODE     0xF0F0FFFF
+    // find corresponding fc_lang record
+    CRLocaleData loc(langCode);
+    const struct fc_lang_rec* rec = NULL;
+    if (loc.isValid()) {
+        const struct fc_lang_rec* ptr = get_fc_lang_data();
+        int max_match = 0;
+        for (unsigned int i = 0; i < get_fc_lang_data_size(); i++) {
+            CRLocaleData fc_loc(ptr->lang_code);
+            int match = loc.calcMatch(fc_loc);
+            if (match > max_match) {
+                max_match = match;
+                rec = ptr;
+            }
+            ptr++;
+        }
+    }
+    // Check compatibility
     bool fullSupport = false;
     bool partialSupport = false;
-    struct fc_lang_catalog *lang_ptr = fc_lang_cat;
-    unsigned int i;
-    bool found = false;
-    for (i = 0; i < fc_lang_cat_sz; i++) {
-        if (langCode.compare(lang_ptr->lang_code) == 0) {
-            found = true;
-            break;
-        }
-        lang_ptr++;
-    }
-    if (found) {
+    if (rec) {
         unsigned int codePoint = 0;
         unsigned int tmp;
         unsigned int first, second = 0;
+        unsigned int i;
         bool inRange = false;
         FT_UInt glyphIndex;
         fullSupport = true;
@@ -1623,22 +1636,20 @@ bool LVFreeTypeFace::checkFontLangCompat(const lString8 &langCode) {
             if (inRange && codePoint < second) {
                 codePoint++;
             } else {
-                if (i >= lang_ptr->char_set_sz)
+                if (i >= rec->char_set_sz)
                     break;
-                tmp = lang_ptr->char_set[i];
-                if (FC_LANG_START_INTERVAL_CODE == tmp)        // code of start interval
-                {
-                    if (i + 2 < lang_ptr->char_set_sz) {
+                tmp = rec->char_set[i];
+                if (FC_LANG_START_INTERVAL_CODE == tmp) {       // code of start interval
+                    if (i + 2 < rec->char_set_sz) {
                         i++;
-                        first = lang_ptr->char_set[i];
+                        first = rec->char_set[i];
                         i++;
-                        second = lang_ptr->char_set[i];
+                        second = rec->char_set[i];
                         inRange = true;
                         codePoint = first;
                         i++;
                     } else {
                         // broken language char set
-                        //qDebug() << "broken language char set";
                         fullSupport = false;
                         break;
                     }
@@ -1656,18 +1667,23 @@ bool LVFreeTypeFace::checkFontLangCompat(const lString8 &langCode) {
                 partialSupport = true;
             }
         }
-        if (fullSupport)
+        if (fullSupport) {
+            res = font_lang_compat_full;
             CRLog::debug("checkFontLangCompat(): Font have full support of language %s",
                          langCode.c_str());
-        else if (partialSupport)
+        } else if (partialSupport) {
+            res = font_lang_compat_partial;
             CRLog::debug("checkFontLangCompat(): Font have partial support of language %s",
                          langCode.c_str());
-        else
+        } else {
+            res = font_lang_compat_none;
             CRLog::debug("checkFontLangCompat(): Font DON'T have support of language %s",
                          langCode.c_str());
+        }
     } else
         CRLog::debug("checkFontLangCompat(): Unsupported language code: %s", langCode.c_str());
-    return fullSupport;
+#endif
+    return res;
 }
 
 lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,

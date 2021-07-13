@@ -1,8 +1,6 @@
 
 option(BUILD_TOOLS "Build tools" OFF)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/fc-lang)
-
 SET (CRENGINE_SOURCES
     src/cp_stats.cpp
     src/lvstring.cpp
@@ -50,7 +48,8 @@ SET (CRENGINE_SOURCES
     src/lvxml/lvhtmlparser.cpp
     src/lvxml/fb2coverpageparsercallback.cpp
     src/lvxml/lvxmlutils.cpp
-    fc-lang/fc-lang-cat.c
+    src/locale_data/fc-lang-data.c
+    src/locale_data/crlocaledata.cpp
 )
 
 if ( NOT ${GUI} STREQUAL FB2PROPS )

@@ -26,7 +26,6 @@ include $(CR3_ROOT)/thirdparty_repo/repo_srcdirs.mk
 
 LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/crengine/include \
-    $(CR3_ROOT)/crengine/fc-lang \
     $(CR3_ROOT)/thirdparty/$(REPO_LIBPNG_SRCDIR) \
     $(CR3_ROOT)/thirdparty/$(REPO_FREETYPE_SRCDIR)/include \
     $(CR3_ROOT)/thirdparty/$(REPO_FREETYPE_SRCDIR) \
@@ -150,7 +149,8 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvxml/lvhtmlparser.cpp \
     ../../crengine/src/lvxml/fb2coverpageparsercallback.cpp \
     ../../crengine/src/lvxml/lvxmlutils.cpp \
-    ../../crengine/fc-lang/fc-lang-cat.c
+    ../../crengine/src/locale_data/fc-lang-data.c \
+    ../../crengine/src/locale_data/crlocaledata.cpp
 #    ../../crengine/src/cri18n.cpp
 #    ../../crengine/src/crgui.cpp \
 

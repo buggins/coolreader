@@ -415,6 +415,8 @@ public:
     lString8 & replace(size_type p0, size_type n0, const lString8 & str, size_type offset, size_type count);
     /// replace fragment with repeated character
     lString8 & replace(size_type p0, size_type n0, size_type count, value_type ch);
+    /// replaces every occurrence of the character before with the character after and returns a reference to this string
+    lString8 & replace(value_type before, value_type after);
     /// make string uppercase
     lString8 & uppercase();
     /// make string lowercase
