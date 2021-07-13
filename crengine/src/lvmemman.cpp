@@ -15,6 +15,7 @@
 #include "../include/lvmemman.h"
 #include "../include/lvref.h"
 #include "../include/lvtinydom.h"
+#include "../include/lvstreamutils.h"
 #include "../include/crlog.h"
 
 #ifdef _LINUX

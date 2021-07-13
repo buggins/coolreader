@@ -231,18 +231,23 @@ enum css_list_style_position_t {
 enum css_value_type_t {
     css_val_inherited,
     css_val_unspecified,
-    css_val_px,  // css px (1 css px = 1 screen px at 96 DPI)
-    css_val_em,  // relative to font size of the current element
-    css_val_ex,  // 1ex =~ 0.5em in many fonts (https://developer.mozilla.org/en-US/docs/Web/CSS/length)
-    css_val_rem, // 'root em', relative to font-size of the root element (typically <html>)
-    css_val_in,  // 2.54 cm   1in = 96 css px
-    css_val_cm,  //        2.54cm = 96 css px
-    css_val_mm,  //        25.4mm = 96 css px
-    css_val_pt,  // 1/72 in  72pt = 96 css px
-    css_val_pc,  // 12 pt     6pc = 96 css px
+    css_val_px,   // css px (1 css px = 1 screen px at 96 DPI)
+    css_val_in,   // 2.54 cm   1in = 96 css px
+    css_val_cm,   //        2.54cm = 96 css px
+    css_val_mm,   //        25.4mm = 96 css px
+    css_val_pt,   // 1/72 in  72pt = 96 css px
+    css_val_pc,   // 12 pt     6pc = 96 css px
+    css_val_em,   // relative to font size of the current element
+    css_val_ex,   // 1ex =~ 0.5em in many fonts (https://developer.mozilla.org/en-US/docs/Web/CSS/length)
+    css_val_ch,   // 1ch assumed to be 0.5em for widths when impractical to determine (same url)
+    css_val_rem,  // 'root em', relative to font-size of the root element (typically <html>)
+    css_val_vw,   // 1 percent of the screen width
+    css_val_vh,   // 1 percent of the screen height
+    css_val_vmin, // maximum of 1 percent of the screen height or width
+    css_val_vmax, // minimum of 1 percent of the screen height or width
     css_val_percent,
-    css_val_color,
-    css_val_screen_px  // screen px, for already scaled values
+    css_val_screen_px, // screen px, for already scaled values
+    css_val_color
 };
 
 /// css border style values
@@ -328,12 +333,41 @@ enum css_direction_t {
     css_dir_rtl
 };
 
+/// visibility property values
+enum css_visibility_t {
+    css_v_inherit,
+    css_v_visible,
+    css_v_hidden,
+    css_v_collapse // handled as "hidden" (but it should behave differently on tables, which we don't ensure)
+};
+
+/// line-break property values
+enum css_line_break_t {
+    css_lb_inherit,
+    css_lb_auto,
+    css_lb_normal,
+    css_lb_loose,
+    css_lb_strict,
+    css_lb_anywhere
+};
+
+/// word-break property values
+enum css_word_break_t {
+    css_wb_inherit,
+    css_wb_normal,
+    css_wb_break_word, // legacy, handled as "normal" (and "overflow-wrap: anywhere", which is our default behaviour)
+    css_wb_break_all,
+    css_wb_keep_all
+};
+
 enum css_generic_value_t {
-    css_generic_auto = -1,        // (css_val_unspecified, css_generic_auto), for "margin: auto"
-    css_generic_normal = -2,      // (css_val_unspecified, css_generic_normal), for "line-height: normal"
-    css_generic_transparent = -3, // (css_val_unspecified, css_generic_transparent), for "color: transparent"
-    css_generic_contain = -4,     // (css_val_unspecified, css_generic_contain), for "background-size: contain"
-    css_generic_cover = -5        // (css_val_unspecified, css_generic_cover), for "background-size: cover"
+    css_generic_auto = -1,         // (css_val_unspecified, css_generic_auto), for "margin: auto"
+    css_generic_normal = -2,       // (css_val_unspecified, css_generic_normal), for "line-height: normal"
+    css_generic_transparent = -3,  // (css_val_unspecified, css_generic_transparent), for "color: transparent"
+    css_generic_currentcolor = -4, // (css_val_unspecified, css_generic_currentcolor), for "color: currentcolor"
+    css_generic_contain = -5,      // (css_val_unspecified, css_generic_contain), for "background-size: contain"
+    css_generic_cover = -6,        // (css_val_unspecified, css_generic_cover), for "background-size: cover"
+    css_generic_none = -7          // (css_val_unspecified, css_generic_none), for "max-width: none"
 };
 
 // -cr-hint is a non standard property for providing hints to crengine via style tweaks

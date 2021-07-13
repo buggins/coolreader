@@ -13,7 +13,6 @@ set(CR3_ROOT ${PROJECT_SOURCE_DIR}/../..)
 include(${CR3_ROOT}/thirdparty_repo/repo_srcdirs.cmake)
 
 include_directories(${CR3_ROOT}/crengine/include)
-include_directories(${CR3_ROOT}/crengine/fc-lang)
 include_directories(${CR3_ROOT}/thirdparty/${REPO_LIBPNG_SRCDIR})
 include_directories(thirdparty_libs/libpng/lib)
 include_directories(${CR3_ROOT}/thirdparty/${REPO_FREETYPE_SRCDIR})
@@ -27,6 +26,8 @@ include_directories(${CR3_ROOT}/thirdparty_unman/nanosvg/src)
 include_directories(${CR3_ROOT}/thirdparty/${REPO_FRIBIDI_SRCDIR}/lib)
 include_directories(thirdparty_libs/fribidi/lib)
 include_directories(${CR3_ROOT}/thirdparty/${REPO_LIBUNIBREAK_SRCDIR}/src)
+include_directories(${CR3_ROOT}/thirdparty/${REPO_ZSTD_SRCDIR}/lib)
+include_directories(${CR3_ROOT}/thirdparty/${REPO_UTF8PROC_SRCDIR})
 
 add_definitions(-DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH)
 add_definitions(-DFT_CONFIG_MODULES_H=<android/config/ftmodule.h> -DFT_CONFIG_OPTIONS_H=<android/config/ftoption.h>)
@@ -39,6 +40,7 @@ add_definitions(-DMAX_IMAGE_SCALE_MUL=2)
 add_definitions(-DUSE_NANOSVG=1)
 add_definitions(-DBUNDLED_FRIBIDI=1)
 add_definitions(-DKO_LIBUNIBREAK_PATCH=1)       # patch "add_lb_get_char_class.patch" for libunibreak from koreader
+add_definitions(-DUSE_UTF8PROC=1)
 
 #set(LOCAL_CFLAGS "-Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall")
 # Option '-Wl,--no-merge-exidx-entries' removed as incompatible with clang.
@@ -69,8 +71,6 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/lvstyles.cpp
     ${CR3_ROOT}/crengine/src/crtxtenc.cpp
     ${CR3_ROOT}/crengine/src/lvtinydom.cpp
-    ${CR3_ROOT}/crengine/src/lvstream.cpp
-    ${CR3_ROOT}/crengine/src/lvxml.cpp
     ${CR3_ROOT}/crengine/src/chmfmt.cpp
     ${CR3_ROOT}/crengine/src/epubfmt.cpp
     ${CR3_ROOT}/crengine/src/pdbfmt.cpp
@@ -84,30 +84,78 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/txtselector.cpp
     ${CR3_ROOT}/crengine/src/crtest.cpp
     ${CR3_ROOT}/crengine/src/lvbmpbuf.cpp
-    ${CR3_ROOT}/crengine/src/lvfnt.cpp
     ${CR3_ROOT}/crengine/src/hyphman.cpp
-    ${CR3_ROOT}/crengine/src/lvfont.cpp
-    ${CR3_ROOT}/crengine/src/lvembeddedfont.cpp
-    ${CR3_ROOT}/crengine/src/lvfntman.cpp
-    ${CR3_ROOT}/crengine/src/lvimg.cpp
     ${CR3_ROOT}/crengine/src/crskin.cpp
-    ${CR3_ROOT}/crengine/src/lvdrawbuf.cpp
     ${CR3_ROOT}/crengine/src/lvdocview.cpp
     ${CR3_ROOT}/crengine/src/lvpagesplitter.cpp
     ${CR3_ROOT}/crengine/src/lvtextfm.cpp
     ${CR3_ROOT}/crengine/src/lvrend.cpp
     ${CR3_ROOT}/crengine/src/wolutil.cpp
     ${CR3_ROOT}/crengine/src/crconcurrent.cpp
+    ${CR3_ROOT}/crengine/src/mathml.cpp
     ${CR3_ROOT}/crengine/src/hist.cpp
     ${CR3_ROOT}/crengine/src/xxhash.c
     ${CR3_ROOT}/crengine/src/textlang.cpp
-    ${CR3_ROOT}/crengine/src/private/lvfontglyphcache.cpp
-    ${CR3_ROOT}/crengine/src/private/lvfontboldtransform.cpp
-    ${CR3_ROOT}/crengine/src/private/lvfontcache.cpp
-    ${CR3_ROOT}/crengine/src/private/lvfontdef.cpp
-    ${CR3_ROOT}/crengine/src/private/lvfreetypeface.cpp
-    ${CR3_ROOT}/crengine/src/private/lvfreetypefontman.cpp
-    ${CR3_ROOT}/crengine/fc-lang/fc-lang-cat.c
+    ${CR3_ROOT}/crengine/src/lvimg/lvcacheableobject.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/crninepatchdecoder.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvjpegimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvpngimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvxpmimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvgifimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvgifframe.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/clzwdecoder.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvsvgimagesource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvstretchimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvcolortransformimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvalphatransformimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvunpackedimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvdrawbufimgsource.cpp
+    ${CR3_ROOT}/crengine/src/lvimg/lvimg.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfnt.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvembeddedfont.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfont.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfntman.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfontglyphcache.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfontboldtransform.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfontcache.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfontdef.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfreetypeface.cpp
+    ${CR3_ROOT}/crengine/src/lvfont/lvfreetypefontman.cpp
+    ${CR3_ROOT}/crengine/src/lvdrawbuf/lvbasedrawbuf.cpp
+    ${CR3_ROOT}/crengine/src/lvdrawbuf/lvgraydrawbuf.cpp
+    ${CR3_ROOT}/crengine/src/lvdrawbuf/lvcolordrawbuf.cpp
+    ${CR3_ROOT}/crengine/src/lvdrawbuf/lvinkmeasurementdrawbuf.cpp
+    ${CR3_ROOT}/crengine/src/lvdrawbuf/lvimagescaleddrawcallback.cpp
+    ${CR3_ROOT}/crengine/src/lvdrawbuf/lvdrawbuf_utils.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvdefstreambuffer.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvfilemappedstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvnamedstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvfilestream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvdirectorycontainer.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvcachedstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvzipdecodestream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvziparc.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvrararc.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvmemorystream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvtcrstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvblockwritestream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvstream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvbase64stream.cpp
+    ${CR3_ROOT}/crengine/src/lvstream/lvstreamutils.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvfileparserbase.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextfilebase.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextlinequeue.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/pmltextimport.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextrobustparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvtextbookmarkparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvxmlparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvhtmlparser.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/fb2coverpageparsercallback.cpp
+    ${CR3_ROOT}/crengine/src/lvxml/lvxmlutils.cpp
+    ${CR3_ROOT}/crengine/src/locale_data/fc-lang-data.c
+    ${CR3_ROOT}/crengine/src/locale_data/crlocaledata.cpp
 )
 #    ${CR3_ROOT}/crengine/src/cri18n.cpp
 #    ${CR3_ROOT}/crengine/src/crgui.cpp
@@ -168,19 +216,22 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       cr3engine-3-2-X
+        cr3engine-3-2-X
 
-                       # thirdparty static libs
-                       png
-                       jpeg
-                       freetype
-                       harfbuzz
-                       chmlib
-                       antiword
-                       fribidi
-                       unibreak
+        # thirdparty static libs
+        local_png
+        local_jpeg
+        local_freetype
+        local_harfbuzz
+        local_chmlib
+        local_antiword
+        local_fribidi
+        local_unibreak
+        local_qimagescale
+        local_zstd
+        local_utf8proc
 
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib}
-                       -lm -lz -ldl)
+        # Links the target library to the log library
+        # included in the NDK.
+        ${log-lib}
+        -lm -lz -ldl)

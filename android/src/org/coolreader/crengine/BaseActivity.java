@@ -272,6 +272,12 @@ public class BaseActivity extends Activity implements Settings {
 		mPaused = false;
 		mIsStarted = true;
 		backlightControl.onUserActivity();
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+			Display display = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+			if (null != display) {
+				onScreenRotationChanged(display.getRotation());
+			}
+		}
 		super.onResume();
 	}
 
@@ -602,6 +608,12 @@ public class BaseActivity extends Activity implements Settings {
 	public void onConfigurationChanged(Configuration newConfig) {
 		// pass
 		orientationFromSensor = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ? 1 : 0;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+			Display display = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+			if (null != display) {
+				onScreenRotationChanged(display.getRotation());
+			}
+		}
 		//final int orientation = newConfig.orientation==Configuration.ORIENTATION_LANDSCAPE ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 //		if ( orientation!=screenOrientation ) {
 //			log.d("Screen orientation has been changed: ask for change");
@@ -623,6 +635,10 @@ public class BaseActivity extends Activity implements Settings {
 //			});
 //		}
 		super.onConfigurationChanged(newConfig);
+	}
+
+	protected void onScreenRotationChanged(int rotation) {
+		// Override this...
 	}
 
 	private boolean mFullscreen = false;
@@ -1294,7 +1310,10 @@ public class BaseActivity extends Activity implements Settings {
 		// On e-ink in ReaderView gesture handlers setScreenBacklightLevel() & setScreenWarmBacklightLevel() called directly
 	}
 
+	private boolean noticeDialogVisible = false;
 	public void validateSettings() {
+		if (noticeDialogVisible)
+			return;
 		Properties props = settings();
 		boolean menuKeyActionFound = false;
 		for (SettingsManager.DefKeyAction ka : SettingsManager.DEF_KEY_ACTIONS) {
@@ -1312,20 +1331,23 @@ public class BaseActivity extends Activity implements Settings {
 			if (ReaderAction.READER_MENU.id.equals(value))
 				menuTapActionFound = true;
 		}
-		boolean toolbarEnabled = (props.getInt(Settings.PROP_TOOLBAR_LOCATION, Settings.VIEWER_TOOLBAR_NONE) != Settings.VIEWER_TOOLBAR_NONE
-				&& isFullscreen() && !props.getBool(PROP_TOOLBAR_HIDE_IN_FULLSCREEN, false));
+		boolean propToolbarEnabled = props.getInt(Settings.PROP_TOOLBAR_LOCATION, Settings.VIEWER_TOOLBAR_NONE) != Settings.VIEWER_TOOLBAR_NONE;
+		boolean toolbarEnabled = ((propToolbarEnabled && !isFullscreen())
+				|| (propToolbarEnabled && isFullscreen() && !props.getBool(PROP_TOOLBAR_HIDE_IN_FULLSCREEN, false)));
 		if (!menuTapActionFound && !menuKeyActionFound && !toolbarEnabled) {
 			showNotice(R.string.inconsistent_options,
 					R.string.inconsistent_options_toolbar, () -> {
 						// enabled toolbar
-						setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_SHORT_SIDE), true);
+						setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_SHORT_SIDE), false);
 						setSetting(PROP_TOOLBAR_HIDE_IN_FULLSCREEN, String.valueOf(0), true);
 					},
 					R.string.inconsistent_options_tap_reading_menu, () -> {
 						String paramName = ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".5";
 						setSetting(paramName, ReaderAction.READER_MENU.id, true);
-					}
+					},
+					() -> noticeDialogVisible = false
 			);
+			noticeDialogVisible = true;
 		}
 		// TODO: check any other options for compatibility
 	}
@@ -1339,7 +1361,12 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void showNotice(int questionResourceId, int button1TextRes, final Runnable button1Runnable,
 						   int button2TextRes, final Runnable button2Runnable) {
-		NoticeDialog dlg = new NoticeDialog(this, button1TextRes, button1Runnable, button2TextRes, button2Runnable);
+		showNotice(questionResourceId, button1TextRes, button1Runnable, button2TextRes, button2Runnable, null);
+	}
+
+	public void showNotice(int questionResourceId, int button1TextRes, final Runnable button1Runnable,
+						   int button2TextRes, final Runnable button2Runnable, final Runnable dismissRunnable) {
+		NoticeDialog dlg = new NoticeDialog(this, button1TextRes, button1Runnable, button2TextRes, button2Runnable, dismissRunnable);
 		dlg.setMessage(questionResourceId);
 		dlg.show();
 	}
@@ -1746,7 +1773,7 @@ public class BaseActivity extends Activity implements Settings {
 			boolean res = false;
 			res = applyDefaultFont(props, ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE) || res;
 			res = applyDefaultFont(props, ReaderView.PROP_STATUS_FONT_FACE, DeviceInfo.DEF_FONT_FACE) || res;
-			res = applyDefaultFallbackFontList(props, ReaderView.PROP_FALLBACK_FONT_FACES, "Droid Sans Fallback; Noto Sans CJK SC; Noto Sans Arabic UI; Noto Sans Devanagari UI; Roboto; FreeSans; FreeSerif; Noto Serif; Noto Sans; Arial Unicode MS") || res;
+			res = applyDefaultFallbackFontList(props, ReaderView.PROP_FALLBACK_FONT_FACES, "Noto Color Emoji; Droid Sans Fallback; Noto Sans CJK SC; Noto Sans Arabic UI; Noto Sans Devanagari UI; Roboto; FreeSans; FreeSerif; Noto Serif; Noto Sans; Arial Unicode MS") || res;
 			return res;
 		}
 
@@ -1799,9 +1826,6 @@ public class BaseActivity extends Activity implements Settings {
 				}
 			}
 
-			/*
-			 * Moved to function validateSettings()
-			 *
 			boolean menuKeyActionFound = false;
 			for (DefKeyAction ka : DEF_KEY_ACTIONS) {
 				if (ReaderAction.READER_MENU.id.equals(ka.action.id)) {
@@ -1832,7 +1856,6 @@ public class BaseActivity extends Activity implements Settings {
 					props.applyDefault(paramName, ka.action.id);
 				}
 			}
-			*/
 
 			if (DeviceInfo.EINK_NOOK) {
 				props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_NONE);
@@ -1850,6 +1873,7 @@ public class BaseActivity extends Activity implements Settings {
 			if ("1".equals(props.getProperty(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK)))
 				props.setProperty(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "3");
 			props.applyDefault(ReaderView.PROP_APP_MOTION_TIMEOUT, "0");
+			props.applyDefault(ReaderView.PROP_APP_BOUNCE_TAP_INTERVAL, "-1");
 			props.applyDefault(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
 			props.applyDefault(ReaderView.PROP_APP_KEY_BACKLIGHT_OFF, DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH ? "0" : "1");
 			props.applyDefault(ReaderView.PROP_LANDSCAPE_PAGES, DeviceInfo.ONE_COLUMN_IN_LANDSCAPE ? "0" : "1");

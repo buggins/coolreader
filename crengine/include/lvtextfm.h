@@ -81,11 +81,20 @@ extern "C" {
 
 #define LTEXT_FIT_GLYPHS             0x08000000  // Avoid glyph overflows and override at line edges and between text nodes
 
-#define LTEXT_LEGACY_RENDERING       0x10000000  // Legacy rendering exceptions: new line processing: set indentation for **each** new line, etc.
-
-#define LTEXT__AVAILABLE_BIT_30__    0x20000000
+#define LTEXT_HAS_EXTRA              0x10000000  // Has extra properties (see below)
+#define LTEXT_MATH_TRANSFORM         0x20000000  // Text might need to be stretched or tweaked
 #define LTEXT__AVAILABLE_BIT_31__    0x40000000
-#define LTEXT__AVAILABLE_BIT_32__    0x80000000
+#define LTEXT_LEGACY_RENDERING       0x80000000  // Legacy text rendering tweaks
+
+
+// Extra LTEXT properties we can request (via these values) and fetch from the node style,
+// mostly used for rare inherited CSS properties that don't need us to waste a bit for
+// them in the above flags. The LTEXT_HAS_EXTRA signals one or more of these are set.
+enum ltext_extra_t {
+    LTEXT_EXTRA_CSS_HIDDEN = 1,         // visibility: hidden
+    LTEXT_EXTRA_CSS_LINE_BREAK,         // line-break: anywhere, or loose/normal/strict (for lang=ja/zh)
+    LTEXT_EXTRA_CSS_WORD_BREAK,         // word-break: break-all or keep-all
+};
 
 /** \brief Source text line
 */
@@ -118,6 +127,7 @@ typedef struct
     };
 } src_text_fragment_t;
 
+int getLTextExtraProperty( src_text_fragment_t * srcline, ltext_extra_t extra_property );
 
 /** \brief Formatted word
 */

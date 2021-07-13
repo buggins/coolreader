@@ -3,6 +3,9 @@
 
 PN="libjpeg"
 PV="9.4.0"
+# package revision: when patchset is changed (but not version), increase it
+# when version changed, reset to "1".
+REV="1"
 SRCFILE="jpegsrc.v9d.tar.gz"
 SHA512="6515a6f617fc9da7a3d7b4aecc7d78c4ee76159d36309050b7bf9f9672b4e29c2f34b1f4c3d7d65d7f6e2c104c49f53dd2e3b45eac22b1576d2cc54503faf333"
 

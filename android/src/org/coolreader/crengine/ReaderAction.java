@@ -1,7 +1,10 @@
 package org.coolreader.crengine;
 
+import android.os.Build;
+
 import java.util.ArrayList;
 
+import org.coolreader.BuildConfig;
 import org.coolreader.R;
 
 public class ReaderAction {
@@ -249,10 +252,16 @@ public class ReaderAction {
 				TOGGLE_DICT_ONCE,
 				TOGGLE_DICT,
 				BACKLIGHT_SET_DEFAULT,
-				GDRIVE_SYNCTO,
-				GDRIVE_SYNCFROM,
 				SAVE_LOGCAT
 		};
+		if (BuildConfig.GSUITE_AVAILABLE && DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			int count = BASE_ACTIONS.length;
+			ReaderAction[] new_array = new ReaderAction[count + 2];
+			System.arraycopy(BASE_ACTIONS, 0, new_array, 0, count);
+			new_array[count] = GDRIVE_SYNCTO;
+			new_array[count + 1] = GDRIVE_SYNCFROM;
+			BASE_ACTIONS = new_array;
+		}
 		if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
 			// TODO: and may be other eink devices with frontlight...
 			if (DeviceInfo.EINK_ONYX && DeviceInfo.ONYX_HAVE_BRIGHTNESS_SYSTEM_DIALOG) {

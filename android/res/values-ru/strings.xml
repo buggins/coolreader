@@ -65,8 +65,8 @@
     <string name="options_font_embolden">Жирность</string>
     <string name="options_font_antialias">Сглаживание шрифта</string>
     <string name="options_font_antialias_off">Без сглаживания</string>
-    <string name="options_font_antialias_on_for_big">Сглаживать большие шрифты</string>
-    <string name="options_font_antialias_on_for_all">Сглаживать все шрифты</string>
+    <string name="options_font_antialias_on_for_big">Сглаживать большие шрифты (оттенки серого)</string>
+    <string name="options_font_antialias_on_for_all">Сглаживать все шрифты (оттенки серого)</string>
     <string name="options_interline_space">Межстрочный интервал</string>
     <string name="options_inverse_view">Ночной режим</string>
     <string name="options_color_text">Цвет текста</string>
@@ -315,6 +315,12 @@
     <string name="options_controls_tap_secondary_action_type">Тип нажатия для доп. действия</string>
     <string name="options_controls_tap_type_double">Двойное нажатие</string>
     <string name="options_controls_tap_type_long">Длинное нажатие</string>
+    <string name="options_controls_bonce_protection">Фильтр лишних нажатий</string>
+    <string name="options_controls_bonce_protection_disabled">Отключено</string>
+    <string name="options_controls_bonce_protection_100">100 мс (10 Гц)</string>
+    <string name="options_controls_bonce_protection_143">143 мс (7 Гц)</string>
+    <string name="options_controls_bonce_protection_200">200 мс (5 Гц)</string>
+    <string name="options_controls_bonce_protection_333">333 мс (3 Гц)</string>
     <string name="mi_bookmark_send">Отправить</string>
     <string name="folder_name_books_by_genre">Жанры</string>
     <string name="folder_name_books_by_author">Авторы</string>
@@ -633,7 +639,8 @@
     <string name="options_app_ui_theme_hicontrast2">Контрастная черная</string>
     <string name="error_while_opening">Ошибка открытия документа \"%s\"</string>
     <string name="datadir_is_removed">Каталог с данными приложения \"%s\" был удален другой программой!\nВозможно какой-то оптимизатор дискового пространства?\nК сожалению, все настройки утеряны.</string>
-    <string name="font_not_compat_with_language">Предупреждение: шрифт \"%s\" не содержит полный набор символов языка \"%s\". Недостающие символы будут взяты из резервного шрифта.</string>
+    <string name="font_compat_partial_with_language">Предупреждение: шрифт \"%s\" содержит не полный набор символов языка \"%s\". Недостающие символы будут получены из резервных шрифтов.</string>
+    <string name="font_not_compat_with_language">Предупреждение: шрифт \"%s\" не содержит ни одного символа языка \"%s\". Всё необходимые символы будут получены из резервных шрифтов.</string>
     <string name="fontconfig_language_orthography_database">Набор символов различных писменностей от Fontconfig:
         https://www.fontconfig.org/
     </string>
@@ -718,4 +725,9 @@
     <string name="font_weight_extrablack">Сверхтяжёлый</string>
     <string name="font_weight_fake">синтетический*</string>
     <string name="add_bookmark_to_page">Добавить закладку на страницу</string>
+    <string name="options_eink_app_optimization_enabled">отключено, так как включена оптимизация приложения</string>
+    <string name="options_legacy_rendering_enabled">отключено, так как включен устаревший рендеринг</string>
+    <string name="options_disabled_document_styles">отключены встроенные стили документа или неподдерживаемый тип документа</string>
+    <string name="options_multilingual_enabled">отключено, так как включена поддежка мультиязычных документов</string>
+    <string name="options_multilingual_disabled">отключено, так как отключена поддежка мультиязычных документов или включен устаревший рендеринг</string>
 </resources>

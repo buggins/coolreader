@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "org_coolreader_crengine_Engine.h"
 #include "org_coolreader_crengine_DocView.h"
@@ -20,20 +21,19 @@
 #include "../../crengine/include/crengine.h"
 #include "../../crengine/include/epubfmt.h"
 #include "../../crengine/include/pdbfmt.h"
-#include "../../crengine/include/lvopc.h"
 #include "../../crengine/include/fb3fmt.h"
 #include "../../crengine/include/docxfmt.h"
 #include "../../crengine/include/odtfmt.h"
 #include "../../crengine/include/lvstream.h"
-
+#include "../../crengine/include/lvxmlparser.h"
+#include "../../crengine/include/lvxmlutils.h"
 
 #include <../../crengine/include/fb2def.h>
-
-#include "fc-lang-cat.h"
 
 #define XS_IMPLEMENT_SCHEME 1
 #include <../../crengine/include/fb2def.h>
-#include <sys/stat.h>
+
+#include "../../crengine/include/crlocaledata.h"
 
 #if defined(__arm__) || defined(__aarch64__) || defined(__i386__) || defined(__mips__)
 #define USE_COFFEECATCH 1
@@ -983,49 +983,53 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectory
 
 /*
  * Class:     org_coolreader_crengine_Engine
- * Method:    haveFcLangCodeInternal
- * Signature: (Ljava/lang/String;)Z
- */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_haveFcLangCodeInternal
-		(JNIEnv *env, jclass cls, jstring langCode)
-{
-	jboolean res = JNI_FALSE;
-	const char* langCode_ptr = env->GetStringUTFChars(langCode, 0);
-	if (langCode_ptr) {
-		struct fc_lang_catalog* lang_ptr = fc_lang_cat;
-		for (int i = 0; i < fc_lang_cat_sz; i++)
-		{
-			if (strcmp(lang_ptr->lang_code, langCode_ptr) == 0)
-			{
-				res = JNI_TRUE;
-				break;
-			}
-			lang_ptr++;
-		}
-		env->ReleaseStringUTFChars(langCode, langCode_ptr);
-	}
-	return res;
-}
-
-
-/*
- * Class:     org_coolreader_crengine_Engine
  * Method:    checkFontLanguageCompatibilityInternal
  * Signature: (Ljava/lang/String;Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal
-		(JNIEnv *env, jclass cls, jstring fontFace, jstring langCode)
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal
+		(JNIEnv *env, jclass cls, jstring fontFace, jstring langTag)
 {
-	jboolean res = JNI_TRUE;
+	font_lang_compat res = font_lang_compat_invalid_tag;
 	const char* fontFace_ptr = env->GetStringUTFChars(fontFace, 0);
-	const char* langCode_ptr = env->GetStringUTFChars(langCode, 0);
-	if (fontFace_ptr && langCode_ptr) {
-		res = fontMan->checkFontLangCompat(lString8(fontFace_ptr), lString8(langCode_ptr)) ? JNI_TRUE : JNI_FALSE;
+	const char* langTag_ptr = env->GetStringUTFChars(langTag, 0);
+	if (fontFace_ptr && langTag_ptr) {
+		res = fontMan->checkFontLangCompat(lString8(fontFace_ptr), lString8(langTag_ptr));
 	}
-	if (langCode_ptr)
-		env->ReleaseStringUTFChars(langCode, langCode_ptr);
+	if (langTag_ptr)
+		env->ReleaseStringUTFChars(langTag, langTag_ptr);
 	if (fontFace_ptr)
 		env->ReleaseStringUTFChars(fontFace, fontFace_ptr);
+	return (jint)res;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    getHumanReadableLocaleNameInternal
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_Engine_getHumanReadableLocaleNameInternal
+		(JNIEnv *env, jclass cls, jstring langTag)
+{
+	jstring res = NULL;
+	const char* langTag_ptr = env->GetStringUTFChars(langTag, 0);
+	if (langTag_ptr) {
+		CRLocaleData loc(langTag_ptr);
+		if (loc.isValid()) {
+			lString8 langDescr = loc.langName();
+			if (loc.scriptNumeric() > 0) {
+				langDescr.append("-");
+				langDescr.append(loc.scriptName());
+			}
+			if (loc.regionNumeric() > 0) {
+				langDescr.append(" (");
+				langDescr.append(loc.regionAlpha3());
+				langDescr.append(")");
+			}
+			jstring str = env->NewStringUTF(langDescr.c_str());
+			res = (jstring)env->NewGlobalRef(str);
+		}
+		env->ReleaseStringUTFChars(langTag, langTag_ptr);
+	}
 	return res;
 }
 
@@ -1179,8 +1183,8 @@ static JNINativeMethod sEngineMethods[] = {
   {"setKeyBacklightInternal", "(I)Z", (void*)Java_org_coolreader_crengine_Engine_setKeyBacklightInternal},
   {"scanBookCoverInternal", "(Ljava/lang/String;)[B", (void*)Java_org_coolreader_crengine_Engine_scanBookCoverInternal},
   {"drawBookCoverInternal", "(Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V", (void*)Java_org_coolreader_crengine_Engine_drawBookCoverInternal},
-  {"haveFcLangCodeInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_haveFcLangCodeInternal},
-  {"checkFontLanguageCompatibilityInternal", "(Ljava/lang/String;Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal},
+  {"checkFontLanguageCompatibilityInternal", "(Ljava/lang/String;Ljava/lang/String;)I", (void*)Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal},
+  {"getHumanReadableLocaleNameInternal", "(Ljava/lang/String;)Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getHumanReadableLocaleNameInternal},
   {"listFilesInternal", "(Ljava/io/File;)[Ljava/io/File;", (void*)Java_org_coolreader_crengine_Engine_listFilesInternal},
   {"getDomVersionCurrent", "()I", (void*)Java_org_coolreader_crengine_Engine_getDomVersionCurrent}
 };

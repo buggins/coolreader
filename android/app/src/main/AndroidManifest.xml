@@ -13,36 +13,7 @@
             android:anyDensity="true"
             />
 
-    <uses-sdk tools:overrideLibrary="com.google.android.gms.auth.api,
-                                    com.google.android.gms.auth.api.phone,
-                                    com.google.android.gms.auth,
-                                    com.google.android.gms.base,
-                                    com.google.android.gms.tasks,
-                                    com.google.android.gms.common,
-                                    androidx.arch.core,
-                                    androidx.core,
-                                    androidx.fragment,
-                                    androidx.legacy.coreui,
-                                    androidx.legacy.coreutils,
-                                    androidx.loader,
-                                    androidx.viewpager,
-                                    androidx.coordinatorlayout,
-                                    androidx.drawerlayout,
-                                    androidx.slidingpanelayout,
-                                    androidx.customview,
-                                    androidx.swiperefreshlayout,
-                                    androidx.asynclayoutinflater,
-                                    androidx.versionedparcelable,
-                                    androidx.lifecycle,
-                                    androidx.lifecycle.viewmodel,
-                                    androidx.lifecycle.livedata,
-                                    androidx.lifecycle.livedata.core,
-                                    androidx.interpolator,
-                                    androidx.cursoradapter,
-                                    androidx.documentfile,
-                                    androidx.localbroadcastmanager,
-                                    androidx.print"
-            />
+    <uses-sdk tools:overrideLibrary="androidx.documentfile"/>
 
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -55,8 +26,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <!-- Hide Android3 soft buttons on Archos -->
     <!--uses-permission android:name="archos.permission.FULLSCREEN.FULL"/-->
-    <!-- Required permission to use in-app billing. -->
-    <uses-permission android:name="com.android.vending.BILLING" />
 
     <application
             android:allowBackup="true"

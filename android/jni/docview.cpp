@@ -1,5 +1,8 @@
 #include "docview.h"
 #include "lvdocview.h"
+#include "lvgraydrawbuf.h"
+#include "lvcolordrawbuf.h"
+#include "lvstreamutils.h"
 //#include "crgl.h"
 
 #if defined(__arm__) || defined(__aarch64__) || defined(__i386__) || defined(__mips__)

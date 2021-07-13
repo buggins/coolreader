@@ -45,11 +45,13 @@ lUInt32 calcHash(font_ref_t & f)
 lUInt32 calcHash(css_style_rec_t & rec)
 {
     if ( !rec.hash )
-        rec.hash = ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+        rec.hash = (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
          + (lUInt32)rec.important[0]) * 31
          + (lUInt32)rec.important[1]) * 31
+         + (lUInt32)rec.important[2]) * 31
          + (lUInt32)rec.importance[0]) * 31
          + (lUInt32)rec.importance[1]) * 31
+         + (lUInt32)rec.importance[2]) * 31
          + (lUInt32)rec.display) * 31
          + (lUInt32)rec.white_space) * 31
          + (lUInt32)rec.text_align) * 31
@@ -72,6 +74,10 @@ lUInt32 calcHash(css_style_rec_t & rec)
          + (lUInt32)rec.background_color.pack()) * 31
          + (lUInt32)rec.width.pack()) * 31
          + (lUInt32)rec.height.pack()) * 31
+         + (lUInt32)rec.min_width.pack()) * 31
+         + (lUInt32)rec.min_height.pack()) * 31
+         + (lUInt32)rec.max_width.pack()) * 31
+         + (lUInt32)rec.max_height.pack()) * 31
          + (lUInt32)rec.text_indent.pack()) * 31
          + (lUInt32)rec.margin[0].pack()) * 31
          + (lUInt32)rec.margin[1].pack()) * 31
@@ -106,6 +112,9 @@ lUInt32 calcHash(css_style_rec_t & rec)
          + (lUInt32)rec.float_) * 31
          + (lUInt32)rec.clear) * 31
          + (lUInt32)rec.direction) * 31
+         + (lUInt32)rec.visibility) * 31
+         + (lUInt32)rec.line_break) * 31
+         + (lUInt32)rec.word_break) * 31
          + (lUInt32)rec.cr_hint.pack()) * 31
          + (lUInt32)rec.font_name.getHash()
          + (lUInt32)rec.background_image.getHash()
@@ -118,8 +127,10 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
     return 
            r1.important[0] == r2.important[0] &&
            r1.important[1] == r2.important[1] &&
+           r1.important[2] == r2.important[2] &&
            r1.importance[0] == r2.importance[0] &&
            r1.importance[1] == r2.importance[1] &&
+           r1.importance[2] == r2.importance[2] &&
            r1.display == r2.display &&
            r1.white_space == r2.white_space &&
            r1.text_align == r2.text_align &&
@@ -133,6 +144,10 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.line_height == r2.line_height &&
            r1.width == r2.width &&
            r1.height == r2.height &&
+           r1.min_width == r2.min_width &&
+           r1.min_height == r2.min_height &&
+           r1.max_width == r2.max_width &&
+           r1.max_height == r2.max_height &&
            r1.color == r2.color &&
            r1.background_color == r2.background_color &&
            r1.text_indent == r2.text_indent &&
@@ -176,6 +191,9 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.float_ == r2.float_&&
            r1.clear == r2.clear&&
            r1.direction == r2.direction&&
+           r1.visibility == r2.visibility&&
+           r1.line_break == r2.line_break&&
+           r1.word_break == r2.word_break&&
            r1.content == r2.content&&
            r1.cr_hint==r2.cr_hint;
 }
@@ -318,8 +336,10 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     buf.putMagic(style_magic);
     buf << important[0];            //    lUInt32              important[0];
     buf << important[1];            //    lUInt32              important[1];
+    buf << important[2];            //    lUInt32              important[2];
     buf << importance[0];           //    lUInt32              importance[0];
     buf << importance[1];           //    lUInt32              importance[1];
+    buf << importance[2];           //    lUInt32              importance[2];
     ST_PUT_ENUM(display);           //    css_display_t        display;
     ST_PUT_ENUM(white_space);       //    css_white_space_t    white_space;
     ST_PUT_ENUM(text_align);        //    css_text_align_t     text_align;
@@ -337,6 +357,10 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     ST_PUT_LEN(line_height);        //    css_length_t         line_height;
     ST_PUT_LEN(width);              //    css_length_t         width;
     ST_PUT_LEN(height);             //    css_length_t         height;
+    ST_PUT_LEN(min_width);          //    css_length_t         min_width;
+    ST_PUT_LEN(min_height);         //    css_length_t         min_height;
+    ST_PUT_LEN(max_width);          //    css_length_t         max_width;
+    ST_PUT_LEN(max_height);         //    css_length_t         max_height;
     ST_PUT_LEN4(margin);            //    css_length_t         margin[4]; ///< margin-left, -right, -top, -bottom
     ST_PUT_LEN4(padding);           //    css_length_t         padding[4]; ///< padding-left, -right, -top, -bottom
     ST_PUT_LEN(color);              //    css_length_t         color;
@@ -367,6 +391,9 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     ST_PUT_ENUM(float_);
     ST_PUT_ENUM(clear);
     ST_PUT_ENUM(direction);
+    ST_PUT_ENUM(visibility);
+    ST_PUT_ENUM(line_break);
+    ST_PUT_ENUM(word_break);
     buf << content;
     ST_PUT_LEN(cr_hint);
     lUInt32 hash = calcHash(*this);
@@ -381,8 +408,10 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     buf.putMagic(style_magic);
     buf >> important[0];                                    //    lUInt32              important[0];
     buf >> important[1];                                    //    lUInt32              important[1];
+    buf >> important[2];                                    //    lUInt32              important[2];
     buf >> importance[0];                                   //    lUInt32              importance[0];
     buf >> importance[1];                                   //    lUInt32              importance[1];
+    buf >> importance[2];                                   //    lUInt32              importance[2];
     ST_GET_ENUM(css_display_t, display);                    //    css_display_t        display;
     ST_GET_ENUM(css_white_space_t, white_space);            //    css_white_space_t    white_space;
     ST_GET_ENUM(css_text_align_t, text_align);              //    css_text_align_t     text_align;
@@ -400,6 +429,10 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     ST_GET_LEN(line_height);                                //    css_length_t         line_height;
     ST_GET_LEN(width);                                      //    css_length_t         width;
     ST_GET_LEN(height);                                     //    css_length_t         height;
+    ST_GET_LEN(min_width);                                  //    css_length_t         min_width;
+    ST_GET_LEN(min_height);                                 //    css_length_t         min_height;
+    ST_GET_LEN(max_width);                                  //    css_length_t         max_width;
+    ST_GET_LEN(max_height);                                 //    css_length_t         max_height;
     ST_GET_LEN4(margin);                                    //    css_length_t         margin[4]; ///< margin-left, -right, -top, -bottom
     ST_GET_LEN4(padding);                                   //    css_length_t         padding[4]; ///< padding-left, -right, -top, -bottom
     ST_GET_LEN(color);                                      //    css_length_t         color;
@@ -430,6 +463,9 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     ST_GET_ENUM(css_float_t, float_);
     ST_GET_ENUM(css_clear_t, clear);
     ST_GET_ENUM(css_direction_t, direction);
+    ST_GET_ENUM(css_visibility_t, visibility);
+    ST_GET_ENUM(css_line_break_t, line_break);
+    ST_GET_ENUM(css_word_break_t, word_break);
     buf>>content;
     ST_GET_LEN(cr_hint);
     lUInt32 hash = 0;

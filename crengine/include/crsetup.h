@@ -37,6 +37,7 @@
 
 #if (BUILD_LITE==1)
 
+#define USE_ZSTD                             0
 #define USE_LIBJPEG                          0
 #define USE_LIBPNG                           0
 #define USE_GIF                              0
@@ -48,9 +49,12 @@
 #define GLYPH_CACHE_SIZE                     0x1000
 #define ZIP_STREAM_BUFFER_SIZE               0x1000
 #define FILE_STREAM_BUFFER_SIZE              0x1000
+#define MATHML_SUPPORT                       0
+#define USE_LOCALE_DATA                      0
 
 #else
 
+#define USE_ZSTD                             1
 #define USE_LIBJPEG                          1
 #define USE_LIBPNG                           1
 #define USE_GIF                              1
@@ -63,6 +67,8 @@
 #define GLYPH_CACHE_SIZE                     0x20000
 #define ZIP_STREAM_BUFFER_SIZE               0x80000
 #define FILE_STREAM_BUFFER_SIZE              0x40000
+#define MATHML_SUPPORT                       1
+#define USE_LOCALE_DATA                      1
 
 #endif  // (BUILD_LITE==1)
 
@@ -84,6 +90,7 @@
 #define USE_LIBPNG                           1
 #define USE_GIF                              1
 #define USE_ZLIB                             1
+#define USE_ZSTD                             1
 
 #ifndef COLOR_BACKBUFFER
 #define COLOR_BACKBUFFER                     1
@@ -97,6 +104,8 @@
 #define USE_FRIBIDI                          1
 #define USE_LIBUNIBREAK                      1
 #define USE_GLYPHCACHE_HASHTABLE             1
+#define MATHML_SUPPORT                       1
+#define USE_LOCALE_DATA                      1
 
 #ifndef ANDROID
 #ifndef MAC
@@ -126,6 +135,7 @@
 #ifndef MAX_IMAGE_SCALE_MUL
 #define MAX_IMAGE_SCALE_MUL                  1
 #endif
+#define USE_ZSTD                             1
 #if defined(CYGWIN)
 #define USE_FREETYPE                         0
 #define USE_HARFBUZZ                         0
@@ -146,6 +156,8 @@
 #define ZIP_STREAM_BUFFER_SIZE               0x80000
 #define FILE_STREAM_BUFFER_SIZE              0x40000
 //#define USE_LIBJPEG 0
+#define MATHML_SUPPORT                       1
+#define USE_LOCALE_DATA                      1
 #endif  // !defined(__SYMBIAN32__) && defined(_WIN32)
 
 #ifndef GLYPH_CACHE_SIZE
@@ -180,6 +192,10 @@
 #ifndef USE_ZLIB
 ///allow PNG support via libpng
 #define USE_ZLIB 1
+#endif
+
+#ifndef USE_ZSTD
+#define USE_ZSTD 0
 #endif
 
 #ifndef GRAY_INVERSE
@@ -247,6 +263,14 @@
 
 #ifndef CHM_SUPPORT_ENABLED
 #define CHM_SUPPORT_ENABLED 1
+#endif
+
+#ifndef MATHML_SUPPORT
+#define MATHML_SUPPORT 0
+#endif
+
+#ifndef USE_LOCALE_DATA
+#define USE_LOCALE_DATA 0
 #endif
 
 #ifndef USE_FREETYPE

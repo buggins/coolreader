@@ -1,5 +1,5 @@
 
-project(antiword)
+project(local_antiword)
 
 set(ANTIWORD_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty_unman/antiword)
 
@@ -52,4 +52,4 @@ set(ANTIWORD_SRC_FILES
     ${ANTIWORD_SRC_DIR}/xmalloc.c
 )
 
-add_library(antiword STATIC ${ANTIWORD_SRC_FILES})
+add_library(local_antiword STATIC ${ANTIWORD_SRC_FILES})

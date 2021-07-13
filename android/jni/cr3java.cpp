@@ -1,5 +1,7 @@
 #include "cr3java.h"
-#include "../../crengine/include/crlog.h"
+#include "crlog.h"
+#include "lvcolordrawbuf.h"
+#include "lvstreamutils.h"
 
 #include <dlfcn.h>
 #include <android/api-level.h>
@@ -194,27 +196,19 @@ jbyteArray CRJNIEnv::streamToJByteArray( LVStreamRef stream )
     return array; 
 }
 
-static void ConvertCRColorsToAndroid( lUInt8 * buf, int dx, int dy )
-{
-	int sz = dx * dy;
-	for ( lUInt8 * p = buf; --sz>=0; p+=4 ) {
-		// invert A
-		p[3] ^= 0xFF; 
-		// swap R and B
-		lUInt8 c = p[0];
-		p[0] = p[2];
-		p[2] = c;
-	}
-} 
-
 class LVColorDrawBufEx : public LVColorDrawBuf {
 public:
     lUInt8 * getData() { return _data; }
     void convert() {
-    	if ( GetBitsPerPixel()==32 )
-    		ConvertCRColorsToAndroid( _data, GetWidth(), GetHeight() );
+        if ( GetBitsPerPixel()==32 ) {
+            // convert crengine pixel format (from BGRX to RGBA)
+            int sz = _rowsize*GetHeight()/4;
+            for (lUInt32 *p = (lUInt32*)_data; --sz >= 0; p++)
+                // invert alpha, swap R & B
+                *p = (((*p) & 0xFF000000) ^ 0xFF000000) | (((*p) << 16) & 0x00FF0000) | ((*p) & 0x0000FF00) | (((*p) >> 16) & 0x000000FF);
+        }
     }
-    
+
 	LVColorDrawBufEx(int dx, int dy, lUInt8 * pixels, int bpp)
 	: LVColorDrawBuf( dx, dy, pixels, bpp ) {
 	}
@@ -239,7 +233,7 @@ public:
 		int height = info.height;
 		int stride = info.stride;
 		int format = info.format;
-		if ( format!=ANDROID_BITMAP_FORMAT_RGBA_8888 && format!=ANDROID_BITMAP_FORMAT_RGB_565  && format!=8 ) {
+		if ( format!=ANDROID_BITMAP_FORMAT_RGBA_8888 && format!=ANDROID_BITMAP_FORMAT_RGB_565 && format!=ANDROID_BITMAP_FORMAT_A_8 ) {
 			CRLog::error("BitmapAccessor : bitmap format %d is not yet supported", format);
 			return NULL;
 		}
@@ -368,7 +362,7 @@ public:
 		int stride = info.stride;
 		int format = info.format;
 	    //CRLog::trace("JNIGraphicsReplacement::lock info: %d (%d) x %d", width, stride, height);
-		if ( format!=ANDROID_BITMAP_FORMAT_RGBA_8888 && format!=ANDROID_BITMAP_FORMAT_RGB_565  && format!=8  ) {
+		if ( format!=ANDROID_BITMAP_FORMAT_RGBA_8888 && format!=ANDROID_BITMAP_FORMAT_RGB_565 && format!=ANDROID_BITMAP_FORMAT_A_8 ) {
 			CRLog::error("BitmapAccessor : bitmap format %d is not yet supported", format);
 			return NULL;
 		}

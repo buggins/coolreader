@@ -275,6 +275,16 @@ public:
     lUInt32 getHash();
 };
 
+/// parse number/length value like "120px" or "90%"
+bool parse_number_value( const char * & str, css_length_t & value,
+                                    bool accept_percent=true,
+                                    bool accept_negative=false,
+                                    bool accept_auto=false,
+                                    bool accept_none=false,
+                                    bool accept_normal=false,
+                                    bool accept_contain_cover=false,
+                                    bool is_font_size=false );
+
 /// parse color value like #334455, #345 or red
 bool parse_color_value( const char * & str, css_length_t & value );
 

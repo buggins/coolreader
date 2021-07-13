@@ -17,6 +17,7 @@
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
 #include "../include/lvrend.h"
+#include "lvdrawbuf/lvinkmeasurementdrawbuf.h"
 #include "../include/crlog.h"
 
 // Note about box model/sizing in crengine:
@@ -53,7 +54,6 @@
 
 int gRenderDPI = DEF_RENDER_DPI; // if 0: old crengine behaviour: 1px/pt=1px, 1in/cm/pc...=0px
 bool gRenderScaleFontWithDPI = DEF_RENDER_SCALE_FONT_WITH_DPI;
-int gRootFontSize = 24; // will be reset as soon as font size is set
 
 int scaleForRenderDPI( int value ) {
     // if gRenderDPI == 0 or 96, use value as is (1px = 1px)
@@ -308,6 +308,7 @@ void collapse_border(css_style_ref_t & target_style, int & current_target_size,
 class CCRTable {
 public:
     int table_width;
+    int table_min_width;
     int digitwidth;
     int direction;
     bool is_rtl;
@@ -325,6 +326,15 @@ public:
     LVPtrVector<CCRTableRowGroup> rowgroups;
     // LVMatrix<CCRTableCell*> cells; // not used (it was filled, but never read)
     CCRTableRowGroup * currentRowGroup;
+
+    #if MATHML_SUPPORT==1
+        // Additional property
+        lUInt16 mathml_tweaked_element_name_id;
+        // Additional methods declared here but implemented in src/mathml_table_ext.h, included below
+        void MathML_checkAndTweakTableElement();
+        void MathML_fixupTableLayout();
+        void MathML_finalizeTableLayout();
+    #endif
 
     void ExtendCols( int ncols ) {
         while (cols.length()<ncols) {
@@ -452,8 +462,7 @@ public:
                             col->percent = w.value / 256;
                         }
                         else if ( w.type != css_val_unspecified ) { // px, em...
-                            int em = item->getFont()->getSize();
-                            col->width = lengthToPx( w, 0, em );
+                            col->width = lengthToPx( item, w, 0 );
                             // (0 as the base width for %, as % was dealt with just above)
                         }
                         // otherwise cell->percent and cell->width stay at 0
@@ -536,8 +545,7 @@ public:
                             cell->percent = w.value / 256;
                         }
                         else if ( w.type != css_val_unspecified ) { // px, em...
-                            int em = item->getFont()->getSize();
-                            cell->width = lengthToPx( w, 0, em );
+                            cell->width = lengthToPx( item, w, 0 );
                         }
                         // else: cell->percent and cell->width stay at 0
 
@@ -589,8 +597,6 @@ public:
         // but with CSS, "display:table-header-group" might be used
         // to render some element above others even if it is after
         // them in the DOM.
-        // (This is done by the MathML CSS profile, for example with
-        // <msup>, to render the superscript in a top table row).
         //
         // Note that Firefox only moves the *first* table-header-group and
         // the *first* table-footer-group met.
@@ -855,9 +861,8 @@ public:
         }
 
         css_style_ref_t table_style = elem->getStyle();
-        int table_em = elem->getFont()->getSize();
         // border-spacing does not accept values in % unit
-        int borderspacing_h = lengthToPx(table_style->border_spacing[0], 0, table_em);
+        int borderspacing_h = lengthToPx(elem, table_style->border_spacing[0], 0 );
         bool border_collapse = (table_style->border_collapse == css_border_collapse);
 
         if (border_collapse) {
@@ -983,7 +988,10 @@ public:
             for (j=0; j<rows[i]->cells.length(); j++) {
                 // rows[i]->cells contains only real cells made from node elements
                 CCRTableCell * cell = (rows[i]->cells[j]);
-                getRenderedWidths(cell->elem, cell->max_content_width, cell->min_content_width, cell->direction);
+                if ( cell->elem ) { // otherwise might be an empty cell added by MathML tweaks
+                    int rend_flags = cell->elem->getDocument()->getRenderBlockRenderingFlags();
+                    getRenderedWidths(cell->elem, cell->max_content_width, cell->min_content_width, cell->direction, true, rend_flags);
+                }
                 #ifdef DEBUG_TABLE_RENDERING
                     printf("TABLE: cell[%d,%d] getRenderedWidths: %d (min %d)\n",
                         j, i, cell->max_content_width, cell->min_content_width);
@@ -1095,21 +1103,22 @@ public:
 
         /////////////////////////// From here until further noticed, we just use and update the cols objects
         // Find width available for cells content (including their borders and paddings)
-        // Start with table full width
-        int assignable_width = table_width;
-        // Remove table outer borders
-        assignable_width -= measureBorder(elem,1) + measureBorder(elem,3); // (border indexes are TRBL)
+        // Get widths used by the table itself
+        int table_outer_borders_width = measureBorder(elem,1) + measureBorder(elem,3); // (border indexes are TRBL)
+        int table_paddings_width = 0;
+        int table_borderspacings_width = 0;
         if ( border_collapse ) {
-            // Table own outer paddings and any border-spacing are
-            // ignored with border-collapse
+            // Table own outer paddings and any border-spacing are ignored with border-collapse
         }
         else { // no collapse
-            // Remove table outer paddings (margin and padding indexes are LRTB)
-            assignable_width -= lengthToPx(table_style->padding[0], table_width, table_em);
-            assignable_width -= lengthToPx(table_style->padding[1], table_width, table_em);
-            // Remove (nb cols + 1) border-spacing
-            assignable_width -= (cols.length() + 1) * borderspacing_h;
+            table_paddings_width = lengthToPx(elem, table_style->padding[0], table_width)
+                                 + lengthToPx(elem, table_style->padding[1], table_width);
+                                    // (margin and padding indexes are LRTB)
+            // (nb cols + 1) border-spacing
+            table_borderspacings_width = (cols.length() + 1) * borderspacing_h;
         }
+        // Remove all that from table width to get what can be used by cells
+        int assignable_width = table_width - table_outer_borders_width - table_paddings_width - table_borderspacings_width;
         #ifdef DEBUG_TABLE_RENDERING
             printf("TABLE: table_width=%d assignable_width=%d\n", table_width, assignable_width);
         #endif
@@ -1121,8 +1130,18 @@ public:
             assignable_width = table_width;
             borderspacing_h = 0;
         }
+        // todo: there's an issue with TD's style->width being usually explicitely ignored
+        // in getRenderedWidths() as a rule to not impose these widths because here,
+        // we just use them as a first hint, and it is not the final cell/column width.
+        // But with inline-table, whose table_width has been estimated without
+        // TD's style->width, having them used below as a hint that influence
+        // the sizing of all columns with distribution to compensate these
+        // style->widths can give really bad results.
 
         // Find best width for each column
+        // Note: support for CSS min-width/max-width on table cells and cols
+        // has not been implemented (not sure where to handle that below in
+        // this already complicated algorithm, feels really tedious)
         int npercent=0;
         int sumpercent=0;
         int nwidth = 0;
@@ -1199,30 +1218,40 @@ public:
             for (int x=0; x<cols.length(); x++)
                 printf("TABLE WIDTHS step2: cols[%d]: %d%% %dpx\n",
                     x, cols[x]->percent, cols[x]->width);
+            printf("TABLE WIDTHS step2: sumwidth=%d, sum_auto_max_width=%d sum_auto_mean_max_content_width=%d\n",
+                    sumwidth, sum_auto_max_width, sum_auto_mean_max_content_width);
         #endif
         // At this point, all columns with specified width or percent has been
         // set accordingly, or reduced to fit table width
         // We need to compute a width for columns with unspecified width.
         // nrest = cols.length() - nwidth;
         int restwidth = assignable_width - sumwidth;
+        bool canFitMaxWidths = sum_auto_max_width <= restwidth;
         int sumMinWidths = 0;
         // new pass: convert text len percent into width
         for (i=0; i<cols.length(); i++) {
             if (cols[i]->width==0) { // unspecified (or width scaled down and rounded to 0)
-                // We have multiple options:
-                // Either distribute remaining width according to max_width ratio
-                // (so larger content gets more width to use less height)
-                //     if (sum_auto_max_width > 0)
-                //         cols[i]->width = cols[i]->max_width * restwidth / sum_auto_max_width;
-                // Or better: distribute remaining width according to the mean
-                // of cells' max_content_width, so a single large cell among
-                // many smaller cells doesn't request all the width for this
-                // column (which would give less to others, which could make
-                // them use more height). This should help getting more
-                // reasonable heights across all rows.
-                if (sum_auto_mean_max_content_width > 0)
-                    cols[i]->width = cols[i]->sum_max_content_width / cols[i]->nb_sum_max_content_width * restwidth / sum_auto_mean_max_content_width;
-                // else stays at 0
+                if ( canFitMaxWidths ) {
+                    // All max content widths fit: use them
+                    cols[i]->width = cols[i]->max_width;
+                }
+                else {
+                    // Max content widths do overflow: smaller widths need to be decided (content will wrap).
+                    // We have multiple options:
+                    // Either distribute remaining width according to max_width ratio
+                    // (so larger content gets more width to use less height)
+                    //     if (sum_auto_max_width > 0)
+                    //         cols[i]->width = cols[i]->max_width * restwidth / sum_auto_max_width;
+                    // Or better: distribute remaining width according to the mean
+                    // of cells' max_content_width, so a single large cell among
+                    // many smaller cells doesn't request all the width for this
+                    // column (which would give less to others, which could make
+                    // them use more height). This should help getting more
+                    // reasonable heights across all rows.
+                    if (sum_auto_mean_max_content_width > 0)
+                        cols[i]->width = cols[i]->sum_max_content_width / cols[i]->nb_sum_max_content_width * restwidth / sum_auto_mean_max_content_width;
+                    // else stays at 0
+                }
                 sumwidth += cols[i]->width;
                 nwidth++;
             }
@@ -1285,26 +1314,53 @@ public:
                 printf("TABLE WIDTHS step4: cols[%d]: %d%% %dpx (min %dpx)\n",
                     x, cols[x]->percent, cols[x]->width, cols[x]->min_width);
         #endif
-        int restw = assignable_width - sumwidth + rw; // may be negative if we needed to
-                                                      // increase to fulfill min_width
+        int min_needed_width = sumwidth - rw;
+        int restw = assignable_width - min_needed_width; // may be negative if we needed to
+                                                         // increase to fulfill cols min_width
+        bool distribute_restw = true;
         if (shrink_to_fit && restw > 0) {
+            distribute_restw = false;
+            int prev_table_width = table_width;
             // If we're asked to shrink width to fit cells content, don't
             // distribute restw to columns, but shrink table width
-            // Table padding may be in %, and need to be corrected
-            int correction = 0;
-            correction += lengthToPx(table_style->padding[0], table_width, table_em);
-            correction += lengthToPx(table_style->padding[0], table_width, table_em);
+            // Table padding may be in %, and need to be corrected (everything else,
+            // border + border_spacing, don't change when the table width does)
+            int old_table_paddings_width = table_paddings_width;
             table_width -= restw;
-            correction -= lengthToPx(table_style->padding[0], table_width, table_em);
-            correction -= lengthToPx(table_style->padding[0], table_width, table_em);
+            table_paddings_width = 0;
+            if ( !border_collapse ) { // padding were not applied when border-collapse
+                table_paddings_width = lengthToPx(elem, table_style->padding[0], table_width)
+                                     + lengthToPx(elem, table_style->padding[1], table_width);
+            }
+            int correction = old_table_paddings_width - table_paddings_width;
             table_width -= correction;
             #ifdef DEBUG_TABLE_RENDERING
                 assignable_width -= restw + correction; // (for debug printf() below)
                 printf("TABLE WIDTHS step5 (fit): reducing table_width %d -%d -%d > %d\n",
                     table_width+restw+correction, restw, correction, table_width);
             #endif
+            if ( table_min_width > table_width && table_min_width <= prev_table_width ) {
+                // The table has a CSS min-width specified that is larger
+                // than the shrinked-to-fit width, and that we can ensure
+                // by distributing a bit of what we just removed
+                table_width = table_min_width;
+                table_paddings_width = 0;
+                if ( !border_collapse ) { // padding were not applied when border-collapse
+                    table_paddings_width += lengthToPx(elem, table_style->padding[0], table_width);
+                    table_paddings_width += lengthToPx(elem, table_style->padding[0], table_width);
+                }
+                assignable_width = table_width - table_outer_borders_width - table_paddings_width - table_borderspacings_width;
+                restw = assignable_width - min_needed_width;
+                if ( restw > 0 ) {
+                    distribute_restw = true;
+                    #ifdef DEBUG_TABLE_RENDERING
+                        printf("TABLE WIDTHS step5 (min-width): re-increased table_width to %d, redistributing %d\n",
+                            table_width, restw);
+                    #endif
+                }
+            }
         }
-        else {
+        if ( distribute_restw ) {
             #ifdef DEBUG_TABLE_RENDERING
                 printf("TABLE WIDTHS step5 (dist): %d to distribute to %d cols\n",
                     restw, dist_nb_cols);
@@ -1403,17 +1459,16 @@ public:
         // We should set, for each of the table children and sub-children,
         // its RenderRectAccessor fmt(node) x/y/w/h.
         // x/y of a cell are relative to its own parent node top left corner
-        int em = elem->getFont()->getSize();
         css_style_ref_t table_style = elem->getStyle();
         int table_border_top = measureBorder(elem, 0);
         int table_border_right = measureBorder(elem, 1);
         int table_border_bottom = measureBorder(elem, 2);
         int table_border_left = measureBorder(elem, 3);
-        int table_padding_left = lengthToPx(table_style->padding[0], table_width, em);
-        int table_padding_right = lengthToPx(table_style->padding[1], table_width, em);
-        int table_padding_top = lengthToPx(table_style->padding[2], table_width, em);
-        int table_padding_bottom = lengthToPx(table_style->padding[3], table_width, em);
-        int borderspacing_v = lengthToPx(table_style->border_spacing[1], 0, em);
+        int table_padding_left = lengthToPx(elem, table_style->padding[0], table_width);
+        int table_padding_right = lengthToPx(elem, table_style->padding[1], table_width);
+        int table_padding_top = lengthToPx(elem, table_style->padding[2], table_width);
+        int table_padding_bottom = lengthToPx(elem, table_style->padding[3], table_width);
+        int borderspacing_v = lengthToPx(elem, table_style->border_spacing[1], 0);
         bool border_collapse = (table_style->border_collapse==css_border_collapse);
         if (border_collapse) {
             table_padding_top = 0;
@@ -1448,7 +1503,6 @@ public:
 
         // render caption
         if ( caption ) {
-            int em = caption->getFont()->getSize();
             int w = table_width - table_border_left - table_border_right;
             // (When border-collapse, these table_border_* will be 0)
             // Note: table padding does not apply to caption, and table padding-top
@@ -1469,10 +1523,10 @@ public:
             fmt.setWidth( w ); // fmt.width must be set before 'caption->renderFinalBlock'
                                // to have text-indent in % not mess up at render time
             css_style_ref_t caption_style = caption->getStyle();
-            int padding_left = lengthToPx( caption_style->padding[0], w, em ) + measureBorder(caption, 3);
-            int padding_right = lengthToPx( caption_style->padding[1], w, em ) + measureBorder(caption,1);
-            int padding_top = lengthToPx( caption_style->padding[2], w, em ) + measureBorder(caption,0);
-            int padding_bottom = lengthToPx( caption_style->padding[3], w, em ) + measureBorder(caption,2);
+            int padding_left = lengthToPx( caption, caption_style->padding[0], w ) + measureBorder(caption, 3);
+            int padding_right = lengthToPx( caption, caption_style->padding[1], w ) + measureBorder(caption,1);
+            int padding_top = lengthToPx( caption, caption_style->padding[2], w ) + measureBorder(caption,0);
+            int padding_bottom = lengthToPx( caption, caption_style->padding[3], w ) + measureBorder(caption,2);
             if ( enhanced_rendering ) {
                 // As done in renderBlockElementEnhanced when erm_final
                 fmt.setInnerX( padding_left );
@@ -1484,6 +1538,7 @@ public:
             }
             fmt.push();
             caption_h = caption->renderFinalBlock( txform, &fmt, w - padding_left - padding_right );
+            context.updateRenderProgress(1);
             caption_h += padding_top + padding_bottom;
             // Reload fmt, as enode->renderFinalBlock() may have updated it.
             fmt = RenderRectAccessor( caption );
@@ -1569,6 +1624,8 @@ public:
             bool row_has_baseline_aligned_cells = false;
             for (j=0; j<rows[i]->cells.length(); j++) {
                 CCRTableCell * cell = rows[i]->cells[j];
+                if ( !cell->elem ) // might be an empty cell added by MathML tweaks
+                    continue;
                 // int x = cell->col->index;
                 int y = cell->row->index;
                 // int n = rows[i]->cells.length();
@@ -1576,14 +1633,13 @@ public:
                     // We need to render the cell to get its height
                     if ( cell->elem->getRendMethod() == erm_final ) {
                         LFormattedTextRef txform;
-                        int em = cell->elem->getFont()->getSize();
                         css_style_ref_t elem_style = cell->elem->getStyle();
                         int border_left = measureBorder(cell->elem,3);
                         int border_right = measureBorder(cell->elem,1);
-                        int padding_left = lengthToPx( elem_style->padding[0], cell->width, em ) + border_left;
-                        int padding_right = lengthToPx( elem_style->padding[1], cell->width, em ) + border_right;
-                        int padding_top = lengthToPx( elem_style->padding[2], cell->width, em ) + measureBorder(cell->elem,0);
-                        int padding_bottom = lengthToPx( elem_style->padding[3], cell->width, em ) + measureBorder(cell->elem,2);
+                        int padding_left = lengthToPx( cell->elem, elem_style->padding[0], cell->width ) + border_left;
+                        int padding_right = lengthToPx( cell->elem, elem_style->padding[1], cell->width ) + border_right;
+                        int padding_top = lengthToPx( cell->elem, elem_style->padding[2], cell->width ) + measureBorder(cell->elem,0);
+                        int padding_bottom = lengthToPx( cell->elem, elem_style->padding[3], cell->width ) + measureBorder(cell->elem,2);
                         RenderRectAccessor fmt( cell->elem );
                         fmt.setWidth( cell->width ); // needed before calling elem->renderFinalBlock
                         if ( is_ruby_table )
@@ -1601,6 +1657,7 @@ public:
                         }
                         fmt.push();
                         int h = cell->elem->renderFinalBlock( txform, &fmt, cell->width - padding_left - padding_right);
+                        context.updateRenderProgress(1);
                         cell->height = padding_top + h + padding_bottom;
                         // A cell baseline is the baseline of its first line of text (or
                         // the bottom of content edge of the cell if no line)
@@ -1708,7 +1765,7 @@ public:
                             rend_flags &= ~BLOCK_RENDERING_ALLOW_NEGATIVE_COLLAPSED_MARGINS;
                         }
                         else {
-                            cell_context = new LVRendPageContext( NULL, context.getPageHeight(), false );
+                            cell_context = new LVRendPageContext( NULL, context.getPageHeight(), 0, false );
                         }
                         // We request renderBlockElement() to give us back the baseline
                         // of the block as expected for tables
@@ -1726,9 +1783,8 @@ public:
                             // We need the bottom content edge of what's been rendered.
                             // We just need to remove this cell bottom padding (we should
                             // not remove the inner content bottom margins or paddings).
-                            int em = cell->elem->getFont()->getSize();
                             css_style_ref_t elem_style = cell->elem->getStyle();
-                            int padding_bottom = lengthToPx( elem_style->padding[3], cell->width, em ) + measureBorder(cell->elem,2);
+                            int padding_bottom = lengthToPx( cell->elem, elem_style->padding[3], cell->width ) + measureBorder(cell->elem,2);
                             // We'll position that bottom content edge
                             cell->adjusted_baseline = h - padding_bottom;
                         }
@@ -1805,6 +1861,12 @@ public:
                 }
             }
         }
+
+        #if MATHML_SUPPORT==1
+            if ( mathml_tweaked_element_name_id ) {
+                MathML_fixupTableLayout();
+            }
+        #endif
 
         // Update rows heights from multi-row (rowspan > 1) cells height
         for (i=0; i<rows.length(); i++) {
@@ -2037,6 +2099,8 @@ public:
         for (i=0; i<rows.length(); i++) {
             for (j=0; j<rows[i]->cells.length(); j++) {
                 CCRTableCell * cell = rows[i]->cells[j];
+                if ( !cell->elem ) // might be an empty cell added by MathML tweaks
+                    continue;
                 //int x = cell->col->index;
                 int y = cell->row->index;
                 if ( i==y ) {
@@ -2072,8 +2136,7 @@ public:
                                 copystyle(style, newstyle);
                                 // If padding-top is a percentage, it is relative to
                                 // the *width* of the containing block
-                                int em = cell->elem->getFont()->getSize();
-                                int orig_padding_top = lengthToPx( style->padding[2], cell->width, em );
+                                int orig_padding_top = lengthToPx( cell->elem, style->padding[2], cell->width );
                                 newstyle->padding[2].type = css_val_screen_px;
                                 newstyle->padding[2].value = orig_padding_top + pad;
                                 cell->elem->setStyle(newstyle);
@@ -2092,6 +2155,14 @@ public:
                 }
             }
         }
+
+        #if MATHML_SUPPORT==1
+            if ( mathml_tweaked_element_name_id ) {
+                // Some cells may have been put in an added row that does not
+                // map to a node. Fix up RenderRectAccessors positionning and sizes.
+                MathML_finalizeTableLayout();
+            }
+        #endif
 
         // Update row groups (thead, tbody...) placement (we need to do that as
         // these rowgroup elements are just block containers of the row elements,
@@ -2147,8 +2218,10 @@ public:
         return table_h;
     }
 
-    CCRTable(ldomNode * tbl_elem, int tbl_width, bool tbl_shrink_to_fit, int tbl_direction, bool tbl_avoid_pb_inside,
-                                bool tbl_enhanced_rendering, int dwidth, bool tbl_is_ruby_table) : digitwidth(dwidth) {
+    CCRTable(ldomNode * tbl_elem, int tbl_width, bool tbl_shrink_to_fit, int tbl_min_width, int tbl_direction,
+                bool tbl_avoid_pb_inside, bool tbl_enhanced_rendering, int dwidth, bool tbl_is_ruby_table)
+        : digitwidth(dwidth)
+        {
         currentRowGroup = NULL;
         caption = NULL;
         caption_h = 0;
@@ -2156,6 +2229,7 @@ public:
         elem = tbl_elem;
         table_width = tbl_width;
         shrink_to_fit = tbl_shrink_to_fit;
+        table_min_width = tbl_min_width;
         direction = tbl_direction;
         is_rtl = direction == REND_DIRECTION_RTL;
         avoid_pb_inside = tbl_avoid_pb_inside;
@@ -2168,6 +2242,10 @@ public:
         #endif
         LookupElem( tbl_elem, direction, 0 );
         FixRowGroupsOrder();
+        #if MATHML_SUPPORT==1
+            mathml_tweaked_element_name_id = 0;
+            MathML_checkAndTweakTableElement();
+        #endif
         if ( is_ruby_table && rows.length() >= 2 ) {
             // Move 2nd row (first ruby annotation) to 1st position,
             // so base ruby text (initially 1st row) becomes 2nd
@@ -2186,11 +2264,16 @@ public:
     }
 };
 
-int renderTable( LVRendPageContext & context, ldomNode * node, int x, int y, int width, bool shrink_to_fit,
+#if MATHML_SUPPORT==1
+// Add implementation for MathML additional methods to CCRTable, and a few functions used below
+#include "mathml_table_ext.h"
+#endif
+
+int renderTable( LVRendPageContext & context, ldomNode * node, int x, int y, int width, bool shrink_to_fit, int min_width,
                  int & fitted_width, int direction, bool avoid_pb_inside, bool enhanced_rendering, bool is_ruby_table )
 {
     CR_UNUSED2(x, y);
-    CCRTable table( node, width, shrink_to_fit, direction, avoid_pb_inside, enhanced_rendering, 10, is_ruby_table );
+    CCRTable table( node, width, shrink_to_fit, min_width, direction, avoid_pb_inside, enhanced_rendering, 10, is_ruby_table );
     int h = table.renderCells( context );
     if (shrink_to_fit)
         fitted_width = table.table_width;
@@ -2227,12 +2310,12 @@ int LVRendGetBaseFontWeight()
     return rend_font_base_weight;
 }
 
-LVFontRef getFont(css_style_rec_t * style, int documentId)
+LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId)
 {
     int sz;
     if ( style->font_size.type == css_val_em || style->font_size.type == css_val_ex ||
-            style->font_size.type == css_val_percent ) {
-        // font_size.type can't be em/ex/%, it should have been converted to px
+            style->font_size.type == css_val_ch || style->font_size.type == css_val_percent ) {
+        // font_size.type can't be em/ex/ch/%, it should have been converted to px
         // or screen_px while in setNodeStyle().
         printf("CRE WARNING: getFont: %d of unit %d\n", style->font_size.value>>8, style->font_size.type);
         sz = style->font_size.value >> 8; // set some value anyway
@@ -2240,7 +2323,7 @@ LVFontRef getFont(css_style_rec_t * style, int documentId)
     else {
         // We still need to convert other absolute units to px.
         // (we pass 0 as base_em and base_px, as these would not be used).
-        sz = lengthToPx(style->font_size, 0, 0);
+        sz = lengthToPx(node, style->font_size, 0, 0);
     }
     if ( sz < 8 )
         sz = 8;
@@ -2272,6 +2355,20 @@ LVFontRef getFont(css_style_rec_t * style, int documentId)
         documentId, true); // useBias=true, so that our preferred font gets used
     //fnt = LVCreateFontTransform( fnt, LVFONT_TRANSFORM_EMBOLDEN );
     return fnt;
+}
+
+inline lUInt32 getBackgroundColor(const css_style_ref_t style)
+{
+        return style->background_color.type == css_val_color ? style->background_color.value : 0xFFFFFFFF;
+}
+
+inline lUInt32 getForegroundColor(const css_style_ref_t style)
+{
+        if ( style->color.type == css_val_color )
+            return style->color.value;
+        if ( style->color.value == css_generic_transparent && style->color.type == css_val_unspecified )
+            return 0xDDFFFFFF; // Handled by LFormattedText::Draw(), which will skip drawing this fragment
+        return 0xFFFFFFFF;
 }
 
 lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt32 oldflags, int direction )
@@ -2370,7 +2467,7 @@ lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt
 }
 
 // Convert CSS value (type + number value) to screen px
-int lengthToPx( css_length_t val, int base_px, int base_em, bool unspecified_as_em )
+int lengthToPx( ldomNode * node, css_length_t val, int base_px, int base_em, bool unspecified_as_em )
 {
     if (val.type == css_val_screen_px) { // use value as is
         return val.value;
@@ -2402,18 +2499,30 @@ int lengthToPx( css_length_t val, int base_px, int base_em, bool unspecified_as_
 
     /* relative values */
     /* We should use val.value (not scaled by gRenderDPI) here */
-    case css_val_em: // value = em*256 (font size of the current element)
+    case css_val_em: {
+        // value = em*256 (font size of the current element)
+        // Default the base em using the node if not supplied.
+        if (base_em < 0)
+            base_em = node->getFont()->getSize();
         px = (base_em * val.value) >> 8;
         break;
+    }
     case css_val_percent:
         px = ( base_px * val.value / 100 ) >> 8;
         break;
-    case css_val_ex: // value = ex*512 (approximated with base_em, 1ex =~ 0.5em in many fonts)
+    case css_val_ex:
+    case css_val_ch: {
+        // value = ex*512 (approximated with base_em, 1ex =~ 0.5em in many fonts,
+        // and 1ch can be assumed to be 0.5em wide when impractical to determine)
+        // Default the base em using the node if not supplied.
+        if (base_em < 0)
+            base_em = node->getFont()->getSize();
         px = (base_em * val.value) >> 9;
         break;
+    }
 
     case css_val_rem: // value = rem*256 (font size of the root element)
-        px = (gRootFontSize * val.value) >> 8;
+        px = (node->getDocument()->getDefaultFont()->getSize() * val.value) >> 8;
         break;
 
     /* absolute value, less often used - value = unit*256 */
@@ -2438,6 +2547,28 @@ int lengthToPx( css_length_t val, int base_px, int base_em, bool unspecified_as_
         if (gRenderDPI)
             px = 96 * value / 6 >> 8;
         break;
+    case css_val_vw: {
+        int page_width = node->getDocument()->getPageWidth();
+        px = (val.value * page_width + 50 * 256) / (100 * 256);
+        break;
+    }
+    case css_val_vh: {
+        int page_height = node->getDocument()->getPageHeight();
+        px = (val.value * page_height + 50 * 256) / (100 * 256);
+        break;
+    }
+    case css_val_vmin: {
+        int page_width = node->getDocument()->getPageWidth();
+        int page_height = node->getDocument()->getPageHeight();
+        px = (val.value * (page_width < page_height ? page_width : page_height) + 50 * 256) / (100 * 256);
+        break;
+    }
+    case css_val_vmax: {
+        int page_width = node->getDocument()->getPageWidth();
+        int page_height = node->getDocument()->getPageHeight();
+        px = (val.value * (page_width > page_height ? page_width : page_height) + 50 * 256) / (100 * 256);
+        break;
+    }
 
     case css_val_unspecified: // may be used with named values like "auto", but should
     case css_val_inherited:            // return 0 when lengthToPx() is called on them
@@ -2448,6 +2579,305 @@ int lengthToPx( css_length_t val, int base_px, int base_em, bool unspecified_as_
     if (!px && val.value && ensure_non_zero)
         px = 1;
     return px;
+}
+
+bool is_length_relative_unit(css_length_t val)
+{
+    return (val.type == css_val_percent || val.type == css_val_em ||
+            val.type == css_val_ex || val.type == css_val_ch || val.type == css_val_rem ||
+            val.type == css_val_vw || val.type == css_val_vh ||
+            val.type == css_val_vmin || val.type == css_val_vmax);
+}
+
+#define DUMMY_IMAGE_SIZE 16
+bool getStyledImageSize( ldomNode * enode, int & img_width, int & img_height, int container_width, int container_height ) {
+    // We expect the <img> HTML/EPUB element or the <image> FB2/SVG element
+    bool is_el_image;
+    if ( enode->getNodeId() == el_img ) { // HTML/EPUB <img>
+        is_el_image = false;
+    }
+    else if ( enode->getNodeId() == el_image ) { // FB2/SVG <image>
+        is_el_image = true;
+    }
+    else {
+        return false;
+    }
+    LVImageSourceRef img = enode->getObjectImageSource();
+    if ( img.isNull() )
+        img = LVCreateDummyImageSource( enode, DUMMY_IMAGE_SIZE, DUMMY_IMAGE_SIZE );
+
+    // Get native image size
+    int native_width = img->GetWidth();
+    int native_height = img->GetHeight();
+    if ( native_width < 0 || native_height < 0 ) {
+        // Just to be sure we have positive sizes
+        return false;
+    }
+    // Scale image native size according to gRenderDPI
+    native_width = scaleForRenderDPI(native_width);
+    native_height = scaleForRenderDPI(native_height);
+
+    // Look at style widths/heights
+    css_style_ref_t style = enode->getStyle();
+
+    // These will stay -1 when the CSS property is not specified or ignored
+    // Below, for checks against min_width/height, this works literally,
+    // but for max_width/height, we need to check they are >= 0 before
+    // ensuring them.
+    int width = -1;
+    int height = -1;
+    int min_width = -1;
+    int min_height = -1;
+    int max_width = -1;
+    int max_height = -1;
+    // We don't apply values in % when no container width or height is provided
+    // which is what's suggested when they are not yet known:
+    // https://drafts.csswg.org/css-sizing-3/#cyclic-percentage-contribution
+    if ( style->width.type != css_val_unspecified && (container_width >= 0 || style->width.type != css_val_percent) )
+        width = lengthToPx(enode, style->width, container_width);
+    if ( style->min_width.type != css_val_unspecified && (container_width >= 0 || style->min_width.type != css_val_percent) )
+        min_width = lengthToPx(enode, style->min_width, container_width);
+    if ( style->max_width.type != css_val_unspecified && (container_width >= 0 || style->max_width.type != css_val_percent) )
+        max_width = lengthToPx(enode, style->max_width, container_width);
+    if ( style->height.type != css_val_unspecified && (container_height >= 0 || style->height.type != css_val_percent) )
+        height = lengthToPx(enode, style->height, container_height);
+    if ( style->min_height.type != css_val_unspecified && (container_height >= 0 || style->min_height.type != css_val_percent) )
+        min_height = lengthToPx(enode, style->min_height, container_height);
+    if ( style->max_height.type != css_val_unspecified && (container_height >= 0 || style->max_height.type != css_val_percent) )
+        max_height = lengthToPx(enode, style->max_height, container_height);
+
+    if ( is_el_image && width < 0 && height < 0 ) {
+        // Try to handle this really common SVG wrapping generated by some Calibre plugin:
+        //   <body>
+        //     <div>
+        //       <svg version="1.1" xmlns="http://www.w3.org/2000/svg"
+        //         xmlns:xlink="http://www.w3.org/1999/xlink"
+        //         width="100%" height="100%" viewBox="0 0 509 800"
+        //         preserveAspectRatio="xMidYMid meet">
+        //         <image width="509" height="800" xlink:href="Cover-NB.jpg"/>
+        //       </svg>
+        //     </div>
+        //   </body>
+        // We assume that the image width/height attributes = viewBox size = native image size,
+        // so we just scale the native image to fit into the <svg> wrapper's width and height
+        ldomNode * parent = enode->getParentNode();
+        if ( parent && parent->getNodeId() == el_svg && parent->getUnboxedFirstChild(true) == enode &&
+                    parent->getUnboxedLastChild(true) == enode ) {
+            // (We may not strip empty space text nodes when parsing SVG, so we use getUnboxed*(true) to skip them.)
+            // This <image> is the single non-text child of its <svg> parent: we can assume
+            // we want it scaled into its SVG container
+            lString32 at_width = parent->getAttributeValue(attr_width);
+            if ( !at_width.empty() ) {
+                lString8 s8 = UnicodeToUtf8(at_width);
+                const char * s = s8.c_str();
+                css_length_t svg_w;
+                if ( parse_number_value(s, svg_w) ) {
+                    if ( svg_w.type != css_val_unspecified && (container_width >= 0 || svg_w.type != css_val_percent) )
+                        width = lengthToPx(enode, svg_w, container_width);
+                }
+            }
+            lString32 at_height = parent->getAttributeValue(attr_height);
+            if ( !at_height.empty() ) {
+                lString8 s8 = UnicodeToUtf8(at_height);
+                const char * s = s8.c_str();
+                css_length_t svg_h;
+                if ( parse_number_value(s, svg_h) ) {
+                    if ( svg_h.type != css_val_unspecified && (container_height >= 0 || svg_h.type != css_val_percent) )
+                        height = lengthToPx(enode, svg_h, container_height);
+                }
+            }
+            // We force ensure preserveAspectRatio="xMidYMid meet" which is the default
+            // and the most commonly used - at least the "meet" (= contain), as we can't
+            // do any positionning at this point.
+            // If we get only width or only height, the aspect ratio will be kept
+            // by the normal code below. If not, let's ensure it.
+            if ( width > 0 && height > 0 ) {
+                // If we have both, reduce one or the other to keep aspect ratio
+                if ( width * native_height > height * native_width ) {
+                    // width too large, reduce it to keep aspect ratio
+                    width = height * native_width / native_height;
+                }
+                else {
+                    // height too large, reduce it to keep aspect ratio
+                    height = width * native_height / native_width;
+                }
+            }
+        }
+    }
+
+    // Note: we are usually not provided a container_height.
+    // If we get above a *height with a value in %, we could think about doing
+    // the expensive job of walking the image parents to find a block container
+    // with an explicite CSS height not-in-%. We then could use that, removing
+    // all intermediate padding/margin/border, to get this image container height.
+    // But this parent container height might not even be enforced, and it feels
+    // really tedious - so let's think about that when if feels really needed.
+
+    // Get the width and height to use (the "used values" in the specs)
+    int w;
+    int h;
+    // This follows the specs from https://www.w3.org/TR/CSS21/visudet.html
+    // (which is different than the first intuitive way at going at it),
+    // confirmed by looking how it's implemented in WeasyPrint, and actually
+    // giving the same results as Firefox.
+    if ( width >= 0 || height >= 0 ) {
+        // We have at least one of width or height specified
+        // Get width
+        if ( width >= 0 ) { // We have a width
+            w = width;
+        }
+        else { // We have a height but no width: get width to keep aspect ratio
+            w = height * native_width / native_height;
+        }
+        // Ensure widths constraints
+        if ( max_width >= 0 && w > max_width)
+            w = max_width;
+        if ( w < min_width )
+            w = min_width;
+        // Get height
+        if ( height >= 0 ) { // We have a height
+            h = height;
+        }
+        else { // We have computed a width: get height to keep aspect ratio
+            h = w * native_height / native_width;
+        }
+        // Ensure heights constraints
+        // https://www.w3.org/TR/CSS21/visudet.html#min-max-heights says that when
+        // ensuring the height constraints, "the rules above are applied again",
+        // meaning the previous width adjustment should be done again with the
+        // computed height.
+        // This comes down to, when no width specified, recompute the width to
+        // keep aspect ratio, and ensure min/max width on the recomputed width.
+        if ( max_height >= 0 && h > max_height) {
+            h = max_height;
+            if ( width < 0 ) {
+                w = h * native_width / native_height;
+                if ( max_width >= 0 && w > max_width)
+                    w = max_width;
+                if ( w < min_width )
+                    w = min_width;
+            }
+        }
+        if ( h < min_height ) {
+            h = min_height;
+            if ( width < 0 ) {
+                w = h * native_width / native_height;
+                if ( max_width >= 0 && w > max_width)
+                    w = max_width;
+                if ( w < min_width )
+                    w = min_width;
+            }
+        }
+    }
+    else {
+        // No CSS width nor height: use native image size
+        w = native_width;
+        h = native_height;
+        // We have the preferred image size, ensure min/max-width/height if any
+        // Follow the rules in case of constraint violations from:
+        // https://www.w3.org/TR/CSS2/visudet.html#min-max-widths
+        // "However, for replaced elements with an intrinsic ratio and *both* 'width'
+        // and 'height' specified as 'auto', the algorithm is as follows..."
+        // 10 rules (excluding none) in the table
+        // We follow them literally without thinking too much
+        if ( max_width >= 0 && w > max_width ) {
+            if ( max_height >= 0 && h > max_height ) {
+                if (max_width <= max_height * w / h ) { // rule 5
+                    int h2 = max_width * h / w;
+                    h = h2 > min_height ? h2 : min_height;
+                    w = max_width;
+                }
+                else { // rule 6
+                    int w2 = max_height * w / h;
+                    w = w2 > min_width ? w2 : min_width;
+                    h = max_height;
+                }
+            }
+            else if ( h < min_height ) { // rule 10
+                w = max_width;
+                h = min_height;
+            }
+            else { // rule 1 (similar to rule 5)
+                int h2 = max_width * h / w;
+                h = h2 > min_height ? h2 : min_height;
+                w = max_width;
+            }
+        }
+        else if ( max_height >= 0 && h > max_height ) {
+            if ( w < min_width ) { // rule 9
+                w = min_width;
+                h = max_height;
+            }
+            else { // rule 3 (similar to rule 6)
+                int w2 = max_height * w / h;
+                w = w2 > min_width ? w2 : min_width;
+                h = max_height;
+            }
+        }
+        else if ( w < min_width ) {
+            if ( h < min_height ) {
+                if (min_width <= min_height * w / h ) { // rule 7
+                    w = min_height * w / h;
+                    if ( max_width >= 0 && w > max_width) {
+                        w = max_width;
+                    }
+                    h = min_height;
+                }
+                else { // rule 8
+                    h = min_width * h / w;
+                    if ( max_height >= 0 && h > max_height) {
+                        h = max_height;
+                    }
+                    w = min_width;
+                }
+            }
+            else { // rule 2 (similar to rule 8)
+                h = min_width * h / w;
+                if ( max_height >= 0 && h > max_height) {
+                    h = max_height;
+                }
+                w = min_width;
+            }
+        }
+        else if ( h < min_height ) { // rule 4 (similar to rule 7)
+            w = min_height * w / h;
+            if ( max_width >= 0 && w > max_width) {
+                w = max_width;
+            }
+            h = min_height;
+        }
+    }
+
+    img_width = w;
+    img_height = h;
+    return true;
+}
+
+// Returns ink offsets from the node's RenderRectAccessor (its border box), positive when inward
+bool getInkOffsets( ldomNode * node, lvRect &inkOffsets, bool measure_hidden_content,
+                    bool ignore_decorations, bool skip_initial_borders, lvRect * borderBox ) {
+    RenderRectAccessor fmt( node );
+    if ( borderBox ) {
+        // Give this to caller if requested so it doesn't have to do it
+        borderBox->left = fmt.getX();
+        borderBox->right = fmt.getX() + fmt.getWidth();
+        borderBox->top = fmt.getY();
+        borderBox->bottom = fmt.getY() + fmt.getHeight();
+    }
+    LVInkMeasurementDrawBuf inkBuf(measure_hidden_content, ignore_decorations);
+    DrawDocument( inkBuf, node, 0, 0, fmt.getWidth(), fmt.getHeight(), 0 - fmt.getX(), 0 - fmt.getY(),
+                        node->getDocument()->getPageHeight(), NULL, NULL, true, false, skip_initial_borders );
+    lvRect inkArea;
+    if ( !inkBuf.getInkArea(inkArea) ) {
+        // printf("no ink area\n");
+        return false;
+    }
+    // printf("ink area %d>%d %d\\%d in fmt(%d>%d %d\\%d)\n", inkArea.left, inkArea.right, inkArea.top, inkArea.bottom, fmt.getX(), fmt.getX()+fmt.getWidth(), fmt.getY(), fmt.getY()+fmt.getHeight());
+    inkOffsets.left = inkArea.left;
+    inkOffsets.right = fmt.getWidth() - inkArea.right;
+    inkOffsets.top = inkArea.top;
+    inkOffsets.bottom = fmt.getHeight() - inkArea.bottom;
+    return true;
 }
 
 void SplitLines( const lString32 & str, lString32Collection & lines )
@@ -2510,8 +2940,8 @@ lString32 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
             marker_width = listProps->maxWidth;
         css_style_ref_t style = enode->getStyle();
         LVFontRef font = enode->getFont();
-        lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-        lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+        lUInt32 cl = getForegroundColor(style);
+        lUInt32 bgcl = getBackgroundColor(style);
         if (line_h < 0) { // -1, not specified by caller: find it out from the node
             if ( style->line_height.type == css_val_unspecified &&
                         style->line_height.value == css_generic_normal ) {
@@ -2519,7 +2949,7 @@ lString32 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
             }
             else {
                 int em = font->getSize();
-                line_h = lengthToPx(style->line_height, em, em, true);
+                line_h = lengthToPx(enode, style->line_height, em, em, true);
             }
             // Scale line_h according to document's _interlineScaleFactor
             if (style->line_height.type != css_val_screen_px && doc->getInterlineScaleFactor() != INTERLINE_SCALE_FACTOR_NO_SCALE)
@@ -2545,7 +2975,7 @@ lString32 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
         // in another LTR segment)
         if ( txform ) {
             TextLangCfg * lang_cfg = TextLangMan::getTextLangCfg( enode );
-            txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, 0);
+            txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, 0, enode);
         }
     }
     return marker;
@@ -2689,7 +3119,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         //   and whitespace-pre state.
 
         int width = fmt->getWidth();
-        int em = enode->getFont()->getSize();
+        const int em = enode->getFont()->getSize();
 
         // Nodes with "display: run-in" are inline nodes brought at start of the final node
         bool isRunIn = style->display == css_d_run_in;
@@ -2754,7 +3184,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // In all other cases (%, em, unitless/unspecified), we can just scale 'em',
                 // and use the computed value for absolute sized values (these will
                 // be affected by gRenderDPI) and 'rem' (related to root element font size).
-                line_h = lengthToPx(style->line_height, em, em, true);
+                line_h = lengthToPx(enode, style->line_height, em, em, true);
             }
         }
         else {
@@ -2765,7 +3195,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 switch( style->line_height.type ) {
                     case css_val_percent:
                     case css_val_em:
-                        line_h = lengthToPx(style->line_height, fh, fh);
+                        line_h = lengthToPx(enode, style->line_height, fh, fh);
                         break;
                     default: // Use font height (as line_h=16 in former code)
                         line_h = fh;
@@ -2817,7 +3247,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // So, sadly, let's keep it that way to not break legacy rendering.
             // todo: pass indent via txform->setTextIndent() (like we do for the strut
             // below, and get rid of it in AddSourceLine())
-            indent = lengthToPx(style->text_indent, width, em);
+            indent = lengthToPx(enode, style->text_indent, width);
             // lvstsheet sets the lowest bit to 1 when text-indent has the "hanging" keyword:
             if ( style->text_indent.value & 0x00000001 ) {
                 // lvtextfm handles negative indent as "indent by the negated (so, then
@@ -2851,6 +3281,20 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // Inline nodes having "-cr-hint: strut-confined" will be confined
             // inside that strut.
             flags |= LTEXT_STRUT_CONFINED;
+        }
+
+        // Other inherited CSS properties that don't need a special flag.
+        // (We should not reset this flag when this properties becomes
+        // normal again, as this LTEXT_HAS_EXTRA can signal the presence
+        // of other properties.)
+        if ( style->visibility >= css_v_hidden ) { // hidden
+            flags |= LTEXT_HAS_EXTRA;
+        }
+        if ( style->line_break > css_lb_auto ) { // normal, loose, strict
+            flags |= LTEXT_HAS_EXTRA;
+        }
+        if ( style->word_break > css_wb_break_word ) { // break-all or keep-all (break-word is handled as normal)
+            flags |= LTEXT_HAS_EXTRA;
         }
 
         // Now, process styles that may differ between inline nodes, and
@@ -2922,6 +3366,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         // some others, so use 4/5 (which is not the finest with some
                         // fonts, but a sane middle ground)
                         valign_dy += (pfh - pfb)*4/5;
+                        // The following alternatives usually give similar results:
+                        //   Via OS/2 metrics:
+                        //   valign_dy += parent->getFont()->getExtraMetric(font_metric_y_subscript_y_offset);
+                        //   As Firefox:
+                        //   valign_dy += pfh/5;
                         flags |= LTEXT_VALIGN_SUB;
                         break;
                     case css_va_super:
@@ -2930,6 +3379,12 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         // 1/4 of the font height looks alright with most fonts (we could also
                         // use a fraction of 'baseline' only, the height above the baseline)
                         valign_dy -= pfh / 4;
+                        // The following alternatives usually give larger results, which may quite easily
+                        // increase the normal line height and cause uneven line heights:
+                        //   Via OS/2 metrics:
+                        //   valign_dy -= parent->getFont()->getExtraMetric(font_metric_y_superscript_y_offset);
+                        //   As Firefox:
+                        //   valign_dy -= pfh / 3;
                         flags |= LTEXT_VALIGN_SUPER;
                         break;
                     case css_va_middle:
@@ -2997,7 +3452,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 int base_em = em; // use current font ->getSize()
                 int base_pct = line_h;
                 // positive values push text up, so reduce dy
-                valign_dy -= lengthToPx(vertical_align, base_pct, base_em);
+                valign_dy -= lengthToPx(enode, vertical_align, base_pct, base_em);
             }
         }
         switch ( style->text_decoration ) {
@@ -3037,25 +3492,23 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 txform->setStrut(0, 0);
                 line_h = 0;
                 indent = 0;
-                // Also, when such a floating image has a width in %, this width
-                // has been used to set the width of the floating box. We need to
-                // update this % width to be 100%, otherwise the image would be
-                // again set to this % of the floating box width...
-                // This feels a bit hacky, there might be a better place to deal with that...
-                if (style->width.type == css_val_percent && style->width.value != 100*256) {
-                    css_style_ref_t oldstyle = enode->getStyle();
-                    css_style_ref_t newstyle(new css_style_rec_t);
-                    copystyle(oldstyle, newstyle);
-                    newstyle->width.value = 100*256; // 100%
-                    enode->setStyle(newstyle);
-                    style = enode->getStyle().get(); // update to the new style
-                }
+                // Note: floating images with CSS width/height and min/max-width in %
+                // have had them converted to screen_px by renderBlockElementEnhanced()
             }
             // Also, the floating element or inline-block inner element vertical-align drift is dropped
             valign_dy = 0;
             flags &= ~LTEXT_VALIGN_MASK; // also remove any such flag we've set
             flags &= ~LTEXT_STRUT_CONFINED; // remove this if it's been set above
             // (Looks like nothing special to do with indent or line_h)
+
+            #if MATHML_SUPPORT==1
+                if ( rm == erm_final && RENDER_RECT_PTR_HAS_FLAG(fmt, DO_MATH_TRANSFORM) ) {
+                    // MathML <mo> elements are always erm_final, and their parent is an inlineBox
+                    // If they have a Mtransform= attribute, we'll need the text drawing code
+                    // to stretch the glyph (or have the font use variants)
+                    flags |= LTEXT_MATH_TRANSFORM;
+                }
+            #endif
         }
 
         if ( style->display == css_d_list_item_legacy ) { // obsolete (used only when gDOMVersionRequested < 20180524)
@@ -3087,14 +3540,14 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     marker_width = listProps->maxWidth;
                 css_list_style_position_t sp = style->list_style_position;
                 LVFontRef font = enode->getFont();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                lUInt32 cl = getForegroundColor(style);
+                lUInt32 bgcl = getBackgroundColor(style);
                 int margin = 0;
                 if ( sp==css_lsp_outside )
                     margin = -marker_width; // will ensure negative/hanging indent-like rendering
                 marker += "\t";
                 txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy,
-                                        margin, NULL );
+                                        margin, enode );
                 flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH;
             }
         }
@@ -3142,8 +3595,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 lUInt32 flags = styleToTextFmtFlags( true, enode->getStyle(), baseflags, direction );
                 //txform->AddSourceLine(U"title", 5, 0x000000, 0xffffff, font, baseflags, interval, margin, NULL, 0, 0);
                 LVFontRef font = enode->getFont();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                lUInt32 cl = getForegroundColor(style);
+                lUInt32 bgcl = 0xFFFFFFFF; // erm_final: any background will be drawn by DrawDocument
                 lString32 title;
                 //txform->AddSourceLine( title.c_str(), title.length(), cl, bgcl, font, LTEXT_FLAG_OWNTEXT|LTEXT_FLAG_NEWLINE, line_h, 0, NULL );
                 //baseflags
@@ -3152,7 +3605,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     lString32Collection lines;
                     lines.parse(title, cs32("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
-                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
+                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, enode );
                 }
                 txform->AddSourceObject(flags, line_h, valign_dy, indent, enode, lang_cfg );
                 title = enode->getAttributeValue(attr_subtitle);
@@ -3160,14 +3613,14 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     lString32Collection lines;
                     lines.parse(title, cs32("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
-                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
+                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, enode );
                 }
                 title = enode->getAttributeValue(attr_title);
                 if ( !title.empty() ) {
                     lString32Collection lines;
                     lines.parse(title, cs32("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
-                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
+                        txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, enode );
                 }
             } else { // inline image
                 // We use the flags computed previously (and not baseflags) as they
@@ -3262,8 +3715,10 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // any txform->AddSourceLine(). If we delay that and add another
                 // char before, this other char would generate a new line.
                 LVFontRef font = enode->getFont();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                lUInt32 cl = getForegroundColor(style);
+                // If erm_final, the background will be drawn by DrawDocument, and should not
+                // be drawn by the LFormattedText txform
+                lUInt32 bgcl = rm == erm_final ? 0xFFFFFFFF : getBackgroundColor(style);
 
                 // The following is needed for fribidi to do the right thing when the content creator
                 // has provided hints to explicite ambiguous cases.
@@ -3285,16 +3740,16 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     //  leaving  => PDF PDI
                     // but it then doesn't have the intended effect (fribidi bug or limitation?)
                     if ( dir.compare("rtl") == 0 ) {
-                        // txform->AddSourceLine( U"\x2068\x202E", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        // txform->AddSourceLine( U"\x2068\x202E", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, enode);
                         // closeWithPDFPDI = true;
-                        txform->AddSourceLine( U"\x202E", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( U"\x202E", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, enode);
                         closeWithPDF = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( dir.compare("ltr") == 0 ) {
-                        // txform->AddSourceLine( U"\x2068\x202D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        // txform->AddSourceLine( U"\x2068\x202D", 1, cl, bgcl, font, lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, enode);
                         // closeWithPDFPDI = true;
-                        txform->AddSourceLine( U"\x202D", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( U"\x202D", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, enode);
                         closeWithPDF = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
@@ -3307,17 +3762,17 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     //  dir=auto => FSI     U+2068  FIRST STRONG ISOLATE
                     //  leaving  => PDI     U+2069  POP DIRECTIONAL ISOLATE
                     if ( dir.compare("rtl") == 0 ) {
-                        txform->AddSourceLine( U"\x2067", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( U"\x2067", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, enode);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( dir.compare("ltr") == 0 ) {
-                        txform->AddSourceLine( U"\x2066", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( U"\x2066", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, enode);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                     else if ( nodeElementId == el_bdi || dir.compare("auto") == 0 ) {
-                        txform->AddSourceLine( U"\x2068", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                        txform->AddSourceLine( U"\x2068", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, enode);
                         closeWithPDI = true;
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
@@ -3345,8 +3800,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     lString32 content = get_applied_content_property(enode);
                     if ( !content.empty() ) {
                         int em = font->getSize();
-                        int letter_spacing = lengthToPx(style->letter_spacing, em, em);
-                        txform->AddSourceLine( content.c_str(), content.length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, NULL, 0, letter_spacing);
+                        int letter_spacing = lengthToPx(enode, style->letter_spacing, em);
+                        txform->AddSourceLine( content.c_str(), content.length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, enode, 0, letter_spacing);
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                     }
                 }
@@ -3368,19 +3823,19 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
 
             if ( addGeneratedContent ) {
                 LVFontRef font = enode->getFont();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                lUInt32 cl = getForegroundColor(style);
+                lUInt32 bgcl = rm == erm_final ? 0xFFFFFFFF : getBackgroundColor(style);
                 // See comment above: these are the closing counterpart
                 if ( closeWithPDI ) {
-                    txform->AddSourceLine( U"\x2069", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                    txform->AddSourceLine( U"\x2069", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, enode);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
                 else if ( closeWithPDFPDI ) {
-                    txform->AddSourceLine( U"\x202C\x2069", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                    txform->AddSourceLine( U"\x202C\x2069", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, enode);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
                 else if ( closeWithPDF ) {
-                    txform->AddSourceLine( U"\x202C", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent);
+                    txform->AddSourceLine( U"\x202C", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, enode);
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 }
             }
@@ -3393,16 +3848,16 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // and we don't use UNICODE_NO_BREAK_SPACE.
                 LVFontRef font = enode->getFont();
                 css_style_ref_t style = enode->getStyle();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-                txform->AddSourceLine( U" ", 1, cl, bgcl, font.get(), lang_cfg, LTEXT_LOCKED_SPACING|LTEXT_FLAG_OWNTEXT, line_h, valign_dy);
+                lUInt32 cl = getForegroundColor(style);
+                lUInt32 bgcl = rm == erm_final ? 0xFFFFFFFF : getBackgroundColor(style);
+                txform->AddSourceLine( U" ", 1, cl, bgcl, font.get(), lang_cfg, LTEXT_LOCKED_SPACING|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, enode);
                 /*
                 // We used to specify two UNICODE_NO_BREAK_SPACE (that would not collapse)
                 // mostly so we were able to detect them in lvtextfm.cpp and avoid this
                 // spacing to change width with text justification.
                 lChar32 delimiter[] = {UNICODE_NO_BREAK_SPACE, UNICODE_NO_BREAK_SPACE}; //160
                 txform->AddSourceLine( delimiter, sizeof(delimiter)/sizeof(lChar32), cl, bgcl, font.get(), lang_cfg,
-                                            LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
+                                            LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, enode );
                 // Users who would like more spacing can use:
                 //   body[name="notes"] section title:after,
                 //   body[name="comments"] section title:after {
@@ -3444,11 +3899,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // as wanted by a <BR/>.
                 // (This makes consecutive and stuck <br><br><br> work)
                 LVFontRef font = enode->getFont();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                lUInt32 cl = getForegroundColor(style);
+                lUInt32 bgcl = rm == erm_final ? 0xFFFFFFFF : getBackgroundColor(style);
                 txform->AddSourceLine( U" ", 1, cl, bgcl, font.get(), lang_cfg,
                                         baseflags | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
-                                        line_h, valign_dy);
+                                        line_h, valign_dy, 0, enode);
                 // baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
                 // No need to clear the flag, as we set it just below
                 // (any LTEXT_ALIGN_* set implies LTEXT_FLAG_NEWLINE)
@@ -3505,11 +3960,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // by lvtextfm.cpp splitParagraphs() to not add this empty
             // string to text, and just call floatClearText().
             LVFontRef font = enode->getFont();
-            lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-            lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+            lUInt32 cl = getForegroundColor(style);
+            lUInt32 bgcl = 0xFFFFFFFF; // erm_final: any background will be drawn by DrawDocument
             txform->AddSourceLine( U" ", 1, cl, bgcl, font.get(), lang_cfg,
                             baseflags | LTEXT_SRC_IS_CLEAR_LAST | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
-                            line_h, valign_dy);
+                            line_h, valign_dy, 0, enode);
         }
     }
     else if ( enode->isText() ) {
@@ -3523,7 +3978,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     << baseflags << ")\n";
             #endif
 
-            ldomNode * parent = enode->getParentNode();
+            ldomNode * const parent = enode->getParentNode();
             lUInt32 tflags = LTEXT_FLAG_OWNTEXT;
             // if ( parent->getNodeId() == el_a ) // "123" in <a href=><sup>123</sup></a> would not be flagged
             if (is_link_start && *is_link_start) { // was propagated from some outer <A>
@@ -3534,21 +3989,13 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     // reset to false, so next text nodes in that link are not
                     // flagged, and don't make out duplicate in-page footnotes
             }
-            LVFontRef font = parent->getFont();
+            LVFontRef const font = parent->getFont();
             css_style_ref_t style = parent->getStyle();
-            lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-            lUInt32 bgcl = 0xFFFFFFFF;
-            if ( style->background_color.type == css_val_color && (lUInt32)style->background_color.value != 0xFFFFFFFF ) {
-                bgcl = style->background_color.value;
-                // Avoid painting same background color as upper node, as it may cover any background image
-                ldomNode * gparent = parent->getParentNode();
-                if( gparent && !gparent->isNull() ) {
-                    css_length_t gparent_bgcolor = gparent->getStyle()->background_color;
-                    if ( gparent_bgcolor.type == css_val_color && (lUInt32)gparent_bgcolor.value == bgcl ) {
-                        bgcl=0xFFFFFFFF;
-                    }
-                }
-            }
+
+            lUInt32 cl = getForegroundColor(style);
+            // If erm_final, the background will be drawn by DrawDocument, and should not
+            // be drawn over each word by the LFormattedText txform
+            lUInt32 bgcl = parent->getRendMethod() == erm_final ? 0xFFFFFFFF : getBackgroundColor(style);
 
             switch (style->text_transform) {
             case css_tt_uppercase:
@@ -3574,7 +4021,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // in place of width
             // lengthToPx() will correctly return 0 with css_generic_normal
             int em = font->getSize();
-            letter_spacing = lengthToPx(style->letter_spacing, em, em);
+            letter_spacing = lengthToPx(parent, style->letter_spacing, em);
             /*
             if ( baseflags & LTEXT_FLAG_PREFORMATTED ) {
                 int flags = baseflags | tflags;
@@ -3614,7 +4061,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // To show the lang tag for the lang used for this text node AFTER it:
                 // lString32 lang_tag_txt = U"[" + (lang_cfg ? lang_cfg->getLangTag() : lString32("??")) + U"]";
                 // txform->AddSourceLine( lang_tag_txt.c_str(), lang_tag_txt.length(), cl, bgcl, font,
-                //          lang_cfg, baseflags|tflags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
+                //          lang_cfg, baseflags|tflags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, enode );
             }
         }
     }
@@ -3683,6 +4130,10 @@ void copystyle( css_style_ref_t source, css_style_ref_t dest )
     dest->line_height = source->line_height ;
     dest->width = source->width ;
     dest->height = source->height ;
+    dest->min_width = source->min_width ;
+    dest->min_height = source->min_height ;
+    dest->max_width = source->max_width ;
+    dest->max_height = source->max_height ;
     dest->margin[0] = source->margin[0] ;
     dest->margin[1] = source->margin[1] ;
     dest->margin[2] = source->margin[2] ;
@@ -3725,6 +4176,9 @@ void copystyle( css_style_ref_t source, css_style_ref_t dest )
     dest->float_ = source->float_;
     dest->clear = source->clear;
     dest->direction = source->direction;
+    dest->visibility = source->visibility;
+    dest->line_break = source->line_break;
+    dest->word_break = source->word_break;
     dest->content = source->content ;
     dest->cr_hint.type = source->cr_hint.type ;
     dest->cr_hint.value = source->cr_hint.value ;
@@ -3845,7 +4299,6 @@ void getPageBreakStyle( ldomNode * el, css_page_break_t &before, css_page_break_
 
 //measure border width, 0 for top,1 for right,2 for bottom,3 for left
 int measureBorder(ldomNode *enode,int border) {
-        int em = enode->getFont()->getSize();
         // No need for a width, as border does not support units in % according
         // to CSS specs.
         int width = 0;
@@ -3862,7 +4315,7 @@ int measureBorder(ldomNode *enode,int border) {
                 if (!hastopBorder) return 0;
                 css_length_t bw = style->border_width[0];
                 if (bw.value == 0 && bw.type > css_val_unspecified) return 0; // explicit value of 0: no border
-                int topBorderwidth = lengthToPx(bw, width, em);
+                int topBorderwidth = lengthToPx(enode, bw, width);
                 topBorderwidth = topBorderwidth != 0 ? topBorderwidth : DEFAULT_BORDER_WIDTH;
                 return topBorderwidth;}
         else if (border==1){
@@ -3871,7 +4324,7 @@ int measureBorder(ldomNode *enode,int border) {
                 if (!hasrightBorder) return 0;
                 css_length_t bw = style->border_width[1];
                 if (bw.value == 0 && bw.type > css_val_unspecified) return 0;
-                int rightBorderwidth = lengthToPx(bw, width, em);
+                int rightBorderwidth = lengthToPx(enode, bw, width);
                 rightBorderwidth = rightBorderwidth != 0 ? rightBorderwidth : DEFAULT_BORDER_WIDTH;
                 return rightBorderwidth;}
         else if (border ==2){
@@ -3880,7 +4333,7 @@ int measureBorder(ldomNode *enode,int border) {
                 if (!hasbottomBorder) return 0;
                 css_length_t bw = style->border_width[2];
                 if (bw.value == 0 && bw.type > css_val_unspecified) return 0;
-                int bottomBorderwidth = lengthToPx(bw, width, em);
+                int bottomBorderwidth = lengthToPx(enode, bw, width);
                 bottomBorderwidth = bottomBorderwidth != 0 ? bottomBorderwidth : DEFAULT_BORDER_WIDTH;
                 return bottomBorderwidth;}
         else if (border==3){
@@ -3889,7 +4342,7 @@ int measureBorder(ldomNode *enode,int border) {
                 if (!hasleftBorder) return 0;
                 css_length_t bw = style->border_width[3];
                 if (bw.value == 0 && bw.type > css_val_unspecified) return 0;
-                int leftBorderwidth = lengthToPx(bw, width, em);
+                int leftBorderwidth = lengthToPx(enode, bw, width);
                 leftBorderwidth = leftBorderwidth != 0 ? leftBorderwidth : DEFAULT_BORDER_WIDTH;
                 return leftBorderwidth;}
         else
@@ -3901,16 +4354,16 @@ int measureBorder(ldomNode *enode,int border) {
 int pagebreakhelper(ldomNode *enode,int width)
 {
     int flag=css_pb_auto;
-    int em = enode->getFont()->getSize();
-    int margin_top = lengthToPx( enode->getStyle()->margin[2], width, em ) + DEBUG_TREE_DRAW;
-    int padding_top = lengthToPx( enode->getStyle()->padding[2], width, em ) + DEBUG_TREE_DRAW+measureBorder(enode,0);
+    int margin_top = lengthToPx( enode, enode->getStyle()->margin[2], width ) + DEBUG_TREE_DRAW;
+    int padding_top = lengthToPx( enode, enode->getStyle()->padding[2], width ) + DEBUG_TREE_DRAW+measureBorder(enode,0);
     flag=CssPageBreak2Flags(getPageBreakBefore(enode))<<RN_SPLIT_BEFORE;
     if (flag==RN_SPLIT_BEFORE_ALWAYS){
         ldomNode *node=enode;
         int top=0;
         while (!node->isNull()) {
-            top+=lengthToPx( node->getStyle()->margin[2], width, em ) +
-                 lengthToPx( node->getStyle()->padding[2], width, em ) +
+            // TODO: should the child node be passed to lengthToPx rather than the parent enode?
+            top+=lengthToPx( enode, node->getStyle()->margin[2], width ) +
+                 lengthToPx( enode, node->getStyle()->padding[2], width ) +
                  measureBorder(node,0);
             ldomNode * parent = node->getParentNode();
             if ( !parent ) break;
@@ -4012,16 +4465,16 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
 //            x = x;
 
         int em = enode->getFont()->getSize();
-        int margin_left = lengthToPx( style->margin[0], width, em ) + DEBUG_TREE_DRAW;
-        int margin_right = lengthToPx( style->margin[1], width, em ) + DEBUG_TREE_DRAW;
-        int margin_top = lengthToPx( style->margin[2], width, em ) + DEBUG_TREE_DRAW;
-        int margin_bottom = lengthToPx( style->margin[3], width, em ) + DEBUG_TREE_DRAW;
+        int margin_left = lengthToPx( enode, style->margin[0], width ) + DEBUG_TREE_DRAW;
+        int margin_right = lengthToPx( enode, style->margin[1], width ) + DEBUG_TREE_DRAW;
+        int margin_top = lengthToPx( enode, style->margin[2], width ) + DEBUG_TREE_DRAW;
+        int margin_bottom = lengthToPx( enode, style->margin[3], width ) + DEBUG_TREE_DRAW;
         int border_top = measureBorder(enode,0);
         int border_bottom = measureBorder(enode,2);
-        int padding_left = lengthToPx( style->padding[0], width, em ) + DEBUG_TREE_DRAW + measureBorder(enode,3);
-        int padding_right = lengthToPx( style->padding[1], width, em ) + DEBUG_TREE_DRAW + measureBorder(enode,1);
-        int padding_top = lengthToPx( style->padding[2], width, em ) + DEBUG_TREE_DRAW + border_top;
-        int padding_bottom = lengthToPx( style->padding[3], width, em ) + DEBUG_TREE_DRAW + border_bottom;
+        int padding_left = lengthToPx( enode, style->padding[0], width ) + DEBUG_TREE_DRAW + measureBorder(enode,3);
+        int padding_right = lengthToPx( enode, style->padding[1], width ) + DEBUG_TREE_DRAW + measureBorder(enode,1);
+        int padding_top = lengthToPx( enode, style->padding[2], width ) + DEBUG_TREE_DRAW + border_top;
+        int padding_bottom = lengthToPx( enode, style->padding[3], width ) + DEBUG_TREE_DRAW + border_bottom;
         // If there is a border at top/bottom, the AddLine(padding), which adds the room
         // for the border too, should avoid a page break between the node and its border
         int padding_top_split_flag = border_top ? RN_SPLIT_AFTER_AVOID : 0;
@@ -4080,7 +4533,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                 }
             }
             if (apply_style_width) {
-                int style_width_px = lengthToPx( style_width, width, em );
+                int style_width_px = lengthToPx( enode, style_width, width );
                 if (style_width_px && style_width_px < width) { // ignore if greater than our given width
                     // printf("style_width: %dps at ~y=%d\n", style_width_px, y);
                     if (style_width_alignment == 1) { // centered
@@ -4174,7 +4627,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                     bool shrink_to_fit = false;
                     int fitted_width = -1;
                     int table_width = width;
-                    int specified_width = lengthToPx( style->width, width, em );
+                    int specified_width = lengthToPx( enode, style->width, width );
                     if (specified_width <= 0) {
                         // We get 0 when width unspecified (not set or when "width: auto"):
                         // use container width, but allow table to shrink
@@ -4186,9 +4639,9 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                             specified_width = width;
                         table_width = specified_width;
                     }
-                    int h = renderTable( context, enode, 0, y, table_width, shrink_to_fit, fitted_width );
+                    int h = renderTable( context, enode, 0, y, table_width, shrink_to_fit, 0, fitted_width );
                     // Should we really apply a specified height ?!
-                    int st_h = lengthToPx( style->height, em, em );
+                    int st_h = lengthToPx( enode, style->height, em );
                     if ( h < st_h )
                         h = st_h;
                     fmt.setHeight( h );
@@ -4324,7 +4777,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                         y += list_marker_height - block_height;
                     }
 
-                    int st_y = lengthToPx( style->height, em, em );
+                    int st_y = lengthToPx( enode, style->height, em );
                     if ( y < st_y )
                         y = st_y;
                     fmt.setHeight( y + padding_bottom ); //+ margin_top + margin_bottom ); //???
@@ -4893,8 +5346,8 @@ public:
                 int row_baseline = fmt.getY() + fmt.getBaseline();
                 ldomNode * n = rowNode->getParentNode();
                 for (; n && n!=node; n=n->getParentNode()) {
-                    RenderRectAccessor fmt(n);
-                    row_baseline += fmt.getY();
+                    RenderRectAccessor nfmt(n);
+                    row_baseline += nfmt.getY();
                 }
                 if ( !baseline_set || (row_baseline < baseline_y) ) {
                     baseline_y = row_baseline;
@@ -4908,8 +5361,13 @@ public:
             //  [or ...], in which case the baseline is the bottom margin edge."
             // So, return what will be returned as height just after this
             // function is called in renderBlockElement().
-            return getCurrentAbsoluteY();
+            baseline_y = getCurrentAbsoluteY();
         }
+        #if MATHML_SUPPORT==1
+            // Update (or recompute/replace) the computed baseline if this table
+            // is a MathML element that sets it differently
+            MathML_updateBaseline( node, baseline_y );
+        #endif
         return baseline_y;
     }
 
@@ -6452,22 +6910,22 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         is_inline_box_child = false;
     }
 
-    int em = enode->getFont()->getSize();
+    const int em = enode->getFont()->getSize();
 
     int border_left = measureBorder(enode, 3);
     int border_right = measureBorder(enode, 1);
-    int padding_left   = lengthToPx( style->padding[0], container_width, em ) + border_left + DEBUG_TREE_DRAW;
-    int padding_right  = lengthToPx( style->padding[1], container_width, em ) + border_right + DEBUG_TREE_DRAW;
-    int padding_top    = lengthToPx( style->padding[2], container_width, em ) + measureBorder(enode, 0) + DEBUG_TREE_DRAW;
-    int padding_bottom = lengthToPx( style->padding[3], container_width, em ) + measureBorder(enode, 2) + DEBUG_TREE_DRAW;
+    int padding_left   = lengthToPx( enode, style->padding[0], container_width ) + border_left + DEBUG_TREE_DRAW;
+    int padding_right  = lengthToPx( enode, style->padding[1], container_width ) + border_right + DEBUG_TREE_DRAW;
+    int padding_top    = lengthToPx( enode, style->padding[2], container_width ) + measureBorder(enode, 0) + DEBUG_TREE_DRAW;
+    int padding_bottom = lengthToPx( enode, style->padding[3], container_width ) + measureBorder(enode, 2) + DEBUG_TREE_DRAW;
 
     css_length_t css_margin_left  = style->margin[0];
     css_length_t css_margin_right = style->margin[1];
 
-    int margin_left   = lengthToPx( css_margin_left, container_width, em ) + DEBUG_TREE_DRAW;
-    int margin_right  = lengthToPx( css_margin_right, container_width, em ) + DEBUG_TREE_DRAW;
-    int margin_top    = lengthToPx( style->margin[2], container_width, em ) + DEBUG_TREE_DRAW;
-    int margin_bottom = lengthToPx( style->margin[3], container_width, em ) + DEBUG_TREE_DRAW;
+    int margin_left   = lengthToPx( enode, css_margin_left, container_width ) + DEBUG_TREE_DRAW;
+    int margin_right  = lengthToPx( enode, css_margin_right, container_width ) + DEBUG_TREE_DRAW;
+    int margin_top    = lengthToPx( enode, style->margin[2], container_width ) + DEBUG_TREE_DRAW;
+    int margin_bottom = lengthToPx( enode, style->margin[3], container_width ) + DEBUG_TREE_DRAW;
 
     if ( ! BLOCK_RENDERING(flags, ALLOW_HORIZONTAL_NEGATIVE_MARGINS) ) {
         if (margin_left < 0) margin_left = 0;
@@ -6482,6 +6940,9 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
     // Adjust box size and position
 
+    // We may trust width set on our own boxing elements, even if a table
+    // element wheree it is usually ignored
+    bool is_boxing_elem = nodeElementId >= EL_BOXING_START && nodeElementId <= EL_BOXING_END;
     // <HR> gets its style width, height and margin:auto no matter flags
     bool is_hr = nodeElementId == el_hr;
     // <EMPTY-LINE> block element with height added for empty lines in txt document
@@ -6498,19 +6959,14 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     // padding when erm_block or erm_final)
     // Otherwise, this block height will just be its rendered content height.
     int style_h = -1;
-    bool apply_style_height = false;
-    css_length_t style_height;
-    int style_height_base_em;
     if ( is_floating || is_inline_box ) {
         // Nothing special to do: the child style height will be
         // enforced by subcall to renderBlockElement(child)
     }
     else if ( is_hr || is_empty_line_elem || BLOCK_RENDERING(flags, ENSURE_STYLE_HEIGHT) ) {
-        // We always use the style height for <HR>, to actually have
-        // a height to fill with its color
-        style_height = style->height;
-        style_height_base_em = em;
-        apply_style_height = true;
+        // We always use the style height for <HR>, to actually have a height to fill
+        // with its color (as some of our css files render them via height)
+        css_length_t style_height = style->height;
         if ( is_empty_line_elem && style_height.type == css_val_unspecified ) {
             // No height specified: default to line-height, just like
             // if it were rendered final.
@@ -6523,7 +6979,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 // In all other cases (%, em, unitless/unspecified), we can just
                 // scale 'em', and use the computed value for absolute sized
                 // values and 'rem' (related to root element font size).
-                line_h = lengthToPx(style->line_height, em, em, true);
+                line_h = lengthToPx(enode, style->line_height, em, em, true);
             }
             // Scale line_h according to document's _interlineScaleFactor, but
             // not if it was already in screen_px, which means it has already
@@ -6534,22 +6990,54 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
             style_height.value = line_h;
             style_height.type = css_val_screen_px;
         }
-    }
-    if ( apply_style_height && style_height.type != css_val_unspecified ) {
-        if ( !BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) &&
-                style_height.type != css_val_percent && style_height.type != css_val_em &&
-                style_height.type != css_val_ex && style_height.type != css_val_rem ) {
-            apply_style_height = false;
+        // We don't have a container height to apply heights in %, so ignore them
+        if ( style_height.type != css_val_unspecified && style_height.type != css_val_percent ) {
+            if ( BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) ||
+                 style_height.type == css_val_screen_px ||
+                 is_length_relative_unit(style_height.type) ||
+                 is_hr || is_empty_line_elem ) {
+                style_h = lengthToPx( enode, style_height, 0 );
+                if ( BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) ) {
+                    // If W3C box model requested, CSS height specifies the height
+                    // of the content box, so we just add paddings and borders
+                    // to the height we got from styles (paddings will be removed
+                    // when enforcing it below, but we keep the computation
+                    // common to both models doing it that way).
+                    style_h += padding_top + padding_bottom;
+                }
+            }
         }
-        if ( is_hr || is_empty_line_elem || apply_style_height ) {
-            style_h = lengthToPx( style_height, container_width, style_height_base_em );
-            if ( BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) ) {
-                // If W3C box model requested, CSS height specifies the height
-                // of the content box, so we just add paddings and borders
-                // to the height we got from styles (paddings will be removed
-                // when enforcing it below, but we keep the computation
-                // common to both models doing it that way).
-                style_h += padding_top + padding_bottom;
+        // Note: we'll always use the height needed to show this block content without overflowing
+        css_length_t style_max_height = style->max_height;
+        if ( style_max_height.type != css_val_unspecified &&
+             style_max_height.type != css_val_percent &&
+             BLOCK_RENDERING(flags, ENSURE_STYLE_HEIGHT) ) {
+            if ( BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) ||
+                 style_max_height.type == css_val_screen_px ||
+                 is_length_relative_unit(style_max_height.type) ) {
+                int style_max_h = lengthToPx( enode, style_max_height, 0 );
+                if ( BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) ) {
+                    style_max_h += padding_top + padding_bottom;
+                }
+                if ( style_h > style_max_h ) {
+                    style_h = style_max_h;
+                }
+            }
+        }
+        css_length_t style_min_height = style->min_height;
+        if ( style_min_height.type != css_val_unspecified &&
+             style_min_height.type != css_val_percent &&
+             BLOCK_RENDERING(flags, ENSURE_STYLE_HEIGHT) ) {
+            if ( BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) ||
+                 style_min_height.type == css_val_screen_px ||
+                 is_length_relative_unit(style_min_height.type) ) {
+                int style_min_h = lengthToPx( enode, style_min_height, 0 );
+                if ( BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) ) {
+                    style_min_h += padding_top + padding_bottom;
+                }
+                if ( style_h < style_min_h ) {
+                    style_h = style_min_h;
+                }
             }
         }
     }
@@ -6558,6 +7046,11 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     int width;
     bool auto_width = false;
     bool table_shrink_to_fit = false;
+    // Keep the computed values for min-width/max-width in case we need them
+    // (we do need min_width for tables with no width: that shrink to fit, and
+    // that we can just shrink less to ensure min-width)
+    int min_width = -1;
+    int max_width = -1;
 
     if ( is_floating || is_inline_box ) {
         // Floats width computation - which should also work as-is for inline block box
@@ -6567,7 +7060,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         // we should compute our width from the child style, and possibly
         // from its rendered content width.
         ldomNode * child = enode->getChildNode(0);
-        int child_em = child->getFont()->getSize();
+        lUInt16 childElementId = child->getNodeId();
         css_style_ref_t child_style = child->getStyle();
 
         // We may tweak child styles
@@ -6583,25 +7076,68 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     style_changed = true;
                 }
                 newstyle->padding[i].type = css_val_screen_px;
-                newstyle->padding[i].value = lengthToPx( child_style->padding[i], container_width, child_em );
+                newstyle->padding[i].value = lengthToPx( child, child_style->padding[i], container_width );
             }
         }
         // Same for width, as getRenderedWidths() won't ensure width in %
-        if ( child_style->width.type == css_val_percent ) {
+        if ( childElementId == el_img || childElementId == el_image ) {
+            // For an image itself floating, get its computed width and height
+            // via getStyledImageSize() to properly ensure min/max-width/height
+            // and aspect ratio, and store them back as screen_px, so
+            // getRenderedWidths() and renderFinalBlock() can just use them.
             if (!style_changed) {
                 copystyle(child_style, newstyle);
                 style_changed = true;
             }
+            int img_width = 0;
+            int img_height = 0;
+            getStyledImageSize( child, img_width, img_height, container_width, -1 );
             newstyle->width.type = css_val_screen_px;
-            newstyle->width.value = lengthToPx( child_style->width, container_width, child_em );
+            newstyle->width.value = img_width;
+            newstyle->height.type = css_val_screen_px;
+            newstyle->height.value = img_height;
+            newstyle->min_width.type = css_val_unspecified;
+            newstyle->min_width.value = 0;
+            newstyle->min_height.type = css_val_unspecified;
+            newstyle->min_height.value = 0;
+            newstyle->max_width.type = css_val_unspecified;
+            newstyle->max_width.value = 0;
+            newstyle->max_height.type = css_val_unspecified;
+            newstyle->max_height.value = 0;
+        }
+        else {
+            if ( child_style->width.type == css_val_percent ) {
+                if (!style_changed) {
+                    copystyle(child_style, newstyle);
+                    style_changed = true;
+                }
+                newstyle->width.type = css_val_screen_px;
+                newstyle->width.value = lengthToPx( child, child_style->width, container_width );
+            }
+            if ( child_style->min_width.type == css_val_percent ) {
+                if (!style_changed) {
+                    copystyle(child_style, newstyle);
+                    style_changed = true;
+                }
+                newstyle->min_width.type = css_val_screen_px;
+                newstyle->min_width.value = lengthToPx( child, child_style->min_width, container_width );
+            }
+            if ( child_style->max_width.type == css_val_percent ) {
+                if (!style_changed) {
+                    copystyle(child_style, newstyle);
+                    style_changed = true;
+                }
+                newstyle->max_width.type = css_val_screen_px;
+                newstyle->max_width.value = lengthToPx( child, child_style->max_width, container_width );
+            }
         }
         // (We could do the same fot height if in %, but it looks like Firefox
         // just ignore floats height in %, so let's ignore them too.)
         if ( ! BLOCK_RENDERING(flags, ALLOW_HORIZONTAL_BLOCK_OVERFLOW) ) {
             // Simplest way to avoid a float overflowing its floatBox is to
             // ensure no negative margins
-            int child_margin_left   = lengthToPx( child_style->margin[0], container_width, child_em );
-            int child_margin_right  = lengthToPx( child_style->margin[1], container_width, child_em );
+            int child_margin_left   = lengthToPx( child, child_style->margin[0], container_width );
+            int child_margin_right  = lengthToPx( child, child_style->margin[1], container_width );
             if ( child_margin_left < 0 ) {
                 if (!style_changed) {
                     copystyle(child_style, newstyle);
@@ -6628,8 +7164,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         // The margins of the element with float: are related to our container_width,
         // so account for them here, and don't let getRenderedWidths() add them (or they
         // would be reverse-computed from the inner content)
-        int child_margin_left   = lengthToPx( child_style->margin[0], container_width, child_em );
-        int child_margin_right  = lengthToPx( child_style->margin[1], container_width, child_em );
+        int child_margin_left   = lengthToPx( child, child_style->margin[0], container_width );
+        int child_margin_right  = lengthToPx( child, child_style->margin[1], container_width );
         int child_margins = child_margin_left + child_margin_right;
         // A floatBox does not have any margin/padding/border itself, but we
         // may add some border with CSS for debugging, so account for any
@@ -6657,7 +7193,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
             width = container_width;
         }
         auto_width = true; // no more width tweaks (nor any x adjustment if is_rtl)
-        // printf("floatBox width: max_w=%d min_w=%d => %d", max_content_width, min_content_width, width);
+        // printf("floatBox width: max_w=%d min_w=%d => %d\n", max_content_width, min_content_width, width);
     }
     else if ( is_floatbox_child || is_inline_box_child ) {
         // The float style or rendered width has been applied to the wrapping
@@ -6670,19 +7206,17 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     else { // regular element (non-float)
         bool apply_style_width = false;
         css_length_t style_width = style->width;
-        if ( style->display > css_d_table ) {
-            // table sub-elements widths are managed by the table layout algorithm
-            apply_style_width = false;
-        }
-        else {
+        // table sub-elements widths are managed by the table layout algorithm
+        // (but trust width if the table sub element is one of our boxing elements)
+        if ( style->display <= css_d_table || is_boxing_elem ) {
             // Only if ENSURE_STYLE_WIDTH as we may prefer having
             // full width text blocks to not waste reading width with blank areas.
             if ( style_width.type != css_val_unspecified ) {
-                apply_style_width = BLOCK_RENDERING(flags, ENSURE_STYLE_WIDTH);
-                if ( apply_style_width && !BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) &&
-                        style_width.type != css_val_percent && style_width.type != css_val_em &&
-                        style_width.type != css_val_ex && style_width.type != css_val_rem ) {
-                    apply_style_width = false;
+                if ( BLOCK_RENDERING(flags, ENSURE_STYLE_WIDTH) &&
+                     ( BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) ||
+                       style_width.type == css_val_screen_px || // in case it was converted to screen_px beforehand
+                       is_length_relative_unit(style_width.type) ) ) {
+                    apply_style_width = true;
                 }
                 if ( is_hr ) {
                     // We always use style width for <HR> for aesthetic reasons
@@ -6700,7 +7234,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
             }
         }
         if ( apply_style_width ) {
-            width = lengthToPx( style_width, container_width, em );
+            width = lengthToPx( enode, style_width, container_width );
             // In all crengine computation, width/fmt.getWidth() is the width
             // of the border box (content box + paddings + borders).
             // If we use what we got directly, we are in the traditional
@@ -6724,6 +7258,42 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
             width = container_width - margin_left - margin_right;
             auto_width = true; // no more width tweaks
         }
+        if ( BLOCK_RENDERING(flags, ENSURE_STYLE_WIDTH) ) {
+            // Whether there was a style width or not, we need to ensure the computed
+            // width fits between min-width and max-width if any specified.
+            // (we do that here only for regular elements - for floatBox and floatBox child,
+            // this is ensured naturally by the inner content measurement)
+            // We do max-width first, and then min-width (https://www.w3.org/TR/CSS2/visudet.html#min-max-widths)
+            css_length_t style_max_width = style->max_width;
+            if ( style_max_width.type != css_val_unspecified ) {
+                if ( BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) ||
+                     style_max_width.type == css_val_screen_px || // in case it was converted to screen_px beforehand
+                     is_length_relative_unit(style_max_width.type) ) {
+                    max_width = lengthToPx( enode, style_max_width, container_width );
+                    if ( style->display != css_d_table && BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) )
+                        max_width += padding_left + padding_right;
+                    if ( width > max_width ) {
+                        width = max_width;
+                        auto_width = false;
+                    }
+                }
+            }
+            css_length_t style_min_width = style->min_width;
+            if ( style_min_width.type != css_val_unspecified ) {
+                if ( BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) ||
+                     style_min_width.type == css_val_screen_px || // in case it was converted to screen_px beforehand
+                     is_length_relative_unit(style_min_width.type) ) {
+                    // As just above if apply_style_width
+                    min_width = lengthToPx( enode, style_min_width, container_width );
+                    if ( style->display != css_d_table && BLOCK_RENDERING(flags, USE_W3C_BOX_MODEL) )
+                        min_width += padding_left + padding_right;
+                    if ( width < min_width ) {
+                        width = min_width;
+                        auto_width = false; // we may need to adjust x, ensure auto margins...
+                    }
+                }
+            }
+        }
     }
 
     // What about a width with a negative value?
@@ -6746,8 +7316,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     //   confused with such rect, and not travel thru them, or
     //   skip them.
     // - A table with a zero or negative width (which can happen
-    //   with very busy imbricated tables) won't be drawn, and
-    //   it's rendering method will be switched to erm_killed
+    //   with very crowded imbricated tables) won't be drawn, and
+    //   its rendering method will be switched to erm_killed
     //   to display some small visual indicator.
     // - Legacy rendering code keeps a negative width in
     //   RenderRectAccessor, and, with erm_final nodes, provides
@@ -7067,7 +7637,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 // renderTable has not been updated to use 'flow', and it looks
                 // like it does not really need to.
                 int h = renderTable( *(flow->getPageContext()), enode, 0, flow->getCurrentRelativeY(),
-                            table_width, table_shrink_to_fit, fitted_width, direction, avoid_pb_inside, true, is_ruby_table );
+                            table_width, table_shrink_to_fit, min_width, fitted_width,
+                            direction, avoid_pb_inside, true, is_ruby_table );
                 // Reload fmt, as renderTable() may have set some flags
                 fmt = RenderRectAccessor( enode );
                 // (It feels like we don't need to ensure a table specified height.)
@@ -7257,7 +7828,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                         // to the page splitting context. The non-floating nodes will,
                         // and if !DO_NOT_CLEAR_OWN_FLOATS, we'll fill the remaining
                         // height taken by floats if any.
-                        LVRendPageContext alt_context( NULL, flow->getPageHeight(), false );
+                        LVRendPageContext alt_context( NULL, flow->getPageHeight(), 0, false );
                         // For floats too, the provided x must be the padding-left of the
                         // parent container of the float (and width must exclude the parent's
                         // padding-left/right) for the flow to correctly position inner floats
@@ -7457,7 +8028,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 }
                 // Deal with negative text-indent
                 if ( style->text_indent.value < 0 ) {
-                    int indent = - lengthToPx(style->text_indent, container_width, em);
+                    int indent = - lengthToPx(enode, style->text_indent, container_width);
                     // We'll need to have text written this positive distance outside
                     // the nominal text inner_width.
                     // We can remove it from left padding if indent is smaller than padding.
@@ -7873,15 +8444,14 @@ void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int 
     if (hasbottomBorder || hasleftBorder || hasrightBorder || hastopBorder) {
         lUInt32 shadecolor=0x555555;
         lUInt32 lightcolor=0xAAAAAA;
-        int em = enode->getFont()->getSize();
         int width = 0; // values in % are invalid for borders, so we shouldn't get any
-        int topBorderwidth = lengthToPx(style->border_width[0],width,em);
+        int topBorderwidth = lengthToPx(enode, style->border_width[0],width);
         topBorderwidth = topBorderwidth!=0 ? topBorderwidth : DEFAULT_BORDER_WIDTH;
-        int rightBorderwidth = lengthToPx(style->border_width[1],width,em);
+        int rightBorderwidth = lengthToPx(enode, style->border_width[1],width);
         rightBorderwidth = rightBorderwidth!=0 ? rightBorderwidth : DEFAULT_BORDER_WIDTH;
-        int bottomBorderwidth = lengthToPx(style->border_width[2],width,em);
+        int bottomBorderwidth = lengthToPx(enode, style->border_width[2],width);
         bottomBorderwidth = bottomBorderwidth!=0 ? bottomBorderwidth : DEFAULT_BORDER_WIDTH;
-        int leftBorderwidth = lengthToPx(style->border_width[3],width,em);
+        int leftBorderwidth = lengthToPx(enode, style->border_width[3],width);
         leftBorderwidth = leftBorderwidth!=0 ? leftBorderwidth : DEFAULT_BORDER_WIDTH;
         int tbw=topBorderwidth,rbw=rightBorderwidth,bbw=bottomBorderwidth,lbw=leftBorderwidth;
         if (hastopBorder) {
@@ -8353,10 +8923,9 @@ void DrawBackgroundImage(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int d
                     }
                 }
                 if ( check_lengths ) {
-                    int em = enode->getFont()->getSize();
                     // These will compute to 0 if (css_val_unspecified, 0) when really not specified
-                    new_w = lengthToPx(style->background_size[0], container_w, em);
-                    new_h = lengthToPx(style->background_size[1], container_h, em);
+                    new_w = lengthToPx(enode, style->background_size[0], container_w);
+                    new_h = lengthToPx(enode, style->background_size[1], container_h);
                     if ( new_w == 0 ) {
                         if ( new_h == 0 ) { // keep image native size
                             new_h = img_h;
@@ -8478,10 +9047,9 @@ void DrawBackgroundImage(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int d
             // Ready to have crengine do all the work.
             /* Looks like we don't need that:
 
-                // (Inspired from LVDocView::drawPageBackground(), we have to do it that complex
-                // way to avoid memory leaks; and we have to use a 16bpp LVColorDrawBuf,
-                // 32bpp would mess colors up).
-                LVRef<LVColorDrawBuf> buf = LVRef<LVColorDrawBuf>( new LVColorDrawBuf(img_w, img_h, 16) );
+                // (Inspired from LVDocView::drawPageBackground(),
+                // we have to do it the complex way to avoid memory leaks
+                LVRef<LVColorDrawBuf> buf = LVRef<LVColorDrawBuf>( new LVColorDrawBuf(img_w, img_h, 32) );
                 buf->Draw(img, 0, 0, img_w, img_h, false); // (dither=false doesn't matter with a color buffer)
                 LVImageSourceRef src = LVCreateDrawBufImageSource(buf.get(), false);
                 LVImageSourceRef transformed = LVCreateStretchFilledTransform(src, transform_w, transform_h,
@@ -8520,9 +9088,9 @@ void DrawBackgroundImage(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int d
 //   doc_x is initially 0, and doc_y is set to a negative
 //   value (- page.start) from the y of the top of the page
 //   (in the whole book height) we want to start showing
-void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx, int dy,
-                    int doc_x, int doc_y, int page_height, ldomMarkedRangeList * marks,
-                    ldomMarkedRangeList *bookmarks, bool draw_content, bool draw_background )
+void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx, int dy, int doc_x, int doc_y,
+                   int page_height, ldomMarkedRangeList * marks, ldomMarkedRangeList *bookmarks,
+                   bool draw_content, bool draw_background, bool skip_initial_borders )
 {
     // Because of possible floats overflowing their block container box, that could
     // be drawn over the area of a next block, we may need to switch to two-steps drawing:
@@ -8568,7 +9136,17 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
 
         css_style_ref_t style = enode->getStyle();
 
+        // When a node has "visibility: hidden", it should take its normal space
+        // (so, we have rendered and sized it as if it was visible) - we should just
+        // not draw it. But we can't just simply return and not draw sub-children, as
+        // some inner content might have "visibility: visible" and has to be drawn.
+        // For non-final nodes, being hidden just mean we should not draw its
+        // border and background. For final nodes, text fragments will carry a
+        // flag and won't be drawn.
+        bool isHidden = style->visibility >= css_v_hidden && !drawbuf.WantsHiddenContent();
+
         // Check and draw background
+        bool restoreBackgroundColor = false;
         css_length_t bg = style->background_color;
         lUInt32 oldColor = 0;
         // Don't draw background color for TR and THEAD/TFOOT/TBODY as it could
@@ -8576,16 +9154,17 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
         // the TR bgcolor to its TDs that must have it, as it should be done (the
         // border spacing between cells does not have the bg color of the TR: only
         // cells have it).
-        if ( bg.type==css_val_color && !isTableRowLike ) {
+        if ( bg.type==css_val_color && !isTableRowLike && !isHidden ) {
             // Even if we don't draw/fill background, we may need to
             // drawbuf.SetBackgroundColor() for the text to be correctly
             // drawn over this background color
             oldColor = drawbuf.GetBackgroundColor();
             drawbuf.SetBackgroundColor( bg.value );
+            restoreBackgroundColor = true;
             if ( draw_background )
                 drawbuf.FillRect( x0 + doc_x, y0 + doc_y, x0 + doc_x+fmt.getWidth(), y0+doc_y+fmt.getHeight(), bg.value );
         }
-        if ( draw_background && !style->background_image.empty() ) {
+        if ( draw_background && !style->background_image.empty() && !isHidden ) {
             if ( enode->getNodeId() == el_body ) {
                 // CSS specific: <body> background does not obey margin rules
                 // We don't draw on the fmt width, but on the drawbuf width.
@@ -8669,7 +9248,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                         DrawDocument( drawbuf, child, x0, y0, dx, dy, doc_x, doc_y, page_height, marks, bookmarks, false, true );
                     }
                     // Cleanup and return
-                    if ( bg.type==css_val_color ) {
+                    if ( restoreBackgroundColor ) {
                         drawbuf.SetBackgroundColor( oldColor );
                     }
                     return;
@@ -8683,14 +9262,14 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 // Don't draw border for TR TBODY... as their borders are never directly
                 // rendered by Firefox (they are rendered only when border-collapse, when
                 // they did collapse to the cell, and made out the cell border)
-                if ( !isTableRowLike )
+                if ( !isTableRowLike && !isHidden && !skip_initial_borders )
                     DrawBorder(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
 
                 // List item marker drawing when css_d_list_item_block and list-style-position = outside
                 // and list_item_block rendered as block (containing text and block elements)
                 // Rendering hack (in renderAsListStylePositionInside(): not when text-align "right"
                 // or "center", we treat it just as "inside", and drawing is managed by renderFinalBlock())
-                if ( style->display == css_d_list_item_block && !renderAsListStylePositionInside(style, is_rtl) ) {
+                if ( style->display == css_d_list_item_block && !renderAsListStylePositionInside(style, is_rtl) && !isHidden ) {
                     int width = fmt.getWidth();
                     int base_width = 0; // for padding_top in %
                     ldomNode * parent = enode->getParentNode();
@@ -8698,8 +9277,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                         RenderRectAccessor pfmt( parent );
                         base_width = pfmt.getWidth();
                     }
-                    int em = enode->getFont()->getSize();
-                    int padding_top = lengthToPx( style->padding[2], base_width, em ) + measureBorder(enode,0) + DEBUG_TREE_DRAW;
+                    int padding_top = lengthToPx( enode, style->padding[2], base_width ) + measureBorder(enode,0) + DEBUG_TREE_DRAW;
                     // We already adjusted all children blocks' left-padding and width in renderBlockElement(),
                     // we just need to draw the marker in the space we made
                     // But adjust the x to draw our marker if the first line of our
@@ -8734,7 +9312,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
                     lvRect clip;
                     drawbuf.GetClipRect( &clip );
-                    if (doc_y + y0 + h <= clip.bottom) { // draw only if marker fully fits on page
+                    if (doc_y + y0 + h <= clip.bottom) {...} // draw only if marker fully fits on page
                     */
                     // Better to draw it, even if it slightly overflows, or we might lose some
                     // list item number for no real reason
@@ -8842,7 +9420,17 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt.getHeight()-1, doc_x+x0+fmt.getWidth(), doc_y+y0+fmt.getHeight(), color );
                 #endif
                 // Border was previously drawn here, but has been moved above for earlier drawing.
-            	}
+
+                #if MATHML_SUPPORT==1
+                if ( drawbuf.WantsHiddenContent() && enode->getNodeId() == el_mspace ) {
+                    // MathML Acid3 test 56 with munder>mspace+mo had the mo above the bgcolored mspace...
+                    // mspace has no ink, but may have some width and height, that should be considered as ink.
+                    // Let's handle this edge case with this little hack here: if drawbuf.WantsHiddenContent(),
+                    // we're measuring ink for MathML elements: make the mspace full bodied.
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+fmt.getWidth(), doc_y+y0+fmt.getHeight(), 0 );
+                }
+                #endif
+            }
             break;
         case erm_final:
             {
@@ -8850,7 +9438,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 // drawn above, before the switch())
                 if ( !draw_content ) {
                     // Cleanup and return
-                    if ( bg.type==css_val_color ) {
+                    if ( restoreBackgroundColor ) {
                         drawbuf.SetBackgroundColor( oldColor );
                     }
                     return;
@@ -8859,7 +9447,8 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 // Draw borders before content, so inner content can bleed if necessary on
                 // the border (some glyphs like 'J' at start or 'f' at end may be drawn
                 // outside the text content box).
-                DrawBorder(enode, drawbuf, x0, y0, doc_x, doc_y, fmt);
+                if ( !isHidden && !skip_initial_borders )
+                    DrawBorder(enode, drawbuf, x0, y0, doc_x, doc_y, fmt);
 
                 // Get ready to create a LFormattedText with the correct content width
                 // and position: we'll have it draw itself at the right coordinates.
@@ -8876,11 +9465,10 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 else { // legacy rendering
                     // Note: this computation is wrong for paddings in %, as they should
                     // apply against the parent container width, not this block width.
-                    int em = enode->getFont()->getSize();
                     bool draw_padding_bg = true; //( enode->getRendMethod()==erm_final );
-                    padding_left = !draw_padding_bg ? 0 : lengthToPx( style->padding[0], width, em ) + DEBUG_TREE_DRAW+measureBorder(enode,3);
-                    int padding_right = !draw_padding_bg ? 0 : lengthToPx( style->padding[1], width, em ) + DEBUG_TREE_DRAW+measureBorder(enode,1);
-                    padding_top = !draw_padding_bg ? 0 : lengthToPx( style->padding[2], width, em ) + DEBUG_TREE_DRAW+measureBorder(enode,0);
+                    padding_left = !draw_padding_bg ? 0 : lengthToPx( enode, style->padding[0], width ) + DEBUG_TREE_DRAW+measureBorder(enode,3);
+                    int padding_right = !draw_padding_bg ? 0 : lengthToPx( enode, style->padding[1], width ) + DEBUG_TREE_DRAW+measureBorder(enode,1);
+                    padding_top = !draw_padding_bg ? 0 : lengthToPx( enode, style->padding[2], width ) + DEBUG_TREE_DRAW+measureBorder(enode,0);
                     inner_width = width - padding_left - padding_right;
                 }
 
@@ -8888,7 +9476,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 // and list_item_block rendered as final (containing only text and inline elements)
                 // Rendering hack (in renderAsListStylePositionInside(): not when text-align "right"
                 // or "center", we treat it just as "inside", and drawing is managed by renderFinalBlock())
-                if ( style->display == css_d_list_item_block && !renderAsListStylePositionInside(style, is_rtl) ) {
+                if ( style->display == css_d_list_item_block && !renderAsListStylePositionInside(style, is_rtl) && !isHidden ) {
                     // We already adjusted our block X and width in renderBlockElement(),
                     // we just need to draw the marker in the space we made on the left of
                     // this node.
@@ -8909,7 +9497,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
                     lvRect clip;
                     drawbuf.GetClipRect( &clip );
-                    if (doc_y + y0 + h <= clip.bottom) { // draw only if marker fully fits on page
+                    if (doc_y + y0 + h <= clip.bottom) {...} // draw only if marker fully fits on page
                     */
                     // Better to draw it, even if it slightly overflows, or we might lose some
                     // list item number for no real reason
@@ -8941,11 +9529,10 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                         // In legacy mode, getAbsRect( ..., inner=true) did not have
                         // the inner geometry stored in fmt and computed. We need
                         // to correct it with paddings:
-                        int em = enode->getFont()->getSize();
-                        int padding_left = measureBorder(enode,3)+lengthToPx(enode->getStyle()->padding[0],rc.width(),em);
-                        int padding_right = measureBorder(enode,1)+lengthToPx(enode->getStyle()->padding[1],rc.width(),em);
-                        int padding_top = measureBorder(enode,0)+lengthToPx(enode->getStyle()->padding[2],rc.height(),em);
-                        int padding_bottom = measureBorder(enode,2)+lengthToPx(enode->getStyle()->padding[3],rc.height(),em);
+                        int padding_left = measureBorder(enode,3)+lengthToPx(enode, enode->getStyle()->padding[0],rc.width());
+                        int padding_right = measureBorder(enode,1)+lengthToPx(enode, enode->getStyle()->padding[1],rc.width());
+                        int padding_top = measureBorder(enode,0)+lengthToPx(enode, enode->getStyle()->padding[2],rc.height());
+                        int padding_bottom = measureBorder(enode,2)+lengthToPx(enode, enode->getStyle()->padding[3],rc.height());
                         rc.top += padding_top;
                         rc.left += padding_left;
                         rc.right -= padding_right;
@@ -8985,8 +9572,8 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
             // don't draw invisible blocks
             break;
         case erm_killed:
-            if ( !draw_content ) {
-                if ( bg.type==css_val_color ) {
+            if ( !draw_content || isHidden ) {
+                if ( restoreBackgroundColor ) {
                     drawbuf.SetBackgroundColor( oldColor );
                 }
                 return;
@@ -9003,43 +9590,11 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
             break;
             //crFatalError(); // error
         }
-        if ( bg.type==css_val_color ) {
+        if ( restoreBackgroundColor ) {
             drawbuf.SetBackgroundColor( oldColor );
         }
     }
 }
-
-/* Not used anywhere: not updated for absolute length units and *256
-void convertLengthToPx( css_length_t & val, int base_px, int base_em )
-{
-    switch( val.type )
-    {
-    case css_val_inherited:
-        val = css_length_t ( base_px );
-        break;
-    case css_val_px:
-        // nothing to do
-        break;
-    case css_val_ex: // not implemented: treat as em
-    case css_val_em: // value = em*256
-        val = css_length_t ( (base_em * val.value) >> 8 );
-        break;
-    case css_val_percent:
-        val = css_length_t ( (base_px * val.value) / 100 );
-        break;
-    case css_val_unspecified:
-    case css_val_in: // 2.54 cm
-    case css_val_cm:
-    case css_val_mm:
-    case css_val_pt: // 1/72 in
-    case css_val_pc: // 12 pt
-    case css_val_color:
-        // not supported: use inherited value
-        val = css_length_t ( val.value );
-        break;
-    }
-}
-*/
 
 inline void spreadParent( css_length_t & val, css_length_t & parent_val, bool unspecified_is_inherited=true )
 {
@@ -9132,16 +9687,42 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         }
     }
 
-    if (enode->getNodeNsId() == ns_epub) {
-        if (nodeElementId == el_case) { // <epub:case required-namespace="...">
-            // As we don't support any specific namespace (like MathML, SVG...), just
-            // hide <epub:case> content - it must be followed by a <epub:default>
-            // section with usually regular content like some image.
-            ldomNode * parent = enode->getParentNode();
-            if (parent && parent->getNodeNsId() == ns_epub && parent->getNodeId() == el_switch) {
-                // (We can't here check parent's other children for the presence of one
+    // Handle <epub:switch> <epub:case required-namespace="..."> <epub:default>
+    if ( nodeElementId == el_case ) {
+        // We only support MathML (but not inline SVG).
+        ldomNode * parent = enode->getParentNode();
+        if ( parent && parent->getNodeId() == el_switch ) {
+            lString32 required_namespace = enode->getAttributeValue(attr_required_namespace);
+            if ( required_namespace == U"http://www.w3.org/1998/Math/MathML" ) {
+                // Supported
+            }
+            else {
+                // Unsupported namespace: hide this <epub:case>.
+                // We can't here check parent's other children for the presence of one
                 // el_default, as we can be called while XML is being parsed and the DOM
-                // built and siblings not yet there, so just trust there is an el_default.)
+                // built and siblings not yet there, so just trust there is an el_default,
+                // as required by the specs.
+                pstyle->display = css_d_none;
+            }
+        }
+    }
+    else if (nodeElementId == el_default ) { // <epub:default>
+        ldomNode * parent = enode->getParentNode();
+        if (parent && parent->getNodeId() == el_switch) {
+            // See if there is a sibling <epub:case> with a supported namespace
+            bool has_supported_namespace = false;
+            for ( int i=0; i < parent->getChildCount(); i++ ) {
+                ldomNode * child = parent->getChildNode(i);
+                if ( child->isElement() && child->getNodeId() == el_case ) {
+                    lString32 required_namespace = child->getAttributeValue(attr_required_namespace);
+                    if ( required_namespace == U"http://www.w3.org/1998/Math/MathML" ) {
+                        has_supported_namespace = true;
+                        break;
+                    }
+                }
+            }
+            if ( has_supported_namespace ) {
+                // Don't show this <epub:default>
                 pstyle->display = css_d_none;
             }
         }
@@ -9149,9 +9730,6 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
 
     // display before stylesheet is applied (for fallback below if legacy mode)
     css_display_t orig_elem_display = pstyle->display;
-
-    // not used (could be used for 'rem', but we have it in gRootFontSize)
-    // int baseFontSize = enode->getDocument()->getDefaultFont()->getSize();
 
     //////////////////////////////////////////////////////
     // apply style sheet
@@ -9176,6 +9754,31 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
             }
         }
     }
+
+    #if MATHML_SUPPORT==1
+        // We apply our internal MathML stylesheet *after* user-agent (including style tweaks)
+        // and publisher embedded styles, because:
+        // - we want correct MathML rendering, so overwrite any unexpected style
+        // - we want to avoid doing any MathML rendering if the <math> element
+        //   has been set display:none by the previous styles
+        if ( nodeElementId >= EL_MATHML_START && nodeElementId <= EL_MATHML_END ) {
+            setMathMLElementNodeStyle( enode, pstyle );
+        }
+        else if (   (nodeElementId >= EL_BOXING_START && nodeElementId <= EL_BOXING_END)
+                  || nodeElementId == el_pseudoElem
+                  || nodeElementId == el_annotation ) { // <annotation> is also a FB2 element, so we have to check its parent
+            ldomNode * unboxedParent = enode->getUnboxedParent();
+            if ( unboxedParent ) {
+                lUInt16 unboxedParentId = unboxedParent->getNodeId();
+                if ( unboxedParentId >= EL_MATHML_START && unboxedParentId <= EL_MATHML_END ) {
+                    setMathMLElementNodeStyle( enode, pstyle );
+                }
+            }
+        }
+        else if ( nodeElementId == el_img && enode->getParentNode()->getNodeId() == el_mglyph ) {
+            setMathMLElementNodeStyle( enode, pstyle );
+        }
+    #endif
 
     // As per-specs (and to avoid checking edge cases in initNodeRendMethod()):
     // https://www.w3.org/TR/css-tables-3/#table-structure
@@ -9403,6 +10006,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
             pstyle->fld.value = parent_style->font_size.value * pstyle->fld.value / 256; \
             break; \
         case css_val_ex: \
+        case css_val_ch: \
             pstyle->fld.type = parent_style->fld.type; \
             pstyle->fld.value = parent_style->font_size.value * pstyle->fld.value / 512; \
             break; \
@@ -9430,6 +10034,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     UPDATE_STYLE_FIELD( widows, css_orphans_widows_inherit );
     UPDATE_STYLE_FIELD( list_style_type, css_lst_inherit );
     UPDATE_STYLE_FIELD( list_style_position, css_lsp_inherit );
+    UPDATE_STYLE_FIELD( visibility, css_v_inherit );
+    UPDATE_STYLE_FIELD( line_break, css_lb_inherit );
+    UPDATE_STYLE_FIELD( word_break, css_wb_inherit );
 
     // Note: we don't inherit "direction" (which should be inherited per specs);
     // We'll handle inheritance of direction in renderBlockEnhanced, because
@@ -9459,6 +10066,8 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     UPDATE_STYLE_FIELD( font_weight, css_fw_inherit );
     if ( pstyle->font_family == css_ff_inherit ) {
         //UPDATE_STYLE_FIELD( font_name, "" );
+        // Just set the name of the font already resolved (via enode->initNodeFont)
+        // for the parent node
         pstyle->font_name = parent_font.get()->getTypeFace();
     }
     UPDATE_STYLE_FIELD( font_family, css_ff_inherit );
@@ -9552,6 +10161,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->font_size.value = parent_style->font_size.value * pstyle->font_size.value / 256;
         break;
     case css_val_ex: // value = ex*256 ; 512 = 2ex = 1em = x1
+    case css_val_ch: // value = ch*256 ; 512 = 2ch = 1em = x1
         pstyle->font_size.type = parent_style->font_size.type;
         pstyle->font_size.value = parent_style->font_size.value * pstyle->font_size.value / 512;
         break;
@@ -9560,6 +10170,10 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->font_size.value = parent_style->font_size.value * pstyle->font_size.value / 100 / 256;
         break;
     case css_val_rem:
+    case css_val_vw:
+    case css_val_vh:
+    case css_val_vmin:
+    case css_val_vmax:
         // not relative to parent, nothing to do
         break;
     case css_val_in:
@@ -9588,9 +10202,10 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
             case css_val_percent:
             case css_val_em:
             case css_val_ex:
+            case css_val_ch:
                 {
                 int pem = parent_font->getSize(); // value in screen px
-                int line_h = lengthToPx(parent_style->line_height, pem, pem);
+                int line_h = lengthToPx(enode, parent_style->line_height, pem, pem);
                 // Scale it according to document's _interlineScaleFactor
                 int interline_scale_factor = doc->getInterlineScaleFactor();
                 if (interline_scale_factor != INTERLINE_SCALE_FACTOR_NO_SCALE)
@@ -9623,7 +10238,15 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
              pstyle->letter_spacing.value != css_generic_normal) )
         pstyle->letter_spacing = parent_style->letter_spacing;
 
-    spreadParent( pstyle->color, parent_style->color );
+    // Don't inherit when (css_val_unspecified, css_generic_transparent) used with "color: transparent"
+    if ( pstyle->color.type != css_val_unspecified || pstyle->color.value != css_generic_transparent )
+        spreadParent( pstyle->color, parent_style->color );
+
+    // Border colors are not inherited, and default to "currentcolor": the just computed pstyle->color
+    for ( int i=0; i < 4; i++ ) {
+        if ( pstyle->border_color[i].type == css_val_unspecified && pstyle->border_color[i].value == css_generic_currentcolor )
+            pstyle->border_color[i] = pstyle->color;
+    }
 
     // background_color
     // Should not be inherited: elements start with unspecified.
@@ -9648,6 +10271,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         spread_background_color = true;
     if ( spread_background_color )
         spreadParent( pstyle->background_color, parent_style->background_color, true );
+    // Except for the mostly useless case css_generic_currentcolor
+    if ( pstyle->background_color.type == css_val_unspecified && pstyle->background_color.value == css_generic_currentcolor )
+        pstyle->background_color = pstyle->color;
 
     // See if applying styles requires pseudo element before/after
     bool requires_pseudo_element_before = false;
@@ -9718,10 +10344,11 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
     int lastSpaceWidth = 0; // trailing spaces width to remove
     // These do not need to be passed by reference, as they are only valid for inner nodes/calls
     int indent = 0;         // text-indent: used on first text, and set again on <BR/>
+    bool nowrap = false;    // from upper node's white-space
     bool isStartNode = true; // we are starting measurement on that node
     // Start measurements and recursions:
     getRenderedWidths(node, maxWidth, minWidth, direction, ignoreMargin, rendFlags,
-        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, NULL, false, isStartNode);
+        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, nowrap, NULL, false, isStartNode);
     // We took more care with including side bearings into minWidth when considering
     // single words, than into maxWidth: so trust minWidth if larger than maxWidth.
     if ( maxWidth < minWidth)
@@ -9730,7 +10357,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
 
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction, bool ignoreMargin, int rendFlags,
     int &curMaxWidth, int &curWordWidth, bool &collapseNextSpace, int &lastSpaceWidth,
-    int indent, TextLangCfg * lang_cfg, bool processNodeAsText, bool isStartNode)
+    int indent, bool nowrap, TextLangCfg * lang_cfg, bool processNodeAsText, bool isStartNode)
 {
     // This does mostly what renderBlockElement, renderFinalBlock and lvtextfm.cpp
     // do, but only with widths and horizontal margin/border/padding and indent
@@ -9747,6 +10374,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
     #endif
 
     if ( node->isElement() && !processNodeAsText ) {
+        lUInt16 nodeElementId = node->getNodeId();
         int m = node->getRendMethod();
         if (m == erm_invisible)
             return;
@@ -9770,76 +10398,31 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
 
         css_style_ref_t style = node->getStyle();
 
+        // nowrap to provide to children (only useful when inside erm_final, between erm_inline and text nodes)
+        bool nowrap_in = (style->white_space == css_ws_nowrap) || (style->white_space == css_ws_pre);
+            // When getting min width, ensure non free wrap for "white-space: pre" (even if we
+            // don't when rendering). Others like "pre-wrap" and "pre-line" are allowed to wrap.
+
         // Get image size early
         bool is_img = false;
-        lInt16 img_width = 0;
-        if ( node->getNodeId()==el_img ) {
+        int img_width = 0;
+        if ( nodeElementId == el_img || nodeElementId == el_image ) {
             is_img = true;
-            // (as in lvtextfm.cpp LFormattedText::AddSourceObject)
-            #define DUMMY_IMAGE_SIZE 16
-            LVImageSourceRef img = node->getObjectImageSource();
-            if ( img.isNull() )
-                img = LVCreateDummyImageSource( node, DUMMY_IMAGE_SIZE, DUMMY_IMAGE_SIZE );
-            lInt16 width = (lUInt16)img->GetWidth();
-            lInt16 height = (lUInt16)img->GetHeight();
-            // Scale image native size according to gRenderDPI
-            width = scaleForRenderDPI(width);
-            height = scaleForRenderDPI(height);
-            // Adjust if size defined by CSS
-            int w = 0, h = 0;
-            int em = node->getFont()->getSize();
-            w = lengthToPx(style->width, 100, em);
-            h = lengthToPx(style->height, 100, em);
-            if (style->width.type==css_val_percent) w = -w;
-            if (style->height.type==css_val_percent) h = w*height/width;
-            if ( w==0 ) {
-                if ( h==0 ) { // use image native size
-                    w = width;
-                } else { // use style height, keep aspect ratio
-                    w = width*h/height;
-                }
-            }
-            if (w > 0)
-                img_width = w;
-            else { // 0 or styles were in %
-                // This is a bit tricky...
-                // When w < 0, the style width was in %, which means % of the
-                // container width.
-                // So it does not influence the width we're trying to guess, and will
-                // adjust to the final width. So, we could let it to be 0.
-                // But, if this image is the single element of this block, we would
-                // end up with a minWidth of 0, with no room for the image, and the
-                // image would be scaled as a % of 0, so to 0.
-                // So, consider we want the image to be shown as a % of its original
-                // size: so, our width should be the original image width.
-                img_width = width;
-                // With that, it looks like we behave exactly as Firefox, whether
-                // the image is single in a cell, or surrounded, in this cell
-                // and/or sibling cells, by small or long text!
-                // We ensure a minimal size of 1em (so it shows as least the size
-                // of a letter).
-                int em = node->getFont()->getSize();
-                if (img_width < em)
-                    img_width = em;
-            }
+            int unused_height = 0;
+            // We have no container width/height to provide: CSS width and
+            // height in % won't apply and default to their initial value
+            // of none or auto, so as if there wasn't any.
+            // https://drafts.csswg.org/css-sizing-3/#cyclic-percentage-contribution
+            getStyledImageSize( node, img_width, unused_height );
+                // We got a single width (the normal image width, constrained
+                // between min-width and max-width if any): we use it to update
+                // both minWidth/maxWidth in here (the CSS properties with the
+                // same name should not influence the minWidth and maxWidth we
+                // try to compute int here).
         }
 
         if (m == erm_inline) {
-            if ( is_img ) {
-                // Get done with previous word
-                if (curWordWidth > minWidth)
-                    minWidth = curWordWidth;
-                curWordWidth = 0;
-                collapseNextSpace = false;
-                lastSpaceWidth = 0;
-                if (img_width > 0) { // inline img with a fixed width
-                    maxWidth += img_width;
-                    if (img_width > minWidth)
-                        minWidth = img_width;
-                }
-                return;
-            }
-            if ( node->getNodeId()==el_br ) {
+            if ( nodeElementId == el_br ) {
                 #ifdef DEBUG_GETRENDEREDWIDTHS
                     printf("GRW: BR\n");
                 #endif
@@ -9861,27 +10444,41 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 lastSpaceWidth = 0;
                 return;
             }
-            if ( node->isBoxingInlineBox() ) {
-                // Get done with previous word
-                if (curWordWidth > minWidth)
-                    minWidth = curWordWidth;
-                curWordWidth = 0;
+            if ( is_img || node->isBoxingInlineBox() ) {
+                if (!nowrap) {
+                    // Get done with previous word
+                    if (curWordWidth > minWidth)
+                        minWidth = curWordWidth;
+                    curWordWidth = 0;
+                }
                 collapseNextSpace = false;
                 lastSpaceWidth = 0;
-                // Get the rendered width of the inlineBox
                 int _maxw = 0;
                 int _minw = 0;
-                getRenderedWidths(node, _maxw, _minw, direction, false, rendFlags);
+                if ( is_img && img_width > 0) {
+                    // Inline img with a fixed width
+                    _maxw = img_width;
+                    _minw = img_width;
+                }
+                else {
+                    // Get the rendered width of the inlineBox
+                    getRenderedWidths(node, _maxw, _minw, direction, false, rendFlags);
+                }
                 curMaxWidth += _maxw;
-                if (_minw > minWidth)
-                    minWidth = _minw;
+                if (nowrap) {
+                    curWordWidth += _minw;
+                }
+                else {
+                    if (_minw > minWidth)
+                        minWidth = _minw;
+                }
                 return;
             }
-            if ( node->getNodeId()==el_pseudoElem ) {
+            if ( nodeElementId == el_pseudoElem ) {
                 // pseudoElem has no children: reprocess this same node
                 // with processNodeAsText=true, to process its text content.
                 getRenderedWidths(node, maxWidth, minWidth, direction, false, rendFlags,
-                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg, true);
+                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, nowrap_in, lang_cfg, true);
                 return;
             }
             // Contains only other inline or text nodes:
@@ -9891,7 +10488,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 // Nothing more to do with inline elements: they just carry some
                 // styles that will be grabbed by children text nodes
                 getRenderedWidths(child, maxWidth, minWidth, direction, false, rendFlags,
-                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg);
+                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, nowrap_in, lang_cfg);
             }
             return;
         }
@@ -9930,22 +10527,21 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         int _maxWidth = 0;
         int _minWidth = 0;
 
+        bool is_boxing_elem = nodeElementId >= EL_BOXING_START && nodeElementId <= EL_BOXING_END;
         bool use_style_width = false;
         css_length_t style_width = style->width;
         if ( BLOCK_RENDERING(rendFlags, ENSURE_STYLE_WIDTH) ) {
-            if ( style->display > css_d_table ) {
-                // ignore width for table sub-elements
-            }
-            else {
+            // Ignore width for table sub-elements - but allow it for our boxing elements, as we can set it
+            // for some explicit rendering purpose (i.e. for the MathML <msqrt> mathBox root symbol)
+            if ( style->display <= css_d_table || is_boxing_elem ) {
                 // Ignore widths in %, as we can't do much with them
                 if ( style_width.type != css_val_unspecified && style_width.type != css_val_percent ) {
-                    use_style_width = true;
-                    if ( !BLOCK_RENDERING(rendFlags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) &&
-                            style_width.type != css_val_percent && style_width.type != css_val_em &&
-                            style_width.type != css_val_ex && style_width.type != css_val_rem ) {
-                        use_style_width = false;
+                    if ( BLOCK_RENDERING(rendFlags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) ||
+                         style_width.type == css_val_screen_px || // when % converted to screen_px
+                         is_length_relative_unit(style_width.type) ) {
+                        use_style_width = true;
                     }
-                    if ( node->getNodeId() == el_hr ) {
+                    if ( nodeElementId == el_hr ) {
                         // We always use style width for <HR> for cosmetic reasons
                         use_style_width = true;
                     }
@@ -9954,8 +10550,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         }
 
         if ( use_style_width ) {
-            int em = node->getFont()->getSize();
-            _maxWidth = lengthToPx( style_width, 0, em );
+            _maxWidth = lengthToPx( node, style_width, 0 );
             _minWidth = _maxWidth;
         }
         else if (m == erm_final) {
@@ -9974,7 +10569,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 // We don't have any width yet to use for text-indent in % units,
                 // but this is very rare - use em as we must use something
                 int em = node->getFont()->getSize();
-                indent = lengthToPx(style->text_indent, em, em);
+                indent = lengthToPx(node, style->text_indent, em);
                 // First word will have text-indent as part of its width
                 if ( style->text_indent.value & 0x00000001 ) {
                     // lvstsheet sets the lowest bit to 1 when text-indent has the "hanging" keyword.
@@ -10007,14 +10602,14 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 for (int i = 0; i < node->getChildCount(); i++) {
                     ldomNode * child = node->getChildNode(i);
                     getRenderedWidths(child, _maxWidth, _minWidth, direction, false, rendFlags,
-                        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg);
+                        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, nowrap_in, lang_cfg);
                     // A <BR/> can happen deep among our children, so we deal with that when erm_inline above
                 }
-                if ( node->getNodeId() == el_pseudoElem ) {
+                if ( nodeElementId == el_pseudoElem ) {
                     // erm_final pseudoElem (which has no children): reprocess this same
                     // node with processNodeAsText=true, to process its text content.
                     getRenderedWidths(node, _maxWidth, _minWidth, direction, false, rendFlags,
-                        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg, true);
+                        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, nowrap_in, lang_cfg, true);
                 }
                 if (lastSpaceWidth)
                     curMaxWidth -= lastSpaceWidth;
@@ -10039,15 +10634,20 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             // So, we'll still compute the addition of each row's cells (which might
             // give the right min/max width of a row with colspan): we'll take the
             // largest widths from these 2 computations.
+            //
+            // Note: these typedef and struct are copied in src/mathml_table_ext.h
+            // MathML_fixupTableLayoutForRenderedWidths(). Be sure any update to
+            // them is made in both places.
             typedef struct CellWidths {
                 int min_w;
                 int max_w;
                 int colspan;
                 int rowspan;
                 int last_row_idx; // when used as column: index of last row occupied by previous rowspans
-                CellWidths() : min_w(0), max_w(0), colspan(1), rowspan(1), last_row_idx(-1) {};
-                CellWidths(int min, int max, int cspan=1, int rspan=1)
-                    : min_w(min), max_w(max), colspan(cspan), rowspan(rspan), last_row_idx(-1) {};
+                ldomNode * elem;
+                CellWidths() : min_w(0), max_w(0), colspan(1), rowspan(1), last_row_idx(-1), elem(NULL) {};
+                CellWidths(int min, int max, int cspan=1, int rspan=1, ldomNode * n=NULL )
+                    : min_w(min), max_w(max), colspan(cspan), rowspan(rspan), last_row_idx(-1), elem(n) {};
             } CellWidths;
             typedef LVArray<CellWidths> RowCells;
             LVArray<RowCells> table;
@@ -10090,7 +10690,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                                 bool _collapseNextSpace = true;
                                 int _lastSpaceWidth = 0;
                                 getRenderedWidths(child, _maxw, _minw, direction, false, rendFlags,
-                                    _curMaxWidth, _curWordWidth, _collapseNextSpace, _lastSpaceWidth, indent, lang_cfg);
+                                    _curMaxWidth, _curWordWidth, _collapseNextSpace, _lastSpaceWidth, indent, nowrap_in, lang_cfg);
                                 int cspan = StrToIntPercent( child->getAttributeValue(attr_colspan).c_str() );
                                 if ( !cspan ) { // 0 if no attribute
                                     // also check obsolete rbspan attribute for <ruby> tables
@@ -10103,7 +10703,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                                 if ( !rspan ) { // 0 if no attribute
                                     rspan = 1;
                                 }
-                                row.add( CellWidths(_minw, _maxw, cspan, rspan) );
+                                row.add( CellWidths(_minw, _maxw, cspan, rspan, child) );
                             }
                             if ( row.length() > seen_nb_cells )
                                 seen_nb_cells = row.length();
@@ -10121,7 +10721,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                             bool _collapseNextSpace = true;
                             int _lastSpaceWidth = 0;
                             getRenderedWidths(n, _maxw, _minw, direction, false, rendFlags,
-                                _curMaxWidth, _curWordWidth, _collapseNextSpace, _lastSpaceWidth, indent, lang_cfg);
+                                _curMaxWidth, _curWordWidth, _collapseNextSpace, _lastSpaceWidth, indent, nowrap_in, lang_cfg);
                             if ( _minw > caption_min_width )
                                 caption_min_width = _minw;
                             if ( _maxw > caption_max_width )
@@ -10141,6 +10741,10 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                         break; // back to top node and all its children visited
                 }
             } // Done with non-recursive sub tree walker
+
+            #if MATHML_SUPPORT==1
+                MathML_fixupTableLayoutForRenderedWidths( nodeElementId, node, &table, seen_nb_cells );
+            #endif
 
             // nb_columns is the largest nb of cells+colspan in a row (helps avoiding reallocs)
             int nb_columns = 0;
@@ -10247,8 +10851,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 int final_nb_cols = nb_columns;
                 if ( last_cell_start_column_idx < nb_columns-1 )
                     final_nb_cols = last_cell_start_column_idx + 1;
-                int em = node->getFont()->getSize();
-                int extra_width = lengthToPx(style->border_spacing[0], 0, em) * (final_nb_cols+1);
+                int extra_width = lengthToPx(node, style->border_spacing[0], 0) * (final_nb_cols+1);
                 _minWidth += extra_width;
                 _maxWidth += extra_width;
             }
@@ -10272,11 +10875,57 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     continue;
                 }
                 getRenderedWidths(child, _maxw, _minw, direction, false, rendFlags,
-                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, lang_cfg);
+                    curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, nowrap_in, lang_cfg);
                 if (_maxw > _maxWidth)
                     _maxWidth = _maxw;
                 if (_minw > _minWidth)
                     _minWidth = _minw;
+            }
+        }
+
+        // For all the previous cases, if ensuring width, ensure min-width and max-width, but at
+        // this point only. Now if USE_W3C_BOX_MODEL, later if not (after we've computed paddings)
+        int ensured_min_width_late = -1;
+        int ensured_max_width_late = -1;
+        if ( BLOCK_RENDERING(rendFlags, ENSURE_STYLE_WIDTH) && (style->display <= css_d_table || is_boxing_elem) ) {
+            // We ignore width for table sub-elements (except if it is one of our boxing elements, see above why).
+            // Table themselves, even when USE_W3C_BOX_MODEL, follow the border box model,
+            // so we'll apply them later.
+            bool ensure_min_max_width_later = !BLOCK_RENDERING(rendFlags, USE_W3C_BOX_MODEL) || style->display == css_d_table;
+            // Ignore widths in %, as we can't do much with them (for the starting node,
+            // they may have been converted to screen_px before calling us
+            // We do max-width first, and then min-width (https://www.w3.org/TR/CSS2/visudet.html#min-max-widths)
+            css_length_t style_max_width = style->max_width;
+            if ( style_max_width.type != css_val_unspecified && style_max_width.type != css_val_percent ) {
+                if ( BLOCK_RENDERING(rendFlags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) ||
+                        style_max_width.type == css_val_screen_px || // when % converted to screen_px
+                        is_length_relative_unit(style_max_width.type) ) {
+                    int max_width = lengthToPx( node, style_max_width, 0 );
+                    if ( ensure_min_max_width_later )
+                        ensured_max_width_late = max_width;
+                    else {
+                        if ( _minWidth > max_width )
+                            _minWidth = max_width;
+                        if ( _maxWidth > max_width )
+                            _maxWidth = max_width;
+                    }
+                }
+            }
+            css_length_t style_min_width = style->min_width;
+            if ( style_min_width.type != css_val_unspecified && style_min_width.type != css_val_percent ) {
+                if ( BLOCK_RENDERING(rendFlags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) ||
+                        style_min_width.type == css_val_screen_px || // when % converted to screen_px
+                        is_length_relative_unit(style_min_width.type) ) {
+                    int min_width = lengthToPx( node, style_min_width, 0 );
+                    if ( ensure_min_max_width_later )
+                        ensured_min_width_late = min_width;
+                    else {
+                        if ( _minWidth < min_width )
+                            _minWidth = min_width;
+                        if ( _maxWidth < min_width )
+                            _maxWidth = min_width;
+                    }
+                }
             }
         }
 
@@ -10300,7 +10949,6 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         // below for each one to counterbalance rounding errors.)
         int padPct = 0; // cumulative percent
         int padPctNb = 0; // nb of styles in % (to add 1px)
-        int em = node->getFont()->getSize();
         // margin
         if (!ignoreMargin) {
             if (style->margin[0].type == css_val_percent) {
@@ -10308,7 +10956,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 padPctNb += 1;
             }
             else {
-                int margin = lengthToPx( style->margin[0], 0, em );
+                int margin = lengthToPx( node, style->margin[0], 0 );
                 if ( margin > 0 || BLOCK_RENDERING(rendFlags, ALLOW_HORIZONTAL_NEGATIVE_MARGINS) ) {
                     padLeft += margin;
                 }
@@ -10318,7 +10966,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 padPctNb += 1;
             }
             else {
-                int margin = lengthToPx( style->margin[1], 0, em );
+                int margin = lengthToPx( node, style->margin[1], 0 );
                 if ( margin > 0 || BLOCK_RENDERING(rendFlags, ALLOW_HORIZONTAL_NEGATIVE_MARGINS) ) {
                     padRight += margin;
                 }
@@ -10331,13 +10979,13 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 padPctNb += 1;
             }
             else
-                padLeft += lengthToPx( style->padding[0], 0, em );
+                padLeft += lengthToPx( node, style->padding[0], 0 );
             if (style->padding[1].type == css_val_percent) {
                 padPct += style->padding[1].value;
                 padPctNb += 1;
             }
             else
-                padRight += lengthToPx( style->padding[1], 0, em );
+                padRight += lengthToPx( node, style->padding[1], 0 );
             // border (which does not accept units in %)
             padLeft += measureBorder(node,3);
             padRight += measureBorder(node,1);
@@ -10345,6 +10993,20 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         // Add the non-pct values to make our base to invert-apply padPct
         _minWidth += padLeft + padRight;
         _maxWidth += padLeft + padRight;
+        // If we have some min/max-width to ensure late, do it now, before
+        // handling padPct that will change with the ensured widths
+        if ( ensured_max_width_late >= 0 ) {
+            if ( _minWidth > ensured_max_width_late )
+                _minWidth = ensured_max_width_late;
+            if ( _maxWidth > ensured_max_width_late )
+                _maxWidth = ensured_max_width_late;
+        }
+        if ( ensured_min_width_late >= 0 ) {
+            if ( _minWidth < ensured_min_width_late )
+                _minWidth = ensured_min_width_late;
+            if ( _maxWidth < ensured_min_width_late )
+                _maxWidth = ensured_min_width_late;
+        }
         // For length in %, the % (P, padPct) should be from the outer width (L),
         // but we have only the inner width (w). We have w and P, we want L-w (m).
         //   m = L*P  and  w = L - m
@@ -10399,7 +11061,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         LVFontRef font = parent->getFont();
         int em = font->getSize();
         css_style_ref_t parent_style = parent->getStyle();
-        int letter_spacing = lengthToPx(parent_style->letter_spacing, em, em);
+        int letter_spacing = lengthToPx(parent, parent_style->letter_spacing, em);
         // text-transform
         switch (parent_style->text_transform) {
             case css_tt_uppercase:
@@ -10418,10 +11080,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             case css_tt_inherit:
                 break;
         }
-        // white-space
-        // When getting min width, ensure non free wrap for "white-space: pre" (even if we
-        // don't when rendering). Others like "pre-wrap" and "pre-line" are allowed to wrap.
-        bool nowrap = (parent_style->white_space == css_ws_nowrap) || (parent_style->white_space == css_ws_pre);
+        // white-space (nowrap provided by parent with sub-call)
         bool pre = parent_style->white_space >= css_ws_pre;
         int space_width_scale_percent = pre ? 100 : parent->getDocument()->getSpaceWidthScalePercent();
 
@@ -10486,6 +11145,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 }
                 lChar32 c = *(txt + start + i);
                 lChar32 next_c = *(txt + start + i + 1); // might be 0 at end of string
+                bool is_collapsable_space = (c == ' '); // We only collapse the classic ASCII spaces in lvtextfm.cpp
                 if ( lang_cfg->hasLBCharSubFunc() ) {
                     next_c = lang_cfg->getLBCharSubFunc()(&lbCtx, txt+start, i+1, len-1 - (i+1));
                 }
@@ -10499,10 +11159,13 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     // collapse; this might still not be right with pre-wrap though).
                 // printf("between <%c%c>: brk %d\n", c, next_c, brk);
                 if (brk == LINEBREAK_ALLOWBREAK && !nowrap) {
-                    if (flags[i] & LCHAR_ALLOW_WRAP_AFTER) { // a breakable/collapsible space (flag set by measureText()
-                        if (collapseNextSpace) // ignore this space
-                            continue;
-                        collapseNextSpace = true; // ignore next spaces, even if in another node
+                    if (flags[i] & LCHAR_ALLOW_WRAP_AFTER) { // a breakable space (flag set by measureText()
+                        // We can break on it, and if breaking, it's width would not be accounted anywhere
+                        if (is_collapsable_space) { // a collapsable ascii space
+                            if (collapseNextSpace) // ignore this space
+                                continue;
+                            collapseNextSpace = true; // ignore next spaces, even if in another node
+                        }
                         lastSpaceWidth = pre ? 0 : w; // Don't remove last space width if 'pre'
                         curMaxWidth += w; // add this space to non-wrap width
                         if (fit_glyphs && curWordWidth > 0) { // there was a word before this space
@@ -10568,11 +11231,13 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 else { // break not allowed: this char is part of a word
                     // But it can be a space followed by another space (with libunibreak,
                     // only the last space will get LINEBREAK_ALLOWBREAK).
-                    if (flags[i] & LCHAR_ALLOW_WRAP_AFTER) { // a breakable/collapsible space (flag set by measureText()
-                        if (collapseNextSpace) { // space before (and space after)
-                            continue; // ignore it
+                    if (flags[i] & LCHAR_ALLOW_WRAP_AFTER) { // a breakable space (flag set by measureText()
+                        if (is_collapsable_space) { // a collapsable ascii space
+                            if (collapseNextSpace) { // space before (and space after)
+                                continue; // ignore it
+                            }
+                            collapseNextSpace = true; // ignore next ones
                         }
-                        collapseNextSpace = true; // ignore next ones
                         lastSpaceWidth = pre ? 0 : w; // Don't remove last space width if 'pre'
                     }
                     else { // Not a space
@@ -10594,10 +11259,10 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             }
             #else // not USE_LIBUNIBREAK==1
             // (This has not been updated to handle nowrap & pre)
-            (void)nowrap; // avoid clang warning: value stored is never read
             for (int i=0; i<chars_measured; i++) {
                 int w = widths[i] - (i>0 ? widths[i-1] : 0);
                 lChar32 c = *(txt + start + i);
+                bool is_collapsable_space = (c == ' '); // We only collapse the classic ASCII spaces in lvtextfm.cpp
                 if ( (flags[i] & LCHAR_IS_SPACE) && (space_width_scale_percent != 100) ) {
                     w = w * space_width_scale_percent / 100;
                 }
@@ -10612,9 +11277,11 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     // But Firefox does that too, may be a bit less radically than
                     // us, so our table algorithm may need some tweaking...
                 if (flags[i] & LCHAR_ALLOW_WRAP_AFTER) { // A space
-                    if (collapseNextSpace) // ignore this space
-                        continue;
-                    collapseNextSpace = true; // ignore next spaces, even if in another node
+                    if (is_collapsable_space) { // a collapsable ascii space
+                        if (collapseNextSpace) // ignore this space
+                            continue;
+                        collapseNextSpace = true; // ignore next spaces, even if in another node
+                    }
                     lastSpaceWidth = w;
                     curMaxWidth += w; // add this space to non-wrap width
                     if (fit_glyphs && curWordWidth > 0) { // there was a word before this space

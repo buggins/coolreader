@@ -26,18 +26,21 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "../include/lvxml.h"
+#include "../include/lvxmlparsercallback.h"
+#include "../include/lvxmlparser.h"
 
 #if !defined(__SYMBIAN32__)
 #include <stdio.h>
 #endif
 
 #include "../include/lvtypes.h"
-#include "../include/lvstream.h"
+#include "../include/lvstreamutils.h"
+#include "../include/lvcontaineriteminfo.h"
 #include "../include/hyphman.h"
 #include "../include/lvfnt.h"
 #include "../include/lvstring.h"
 #include "../include/lvstring32collection.h"
+
 #include "../include/crlog.h"
 #include "../include/textlang.h"
 

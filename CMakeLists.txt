@@ -46,7 +46,7 @@ if(MSVC)
 elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   # Update if necessary
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-long-long -pedantic -std=gnu11 -fPIC -Wno-misleading-indentation")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic -std=c++11 -fPIC -Wno-misleading-indentation -Wno-reorder")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic -std=c++11 -fPIC -Wno-misleading-indentation -Wno-reorder -Wno-format-overflow")
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fomit-frame-pointer")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fomit-frame-pointer")
 endif()
@@ -134,6 +134,8 @@ endif (NOT DEFINED ENABLE_DBUS_VIEWER_EVENTS)
 SET (CRGUI_DEFS -DCOLOR_BACKBUFFER=0 -DLDOM_USE_OWN_MEM_MAN=0 -DGRAY_BACKBUFFER_BITS=${GRAY_BACKBUFFER_BITS}
 	  -DENABLE_DBUS_VIEWER_EVENTS=${ENABLE_DBUS_VIEWER_EVENTS})
 SET (DESKTOP_DEFS -DCOLOR_BACKBUFFER=1 -DLDOM_USE_OWN_MEM_MAN=1 -DUSE_FREETYPE=1 )
+# Uncomment to test e-ink style color palette on Desktop
+#SET (DESKTOP_DEFS -DCOLOR_BACKBUFFER=0 -DGRAY_BACKBUFFER_BITS=4 -DLDOM_USE_OWN_MEM_MAN=1 -DUSE_FREETYPE=1 )
 
 if( ${GUI} STREQUAL QT )
 FIND_PACKAGE( Qt4 REQUIRED )
@@ -213,6 +215,7 @@ endif(NOT MAC)
 
 if (NOT ${GUI} STREQUAL FB2PROPS )
 if (NOT MAC)
+
 if (NOT MSVC AND NOT CR3_PNG)
 FIND_PACKAGE(PNG)
 endif (NOT MSVC AND NOT CR3_PNG)
@@ -237,7 +240,7 @@ if (NOT JPEG_FOUND)
 endif (NOT JPEG_FOUND)
 
 if (NOT MSVC AND NOT CR3_FREETYPE)
-FIND_PACKAGE(Freetype)
+FIND_PACKAGE(Freetype 2.10.0)
 FIND_PACKAGE(HarfBuzz)
 endif (NOT MSVC AND NOT CR3_FREETYPE)
 
@@ -274,10 +277,8 @@ if (NOT MSVC)
 endif(NOT MSVC)
 
 if (FONTCONFIG_FOUND)
-	message("System FontConfig found")
 	set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_FONTCONFIG=1)
 else()
-	message("System FontConfig not found")
 	set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_FONTCONFIG=0)
 endif (FONTCONFIG_FOUND)
 
@@ -304,6 +305,28 @@ if (NOT LIBUNIBREAK_FOUND)
   SET(LIBUNIBREAK_LIBRARIES unibreak)
 endif (NOT LIBUNIBREAK_FOUND)
 
+find_package(ZSTD)
+if (NOT ZSTD_FOUND)
+    message("\nSystem zstd not found, will build local one\n")
+    set(ZSTD_LEGACY_SUPPORT OFF CACHE BOOL "LEGACY SUPPORT" FORCE)
+    set(ZSTD_MULTITHREAD_SUPPORT OFF CACHE BOOL "MULTITHREADING SUPPORT" FORCE)
+    set(ZSTD_BUILD_PROGRAMS OFF CACHE BOOL "BUILD PROGRAMS" FORCE)
+    set(ZSTD_BUILD_CONTRIB OFF CACHE BOOL "BUILD CONTRIB" FORCE)
+    set(ZSTD_BUILD_TESTS OFF CACHE BOOL "BUILD TESTS" FORCE)
+    set(ZSTD_BUILD_STATIC ON CACHE BOOL "BUILD STATIC LIBRARIES" FORCE)
+    set(ZSTD_BUILD_SHARED OFF CACHE BOOL "BUILD SHARED LIBRARIES" FORCE)
+    add_subdirectory(thirdparty/${REPO_ZSTD_SRCDIR}/build/cmake)
+    SET(ZSTD_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${REPO_ZSTD_SRCDIR}/lib CACHE PATH "Include directories needed to use ZSTD" FORCE)
+    SET(ZSTD_LIBRARIES libzstd_static CACHE FILEPATH "Libraries needed to link to ZSTD" FORCE)
+endif(NOT ZSTD_FOUND)
+
+find_package(utf8proc)
+
+if (UTF8PROC_FOUND)
+	set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_UTF8PROC=1)
+else()
+	set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_UTF8PROC=0)
+endif (UTF8PROC_FOUND)
 
 endif (NOT MAC)
 
@@ -337,6 +360,7 @@ INCLUDE_DIRECTORIES(
   ${CHM_INCLUDE_DIR}
   ${FRIBIDI_INCLUDE_DIR}
   ${LIBUNIBREAK_INCLUDE_DIR}
+  ${ZSTD_INCLUDE_DIRS}
 )
 
 if ( ${GUI} STREQUAL FB2PROPS )
@@ -355,11 +379,15 @@ SET(STD_LIBS
   ${ANTIWORD_LIBRARIES}
   ${FRIBIDI_LIBRARIES}
   ${LIBUNIBREAK_LIBRARIES}
+  ${ZSTD_LIBRARIES}
   qimagescale
 )
 if (FONTCONFIG_FOUND)
 	set(STD_LIBS ${STD_LIBS} ${FONTCONFIG_LIBRARIES})
 endif (FONTCONFIG_FOUND)
+if (UTF8PROC_FOUND)
+	set(STD_LIBS ${STD_LIBS} ${UTF8PROC_LIBRARIES})
+endif (UTF8PROC_FOUND)
 include_directories(${FT_INCLUDE_PATH})
 endif ( ${GUI} STREQUAL FB2PROPS )
 
@@ -371,8 +399,6 @@ message("Will make tinydict library - .dict format support")
 ADD_SUBDIRECTORY(tinydict)
 endif ( NOT ${GUI} STREQUAL FB2PROPS )
 
-
-include(FindPkgConfig)
 
 if ( ${GUI} STREQUAL CRGUI_XCB )
   message("Will make CR3GUI for XCB")

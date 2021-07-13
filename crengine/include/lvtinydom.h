@@ -28,7 +28,7 @@
 #include "lvmemman.h"
 #include "lvstring.h"
 #include "lstridmap.h"
-#include "lvxml.h"
+#include "lvxmlparsercallback.h"
 #include "dtddef.h"
 #include "lvstyles.h"
 #include "lvdrawbuf.h"
@@ -42,6 +42,11 @@
 #include "bookformats.h"
 #include "serialbuf.h"
 #include "lvstring32hashedcollection.h"
+#include "lvdocviewcallback.h"
+
+#if MATHML_SUPPORT==1
+#include "mathml.h"
+#endif
 
 // Allows for requesting older DOM building code (including bugs NOT fixed)
 extern const int gDOMVersionCurrent;
@@ -202,54 +207,6 @@ struct NodeItem;
 class DataBuffer;
 //#endif
 
-
-/// DocView Callback interface - track progress, external links, etc.
-class LVDocViewCallback {
-public:
-    /// on starting file loading
-    virtual void OnLoadFileStart( lString32 filename ) { CR_UNUSED(filename); }
-    /// format detection finished
-    virtual void OnLoadFileFormatDetected( doc_format_t /*fileFormat*/) { }
-    /// file loading is finished successfully - drawCoveTo() may be called there
-    virtual void OnLoadFileEnd() { }
-    /// first page is loaded from file an can be formatted for preview
-    virtual void OnLoadFileFirstPagesReady() { }
-    /// file progress indicator, called with values 0..100
-    virtual void OnLoadFileProgress( int /*percent*/) { }
-    /// file load finiished with error
-    virtual void OnLoadFileError(lString32 /*message*/) { }
-    /// node style update started
-    virtual void OnNodeStylesUpdateStart() { }
-    /// node style update finished
-    virtual void OnNodeStylesUpdateEnd() { }
-    /// node style update progress, called with values 0..100
-    virtual void OnNodeStylesUpdateProgress(int /*percent*/) { }
-    /// document formatting started
-    virtual void OnFormatStart() { }
-    /// document formatting finished
-    virtual void OnFormatEnd() { }
-    /// format progress, called with values 0..100
-    virtual void OnFormatProgress(int /*percent*/) { }
-    /// document fully loaded and rendered (follows OnFormatEnd(), or OnLoadFileEnd() when loaded from cache)
-    virtual void OnDocumentReady() { }
-    /// format progress, called with values 0..100
-    virtual void OnExportProgress(int /*percent*/) { }
-    /// Override to handle external links
-    virtual void OnExternalLink(lString32 /*url*/, ldomNode * /*node*/) { }
-    /// Called when page images should be invalidated (clearImageCache() called in LVDocView)
-    virtual void OnImageCacheClear() { }
-    /// return true if reload will be processed by external code, false to let internal code process it
-    virtual bool OnRequestReload() { return false; }
-    /// save cache file started
-    virtual void OnSaveCacheFileStart() { }
-    /// save cache file finished
-    virtual void OnSaveCacheFileEnd() { }
-    /// save cache file progress, called with values 0..100
-    virtual void OnSaveCacheFileProgress(int /*percent*/) { }
-    /// destructor
-    virtual ~LVDocViewCallback() { }
-};
-
 class CacheLoadingCallback
 {
 public:
@@ -338,7 +295,7 @@ public:
     /// return true if some chunks have been allocated
     bool hasChunks() { return _chunks.length() > 0; }
 #endif
-    
+
     /// get or allocate space for rect data item
     void getRendRectData( lUInt32 elemDataIndex, lvdomElementFormatRec * dst );
     /// set rect data item
@@ -969,6 +926,15 @@ public:
     inline const lString32 & getAttributeValue( lUInt16 id ) const { return getAttributeValue( LXML_NS_ANY, id ); }
     /// returns true if element node has attribute with specified name id
     inline bool hasAttribute( lUInt16 id ) const  { return hasAttribute( LXML_NS_ANY, id ); }
+    /// returns lowercased attribute value by attribute name id, for case insensitive keyword checking/parsing
+    inline lString32 getAttributeValueLC( lUInt16 id ) const
+    {
+        if ( hasAttribute(id) ) {
+            lString32 value = getAttributeValue(id);
+            return value.lowercase();
+        }
+        return lString32::empty_str;
+    };
 
     /// returns attribute value by attribute name id, looking at children if needed
     const lString32 & getFirstInnerAttributeValue( lUInt16 nsid, lUInt16 id ) const;
@@ -1118,15 +1084,15 @@ public:
     bool isEmbeddedBlockBoxingInlineBox(bool inline_box_checks_done=false) const;
 
     /// is node any of our internal boxing element (or, optionally, our pseudoElem)
-    bool isBoxingNode( bool orPseudoElem=false ) const;
+    bool isBoxingNode( bool orPseudoElem=false, lUInt16 exceptBoxingNodeId=0 ) const;
 
     /// return real (as in the original HTML) parent/siblings by skipping any internal
     /// boxing element up or down (returns NULL when no more sibling)
-    ldomNode * getUnboxedParent() const;
-    ldomNode * getUnboxedFirstChild( bool skip_text_nodes=false ) const;
-    ldomNode * getUnboxedLastChild( bool skip_text_nodes=false ) const;
-    ldomNode * getUnboxedPrevSibling( bool skip_text_nodes=false ) const;
-    ldomNode * getUnboxedNextSibling( bool skip_text_nodes=false ) const;
+    ldomNode * getUnboxedParent( lUInt16 exceptBoxingNodeId=0 ) const;
+    ldomNode * getUnboxedFirstChild( bool skip_text_nodes=false, lUInt16 exceptBoxingNodeId=0 ) const;
+    ldomNode * getUnboxedLastChild( bool skip_text_nodes=false, lUInt16 exceptBoxingNodeId=0 ) const;
+    ldomNode * getUnboxedPrevSibling( bool skip_text_nodes=false, lUInt16 exceptBoxingNodeId=0 ) const;
+    ldomNode * getUnboxedNextSibling( bool skip_text_nodes=false, lUInt16 exceptBoxingNodeId=0 ) const;
 };
 
 
@@ -1423,7 +1389,7 @@ class ldomDocument;
 
 /**
  * @brief XPointer/XPath object with reference counting.
- * 
+ *
  */
 class ldomXPointer
 {
@@ -2405,11 +2371,13 @@ private:
     lUInt32 _last_docflags;
     int _page_height;
     int _page_width;
+    bool _parsing;
     bool _rendered;
     bool _just_rendered_from_cache;
     bool _toc_from_cache_valid;
     lUInt32 _warnings_seen_bitmap;
     ldomXRangeList _selections;
+    lUInt32 _doc_rendering_hash;
 #endif
 
     lString32 _docStylesheetFileName;
@@ -2444,6 +2412,7 @@ protected:
 public:
 
 #if BUILD_LITE!=1
+    lUInt32 getDocumentRenderingHash() const { return _doc_rendering_hash; }
     void forceReinitStyles() {
         dropStyles();
         _hdr.render_style_hash = 0;
@@ -2526,7 +2495,7 @@ public:
 #if BUILD_LITE!=1
     /// return selections collection
     ldomXRangeList & getSelections() { return _selections; }
-    
+
     /// get full document height
     int getFullHeight();
     /// returns page height setting
@@ -2551,6 +2520,7 @@ public:
     virtual ~ldomDocument();
 #if BUILD_LITE!=1
     bool isRendered() { return _rendered; }
+    bool isBeingParsed() { return _parsing; }
     /// renders (formats) document in memory: returns true if re-rendering needed, false if not
     virtual bool render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy,
                          bool showCover, int y0, font_ref_t def_font, int def_interline_space,
@@ -2608,6 +2578,9 @@ class ldomElementWriter
     bool _allowText;
     bool _isBlock;
     bool _isSection;
+#if MATHML_SUPPORT==1
+    bool _insideMathML;
+#endif
     bool _stylesheetIsSet;
     bool _bodyEnterCalled;
     int _pseudoElementAfterChildIndex;
@@ -2630,6 +2603,9 @@ class ldomElementWriter
 
     friend class ldomDocumentWriter;
     friend class ldomDocumentWriterFilter;
+#if MATHML_SUPPORT==1
+    friend class MathMLHelper;
+#endif
     //friend ldomElementWriter * pop( ldomElementWriter * obj, lUInt16 id );
 };
 
@@ -2641,6 +2617,9 @@ class ldomElementWriter
 */
 class ldomDocumentWriter : public LVXMLParserCallback
 {
+#if MATHML_SUPPORT==1
+    friend class MathMLHelper;
+#endif
 protected:
     //============================
     ldomDocument * _document;
@@ -2655,6 +2634,9 @@ protected:
     bool _inHeadStyle;
     lString32 _headStyleText;
     lString32Collection _stylesheetLinks;
+#if MATHML_SUPPORT==1
+    MathMLHelper _mathMLHelper;
+#endif
     virtual void ElementCloseHandler( ldomNode * node ) { node->persist(); }
 public:
     /// returns flags
@@ -2837,7 +2819,7 @@ public:
     virtual void OnText( const lChar32 * text, int len, lUInt32 flags )
     {
         if (headStyleState == 1) {
-            headStyleText << UnicodeToUtf8(lString32(text).substr(0,len-1));
+            headStyleText << UnicodeToUtf8(lString32(text, len));
             return;
         }
         if ( insideTag )
@@ -2910,8 +2892,14 @@ void runTinyDomUnitTests();
 /// pass true to enable CRC check for
 void enableCacheFileContentsValidation(bool enable);
 
+enum CacheCompressionType {
+    CacheCompressionNone = 0,
+    CacheCompressionZlib = 1,
+    CacheCompressionZSTD = 2,
+};
+
 /// pass false to not compress data in cache files
-void compressCachedData(bool enable);
+void setCacheCompressionType(CacheCompressionType type);
 
 /// increase the 4 hardcoded TEXT_CACHE_UNPACKED_SPACE, ELEM_CACHE_UNPACKED_SPACE,
 // RECT_CACHE_UNPACKED_SPACE and STYLE_CACHE_UNPACKED_SPACE by this factor

@@ -4,13 +4,11 @@ import android.content.Context;
 import android.util.Log;
 import android.view.View;
 
-import com.onyx.android.sdk.api.device.epd.EpdController;
-import com.onyx.android.sdk.api.device.epd.UpdateMode;
-import com.onyx.android.sdk.device.Device;
-
 import org.coolreader.CoolReader;
+import org.eink_onyx_reflections.OnyxDevice;
+import org.eink_onyx_reflections.OnyxEinkDeviceImpl;
+import org.eink_onyx_reflections.UpdateMode;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class EinkScreenOnyx implements EinkScreen {
@@ -27,29 +25,40 @@ public class EinkScreenOnyx implements EinkScreen {
 	private List<Integer> mWarmLightLevels = null;
 	private UpdateMode mOnyxUpdateMode = UpdateMode.None;
 	private int mExtraDelayFullRefresh = 0;
+	private boolean mIsAppOptimizationEnabled = false;
+	private boolean mNeedCallByPass = false;
 
 	@Override
 	public void setupController(EinkUpdateMode mode, int updateInterval, View view) {
+		OnyxEinkDeviceImpl onyxEinkDevice = OnyxDevice.currentDevice();
+		mIsAppOptimizationEnabled = onyxEinkDevice.isAppOptimizationEnabled();
+		if (mIsAppOptimizationEnabled) {
+			log.i("ONYX App Optimization is enabled");
+		} else {
+			log.i("ONYX App Optimization is disabled");
+		}
 		mUpdateInterval = updateInterval;
 		if (mUpdateMode.equals(mode))
 			return;
 		log.d("EinkScreenOnyx.setupController(): mode=" + mode);
-		EpdController.enableScreenUpdate(view, true);
+		onyxEinkDevice.enableScreenUpdate(view, true);
 		mRefreshNumber = 0;
-		EpdController.clearApplicationFastMode();
+		onyxEinkDevice.clearApplicationFastMode();
+		mNeedCallByPass = false;
 		UpdateMode onyxFastUpdateMode = UpdateMode.DU;
-		switch (Device.currentDeviceIndex()) {
-			case Rk32xx:
-			case Rk33xx:
-			case SDM:
+		switch (onyxEinkDevice.deviceType()) {
+			case rk32xx:
+			case rk33xx:
+			case sdm:
 				onyxFastUpdateMode = UpdateMode.DU_QUALITY;
+				mNeedCallByPass = !mIsAppOptimizationEnabled;
 				break;
 		}
-		switch (Device.currentDeviceIndex()) {
+		switch (onyxEinkDevice.deviceType()) {
 			// TODO: check other ONYX devices & platforms
-			case SDM:
+			case sdm:
 				// Hack, use additional delay before full screen update
-				mExtraDelayFullRefresh = 20;
+				mExtraDelayFullRefresh = 40;
 				break;
 		}
 		switch (mode) {
@@ -59,7 +68,7 @@ public class EinkScreenOnyx implements EinkScreen {
 					mInA2Mode = false;
 				}
 				if (mInFastMode) {
-					EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
+					onyxEinkDevice.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
 					mInFastMode = false;
 				}
 				mOnyxUpdateMode = UpdateMode.REGAL;
@@ -70,7 +79,7 @@ public class EinkScreenOnyx implements EinkScreen {
 					mInA2Mode = false;
 				}
 				if (mInFastMode) {
-					EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
+					onyxEinkDevice.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
 					mInFastMode = false;
 				}
 				mOnyxUpdateMode = UpdateMode.GU;
@@ -82,14 +91,14 @@ public class EinkScreenOnyx implements EinkScreen {
 				}
 				// Enable fast mode (not implemented on RK3026)
 				if (!mInFastMode) {
-					EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), true, true, UpdateMode.DU_QUALITY, Integer.MAX_VALUE);
+					onyxEinkDevice.applyApplicationFastMode(CoolReader.class.getSimpleName(), true, true, UpdateMode.DU_QUALITY, Integer.MAX_VALUE);
 					mInFastMode = true;
 				}
 				mOnyxUpdateMode = onyxFastUpdateMode;
 				break;
 			case A2:            // A2 mode
 				if (mInFastMode) {
-					EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
+					onyxEinkDevice.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
 					mInFastMode = false;
 				}
 				if (!mInA2Mode) {
@@ -102,7 +111,7 @@ public class EinkScreenOnyx implements EinkScreen {
 				mOnyxUpdateMode = UpdateMode.GU;
 		}
 		if (null != view) {
-			EpdController.setViewDefaultUpdateMode(view, mOnyxUpdateMode);
+			onyxEinkDevice.setViewDefaultUpdateMode(view, mOnyxUpdateMode);
 			BackgroundThread.instance().executeGUI(view::invalidate);
 		}
 		mUpdateMode = mode;
@@ -110,6 +119,10 @@ public class EinkScreenOnyx implements EinkScreen {
 
 	@Override
 	public void prepareController(View view, boolean isPartially) {
+		if (mIsAppOptimizationEnabled)
+			return;
+		if (isPartially)
+			return;
 		if (mRefreshNumber == -1) {
 			mRefreshNumber = 0;
 			onyxRepaintEveryThing(view, false);
@@ -123,17 +136,22 @@ public class EinkScreenOnyx implements EinkScreen {
 			}
 		}
 		if (mRefreshNumber > 0 || mUpdateInterval == 0) {
-			EpdController.setViewDefaultUpdateMode(view, mOnyxUpdateMode);
-			if (Device.DeviceIndex.Rk32xx == Device.currentDeviceIndex()) {
-				// Hack, without it, the image on rk3288 will not updated.
-				// Found by brute force.
-				EpdController.byPass(0);
+			OnyxDevice.currentDevice().setViewDefaultUpdateMode(view, mOnyxUpdateMode);
+			if (mNeedCallByPass) {
+				// Hack, without it, Regal NOT work (if app optimization is disabled).
+				// But if app optimization is enabled this cause flickering: after screen drawn - screen cleared and then image restored
+				// Also, without it, on rk3288 with firmware 2.1 & 3.0 the image will not updated.
+				OnyxDevice.currentDevice().byPass(0);
 			}
 		}
 	}
 
 	@Override
 	public void updateController(View view, boolean isPartially) {
+		if (mIsAppOptimizationEnabled)
+			return;
+		if (isPartially)
+			return;
 		if (0 == mRefreshNumber && mUpdateInterval > 0) {
 			if (mExtraDelayFullRefresh > 0) {
 				// Hack, on ONYX devices with SDM platform without this delay full screen refresh runs too early
@@ -172,9 +190,9 @@ public class EinkScreenOnyx implements EinkScreen {
 		int res = 0;
 		try {
 			if (DeviceInfo.ONYX_HAVE_NATURAL_BACKLIGHT) {
-				res = Device.currentDevice().getColdLightConfigValue(context);
+				res = OnyxDevice.currentDevice().getColdLightConfigValue(context);
 			} else {
-				res = Device.currentDevice().getFrontLightDeviceValue(context);
+				res = OnyxDevice.currentDevice().getFrontLightDeviceValue(context);
 			}
 		} catch (Exception ignored) {}
 		return res;
@@ -188,10 +206,10 @@ public class EinkScreenOnyx implements EinkScreen {
 				Integer alignedValue = Utils.findNearestValue(getFrontLightLevels(context), value);
 				if (null != alignedValue) {
 					if (DeviceInfo.ONYX_HAVE_NATURAL_BACKLIGHT) {
-						res = Device.currentDevice().setColdLightDeviceValue(context, alignedValue);
+						res = OnyxDevice.currentDevice().setColdLightDeviceValue(context, alignedValue);
 					} else {
-						if (Device.currentDevice().setFrontLightDeviceValue(context, alignedValue))
-							res = Device.currentDevice().setFrontLightConfigValue(context, alignedValue);
+						if (OnyxDevice.currentDevice().setFrontLightDeviceValue(context, alignedValue))
+							res = OnyxDevice.currentDevice().setFrontLightConfigValue(context, alignedValue);
 					}
 				}
 			} else {
@@ -206,7 +224,7 @@ public class EinkScreenOnyx implements EinkScreen {
 		int res = 0;
 		try {
 			if (DeviceInfo.ONYX_HAVE_NATURAL_BACKLIGHT) {
-				res = Device.currentDevice().getWarmLightConfigValue(context);
+				res = OnyxDevice.currentDevice().getWarmLightConfigValue(context);
 			}
 		} catch (Exception ignored) {}
 		return res;
@@ -219,7 +237,7 @@ public class EinkScreenOnyx implements EinkScreen {
 			if (value >= 0) {
 				Integer alignedValue = Utils.findNearestValue(getWarmLightLevels(context), value);
 				if (null != alignedValue) {
-					res = Device.currentDevice().setWarmLightDeviceValue(context, alignedValue);
+					res = OnyxDevice.currentDevice().setWarmLightDeviceValue(context, alignedValue);
 				}
 			} else {
 				// system default, just ignore
@@ -233,13 +251,10 @@ public class EinkScreenOnyx implements EinkScreen {
 		if (DeviceInfo.ONYX_HAVE_FRONTLIGHT || DeviceInfo.ONYX_HAVE_NATURAL_BACKLIGHT) {
 			if (null == mFrontLineLevels) {
 				try {
-					mFrontLineLevels = Device.currentDevice().getFrontLightValueList(context);
+					mFrontLineLevels = OnyxDevice.currentDevice().getFrontLightValueList(context);
 				} catch (Exception ignored) { }
 				if (null == mFrontLineLevels || mFrontLineLevels.size() == 0) {
-					Integer[] values = Device.currentDevice().getColdLightValues(context);
-					if (null != values) {
-						mFrontLineLevels = Arrays.asList(values);
-					}
+					mFrontLineLevels = OnyxDevice.currentDevice().getColdLightValues(context);
 				}
 			}
 		}
@@ -251,29 +266,29 @@ public class EinkScreenOnyx implements EinkScreen {
 		if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT) {
 			if (null == mWarmLightLevels) {
 				if (DeviceInfo.ONYX_HAVE_NATURAL_BACKLIGHT) {
-					Integer[] values = Device.currentDevice().getWarmLightValues(context);
-					if (null != values) {
-						mWarmLightLevels = Arrays.asList(values);
-					}
+					mWarmLightLevels = OnyxDevice.currentDevice().getWarmLightValues(context);
 				}
 			}
 		}
 		return mWarmLightLevels;
 	}
 
+	@Override
+	public boolean isAppOptimizationEnabled() {
+		return mIsAppOptimizationEnabled;
+	}
 
-	// private methods
 	private void onyxRepaintEveryThing(View view, boolean invalidate) {
-		switch (Device.currentDeviceIndex()) {
-			case Rk31xx:
-			case Rk32xx:
-			case Rk33xx:
-			case SDM:
-				EpdController.repaintEveryThing(UpdateMode.GC);
+		switch (OnyxDevice.currentDeviceType()) {
+			case rk31xx:
+			case rk32xx:
+			case rk33xx:
+			case sdm:
+				OnyxDevice.currentDevice().repaintEveryThing(UpdateMode.GC);
 				break;
 			default:
 				if (null != view) {
-					EpdController.setViewDefaultUpdateMode(view, UpdateMode.GC);
+					OnyxDevice.currentDevice().setViewDefaultUpdateMode(view, UpdateMode.GC);
 					if (invalidate)
 						view.postInvalidate();
 				}
@@ -282,21 +297,21 @@ public class EinkScreenOnyx implements EinkScreen {
 	}
 
 	private void onyxEnableA2Mode(View view, boolean enable) {
-		switch (Device.currentDeviceIndex()) {
-			case Rk3026:
+		switch (OnyxDevice.currentDeviceType()) {
+			case rk3026:
 			case imx6:
 			case imx7:
 				if (enable)
-					EpdController.enableA2ForSpecificView(view);
+					OnyxDevice.currentDevice().enableA2ForSpecificView(view);
 				else
-					EpdController.disableA2ForSpecificView(view);
+					OnyxDevice.currentDevice().disableA2ForSpecificView(view);
 				break;
 			default:
-				EpdController.clearApplicationFastMode();
+				OnyxDevice.currentDevice().clearApplicationFastMode();
 				if (enable)
-					EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), true, true, UpdateMode.ANIMATION_QUALITY, Integer.MAX_VALUE);
+					OnyxDevice.currentDevice().applyApplicationFastMode(CoolReader.class.getSimpleName(), true, true, UpdateMode.ANIMATION_QUALITY, Integer.MAX_VALUE);
 				else
-					EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
+					OnyxDevice.currentDevice().applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
 				break;
 		}
 	}

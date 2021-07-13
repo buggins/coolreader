@@ -4,3 +4,5 @@
 /debug/
 /release/
 /release_stripped/
+/primary/
+/fdroid/

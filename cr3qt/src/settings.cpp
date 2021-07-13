@@ -31,6 +31,8 @@ static int rend_flags[] = { BLOCK_RENDERING_FLAGS_LEGACY, BLOCK_RENDERING_FLAGS_
 #define MAX_REND_FLAGS_INDEX (sizeof(rend_flags)/sizeof(int))
 static int DOM_versions[] = { 0, gDOMVersionCurrent };
 #define MAX_DOM_VERSIONS_INDEX (sizeof(DOM_versions)/sizeof(int))
+static int aa_variants[] = { font_aa_none, font_aa_gray, font_aa_lcd_rgb, font_aa_lcd_bgr, font_aa_lcd_v_rgb, font_aa_lcd_v_bgr };
+#define MAX_AA_INDEX (sizeof(aa_variants)/sizeof(int))
 
 static bool initDone = false;
 static bool suppressOnChange = false;
@@ -310,6 +312,16 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     fontToUi( PROP_STATUS_FONT_FACE, PROP_STATUS_FONT_SIZE, m_ui->cbTitleFontFace, m_ui->cbTitleFontSize, m_defFontFace.toLatin1().data() );
 
     updateFontWeights();
+
+    int aa = m_props->getIntDef( PROP_FONT_ANTIALIASING, (int)font_aa_gray );
+    int aai = 1;
+    for (int i=0; i < MAX_AA_INDEX; i++) {
+        if (aa == aa_variants[i]) {
+            aai = i;
+            break;
+        }
+    }
+    m_ui->cbAntialiasingMode->setCurrentIndex( aai );
 
 //		{_("90%"), "90"},
 //		{_("100%"), "100"},
@@ -1356,5 +1368,14 @@ void SettingsDlg::on_cbFontWeightChange_currentIndexChanged(int index)
     LVArray<int> nativeWeights;
     fontMan->GetAvailableFontWeights(nativeWeights, UnicodeToUtf8(qt2cr(face)));
     //m_ui->cbFontHinting->setEnabled(nativeWeights.indexOf(weight) >= 0);
+    updateStyleSample();
+}
+
+void SettingsDlg::on_cbAntialiasingMode_currentIndexChanged(int index)
+{
+    if (index < 0 || index >= MAX_AA_INDEX)
+        index = 0;
+    int aa = aa_variants[index];
+    m_props->setInt( PROP_FONT_ANTIALIASING, aa );
     updateStyleSample();
 }

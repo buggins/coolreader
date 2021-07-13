@@ -4,6 +4,7 @@
 #include "crsetup.h"
 #include "lvptrvec.h"
 #include "lvstring.h"
+#include "cssdef.h"
 
 #if USE_HARFBUZZ==1
 #include <hb.h>
@@ -127,6 +128,7 @@ class TextLangCfg
     #endif
 
     bool _duplicate_real_hyphen_on_next_line;
+    bool _is_ja_zh;
 
     void resetCounters();
 
@@ -163,6 +165,8 @@ public:
     bool hasLBCharSubFunc() const { return _lb_char_sub_func != NULL; }
     lb_char_sub_func_t getLBCharSubFunc() const { return _lb_char_sub_func; }
     struct LineBreakProperties * getLBProps() const { return (struct LineBreakProperties *)_lb_props; }
+    lChar32 getCssLbCharSub(css_line_break_t css_linebreak, css_word_break_t css_wordbreak,
+                struct LineBreakContext *lbpCtx, const lChar32 * text, int pos, int next_usable, lChar32 tweaked_ch);
     #endif
 
     bool duplicateRealHyphenOnNextLine() const { return _duplicate_real_hyphen_on_next_line; }

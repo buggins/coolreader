@@ -1964,6 +1964,34 @@ p, li { white-space: pre-wrap; }
         <source>Ignore document margins</source>
         <translation>Игнорировать отступы документа</translation>
     </message>
+    <message>
+        <source>Antialiasing</source>
+        <translation>Сглаживание</translation>
+    </message>
+    <message>
+        <source>LCD (RGB)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>LCD (BGR)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>LCD (RGB) vertical</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>LCD (BGR) vertical</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>synthetic*</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>synthetic</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>TocDlg</name>

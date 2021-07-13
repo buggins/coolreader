@@ -71,8 +71,12 @@
     <string name="options_font_embolden">Embolden font</string>
     <string name="options_font_antialias">Font antialiasing</string>
     <string name="options_font_antialias_off">No antialias</string>
-    <string name="options_font_antialias_on_for_big">On for big fonts</string>
-    <string name="options_font_antialias_on_for_all">On for all fonts</string>
+    <string name="options_font_antialias_on_for_big">On for big fonts (shades of gray)</string>
+    <string name="options_font_antialias_on_for_all">On for all fonts (shades of gray)</string>
+    <string name="options_font_antialias_lcd_rgb">LCD (RGB)</string>
+    <string name="options_font_antialias_lcd_bgr">LCD (BGR)</string>
+    <string name="options_font_antialias_lcd_v_rgb">LCD_V (RGB)</string>
+    <string name="options_font_antialias_lcd_v_bgr">LCD_V (BGR)</string>
     <string name="options_interline_space">Interline space</string>
     <string name="options_inverse_view">Night mode</string>
     <string name="options_color_text">Text color</string>
@@ -265,6 +269,8 @@
     <string name="dlg_book_search_not_found">No books found</string>
     <string name="dir_search_results">Search results</string>
     <string name="dlg_about_donation">Cool Reader is free and will always be free. If you want to support development of this project, you can buy donation package from Android Market.</string>
+    <string name="dlg_about_donation_paypal" />
+    <string name="dlg_about_donation_paypal_link" />
     <string name="dlg_about_donation_bronze">$1: buy Cool Reader Bronze Donation</string>
     <string name="dlg_about_donation_silver">$3: buy Cool Reader Silver Donation</string>
     <string name="dlg_about_donation_gold">$10: buy Cool Reader Gold Donation</string>
@@ -326,6 +332,12 @@
     <string name="options_controls_tap_secondary_action_type">Tap secondary action type</string>
     <string name="options_controls_tap_type_double">Double tap</string>
     <string name="options_controls_tap_type_long">Long tap</string>
+    <string name="options_controls_bonce_protection">Bounce filter</string>
+    <string name="options_controls_bonce_protection_disabled">Disabled</string>
+    <string name="options_controls_bonce_protection_100">100 ms (10 Hz)</string>
+    <string name="options_controls_bonce_protection_143">143 ms (7 Hz)</string>
+    <string name="options_controls_bonce_protection_200">200 ms (5 Hz)</string>
+    <string name="options_controls_bonce_protection_333">333 ms (3 Hz)</string>
     <string name="mi_bookmark_send">Send</string>
     <string name="folder_name_books_by_genre">Genres</string>
     <string name="folder_name_books_by_author">Authors</string>
@@ -656,7 +668,8 @@
     <string name="pages_per_full_swipe_20">"20 pages (track)"</string>
     <string name="error_while_opening">Error while opening document \"%s\"</string>
     <string name="datadir_is_removed">Application data directory \"%s\" has been removed by other app.\nPossibly it was some kind of disc space optimizer.\nUnfortunately all the settings were lost.</string>
-    <string name="font_not_compat_with_language">Warning: font \"%s\" does not contain the full character set of the language \"%s\". Missing characters will be taken from the fallback font.</string>
+    <string name="font_compat_partial_with_language">Warning: font \"%s\" does not contain the full character set of the language \"%s\". Missing characters will be obtained from fallback fonts.</string>
+    <string name="font_not_compat_with_language">Warning: the font \"%s\" does not contain any character of the language \"%s\". All necessary characters will be obtained from the fallback fonts.</string>
     <string name="fontconfig_language_orthography_database">"Languages character set database by Fontconfig:
         https://www.fontconfig.org/ "
     </string>
@@ -751,4 +764,9 @@
     <string name="add_bookmark_to_page">Add bookmark to page</string>
     <string name="btn_decrease">decrease</string>
     <string name="btn_increase">increase</string>
+    <string name="options_eink_app_optimization_enabled">disabled because App Optimization is enabled</string>
+    <string name="options_legacy_rendering_enabled">disabled because legacy rendering is enabled</string>
+    <string name="options_disabled_document_styles">disabled embedded document styles or unsupported document type</string>
+    <string name="options_multilingual_enabled">disabled because support for multilingual documents is enabled</string>
+    <string name="options_multilingual_disabled">disabled because support for multilingual documents is disabled or legacy rendering is enabled</string>
 </resources>

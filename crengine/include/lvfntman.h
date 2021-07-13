@@ -20,12 +20,14 @@
 #include "lvstring.h"
 #include "lvstring32collection.h"
 #include "lvfont.h"
+#include "lvarray.h"
+#include "lvcontainer.h"
 
 /// font manager interface class
 class LVFontManager {
 protected:
     bool _allowKerning;
-    int _antialiasMode;
+    font_antialiasing_t _antialiasMode;
     shaping_mode_t _shapingMode;
     hinting_mode_t _hintingMode;
 public:
@@ -92,10 +94,10 @@ public:
     virtual void clearGlyphCache() {}
 
     /// get antialiasing mode
-    virtual int GetAntialiasMode() { return _antialiasMode; }
+    virtual font_antialiasing_t GetAntialiasMode() { return _antialiasMode; }
 
     /// set antialiasing mode
-    virtual void SetAntialiasMode(int mode) {
+    virtual void SetAntialiasMode(font_antialiasing_t mode) {
         _antialiasMode = mode;
         gc();
         clearGlyphCache();
@@ -124,7 +126,7 @@ public:
     /// returns available font files
     virtual void getFontFileNameList( lString32Collection & ) { }
     /// check font language compatibility
-    virtual bool checkFontLangCompat(const lString8 &typeface, const lString8 &langCode) { return true; }
+    virtual font_lang_compat checkFontLangCompat(const lString8 &typeface, const lString8 &langCode) { return font_lang_compat_invalid_tag; }
     /// returns first found face from passed list, or return face for font found by family only
     virtual lString8 findFontFace(lString8 commaSeparatedFaceList, css_font_family_t fallbackByFamily);
     /// fills array with list of available gamma levels

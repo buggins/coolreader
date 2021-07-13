@@ -1,12 +1,31 @@
+/**
+    CoolReader Engine
+
+    lvopc.cpp: ODT/DOCX support implementation.
+
+    (c) Konstantin Potapov <pkbo@users.sourceforge.net>, 2019-2020
+    This source code is distributed under the terms of
+    GNU General Public License.
+
+    See LICENSE file for details.
+*/
+
 #include "../include/lvopc.h"
 #include "../include/lvtinydom.h"
+#include "../include/lvstreamutils.h"
 #include "../include/crlog.h"
 
 static const lChar32 * const OPC_PropertiesContentType = U"application/vnd.openxmlformats-package.core-properties+xml";
 
 OpcPart::~OpcPart()
 {
-    m_relations.clear();
+    LVHashTable<lString32, LVHashTable<lString32, lString32> *>::iterator it = m_relations.forwardIterator();
+    LVHashTable<lString32, LVHashTable<lString32, lString32> *>::pair* p;
+    while ((p = it.next()) != NULL) {
+        LVHashTable<lString32, lString32>* relationsTable = p->value;
+        if (relationsTable)
+            delete relationsTable;
+    }
 }
 
 LVStreamRef OpcPart::open()

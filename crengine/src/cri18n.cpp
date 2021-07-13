@@ -13,7 +13,7 @@
 
 
 #include "../include/cri18n.h"
-#include "../include/lvstream.h"
+#include "../include/lvstreamutils.h"
 #include "../include/crlog.h"
 #include "../include/lvstring8collection.h"
 
