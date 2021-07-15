@@ -1338,7 +1338,7 @@ void cr3Frame::RestoreOptions()
         else if ( _props->getBoolDef(PROP_WINDOW_MINIMIZED) )
             Iconize();
     }
-    fontMan->SetAntialiasMode( _props->getIntDef( PROP_FONT_ANTIALIASING, 2 ) );
+    fontMan->SetAntialiasMode( (font_antialiasing_t)_props->getIntDef( PROP_FONT_ANTIALIASING, (int)font_aa_all ) );
     _view->getDocView()->setDefaultFontFace( UnicodeToUtf8(_props->getStringDef(PROP_FONT_FACE, "Arial" )) );
     _view->getDocView()->setTextColor( _props->getIntDef(PROP_FONT_COLOR, 0x000060 ) );
     _view->getDocView()->setBackgroundColor( _props->getIntDef(PROP_BACKGROUND_COLOR, 0xFFFFE0 ) );
