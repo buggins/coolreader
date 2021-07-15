@@ -59,7 +59,7 @@ public:
     virtual void DrawOnTop( LVDrawBuf * __restrict buf, int x, int y) {}
     virtual void DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options) {}
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
-    virtual void DrawTo( HDC dc, int x, int y, int options, const lUInt32 * __restrict palette ) {}
+    virtual void DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette ) {}
 #endif
     virtual void Invert() {}
     virtual lUInt32 GetPixel( int x, int y ) const { return 0; }
