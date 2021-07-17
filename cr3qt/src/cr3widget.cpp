@@ -44,7 +44,9 @@ class CR3View::DocViewData
     CRPropRef _props;
 };
 
+#if USE_LIMITED_FONT_SIZES_SET
 DECL_DEF_CR_FONT_SIZES;
+#endif
 
 static void replaceColor( char * str, lUInt32 color )
 {
@@ -329,8 +331,10 @@ CR3View::CR3View( QWidget *parent)
     ldomXPointerEx p2;
     _selRange.setStart(p1);
     _selRange.setEnd(p2);
+#if USE_LIMITED_FONT_SIZES_SET
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
     _docview->setFontSizes( sizes, false );
+#endif
 
     _docview->setBatteryIcons( getBatteryIcons(0x000000) );
     _docview->setBatteryState(CR_BATTERY_STATE_NO_BATTERY); // don't show battery

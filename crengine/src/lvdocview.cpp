@@ -6442,141 +6442,115 @@ static const char * def_style_macros[] = {
 
 /// sets default property values if properties not found, checks ranges
 void LVDocView::propsUpdateDefaults(CRPropRef props) {
-	lString32Collection list;
-	fontMan->getFaceList(list);
-	static int def_aa_props[] = { font_aa_none, font_aa_big, font_aa_all, font_aa_gray, font_aa_lcd_rgb, font_aa_lcd_bgr, font_aa_lcd_pentile, font_aa_lcd_pentile_m, font_aa_lcd_v_rgb, font_aa_lcd_v_bgr, font_aa_lcd_v_pentile, font_aa_lcd_v_pentile_m };
+    lString32Collection list;
+    fontMan->getFaceList(list);
+    static int aa_props[] = { font_aa_none, font_aa_big, font_aa_all, font_aa_gray, font_aa_lcd_rgb, font_aa_lcd_bgr, font_aa_lcd_pentile, font_aa_lcd_pentile_m, font_aa_lcd_v_rgb, font_aa_lcd_v_bgr, font_aa_lcd_v_pentile, font_aa_lcd_v_pentile_m };
 
-	props->setIntDef(PROP_MIN_FILE_SIZE_TO_CACHE,
-            300000); // ~6M
-	props->setIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE,
-			DOCUMENT_CACHING_MIN_SIZE); // 32K
-	props->setIntDef(PROP_PROGRESS_SHOW_FIRST_PAGE, 1);
+    props->setIntDef(PROP_MIN_FILE_SIZE_TO_CACHE,
+                     300000); // ~6M
+    props->setIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE,
+                     DOCUMENT_CACHING_MIN_SIZE); // 32K
+    props->setIntDef(PROP_PROGRESS_SHOW_FIRST_PAGE, 1);
 
-	props->limitValueList(PROP_FONT_ANTIALIASING, def_aa_props,
-			sizeof(def_aa_props) / sizeof(int), 2);
-	props->setHexDef(PROP_FONT_COLOR, 0x000000);
-	props->setHexDef(PROP_BACKGROUND_COLOR, 0xFFFFFF);
-	props->setHexDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
-//	props->setIntDef(PROP_TXT_OPTION_PREFORMATTED, 0);
-	props->setIntDef(PROP_AUTOSAVE_BOOKMARKS, 1);
-	props->setIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1);
-	props->setIntDef(PROP_DISPLAY_TURBO_UPDATE_MODE, 0);
+    props->limitValueList(PROP_FONT_ANTIALIASING, aa_props,
+                          sizeof(aa_props) / sizeof(int), 2);
+    props->setHexDef(PROP_FONT_COLOR, 0x000000);
+    props->setHexDef(PROP_BACKGROUND_COLOR, 0xFFFFFF);
+    props->setHexDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
+    props->setIntDef(PROP_AUTOSAVE_BOOKMARKS, 1);
 
-	lString8 defFontFace;
-	static const char * goodFonts[] = { "DejaVu Sans", "FreeSans",
-			"Liberation Sans", "Arial", "Verdana", NULL };
-	static const char * fallbackFonts = "Noto Color Emoji; Droid Sans Fallback; Noto Sans CJK SC; Noto Sans Arabic UI; Noto Sans Devanagari UI; FreeSans; FreeSerif; Noto Serif; Noto Sans; Arial Unicode MS";
-	for (int i = 0; goodFonts[i]; i++) {
-		if (list.contains(lString32(goodFonts[i]))) {
-			defFontFace = lString8(goodFonts[i]);
-			break;
-		}
-	}
-	if (defFontFace.empty())
-		defFontFace = UnicodeToUtf8(list[0]);
+    lString8 defFontFace;
+    static const char * goodFonts[] = { "DejaVu Sans", "FreeSans",
+                                        "Noto Sans", "Liberation Sans", "Arial", "Verdana", NULL };
+    static const char * fallbackFonts = "Noto Color Emoji; Droid Sans Fallback; Noto Sans CJK SC; Noto Sans Arabic UI; Noto Sans Devanagari UI; FreeSans; FreeSerif; Noto Serif; Noto Sans; Arial Unicode MS";
+    for (int i = 0; goodFonts[i]; i++) {
+        if (list.contains(lString32(goodFonts[i]))) {
+            defFontFace = lString8(goodFonts[i]);
+            break;
+        }
+    }
+    if (defFontFace.empty())
+        defFontFace = UnicodeToUtf8(list[0]);
 
-	lString8 defStatusFontFace(DEFAULT_STATUS_FONT_NAME);
-	props->setStringDef(PROP_FONT_FACE, defFontFace.c_str());
-	props->setStringDef(PROP_STATUS_FONT_FACE, defStatusFontFace.c_str());
-	if (list.length() > 0 && !list.contains(props->getStringDef(PROP_FONT_FACE,
-			defFontFace.c_str())))
-		props->setString(PROP_FONT_FACE, list[0]);
-	props->setStringDef(PROP_FALLBACK_FONT_FACES, fallbackFonts);
+    lString8 defStatusFontFace(DEFAULT_STATUS_FONT_NAME);
+    props->setStringDef(PROP_FONT_FACE, defFontFace.c_str());
+    props->setStringDef(PROP_STATUS_FONT_FACE, defStatusFontFace.c_str());
+    if (list.length() > 0 && !list.contains(props->getStringDef(PROP_FONT_FACE,
+                                                                defFontFace.c_str())))
+        props->setString(PROP_FONT_FACE, list[0]);
+    props->setStringDef(PROP_FALLBACK_FONT_FACES, fallbackFonts);
 
 #if USE_LIMITED_FONT_SIZES_SET
-	props->setIntDef(PROP_FONT_SIZE,
-			m_font_sizes[m_font_sizes.length() * 2 / 3]);
-	props->limitValueList(PROP_FONT_SIZE, m_font_sizes.ptr(),
-			m_font_sizes.length());
+    props->limitValueList(PROP_FONT_SIZE, m_font_sizes.ptr(),
+                          m_font_sizes.length(), m_font_sizes.length() * 2 / 3);
 #else
-	props->setIntDef(PROP_FONT_SIZE, m_min_font_size + (m_min_font_size + m_max_font_size)/7);
+    props->limitValueMinMax(PROP_FONT_SIZE, m_min_font_size, m_max_font_size,
+                            m_min_font_size + (m_min_font_size + m_max_font_size)/7);
 #endif
-	props->limitValueList(PROP_INTERLINE_SPACE, cr_interline_spaces,
-			sizeof(cr_interline_spaces) / sizeof(int), 20);
+    props->limitValueList(PROP_INTERLINE_SPACE, cr_interline_spaces,
+                          sizeof(cr_interline_spaces) / sizeof(int), 20);
 #if CR_INTERNAL_PAGE_ORIENTATION==1
-	static int def_rot_angle[] = {0, 1, 2, 3};
-	props->limitValueList( PROP_ROTATE_ANGLE, def_rot_angle, 4 );
+    props->limitValueMinMax( PROP_ROTATE_ANGLE, 0, 3, 0 );
 #endif
-	static int bool_options_def_true[] = { 1, 0 };
-	static int bool_options_def_false[] = { 0, 1 };
-	static int int_option_weight[] = { 100, 200, 300, 400, 425, 450, 475, 500, 525, 550, 600, 650, 700, 800, 900, 950 };
-
-	props->limitValueList(PROP_FONT_BASE_WEIGHT, int_option_weight, sizeof(int_option_weight) / sizeof(int), 3);
+    static int int_option_weight[] = { 100, 200, 300, 400, 425, 450, 475, 500, 525, 550, 600, 650, 700, 800, 900, 950 };
+    props->limitValueList(PROP_FONT_BASE_WEIGHT, int_option_weight, sizeof(int_option_weight) / sizeof(int), 3);
 #ifndef ANDROID
-	props->limitValueList(PROP_EMBEDDED_STYLES, bool_options_def_true, 2);
-	props->limitValueList(PROP_EMBEDDED_FONTS, bool_options_def_true, 2);
+    props->setBoolDef(PROP_EMBEDDED_STYLES, true);
+    props->setBoolDef(PROP_EMBEDDED_FONTS, true);
+    props->setBoolDef(PROP_TXT_OPTION_PREFORMATTED, false);
 #endif
-	static int int_option_hinting[] = { 0, 1, 2 };
-	props->limitValueList(PROP_FONT_HINTING, int_option_hinting, 3);
-    static int int_option_shaping[] = { 1, 0, 2 };
-    props->limitValueList(PROP_FONT_SHAPING, int_option_shaping, 3);
-    static int int_options_1_2[] = { 2, 1 };
-	props->limitValueList(PROP_LANDSCAPE_PAGES, int_options_1_2, 2);
-	props->limitValueList(PROP_PAGE_VIEW_MODE, bool_options_def_true, 2);
-	props->limitValueList(PROP_FOOTNOTES, bool_options_def_true, 2);
-	props->limitValueList(PROP_SHOW_TIME, bool_options_def_false, 2);
-	props->limitValueList(PROP_DISPLAY_INVERSE, bool_options_def_false, 2);
-	props->limitValueList(PROP_BOOKMARK_ICONS, bool_options_def_false, 2);
-    props->limitValueList(PROP_FONT_KERNING_ENABLED, bool_options_def_false, 2);
-    //props->limitValueList(PROP_FLOATING_PUNCTUATION, bool_options_def_true, 2);
-    static int def_bookmark_highlight_modes[] = { 0, 1, 2 };
-    props->setIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
-    props->limitValueList(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, def_bookmark_highlight_modes, sizeof(def_bookmark_highlight_modes)/sizeof(int));
+    props->limitValueMinMax(PROP_FONT_HINTING, 0, 2, 0);
+    props->limitValueMinMax(PROP_FONT_SHAPING, 0, 2, 1);
+    props->limitValueMinMax(PROP_LANDSCAPE_PAGES, 1, 2, 2);
+    props->setBoolDef(PROP_PAGE_VIEW_MODE, true);
+    props->setBoolDef(PROP_FOOTNOTES, true);
+    props->setBoolDef(PROP_DISPLAY_INVERSE, false);
+    props->setBoolDef(PROP_BOOKMARK_ICONS, false);
+    props->setBoolDef(PROP_FONT_KERNING_ENABLED, false);
+    props->setBoolDef(PROP_FLOATING_PUNCTUATION, true);
+    props->limitValueMinMax(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, 0, 2, (int)highlight_mode_underline);
     props->setColorDef(PROP_HIGHLIGHT_SELECTION_COLOR, 0xC0C0C0); // silver
     props->setColorDef(PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, 0xA08020); // yellow
     props->setColorDef(PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, 0xA04040); // red
 
-    static int def_status_line[] = { 0, 1, 2 };
-	props->limitValueList(PROP_STATUS_LINE, def_status_line, 3);
-    static int def_margin[] = {8, 0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20, 25, 30, 40, 50, 60, 80, 100, 130, 150, 200, 300};
-	props->limitValueList(PROP_PAGE_MARGIN_TOP, def_margin, sizeof(def_margin)/sizeof(int));
-	props->limitValueList(PROP_PAGE_MARGIN_BOTTOM, def_margin, sizeof(def_margin)/sizeof(int));
-	props->limitValueList(PROP_PAGE_MARGIN_LEFT, def_margin, sizeof(def_margin)/sizeof(int));
-	props->limitValueList(PROP_PAGE_MARGIN_RIGHT, def_margin, sizeof(def_margin)/sizeof(int));
-    static int def_rounded_corners_margin[] = {0, 5, 10, 15, 20, 30, 40, 50, 60, 70,80, 90, 100, 120, 140, 160};
-    props->limitValueList(PROP_ROUNDED_CORNERS_MARGIN, def_rounded_corners_margin, sizeof(def_rounded_corners_margin)/sizeof(int));
+    props->limitValueMinMax(PROP_STATUS_LINE, 0, 2, 1);
+    props->setBoolDef(PROP_SHOW_TIME, true);
+    props->setBoolDef(PROP_SHOW_TITLE, true);
+    props->setBoolDef(PROP_SHOW_TIME_12HOURS, false);
+    props->setBoolDef(PROP_SHOW_BATTERY, true);
+    props->setBoolDef(PROP_SHOW_BATTERY_PERCENT, false);
+    props->setBoolDef(PROP_SHOW_PAGE_COUNT, true);
+    props->setBoolDef(PROP_SHOW_PAGE_NUMBER, true);
+    props->setBoolDef(PROP_SHOW_POS_PERCENT, false);
+    props->setBoolDef(PROP_STATUS_CHAPTER_MARKS, true);
 
-    static int def_updates[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8, 10, 14 };
-	props->limitValueList(PROP_DISPLAY_FULL_UPDATE_INTERVAL, def_updates, 11);
-	int fs = props->getIntDef(PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE);
-    if (fs < MIN_STATUS_FONT_SIZE)
-        fs = MIN_STATUS_FONT_SIZE;
-    else if (fs > MAX_STATUS_FONT_SIZE)
-        fs = MAX_STATUS_FONT_SIZE;
-	props->setIntDef(PROP_STATUS_FONT_SIZE, fs);
-    props->limitValueList(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, bool_options_def_false, 2);
-    props->limitValueList(PROP_TEXTLANG_HYPHENATION_ENABLED, bool_options_def_true, 2);
-	lString32 hyph = props->getStringDef(PROP_HYPHENATION_DICT,
-			DEF_HYPHENATION_DICT);
-	HyphDictionaryList * dictlist = HyphMan::getDictList();
-	if (dictlist) {
-		if (dictlist->find(hyph))
-			props->setStringDef(PROP_HYPHENATION_DICT, hyph);
-		else
-			props->setStringDef(PROP_HYPHENATION_DICT, lString32(
-					HYPH_DICT_ID_ALGORITHM));
-	}
-	props->setIntDef(PROP_STATUS_LINE, 1);
-	props->setIntDef(PROP_SHOW_TITLE, 1);
-	props->setIntDef(PROP_SHOW_TIME, 1);
-	props->setIntDef(PROP_SHOW_TIME_12HOURS, 0);
-	props->setIntDef(PROP_SHOW_BATTERY, 1);
-    props->setIntDef(PROP_SHOW_BATTERY_PERCENT, 0);
-    props->setIntDef(PROP_SHOW_PAGE_COUNT, 1);
-    props->setIntDef(PROP_SHOW_PAGE_NUMBER, 1);
-    props->setIntDef(PROP_SHOW_POS_PERCENT, 0);
-    props->setIntDef(PROP_STATUS_CHAPTER_MARKS, 1);
-    props->setIntDef(PROP_FLOATING_PUNCTUATION, 1);
+    static int margin_options[] = {0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20, 25, 30, 40, 50, 60, 80, 100, 130, 150, 200, 300};
+    props->limitValueList(PROP_PAGE_MARGIN_TOP, margin_options, sizeof(margin_options)/sizeof(int), 6);
+    props->limitValueList(PROP_PAGE_MARGIN_BOTTOM, margin_options, sizeof(margin_options)/sizeof(int), 6);
+    props->limitValueList(PROP_PAGE_MARGIN_LEFT, margin_options, sizeof(margin_options)/sizeof(int), 6);
+    props->limitValueList(PROP_PAGE_MARGIN_RIGHT, margin_options, sizeof(margin_options)/sizeof(int), 6);
+    static int rounded_corners_margin_options[] = {0, 5, 10, 15, 20, 30, 40, 50, 60, 70,80, 90, 100, 120, 140, 160};
+    props->limitValueList(PROP_ROUNDED_CORNERS_MARGIN, rounded_corners_margin_options, sizeof(rounded_corners_margin_options)/sizeof(int), 0);
 
-#ifndef ANDROID
-    props->setIntDef(PROP_EMBEDDED_STYLES, 1);
-    props->setIntDef(PROP_EMBEDDED_FONTS, 1);
-    props->setIntDef(PROP_TXT_OPTION_PREFORMATTED, 0);
-    props->limitValueList(PROP_TXT_OPTION_PREFORMATTED, bool_options_def_false,
-            2);
-#endif
+    static int screen_updates_options[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 14 };
+    props->limitValueList(PROP_DISPLAY_FULL_UPDATE_INTERVAL, screen_updates_options, sizeof(screen_updates_options)/sizeof(int), 1);
+    props->setBoolDef(PROP_DISPLAY_TURBO_UPDATE_MODE, false);
+    props->limitValueMinMax(PROP_STATUS_FONT_SIZE, MIN_STATUS_FONT_SIZE, MAX_STATUS_FONT_SIZE, INFO_FONT_SIZE);
 
-    props->setStringDef(PROP_FONT_GAMMA, "1.00");
+    props->setBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
+    props->setBoolDef(PROP_TEXTLANG_HYPHENATION_ENABLED, true);
+    lString32 hyph = props->getStringDef(PROP_HYPHENATION_DICT,
+                                         DEF_HYPHENATION_DICT);
+    HyphDictionaryList * dictlist = HyphMan::getDictList();
+    if (dictlist) {
+        if (dictlist->find(hyph))
+            props->setStringDef(PROP_HYPHENATION_DICT, hyph);
+        else
+            props->setStringDef(PROP_HYPHENATION_DICT, lString32(
+                                    HYPH_DICT_ID_ALGORITHM));
+    }
+
+    props->setStringDef(PROP_FONT_GAMMA, "1.0");
 
     img_scaling_option_t defImgScaling;
     props->setIntDef(PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, defImgScaling.max_scale);
@@ -6588,33 +6562,10 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->setIntDef(PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE, defImgScaling.mode);
     props->setIntDef(PROP_IMG_SCALING_ZOOMIN_INLINE_MODE, defImgScaling.mode);
 
-    int p = props->getIntDef(PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT, DEF_SPACE_WIDTH_SCALE_PERCENT);
-    if (p<10)
-        p = 10;
-    if (p>500)
-        p = 500;
-    props->setInt(PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT, p);
-
-    p = props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, DEF_MIN_SPACE_CONDENSING_PERCENT);
-    if (p<25)
-        p = 25;
-    if (p>100)
-        p = 100;
-    props->setInt(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, p);
-
-    p = props->getIntDef(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, DEF_UNUSED_SPACE_THRESHOLD_PERCENT);
-    if (p<0)
-        p = 0;
-    if (p>20)
-        p = 20;
-    props->setInt(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, p);
-
-    p = props->getIntDef(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, DEF_MAX_ADDED_LETTER_SPACING_PERCENT);
-    if (p<0)
-        p = 0;
-    if (p>20)
-        p = 20;
-    props->setInt(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, p);
+    props->limitValueMinMax(PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT, 10, 500, DEF_SPACE_WIDTH_SCALE_PERCENT);
+    props->limitValueMinMax(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, 25, 100, DEF_MIN_SPACE_CONDENSING_PERCENT);
+    props->limitValueMinMax(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, 0, 20, DEF_UNUSED_SPACE_THRESHOLD_PERCENT);
+    props->limitValueMinMax(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, 0, 20, DEF_MAX_ADDED_LETTER_SPACING_PERCENT);
 
 #ifndef ANDROID
     props->setIntDef(PROP_RENDER_DPI, DEF_RENDER_DPI); // 96 dpi

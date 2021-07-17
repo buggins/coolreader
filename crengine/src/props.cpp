@@ -254,27 +254,37 @@ void CRPropAccessor::limitValueList( const char * propName, const char * values[
     setString( propName, defValue );
 }
 
-void CRPropAccessor::limitValueList( const char * propName, int values[], int value_count )
+void CRPropAccessor::limitValueList(const char * propName, int values[], int valuesCount, int defValueIndex )
 {
-    limitValueList( propName, values, value_count, 0 );
-}
-
-void CRPropAccessor::limitValueList( const char * propName, int values[], int value_count, int defValueIndex )
-{
-    if ( defValueIndex < 0 )
-        defValueIndex = 0;
-    else if ( defValueIndex >= value_count )
-        defValueIndex = value_count - 1;
-    lString32 defValue = lString32::itoa( values[defValueIndex] );
     lString32 value;
     if ( getString( propName, value ) ) {
-        for ( int i=0; i < value_count; i++ ) {
+        for ( int i=0; i < valuesCount; i++ ) {
             lString32 v = lString32::itoa( values[i] );
             if ( v==value )
                 return;
         }
     }
-    setString( propName, defValue );
+    if ( defValueIndex < 0 )
+        defValueIndex = 0;
+    else if ( defValueIndex >= valuesCount )
+        defValueIndex = valuesCount - 1;
+    setInt( propName, values[defValueIndex] );
+}
+
+void CRPropAccessor::limitValueMinMax( const char * propName, int minValue, int maxValue, int defValue )
+{
+    lString32 value;
+    if ( getString( propName, value ) ) {
+        int intValue;
+        if ( value.atoi(intValue) ) {
+            if (intValue < minValue)
+                setInt( propName, minValue );
+            else if (intValue >= maxValue)
+                setInt( propName, maxValue );
+            return;
+        }
+    }
+    setInt( propName, defValue );
 }
 
 //============================================================================
@@ -475,6 +485,13 @@ bool CRPropAccessor::getBoolDef( const char * propName, bool defValue ) const
 void CRPropAccessor::setBool( const char * propName, bool value )
 {
     setString( propName, lString32( value ? "1" : "0" ) );
+}
+
+void CRPropAccessor::setBoolDef( const char * propName, bool defValue )
+{
+    bool boolVal;
+    if ( !getBool( propName, boolVal ) )
+        setBool( propName, defValue );
 }
 
 bool CRPropAccessor::getInt64( const char * propName, lInt64 &result ) const

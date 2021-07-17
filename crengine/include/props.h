@@ -66,9 +66,9 @@ public:
     /// do validation and corrections
     virtual void limitValueList( const char * propName, const char * values[] );
     /// do validation and corrections
-    virtual void limitValueList( const char * propName, int values[], int value_count );
+    virtual void limitValueList( const char * propName, int values[], int valuesCount, int defValueIndex );
     /// do validation and corrections
-    virtual void limitValueList( const char * propName, int values[], int value_count, int defValueIndex );
+    virtual void limitValueMinMax( const char * propName, int minValue, int maxValue, int defValue );
 
     /// get int property by name, returns false if not found
     virtual bool getInt( const char * propName, int &result ) const;
@@ -93,6 +93,8 @@ public:
     virtual bool getBoolDef( const char * propName, bool defValue=false ) const;
     /// set bool property by name
     virtual void setBool( const char * propName, bool value );
+    /// set bool property by name, if not exist or incorrect
+    virtual void setBoolDef( const char * propName, bool defValue );
 
     /// get lInt64 property by name, returns false if not found
     virtual bool getInt64( const char * propName, lInt64 &result ) const;
