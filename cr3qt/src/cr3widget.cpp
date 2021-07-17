@@ -92,8 +92,6 @@ static LVRefVec<LVImageSource>& getBatteryIcons( lUInt32 color )
         ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
         ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
         ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
-        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
-        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
         ".0000.XXXX.XXXX.XXXX.XXXX.0.",
         "....0.XXXX.XXXX.XXXX.XXXX.0.",
         "   .0.....................0.",
