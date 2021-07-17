@@ -1377,8 +1377,8 @@ int LVDocView::getPageHeaderHeight() const {
 	int h = getInfoFont()->getHeight();
 	int navbarh = scaleForRenderDPI(HEADER_NAVBAR_H);
 	int bh = m_batteryIcons.length()>0 ? m_batteryIcons[0]->GetHeight() : 0;
-	if ( bh>h )
-		h = bh;
+	if ( bh + 2 > h )
+		h = bh + 2;
 	return h + (navbarh + HEADER_MARGIN + 1)/2;
 }
 
@@ -1426,8 +1426,7 @@ lString32 LVDocView::getTimeString() const {
 }
 
 /// draw battery state to buffer
-void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc,
-		bool /*isVertical*/) {
+void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc) {
 	if (m_battery_state == CR_BATTERY_STATE_NO_BATTERY)
 		return;
 	LVDrawStateSaver saver(*drawbuf);
@@ -1793,7 +1792,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 			gpos = info.bottom - (markh+1)/2;
 			break;
 		case PAGE_HEADER_POS_BOTTOM:
-			gpos = info.top + (markh+1)/2;
+			gpos = info.top + markh/2;
 			break;
 		default:
 			break;
@@ -1857,13 +1856,13 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	// draw icons & text info
 	drawbuf->SetTextColor(cl1);
 	lString32 text;
-	int iy = 0;
+	int texty = 0;
 	switch (m_pageHeaderPos) {
 		case PAGE_HEADER_POS_TOP:
-			iy = info.top - HEADER_MARGIN/2;
+			texty = info.top + (gpos - info.top - thinw - m_infoFont->getHeight())/2;
 			break;
 		case PAGE_HEADER_POS_BOTTOM:
-			iy = gpos + 2;
+			texty = gpos + thinw + 2 + (info.bottom - gpos - thinw - m_infoFont->getHeight())/2;
 			break;
 		default:
 			break;
@@ -1873,7 +1872,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	} else {
 		if (getVisiblePageCount() == 1 || !(pageIndex & 1)) {
 			int dwIcons = 0;
-			int icony = iy + m_infoFont->getHeight() / 2;
+			int icony = texty + m_infoFont->getHeight() / 2;
 			for (int ni = 0; ni < m_headerIcons.length(); ni++) {
 				LVImageSourceRef icon = m_headerIcons[ni];
 				int h = icon->GetHeight();
@@ -1891,17 +1890,31 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 				brc.right -= 2;
 				//brc.top += 1;
 				//brc.bottom -= 2;
-				int h = brc.height();
-				int batteryIconWidth = 32;
-				if (m_batteryIcons.length() > 0)
+				switch (m_pageHeaderPos) {
+				default:
+				case PAGE_HEADER_POS_TOP:
+					brc.bottom -= markh;
+					break;
+				case PAGE_HEADER_POS_BOTTOM:
+					brc.top = gpos + thinw + 1;
+					break;
+				}
+				int batteryIconWidth = 28;
+				int batteryIconHeight = 15;
+				if (m_batteryIcons.length() > 0) {
 					batteryIconWidth = m_batteryIcons[0]->GetWidth();
-				bool isVertical = (h > 30);
-				//if ( isVertical )
-				//    brc.left = brc.right - brc.height()/2;
-				//else
+					batteryIconHeight = m_batteryIcons[0]->GetHeight();
+				}
 				brc.left = brc.right - batteryIconWidth - 2;
-				brc.bottom -= markh;
-				drawBatteryState(drawbuf, brc, isVertical);
+				if (brc.height() < batteryIconHeight) {
+					int h_inc = batteryIconHeight - brc.height();
+					if (PAGE_HEADER_POS_TOP == m_pageHeaderPos) {
+						brc.bottom += h_inc;
+					} else if (PAGE_HEADER_POS_BOTTOM == m_pageHeaderPos) {
+						brc.top -= h_inc;
+					}
+				}
+				drawBatteryState(drawbuf, brc);
 				info.right = brc.left - info.height() / 2;
 			}
 		}
@@ -1936,7 +1949,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		int piw = 0;
 		if (!pageinfo.empty()) {
 			piw = m_infoFont->getTextWidth(pageinfo.c_str(), pageinfo.length());
-			m_infoFont->DrawTextString(drawbuf, info.right - piw, iy,
+			m_infoFont->DrawTextString(drawbuf, info.right - piw, texty,
 					pageinfo.c_str(), pageinfo.length(), U' ', NULL, false);
 			info.right -= piw + info.height() / 2;
 		}
@@ -1944,7 +1957,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 			lString32 clock = getTimeString();
 			m_last_clock = clock;
 			int w = m_infoFont->getTextWidth(clock.c_str(), clock.length()) + 2;
-			m_infoFont->DrawTextString(drawbuf, info.right - w, iy,
+			m_infoFont->DrawTextString(drawbuf, info.right - w, texty,
 					clock.c_str(), clock.length(), U' ', NULL, false);
 			info.right -= w + info.height() / 2;
 		}
@@ -1987,7 +2000,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	drawbuf->SetClipRect(&newcr);
 	text = fitTextWidthWithEllipsis(text, m_infoFont, newcr.width());
 	if (!text.empty()) {
-		m_infoFont->DrawTextString(drawbuf, info.left, iy, text.c_str(),
+		m_infoFont->DrawTextString(drawbuf, info.left, texty, text.c_str(),
 				text.length(), U' ', NULL, false);
 	}
 	drawbuf->SetClipRect(&oldcr);

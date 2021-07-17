@@ -702,7 +702,7 @@ public:
     /// draw page header to buffer
     virtual void drawPageHeader( LVDrawBuf * drawBuf, const lvRect & headerRc, int pageIndex, int headerInfoFlags, int pageCount );
     /// draw battery state to buffer
-    virtual void drawBatteryState( LVDrawBuf * drawBuf, const lvRect & rc, bool isVertical );
+    virtual void drawBatteryState(LVDrawBuf * drawBuf, const lvRect & rc);
 
     /// returns background color
     lUInt32 getBackgroundColor() const { return m_backgroundColor; }
