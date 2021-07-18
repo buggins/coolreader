@@ -1589,57 +1589,80 @@ void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc) 
 #endif
 }
 
+/// get section bounds for specific root node and specific section depth level, in 1/100 of percent
+void LVDocView::getSectionBoundsInt( LVArray<int>& bounds, ldomNode* node, lUInt16 section_id , int target_level, int level ) {
+    int pc = getVisiblePageCount();
+    int fh = GetFullHeight();
+    for (int i = 0; i < node->getChildCount(); i++) {
+        ldomNode * section = node->getChildElementNode(i, section_id);
+        if (section) {
+            if (level == target_level) {
+                lvRect rc;
+                section->getAbsRect(rc);
+                if (getViewMode() == DVM_SCROLL) {
+                    int p = (int) (((lInt64) rc.top * 10000) / fh);
+                    bounds.add(p);
+                } else {
+                    int pages_cnt = m_pages.length();
+                    if ( (pc==2 && (pages_cnt&1)) )
+                        pages_cnt++;
+                    int p = m_pages.FindNearestPage(rc.top, 0);
+                    if (pages_cnt > 1)
+                        bounds.add((int) (((lInt64) p * 10000) / pages_cnt));
+                }
+            } else if (level < target_level) {
+                getSectionBoundsInt(bounds, section, section_id, target_level, level + 1);
+            }
+        }
+    }
+}
+
+static int s_int_comparator(const void * n1, const void * n2) {
+    int* i1 = (int*)n1;
+    int* i2 = (int*)n2;
+    return *i1 == *i2 ? 0 : (*i1 < *i2 ? -1 : 1);
+}
+
 /// returns section bounds, in 1/100 of percent
-LVArray<int> & LVDocView::getSectionBounds( bool for_external_update ) {
-	if (for_external_update || m_section_bounds_externally_updated) {
-		// Progress bar markes will be externally updated: we don't care
-		// about m_section_bounds_valid and we never trash it here.
-		// It's the frontend responsability to notice it needs some
-		// update and to update it.
-		m_section_bounds_externally_updated = true;
-		return m_section_bounds;
-	}
-	if (m_section_bounds_valid)
-		return m_section_bounds;
-	m_section_bounds.clear();
-	m_section_bounds.add(0);
+LVArray<int> & LVDocView::getSectionBounds( int max_count, int depth, bool for_external_update ) {
+    if (for_external_update || m_section_bounds_externally_updated) {
+        // Progress bar markes will be externally updated: we don't care
+        // about m_section_bounds_valid and we never trash it here.
+        // It's the frontend responsability to notice it needs some
+        // update and to update it.
+        m_section_bounds_externally_updated = true;
+        return m_section_bounds;
+    }
+    if (m_section_bounds_valid)
+        return m_section_bounds;
     // Get sections from FB2 books
     ldomNode * body = m_doc->nodeFromXPath(cs32("/FictionBook/body[1]"));
-	lUInt16 section_id = m_doc->getElementNameIndex(U"section");
+    lUInt16 section_id = m_doc->getElementNameIndex(U"section");
     if (body == NULL) {
         // Get sections from EPUB books
         body = m_doc->nodeFromXPath(cs32("/body[1]"));
         section_id = m_doc->getElementNameIndex(U"DocFragment");
     }
-	int fh = GetFullHeight();
-    int pc = getVisiblePageCount();
-	if (body && fh > 0) {
-		int cnt = body->getChildCount();
-		for (int i = 0; i < cnt; i++) {
-
-            ldomNode * l1section = body->getChildElementNode(i, section_id);
-            if (!l1section)
-				continue;
-
-            lvRect rc;
-            l1section->getAbsRect(rc);
-            if (getViewMode() == DVM_SCROLL) {
-                int p = (int) (((lInt64) rc.top * 10000) / fh);
-                m_section_bounds.add(p);
-            } else {
-                int fh = m_pages.length();
-                if ( (pc==2 && (fh&1)) )
-                    fh++;
-                int p = m_pages.FindNearestPage(rc.top, 0);
-                if (fh > 1)
-                    m_section_bounds.add((int) (((lInt64) p * 10000) / fh));
-            }
-
-		}
-	}
-	m_section_bounds.add(10000);
-	m_section_bounds_valid = true;
-	return m_section_bounds;
+    LVArray<int> bounds;
+    int fh = GetFullHeight();
+    if (body && fh > 0) {
+        for (int level = 0; level < depth; level++) {
+            LVArray<int> bounds_tmp;
+            getSectionBoundsInt(bounds_tmp, body, section_id, level, 0);
+            if (bounds.length() + bounds_tmp.length() < max_count)
+                bounds.add(bounds_tmp);
+            else
+                break;
+        }
+    }
+    if (bounds.length() > 1)
+        qsort(bounds.get(), (size_t)bounds.length(), sizeof(int), s_int_comparator);
+    m_section_bounds.clear();
+    m_section_bounds.add(0);
+    m_section_bounds.add(bounds);
+    m_section_bounds.add(10000);
+    m_section_bounds_valid = true;
+    return m_section_bounds;
 }
 
 int LVDocView::getPosEndPagePercent() {
@@ -1781,10 +1804,10 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	bool leftPage = (getVisiblePageCount() == 2 && !(pageIndex & 1));
 	if (leftPage)
 		percent = 10000;
-	int percent_pos = /*info.left + */percent * info.width() / 10000;
-	LVArray<int> & sbounds = getSectionBounds();
+	int percent_pos = percent * info.width() / 10000;
+	LVArray<int> & sbounds = getSectionBounds(info.width()/3, 3);
 	int sbound_index = 0;
-	bool enableMarks = !leftPage && (phi & PGHDR_CHAPTER_MARKS) && sbounds.length()<info.width()/5;
+	bool enableMarks = !leftPage && (phi & PGHDR_CHAPTER_MARKS);
 	for ( int x = info.left; x<info.right; x++ ) {
 		lUInt32 cl = 0xFFFFFFFF;
 		int sz = thinw;

@@ -403,6 +403,8 @@ protected:
     bool getCursorDocRect( ldomXPointer ptr, lvRect & rc );
     /// load document from stream (internal)
     bool loadDocumentInt( LVStreamRef stream, bool metadataOnly = false );
+    /// get section bounds for specific root node and specific section depth level, in 1/100 of percent
+    void getSectionBoundsInt( LVArray<int>& bounds, ldomNode* node , lUInt16 section_id, int target_level, int level );
 public:
     /// get outer (before margins are applied) page rectangle
     virtual void getPageRectangle( int pageIndex, lvRect & pageRect ) const;
@@ -639,7 +641,7 @@ public:
     /// returns true if document is opened
     bool isDocumentOpened();
     /// returns section bounds, in 1/100 of percent
-    LVArray<int> & getSectionBounds( bool for_external_update=false );
+    LVArray<int> & getSectionBounds( int max_count, int depth, bool for_external_update=false );
     /// sets battery state
     virtual bool setBatteryState( int newState );
     /// returns battery state
