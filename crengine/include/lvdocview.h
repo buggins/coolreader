@@ -391,13 +391,6 @@ private:
     void updateDocStyleSheet();
 
 protected:
-    // deprecated: ready to remove
-    virtual void drawNavigationBar( LVDrawBuf * drawbuf, int pageIndex, int percent );
-    // deprecated: ready to remove
-    virtual void getNavigationBarRectangle( lvRect & rc );
-    // deprecated: ready to remove
-    virtual void getNavigationBarRectangle( int pageIndex, lvRect & rc );
-
     /// returns document offset for next page
     int getNextPageOffset();
     /// returns document offset for previous page

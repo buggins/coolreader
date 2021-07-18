@@ -1704,34 +1704,6 @@ void LVDocView::getPageRectangle(int pageIndex, lvRect & pageRect) const {
 		pageRect = m_pageRects[1];
 }
 
-// deprecated: ready to remove
-void LVDocView::getNavigationBarRectangle(lvRect & navRect) {
-	getNavigationBarRectangle(getVisiblePageCount() == 2 ? 1 : 2, navRect);
-}
-
-// deprecated: ready to remove
-void LVDocView::getNavigationBarRectangle(int pageIndex, lvRect & navRect) {
-	lvRect headerRect;
-	getPageHeaderRectangle(pageIndex, headerRect);
-	navRect = headerRect;
-	if (headerRect.bottom <= headerRect.top)
-		return;
-	navRect.top = navRect.bottom - 6;
-}
-
-// deprecated: ready to remove
-void LVDocView::drawNavigationBar(LVDrawBuf * drawbuf, int pageIndex,
-		int percent) {
-    CR_UNUSED2(drawbuf, percent);
-	//LVArray<int> & sbounds = getSectionBounds();
-	lvRect navBar;
-	getNavigationBarRectangle(pageIndex, navBar);
-	//bool leftPage = (getVisiblePageCount()==2 && !(pageIndex&1) );
-
-	//lUInt32 cl1 = 0xA0A0A0;
-	//lUInt32 cl2 = getBackgroundColor();
-}
-
 /// sets battery state
 bool LVDocView::setBatteryState(int newState) {
 	if (m_battery_state == newState)
