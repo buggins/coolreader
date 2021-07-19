@@ -29,7 +29,6 @@ import android.widget.TextView;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
-import org.coolreader.genrescollection.GenresCollection;
 
 import java.util.ArrayList;
 
@@ -230,6 +229,7 @@ public class BookInfoEditDialog extends BaseDialog {
     LinearLayout mainView;
 	ScrollView scrollView;
     EditText edTitle;
+    EditText edLanguage;
     EditText edSeriesName;
     EditText edSeriesNumber;
     TextView lblGenres;
@@ -258,6 +258,7 @@ public class BookInfoEditDialog extends BaseDialog {
 
         scrollView = mainView.findViewById(R.id.book_scrollview);
         edTitle = mainView.findViewById(R.id.book_title);
+        edLanguage = mainView.findViewById(R.id.book_lang);
         edSeriesName = mainView.findViewById(R.id.book_series_name);
         edSeriesNumber = mainView.findViewById(R.id.book_series_number);
         lblGenres = mainView.findViewById(R.id.lbl_book_genres);
@@ -307,6 +308,7 @@ public class BookInfoEditDialog extends BaseDialog {
 
         edTitle.setText(file.title);
         //edAuthor.setText(file.authors);
+        edLanguage.setText(Engine.getHumanReadableLocaleName(file.language));
         edSeriesName.setText(file.series);
         if (file.series != null && file.series.trim().length() > 0 && file.seriesNumber > 0)
         	edSeriesNumber.setText(String.valueOf(file.seriesNumber));

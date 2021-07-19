@@ -31,10 +31,6 @@
 #include <QDesktopServices>
 #include <QLocale>
 
-#if USE_LOCALE_DATA==1
-#include "crlocaledata.h"
-#endif
-
 /// to hide non-qt implementation, place all crengine-related fields here
 class CR3View::DocViewData
 {
@@ -1111,18 +1107,8 @@ void CR3View::checkFontLanguageCompatibility()
         return;
     }
     if (fontFace_u8.length() > 0) {
-        CRLocaleData loc(langCode_u8);
-        if (loc.isValid()) {
-            QString langDescr = loc.langName().c_str();
-            if (loc.scriptNumeric() > 0) {
-                langDescr.append("-");
-                langDescr.append(loc.scriptName().c_str());
-            }
-            if (loc.regionNumeric() > 0) {
-                langDescr.append(" (");
-                langDescr.append(loc.regionAlpha3().c_str());
-                langDescr.append(")");
-            }
+        QString langDescr = getHumanReadableLocaleName(langCode);
+        if (!langDescr.isEmpty()) {
             font_lang_compat compat = fontMan->checkFontLangCompat(fontFace_u8, langCode_u8);
             CRLog::debug("Checking font \"%s\" for compatibility with language \"%s\": %d", fontFace_u8.c_str(), langCode_u8.c_str(), (int)compat);
             switch (compat) {

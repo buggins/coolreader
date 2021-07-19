@@ -1011,7 +1011,9 @@ JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_Engine_getHumanReadableLo
 		(JNIEnv *env, jclass cls, jstring langTag)
 {
 	jstring res = NULL;
-	const char* langTag_ptr = env->GetStringUTFChars(langTag, 0);
+	const char* langTag_ptr = NULL;
+	if (langTag)
+		langTag_ptr = env->GetStringUTFChars(langTag, 0);
 	if (langTag_ptr) {
 		CRLocaleData loc(langTag_ptr);
 		if (loc.isValid()) {

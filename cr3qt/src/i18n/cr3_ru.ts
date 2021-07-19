@@ -485,6 +485,10 @@ p, li { white-space: pre-wrap; }
         <source>Dialog</source>
         <translation>Диалог</translation>
     </message>
+    <message>
+        <source>Language</source>
+        <translation>Язык</translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>
@@ -2033,6 +2037,13 @@ p, li { white-space: pre-wrap; }
     <message>
         <source>3</source>
         <translation>3</translation>
+    </message>
+</context>
+<context>
+    <name>crqtutils</name>
+    <message>
+        <source>Undetermined</source>
+        <translation>Неопределенный</translation>
     </message>
 </context>
 </TS>
