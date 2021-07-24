@@ -1106,6 +1106,178 @@ int DocViewNative::doCommand( int cmd, int param )
    	return 1;
 }
 
+lString32 DocViewNative::getLink( int x, int y, int r )
+{
+	int step = 5;
+	int n = r / step;
+	r = n * step;
+	if ( r==0 )
+		return getLink(x, y);
+	lString32 link;
+	for ( int xx = -r; xx<=r; xx+=step ) {
+		link = getLink( x+xx, y-r );
+		if ( !link.empty() )
+			return link;
+		link = getLink( x+xx, y+r );
+		if ( !link.empty() )
+			return link;
+	}
+	for ( int yy = -r + step; yy<=r - step; yy+=step ) {
+		link = getLink( x+r, y+yy );
+		if ( !link.empty() )
+			return link;
+		link = getLink( x-r, y+yy );
+		if ( !link.empty() )
+			return link;
+	}
+	return lString32::empty_str;
+}
+
+lString32 DocViewNative::getLink( int x, int y )
+{
+	ldomXPointer p = _docview->getNodeByPoint( lvPoint(x, y) );
+	if ( p.isNull() )
+		return lString32::empty_str;
+	lString32 href = p.getHRef();
+	return href;
+}
+
+#define MAX_IMAGE_BUF_SIZE 1200000
+
+// checks whether point belongs to image: if found, returns true, and _currentImage is set to image
+bool DocViewNative::checkImage(int x, int y, int bufWidth, int bufHeight, int &dx, int &dy, bool & needRotate)
+{
+	_currentImage = _docview->getImageByPoint(lvPoint(x, y));
+	if (_currentImage.isNull())
+		return false;
+	dx = _currentImage->GetWidth();
+	dy = _currentImage->GetHeight();
+	if (dx < 8 && dy < 8) {
+		_currentImage.Clear();
+		return false;
+	}
+	needRotate = false;
+	if (bufWidth <= bufHeight) {
+		// screen == portrait
+		needRotate = 8 * dx > 10 * dy;
+	} else {
+		// screen == landscape
+		needRotate = 10 * dx < 8 * dy;
+	}
+	int scale = 1;
+	if (dx * dy > MAX_IMAGE_BUF_SIZE) {
+		scale = dx * dy /  MAX_IMAGE_BUF_SIZE;
+		dx /= scale;
+		dy /= scale;
+	}
+	LVColorDrawBuf * buf = new LVColorDrawBuf(dx, dy);
+	buf->Clear(0xFF000000); // transparent
+	buf->Draw(_currentImage, 0, 0, dx, dy, false);
+	if (needRotate) {
+		int c = dx;
+		dx = dy;
+		dy = c;
+		buf->Rotate(CR_ROTATE_ANGLE_90);
+	}
+	_currentImage = LVCreateDrawBufImageSource(buf, true);
+	return true;
+}
+
+// draws current image to buffer (scaled, panned)
+bool DocViewNative::drawImage(LVDrawBuf * buf, int x, int y, int dx, int dy)
+{
+	if (_currentImage.isNull())
+		return false;
+	return _docview->drawImage(buf, _currentImage, x, y, dx, dy);
+}
+
+// draws icon to buffer
+bool DocViewNative::drawIcon(LVDrawBuf * buf, lvRect & rc, int type) {
+	rc.shrink(rc.width() / 7);
+	lUInt32 light = 0x60C0C0C0;
+	lUInt32 dark = 0x80606060;
+	lUInt32 colors[2];
+	colors[0] = dark;
+	colors[1] = light;
+	// x0  x1  x2  x3
+	int x0 = rc.left;
+	int x1 = rc.left + rc.width() * 4 / 10;
+	int x2 = rc.right -  + rc.width() * 4 / 10;
+	int x3 = rc.right;
+	int y0 = rc.top;
+	int y1 = rc.top + rc.width() * 4 / 10;
+	int y2 = rc.bottom -  + rc.height() * 4 / 10;
+	int y3 = rc.bottom;
+	for (int w = 1; w>=0; w--) {
+		if (type == 1) {
+			// horizontal minus
+			buf->FillRect(x0-w, y1-w, x3+w+1, y1+w+1, colors[w]);
+			buf->FillRect(x0-w, y2-w, x3+w+1, y2+w+1, colors[w]);
+			buf->FillRect(x0-w, y1-w, x0+w+1, y2+w+1, colors[w]);
+			buf->FillRect(x3-w, y1-w, x3+w+1, y2+w+1, colors[w]);
+		} else if (type == 2) {
+			// vertical minus
+			buf->FillRect(x1-w, y0-w, x1+w+1, y3+w+1, colors[w]);
+			buf->FillRect(x2-w, y0-w, x2+w+1, y3+w+1, colors[w]);
+			buf->FillRect(x1-w, y0-w, x2+w+1, y0+w+1, colors[w]);
+			buf->FillRect(x1-w, y3-w, x2+w+1, y3+w+1, colors[w]);
+		} else {
+			// plus
+			buf->FillRect(x0-w, y1-w, x1+w+1, y1+w+1, colors[w]);
+			buf->FillRect(x1-w, y0-w, x1+w+1, y1+w+1, colors[w]);
+			buf->FillRect(x0-w, y1-w, x0+w+1, y2+w+1, colors[w]);
+			buf->FillRect(x1-w, y0-w, x2+w+1, y0+w+1, colors[w]);
+			buf->FillRect(x2-w, y0-w, x2+w+1, y1+w+1, colors[w]);
+			buf->FillRect(x2-w, y1-w, x3+w+1, y1+w+1, colors[w]);
+			buf->FillRect(x3-w, y1-w, x3+w+1, y2+w+1, colors[w]);
+			buf->FillRect(x2-w, y2-w, x3+w+1, y2+w+1, colors[w]);
+			buf->FillRect(x2-w, y2-w, x2+w+1, y3+w+1, colors[w]);
+			buf->FillRect(x1-w, y3-w, x2+w+1, y3+w+1, colors[w]);
+			buf->FillRect(x1-w, y2-w, x1+w+1, y3+w+1, colors[w]);
+			buf->FillRect(x0-w, y2-w, x1+w+1, y2+w+1, colors[w]);
+		}
+	}
+	return true;
+}
+
+// sets current image to null
+bool DocViewNative::closeImage() {
+	if (_currentImage.isNull())
+		return false;
+	_currentImage.Clear();
+	return true;
+}
+
+void DocViewNative::updateBatteryIcons() {
+	CRPropRef props = _docview->propsGetCurrent();
+	lUInt32 textColor = props->getColorDef(PROP_FONT_COLOR, 0x000000);
+	lUInt32 statusColor = props->getColorDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
+	lUInt32 batteryColor = statusColor;
+	if ( batteryColor==0xFF000000 )
+		batteryColor = textColor;
+	int newSize = 28;
+	int w = _docview->GetWidth();
+	int h = _docview->GetHeight();
+	if (w > h)
+		w = h;
+	if (w > 700)
+		newSize = 56;
+	if ( _batteryIconColor != batteryColor || _batteryIconSize != newSize ) { //oldNightMode!=newNightMode
+		_batteryIconColor = batteryColor;
+		_batteryIconSize = newSize;
+		//CRLog::debug("%x->%x, %x->%x: Setting Battery icon color = #%06x", oldTextColor, newTextColor, oldStatusColor, newStatusColor, batteryColor);
+		LVRefVec<LVImageSource> icons;
+		getBatteryIcons(icons, _batteryIconColor, _batteryIconSize);
+		//CRLog::debug("Setting list of Battery icon bitmats");
+		_docview->setBatteryIcons( icons );
+		//CRLog::debug("Setting list of Battery icon bitmats - done");
+	}
+}
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  * Class:     org_coolreader_crengine_DocView
@@ -1405,8 +1577,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getSettingsIntern
  * Method:    getDocPropsInternal
  * Signature: ()Ljava/util/Properties;
  */
-JNIEXPORT jobject JNICALL
-Java_org_coolreader_crengine_DocView_getDocPropsInternal
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getDocPropsInternal
   (JNIEnv * _env, jobject _this)
 {
     CRLog::trace("DocView_getDocPropsInternal");
@@ -2041,149 +2212,6 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_moveSelectionInt
     return JNI_FALSE;
 }
 
-
-lString32 DocViewNative::getLink( int x, int y, int r )
-{
-	int step = 5;
-	int n = r / step;
-	r = n * step;
-	if ( r==0 )
-		return getLink(x, y);
-	lString32 link;
-	for ( int xx = -r; xx<=r; xx+=step ) {
-		link = getLink( x+xx, y-r );
-		if ( !link.empty() )
-			return link;
-		link = getLink( x+xx, y+r );
-		if ( !link.empty() )
-			return link;
-	}
-	for ( int yy = -r + step; yy<=r - step; yy+=step ) {
-		link = getLink( x+r, y+yy );
-		if ( !link.empty() )
-			return link;
-		link = getLink( x-r, y+yy );
-		if ( !link.empty() )
-			return link;
-	}
-	return lString32::empty_str;
-}
-
-lString32 DocViewNative::getLink( int x, int y )
-{
-	ldomXPointer p = _docview->getNodeByPoint( lvPoint(x, y) );
-	if ( p.isNull() )
-		return lString32::empty_str;
-	lString32 href = p.getHRef();
-	return href;
-}
-
-#define MAX_IMAGE_BUF_SIZE 1200000
-
-// checks whether point belongs to image: if found, returns true, and _currentImage is set to image
-bool DocViewNative::checkImage(int x, int y, int bufWidth, int bufHeight, int &dx, int &dy, bool & needRotate)
-{
-	_currentImage = _docview->getImageByPoint(lvPoint(x, y));
-	if (_currentImage.isNull())
-		return false;
-	dx = _currentImage->GetWidth();
-	dy = _currentImage->GetHeight();
-	if (dx < 8 && dy < 8) {
-		_currentImage.Clear();
-		return false;
-	}
-	needRotate = false;
-	if (bufWidth <= bufHeight) {
-		// screen == portrait
-		needRotate = 8 * dx > 10 * dy;
-	} else {
-		// screen == landscape
-		needRotate = 10 * dx < 8 * dy;
-	}
-	int scale = 1;
-	if (dx * dy > MAX_IMAGE_BUF_SIZE) {
-		scale = dx * dy /  MAX_IMAGE_BUF_SIZE;
-		dx /= scale;
-		dy /= scale;
-	}
-	LVColorDrawBuf * buf = new LVColorDrawBuf(dx, dy);
-	buf->Clear(0xFF000000); // transparent
-	buf->Draw(_currentImage, 0, 0, dx, dy, false);
-	if (needRotate) {
-		int c = dx;
-		dx = dy;
-		dy = c;
-		buf->Rotate(CR_ROTATE_ANGLE_90);
-	}
-	_currentImage = LVCreateDrawBufImageSource(buf, true);
-	return true;
-}
-
-// draws current image to buffer (scaled, panned)
-bool DocViewNative::drawImage(LVDrawBuf * buf, int x, int y, int dx, int dy)
-{
-	if (_currentImage.isNull())
-		return false;
-	return _docview->drawImage(buf, _currentImage, x, y, dx, dy);
-}
-
-// draws icon to buffer
-bool DocViewNative::drawIcon(LVDrawBuf * buf, lvRect & rc, int type) {
-	rc.shrink(rc.width() / 7);
-	lUInt32 light = 0x60C0C0C0;
-	lUInt32 dark = 0x80606060;
-	lUInt32 colors[2];
-	colors[0] = dark;
-	colors[1] = light;
-	// x0  x1  x2  x3
-	int x0 = rc.left;
-	int x1 = rc.left + rc.width() * 4 / 10;
-	int x2 = rc.right -  + rc.width() * 4 / 10;
-	int x3 = rc.right;
-	int y0 = rc.top;
-	int y1 = rc.top + rc.width() * 4 / 10;
-	int y2 = rc.bottom -  + rc.height() * 4 / 10;
-	int y3 = rc.bottom;
-	for (int w = 1; w>=0; w--) {
-		if (type == 1) {
-			// horizontal minus
-			buf->FillRect(x0-w, y1-w, x3+w+1, y1+w+1, colors[w]);
-			buf->FillRect(x0-w, y2-w, x3+w+1, y2+w+1, colors[w]);
-			buf->FillRect(x0-w, y1-w, x0+w+1, y2+w+1, colors[w]);
-			buf->FillRect(x3-w, y1-w, x3+w+1, y2+w+1, colors[w]);
-		} else if (type == 2) {
-			// vertical minus
-			buf->FillRect(x1-w, y0-w, x1+w+1, y3+w+1, colors[w]);
-			buf->FillRect(x2-w, y0-w, x2+w+1, y3+w+1, colors[w]);
-			buf->FillRect(x1-w, y0-w, x2+w+1, y0+w+1, colors[w]);
-			buf->FillRect(x1-w, y3-w, x2+w+1, y3+w+1, colors[w]);
-		} else {
-			// plus
-			buf->FillRect(x0-w, y1-w, x1+w+1, y1+w+1, colors[w]);
-			buf->FillRect(x1-w, y0-w, x1+w+1, y1+w+1, colors[w]);
-			buf->FillRect(x0-w, y1-w, x0+w+1, y2+w+1, colors[w]);
-			buf->FillRect(x1-w, y0-w, x2+w+1, y0+w+1, colors[w]);
-			buf->FillRect(x2-w, y0-w, x2+w+1, y1+w+1, colors[w]);
-			buf->FillRect(x2-w, y1-w, x3+w+1, y1+w+1, colors[w]);
-			buf->FillRect(x3-w, y1-w, x3+w+1, y2+w+1, colors[w]);
-			buf->FillRect(x2-w, y2-w, x3+w+1, y2+w+1, colors[w]);
-			buf->FillRect(x2-w, y2-w, x2+w+1, y3+w+1, colors[w]);
-			buf->FillRect(x1-w, y3-w, x2+w+1, y3+w+1, colors[w]);
-			buf->FillRect(x1-w, y2-w, x1+w+1, y3+w+1, colors[w]);
-			buf->FillRect(x0-w, y2-w, x1+w+1, y2+w+1, colors[w]);
-		}
-	}
-	return true;
-}
-
-// sets current image to null
-bool DocViewNative::closeImage() {
-	if (_currentImage.isNull())
-		return false;
-	_currentImage.Clear();
-	return true;
-}
-
 /*
  * Class:     org_coolreader_crengine_DocView
  * Method:    checkLinkInternal
@@ -2257,30 +2285,6 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_hilightBookmarksInte
     p->_docview->setBookmarkList(bookmarks);
 }
 
-
-
-void DocViewNative::updateBatteryIcons() {
-	CRPropRef props = _docview->propsGetCurrent();
-	lUInt32 textColor = props->getColorDef(PROP_FONT_COLOR, 0x000000);
-	lUInt32 statusColor = props->getColorDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
-	lUInt32 batteryColor = statusColor;
-	if ( batteryColor==0xFF000000 )
-		batteryColor = textColor;
-	int newSize = 28;
-	int w = _docview->GetWidth();
-	int h = _docview->GetHeight();
-	if (w > h)
-		w = h;
-	if (w > 700)
-		newSize = 56;
-	if ( _batteryIconColor != batteryColor || _batteryIconSize != newSize ) { //oldNightMode!=newNightMode
-		_batteryIconColor = batteryColor;
-		_batteryIconSize = newSize;
-		//CRLog::debug("%x->%x, %x->%x: Setting Battery icon color = #%06x", oldTextColor, newTextColor, oldStatusColor, newStatusColor, batteryColor);
-	    LVRefVec<LVImageSource> icons;
-	    getBatteryIcons(icons, _batteryIconColor, _batteryIconSize);
-		//CRLog::debug("Setting list of Battery icon bitmats");
-	   _docview->setBatteryIcons( icons );
-		//CRLog::debug("Setting list of Battery icon bitmats - done");
-	}
+#ifdef __cplusplus
 }
+#endif
