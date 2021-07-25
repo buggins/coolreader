@@ -13,4 +13,4 @@ URL="https://github.com/harfbuzz/harfbuzz/releases/download/${PV}/${SRCFILE}"
 
 SOURCESDIR="${PN}-${PV}"
 
-PATCHES="01-disable-install.patch"
+PATCHES=
