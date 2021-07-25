@@ -2,16 +2,14 @@
 # Metadata for deploy script
 
 PN="freetype"
-PV="2.10.4"
+PV="2.11.0"
 # package revision: when patchset is changed (but not version), increase it
 # when version changed, reset to "1".
 REV="2"
 SRCFILE="${PN}-${PV}.tar.xz"
-SHA512="827cda734aa6b537a8bcb247549b72bc1e082a5b32ab8d3cccb7cc26d5f6ee087c19ce34544fa388a1eb4ecaf97600dbabc3e10e950f2ba692617fee7081518f"
-
+SHA512="bf1991f3c382832586be1d21ae73c20840ee8546807ba60d0eb0215134545656c0c8de488f27357d4a4f6497d7cb540998cda98ec59061a3e640036fb209147d"
 URL="https://download.savannah.gnu.org/releases/${PN}/${SRCFILE}"
 
 SOURCESDIR="${PN}-${PV}"
 
-PATCHES="01-disable-install.patch
-    0001-srd-base-ftlcdfil.c-FT_Library_SetLcdGeometry-Fix-re.patch"
+PATCHES=

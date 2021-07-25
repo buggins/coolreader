@@ -3,7 +3,7 @@
 # See <top_srcdir>/CMakeLists.txt
 #     <top_srcdir>/android/app/CMakeLists.txt
 
-set(REPO_FREETYPE_SRCDIR "freetype-2.10.4")
+set(REPO_FREETYPE_SRCDIR "freetype-2.11.0")
 set(REPO_FRIBIDI_SRCDIR "fribidi-1.0.10")
 set(REPO_HARFBUZZ_SRCDIR "harfbuzz-2.8.2")
 set(REPO_LIBJPEG_SRCDIR "jpeg-9d")

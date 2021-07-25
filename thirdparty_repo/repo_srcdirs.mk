@@ -2,7 +2,7 @@
 # For ndk-build project file.
 # See <top_srcdir>/android/jni/Android.mk
 
-REPO_FREETYPE_SRCDIR := freetype-2.10.4
+REPO_FREETYPE_SRCDIR := freetype-2.11.0
 REPO_FRIBIDI_SRCDIR := fribidi-1.0.10
 REPO_HARFBUZZ_SRCDIR := harfbuzz-2.8.2
 REPO_LIBJPEG_SRCDIR := jpeg-9d
