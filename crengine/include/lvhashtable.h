@@ -217,6 +217,11 @@ public:
         }
         return false;
     }
+    void compact()
+    {
+        if (_count > 0 && _count < _size)
+            resize(_count);
+    }
 private:
     int _size;
     int _count;

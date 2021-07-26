@@ -732,4 +732,7 @@
     <string name="options_disabled_document_styles">отключены встроенные стили документа или неподдерживаемый тип документа</string>
     <string name="options_multilingual_enabled">отключено, так как включена поддежка мультиязычных документов</string>
     <string name="options_multilingual_disabled">отключено, так как отключена поддежка мультиязычных документов или включен устаревший рендеринг</string>
+    <string name="filter_by_book_language_s">Отфильтровать по языку книги (%s)</string>
+    <string name="scanning_font_files">Сканирование файлов шрифтов…</string>
+    <string name="undetermined">Неопределенный</string>
 </resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/option_item_body"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="?android:attr/listPreferredItemHeight"
+        android:orientation="vertical"
+        android:paddingRight="?android:attr/scrollbarSize">
+
+    <CheckBox
+            android:id="@+id/cb_filter_by_lang"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0dip"
+            android:text="@string/filter_by_book_language_s" />
+</LinearLayout>
