@@ -116,7 +116,6 @@ public class CoolReader extends BaseActivity {
 	private boolean isFirstStart = true;
 	private boolean phoneStateChangeHandlerInstalled = false;
 	private int initialBatteryState = -1;
-	private BroadcastReceiver intentReceiver;
 
 	private boolean justCreated = false;
 	private boolean activityIsRunning = false;
@@ -136,6 +135,17 @@ public class CoolReader extends BaseActivity {
 	private static final int ODT_CMD_DEL_FILE = 1;
 	private static final int ODT_CMD_DEL_FOLDER = 2;
 	private static final int ODT_CMD_SAVE_LOGCAT = 3;
+
+	private final BroadcastReceiver batteryChangeReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			int level = intent.getIntExtra("level", 0);
+			if (mReaderView != null)
+				mReaderView.setBatteryState(level);
+			else
+				initialBatteryState = level;
+		}
+	};
 
 	/**
 	 * Called when the activity is first created.
@@ -162,28 +172,18 @@ public class CoolReader extends BaseActivity {
 
 		//requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-		//==========================================
-		// Battery state listener
-		intentReceiver = new BroadcastReceiver() {
-
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				int level = intent.getIntExtra("level", 0);
-				if (mReaderView != null)
-					mReaderView.setBatteryState(level);
-				else
-					initialBatteryState = level;
-			}
-
-		};
-		registerReceiver(intentReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+		// Get battery level
+		// ACTION_BATTERY_CHANGED is a sticky broadcast & we pass null instead of receiver, then
+		// no receiver is registered -- the function simply returns the sticky Intent that matches filter.
+		Intent intent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+		if (null != intent) {
+			// and process this Intent: save received values
+			batteryChangeReceiver.onReceive(null, intent);
+		}
 
 		// For TTS volume control
 		//  See TTSControlService
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
-
-		if (initialBatteryState >= 0 && mReaderView != null)
-			mReaderView.setBatteryState(initialBatteryState);
 
 		//==========================================
 		// Donations related code
@@ -250,10 +250,6 @@ public class CoolReader extends BaseActivity {
 //		}
 
 		//mEngine = null;
-		if (intentReceiver != null) {
-			unregisterReceiver(intentReceiver);
-			intentReceiver = null;
-		}
 
 		//===========================
 		// Donations support code
@@ -787,6 +783,11 @@ public class CoolReader extends BaseActivity {
 		if (mBrowser != null) {
 			mBrowser.stopCurrentScan();
 		}
+		try {
+			unregisterReceiver(batteryChangeReceiver);
+		} catch (IllegalArgumentException e) {
+			log.e("Failed to unregister receiver: " + e.toString());
+		}
 		Services.getCoverpageManager().removeCoverpageReadyListener(mHomeFrame);
 		if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (mSyncGoogleDriveEnabled && mGoogleDriveSync != null && !mGoogleDriveSync.isBusy()) {
@@ -833,6 +834,11 @@ public class CoolReader extends BaseActivity {
 
 		if (mReaderView != null)
 			mReaderView.onAppResume();
+		Intent intent = registerReceiver(batteryChangeReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+		if (null != intent) {
+			// process this Intent
+			batteryChangeReceiver.onReceive(null, intent);
+		}
 
 		if (DeviceInfo.EINK_SCREEN) {
 			if (DeviceInfo.EINK_SONY) {
