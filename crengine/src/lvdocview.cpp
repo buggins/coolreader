@@ -2330,7 +2330,7 @@ bool LVDocView::goToPage(int page, bool updatePosBookmark, bool regulateTwoPages
 
 /// returns true if time changed since clock has been last drawed
 bool LVDocView::isTimeChanged() {
-	if ( m_pageHeaderInfo & PGHDR_CLOCK ) {
+	if ( m_pageHeaderPos != PAGE_HEADER_POS_NONE && m_pageHeaderInfo & PGHDR_CLOCK ) {
 		bool res = (m_last_clock != getTimeString());
 		if (res)
 			clearImageCache();

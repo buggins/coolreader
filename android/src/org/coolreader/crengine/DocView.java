@@ -433,10 +433,16 @@ public class DocView {
 			hilightBookmarksInternal(bookmarks);
 		}
 	}
-	
+
+	public boolean isTimeChanged() {
+		synchronized(mutex) {
+			return isTimeChangedInternal();
+		}
+	}
+
 	//========================================================================================
 	// Native functions
-	/* implementend by libcr3engine.so */
+	/* implemented by libcr3engine.so */
 	//========================================================================================
 	private native void getPageImageInternal(Bitmap bitmap, int bpp);
 
@@ -508,6 +514,8 @@ public class DocView {
 
 	// / returns either SWAP_DONE, SWAP_TIMEOUT or SWAP_ERROR
 	private native int swapToCacheInternal();
+
+	private native boolean isTimeChangedInternal();
 
 	private long mNativeObject; // used from JNI
 

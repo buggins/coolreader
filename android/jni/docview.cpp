@@ -2285,6 +2285,22 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_hilightBookmarksInte
     p->_docview->setBookmarkList(bookmarks);
 }
 
+/*
+ * Class:     org_coolreader_crengine_DocView
+ * Method:    isTimeChangedInternal
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_isTimeChangedInternal
+  (JNIEnv * _env, jobject _this) {
+    ;
+    DocViewNative * p = getNative(_env, _this);
+    if (!p) {
+        CRLog::error("Cannot get native view");
+        return JNI_FALSE;
+    }
+    return p->_docview->isTimeChanged() ? JNI_TRUE : JNI_FALSE;
+}
+
 #ifdef __cplusplus
 }
 #endif

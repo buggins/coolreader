@@ -181,6 +181,14 @@ public class CoolReader extends BaseActivity {
 			}
 		}
 	};
+	private BroadcastReceiver timeTickReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if (activityIsRunning && null != mReaderView) {
+				mReaderView.onTimeTickReceived();
+			}
+		}
+	};
 
 	/**
 	 * Called when the activity is first created.
@@ -823,6 +831,11 @@ public class CoolReader extends BaseActivity {
 		} catch (IllegalArgumentException e) {
 			log.e("Failed to unregister receiver: " + e.toString());
 		}
+		try {
+			unregisterReceiver(timeTickReceiver);
+		} catch (IllegalArgumentException e) {
+			log.e("Failed to unregister receiver: " + e.toString());
+		}
 		Services.getCoverpageManager().removeCoverpageReadyListener(mHomeFrame);
 		if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (mSyncGoogleDriveEnabled && mGoogleDriveSync != null && !mGoogleDriveSync.isBusy()) {
@@ -869,11 +882,14 @@ public class CoolReader extends BaseActivity {
 
 		if (mReaderView != null)
 			mReaderView.onAppResume();
+		// ACTION_BATTERY_CHANGED: This is a sticky broadcast containing the charging state, level, and other information about the battery.
 		Intent intent = registerReceiver(batteryChangeReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 		if (null != intent) {
 			// process this Intent
 			batteryChangeReceiver.onReceive(null, intent);
 		}
+		// ACTION_TIME_TICK: The current time has changed. Sent every minute.
+		registerReceiver(timeTickReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
 
 		if (DeviceInfo.EINK_SCREEN) {
 			if (DeviceInfo.EINK_SONY) {

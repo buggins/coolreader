@@ -3242,6 +3242,15 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		return mBatteryChargeLevel;
 	}
 
+	public void onTimeTickReceived() {
+		if (!DeviceInfo.EINK_SCREEN && !isAutoScrollActive()) {
+			if (doc.isTimeChanged()) {
+				log.i("The current time has been changed (minutes), redrawing is scheduled.");
+				redraw();
+			}
+		}
+	}
+
 	private static final VMRuntimeHack runtime = new VMRuntimeHack();
 
 	private static class BitmapFactory {
