@@ -33,11 +33,21 @@ typedef enum {
     txt_format_auto  // autodetect format
 } txt_format_t;
 
-/// no battery
+/// Battery state: no battery
 #define CR_BATTERY_STATE_NO_BATTERY -2
-/// battery is charging
+/// Battery state: battery is charging
 #define CR_BATTERY_STATE_CHARGING -1
-// values 0..100 -- battery life percent
+/// Battery state: battery is discharging
+#define CR_BATTERY_STATE_DISCHARGING -3
+
+/// Battery charger connection: no connection
+#define CR_BATTERY_CHARGER_NO 1
+/// Battery charger connection: AC adapter
+#define CR_BATTERY_CHARGER_AC 2
+/// Battery charger connection: USB
+#define CR_BATTERY_CHARGER_USB 3
+/// Battery charger connection: Wireless
+#define CR_BATTERY_CHARGER_WIRELESS 4
 
 #ifndef CR_ENABLE_PAGE_IMAGE_CACHE
 #ifdef ANDROID
@@ -259,6 +269,8 @@ private:
     ldomXPointer _posBookmark; // bookmark for current position
 
     int m_battery_state;
+    int m_battery_charging_conn;
+    int m_battery_charge_level;
     int m_requested_font_size;
     int m_font_size; // = m_requested_font_size, possibly scaled according to DPI
     int m_status_font_size;
@@ -643,9 +655,13 @@ public:
     /// returns section bounds, in 1/100 of percent
     LVArray<int> & getSectionBounds( int max_count, int depth, bool for_external_update=false );
     /// sets battery state
-    virtual bool setBatteryState( int newState );
+    virtual bool setBatteryState( int newState, int newChargingConn, int newChargeLevel );
     /// returns battery state
     int getBatteryState() const { return m_battery_state; }
+    /// returns battery charging connection
+    int getBatteryChargingConn() const { return m_battery_charging_conn; }
+    /// returns battery charge level
+    int getBatteryChargeLevel() const { return m_battery_charge_level; }
     /// returns current time representation string
     virtual lString32 getTimeString() const;
     /// returns true if time changed since clock has been last drawed

@@ -260,6 +260,22 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	private final static int BRIGHTNESS_TYPE_COMMON = 0;
 	private final static int BRIGHTNESS_TYPE_WARM = 1;
 
+	/// Always sync this constants with crengine/include/lvdocview.h!
+	/// Battery state: no battery
+	public static final int BATTERY_STATE_NO_BATTERY = -2;
+	/// Battery state: battery is charging
+	public static final int BATTERY_STATE_CHARGING = -1;
+	/// Battery state: battery is discharging
+	public static final int BATTERY_STATE_DISCHARGING = -3;
+	/// Battery charger connection: no connection
+	public static final int BATTERY_CHARGER_NO = 1;
+	/// Battery charger connection: AC adapter
+	public static final int BATTERY_CHARGER_AC = 2;
+	/// Battery charger connection: USB
+	public static final int BATTERY_CHARGER_USB = 3;
+	/// Battery charger connection: Wireless
+	public static final int BATTERY_CHARGER_WIRELESS = 4;
+
 	private ViewMode viewMode = ViewMode.PAGES;
 
 	private void execute(Engine.EngineTask task) {
@@ -1666,8 +1682,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		final StringBuilder buf = new StringBuilder();
 //		if (mActivity.isFullscreen()) {
 		buf.append(Utils.formatTime(mActivity, System.currentTimeMillis()) + " ");
-		if (mBatteryState >= 0)
-			buf.append(" [" + mBatteryState + "%]\n");
+		buf.append(" [" + mBatteryChargeLevel + "%]\n");
 //		}
 		execute(new Task() {
 			Bookmark bm;
@@ -1857,7 +1872,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		final ArrayList<String> items = new ArrayList<String>();
 		items.add("section=section.system");
 		items.add("system.version=Cool Reader " + mActivity.getVersion());
-		items.add("system.battery=" + mBatteryState + "%");
+		items.add("system.battery=" + mBatteryChargeLevel + "%");
 		items.add("system.time=" + Utils.formatTime(mActivity, System.currentTimeMillis()));
 		final BookInfo bi = mBookInfo;
 		if (bi != null) {
@@ -3187,12 +3202,28 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		return mBookInfo;
 	}
 
-	private int mBatteryState = 100;
+	private int mBatteryState = BATTERY_STATE_DISCHARGING;
+	private int mBatteryChargingConn = BATTERY_CHARGER_NO;
+	private int mBatteryChargeLevel = 0;
 
-	public void setBatteryState(int state) {
+	public void setBatteryState(int state, int chargingConn, int level) {
+		boolean needUpdate = false;
 		if (state != mBatteryState) {
 			log.i("Battery state changed: " + state);
 			mBatteryState = state;
+			needUpdate = true;
+		}
+		if (chargingConn != mBatteryChargingConn) {
+			log.i("Battery charging connection changed: " + chargingConn);
+			mBatteryChargingConn = chargingConn;
+			needUpdate = true;
+		}
+		if (level != mBatteryChargeLevel) {
+			log.i("Battery charging level changed: " + level);
+			mBatteryChargeLevel = level;
+			needUpdate = true;
+		}
+		if (needUpdate) {
 			if (!DeviceInfo.EINK_SCREEN && !isAutoScrollActive()) {
 				redraw();
 			}
@@ -3201,6 +3232,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	public int getBatteryState() {
 		return mBatteryState;
+	}
+
+	public int getBatteryChargingConnection() {
+		return mBatteryChargingConn;
+	}
+
+	public int getBatteryChargeLevel() {
+		return mBatteryChargeLevel;
 	}
 
 	private static final VMRuntimeHack runtime = new VMRuntimeHack();
@@ -3383,7 +3422,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			bi.position = currpos;
 			bi.bitmap = factory.get(internalDX > 0 ? internalDX : requestedWidth,
 					internalDY > 0 ? internalDY : requestedHeight);
-			doc.setBatteryState(mBatteryState);
+			doc.setBatteryState(mBatteryState, mBatteryChargingConn, mBatteryChargeLevel);
 			doc.getPageImage(bi.bitmap);
 			mCurrentPageInfo = bi;
 			//log.v("Prepared new current page image " + mCurrentPageInfo);
@@ -3411,7 +3450,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					BitmapInfo bi = new BitmapInfo();
 					bi.position = nextpos;
 					bi.bitmap = factory.get(internalDX, internalDY);
-					doc.setBatteryState(mBatteryState);
+					doc.setBatteryState(mBatteryState, mBatteryChargingConn, mBatteryChargeLevel);
 					doc.getPageImage(bi.bitmap);
 					mNextPageInfo = bi;
 					nextposBitmap = bi;
@@ -3442,7 +3481,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					BitmapInfo bi = new BitmapInfo();
 					bi.position = nextpos;
 					bi.bitmap = factory.get(internalDX, internalDY);
-					doc.setBatteryState(mBatteryState);
+					doc.setBatteryState(mBatteryState, mBatteryChargingConn, mBatteryChargeLevel);
 					doc.getPageImage(bi.bitmap);
 					mNextPageInfo = bi;
 					nextposBitmap = bi;

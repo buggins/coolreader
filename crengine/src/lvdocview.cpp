@@ -156,7 +156,9 @@ static int def_font_sizes[] = { 18, 20, 22, 24, 29, 33, 39, 44 };
 
 LVDocView::LVDocView(int bitsPerPixel, bool noDefaultDocument) :
 	m_bitsPerPixel(bitsPerPixel), m_dx(400), m_dy(200), _pos(0), _page(0),
-			_posIsSet(false), m_battery_state(CR_BATTERY_STATE_NO_BATTERY)
+			_posIsSet(false), m_battery_state(CR_BATTERY_STATE_NO_BATTERY),
+			m_battery_charging_conn(CR_BATTERY_CHARGER_NO),
+			m_battery_charge_level(0)
 #if (LBOOK==1)
 			, m_requested_font_size(32)
 #elif defined(__SYMBIAN32__)
@@ -1450,7 +1452,7 @@ void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc) 
 		if ( m_batteryIcons.size()==1 )
 			icons.add(m_batteryIcons[0]);
 	}
-	LVDrawBatteryIcon(drawbuf, batteryRc, m_battery_state, m_battery_state
+	LVDrawBatteryIcon(drawbuf, batteryRc, m_battery_charge_level, m_battery_state
 			== CR_BATTERY_STATE_CHARGING, icons, drawPercent ? m_batteryFont.get() : NULL);
 #if 0
 	if ( m_batteryIcons.length()>1 ) {
@@ -1728,11 +1730,13 @@ void LVDocView::getPageRectangle(int pageIndex, lvRect & pageRect) const {
 }
 
 /// sets battery state
-bool LVDocView::setBatteryState(int newState) {
-	if (m_battery_state == newState)
+bool LVDocView::setBatteryState(int newState, int newChargingConn, int newChargeLevel) {
+	if (m_battery_state == newState && newChargingConn == m_battery_charging_conn && m_battery_charge_level == newChargeLevel)
 		return false;
-	CRLog::info("New battery state: %d", newState);
+	CRLog::info("New battery state: %d; chargingConn: %d; chargeLevel: %d", newState, newChargingConn, newChargeLevel);
 	m_battery_state = newState;
+	m_battery_charging_conn = newChargingConn;
+	m_battery_charge_level = newChargeLevel;
 	clearImageCache();
 	return true;
 }
@@ -1878,7 +1882,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 			info.left += dwIcons;
 		}
 		bool batteryPercentNormalFont = false; // PROP_SHOW_BATTERY_PERCENT
-		if ((phi & PGHDR_BATTERY) && m_battery_state >= CR_BATTERY_STATE_CHARGING) {
+		if ((phi & PGHDR_BATTERY) && m_battery_state != CR_BATTERY_STATE_NO_BATTERY) {
 			batteryPercentNormalFont = m_props->getBoolDef(PROP_SHOW_BATTERY_PERCENT, true) || m_batteryIcons.size()<=2;
 			if ( !batteryPercentNormalFont ) {
 				lvRect brc = info;
@@ -1916,30 +1920,38 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		lString32 pageinfo;
 		if (pageCount > 0) {
 			if (phi & PGHDR_PAGE_NUMBER)
-                pageinfo += fmt::decimal(pageIndex + 1);
-            if (phi & PGHDR_PAGE_COUNT) {
-                if ( !pageinfo.empty() )
-                    pageinfo += " / ";
-                pageinfo += fmt::decimal(pageCount);
-            }
-            if (phi & PGHDR_PERCENT) {
-                if ( !pageinfo.empty() )
-                    pageinfo += "  ";
-                //pageinfo += lString32::itoa(percent/100)+U"%"; //+U"."+lString32::itoa(percent/10%10)+U"%";
-                pageinfo += fmt::decimal(percent/100);
-                pageinfo += ",";
-                int pp = percent%100;
-                if ( pp<10 )
-                    pageinfo << "0";
-                pageinfo << fmt::decimal(pp) << "%";
-            }
-            if ( batteryPercentNormalFont ) {
-                if (m_battery_state >= 0)
-                    pageinfo << "  [" << fmt::decimal(m_battery_state) << "%]";
-                else if (m_battery_state == CR_BATTERY_STATE_CHARGING)
-                    pageinfo << "  [ + ]";
-            }
-        }
+				pageinfo += fmt::decimal(pageIndex + 1);
+			if (phi & PGHDR_PAGE_COUNT) {
+				if (!pageinfo.empty())
+					pageinfo += " / ";
+				pageinfo += fmt::decimal(pageCount);
+			}
+			if (phi & PGHDR_PERCENT) {
+				if (!pageinfo.empty())
+					pageinfo += "  ";
+				pageinfo += fmt::decimal(percent / 100);
+				pageinfo += ",";
+				int pp = percent % 100;
+				if (pp < 10)
+					pageinfo << "0";
+				pageinfo << fmt::decimal(pp) << "%";
+			}
+			if (batteryPercentNormalFont) {
+				if (m_battery_charge_level >= 0 && m_battery_charge_level <= 100) {
+					pageinfo << "  [";
+					if (m_battery_state == CR_BATTERY_STATE_CHARGING) {
+						pageinfo << 0x21AF;
+					}
+					pageinfo << fmt::decimal(m_battery_charge_level) << "%]";
+				} else {
+					if (m_battery_state == CR_BATTERY_STATE_CHARGING) {
+						pageinfo << Utf8ToUnicode("  [ ↯ ]");
+					} else {
+						pageinfo << Utf8ToUnicode("  [ ? ]");
+					}
+				}
+			}
+		}
 
 		int piw = 0;
 		if (!pageinfo.empty()) {

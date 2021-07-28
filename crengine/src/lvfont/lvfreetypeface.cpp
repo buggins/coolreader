@@ -136,6 +136,11 @@ static lChar32 getReplacementChar(lUInt32 code, bool * can_be_ignored = NULL) {
         case 0x25AA: // css_lst_square:
         case 0x25FE: // css_lst_square:
             return '-';
+        case 0x21AF: // DOWNWARDS ZIGZAG ARROW
+        case 0x26A1: // HIGH VOLTAGE SIGN
+        case 0x2B4D: // DOWNWARDS TRIANGLE-HEADED ZIGZAG ARROW
+        case 0x1F5F2:// LIGHTNING MOOD
+            return '+';
         default:
             break;
     }

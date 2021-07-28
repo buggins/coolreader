@@ -172,7 +172,7 @@ void FilePropsDialog::fillItems()
 
     addPropLine( tr("Current page"), cr2qt(lString32::itoa(_docview->getCurPage())) );
     addPropLine( tr("Total pages"), cr2qt(lString32::itoa(_docview->getPageCount())) );
-    addPropLine( tr("Battery state"), cr2qt(lString32::itoa(_docview->getBatteryState()) + "%") );
+    addPropLine( tr("Battery state"), cr2qt(lString32::itoa(_docview->getBatteryChargeLevel()) + "%") );
     addPropLine( tr("Current Time"), cr2qt(_docview->getTimeString()) );
     // TODO:
     if ( hist ) {

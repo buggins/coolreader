@@ -2003,10 +2003,10 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_findTextInternal
 /*
  * Class:     org_coolreader_crengine_DocView
  * Method:    setBatteryStateInternal
- * Signature: (I)V
+ * Signature: (III)V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_setBatteryStateInternal
-  (JNIEnv * _env, jobject _this, jint state)
+  (JNIEnv * _env, jobject _this, jint state, jint chargingConn, jint chargeLevel)
 {
     CRJNIEnv env(_env);
     DocViewNative * p = getNative(_env, _this);
@@ -2014,7 +2014,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_setBatteryStateInter
     	CRLog::error("Cannot get native view");
     	return;
     }
-    p->_docview->setBatteryState(state);
+    p->_docview->setBatteryState(state, chargingConn, chargeLevel);
 }
 
 /*

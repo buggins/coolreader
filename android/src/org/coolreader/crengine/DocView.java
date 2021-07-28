@@ -111,9 +111,9 @@ public class DocView {
 	 * Send battery state to native object.
 	 * @param state
 	 */
-	public void setBatteryState(int state) {
+	public void setBatteryState(int state, int chargingConn, int chargeLevel) {
 		synchronized(mutex) {
-			setBatteryStateInternal(state);
+			setBatteryStateInternal(state, chargingConn, chargeLevel);
 		}
 	}
 
@@ -478,7 +478,7 @@ public class DocView {
 	private native boolean findTextInternal(String pattern, int origin,
 			int reverse, int caseInsensitive);
 
-	private native void setBatteryStateInternal(int state);
+	private native void setBatteryStateInternal(int state, int chargingConn, int chargeLevel);
 
 	private native byte[] getCoverPageDataInternal();
 

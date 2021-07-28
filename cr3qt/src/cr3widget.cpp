@@ -309,7 +309,10 @@ CR3View::CR3View( QWidget *parent)
         : QWidget( parent, Qt::WindowFlags() ), _scroll(NULL), _propsCallback(NULL)
         , _normalCursor(Qt::ArrowCursor), _linkCursor(Qt::PointingHandCursor)
         , _selCursor(Qt::IBeamCursor), _waitCursor(Qt::WaitCursor)
-        , _selecting(false), _selected(false), _editMode(false), _lastBatteryState(CR_BATTERY_STATE_NO_BATTERY)
+        , _selecting(false), _selected(false), _editMode(false)
+        , _lastBatteryState(CR_BATTERY_STATE_NO_BATTERY)
+        , _lastBatteryChargingConn(CR_BATTERY_CHARGER_NO)
+        , _lastBatteryChargeLevel(0)
 {
 #if WORD_SELECTOR_ENABLED==1
     _wordSelector = NULL;
@@ -331,7 +334,7 @@ CR3View::CR3View( QWidget *parent)
 #endif
 
     _docview->setBatteryIcons( getBatteryIcons(0x000000) );
-    _docview->setBatteryState(CR_BATTERY_STATE_NO_BATTERY); // don't show battery
+    _docview->setBatteryState(CR_BATTERY_STATE_NO_BATTERY, CR_BATTERY_CHARGER_NO, 0); // don't show battery
     //_docview->setBatteryState( 75 ); // 75%
 //    LVStreamRef stream;
 //    stream = LVOpenFileStream("/home/lve/.cr3/textures/old_paper.png", LVOM_READ);
@@ -527,21 +530,31 @@ void CR3View::resizeEvent ( QResizeEvent * event )
     _docview->Resize( sz.width(), sz.height() );
 }
 
-int getBatteryState()
+static bool getBatteryState(int& state, int& chargingConn, int& level)
 {
 #ifdef _WIN32
     // update battery state
     SYSTEM_POWER_STATUS bstatus;
     BOOL pow = GetSystemPowerStatus(&bstatus);
-    if (bstatus.BatteryFlag & 128)
-        return CR_BATTERY_STATE_NO_BATTERY; // no system battery
-	if (bstatus.ACLineStatus==8 && bstatus.BatteryLifePercent<100 )
-		return CR_BATTERY_STATE_CHARGING; // charging
-    if (bstatus.BatteryLifePercent>=0 && bstatus.BatteryLifePercent<=100)
-		return bstatus.BatteryLifePercent;
-    return CR_BATTERY_STATE_NO_BATTERY;
+    if (pow) {
+        state = CR_BATTERY_STATE_DISCHARGING;
+        if (bstatus.BatteryFlag & 128)
+            state = CR_BATTERY_STATE_NO_BATTERY;  // no system battery
+        else if (bstatus.BatteryFlag & 8)
+            state = CR_BATTERY_STATE_CHARGING;    // charging
+        chargingConn = CR_BATTERY_CHARGER_NO;
+        if (bstatus.ACLineStatus==1)
+            chargingConn = CR_BATTERY_CHARGER_AC; // AC power charging connected
+        if (bstatus.BatteryLifePercent>=0 && bstatus.BatteryLifePercent<=100)
+            level = bstatus.BatteryLifePercent;
+        return true;
+    }
+    return false;
 #else
-	return CR_BATTERY_STATE_NO_BATTERY;
+    state = CR_BATTERY_STATE_NO_BATTERY;
+    chargingConn = CR_BATTERY_CHARGER_NO;
+    level = 0;
+    return true;
 #endif
 }
 
@@ -549,11 +562,18 @@ void CR3View::paintEvent ( QPaintEvent * event )
 {
     QPainter painter(this);
     QRect rc = rect();
-	int newBatteryState = getBatteryState();
-	if (_lastBatteryState != newBatteryState) {
-		_docview->setBatteryState( newBatteryState );
-		_lastBatteryState = newBatteryState;
-	}
+    int newBatteryState;
+    int newChargingConn;
+    int newChargeLevel;
+    if (getBatteryState(newBatteryState, newChargingConn, newChargeLevel) &&
+            (_lastBatteryState != newBatteryState ||
+             _lastBatteryChargingConn != newChargingConn ||
+             _lastBatteryChargeLevel != newChargeLevel)) {
+        _docview->setBatteryState( newBatteryState, newChargingConn, newChargeLevel );
+        _lastBatteryState = newBatteryState;
+        _lastBatteryChargingConn = newChargingConn;
+        _lastBatteryChargeLevel = newChargeLevel;
+    }
     LVDocImageRef ref = _docview->getPageImage(0);
     if ( ref.isNull() ) {
         //painter.fillRect();

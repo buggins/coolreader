@@ -12,6 +12,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
@@ -115,7 +116,9 @@ public class CoolReader extends BaseActivity {
 
 	private boolean isFirstStart = true;
 	private boolean phoneStateChangeHandlerInstalled = false;
-	private int initialBatteryState = -1;
+	private int initialBatteryState = ReaderView.BATTERY_STATE_NO_BATTERY;
+	private int initialBatteryChargeConn = ReaderView.BATTERY_CHARGER_NO;
+	private int initialBatteryLevel = 0;
 
 	private boolean justCreated = false;
 	private boolean activityIsRunning = false;
@@ -139,11 +142,43 @@ public class CoolReader extends BaseActivity {
 	private final BroadcastReceiver batteryChangeReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
+			// TODO: When minSDK increases to 5 or higher replace string constants:
+			//  "status" -> BatteryManager.EXTRA_STATUS
+			//  "plugged" -> BatteryManager.EXTRA_PLUGGED
+			//  "level" -> BatteryManager.EXTRA_LEVEL
+			int status = intent.getIntExtra("status", 0);
+			int plugged = intent.getIntExtra("plugged", 0);
 			int level = intent.getIntExtra("level", 0);
+			// Translate android values to cr3 values
+			switch (plugged) {
+				case BatteryManager.BATTERY_PLUGGED_AC:
+					plugged = ReaderView.BATTERY_CHARGER_AC;
+					break;
+				case BatteryManager.BATTERY_PLUGGED_USB:
+					plugged = ReaderView.BATTERY_CHARGER_USB;
+					break;
+				case BatteryManager.BATTERY_PLUGGED_WIRELESS:
+					plugged = ReaderView.BATTERY_CHARGER_WIRELESS;
+					break;
+				default:
+					plugged = ReaderView.BATTERY_CHARGER_NO;
+			}
+			switch (status) {
+				case BatteryManager.BATTERY_STATUS_CHARGING:
+					status = ReaderView.BATTERY_STATE_CHARGING;
+					break;
+				case BatteryManager.BATTERY_STATUS_DISCHARGING:
+				default:
+					status = ReaderView.BATTERY_STATE_DISCHARGING;
+					break;
+			}
 			if (mReaderView != null)
-				mReaderView.setBatteryState(level);
-			else
-				initialBatteryState = level;
+				mReaderView.setBatteryState(status, plugged, level);
+			else {
+				initialBatteryState = status;
+				initialBatteryChargeConn = plugged;
+				initialBatteryLevel = level;
+			}
 		}
 	};
 
@@ -1240,8 +1275,7 @@ public class CoolReader extends BaseActivity {
 					mReaderView.getSurface().setFocusableInTouchMode(true);
 					mReaderView.getSurface().requestFocus();
 				}
-				if (initialBatteryState >= 0)
-					mReaderView.setBatteryState(initialBatteryState);
+				mReaderView.setBatteryState(initialBatteryState, initialBatteryChargeConn, initialBatteryLevel);
 				mReaderView.doEngineCommand(ReaderCommand.DCMD_SET_ROTATION_INFO_FOR_AA, screenRotation);
 			}
 		});
