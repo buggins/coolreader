@@ -3194,7 +3194,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.i("Battery state changed: " + state);
 			mBatteryState = state;
 			if (!DeviceInfo.EINK_SCREEN && !isAutoScrollActive()) {
-				drawPage();
+				redraw();
 			}
 		}
 	}
@@ -6415,12 +6415,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	public void redraw() {
-		//BackgroundThread.instance().executeBackground(new Runnable() {
 		BackgroundThread.instance().executeGUI(() -> {
 			surface.invalidate();
 			invalidImages = true;
-			//preparePageImage(0);
-			bookView.draw();
+			drawPage();
 		});
 	}
 
