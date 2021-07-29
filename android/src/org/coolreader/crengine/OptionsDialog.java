@@ -18,7 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -659,7 +659,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			View view;
 			convertView = myView;
 			if ( convertView==null ) {
-				//view = new TextView(getContext());
 				view = mInflater.inflate(R.layout.option_item_boolean, null);
 			} else {
 				view = convertView;
@@ -667,7 +666,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			myView = view;
 			TextView labelView = view.findViewById(R.id.option_label);
 			TextView commentView = view.findViewById(R.id.option_comment);
-			CheckBox valueView = view.findViewById(R.id.option_value_cb);
+			CompoundButton valueView = view.findViewById(R.id.option_value_cb);
 			labelView.setText(label);
 			labelView.setEnabled(enabled);
 			String commentLabel = null;
@@ -712,7 +711,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			View view;
 			convertView = myView;
 			if ( convertView==null ) {
-				//view = new TextView(getContext());
 				view = mInflater.inflate(R.layout.option_item_boolean, null);
 			} else {
 				view = convertView;
@@ -720,9 +718,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			myView = view;
 			TextView labelView = view.findViewById(R.id.option_label);
 			TextView commentView = view.findViewById(R.id.option_comment);
-			CheckBox valueView = view.findViewById(R.id.option_value_cb);
-//			valueView.setFocusable(false);
-//			valueView.setClickable(false);
+			CompoundButton valueView = view.findViewById(R.id.option_value_cb);
 			labelView.setText(label);
 			labelView.setEnabled(enabled);
 			String commentLabel = comment;
@@ -740,13 +736,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				commentView.setVisibility(View.GONE);
 			}
 			valueView.setChecked(getValueBoolean());
-			valueView.setOnCheckedChangeListener((arg0, checked) -> {
-//						mProperties.setBool(property, checked);
-//						refreshList();
-			});
+			// For this view, the "focusable" and "clickable" properties are
+			// disabled in the layout, so there is no need to set a change listener.
+			//valueView.setOnCheckedChangeListener((arg0, checked) -> {
+			//			mProperties.setBool(property, checked);
+			//			refreshList();
+			//});
 			setupIconView((ImageView)view.findViewById(R.id.option_icon));
-//			view.setClickable(true);
-//			view.setFocusable(true);
 			valueView.setEnabled(enabled);
 			return view;
 		}
@@ -1467,12 +1463,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 			View panel = mInflater.inflate(R.layout.option_lang_filter, null);
 			layout.addView(panel);
-			CheckBox cb_filter_by_lang = panel.findViewById(R.id.cb_filter_by_lang);
+			CompoundButton filter_by_lang = panel.findViewById(R.id.filter_by_lang);
 			if (null != langDescr && langDescr.length() > 0) {
-				cb_filter_by_lang.setText(mActivity.getString(R.string.filter_by_book_language_s, langDescr));
+				filter_by_lang.setText(mActivity.getString(R.string.filter_by_book_language_s, langDescr));
 			} else {
-				cb_filter_by_lang.setText(mActivity.getString(R.string.filter_by_book_language_s, mActivity.getString(R.string.undetermined)));
-				cb_filter_by_lang.setEnabled(false);
+				filter_by_lang.setText(mActivity.getString(R.string.filter_by_book_language_s, mActivity.getString(R.string.undetermined)));
+				filter_by_lang.setEnabled(false);
 			}
 			final ListView listView = new BaseListView(mActivity, false);
 			listAdapter = new ListOptionAdapter(listView, list);
@@ -1490,7 +1486,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				closed();
 			});
 
-			cb_filter_by_lang.setOnCheckedChangeListener((buttonView, isChecked) -> {
+			filter_by_lang.setOnCheckedChangeListener((buttonView, isChecked) -> {
 				if (isChecked) {
 					asyncFilterFontsByLanguage(langTag, (list, canceled) -> {
 						if (!canceled) {
@@ -1506,7 +1502,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 							});
 						} else {
 							BackgroundThread.instance().executeGUI(() -> {
-								cb_filter_by_lang.setChecked(false);
+								filter_by_lang.setChecked(false);
 							});
 						}
 					});
@@ -1525,7 +1521,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 			dlg.setOnDismissListener(dialog -> closed());
 
-			// TODO: set checked for for cb_filter_by_lang (save in settings)
+			// TODO: set checked for for filter_by_lang (save in settings)
 
 			dlg.setView(layout);
 			dlg.show();
