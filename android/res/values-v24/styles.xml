@@ -34,22 +34,30 @@
     <style name="Theme.Light" parent="@style/Theme.White">
         <item name="android:windowBackground">@drawable/background_tiled_light</item>
         <item name="android:colorBackground">#ffe0e0e0</item>
-        <item name="android:switchStyle">@style/Switch.Light</item>
         <item name="android:listViewStyle">@style/ListView.Light</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Light</item>
+        <item name="android:checkboxStyle">@style/CheckBox.Light</item>
+        <item name="android:radioButtonStyle">@style/RadioButton.Light</item>
+        <item name="android:switchStyle">@style/Switch.Light</item>
+        <item name="android:seekBarStyle">@style/SeekBar.Light</item>
         <item name="textColorToolBarLabel">?android:attr/textColorPrimary</item>
         <item name="textColorOptionLabel">@color/label_light</item>
         <item name="textColorOptionValue">@color/value_light</item>
+        <item name="colorControlActivated">@color/common_tint_light</item>
     </style>
 
     <style name="Theme.Dark" parent="@style/Theme.Black">
         <item name="android:windowBackground">@drawable/background_tiled_dark</item>
         <item name="android:colorBackground">#ff302030</item>
-        <item name="android:switchStyle">@style/Switch.Dark</item>
         <item name="android:listViewStyle">@style/ListView.Dark</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Dark</item>
+        <item name="android:checkboxStyle">@style/CheckBox.Dark</item>
+        <item name="android:radioButtonStyle">@style/RadioButton.Dark</item>
+        <item name="android:switchStyle">@style/Switch.Dark</item>
+        <item name="android:seekBarStyle">@style/SeekBar.Dark</item>
         <item name="textColorOptionLabel">@color/label_dark</item>
         <item name="textColorOptionValue">@color/value_dark</item>
+        <item name="colorControlActivated">@color/common_tint_dark</item>
     </style>
 
     <style name="Theme.White" parent="@android:style/Theme.Material.Light">
@@ -58,9 +66,10 @@
         <!-- item name="android:textColor">@android:color/black</item-->
         <item name="android:listViewStyle">@style/ListView.White</item>
         <item name="android:listViewWhiteStyle">@style/ListView.White</item>
-        <item name="android:checkboxStyle">@android:style/Widget.Material.Light.CompoundButton.CheckBox</item>
+        <item name="android:checkboxStyle">@style/CheckBox.White</item>
+        <item name="android:radioButtonStyle">@style/RadioButton.White</item>
         <item name="android:switchStyle">@style/Switch.White</item>
-        <item name="android:radioButtonStyle">@android:style/Widget.Material.Light.CompoundButton.RadioButton</item>
+        <item name="android:seekBarStyle">@style/SeekBar.White</item>
         <item name="android:buttonStyle">@android:style/Widget.Material.Light.Button</item>
         <item name="android:buttonStyleSmall">@android:style/Widget.Material.Light.Button.Small</item>
         <item name="android:imageButtonStyle">@android:style/Widget.Material.Light.ImageButton</item>
@@ -77,6 +86,7 @@
         <item name="textColorOptionValue">?android:attr/textColorSecondary</item>
         <item name="tts_toolbar_background">#D0808080</item>
         <item name="tabIndicatorBackground">@drawable/tab_indicator_material</item>
+        <item name="colorControlActivated">@color/common_tint_white</item>
 
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
@@ -173,15 +183,17 @@
         <!-- item name="android:textColor">@android:color/white</item-->
         <item name="android:listViewStyle">@style/ListView.Black</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
-        <item name="android:checkboxStyle">@android:style/Widget.Material.CompoundButton.CheckBox</item>
+        <item name="android:checkboxStyle">@style/CheckBox.Black</item>
+        <item name="android:radioButtonStyle">@style/RadioButton.Black</item>
         <item name="android:switchStyle">@style/Switch.Black</item>
-        <item name="android:radioButtonStyle">@android:style/Widget.Material.CompoundButton.RadioButton</item>
+        <item name="android:seekBarStyle">@style/SeekBar.Black</item>
         <item name="android:buttonStyle">@android:style/Widget.Material.Button</item>
         <item name="android:buttonStyleSmall">@android:style/Widget.Material.Button.Small</item>
         <item name="android:imageButtonStyle">@android:style/Widget.Material.ImageButton</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.Small</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.Medium</item>
         <item name="android:textAppearanceLarge">@style/TextAppearance.MediumLarge</item>
+        <item name="colorControlActivated">@color/common_tint_black</item>
 
         <!-- toolbar button background -->
         <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
@@ -289,8 +301,9 @@
         <item name="android:listViewStyle">@style/ListView.White</item>
         <item name="android:listViewWhiteStyle">@style/ListView.White</item>
         <item name="android:checkboxStyle">@style/CheckBox.HC.Light</item>
-        <item name="android:switchStyle">@style/Switch.HC.Light</item>
         <item name="android:radioButtonStyle">@style/RadioButton.HC.Light</item>
+        <item name="android:switchStyle">@style/Switch.HC.Light</item>
+        <item name="android:seekBarStyle">@style/SeekBar.HC.Light</item>
         <item name="android:buttonStyle">@style/Button.HC.Light</item>
         <item name="android:buttonStyleSmall">@style/Button.HC.Light.Small</item>
         <item name="android:imageButtonStyle">@style/ImageButton.HC.Light</item>
@@ -307,6 +320,7 @@
         <item name="textColorOptionValue">@color/label_hc_light</item>
         <item name="tts_toolbar_background">#FFFFFFFF</item>
         <item name="tabIndicatorBackground">@drawable/tab_indicator_hc_light</item>
+        <item name="colorControlActivated">@color/common_tint_hc_light</item>
 
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
@@ -404,8 +418,9 @@
         <item name="android:listViewStyle">@style/ListView.Black</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
         <item name="android:checkboxStyle">@style/CheckBox.HC.Dark</item>
-        <item name="android:switchStyle">@style/Switch.HC.Dark</item>
         <item name="android:radioButtonStyle">@style/RadioButton.HC.Dark</item>
+        <item name="android:switchStyle">@style/Switch.HC.Dark</item>
+        <item name="android:seekBarStyle">@style/SeekBar.HC.Dark</item>
         <item name="android:buttonStyle">@style/Button.HC.Dark</item>
         <item name="android:buttonStyleSmall">@style/Button.HC.Dark.Small</item>
         <item name="android:imageButtonStyle">@style/ImageButton.HC.Dark</item>
@@ -422,6 +437,7 @@
         <item name="textColorOptionValue">@color/label_hc_dark</item>
         <item name="tts_toolbar_background">#FFFFFFFF</item>
         <item name="tabIndicatorBackground">@drawable/tab_indicator_hc_dark</item>
+        <item name="colorControlActivated">@color/common_tint_hc_dark</item>
 
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
