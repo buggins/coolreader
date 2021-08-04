@@ -7246,7 +7246,7 @@ static cover_palette_t series_palette[8] = {
     {0x00C0D0C0, 0x20E8E8D8, 0xC0FFC040, 0xD0F0E0E0, 0x00400040, 0x00000080, 0x00402040, 0x80FFFFFF},
 };
 
-void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace, lString32 title, lString32 authors, lString32 seriesName, int seriesNumber) {
+void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, bool respectAspectRatio, lString8 fontFace, lString32 title, lString32 authors, lString32 seriesName, int seriesNumber) {
     CR_UNUSED(seriesNumber);
     bool isGray = buf.GetBitsPerPixel() <= 8;
     cover_palette_t * palette = NULL;
@@ -7261,8 +7261,24 @@ void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace,
     int dx = buf.GetWidth();
     int dy = buf.GetHeight();
     if (!image.isNull() && image->GetWidth() > 0 && image->GetHeight() > 0) {
+        int xoff = 0;
+        int yoff = 0;
+        if (respectAspectRatio) {
+            // recalc dx, dy for respectAspectRatio
+            int dst_aspect = 100*dx/dy;
+            int src_aspect = 100*image->GetWidth()/image->GetHeight();
+            if (dst_aspect > src_aspect) {
+                int new_dx = src_aspect*dy/100;
+                xoff = (dx - new_dx + 1)/2;
+                dx = new_dx;
+            } else if (dst_aspect < src_aspect) {
+                int new_dy = 100*dx/src_aspect;
+                yoff = (dy - new_dy + 1)/2;
+                dy = new_dy;
+            }
+        }
         CRLog::trace("drawing image cover page %d x %d", dx, dy);
-        buf.Draw(image, 0, 0, dx, dy);
+        buf.Draw(image, xoff, yoff, dx, dy);
 		return;
 	}
 

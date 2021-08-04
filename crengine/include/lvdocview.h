@@ -977,6 +977,6 @@ public:
 
 
 /// draw book cover, either from image, or generated from title/authors
-void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace, lString32 title, lString32 authors, lString32 seriesName, int seriesNumber);
+void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, bool respectAspectRatio, lString8 fontFace, lString32 title, lString32 authors, lString32 seriesName, int seriesNumber);
 
 #endif
