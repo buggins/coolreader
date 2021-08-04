@@ -282,7 +282,7 @@ public class BookInfoEditDialog extends BaseDialog {
         image.setMinimumWidth(w);
         image.setMaxWidth(w);
         Bitmap bmp = Bitmap.createBitmap(w, h, Config.RGB_565);
-        Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), file, bmp, (file1, bitmap) -> {
+        Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), file, bmp, false, (file1, bitmap) -> {
 			BitmapDrawable drawable = new BitmapDrawable(bitmap);
 			image.setImageDrawable(drawable);
 		});

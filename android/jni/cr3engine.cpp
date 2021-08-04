@@ -510,7 +510,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_updateFileCRC32In
 }
 
 
-void drawBookCoverInternal(JNIEnv * _env, jclass _engine, jobject bitmap, jbyteArray _data, jstring _fontFace, jstring _title, jstring _authors, jstring _seriesName, jint seriesNumber, jint bpp)
+void drawBookCoverInternal(JNIEnv * _env, jclass _engine, jobject bitmap, jbyteArray _data, jboolean respectAspectRatio, jstring _fontFace, jstring _title, jstring _authors, jstring _seriesName, jint seriesNumber, jint bpp)
 {
 	CRJNIEnv env(_env);
 	CRLog::debug("drawBookCoverInternal called");
@@ -552,11 +552,11 @@ void drawBookCoverInternal(JNIEnv * _env, jclass _engine, jobject bitmap, jbyteA
 		if (bpp >= 16) {
 			// native color resolution
 			CRLog::debug("drawBookCoverInternal : calling LVDrawBookCover");
-			LVDrawBookCover(*drawbuf2, image, fontFace, title, authors, seriesName, seriesNumber);
+			LVDrawBookCover(*drawbuf2, image, respectAspectRatio, fontFace, title, authors, seriesName, seriesNumber);
 			image.Clear();
 		} else {
 			LVGrayDrawBuf grayBuf(drawbuf2->GetWidth(), drawbuf2->GetHeight(), bpp);
-			LVDrawBookCover(grayBuf, image, fontFace, title, authors, seriesName, seriesNumber);
+			LVDrawBookCover(grayBuf, image, respectAspectRatio, fontFace, title, authors, seriesName, seriesNumber);
 			image.Clear();
 			grayBuf.DrawTo(drawbuf2, 0, 0, 0, NULL);
 		}
@@ -578,12 +578,12 @@ void drawBookCoverInternal(JNIEnv * _env, jclass _engine, jobject bitmap, jbyteA
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    drawBookCoverInternal
- * Signature: (Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
+ * Signature: (Landroid/graphics/Bitmap;[BZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
-  (JNIEnv * _env, jclass _engine, jobject bitmap, jbyteArray _data, jstring _fontFace, jstring _title, jstring _authors, jstring _seriesName, jint seriesNumber, jint bpp)
+  (JNIEnv * _env, jclass _engine, jobject bitmap, jbyteArray _data, jboolean respectAspectRatio, jstring _fontFace, jstring _title, jstring _authors, jstring _seriesName, jint seriesNumber, jint bpp)
 {
-	COFFEE_TRY_JNI(_env, drawBookCoverInternal(_env, _engine, bitmap, _data, _fontFace, _title, _authors, _seriesName, seriesNumber, bpp));
+	COFFEE_TRY_JNI(_env, drawBookCoverInternal(_env, _engine, bitmap, _data, respectAspectRatio, _fontFace, _title, _authors, _seriesName, seriesNumber, bpp));
 }
 
 jbyteArray scanBookCoverInternal
@@ -1182,7 +1182,7 @@ static JNINativeMethod sEngineMethods[] = {
   {"suspendLongOperationInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_suspendLongOperationInternal},
   {"setKeyBacklightInternal", "(I)Z", (void*)Java_org_coolreader_crengine_Engine_setKeyBacklightInternal},
   {"scanBookCoverInternal", "(Ljava/lang/String;)[B", (void*)Java_org_coolreader_crengine_Engine_scanBookCoverInternal},
-  {"drawBookCoverInternal", "(Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V", (void*)Java_org_coolreader_crengine_Engine_drawBookCoverInternal},
+  {"drawBookCoverInternal", "(Landroid/graphics/Bitmap;[BZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V", (void*)Java_org_coolreader_crengine_Engine_drawBookCoverInternal},
   {"checkFontLanguageCompatibilityInternal", "(Ljava/lang/String;Ljava/lang/String;)I", (void*)Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal},
   {"getHumanReadableLocaleNameInternal", "(Ljava/lang/String;)Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getHumanReadableLocaleNameInternal},
   {"listFilesInternal", "(Ljava/io/File;)[Ljava/io/File;", (void*)Java_org_coolreader_crengine_Engine_listFilesInternal},
