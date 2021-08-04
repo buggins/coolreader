@@ -166,7 +166,11 @@
                 android:name=".tts.TTSControlService"
                 android:enabled="true"
                 android:exported="false"
-                android:foregroundServiceType="mediaPlayback" />
+                android:foregroundServiceType="mediaPlayback" >
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </service>
 
         <!-- Stop TTS on incoming call -->
         <receiver android:name="org.coolreader.PhoneStateReceiver">

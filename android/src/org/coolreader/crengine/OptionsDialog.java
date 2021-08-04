@@ -33,25 +33,24 @@ import org.coolreader.Dictionaries;
 import org.coolreader.Dictionaries.DictInfo;
 import org.coolreader.R;
 import org.coolreader.plugins.OnlineStorePluginManager;
+import org.coolreader.tts.OnTTSCreatedListener;
+import org.coolreader.tts.TTSControlBinder;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
 public class OptionsDialog extends BaseDialog implements TabContentFactory, OptionOwner, Settings {
 
 	ReaderView mReaderView;
 	BaseActivity mActivity;
 	String[] mFontFaces;
-	TextToSpeech mTTS;
-	boolean mTemporaryTTS;
+
+	TTSControlBinder mTTSBinder;
+
 	/*
 	int[] mFontSizes = new int[] {
 		9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
@@ -391,6 +390,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionBase mCloudSyncAskConfirmationsOption;
 	OptionBase mGoogleDriveAutoSavePeriodOption;
 	OptionBase mCloudSyncDataKeepAliveOptions;
+	ListOption mTTSEngineOption;
 	OptionBase mTTSUseDocLangOption;
 	ListOption mTTSLanguageOption;
 	ListOption mTTSVoiceOption;
@@ -1806,15 +1806,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		BROWSER,
 		TTS,
 	}
-	public OptionsDialog(BaseActivity activity, Mode mode, ReaderView readerView, String[] fontFaces, TextToSpeech tts)
+	public OptionsDialog(BaseActivity activity, Mode mode, ReaderView readerView, String[] fontFaces, TTSControlBinder ttsbinder)
 	{
 		super(activity, null, false, false);
 		
 		mActivity = activity;
 		mReaderView = readerView;
 		mFontFaces = fontFaces;
-		mTTS = tts;
-		mTemporaryTTS = false;
+		mTTSBinder = ttsbinder;
 		mProperties = new Properties(mActivity.settings()); //  readerView.getSettings();
 		mOldProperties = new Properties(mProperties);
 		if (mode == Mode.READER) {
@@ -2394,67 +2393,48 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	private void fillTTSLanguages(ListOption listOption) {
 		listOption.clear();
-		if (null != mTTS) {
-			Set<Voice> voices = mTTS.getVoices();
-			HashMap<Locale, String> languagesMap = new HashMap<>();
-			for (Voice voice : voices) {
-				Locale locale = voice.getLocale();
-				String language = locale.getDisplayLanguage();
-				String country = locale.getDisplayCountry();
-				if (country.length() > 0)
-					language += " (" + country + ")";
-				languagesMap.put(locale, language);
-			}
-			ArrayList<Pair> list = new ArrayList<>();
-			for (Map.Entry<Locale, String> entry : languagesMap.entrySet()) {
-				list.add(new Pair(entry.getKey().toString(), entry.getValue()));
-			}
-			Collections.sort(list, (o1, o2) -> o1.label.compareTo(o2.label));
-			for (Pair pair : list) {
-				listOption.add(pair.value, pair.label);
-			}
-			Voice defaultVoice = mTTS.getVoice();
-			if (null != defaultVoice) {
-				Locale locale = defaultVoice.getLocale();
-				listOption.setDefaultValue(locale.toString());
-			}
-			listOption.noIcon();
+		if (null != mTTSBinder) {
+			mTTSBinder.retrieveAvailableLocales(list -> {
+				BackgroundThread.instance().executeGUI(() -> {
+					for (Locale locale : list) {
+						String language = locale.getDisplayLanguage();
+						String country = locale.getDisplayCountry();
+						if (country.length() > 0)
+							language += " (" + country + ")";
+						listOption.add(locale.toString(), language);
+					}
+					listOption.noIcon();
+					listOption.refreshList();
+				});
+			});
 		}
 	}
 
 	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	private void fillTTSVoices(ListOption listOption, String language) {
 		listOption.clear();
-		if (null != mTTS) {
-			Set<Voice> voices = mTTS.getVoices();
-			ArrayList<Pair> list = new ArrayList<>();
-			for (Voice voice : voices) {
-				Locale locale = voice.getLocale();
-				String langCode = locale.toString();
-				String quality;
-				int qualityInt = voice.getQuality();
-				if (qualityInt >= Voice.QUALITY_VERY_HIGH)
-					quality = getString(R.string.options_tts_voice_quality_very_high);
-				else if (qualityInt >= Voice.QUALITY_HIGH)
-					quality = getString(R.string.options_tts_voice_quality_high);
-				else if (qualityInt >= Voice.QUALITY_NORMAL)
-					quality = getString(R.string.options_tts_voice_quality_normal);
-				else if (qualityInt >= Voice.QUALITY_LOW)
-					quality = getString(R.string.options_tts_voice_quality_low);
-				else
-					quality = getString(R.string.options_tts_voice_quality_very_low);
-				if (langCode.toLowerCase().equals(language.toLowerCase()))
-					list.add(new Pair(voice.getName(), voice.getName() + " (" + quality + ")"));
-			}
-			Collections.sort(list, (o1, o2) -> o1.label.compareTo(o2.label));
-			for (Pair pair : list) {
-				listOption.add(pair.value, pair.label);
-			}
-			Voice defaultVoice = mTTS.getVoice();
-			if (null != defaultVoice) {
-				listOption.setDefaultValue(defaultVoice.getName());
-			}
-			listOption.noIcon();
+		if (null != mTTSBinder) {
+			mTTSBinder.retrieveAvailableVoices(new Locale(language), list -> {
+				BackgroundThread.instance().executeGUI(() -> {
+					for (Voice voice : list) {
+						String quality;
+						int qualityInt = voice.getQuality();
+						if (qualityInt >= Voice.QUALITY_VERY_HIGH)
+							quality = getString(R.string.options_tts_voice_quality_very_high);
+						else if (qualityInt >= Voice.QUALITY_HIGH)
+							quality = getString(R.string.options_tts_voice_quality_high);
+						else if (qualityInt >= Voice.QUALITY_NORMAL)
+							quality = getString(R.string.options_tts_voice_quality_normal);
+						else if (qualityInt >= Voice.QUALITY_LOW)
+							quality = getString(R.string.options_tts_voice_quality_low);
+						else
+							quality = getString(R.string.options_tts_voice_quality_very_low);
+						listOption.add(voice.getName(), voice.getName() + " (" + quality + ")");
+					}
+					listOption.noIcon();
+					listOption.refreshList();
+				});
+			});
 		}
 	}
 
@@ -2465,32 +2445,43 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 		mOptionsTTS = new OptionsListView(getContext());
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			ListOption engineOption = new ListOption(this, getString(R.string.options_tts_engine), PROP_APP_TTS_ENGINE);
-			List<TextToSpeech.EngineInfo> engines = mTTS.getEngines();
-			String currentEngine = mTTS.getDefaultEngine();
-			for (TextToSpeech.EngineInfo info : engines) {
-				engineOption.add(info.name, info.label);
-			}
-			engineOption.setDefaultValue(currentEngine);
-			mOptionsTTS.add(engineOption.noIcon());
-			// onchange handler
-			engineOption.setOnChangeHandler(() -> {
-				if (mTemporaryTTS && null != mTTS) {
-					mTTS.shutdown();
-				}
-				// update languages & voices list
-				String tts_package = mProperties.getProperty(PROP_APP_TTS_ENGINE, "");
-				mTTS = new TextToSpeech(mActivity, status -> {
-					if (TextToSpeech.SUCCESS == status) {
-						if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-							fillTTSLanguages(mTTSLanguageOption);
-							mTTSVoiceOption.clear();
-						}
-					} else {
-						mTTSLanguageOption.clear();
+			mTTSEngineOption = new ListOption(this, getString(R.string.options_tts_engine), PROP_APP_TTS_ENGINE);
+			mTTSBinder.retrieveAvailableEngines(list -> {
+				BackgroundThread.instance().executeGUI(() -> {
+					for (TextToSpeech.EngineInfo info : list) {
+						mTTSEngineOption.add(info.name, info.label);
 					}
-				}, tts_package);
-				mTemporaryTTS = true;
+					String tts_package = mProperties.getProperty(PROP_APP_TTS_ENGINE, "");
+					mTTSEngineOption.setDefaultValue(tts_package);
+					mTTSEngineOption.refreshList();
+				});
+			});
+			mOptionsTTS.add(mTTSEngineOption.noIcon());
+			mTTSEngineOption.setOnChangeHandler(() -> {
+				String tts_package = mProperties.getProperty(PROP_APP_TTS_ENGINE, "");
+				mTTSBinder.initTTS(tts_package, new OnTTSCreatedListener() {
+					@Override
+					public void onCreated() {
+						if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+							BackgroundThread.instance().executeGUI(() -> {
+								if (null != mTTSLanguageOption)
+									fillTTSLanguages(mTTSLanguageOption);
+								if (null != mTTSVoiceOption)
+									mTTSVoiceOption.clear();
+							});
+						}
+					}
+					@Override
+					public void onFailed() {
+						if (null != mTTSLanguageOption)
+							mTTSLanguageOption.clear();
+					}
+					@Override
+					public void onTimedOut() {
+						if (null != mTTSLanguageOption)
+							mTTSLanguageOption.clear();
+					}
+				});
 			});
 		}
 		mTTSUseDocLangOption = new BoolOption(this, getString(R.string.options_tts_use_doc_lang), PROP_APP_TTS_USE_DOC_LANG).setDefaultValue("1").noIcon();
@@ -2984,10 +2975,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		//L.d("OptionsDialog.onStop() : calling gc()");
 		//System.gc();
 		super.onStop();
-		if (mTemporaryTTS && null != mTTS) {
-			mTTS.shutdown();
-			mTTS = null;
-		}
 	}
 
 	@Override
