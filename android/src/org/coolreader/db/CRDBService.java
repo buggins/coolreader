@@ -1,6 +1,5 @@
 package org.coolreader.db;
 
-import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Environment;
@@ -23,18 +22,21 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class CRDBService extends Service {
+public class CRDBService extends BaseService {
 	public static final Logger log = L.create("db");
 	public static final Logger vlog = L.create("db", Log.ASSERT);
 
     private MainDB mainDB = new MainDB();
     private CoverDB coverDB = new CoverDB();
-	
+
+	public CRDBService() {
+		super("crdb");
+	}
+
     @Override
     public void onCreate() {
     	log.i("onCreate()");
-    	mThread = new ServiceThread("crdb");
-    	mThread.start();
+    	super.onCreate();
     	execTask(new OpenDatabaseTask());
     }
 
@@ -54,7 +56,7 @@ public class CRDBService extends Service {
     public void onDestroy() {
     	log.i("onDestroy()");
     	execTask(new CloseDatabaseTask());
-    	mThread.stop(5000);
+    	super.onDestroy();
     }
 
     private File getDatabaseDir() {
@@ -590,72 +592,6 @@ public class CRDBService extends Service {
         flush();
    	}
 
-	private abstract class Task implements Runnable {
-		private final String name;
-		public Task(String name) {
-			this.name = name;
-		}
-
-		@Override
-		public String toString() {
-			return "Task[" + name + "]";
-		}
-
-		@Override
-		public void run() {
-			long ts = Utils.timeStamp();
-			vlog.v(toString() + " started");
-			try {
-				work();
-			} catch (Exception e) {
-				log.e("Exception while running DB task in background", e);
-			}
-			vlog.v(toString() + " finished in " + Utils.timeInterval(ts) + " ms");
-		}
-		
-		public abstract void work();
-	}
-	
-	/**
-	 * Execute runnable in CDRDBService background thread.
-	 * Exceptions will be ignored, just dumped into log.
-	 * @param task is Runnable to execute
-	 */
-	private void execTask(final Task task) {
-		vlog.v("Posting task " + task);
-		mThread.post(task);
-	}
-	
-	/**
-	 * Execute runnable in CDRDBService background thread, delayed.
-	 * Exceptions will be ignored, just dumped into log.
-	 * @param task is Runnable to execute
-	 */
-	private void execTask(final Task task, long delay) {
-		vlog.v("Posting task " + task + " with delay " + delay);
-		mThread.postDelayed(task, delay);
-	}
-	
-	/**
-	 * Send task to handler, if specified, otherwise run immediately.
-	 * Exceptions will be ignored, just dumped into log.
-	 * @param handler is handler to send task to, null to run immediately
-	 * @param task is Runnable to execute
-	 */
-	private void sendTask(Handler handler, Runnable task) {
-		try {
-			if (handler != null) {
-				vlog.v("Senging task to " + handler.toString());
-				handler.post(task);
-			} else {
-				vlog.v("No Handler provided: executing task in current thread");
-				task.run();
-			}
-		} catch (Exception e) {
-			log.e("Exception in DB callback", e);
-		}
-	}
-
 	/**
      * Class for clients to access.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with
@@ -826,7 +762,6 @@ public class CRDBService extends Service {
         return true;
     }
 
-    private ServiceThread mThread;
     private final IBinder mBinder = new LocalBinder();
     
 }
