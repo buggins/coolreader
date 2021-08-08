@@ -178,6 +178,8 @@ public class CoolReader extends BaseActivity {
 		};
 		registerReceiver(intentReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
+		// For TTS volume control
+		//  See TTSControlService
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
 		if (initialBatteryState >= 0 && mReaderView != null)
@@ -1702,33 +1704,6 @@ public class CoolReader extends BaseActivity {
 				}
 			});
 		});
-	}
-
-	// ============================================================
-	private AudioManager am;
-	private int maxVolume;
-
-	public AudioManager getAudioManager() {
-		if (am == null) {
-			am = (AudioManager) getSystemService(AUDIO_SERVICE);
-			maxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-		}
-		return am;
-	}
-
-	public int getVolume() {
-		AudioManager am = getAudioManager();
-		if (am != null) {
-			return am.getStreamVolume(AudioManager.STREAM_MUSIC) * 100 / maxVolume;
-		}
-		return 0;
-	}
-
-	public void setVolume(int volume) {
-		AudioManager am = getAudioManager();
-		if (am != null) {
-			am.setStreamVolume(AudioManager.STREAM_MUSIC, volume * maxVolume / 100, 0);
-		}
 	}
 
 	public void showOptionsDialog(final OptionsDialog.Mode mode) {

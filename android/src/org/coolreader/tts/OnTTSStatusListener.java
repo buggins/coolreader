@@ -23,6 +23,13 @@ public interface OnTTSStatusListener {
 	void onStateChanged(TTSControlService.State state);
 
 	/**
+	 * On volume changed.
+	 * @param currentVolume current volume
+	 * @param maxVolume maximum volume
+	 */
+	void onVolumeChanged(int currentVolume, int maxVolume);
+
+	/**
 	 * On audio focus lost.
 	 */
 	void onAudioFocusLost();

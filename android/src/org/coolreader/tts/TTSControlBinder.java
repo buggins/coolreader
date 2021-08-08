@@ -87,6 +87,14 @@ public class TTSControlBinder extends Binder {
 		mService.setSpeechRate(rate, callback, new Handler());
 	}
 
+	public void retrieveVolume(TTSControlService.VolumeResultCallback callback) {
+		mService.retrieveVolume(callback, new Handler());
+	}
+
+	public void setVolume(int volume) {
+		mService.setVolume(volume);
+	}
+
 	public OnTTSStatusListener getStatusListener() {
 		return mService.getStatusListener();
 	}

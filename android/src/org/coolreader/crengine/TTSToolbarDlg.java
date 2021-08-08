@@ -316,6 +316,14 @@ public class TTSToolbarDlg implements Settings {
 				}
 
 				@Override
+				public void onVolumeChanged(int currentVolume, int maxVolume) {
+					BackgroundThread.instance().postGUI(() -> {
+						mSbVolume.setMax(maxVolume);
+						mSbVolume.setProgress(currentVolume);
+					});
+				}
+
+				@Override
 				public void onAudioFocusLost() {
 				}
 
@@ -380,7 +388,6 @@ public class TTSToolbarDlg implements Settings {
 		mReaderView = readerView;
 		mTTSControl = ttsacc;
 		View anchor = readerView.getSurface();
-		setupSpeechStatusHandler();
 
 		//Context context = mCoolReader.getApplicationContext();
 		Context context = anchor.getContext();
@@ -409,9 +416,7 @@ public class TTSToolbarDlg implements Settings {
 		stopButton.setOnClickListener(v -> stopAndClose());
 
 		// setup speed && volume seek bars
-		int volume = mCoolReader.getVolume();
 		mVolumeTextView = panel.findViewById(R.id.tts_lbl_volume);
-		mVolumeTextView.setText(String.format(Locale.getDefault(), "%s (%d%%)", context.getString(R.string.tts_volume), volume));
 		mSpeedTextView = panel.findViewById(R.id.tts_lbl_speed);
 		mSpeedTextView.setText(String.format(Locale.getDefault(), "%s (x%.2f)", context.getString(R.string.tts_rate), speechRateFromPercent(50)));
 
@@ -421,7 +426,7 @@ public class TTSToolbarDlg implements Settings {
 		mSbSpeed.setMax(100);
 		mSbSpeed.setProgress(50);
 		mSbVolume.setMax(100);
-		mSbVolume.setProgress(volume);
+		mSbVolume.setProgress(0);
 		mSbSpeed.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			int mProgress;
 			@Override
@@ -438,22 +443,6 @@ public class TTSToolbarDlg implements Settings {
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
 				mCoolReader.setSetting(PROP_APP_TTS_SPEED, String.valueOf(mProgress), true);
-			}
-		});
-		mSbVolume.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
-			@Override
-			public void onProgressChanged(SeekBar seekBar, int progress,
-										  boolean fromUser) {
-				mCoolReader.setVolume(progress);
-				mVolumeTextView.setText(String.format(Locale.getDefault(), "%s (%d%%)", context.getString(R.string.tts_volume), progress));
-			}
-
-			@Override
-			public void onStartTrackingTouch(SeekBar seekBar) {
-			}
-
-			@Override
-			public void onStopTrackingTouch(SeekBar seekBar) {
 			}
 		});
 		ImageButton btnDecVolume = panel.findViewById(R.id.btn_dec_volume);
@@ -497,16 +486,16 @@ public class TTSToolbarDlg implements Settings {
 			} else if ( event.getAction()==KeyEvent.ACTION_DOWN ) {
 				switch ( keyCode ) {
 				case KeyEvent.KEYCODE_VOLUME_DOWN: {
-					int p = mSbVolume.getProgress() - 5;
+					int p = mSbVolume.getProgress() - 1;
 					if ( p<0 )
 						p = 0;
 					mSbVolume.setProgress(p);
 					return true;
 				}
 				case KeyEvent.KEYCODE_VOLUME_UP:
-					int p = mSbVolume.getProgress() + 5;
-					if ( p>100 )
-						p = 100;
+					int p = mSbVolume.getProgress() + 1;
+					if ( p > mSbVolume.getMax() )
+						p = mSbVolume.getMax();
 					mSbVolume.setProgress(p);
 					return true;
 				}
@@ -537,19 +526,6 @@ public class TTSToolbarDlg implements Settings {
 
 		setReaderMode();
 
-		// Fetch book's metadata
-		BookInfo bookInfo = mReaderView.getBookInfo();
-		if (null != bookInfo) {
-			FileInfo fileInfo = bookInfo.getFileInfo();
-			if (null != fileInfo) {
-				mBookAuthors = fileInfo.authors;
-				mBookTitle = fileInfo.title;
-				mBookLanguage = fileInfo.language;
-				mBookCover = Bitmap.createBitmap(MEDIA_COVER_WIDTH, MEDIA_COVER_HEIGHT, Bitmap.Config.RGB_565);
-				Services.getCoverpageManager().drawCoverpageFor(mCoolReader.getDB(), fileInfo, mBookCover, true,
-						(file, bitmap) -> mTTSControl.bind(ttsbinder -> ttsbinder.setMediaItemInfo(mBookAuthors, mBookTitle, bitmap)));
-			}
-		}
 		if (null == mBookTitle)
 			mBookTitle = "";
 		if (null == mBookAuthors)
@@ -572,5 +548,45 @@ public class TTSToolbarDlg implements Settings {
 			coolReader.startService(intent);
 
 		panel.requestFocus();
+
+		// All tasks bellow after service start
+		// Fetch book's metadata
+		BookInfo bookInfo = mReaderView.getBookInfo();
+		if (null != bookInfo) {
+			FileInfo fileInfo = bookInfo.getFileInfo();
+			if (null != fileInfo) {
+				mBookAuthors = fileInfo.authors;
+				mBookTitle = fileInfo.title;
+				mBookLanguage = fileInfo.language;
+				mBookCover = Bitmap.createBitmap(MEDIA_COVER_WIDTH, MEDIA_COVER_HEIGHT, Bitmap.Config.RGB_565);
+				Services.getCoverpageManager().drawCoverpageFor(mCoolReader.getDB(), fileInfo, mBookCover, true,
+						(file, bitmap) -> mTTSControl.bind(ttsbinder -> ttsbinder.setMediaItemInfo(mBookAuthors, mBookTitle, bitmap)));
+			}
+		}
+		// Show volume
+		mTTSControl.bind(ttsbinder -> ttsbinder.retrieveVolume((current, max) -> {
+			mSbVolume.setMax(max);
+			mSbVolume.setProgress(current);
+		}));
+		mSbVolume.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+										  boolean fromUser) {
+				if (mSbVolume.getMax() < 1)
+					return;
+				mTTSControl.bind(ttsbinder -> ttsbinder.setVolume(progress));
+				mVolumeTextView.setText(String.format(Locale.getDefault(), "%s (%d%%)", context.getString(R.string.tts_volume), 100*progress/seekBar.getMax()));
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+			}
+		});
+		// And finally, setup status change handler
+		setupSpeechStatusHandler();
 	}
 }

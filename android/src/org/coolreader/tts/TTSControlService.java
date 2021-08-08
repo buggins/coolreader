@@ -28,6 +28,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ServiceInfo;
+import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Icon;
@@ -124,6 +125,7 @@ public class TTSControlService extends BaseService {
 	private MediaSession.Callback mMediaSessionCallback;
 	private PlaybackState.Builder mPlaybackStateBuilder;
 	private MediaPlayer mMediaPlayer;
+	private VolumeSettingsContentObserver mVolumeSettingsContentObserver;
 	private final Object mLocker = new Object();
 
 	final private BroadcastReceiver mTTSControlActionReceiver = new BroadcastReceiver() {
@@ -244,6 +246,36 @@ public class TTSControlService extends BaseService {
 				break;
 		}
 	};
+
+	/**
+	 * See https://stackoverflow.com/a/17398781 for notes
+	 */
+	public class VolumeSettingsContentObserver extends ContentObserver {
+		int mPreviousVolume;
+		int mMaxVolume;
+
+		public VolumeSettingsContentObserver(Handler handler) {
+			super(handler);
+			mPreviousVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+			mMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+		}
+
+		@Override
+		public boolean deliverSelfNotifications() {
+			return super.deliverSelfNotifications();
+		}
+
+		@Override
+		public void onChange(boolean selfChange) {
+			super.onChange(selfChange);
+			mMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+			int currentVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+			if (currentVolume != mPreviousVolume) {
+				if (null != mStatusListener)
+					mStatusListener.onVolumeChanged(currentVolume, mMaxVolume);
+			}
+		}
+	}
 
 	public TTSControlService() {
 		super("tts");
@@ -446,6 +478,8 @@ public class TTSControlService extends BaseService {
 		filter.addAction(TTS_CONTROL_ACTION_PREV);
 		filter.addAction(TTS_CONTROL_ACTION_STOP);
 		registerReceiver(mTTSControlActionReceiver, filter);
+		mVolumeSettingsContentObserver = new VolumeSettingsContentObserver(new Handler());
+		getApplicationContext().getContentResolver().registerContentObserver(android.provider.Settings.System.CONTENT_URI, true, mVolumeSettingsContentObserver);
 	}
 
 	@Override
@@ -502,6 +536,7 @@ public class TTSControlService extends BaseService {
 	@Override
 	public void onDestroy() {
 		log.d("onDestroy");
+		getApplicationContext().getContentResolver().unregisterContentObserver(mVolumeSettingsContentObserver);
 		synchronized (mLocker) {
 			if (null != mMediaPlayer) {
 				mMediaPlayer.stop();
@@ -551,6 +586,10 @@ public class TTSControlService extends BaseService {
 
 	public interface BooleanResultCallback {
 		void onResult(boolean result);
+	}
+
+	public interface VolumeResultCallback {
+		void onResult(int current, int max);
 	}
 
 	public interface FloatResultCallback {
@@ -991,6 +1030,18 @@ public class TTSControlService extends BaseService {
 		return false;
 	}
 
+	private int getMaxVolume_impl() {
+		return mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+	}
+
+	private int getVolume_impl() {
+		return mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+	}
+
+	private void setVolume_impl(int volume) {
+		mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
+	}
+
 	// ======================================
 	// this service access functions (wrappers)
 
@@ -1198,6 +1249,27 @@ public class TTSControlService extends BaseService {
 				boolean result = setSpeechRate_impl(rate);
 				if (null != callback)
 					sendTask(handler, () -> callback.onResult(result));
+			}
+		});
+	}
+
+	public void retrieveVolume(VolumeResultCallback callback, Handler handler) {
+		execTask(new Task("retrieveVolume") {
+			@Override
+			public void work() {
+				int maxVolume = getMaxVolume_impl();
+				int result = getVolume_impl();
+				if (null != callback)
+					sendTask(handler, () -> callback.onResult(result, maxVolume));
+			}
+		});
+	}
+
+	public void setVolume(int volume) {
+		execTask(new Task("setVolume") {
+			@Override
+			public void work() {
+				setVolume_impl(volume);
 			}
 		});
 	}
