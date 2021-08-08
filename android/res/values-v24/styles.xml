@@ -44,6 +44,9 @@
         <item name="textColorOptionLabel">@color/label_light</item>
         <item name="textColorOptionValue">@color/value_light</item>
         <item name="colorControlActivated">@color/common_tint_light</item>
+
+        <item name="cr3_button_inc_drawable">@drawable/cr3_button_inc_light</item>
+        <item name="cr3_button_dec_drawable">@drawable/cr3_button_dec_light</item>
     </style>
 
     <style name="Theme.Dark" parent="@style/Theme.Black">
@@ -58,6 +61,9 @@
         <item name="textColorOptionLabel">@color/label_dark</item>
         <item name="textColorOptionValue">@color/value_dark</item>
         <item name="colorControlActivated">@color/common_tint_dark</item>
+
+        <item name="cr3_button_inc_drawable">@drawable/cr3_button_inc_dark</item>
+        <item name="cr3_button_dec_drawable">@drawable/cr3_button_dec_dark</item>
     </style>
 
     <style name="Theme.White" parent="@android:style/Theme.Material.Light">
@@ -155,8 +161,8 @@
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info</item>
         <item name="cr3_button_log_drawable">@drawable/cr3_button_log</item>
         <item name="cr3_button_light_drawable">@drawable/cr3_button_light</item>
-        <item name="cr3_button_inc_drawable">@drawable/cr3_button_inc</item>
-        <item name="cr3_button_dec_drawable">@drawable/cr3_button_dec</item>
+        <item name="cr3_button_inc_drawable">@drawable/cr3_button_inc_white</item>
+        <item name="cr3_button_dec_drawable">@drawable/cr3_button_dec_white</item>
 
         <item name="ic_media_ff_drawable">@drawable/ic_media_ff</item>
         <item name="ic_media_play_drawable">@drawable/ic_media_play</item>
@@ -272,8 +278,8 @@
         <item name="cr3_button_info_drawable">@drawable/cr3_button_info</item>
         <item name="cr3_button_log_drawable">@drawable/cr3_button_log</item>
         <item name="cr3_button_light_drawable">@drawable/cr3_button_light</item>
-        <item name="cr3_button_inc_drawable">@drawable/cr3_button_inc</item>
-        <item name="cr3_button_dec_drawable">@drawable/cr3_button_dec</item>
+        <item name="cr3_button_inc_drawable">@drawable/cr3_button_inc_dark</item>
+        <item name="cr3_button_dec_drawable">@drawable/cr3_button_dec_dark</item>
 
         <item name="ic_media_ff_drawable">@drawable/ic_media_ff</item>
         <item name="ic_media_play_drawable">@drawable/ic_media_play</item>

@@ -91,7 +91,13 @@ my %ic_actions_list=(
 	'cr3_button_log-48x48-src.svg' => 'cr3_button_log.png',
 	'cr3_button_light-48x48-src.svg' => 'cr3_button_light.png',
 	'cr3_button_inc-48x48-src.svg' => 'cr3_button_inc.png',
-	'cr3_button_dec-48x48-src.svg' => 'cr3_button_dec.png'
+	'cr3_button_inc_light-48x48-src.svg' => 'cr3_button_inc_light.png',
+	'cr3_button_inc_dark-48x48-src.svg' => 'cr3_button_inc_dark.png',
+	'cr3_button_inc_white-48x48-src.svg' => 'cr3_button_inc_white.png',
+	'cr3_button_dec-48x48-src.svg' => 'cr3_button_dec.png',
+	'cr3_button_dec_light-48x48-src.svg' => 'cr3_button_dec_light.png',
+	'cr3_button_dec_dark-48x48-src.svg' => 'cr3_button_dec_dark.png',
+	'cr3_button_dec_white-48x48-src.svg' => 'cr3_button_dec_white.png'
 );
 
 my %ic_tabs_list=(
