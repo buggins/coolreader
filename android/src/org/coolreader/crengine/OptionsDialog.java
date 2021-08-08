@@ -2509,6 +2509,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mTTSVoiceOption.setEnabled(!useDocLang);
 			mOptionsTTS.add(mTTSVoiceOption);
 		}
+		mOptionsTTS.add(new BoolOption(this, getString(R.string.options_tts_google_abbr_workaround), PROP_APP_TTS_GOOGLE_END_OF_SENTENCE_ABBR).setComment(getString(R.string.options_tts_google_abbr_workaround_comment)).setDefaultValue("1").noIcon());
 		mOptionsTTS.add(new ListOption(this, getString(R.string.options_app_tts_stop_motion_timeout), PROP_APP_MOTION_TIMEOUT).add(mMotionTimeouts, mMotionTimeoutsTitles).setDefaultValue(Integer.toString(mMotionTimeouts[0])).noIcon());
 		mOptionsTTS.refresh();
 		body.addView(mOptionsTTS);

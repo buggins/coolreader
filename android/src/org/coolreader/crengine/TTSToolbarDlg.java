@@ -65,6 +65,7 @@ public class TTSToolbarDlg implements Settings {
 	private String mForcedVoice;
 	private String mCurrentLanguage;
 	private String mCurrentVoiceName;
+	private boolean mGoogleTTSAbbreviationWorkaround;
 	private int mTTSSpeedPercent = 50;		// 50% (normal)
 
 
@@ -155,6 +156,21 @@ public class TTSToolbarDlg implements Settings {
 		});
 	}
 
+	private String preprocessUtterance(String utterance) {
+		String newUtterance = utterance;
+		if (mGoogleTTSAbbreviationWorkaround) {
+			// Add space before last char if it's dot.
+			int len = newUtterance.length();
+			if (len > 1) {
+				if (newUtterance.charAt(len - 1) == '.') {
+					newUtterance = newUtterance.substring(0, len - 1);
+					newUtterance += " .";
+				}
+			}
+		}
+		return newUtterance;
+	}
+
 	private void startMotionWatchdog(){
 		String TAG = "MotionWatchdog";
 		log.d("startMotionWatchdog() enter");
@@ -242,6 +258,8 @@ public class TTSToolbarDlg implements Settings {
 			case PROP_APP_TTS_VOICE:
 				mForcedVoice = value;
 				break;
+			case PROP_APP_TTS_GOOGLE_END_OF_SENTENCE_ABBR:
+				mGoogleTTSAbbreviationWorkaround = flg;
 		}
 	}
 
@@ -334,7 +352,7 @@ public class TTSToolbarDlg implements Settings {
 				@Override
 				public void onCurrentSentenceRequested(TTSControlBinder ttsbinder) {
 					if (null != mCurrentSelection) {
-						ttsbinder.say(mCurrentSelection.text, null);
+						ttsbinder.say(preprocessUtterance(mCurrentSelection.text), null);
 					}
 				}
 
@@ -344,7 +362,7 @@ public class TTSToolbarDlg implements Settings {
 						moveSelection(ReaderCommand.DCMD_SELECT_NEXT_SENTENCE, new ReaderView.MoveSelectionCallback() {
 							@Override
 							public void onNewSelection(Selection selection) {
-								ttsbinder.say(selection.text, null);
+								ttsbinder.say(preprocessUtterance(selection.text), null);
 							}
 
 							@Override
@@ -362,7 +380,7 @@ public class TTSToolbarDlg implements Settings {
 						moveSelection(ReaderCommand.DCMD_SELECT_PREV_SENTENCE, new ReaderView.MoveSelectionCallback() {
 							@Override
 							public void onNewSelection(Selection selection) {
-								ttsbinder.say(selection.text, null);
+								ttsbinder.say(preprocessUtterance(selection.text), null);
 							}
 
 							@Override

@@ -527,6 +527,8 @@
     <string name="options_tts_voice_quality_normal">Нормальное качество</string>
     <string name="options_tts_voice_quality_high">Высокое качество</string>
     <string name="options_tts_voice_quality_very_high">Очень высокое качество</string>
+    <string name="options_tts_google_abbr_workaround">Отключить обработку сокращений в конце предложения</string>
+    <string name="options_tts_google_abbr_workaround_comment">при использовании «Google Speech Services»</string>
     <string name="tts_init_failure">Сбой инициализации движка TTS \"%s\", отключаем его…</string>
     <string name="online_store_login">Вход</string>
     <string name="online_store_username">Имя пользователя:</string>
