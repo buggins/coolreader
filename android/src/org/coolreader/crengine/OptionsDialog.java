@@ -2766,6 +2766,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			String faceName = mProperties.getProperty(PROP_FONT_FACE, "");
 			updateFontWeightValues(mFontWeightOption, faceName);
 		});
+		/*
 		mFontWeightOption.setOnChangeHandler(() -> {
 			// enable/disable font hinting option
 			String faceName = mProperties.getProperty(PROP_FONT_FACE, "");
@@ -2774,10 +2775,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				ArrayList<Integer> nativeWeightsArray = new ArrayList<>();    // for search
 				for (int w : nativeWeights)
 					nativeWeightsArray.add(w);
-				//int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
-				//mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
+				int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
+				mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
 			}
 		});
+		 */
 		if ( DeviceInfo.EINK_SCREEN )
 			mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialiasEINK, mAntialiasEINKTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_antialias_drawable, R.drawable.cr3_option_text_antialias));
 		else
