@@ -34,25 +34,34 @@ Directories
         cr3gui     - CR3 with CR3GUI for e-ink devices sources
         cr3qt      - CR3 with Qt based GUI
         cr3wx      - CR3 with wxWidgets based GUI
-        thirdparty - third party libraries, to use if not found in system (zlib, libpng, libjpeg, freetype, harfbuzz)
+        thirdparty - third party libraries, to use if not found in system (zlib, libpng, libjpeg, freetype, etc...)
         thirdparty_repo - repository for third party libraries deployments
         thirdparty_unman - unmanaged third party libraries
         tinydict   - small library for .dict file format support
         tools      - miscellaneous configuration files
-        android    - Android port
+        android    - Android frontend
 
 External dependencies
 ---------------------
 
-        common: zlib, libpng, libjpeg, freetype, harfbuzz
+        common: zlib, libpng, libjpeg, freetype, harfbuzz, fribidi, libunibreak, utf8proc, zstd
         cr3gui/xcb: libxcb, fontconfig
         cr3gui/nanoX: libnanoX
-        cr3/Qt: qt4-core, qt4-gui
-        cr3/wx: wxWidgets 2.8
+        cr3/Qt: fontconfig, qt5-base, qt5-tools
+        cr3/wx: fontconfig, wxWidgets 3.0
 
 e.g., for Ubuntu you may use
 
-        > sudo apt-get install git-core cmake libqt4-dev libpng12-dev libfreetype6-dev libjpeg62-dev libfontconfig1-dev zlib1g-dev
+        $ sudo apt install build-essential git cmake curl pkg-config zlib1g-dev libpng-dev libjpeg-dev libfreetype6-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libunibreak-dev libzstd-dev libutf8proc-dev
+
+To build Qt frontend:
+
+        $ sudo apt install qtbase5-dev qttools5-dev
+
+To build wxWidgets frontend:
+
+        $ sudo apt install libwxgtk3.0-gtk3-dev
+
 
 Packaging
 ---------
@@ -75,7 +84,7 @@ Android Build Instructions
 
 In Windows can be used git bash terminal
 
-        > ./thirdparty-deploy.sh
+        $ ./thirdparty-deploy.sh
 
 * Use Android Studio - open subdirectory "android" as Android Studio project
 
@@ -83,38 +92,152 @@ Ensure that you have Android SDK and NDK installed
 
 
 
-CMake Build Instructions
+CMake Build Instructions (Linux)
 ------------------------
 
-        # Building QT version
-        # libqt4-dev should be installed
+In case the installed libraries are outdated, run the `thirdparty-deploy.sh` script to download libraries sources of the recommended versions. In this case, the build system will build static libraries that were not found in the system.
+
+        $ ./thirdparty-deploy.sh
+
+Building Qt version (qtbase5-dev, qttools5-dev should be installed)
+
         mkdir qtbuild
         cd qtbuild
-        cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1400000 -D CMAKE_INSTALL_PREFIX=/usr ..
+        cmake -D GUI=QT5 -D CMAKE_BUILD_TYPE=Release -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1400000 -D CMAKE_INSTALL_PREFIX=/usr ..
         make
         sudo make install
 
 
-        # Building QT version, in DEBUG mode
+Building Qt version, in DEBUG mode
+
         mkdir qtbuild
         cd qtbuild
-        cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Debug -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1400000 -D CMAKE_INSTALL_PREFIX=/usr ..
+        cmake -D GUI=QT5 -D CMAKE_BUILD_TYPE=Debug -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1400000 -D CMAKE_INSTALL_PREFIX=/usr ..
         make
         sudo make install
 
-        # Building QT version, in DEBUG mode, ANTIWORD development
-        mkdir qtbuild
-        cd qtbuild
-        cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Debug -D ENABLE_ANTIWORD=1 -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1400000 -D CMAKE_INSTALL_PREFIX=/usr ..
-        make
-        sudo make install
+Building wxWidgets version (libwxgtk3.0-gtk3-dev should be installed)
 
-        # Building wxWidgets version
-        # libwxgtk2.8-dev should be installed
         mkdir wxbuild
         cd wxbuild
-        cmake -D GUI=WX -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr ..
+        cmake -D GUI=WX -D CMAKE_BUILD_TYPE=Release -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1400000 -D CMAKE_INSTALL_PREFIX=/usr ..
         make
+
+
+Qt Build under Windows (Using MSYS2)
+======================
+
+- Download and install msys2 from https://www.msys2.org/
+- Update MSYS2:
+
+Run "MSYS2 MSYS" from start menu
+
+        $ pacman -Sy
+        $ pacman -Su
+
+Run "MSYS2 MSYS" from Start menu again.<br/>
+Update the rest of the base packages:
+
+        $ pacman -Su
+
+- Install build tools & dependencies:
+
+Run "MSYS2 MSYS" from start menu.<br/>
+Using pacman package manager install required packages:
+
+        $ pacman -S --needed base-devel mingw-w64-x86_64-toolchain
+        $ pacman -S git curl
+        $ pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-pkgconf mingw-w64-x86_64-zlib mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-fontconfig mingw-w64-x86_64-harfbuzz mingw-w64-x86_64-fribidi mingw-w64-x86_64-zstd
+
+        To build Qt frontend:
+
+        $ pacman -S mingw-w64-x86_64-qt5
+
+- Prepare:
+
+Run "MSYS2 MinGW 64-bit" from start menu
+
+        $ git clone https://github.com/buggins/coolreader.git
+        $ cd coolreader
+
+Since package libunibreak not exists in MSYS2, we must build static version of this library, to do this, we need to call the script thirdparty-deploy.sh to download sources:
+
+        $ ./thirdparty-deploy.sh
+
+Build system will build static libraries that were not found in the system.
+
+- Compile:
+
+Now we can build program:
+
+        $ mkdir qtbuild
+        $ cd qtbuild
+        $ cmake -G "MSYS Makefiles" -D CMAKE_BUILD_TYPE=Release -D GUI=QT5 -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1400000 -D CMAKE_INSTALL_PREFIX=dist ..
+        $ make
+        $ make install
+
+Now in qtbuild/dist directory we have CoolReader binary & data.<br/>
+To add Qt runtime libraries, call:
+
+        $ cd dist
+        $ windeployqt --compiler-runtime --no-webkit2 --no-angle --no-opengl-sw --no-quick-import .
+
+To add thirdparty runtime libraries, call:
+
+        $ cp -pv /mingw64/bin/{libfontconfig-1.dll,libexpat-1.dll,libfreetype-6.dll,libbz2-1.dll,libbrotlidec.dll,libbrotlicommon.dll,libharfbuzz-0.dll,libglib-2.0-0.dll,libintl-8.dll,libiconv-2.dll,libpcre-1.dll,libgraphite2.dll,libpng16-16.dll,zlib1.dll,libfribidi-0.dll,libjpeg-8.dll,libutf8proc.dll,libzstd.dll,libdouble-conversion.dll,libicuin68.dll,libicuuc68.dll,libicudt68.dll,libpcre2-16-0.dll} .
+
+After updating any library in MSYS 2, this list may need to be corrected. If after that the program does not start with an error about the missing dll, then you need to copy this library from `/mingw64/bin/` to `qtbuild/dist`.
+
+Qt Build under Windows (Using Qt SDK, obsolete)
+======================
+
+    Using Qt SDK
+
+Environment setup:
+
+- Download and install Qt SDK, git, cmake, msys
+- Copy contents of git and cmake dirs to QT/mingw/
+- Copy make.exe from msys/bin to QT/mingw/bin
+
+Run Qt SDK / Qt Command Prompt. Execute:
+
+        > sh
+        > git clone https://github.com/buggins/coolreader.git
+        > cd coolreader
+        > mkdir qtbuild
+        > cd qtbuild
+        > cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "MSYS Makefiles" -D USE_QT_ZLIB=1 -D CMAKE_INSTALL_PREFIX=dist ..
+        > make
+        > make install
+
+        cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 9 2008" -D USE_QT_ZLIB=1 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1500000 -D CMAKE_INSTALL_PREFIX=dist ..
+        cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 10" -D USE_QT_ZLIB=1  -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1500000 -D CMAKE_INSTALL_PREFIX=dist ..
+
+to disable console, use /SUBSYSTEM:WINDOWS linker option instead of /SUBSYSTEM:CONSOLE
+
+For Qt5, use GUI=QT5 instead of GUI=QT
+
+For building Qt5 app from QtCreator remove -G (generator) parameter:
+
+	Release build:
+
+		-D GUI=QT5 -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dist ..
+
+	Debug build:
+
+		-D GUI=QT5 -D CMAKE_BUILD_TYPE=Debug -D CMAKE_INSTALL_PREFIX=dist ..
+
+It will put built cr3.exe and all necessary distribution files to directory qtbuild/dist.
+
+You need also add following DLLs to this directory in order to get cr3.exe working:
+
+        - mingwm10.dll
+        - QtCore4.dll
+        - QtGui4.dll
+        - libz.dll
+
+CMake Build Instructions (obsolete)
+------------------------
 
         # Building ARM version on OpenInkpot:
         mkdir armbuild
@@ -214,55 +337,7 @@ CMake Build Instructions
         make
 
 
-QT Build under Windows
-======================
-
-    Using QT SDK  
-
-Environment setup: 
-
-- Download and install QT SDK, git, cmake, msys
-- Copy contents of git and cmake dirs to QT/mingw/
-- Copy make.exe from msys/bin to QT/mingw/bin
-
-Run Qt SDK / Qt Command Prompt. Execute:
-
-        > sh
-        > git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine cr3
-        > cd cr3
-        > mkdir qtbuild
-        > cd qtbuild
-        > cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "MSYS Makefiles" -D USE_QT_ZLIB=1 -D CMAKE_INSTALL_PREFIX=dist ..
-        > make
-        > make install
-
-        cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 9 2008" -D USE_QT_ZLIB=1 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1500000 -D CMAKE_INSTALL_PREFIX=dist ..
-        cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 10" -D USE_QT_ZLIB=1  -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1500000 -D CMAKE_INSTALL_PREFIX=dist ..
-
-to disable console, use /SUBSYSTEM:WINDOWS linker option instead of /SUBSYSTEM:CONSOLE
-
-For QT5, use GUI=QT5 instead of GUI=QT
-
-For building Qt5 app from QtCreator remove -G (generator) parameter: 
-
-	Release build:
-
-		-D GUI=QT5 -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dist ..
-
-	Debug build:
-
-		-D GUI=QT5 -D CMAKE_BUILD_TYPE=Debug -D CMAKE_INSTALL_PREFIX=dist ..
-
-It will put built cr3.exe and all necessary distribution files to directory qtbuild/dist.
-
-You need also add following DLLs to this directory in order to get cr3.exe working:
-
-        - mingwm10.dll
-        - QtCore4.dll
-        - QtGui4.dll
-        - libz.dll
-
-Qt Build under Mac OSX
+Qt Build under Mac OSX (obsolete)
 ======================
 
         #configure and make Qt as static libraries
