@@ -634,7 +634,7 @@ public class Engine {
 
 	private native static byte[] scanBookCoverInternal(String path);
 
-	private native static void drawBookCoverInternal(Bitmap bmp, byte[] data, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp);
+	private native static void drawBookCoverInternal(Bitmap bmp, byte[] data, boolean respectAspectRatio, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp);
 
 	private native static void suspendLongOperationInternal(); // cancel current long operation in engine thread (swapping to cache file) -- call it from GUI thread
 
@@ -949,10 +949,10 @@ public class Engine {
 	 * @param seriesNumber is series number
 	 * @param bpp          is bits per pixel (specify <=8 for eink grayscale dithering)
 	 */
-	public void drawBookCover(Bitmap bmp, byte[] data, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp) {
+	public void drawBookCover(Bitmap bmp, byte[] data, boolean respectAspectRatio, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp) {
 		synchronized (lock) {
 			long start = Utils.timeStamp();
-			drawBookCoverInternal(bmp, data, fontFace, title, authors, seriesName, seriesNumber, bpp);
+			drawBookCoverInternal(bmp, data, respectAspectRatio, fontFace, title, authors, seriesName, seriesNumber, bpp);
 			long duration = Utils.timeInterval(start);
 			L.v("drawBookCover took " + duration + " ms");
 		}

@@ -15,7 +15,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
-import android.speech.tts.TextToSpeech;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
@@ -54,13 +53,13 @@ import org.coolreader.crengine.ReaderCommand;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
-import org.coolreader.crengine.TTSToolbarDlg;
 import org.coolreader.crengine.Utils;
 import org.coolreader.donations.CRDonationService;
 import org.coolreader.sync2.OnSyncStatusListener;
 import org.coolreader.sync2.Synchronizer;
 import org.coolreader.sync2.googledrive.GoogleDriveRemoteAccess;
 import org.coolreader.tts.OnTTSCreatedListener;
+import org.coolreader.tts.TTSControlServiceAccessor;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import java.io.File;
@@ -124,6 +123,9 @@ public class CoolReader extends BaseActivity {
 
 	private boolean dataDirIsRemoved = false;
 
+	private String ttsEnginePackage = "";
+	private TTSControlServiceAccessor ttsControlServiceAccessor = null;
+
 	private static final int REQUEST_CODE_STORAGE_PERM = 1;
 	private static final int REQUEST_CODE_READ_PHONE_STATE_PERM = 2;
 	private static final int REQUEST_CODE_GOOGLE_DRIVE_SIGN_IN = 3;
@@ -176,6 +178,8 @@ public class CoolReader extends BaseActivity {
 		};
 		registerReceiver(intentReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
+		// For TTS volume control
+		//  See TTSControlService
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
 		if (initialBatteryState >= 0 && mReaderView != null)
@@ -223,13 +227,11 @@ public class CoolReader extends BaseActivity {
 		if (!CLOSE_BOOK_ON_STOP && mReaderView != null)
 			mReaderView.close();
 
-		if (tts != null) {
-			tts.shutdown();
-			tts = null;
-			ttsInitialized = false;
-			ttsError = false;
+		// Shutdown TTS service if running
+		if (null != ttsControlServiceAccessor) {
+			ttsControlServiceAccessor.unbind();
+			ttsControlServiceAccessor = null;
 		}
-
 
 		if (mHomeFrame != null)
 			mHomeFrame.onClose();
@@ -360,20 +362,9 @@ public class CoolReader extends BaseActivity {
 			}
 		} else if (key.equals(PROP_APP_TTS_ENGINE)) {
 			ttsEnginePackage = value;
-			if (null != mReaderView && mReaderView.isTTSActive() && null != tts) {
-				// Stop current TTS process & create new
-				mReaderView.stopTTS();
-				if (tts != null) {
-					// Cleanup previous TTS
-					tts.shutdown();
-					tts = null;
-					ttsInitialized = false;
-					ttsError = false;
-				}
-				initTTS(tts -> {
-					TTSToolbarDlg dlg = mReaderView.getTTSToolbar();
-					dlg.changeTTS(tts);
-				});
+			if (null != mReaderView && mReaderView.isTTSActive()) {
+				// Set new TTS engine if running
+				initTTS(null);
 			}
 		}
 		//
@@ -1045,7 +1036,7 @@ public class CoolReader extends BaseActivity {
 				log.i("read phone state permission is GRANTED, registering phone activity handler...");
 				PhoneStateReceiver.setPhoneActivityHandler(() -> {
 					if (mReaderView != null) {
-						mReaderView.stopTTS();
+						mReaderView.pauseTTS();
 						mReaderView.save();
 					}
 				});
@@ -1657,18 +1648,9 @@ public class CoolReader extends BaseActivity {
 	private static String DONATIONS_PREF_TOTAL_AMOUNT = "total";
 
 
-	// ========================================================================================
-	// TTS
-	private TextToSpeech tts;
-	private boolean ttsInitialized;
-	private boolean ttsError;
-	private String ttsEnginePackage;
-	private Timer initTTSTimer;
-
-	private final static long INIT_TTS_TIMEOUT = 10000;		// 10 sec.
-
-	public boolean initTTS(final OnTTSCreatedListener listener) {
+	public void initTTS(TTSControlServiceAccessor.Callback callback) {
 		if (!phoneStateChangeHandlerInstalled) {
+			// TODO: Investigate the need to tracking state of the phone, while we already respect the audio focus.
 			boolean readPhoneStateIsAvailable;
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 				readPhoneStateIsAvailable = checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
@@ -1683,79 +1665,45 @@ public class CoolReader extends BaseActivity {
 				log.i("read phone state permission already GRANTED, registering phone activity handler...");
 				PhoneStateReceiver.setPhoneActivityHandler(() -> {
 					if (mReaderView != null) {
-						mReaderView.stopTTS();
+						mReaderView.pauseTTS();
 						mReaderView.save();
 					}
 				});
 				phoneStateChangeHandlerInstalled = true;
 			}
 		}
-		if (ttsInitialized && tts != null) {
-			BackgroundThread.instance().executeGUI(() -> listener.onCreated(tts));
-			return true;
-		}
+
 		showToast("Initializing TTS");
-		TextToSpeech.OnInitListener onInitListener = status -> {
-			//tts.shutdown();
-			initTTSTimer.cancel();
-			initTTSTimer = null;
-			L.i("TTS init status: " + status);
-			if (status == TextToSpeech.SUCCESS) {
-				ttsInitialized = true;
-				BackgroundThread.instance().executeGUI(() -> listener.onCreated(tts));
-			} else {
-				ttsError = true;
-				BackgroundThread.instance().executeGUI(() -> showToast("Cannot initialize TTS"));
-			}
-		};
-		if (Build.VERSION.SDK_INT > Build.VERSION_CODES.ICE_CREAM_SANDWICH && null != ttsEnginePackage && ttsEnginePackage.length() > 0)
-			tts = new TextToSpeech(this, onInitListener, ttsEnginePackage);
-		else
-			tts = new TextToSpeech(this, onInitListener);
-		initTTSTimer = new Timer();
-		initTTSTimer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				// TTS engine init hangs, remove it from settings
-				log.e("TTS engine \"" + ttsEnginePackage + "\" init failure, disabling!");
-				BackgroundThread.instance().executeGUI(() -> showToast(R.string.tts_init_failure, ttsEnginePackage));
-				setSetting(PROP_APP_TTS_ENGINE, "", false);
-				ttsEnginePackage = "";
-				try {
-					mReaderView.getTTSToolbar().stopAndClose();
-				} catch (Exception ignored) {}
-				initTTSTimer.cancel();
-				initTTSTimer = null;
-			}
-		}, INIT_TTS_TIMEOUT);
-		return true;
-	}
+		if (null == ttsControlServiceAccessor)
+			ttsControlServiceAccessor = new TTSControlServiceAccessor(this);
+		ttsControlServiceAccessor.bind(ttsbinder -> {
+			ttsbinder.initTTS(ttsEnginePackage, new OnTTSCreatedListener() {
+				@Override
+				public void onCreated() {
+					if (null != callback)
+						callback.run(ttsControlServiceAccessor);
+				}
 
-	// ============================================================
-	private AudioManager am;
-	private int maxVolume;
+				@Override
+				public void onFailed() {
+					BackgroundThread.instance().executeGUI(() -> showToast("Cannot initialize TTS"));
+				}
 
-	public AudioManager getAudioManager() {
-		if (am == null) {
-			am = (AudioManager) getSystemService(AUDIO_SERVICE);
-			maxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-		}
-		return am;
-	}
-
-	public int getVolume() {
-		AudioManager am = getAudioManager();
-		if (am != null) {
-			return am.getStreamVolume(AudioManager.STREAM_MUSIC) * 100 / maxVolume;
-		}
-		return 0;
-	}
-
-	public void setVolume(int volume) {
-		AudioManager am = getAudioManager();
-		if (am != null) {
-			am.setStreamVolume(AudioManager.STREAM_MUSIC, volume * maxVolume / 100, 0);
-		}
+				@Override
+				public void onTimedOut() {
+					// TTS engine init hangs, remove it from settings
+					log.e("TTS engine \"" + ttsEnginePackage + "\" init failure, disabling!");
+					BackgroundThread.instance().executeGUI(() -> {
+						showToast(R.string.tts_init_failure, ttsEnginePackage);
+						setSetting(PROP_APP_TTS_ENGINE, "", false);
+						ttsEnginePackage = "";
+						try {
+							mReaderView.getTTSToolbar().stopAndClose();
+						} catch (Exception ignored) {}
+					});
+				}
+			});
+		});
 	}
 
 	public void showOptionsDialog(final OptionsDialog.Mode mode) {

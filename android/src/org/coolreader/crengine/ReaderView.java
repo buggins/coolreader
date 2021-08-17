@@ -1,22 +1,5 @@
 package org.coolreader.crengine;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import org.coolreader.CoolReader;
-import org.coolreader.R;
-import org.coolreader.crengine.InputDialog.InputHandler;
-import org.koekak.android.ebookdownloader.SonyBookSelector;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -42,6 +25,23 @@ import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
+import org.coolreader.crengine.InputDialog.InputHandler;
+import org.koekak.android.ebookdownloader.SonyBookSelector;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 public class ReaderView implements android.view.SurfaceHolder.Callback, Settings, DocProperties, OnKeyListener, OnTouchListener, OnFocusChangeListener {
 
@@ -2366,14 +2366,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				break;
 			case DCMD_TTS_PLAY: {
 				log.i("DCMD_TTS_PLAY: initializing TTS");
-				if (!mActivity.initTTS(tts -> {
+				mActivity.initTTS(ttsacc -> BackgroundThread.instance().executeGUI(() -> {
 					log.i("TTS created: opening TTS toolbar");
-					ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, tts);
+					ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, ttsacc);
 					ttsToolbar.setOnCloseListener(() -> ttsToolbar = null);
 					ttsToolbar.setAppSettings(mSettings, null);
-				})) {
-					log.e("Cannot initialize TTS");
-				}
+				}));
 			}
 			break;
 			case DCMD_TOGGLE_DOCUMENT_STYLES:
@@ -2544,7 +2542,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	private TTSToolbarDlg ttsToolbar;
 
-	public void stopTTS() {
+	public void pauseTTS() {
 		if (ttsToolbar != null)
 			ttsToolbar.pause();
 	}

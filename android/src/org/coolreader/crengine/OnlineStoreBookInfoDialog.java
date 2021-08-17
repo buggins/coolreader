@@ -115,7 +115,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
         image.setMinimumWidth(w);
         image.setMaxWidth(w);
         Bitmap bmp = Bitmap.createBitmap(w, h, Config.RGB_565);
-        Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), mFileInfo, bmp, (file, bitmap) -> {
+        Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), mFileInfo, bmp, false, (file, bitmap) -> {
 			BitmapDrawable drawable = new BitmapDrawable(bitmap);
 			image.setImageDrawable(drawable);
 		});
