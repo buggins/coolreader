@@ -1142,7 +1142,8 @@ lString32 DocViewNative::getLink( int x, int y )
 	return href;
 }
 
-#define MAX_IMAGE_BUF_SIZE 1200000
+// The maximum allowed value for multiplying the width and height of the image
+#define MAX_IMAGE_SIZE_MUL 16777216		// 4096 x 4096 px, for now 4K is enough
 
 // checks whether point belongs to image: if found, returns true, and _currentImage is set to image
 bool DocViewNative::checkImage(int x, int y, int bufWidth, int bufHeight, int &dx, int &dy, bool & needRotate)
@@ -1165,8 +1166,8 @@ bool DocViewNative::checkImage(int x, int y, int bufWidth, int bufHeight, int &d
 		needRotate = 10 * dx < 8 * dy;
 	}
 	int scale = 1;
-	if (dx * dy > MAX_IMAGE_BUF_SIZE) {
-		scale = dx * dy /  MAX_IMAGE_BUF_SIZE;
+	if (dx * dy > MAX_IMAGE_SIZE_MUL) {
+		scale = dx * dy / MAX_IMAGE_SIZE_MUL;
 		dx /= scale;
 		dy /= scale;
 	}
