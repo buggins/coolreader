@@ -168,10 +168,10 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_findTextInternal
 /*
  * Class:     org_coolreader_crengine_DocView
  * Method:    setBatteryStateInternal
- * Signature: (I)V
+ * Signature: (III)V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_setBatteryStateInternal
-  (JNIEnv *, jobject, jint);
+  (JNIEnv *, jobject, jint, jint, jint);
 
 /*
  * Class:     org_coolreader_crengine_DocView
@@ -275,6 +275,14 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_hilightBookmarksInte
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_org_coolreader_crengine_DocView_swapToCacheInternal
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_DocView
+ * Method:    isTimeChangedInternal
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_isTimeChangedInternal
   (JNIEnv *, jobject);
 
 #ifdef __cplusplus

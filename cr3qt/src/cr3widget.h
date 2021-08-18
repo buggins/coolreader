@@ -188,7 +188,9 @@ class CR3View : public QWidget, public LVDocViewCallback
         QString _cssDir;
         QString _bookmarkDir;
         bool _editMode;
-		int _lastBatteryState;
+        int _lastBatteryState;
+        int _lastBatteryChargingConn;
+        int _lastBatteryChargeLevel;
 };
 
 #endif // CR3WIDGET_H

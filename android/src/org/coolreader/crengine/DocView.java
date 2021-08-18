@@ -111,9 +111,9 @@ public class DocView {
 	 * Send battery state to native object.
 	 * @param state
 	 */
-	public void setBatteryState(int state) {
+	public void setBatteryState(int state, int chargingConn, int chargeLevel) {
 		synchronized(mutex) {
-			setBatteryStateInternal(state);
+			setBatteryStateInternal(state, chargingConn, chargeLevel);
 		}
 	}
 
@@ -433,10 +433,16 @@ public class DocView {
 			hilightBookmarksInternal(bookmarks);
 		}
 	}
-	
+
+	public boolean isTimeChanged() {
+		synchronized(mutex) {
+			return isTimeChangedInternal();
+		}
+	}
+
 	//========================================================================================
 	// Native functions
-	/* implementend by libcr3engine.so */
+	/* implemented by libcr3engine.so */
 	//========================================================================================
 	private native void getPageImageInternal(Bitmap bitmap, int bpp);
 
@@ -478,7 +484,7 @@ public class DocView {
 	private native boolean findTextInternal(String pattern, int origin,
 			int reverse, int caseInsensitive);
 
-	private native void setBatteryStateInternal(int state);
+	private native void setBatteryStateInternal(int state, int chargingConn, int chargeLevel);
 
 	private native byte[] getCoverPageDataInternal();
 
@@ -508,6 +514,8 @@ public class DocView {
 
 	// / returns either SWAP_DONE, SWAP_TIMEOUT or SWAP_ERROR
 	private native int swapToCacheInternal();
+
+	private native boolean isTimeChangedInternal();
 
 	private long mNativeObject; // used from JNI
 

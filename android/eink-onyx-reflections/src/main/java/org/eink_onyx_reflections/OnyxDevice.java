@@ -52,7 +52,7 @@ public class OnyxDevice {
 	private static void bootstrap() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
 			try {
-				// Allow Private API on Android 10 (API 28)
+				// Allow Private API on Android 10 (API 29)
 				Class<?> aClass = Class.class;
 				Method methodForName = aClass.getDeclaredMethod("forName", String.class);
 				Method methodGetDeclaredMethod = aClass.getDeclaredMethod("getDeclaredMethod", String.class, Class[].class);

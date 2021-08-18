@@ -90,7 +90,7 @@ endif()
 
 # Additionally try and use pkconfig to find libzstd
 
-find_package(PkgConfig)
+find_package(PkgConfig QUIET)
 pkg_check_modules(PC_ZSTD QUIET libzstd)
 
 # ------------------------------------------------------------------------
@@ -114,13 +114,13 @@ find_path(ZSTD_INCLUDE_DIR zstd.h
 if(EXISTS "${ZSTD_INCLUDE_DIR}/zstd.h")
   file(STRINGS "${ZSTD_INCLUDE_DIR}/zstd.h" 
     _ZSTD_VERSION_MAJOR REGEX "^#define ZSTD_VERSION_MAJOR")
-  string(REGEX MATCH "[0-9]+" ZSTD_VERSION_MAJOR ${_ZSTD_VERSION_MAJOR})
+  string(REGEX MATCH "[0-9]+" ZSTD_VERSION_MAJOR "${_ZSTD_VERSION_MAJOR}")
   file(STRINGS "${ZSTD_INCLUDE_DIR}/zstd.h" 
     _ZSTD_VERSION_MINOR REGEX "^#define ZSTD_VERSION_MINOR")
-  string(REGEX MATCH "[0-9]+" ZSTD_VERSION_MINOR ${_ZSTD_VERSION_MINOR} )
+  string(REGEX MATCH "[0-9]+" ZSTD_VERSION_MINOR "${_ZSTD_VERSION_MINOR}")
   file(STRINGS "${ZSTD_INCLUDE_DIR}/zstd.h" 
     _ZSTD_VERSION_RELEASE REGEX "^#define ZSTD_VERSION_RELEASE")
-  string(REGEX MATCH "[0-9]+" ZSTD_VERSION_RELEASE ${_ZSTD_VERSION_RELEASE} )
+  string(REGEX MATCH "[0-9]+" ZSTD_VERSION_RELEASE "${_ZSTD_VERSION_RELEASE}")
   set(ZSTD_VERSION ${ZSTD_VERSION_MAJOR}.${ZSTD_VERSION_MINOR}.${ZSTD_VERSION_RELEASE})
 endif()
 

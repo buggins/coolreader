@@ -1,25 +1,13 @@
-# - Try to find the  Fontconfig
+# - Try to find the FontConfig
 # Once done this will define
 #
-#  FONTCONFIG_FOUND - system has Fontconfig
-#  FONTCONFIG_INCLUDE_DIR - The include directory to use for the fontconfig headers
-#  FONTCONFIG_LIBRARIES - Link these to use FONTCONFIG
-#  FONTCONFIG_DEFINITIONS - Compiler switches required for using FONTCONFIG
+#  FONTCONFIG_FOUND - system has FontConfig
+#  FONTCONFIG_INCLUDE_DIR - The include directory to use for the FontConfig headers
+#  FONTCONFIG_INCLUDE_DIRS - The same
+#  FONTCONFIG_LIBRARIES - Link these to use FontConfig
+#  FONTCONFIG_DEFINITIONS - Compiler switches required for using FontConfig
+#  FONTCONFIG_VERSION - The version of the FontConfig library which was found.
 
-# Copyright (c) 2006,2007 Laurent Montel, <montel@kde.org>
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-# 1. Redistributions of source code must retain the copyright
-#    notice, this list of conditions and the following disclaimer.
-# 2. Redistributions in binary form must reproduce the copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-# 3. The name of the author may not be used to endorse or promote products 
-#    derived from this software without specific prior written permission.
-#
 # THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 # IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
 # OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -32,38 +20,72 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-if (FONTCONFIG_LIBRARIES AND FONTCONFIG_INCLUDE_DIR)
+mark_as_advanced(FONTCONFIG_LIBRARY FONTCONFIG_INCLUDE_DIR)
+
+if (FONTCONFIG_LIBRARY AND FONTCONFIG_INCLUDE_DIR)
 
   # in cache already
   set(FONTCONFIG_FOUND TRUE)
 
-else (FONTCONFIG_LIBRARIES AND FONTCONFIG_INCLUDE_DIR)
+else (FONTCONFIG_LIBRARY AND FONTCONFIG_INCLUDE_DIR)
 
   if (NOT MSVC)
     # use pkg-config to get the directories and then use these values
     # in the FIND_PATH() and FIND_LIBRARY() calls
-    find_package(PkgConfig)
-    pkg_check_modules(PC_FONTCONFIG fontconfig)
+    find_package(PkgConfig QUIET)
+    pkg_check_modules(PC_FONTCONFIG QUIET fontconfig)
 
     set(FONTCONFIG_DEFINITIONS ${PC_FONTCONFIG_CFLAGS_OTHER})
+    set(FONTCONFIG_VERSION ${PC_FONTCONFIG_VERSION})
   endif (NOT MSVC)
 
   find_path(FONTCONFIG_INCLUDE_DIR fontconfig/fontconfig.h
     PATHS
     ${PC_FONTCONFIG_INCLUDEDIR}
     ${PC_FONTCONFIG_INCLUDE_DIRS}
-    /usr/X11/include
   )
 
-  find_library(FONTCONFIG_LIBRARIES NAMES fontconfig
+  find_library(FONTCONFIG_LIBRARY NAMES fontconfig
     PATHS
     ${PC_FONTCONFIG_LIBDIR}
     ${PC_FONTCONFIG_LIBRARY_DIRS}
   )
 
-  include(FindPackageHandleStandardArgs)
-  FIND_PACKAGE_HANDLE_STANDARD_ARGS(FontConfig DEFAULT_MSG FONTCONFIG_LIBRARIES FONTCONFIG_INCLUDE_DIR )
-  
-  mark_as_advanced(FONTCONFIG_LIBRARIES FONTCONFIG_INCLUDE_DIR)
+  if (NOT FONTCONFIG_VERSION)
+    if(EXISTS "${FONTCONFIG_INCLUDE_DIR}/fontconfig/fontconfig.h")
+      file(STRINGS "${FONTCONFIG_INCLUDE_DIR}/fontconfig/fontconfig.h"
+        _FONTCONFIG_VERSION_MAJOR REGEX "^#define FC_MAJOR")
+      string(REGEX MATCH "[0-9]+" FONTCONFIG_VERSION_MAJOR "${_FONTCONFIG_VERSION_MAJOR}")
+      file(STRINGS "${FONTCONFIG_INCLUDE_DIR}/fontconfig/fontconfig.h"
+        _FONTCONFIG_VERSION_MINOR REGEX "^#define FC_MINOR")
+      string(REGEX MATCH "[0-9]+" FONTCONFIG_VERSION_MINOR "${_FONTCONFIG_VERSION_MINOR}")
+      file(STRINGS "${FONTCONFIG_INCLUDE_DIR}/fontconfig/fontconfig.h"
+        _FONTCONFIG_VERSION_REVISION REGEX "^#define FC_REVISION")
+      string(REGEX MATCH "[0-9]+" FONTCONFIG_VERSION_REVISION "${_FONTCONFIG_VERSION_REVISION}")
+      set(FONTCONFIG_VERSION ${FONTCONFIG_VERSION_MAJOR}.${FONTCONFIG_VERSION_MINOR}.${FONTCONFIG_VERSION_REVISION})
+    endif()
+  endif()
 
-endif (FONTCONFIG_LIBRARIES AND FONTCONFIG_INCLUDE_DIR)
+  include(FindPackageHandleStandardArgs)
+  find_package_handle_standard_args(FontConfig
+    FOUND_VAR FONTCONFIG_FOUND
+    REQUIRED_VARS
+      FONTCONFIG_LIBRARY
+      FONTCONFIG_INCLUDE_DIR
+    VERSION_VAR FONTCONFIG_VERSION
+  )
+
+endif (FONTCONFIG_LIBRARY AND FONTCONFIG_INCLUDE_DIR)
+
+if(FONTCONFIG_FOUND)
+  set(FONTCONFIG_LIBRARIES ${FONTCONFIG_LIBRARY})
+  set(FONTCONFIG_INCLUDE_DIRS ${FONTCONFIG_INCLUDE_DIR})
+  if(NOT TARGET FontConfig::FontConfig)
+    add_library(FontConfig::FontConfig UNKNOWN IMPORTED)
+    set_target_properties(FontConfig::FontConfig PROPERTIES
+      IMPORTED_LOCATION "${FONTCONFIG_LIBRARIES}"
+      INTERFACE_COMPILE_DEFINITIONS "${FONTCONFIG_DEFINITIONS}"
+      INTERFACE_INCLUDE_DIRECTORIES "${FONTCONFIG_INCLUDE_DIRS}"
+    )
+  endif()
+endif(FONTCONFIG_FOUND)

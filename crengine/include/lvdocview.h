@@ -33,11 +33,21 @@ typedef enum {
     txt_format_auto  // autodetect format
 } txt_format_t;
 
-/// no battery
+/// Battery state: no battery
 #define CR_BATTERY_STATE_NO_BATTERY -2
-/// battery is charging
+/// Battery state: battery is charging
 #define CR_BATTERY_STATE_CHARGING -1
-// values 0..100 -- battery life percent
+/// Battery state: battery is discharging
+#define CR_BATTERY_STATE_DISCHARGING -3
+
+/// Battery charger connection: no connection
+#define CR_BATTERY_CHARGER_NO 1
+/// Battery charger connection: AC adapter
+#define CR_BATTERY_CHARGER_AC 2
+/// Battery charger connection: USB
+#define CR_BATTERY_CHARGER_USB 3
+/// Battery charger connection: Wireless
+#define CR_BATTERY_CHARGER_WIRELESS 4
 
 #ifndef CR_ENABLE_PAGE_IMAGE_CACHE
 #ifdef ANDROID
@@ -259,6 +269,8 @@ private:
     ldomXPointer _posBookmark; // bookmark for current position
 
     int m_battery_state;
+    int m_battery_charging_conn;
+    int m_battery_charge_level;
     int m_requested_font_size;
     int m_font_size; // = m_requested_font_size, possibly scaled according to DPI
     int m_status_font_size;
@@ -391,13 +403,6 @@ private:
     void updateDocStyleSheet();
 
 protected:
-    // deprecated: ready to remove
-    virtual void drawNavigationBar( LVDrawBuf * drawbuf, int pageIndex, int percent );
-    // deprecated: ready to remove
-    virtual void getNavigationBarRectangle( lvRect & rc );
-    // deprecated: ready to remove
-    virtual void getNavigationBarRectangle( int pageIndex, lvRect & rc );
-
     /// returns document offset for next page
     int getNextPageOffset();
     /// returns document offset for previous page
@@ -410,6 +415,8 @@ protected:
     bool getCursorDocRect( ldomXPointer ptr, lvRect & rc );
     /// load document from stream (internal)
     bool loadDocumentInt( LVStreamRef stream, bool metadataOnly = false );
+    /// get section bounds for specific root node and specific section depth level, in 1/100 of percent
+    void getSectionBoundsInt( LVArray<int>& bounds, ldomNode* node , lUInt16 section_id, int target_level, int level );
 public:
     /// get outer (before margins are applied) page rectangle
     virtual void getPageRectangle( int pageIndex, lvRect & pageRect ) const;
@@ -646,11 +653,15 @@ public:
     /// returns true if document is opened
     bool isDocumentOpened();
     /// returns section bounds, in 1/100 of percent
-    LVArray<int> & getSectionBounds( bool for_external_update=false );
+    LVArray<int> & getSectionBounds( int max_count, int depth, bool for_external_update=false );
     /// sets battery state
-    virtual bool setBatteryState( int newState );
+    virtual bool setBatteryState( int newState, int newChargingConn, int newChargeLevel );
     /// returns battery state
     int getBatteryState() const { return m_battery_state; }
+    /// returns battery charging connection
+    int getBatteryChargingConn() const { return m_battery_charging_conn; }
+    /// returns battery charge level
+    int getBatteryChargeLevel() const { return m_battery_charge_level; }
     /// returns current time representation string
     virtual lString32 getTimeString() const;
     /// returns true if time changed since clock has been last drawed
@@ -702,7 +713,7 @@ public:
     /// draw page header to buffer
     virtual void drawPageHeader( LVDrawBuf * drawBuf, const lvRect & headerRc, int pageIndex, int headerInfoFlags, int pageCount );
     /// draw battery state to buffer
-    virtual void drawBatteryState( LVDrawBuf * drawBuf, const lvRect & rc, bool isVertical );
+    virtual void drawBatteryState(LVDrawBuf * drawBuf, const lvRect & rc);
 
     /// returns background color
     lUInt32 getBackgroundColor() const { return m_backgroundColor; }

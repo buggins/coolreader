@@ -79,6 +79,8 @@ public class BookInfoDialog extends BaseDialog {
 			if ( title!=null )
 				name = title;
 		} else {
+			if ("book.language".equals(name))
+				value = Engine.getHumanReadableLocaleName(value);
 			Integer id = mLabelMap.get(name);
 			String title = id!=null ? getContext().getString(id) : name;
 			if ( title!=null )

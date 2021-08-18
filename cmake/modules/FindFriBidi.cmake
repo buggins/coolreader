@@ -1,10 +1,11 @@
-# - Try to find the  FriBidi
+# - Try to find the FriBidi
 # Once done this will define
 #
 #  FRIBIDI_FOUND - system has FriBidi
-#  FRIBIDI_INCLUDE_DIR - The include directory to use for the fribidi headers
+#  FRIBIDI_INCLUDE_DIRS - The include directory to use for the FriBidi headers
 #  FRIBIDI_LIBRARIES - Link these to use FriBidi
 #  FRIBIDI_DEFINITIONS - Compiler switches required for using FriBidi
+#  FRIBIDI_VERSION - The version of the FriBidi library which was found.
 
 # THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 # IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -18,37 +19,72 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-if (FRIBIDI_LIBRARIES AND FRIBIDI_INCLUDE_DIR)
+mark_as_advanced(FRIBIDI_LIBRARY FRIBIDI_INCLUDE_DIR)
+
+if (FRIBIDI_LIBRARY AND FRIBIDI_INCLUDE_DIR)
 
   # in cache already
   set(FRIBIDI_FOUND TRUE)
 
-else (FRIBIDI_LIBRARIES AND FRIBIDI_INCLUDE_DIR)
+else (FRIBIDI_LIBRARY AND FRIBIDI_INCLUDE_DIR)
 
   if (NOT MSVC)
     # use pkg-config to get the directories and then use these values
     # in the FIND_PATH() and FIND_LIBRARY() calls
-    find_package(PkgConfig)
-    pkg_check_modules(PC_FRIBIDI fribidi)
+    find_package(PkgConfig QUIET)
+    pkg_check_modules(PC_FRIBIDI QUIET fribidi)
 
     set(FRIBIDI_DEFINITIONS ${PC_FRIBIDI_CFLAGS_OTHER})
+    set(FRIBIDI_VERSION ${PC_FRIBIDI_VERSION})
   endif (NOT MSVC)
 
-  find_path(FRIBIDI_INCLUDE_DIR fribidi.h
+  find_path(FRIBIDI_INCLUDE_DIR fribidi/fribidi.h
     PATHS
     ${PC_FRIBIDI_INCLUDEDIR}
     ${PC_FRIBIDI_INCLUDE_DIRS}
   )
 
-  find_library(FRIBIDI_LIBRARIES NAMES fribidi
+  find_library(FRIBIDI_LIBRARY NAMES fribidi
     PATHS
     ${PC_FRIBIDI_LIBDIR}
     ${PC_FRIBIDI_LIBRARY_DIRS}
   )
 
-  include(FindPackageHandleStandardArgs)
-  FIND_PACKAGE_HANDLE_STANDARD_ARGS(FriBidi DEFAULT_MSG FRIBIDI_LIBRARIES FRIBIDI_INCLUDE_DIR )
-  
-  mark_as_advanced(FRIBIDI_LIBRARIES FRIBIDI_INCLUDE_DIR)
+  if (NOT FRIBIDI_VERSION)
+    if(EXISTS "${FRIBIDI_INCLUDE_DIR}/fribidi/fribidi-config.h")
+      file(STRINGS "${FRIBIDI_INCLUDE_DIR}/fribidi/fribidi-config.h"
+        _FRIBIDI_VERSION_MAJOR REGEX "^#define FRIBIDI_MAJOR_VERSION")
+      string(REGEX MATCH "[0-9]+" FRIBIDI_VERSION_MAJOR "${_FRIBIDI_VERSION_MAJOR}")
+      file(STRINGS "${FRIBIDI_INCLUDE_DIR}/fribidi/fribidi-config.h"
+        _FRIBIDI_VERSION_MINOR REGEX "^#define FRIBIDI_MINOR_VERSION")
+      string(REGEX MATCH "[0-9]+" FRIBIDI_VERSION_MINOR "${_FRIBIDI_VERSION_MINOR}")
+      file(STRINGS "${FRIBIDI_INCLUDE_DIR}/fribidi/fribidi-config.h"
+        _FRIBIDI_VERSION_MICRO REGEX "^#define FRIBIDI_MICRO_VERSION")
+      string(REGEX MATCH "[0-9]+" FRIBIDI_VERSION_MICRO "${_FRIBIDI_VERSION_MICRO}")
+      set(FRIBIDI_VERSION ${FRIBIDI_VERSION_MAJOR}.${FRIBIDI_VERSION_MINOR}.${FRIBIDI_VERSION_MICRO})
+    endif()
+  endif()
 
-endif (FRIBIDI_LIBRARIES AND FRIBIDI_INCLUDE_DIR)
+  include(FindPackageHandleStandardArgs)
+  find_package_handle_standard_args(FriBidi
+    FOUND_VAR FRIBIDI_FOUND
+    REQUIRED_VARS
+      FRIBIDI_LIBRARY
+      FRIBIDI_INCLUDE_DIR
+    VERSION_VAR FRIBIDI_VERSION
+  )
+
+endif (FRIBIDI_LIBRARY AND FRIBIDI_INCLUDE_DIR)
+
+if(FRIBIDI_FOUND)
+  set(FRIBIDI_LIBRARIES ${FRIBIDI_LIBRARY})
+  set(FRIBIDI_INCLUDE_DIRS ${FRIBIDI_INCLUDE_DIR})
+  if(NOT TARGET FriBidi::FriBidi)
+    add_library(FriBidi::FriBidi UNKNOWN IMPORTED)
+    set_target_properties(FriBidi::FriBidi PROPERTIES
+      IMPORTED_LOCATION "${FRIBIDI_LIBRARIES}"
+      INTERFACE_COMPILE_DEFINITIONS "${FRIBIDI_DEFINITIONS}"
+      INTERFACE_INCLUDE_DIRECTORIES "${FRIBIDI_INCLUDE_DIRS}"
+    )
+  endif()
+endif(FRIBIDI_FOUND)

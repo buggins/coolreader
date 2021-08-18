@@ -419,8 +419,6 @@ public:
         return 0;
     }
 
-    virtual font_lang_compat checkFontLangCompat(const lString8 &langCode) { return font_lang_compat_invalid_tag; }
-
     /// set fallback font for this font
     virtual void setFallbackFont(LVFontRef font) { CR_UNUSED(font); }
 

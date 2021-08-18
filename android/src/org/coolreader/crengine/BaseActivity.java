@@ -137,6 +137,13 @@ public class BaseActivity extends Activity implements Settings {
 		diagonalInches = (float) Math.sqrt(widthInches * widthInches + heightInches * heightInches);
 		log.i("diagonal=" + diagonalInches + "  isSmartphone=" + isSmartphone());
 
+		int sz = dm.widthPixels;
+		if (sz > dm.heightPixels)
+			sz = dm.heightPixels;
+		minFontSize = 5*densityDpi/72;			// 5pt
+		//maxFontSize = 100*densityDpi/72;		// 100pt
+		maxFontSize = sz/8;
+
 		// create settings
 		mSettingsManager = new SettingsManager(this);
 		// create rest of settings
@@ -404,16 +411,6 @@ public class BaseActivity extends Activity implements Settings {
 //				getWindow().setBackgroundDrawable(Utils.solidColorDrawable(clBackground));
 		}
 		a.recycle();
-		Display display = getWindowManager().getDefaultDisplay();
-		int sz = display.getWidth();
-		if (sz > display.getHeight())
-			sz = display.getHeight();
-		minFontSize = sz / 45;
-		maxFontSize = sz / 8;
-		if (maxFontSize > 340)
-			maxFontSize = 340;
-		if (minFontSize < 9)
-			minFontSize = 9;
 	}
 
 	@SuppressLint("ResourceType")
@@ -1518,17 +1515,13 @@ public class BaseActivity extends Activity implements Settings {
 
 		public static final Logger log = L.create("cr");
 
-		private BaseActivity mActivity;
+		private final BaseActivity mActivity;
 		private Properties mSettings;
-
-		private final DisplayMetrics displayMetrics = new DisplayMetrics();
 		private final File defaultSettingsDir;
 
 		public SettingsManager(BaseActivity activity) {
 			this.mActivity = activity;
-			activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 			defaultSettingsDir = activity.getDir("settings", Context.MODE_PRIVATE);
-
 			mSettings = loadSettings();
 		}
 
@@ -1882,40 +1875,10 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_LANDSCAPE_PAGES, DeviceInfo.ONE_COLUMN_IN_LANDSCAPE ? "0" : "1");
 			//props.applyDefault(ReaderView.PROP_TOOLBAR_APPEARANCE, "0");
 			// autodetect best initial font size based on display resolution
-			int screenHeight = displayMetrics.heightPixels;
-			int screenWidth = displayMetrics.widthPixels;//getWindowManager().getDefaultDisplay().getWidth();
-			if (screenWidth > screenHeight)
-				screenWidth = screenHeight;
-			int fontSize = 20;
-			int statusFontSize = 16;
-			String hmargin = "4";
-			String vmargin = "2";
-			if (screenWidth <= 320) {
-				fontSize = 20;
-				statusFontSize = 16;
-				hmargin = "4";
-				vmargin = "2";
-			} else if (screenWidth <= 400) {
-				fontSize = 24;
-				statusFontSize = 20;
-				hmargin = "10";
-				vmargin = "4";
-			} else if (screenWidth <= 600) {
-				fontSize = 28;
-				statusFontSize = 24;
-				hmargin = "20";
-				vmargin = "8";
-			} else if (screenWidth <= 800) {
-				fontSize = 32;
-				statusFontSize = 28;
-				hmargin = "25";
-				vmargin = "15";
-			} else {
-				fontSize = 48;
-				statusFontSize = 32;
-				hmargin = "30";
-				vmargin = "20";
-			}
+			int fontSize = 12*activity.densityDpi/72;			// 12pt
+			int statusFontSize = 8*activity.densityDpi/72;		// 8pt
+			int hmargin = activity.densityDpi/16;
+			int vmargin = activity.densityDpi/32;
 			if (DeviceInfo.DEF_FONT_SIZE != null)
 				fontSize = DeviceInfo.DEF_FONT_SIZE;
 

@@ -1,5 +1,6 @@
 #include "crqtutil.h"
 #include "../crengine/include/props.h"
+#include "../crengine/include/crlocaledata.h"
 #include <QStringList>
 #include <QWidget>
 #include <QPoint>
@@ -138,6 +139,29 @@ void crGetFontFaceList( QStringList & dst )
     lString32Collection faceList;
     fontMan->getFaceList( faceList );
     cr2qt( dst, faceList );
+}
+
+QString getHumanReadableLocaleName(lString32 langTag)
+{
+#if USE_LOCALE_DATA==1
+    QString res;
+    CRLocaleData loc(UnicodeToUtf8(langTag));
+    if (loc.isValid()) {
+        res = loc.langName().c_str();
+        if (loc.scriptNumeric() > 0) {
+            res.append("-");
+            res.append(loc.scriptName().c_str());
+        }
+        if (loc.regionNumeric() > 0) {
+            res.append(" (");
+            res.append(loc.regionAlpha3().c_str());
+            res.append(")");
+        }
+    }
+#else
+    QString res = QT_TRANSLATE_NOOP("crqtutils", "Undetermined");
+#endif
+    return res;
 }
 
 QString crpercent( int p )

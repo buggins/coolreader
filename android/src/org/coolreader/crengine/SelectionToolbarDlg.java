@@ -270,7 +270,6 @@ public class SelectionToolbarDlg {
 				//mReaderView.doEngineCommand(ReaderCommand.DCMD_REQUEST_RENDER, 0);
 				BackgroundThread.instance().postBackground(() -> BackgroundThread.instance().postGUI(() -> {
 					mReaderView.doEngineCommand(ReaderCommand.DCMD_SCROLL_BY, mReaderView.getSurface().getHeight() / 3);
-					mReaderView.redraw();
 				}));
 			});
 		}

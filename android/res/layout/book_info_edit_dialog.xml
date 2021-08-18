@@ -318,6 +318,26 @@
                     android:text=""
                     android:visibility="gone" />
 
+            <TextView
+                    android:id="@+id/lbl_book_lang"
+                    style="@style/TextAppearance.Medium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginStart="4dp"
+                    android:singleLine="true"
+                    android:text="@string/book_info_book_language" />
+
+            <EditText
+                    android:id="@+id/book_lang"
+                    style="@style/TextAppearance.Widget.EditText"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:editable="false"
+                    android:inputType="none"
+                    android:singleLine="true"
+                    android:text="" />
+
             <EditText
                     android:id="@+id/book_description"
                     style="@style/TextAppearance.Widget.EditText"

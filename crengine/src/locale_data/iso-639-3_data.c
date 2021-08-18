@@ -7903,5 +7903,6 @@ const struct iso639_3_rec iso639_3_data[] = {
 	{"zyp", NULL, NULL, NULL, "Zyphe Chin"},
 	{"zza", "zza", "zza", NULL, "Zaza"},
 	{"zzj", NULL, NULL, NULL, "Zuojiang Zhuang"},
+	{"mol", NULL, NULL, "mo", "Moldavian"},
 };
 

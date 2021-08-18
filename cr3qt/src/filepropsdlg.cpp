@@ -172,7 +172,7 @@ void FilePropsDialog::fillItems()
 
     addPropLine( tr("Current page"), cr2qt(lString32::itoa(_docview->getCurPage())) );
     addPropLine( tr("Total pages"), cr2qt(lString32::itoa(_docview->getPageCount())) );
-    addPropLine( tr("Battery state"), cr2qt(lString32::itoa(_docview->getBatteryState()) + "%") );
+    addPropLine( tr("Battery state"), cr2qt(lString32::itoa(_docview->getBatteryChargeLevel()) + "%") );
     addPropLine( tr("Current Time"), cr2qt(_docview->getTimeString()) );
     // TODO:
     if ( hist ) {
@@ -198,6 +198,7 @@ void FilePropsDialog::fillItems()
     addPropLine( tr("Series number"), cr2qt(props->getStringDef(DOC_PROP_SERIES_NUMBER)) );
     addPropLine( tr("Date"), getDocText( "/FictionBook/description/title-info/date", ", " ) );
     addPropLine( tr("Genres"), getDocText( "/FictionBook/description/title-info/genre", ", " ) );
+    addPropLine( tr("Language"), getHumanReadableLocaleName(props->getStringDef(DOC_PROP_LANGUAGE)) );
     addPropLine( tr("Translator"), getDocText( "/FictionBook/description/title-info/translator", ", " ) );
     addInfoSection( tr("Book info") );
 

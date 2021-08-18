@@ -37,7 +37,7 @@ endif()
 
 # Additionally try and use pkconfig to find libutf8proc
 
-find_package(PkgConfig)
+find_package(PkgConfig QUIET)
 pkg_check_modules(PC_UTF8PROC QUIET libutf8proc)
 
 # ------------------------------------------------------------------------

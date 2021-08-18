@@ -771,4 +771,7 @@
     <string name="options_disabled_document_styles">disabled embedded document styles or unsupported document type</string>
     <string name="options_multilingual_enabled">disabled because support for multilingual documents is enabled</string>
     <string name="options_multilingual_disabled">disabled because support for multilingual documents is disabled or legacy rendering is enabled</string>
+    <string name="filter_by_book_language_s">Filter by book language (%s)</string>
+    <string name="scanning_font_files">Scanning font files…</string>
+    <string name="undetermined">Undetermined</string>
 </resources>

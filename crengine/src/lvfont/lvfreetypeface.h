@@ -273,13 +273,6 @@ public:
     */
     virtual bool getGlyphExtraMetric( glyph_extra_metric_t metric, lUInt32 code, int & value, bool scaled_to_px=true, lChar32 def_char=0, lUInt32 fallbackPassMask = 0 );
 
-    /**
-     * @brief Check font for compatibility with language with langCode
-     * @param langCode language code, for example, "en" - English, "ru" - Russian
-     * @return true if font contains all glyphs for given language, false otherwise.
-     */
-    virtual font_lang_compat checkFontLangCompat(const lString8 &langCode);
-
     /** \brief measure text
         \param text is text string pointer
         \param len is number of characters to measure
@@ -358,7 +351,7 @@ public:
 
     /// retrieves font handle
     virtual void *GetHandle() {
-        return NULL;
+        return (void*)_face;
     }
 
     /// returns font typeface name

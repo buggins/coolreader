@@ -156,7 +156,9 @@ static int def_font_sizes[] = { 18, 20, 22, 24, 29, 33, 39, 44 };
 
 LVDocView::LVDocView(int bitsPerPixel, bool noDefaultDocument) :
 	m_bitsPerPixel(bitsPerPixel), m_dx(400), m_dy(200), _pos(0), _page(0),
-			_posIsSet(false), m_battery_state(CR_BATTERY_STATE_NO_BATTERY)
+			_posIsSet(false), m_battery_state(CR_BATTERY_STATE_NO_BATTERY),
+			m_battery_charging_conn(CR_BATTERY_CHARGER_NO),
+			m_battery_charge_level(0)
 #if (LBOOK==1)
 			, m_requested_font_size(32)
 #elif defined(__SYMBIAN32__)
@@ -1377,8 +1379,8 @@ int LVDocView::getPageHeaderHeight() const {
 	int h = getInfoFont()->getHeight();
 	int navbarh = scaleForRenderDPI(HEADER_NAVBAR_H);
 	int bh = m_batteryIcons.length()>0 ? m_batteryIcons[0]->GetHeight() : 0;
-	if ( bh>h )
-		h = bh;
+	if ( bh + 2 > h )
+		h = bh + 2;
 	return h + (navbarh + HEADER_MARGIN + 1)/2;
 }
 
@@ -1426,8 +1428,7 @@ lString32 LVDocView::getTimeString() const {
 }
 
 /// draw battery state to buffer
-void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc,
-		bool /*isVertical*/) {
+void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc) {
 	if (m_battery_state == CR_BATTERY_STATE_NO_BATTERY)
 		return;
 	LVDrawStateSaver saver(*drawbuf);
@@ -1451,7 +1452,7 @@ void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc,
 		if ( m_batteryIcons.size()==1 )
 			icons.add(m_batteryIcons[0]);
 	}
-	LVDrawBatteryIcon(drawbuf, batteryRc, m_battery_state, m_battery_state
+	LVDrawBatteryIcon(drawbuf, batteryRc, m_battery_charge_level, m_battery_state
 			== CR_BATTERY_STATE_CHARGING, icons, drawPercent ? m_batteryFont.get() : NULL);
 #if 0
 	if ( m_batteryIcons.length()>1 ) {
@@ -1590,57 +1591,80 @@ void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc,
 #endif
 }
 
+/// get section bounds for specific root node and specific section depth level, in 1/100 of percent
+void LVDocView::getSectionBoundsInt( LVArray<int>& bounds, ldomNode* node, lUInt16 section_id , int target_level, int level ) {
+    int pc = getVisiblePageCount();
+    int fh = GetFullHeight();
+    for (int i = 0; i < node->getChildCount(); i++) {
+        ldomNode * section = node->getChildElementNode(i, section_id);
+        if (section) {
+            if (level == target_level) {
+                lvRect rc;
+                section->getAbsRect(rc);
+                if (getViewMode() == DVM_SCROLL) {
+                    int p = (int) (((lInt64) rc.top * 10000) / fh);
+                    bounds.add(p);
+                } else {
+                    int pages_cnt = m_pages.length();
+                    if ( (pc==2 && (pages_cnt&1)) )
+                        pages_cnt++;
+                    int p = m_pages.FindNearestPage(rc.top, 0);
+                    if (pages_cnt > 1)
+                        bounds.add((int) (((lInt64) p * 10000) / pages_cnt));
+                }
+            } else if (level < target_level) {
+                getSectionBoundsInt(bounds, section, section_id, target_level, level + 1);
+            }
+        }
+    }
+}
+
+static int s_int_comparator(const void * n1, const void * n2) {
+    int* i1 = (int*)n1;
+    int* i2 = (int*)n2;
+    return *i1 == *i2 ? 0 : (*i1 < *i2 ? -1 : 1);
+}
+
 /// returns section bounds, in 1/100 of percent
-LVArray<int> & LVDocView::getSectionBounds( bool for_external_update ) {
-	if (for_external_update || m_section_bounds_externally_updated) {
-		// Progress bar markes will be externally updated: we don't care
-		// about m_section_bounds_valid and we never trash it here.
-		// It's the frontend responsability to notice it needs some
-		// update and to update it.
-		m_section_bounds_externally_updated = true;
-		return m_section_bounds;
-	}
-	if (m_section_bounds_valid)
-		return m_section_bounds;
-	m_section_bounds.clear();
-	m_section_bounds.add(0);
+LVArray<int> & LVDocView::getSectionBounds( int max_count, int depth, bool for_external_update ) {
+    if (for_external_update || m_section_bounds_externally_updated) {
+        // Progress bar markes will be externally updated: we don't care
+        // about m_section_bounds_valid and we never trash it here.
+        // It's the frontend responsability to notice it needs some
+        // update and to update it.
+        m_section_bounds_externally_updated = true;
+        return m_section_bounds;
+    }
+    if (m_section_bounds_valid)
+        return m_section_bounds;
     // Get sections from FB2 books
     ldomNode * body = m_doc->nodeFromXPath(cs32("/FictionBook/body[1]"));
-	lUInt16 section_id = m_doc->getElementNameIndex(U"section");
+    lUInt16 section_id = m_doc->getElementNameIndex(U"section");
     if (body == NULL) {
         // Get sections from EPUB books
         body = m_doc->nodeFromXPath(cs32("/body[1]"));
         section_id = m_doc->getElementNameIndex(U"DocFragment");
     }
-	int fh = GetFullHeight();
-    int pc = getVisiblePageCount();
-	if (body && fh > 0) {
-		int cnt = body->getChildCount();
-		for (int i = 0; i < cnt; i++) {
-
-            ldomNode * l1section = body->getChildElementNode(i, section_id);
-            if (!l1section)
-				continue;
-
-            lvRect rc;
-            l1section->getAbsRect(rc);
-            if (getViewMode() == DVM_SCROLL) {
-                int p = (int) (((lInt64) rc.top * 10000) / fh);
-                m_section_bounds.add(p);
-            } else {
-                int fh = m_pages.length();
-                if ( (pc==2 && (fh&1)) )
-                    fh++;
-                int p = m_pages.FindNearestPage(rc.top, 0);
-                if (fh > 1)
-                    m_section_bounds.add((int) (((lInt64) p * 10000) / fh));
-            }
-
-		}
-	}
-	m_section_bounds.add(10000);
-	m_section_bounds_valid = true;
-	return m_section_bounds;
+    LVArray<int> bounds;
+    int fh = GetFullHeight();
+    if (body && fh > 0) {
+        for (int level = 0; level < depth; level++) {
+            LVArray<int> bounds_tmp;
+            getSectionBoundsInt(bounds_tmp, body, section_id, level, 0);
+            if (bounds.length() + bounds_tmp.length() < max_count)
+                bounds.add(bounds_tmp);
+            else
+                break;
+        }
+    }
+    if (bounds.length() > 1)
+        qsort(bounds.get(), (size_t)bounds.length(), sizeof(int), s_int_comparator);
+    m_section_bounds.clear();
+    m_section_bounds.add(0);
+    m_section_bounds.add(bounds);
+    m_section_bounds.add(10000);
+    m_section_bounds_valid = true;
+    return m_section_bounds;
 }
 
 int LVDocView::getPosEndPagePercent() {
@@ -1705,40 +1729,14 @@ void LVDocView::getPageRectangle(int pageIndex, lvRect & pageRect) const {
 		pageRect = m_pageRects[1];
 }
 
-// deprecated: ready to remove
-void LVDocView::getNavigationBarRectangle(lvRect & navRect) {
-	getNavigationBarRectangle(getVisiblePageCount() == 2 ? 1 : 2, navRect);
-}
-
-// deprecated: ready to remove
-void LVDocView::getNavigationBarRectangle(int pageIndex, lvRect & navRect) {
-	lvRect headerRect;
-	getPageHeaderRectangle(pageIndex, headerRect);
-	navRect = headerRect;
-	if (headerRect.bottom <= headerRect.top)
-		return;
-	navRect.top = navRect.bottom - 6;
-}
-
-// deprecated: ready to remove
-void LVDocView::drawNavigationBar(LVDrawBuf * drawbuf, int pageIndex,
-		int percent) {
-    CR_UNUSED2(drawbuf, percent);
-	//LVArray<int> & sbounds = getSectionBounds();
-	lvRect navBar;
-	getNavigationBarRectangle(pageIndex, navBar);
-	//bool leftPage = (getVisiblePageCount()==2 && !(pageIndex&1) );
-
-	//lUInt32 cl1 = 0xA0A0A0;
-	//lUInt32 cl2 = getBackgroundColor();
-}
-
 /// sets battery state
-bool LVDocView::setBatteryState(int newState) {
-	if (m_battery_state == newState)
+bool LVDocView::setBatteryState(int newState, int newChargingConn, int newChargeLevel) {
+	if (m_battery_state == newState && newChargingConn == m_battery_charging_conn && m_battery_charge_level == newChargeLevel)
 		return false;
-	CRLog::info("New battery state: %d", newState);
+	CRLog::info("New battery state: %d; chargingConn: %d; chargeLevel: %d", newState, newChargingConn, newChargeLevel);
 	m_battery_state = newState;
+	m_battery_charging_conn = newChargingConn;
+	m_battery_charge_level = newChargeLevel;
 	clearImageCache();
 	return true;
 }
@@ -1793,7 +1791,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 			gpos = info.bottom - (markh+1)/2;
 			break;
 		case PAGE_HEADER_POS_BOTTOM:
-			gpos = info.top + (markh+1)/2;
+			gpos = info.top + markh/2;
 			break;
 		default:
 			break;
@@ -1810,10 +1808,10 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	bool leftPage = (getVisiblePageCount() == 2 && !(pageIndex & 1));
 	if (leftPage)
 		percent = 10000;
-	int percent_pos = /*info.left + */percent * info.width() / 10000;
-	LVArray<int> & sbounds = getSectionBounds();
+	int percent_pos = percent * info.width() / 10000;
+	LVArray<int> & sbounds = getSectionBounds(info.width()/3, 3);
 	int sbound_index = 0;
-	bool enableMarks = !leftPage && (phi & PGHDR_CHAPTER_MARKS) && sbounds.length()<info.width()/5;
+	bool enableMarks = !leftPage && (phi & PGHDR_CHAPTER_MARKS);
 	for ( int x = info.left; x<info.right; x++ ) {
 		lUInt32 cl = 0xFFFFFFFF;
 		int sz = thinw;
@@ -1857,13 +1855,13 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	// draw icons & text info
 	drawbuf->SetTextColor(cl1);
 	lString32 text;
-	int iy = 0;
+	int texty = 0;
 	switch (m_pageHeaderPos) {
 		case PAGE_HEADER_POS_TOP:
-			iy = info.top - HEADER_MARGIN/2;
+			texty = info.top + (gpos - info.top - thinw - m_infoFont->getHeight())/2;
 			break;
 		case PAGE_HEADER_POS_BOTTOM:
-			iy = gpos + 2;
+			texty = gpos + thinw + 2 + (info.bottom - gpos - thinw - m_infoFont->getHeight())/2;
 			break;
 		default:
 			break;
@@ -1873,7 +1871,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	} else {
 		if (getVisiblePageCount() == 1 || !(pageIndex & 1)) {
 			int dwIcons = 0;
-			int icony = iy + m_infoFont->getHeight() / 2;
+			int icony = texty + m_infoFont->getHeight() / 2;
 			for (int ni = 0; ni < m_headerIcons.length(); ni++) {
 				LVImageSourceRef icon = m_headerIcons[ni];
 				int h = icon->GetHeight();
@@ -1884,59 +1882,81 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 			info.left += dwIcons;
 		}
 		bool batteryPercentNormalFont = false; // PROP_SHOW_BATTERY_PERCENT
-		if ((phi & PGHDR_BATTERY) && m_battery_state >= CR_BATTERY_STATE_CHARGING) {
+		if ((phi & PGHDR_BATTERY) && m_battery_state != CR_BATTERY_STATE_NO_BATTERY) {
 			batteryPercentNormalFont = m_props->getBoolDef(PROP_SHOW_BATTERY_PERCENT, true) || m_batteryIcons.size()<=2;
 			if ( !batteryPercentNormalFont ) {
 				lvRect brc = info;
 				brc.right -= 2;
 				//brc.top += 1;
 				//brc.bottom -= 2;
-				int h = brc.height();
-				int batteryIconWidth = 32;
-				if (m_batteryIcons.length() > 0)
+				switch (m_pageHeaderPos) {
+				default:
+				case PAGE_HEADER_POS_TOP:
+					brc.bottom -= markh;
+					break;
+				case PAGE_HEADER_POS_BOTTOM:
+					brc.top = gpos + thinw + 1;
+					break;
+				}
+				int batteryIconWidth = 28;
+				int batteryIconHeight = 15;
+				if (m_batteryIcons.length() > 0) {
 					batteryIconWidth = m_batteryIcons[0]->GetWidth();
-				bool isVertical = (h > 30);
-				//if ( isVertical )
-				//    brc.left = brc.right - brc.height()/2;
-				//else
+					batteryIconHeight = m_batteryIcons[0]->GetHeight();
+				}
 				brc.left = brc.right - batteryIconWidth - 2;
-				brc.bottom -= markh;
-				drawBatteryState(drawbuf, brc, isVertical);
+				if (brc.height() < batteryIconHeight) {
+					int h_inc = batteryIconHeight - brc.height();
+					if (PAGE_HEADER_POS_TOP == m_pageHeaderPos) {
+						brc.bottom += h_inc;
+					} else if (PAGE_HEADER_POS_BOTTOM == m_pageHeaderPos) {
+						brc.top -= h_inc;
+					}
+				}
+				drawBatteryState(drawbuf, brc);
 				info.right = brc.left - info.height() / 2;
 			}
 		}
 		lString32 pageinfo;
 		if (pageCount > 0) {
 			if (phi & PGHDR_PAGE_NUMBER)
-                pageinfo += fmt::decimal(pageIndex + 1);
-            if (phi & PGHDR_PAGE_COUNT) {
-                if ( !pageinfo.empty() )
-                    pageinfo += " / ";
-                pageinfo += fmt::decimal(pageCount);
-            }
-            if (phi & PGHDR_PERCENT) {
-                if ( !pageinfo.empty() )
-                    pageinfo += "  ";
-                //pageinfo += lString32::itoa(percent/100)+U"%"; //+U"."+lString32::itoa(percent/10%10)+U"%";
-                pageinfo += fmt::decimal(percent/100);
-                pageinfo += ",";
-                int pp = percent%100;
-                if ( pp<10 )
-                    pageinfo << "0";
-                pageinfo << fmt::decimal(pp) << "%";
-            }
-            if ( batteryPercentNormalFont ) {
-                if (m_battery_state >= 0)
-                    pageinfo << "  [" << fmt::decimal(m_battery_state) << "%]";
-                else if (m_battery_state == CR_BATTERY_STATE_CHARGING)
-                    pageinfo << "  [ + ]";
-            }
-        }
+				pageinfo += fmt::decimal(pageIndex + 1);
+			if (phi & PGHDR_PAGE_COUNT) {
+				if (!pageinfo.empty())
+					pageinfo += " / ";
+				pageinfo += fmt::decimal(pageCount);
+			}
+			if (phi & PGHDR_PERCENT) {
+				if (!pageinfo.empty())
+					pageinfo += "  ";
+				pageinfo += fmt::decimal(percent / 100);
+				pageinfo += ",";
+				int pp = percent % 100;
+				if (pp < 10)
+					pageinfo << "0";
+				pageinfo << fmt::decimal(pp) << "%";
+			}
+			if (batteryPercentNormalFont) {
+				if (m_battery_charge_level >= 0 && m_battery_charge_level <= 100) {
+					pageinfo << "  [";
+					if (m_battery_state == CR_BATTERY_STATE_CHARGING) {
+						pageinfo << 0x21AF;
+					}
+					pageinfo << fmt::decimal(m_battery_charge_level) << "%]";
+				} else {
+					if (m_battery_state == CR_BATTERY_STATE_CHARGING) {
+						pageinfo << Utf8ToUnicode("  [ ↯ ]");
+					} else {
+						pageinfo << Utf8ToUnicode("  [ ? ]");
+					}
+				}
+			}
+		}
 
 		int piw = 0;
 		if (!pageinfo.empty()) {
 			piw = m_infoFont->getTextWidth(pageinfo.c_str(), pageinfo.length());
-			m_infoFont->DrawTextString(drawbuf, info.right - piw, iy,
+			m_infoFont->DrawTextString(drawbuf, info.right - piw, texty,
 					pageinfo.c_str(), pageinfo.length(), U' ', NULL, false);
 			info.right -= piw + info.height() / 2;
 		}
@@ -1944,7 +1964,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 			lString32 clock = getTimeString();
 			m_last_clock = clock;
 			int w = m_infoFont->getTextWidth(clock.c_str(), clock.length()) + 2;
-			m_infoFont->DrawTextString(drawbuf, info.right - w, iy,
+			m_infoFont->DrawTextString(drawbuf, info.right - w, texty,
 					clock.c_str(), clock.length(), U' ', NULL, false);
 			info.right -= w + info.height() / 2;
 		}
@@ -1987,7 +2007,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	drawbuf->SetClipRect(&newcr);
 	text = fitTextWidthWithEllipsis(text, m_infoFont, newcr.width());
 	if (!text.empty()) {
-		m_infoFont->DrawTextString(drawbuf, info.left, iy, text.c_str(),
+		m_infoFont->DrawTextString(drawbuf, info.left, texty, text.c_str(),
 				text.length(), U' ', NULL, false);
 	}
 	drawbuf->SetClipRect(&oldcr);
@@ -2310,7 +2330,7 @@ bool LVDocView::goToPage(int page, bool updatePosBookmark, bool regulateTwoPages
 
 /// returns true if time changed since clock has been last drawed
 bool LVDocView::isTimeChanged() {
-	if ( m_pageHeaderInfo & PGHDR_CLOCK ) {
+	if ( m_pageHeaderPos != PAGE_HEADER_POS_NONE && m_pageHeaderInfo & PGHDR_CLOCK ) {
 		bool res = (m_last_clock != getTimeString());
 		if (res)
 			clearImageCache();
@@ -6442,141 +6462,115 @@ static const char * def_style_macros[] = {
 
 /// sets default property values if properties not found, checks ranges
 void LVDocView::propsUpdateDefaults(CRPropRef props) {
-	lString32Collection list;
-	fontMan->getFaceList(list);
-	static int def_aa_props[] = { font_aa_none, font_aa_big, font_aa_all, font_aa_gray, font_aa_lcd_rgb, font_aa_lcd_bgr, font_aa_lcd_pentile, font_aa_lcd_pentile_m, font_aa_lcd_v_rgb, font_aa_lcd_v_bgr, font_aa_lcd_v_pentile, font_aa_lcd_v_pentile_m };
+    lString32Collection list;
+    fontMan->getFaceList(list);
+    static int aa_props[] = { font_aa_none, font_aa_big, font_aa_all, font_aa_gray, font_aa_lcd_rgb, font_aa_lcd_bgr, font_aa_lcd_pentile, font_aa_lcd_pentile_m, font_aa_lcd_v_rgb, font_aa_lcd_v_bgr, font_aa_lcd_v_pentile, font_aa_lcd_v_pentile_m };
 
-	props->setIntDef(PROP_MIN_FILE_SIZE_TO_CACHE,
-            300000); // ~6M
-	props->setIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE,
-			DOCUMENT_CACHING_MIN_SIZE); // 32K
-	props->setIntDef(PROP_PROGRESS_SHOW_FIRST_PAGE, 1);
+    props->setIntDef(PROP_MIN_FILE_SIZE_TO_CACHE,
+                     300000); // ~6M
+    props->setIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE,
+                     DOCUMENT_CACHING_MIN_SIZE); // 32K
+    props->setIntDef(PROP_PROGRESS_SHOW_FIRST_PAGE, 1);
 
-	props->limitValueList(PROP_FONT_ANTIALIASING, def_aa_props,
-			sizeof(def_aa_props) / sizeof(int), 2);
-	props->setHexDef(PROP_FONT_COLOR, 0x000000);
-	props->setHexDef(PROP_BACKGROUND_COLOR, 0xFFFFFF);
-	props->setHexDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
-//	props->setIntDef(PROP_TXT_OPTION_PREFORMATTED, 0);
-	props->setIntDef(PROP_AUTOSAVE_BOOKMARKS, 1);
-	props->setIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1);
-	props->setIntDef(PROP_DISPLAY_TURBO_UPDATE_MODE, 0);
+    props->limitValueList(PROP_FONT_ANTIALIASING, aa_props,
+                          sizeof(aa_props) / sizeof(int), 2);
+    props->setHexDef(PROP_FONT_COLOR, 0x000000);
+    props->setHexDef(PROP_BACKGROUND_COLOR, 0xFFFFFF);
+    props->setHexDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
+    props->setIntDef(PROP_AUTOSAVE_BOOKMARKS, 1);
 
-	lString8 defFontFace;
-	static const char * goodFonts[] = { "DejaVu Sans", "FreeSans",
-			"Liberation Sans", "Arial", "Verdana", NULL };
-	static const char * fallbackFonts = "Noto Color Emoji; Droid Sans Fallback; Noto Sans CJK SC; Noto Sans Arabic UI; Noto Sans Devanagari UI; FreeSans; FreeSerif; Noto Serif; Noto Sans; Arial Unicode MS";
-	for (int i = 0; goodFonts[i]; i++) {
-		if (list.contains(lString32(goodFonts[i]))) {
-			defFontFace = lString8(goodFonts[i]);
-			break;
-		}
-	}
-	if (defFontFace.empty())
-		defFontFace = UnicodeToUtf8(list[0]);
+    lString8 defFontFace;
+    static const char * goodFonts[] = { "DejaVu Sans", "FreeSans",
+                                        "Noto Sans", "Liberation Sans", "Arial", "Verdana", NULL };
+    static const char * fallbackFonts = "Noto Color Emoji; Droid Sans Fallback; Noto Sans CJK SC; Noto Sans Arabic UI; Noto Sans Devanagari UI; FreeSans; FreeSerif; Noto Serif; Noto Sans; Arial Unicode MS";
+    for (int i = 0; goodFonts[i]; i++) {
+        if (list.contains(lString32(goodFonts[i]))) {
+            defFontFace = lString8(goodFonts[i]);
+            break;
+        }
+    }
+    if (defFontFace.empty())
+        defFontFace = UnicodeToUtf8(list[0]);
 
-	lString8 defStatusFontFace(DEFAULT_STATUS_FONT_NAME);
-	props->setStringDef(PROP_FONT_FACE, defFontFace.c_str());
-	props->setStringDef(PROP_STATUS_FONT_FACE, defStatusFontFace.c_str());
-	if (list.length() > 0 && !list.contains(props->getStringDef(PROP_FONT_FACE,
-			defFontFace.c_str())))
-		props->setString(PROP_FONT_FACE, list[0]);
-	props->setStringDef(PROP_FALLBACK_FONT_FACES, fallbackFonts);
+    lString8 defStatusFontFace(DEFAULT_STATUS_FONT_NAME);
+    props->setStringDef(PROP_FONT_FACE, defFontFace.c_str());
+    props->setStringDef(PROP_STATUS_FONT_FACE, defStatusFontFace.c_str());
+    if (list.length() > 0 && !list.contains(props->getStringDef(PROP_FONT_FACE,
+                                                                defFontFace.c_str())))
+        props->setString(PROP_FONT_FACE, list[0]);
+    props->setStringDef(PROP_FALLBACK_FONT_FACES, fallbackFonts);
 
 #if USE_LIMITED_FONT_SIZES_SET
-	props->setIntDef(PROP_FONT_SIZE,
-			m_font_sizes[m_font_sizes.length() * 2 / 3]);
-	props->limitValueList(PROP_FONT_SIZE, m_font_sizes.ptr(),
-			m_font_sizes.length());
+    props->limitValueList(PROP_FONT_SIZE, m_font_sizes.ptr(),
+                          m_font_sizes.length(), m_font_sizes.length() * 2 / 3);
 #else
-	props->setIntDef(PROP_FONT_SIZE, m_min_font_size + (m_min_font_size + m_max_font_size)/7);
+    props->limitValueMinMax(PROP_FONT_SIZE, m_min_font_size, m_max_font_size,
+                            m_min_font_size + (m_min_font_size + m_max_font_size)/7);
 #endif
-	props->limitValueList(PROP_INTERLINE_SPACE, cr_interline_spaces,
-			sizeof(cr_interline_spaces) / sizeof(int), 20);
+    props->limitValueList(PROP_INTERLINE_SPACE, cr_interline_spaces,
+                          sizeof(cr_interline_spaces) / sizeof(int), 20);
 #if CR_INTERNAL_PAGE_ORIENTATION==1
-	static int def_rot_angle[] = {0, 1, 2, 3};
-	props->limitValueList( PROP_ROTATE_ANGLE, def_rot_angle, 4 );
+    props->limitValueMinMax( PROP_ROTATE_ANGLE, 0, 3, 0 );
 #endif
-	static int bool_options_def_true[] = { 1, 0 };
-	static int bool_options_def_false[] = { 0, 1 };
-	static int int_option_weight[] = { 100, 200, 300, 400, 425, 450, 475, 500, 525, 550, 600, 650, 700, 800, 900, 950 };
-
-	props->limitValueList(PROP_FONT_BASE_WEIGHT, int_option_weight, sizeof(int_option_weight) / sizeof(int), 3);
+    static int int_option_weight[] = { 100, 200, 300, 400, 425, 450, 475, 500, 525, 550, 600, 650, 700, 800, 900, 950 };
+    props->limitValueList(PROP_FONT_BASE_WEIGHT, int_option_weight, sizeof(int_option_weight) / sizeof(int), 3);
 #ifndef ANDROID
-	props->limitValueList(PROP_EMBEDDED_STYLES, bool_options_def_true, 2);
-	props->limitValueList(PROP_EMBEDDED_FONTS, bool_options_def_true, 2);
+    props->setBoolDef(PROP_EMBEDDED_STYLES, true);
+    props->setBoolDef(PROP_EMBEDDED_FONTS, true);
+    props->setBoolDef(PROP_TXT_OPTION_PREFORMATTED, false);
 #endif
-	static int int_option_hinting[] = { 0, 1, 2 };
-	props->limitValueList(PROP_FONT_HINTING, int_option_hinting, 3);
-    static int int_option_shaping[] = { 1, 0, 2 };
-    props->limitValueList(PROP_FONT_SHAPING, int_option_shaping, 3);
-    static int int_options_1_2[] = { 2, 1 };
-	props->limitValueList(PROP_LANDSCAPE_PAGES, int_options_1_2, 2);
-	props->limitValueList(PROP_PAGE_VIEW_MODE, bool_options_def_true, 2);
-	props->limitValueList(PROP_FOOTNOTES, bool_options_def_true, 2);
-	props->limitValueList(PROP_SHOW_TIME, bool_options_def_false, 2);
-	props->limitValueList(PROP_DISPLAY_INVERSE, bool_options_def_false, 2);
-	props->limitValueList(PROP_BOOKMARK_ICONS, bool_options_def_false, 2);
-    props->limitValueList(PROP_FONT_KERNING_ENABLED, bool_options_def_false, 2);
-    //props->limitValueList(PROP_FLOATING_PUNCTUATION, bool_options_def_true, 2);
-    static int def_bookmark_highlight_modes[] = { 0, 1, 2 };
-    props->setIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
-    props->limitValueList(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, def_bookmark_highlight_modes, sizeof(def_bookmark_highlight_modes)/sizeof(int));
+    props->limitValueMinMax(PROP_FONT_HINTING, 0, 2, 0);
+    props->limitValueMinMax(PROP_FONT_SHAPING, 0, 2, 1);
+    props->limitValueMinMax(PROP_LANDSCAPE_PAGES, 1, 2, 2);
+    props->setBoolDef(PROP_PAGE_VIEW_MODE, true);
+    props->setBoolDef(PROP_FOOTNOTES, true);
+    props->setBoolDef(PROP_DISPLAY_INVERSE, false);
+    props->setBoolDef(PROP_BOOKMARK_ICONS, false);
+    props->setBoolDef(PROP_FONT_KERNING_ENABLED, false);
+    props->setBoolDef(PROP_FLOATING_PUNCTUATION, true);
+    props->limitValueMinMax(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, 0, 2, (int)highlight_mode_underline);
     props->setColorDef(PROP_HIGHLIGHT_SELECTION_COLOR, 0xC0C0C0); // silver
     props->setColorDef(PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, 0xA08020); // yellow
     props->setColorDef(PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, 0xA04040); // red
 
-    static int def_status_line[] = { 0, 1, 2 };
-	props->limitValueList(PROP_STATUS_LINE, def_status_line, 3);
-    static int def_margin[] = {8, 0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20, 25, 30, 40, 50, 60, 80, 100, 130, 150, 200, 300};
-	props->limitValueList(PROP_PAGE_MARGIN_TOP, def_margin, sizeof(def_margin)/sizeof(int));
-	props->limitValueList(PROP_PAGE_MARGIN_BOTTOM, def_margin, sizeof(def_margin)/sizeof(int));
-	props->limitValueList(PROP_PAGE_MARGIN_LEFT, def_margin, sizeof(def_margin)/sizeof(int));
-	props->limitValueList(PROP_PAGE_MARGIN_RIGHT, def_margin, sizeof(def_margin)/sizeof(int));
-    static int def_rounded_corners_margin[] = {0, 5, 10, 15, 20, 30, 40, 50, 60, 70,80, 90, 100, 120, 140, 160};
-    props->limitValueList(PROP_ROUNDED_CORNERS_MARGIN, def_rounded_corners_margin, sizeof(def_rounded_corners_margin)/sizeof(int));
+    props->limitValueMinMax(PROP_STATUS_LINE, 0, 2, 1);
+    props->setBoolDef(PROP_SHOW_TIME, true);
+    props->setBoolDef(PROP_SHOW_TITLE, true);
+    props->setBoolDef(PROP_SHOW_TIME_12HOURS, false);
+    props->setBoolDef(PROP_SHOW_BATTERY, true);
+    props->setBoolDef(PROP_SHOW_BATTERY_PERCENT, false);
+    props->setBoolDef(PROP_SHOW_PAGE_COUNT, true);
+    props->setBoolDef(PROP_SHOW_PAGE_NUMBER, true);
+    props->setBoolDef(PROP_SHOW_POS_PERCENT, false);
+    props->setBoolDef(PROP_STATUS_CHAPTER_MARKS, true);
 
-    static int def_updates[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8, 10, 14 };
-	props->limitValueList(PROP_DISPLAY_FULL_UPDATE_INTERVAL, def_updates, 11);
-	int fs = props->getIntDef(PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE);
-    if (fs < MIN_STATUS_FONT_SIZE)
-        fs = MIN_STATUS_FONT_SIZE;
-    else if (fs > MAX_STATUS_FONT_SIZE)
-        fs = MAX_STATUS_FONT_SIZE;
-	props->setIntDef(PROP_STATUS_FONT_SIZE, fs);
-    props->limitValueList(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, bool_options_def_false, 2);
-    props->limitValueList(PROP_TEXTLANG_HYPHENATION_ENABLED, bool_options_def_true, 2);
-	lString32 hyph = props->getStringDef(PROP_HYPHENATION_DICT,
-			DEF_HYPHENATION_DICT);
-	HyphDictionaryList * dictlist = HyphMan::getDictList();
-	if (dictlist) {
-		if (dictlist->find(hyph))
-			props->setStringDef(PROP_HYPHENATION_DICT, hyph);
-		else
-			props->setStringDef(PROP_HYPHENATION_DICT, lString32(
-					HYPH_DICT_ID_ALGORITHM));
-	}
-	props->setIntDef(PROP_STATUS_LINE, 1);
-	props->setIntDef(PROP_SHOW_TITLE, 1);
-	props->setIntDef(PROP_SHOW_TIME, 1);
-	props->setIntDef(PROP_SHOW_TIME_12HOURS, 0);
-	props->setIntDef(PROP_SHOW_BATTERY, 1);
-    props->setIntDef(PROP_SHOW_BATTERY_PERCENT, 0);
-    props->setIntDef(PROP_SHOW_PAGE_COUNT, 1);
-    props->setIntDef(PROP_SHOW_PAGE_NUMBER, 1);
-    props->setIntDef(PROP_SHOW_POS_PERCENT, 0);
-    props->setIntDef(PROP_STATUS_CHAPTER_MARKS, 1);
-    props->setIntDef(PROP_FLOATING_PUNCTUATION, 1);
+    static int margin_options[] = {0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20, 25, 30, 40, 50, 60, 80, 100, 130, 150, 200, 300};
+    props->limitValueList(PROP_PAGE_MARGIN_TOP, margin_options, sizeof(margin_options)/sizeof(int), 6);
+    props->limitValueList(PROP_PAGE_MARGIN_BOTTOM, margin_options, sizeof(margin_options)/sizeof(int), 6);
+    props->limitValueList(PROP_PAGE_MARGIN_LEFT, margin_options, sizeof(margin_options)/sizeof(int), 6);
+    props->limitValueList(PROP_PAGE_MARGIN_RIGHT, margin_options, sizeof(margin_options)/sizeof(int), 6);
+    static int rounded_corners_margin_options[] = {0, 5, 10, 15, 20, 30, 40, 50, 60, 70,80, 90, 100, 120, 140, 160};
+    props->limitValueList(PROP_ROUNDED_CORNERS_MARGIN, rounded_corners_margin_options, sizeof(rounded_corners_margin_options)/sizeof(int), 0);
 
-#ifndef ANDROID
-    props->setIntDef(PROP_EMBEDDED_STYLES, 1);
-    props->setIntDef(PROP_EMBEDDED_FONTS, 1);
-    props->setIntDef(PROP_TXT_OPTION_PREFORMATTED, 0);
-    props->limitValueList(PROP_TXT_OPTION_PREFORMATTED, bool_options_def_false,
-            2);
-#endif
+    static int screen_updates_options[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 14 };
+    props->limitValueList(PROP_DISPLAY_FULL_UPDATE_INTERVAL, screen_updates_options, sizeof(screen_updates_options)/sizeof(int), 1);
+    props->setBoolDef(PROP_DISPLAY_TURBO_UPDATE_MODE, false);
+    props->limitValueMinMax(PROP_STATUS_FONT_SIZE, MIN_STATUS_FONT_SIZE, MAX_STATUS_FONT_SIZE, INFO_FONT_SIZE);
 
-    props->setStringDef(PROP_FONT_GAMMA, "1.00");
+    props->setBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false);
+    props->setBoolDef(PROP_TEXTLANG_HYPHENATION_ENABLED, true);
+    lString32 hyph = props->getStringDef(PROP_HYPHENATION_DICT,
+                                         DEF_HYPHENATION_DICT);
+    HyphDictionaryList * dictlist = HyphMan::getDictList();
+    if (dictlist) {
+        if (dictlist->find(hyph))
+            props->setStringDef(PROP_HYPHENATION_DICT, hyph);
+        else
+            props->setStringDef(PROP_HYPHENATION_DICT, lString32(
+                                    HYPH_DICT_ID_ALGORITHM));
+    }
+
+    props->setStringDef(PROP_FONT_GAMMA, "1.0");
 
     img_scaling_option_t defImgScaling;
     props->setIntDef(PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, defImgScaling.max_scale);
@@ -6588,33 +6582,10 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->setIntDef(PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE, defImgScaling.mode);
     props->setIntDef(PROP_IMG_SCALING_ZOOMIN_INLINE_MODE, defImgScaling.mode);
 
-    int p = props->getIntDef(PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT, DEF_SPACE_WIDTH_SCALE_PERCENT);
-    if (p<10)
-        p = 10;
-    if (p>500)
-        p = 500;
-    props->setInt(PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT, p);
-
-    p = props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, DEF_MIN_SPACE_CONDENSING_PERCENT);
-    if (p<25)
-        p = 25;
-    if (p>100)
-        p = 100;
-    props->setInt(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, p);
-
-    p = props->getIntDef(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, DEF_UNUSED_SPACE_THRESHOLD_PERCENT);
-    if (p<0)
-        p = 0;
-    if (p>20)
-        p = 20;
-    props->setInt(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, p);
-
-    p = props->getIntDef(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, DEF_MAX_ADDED_LETTER_SPACING_PERCENT);
-    if (p<0)
-        p = 0;
-    if (p>20)
-        p = 20;
-    props->setInt(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, p);
+    props->limitValueMinMax(PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT, 10, 500, DEF_SPACE_WIDTH_SCALE_PERCENT);
+    props->limitValueMinMax(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, 25, 100, DEF_MIN_SPACE_CONDENSING_PERCENT);
+    props->limitValueMinMax(PROP_FORMAT_UNUSED_SPACE_THRESHOLD_PERCENT, 0, 20, DEF_UNUSED_SPACE_THRESHOLD_PERCENT);
+    props->limitValueMinMax(PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT, 0, 20, DEF_MAX_ADDED_LETTER_SPACING_PERCENT);
 
 #ifndef ANDROID
     props->setIntDef(PROP_RENDER_DPI, DEF_RENDER_DPI); // 96 dpi
@@ -6659,7 +6630,6 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
     CRLog::trace("LVDocView::propsApply( %d items )", props->getCount());
     CRPropRef unknown = LVCreatePropsContainer();
     bool needUpdateMargins = false;
-    bool needUpdateHyphenation = false;
     for (int i = 0; i < props->getCount(); i++) {
         lString8 name(props->getName(i));
         lString32 value = props->getValue(i);
@@ -6677,10 +6647,14 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         } else if (name == PROP_FONT_GAMMA) {
             double gamma = 1.0;
             lString32 s = props->getStringDef(PROP_FONT_GAMMA, "1.0");
-            lString8 s8 = UnicodeToUtf8(s);
-            if ( sscanf(s8.c_str(), "%lf", &gamma)==1 ) {
+            // When parsing a gamma value string, the decimal point is always '.' char.
+            // So if a different decimal point character is used in the current locale,
+            // and if we use some library function to convert the string to floating point number, then it may fail.
+            if (s.atod(gamma, '.')) {
                 fontMan->SetGamma(gamma);
                 clearImageCache();
+            } else {
+                CRLog::error("Invalid gamma value (%s)", LCSTR(s));
             }
         } else if (name == PROP_FONT_HINTING) {
             int mode = props->getIntDef(PROP_FONT_HINTING, (int)HINTING_MODE_AUTOHINT);
@@ -6807,44 +6781,17 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 fontSize = MAX_STATUS_FONT_SIZE;
             setStatusFontSize(fontSize);//cr_font_sizes
             value = lString32::itoa(fontSize);
-        } else if (name == PROP_HYPHENATION_DICT) {
-            needUpdateHyphenation = true;
-        } else if (name == PROP_HYPHENATION_LEFT_HYPHEN_MIN) {
-            int leftHyphenMin = props->getIntDef(PROP_HYPHENATION_LEFT_HYPHEN_MIN, HYPH_DEFAULT_HYPHEN_MIN);
-            if (HyphMan::getLeftHyphenMin() != leftHyphenMin) {
-                HyphMan::setLeftHyphenMin(leftHyphenMin);
-                REQUEST_RENDER("propsApply hyphenation left_hyphen_min")
-            }
-        } else if (name == PROP_HYPHENATION_RIGHT_HYPHEN_MIN) {
-            int rightHyphenMin = props->getIntDef(PROP_HYPHENATION_RIGHT_HYPHEN_MIN, HYPH_DEFAULT_HYPHEN_MIN);
-            if (HyphMan::getRightHyphenMin() != rightHyphenMin) {
-                HyphMan::setRightHyphenMin(rightHyphenMin);
-                REQUEST_RENDER("propsApply hyphenation right_hyphen_min")
-            }
-        } else if (name == PROP_HYPHENATION_TRUST_SOFT_HYPHENS) {
-            int trustSoftHyphens = props->getIntDef(PROP_HYPHENATION_TRUST_SOFT_HYPHENS, HYPH_DEFAULT_TRUST_SOFT_HYPHENS);
-            if (HyphMan::getTrustSoftHyphens() != trustSoftHyphens) {
-                HyphMan::setTrustSoftHyphens(trustSoftHyphens);
-                REQUEST_RENDER("propsApply hyphenation trust_soft_hyphens")
-            }
-        } else if (name == PROP_TEXTLANG_MAIN_LANG) {
-            needUpdateHyphenation = true;
-        } else if (name == PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED) {
-            needUpdateHyphenation = true;
-        } else if (name == PROP_TEXTLANG_HYPHENATION_ENABLED) {
-            needUpdateHyphenation = true;
-        } else if (name == PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY) {
-            bool enabled = props->getIntDef(PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY, TEXTLANG_DEFAULT_HYPH_SOFT_HYPHENS_ONLY);
-            if ( enabled != TextLangMan::getHyphenationSoftHyphensOnly() ) {
-                TextLangMan::setHyphenationSoftHyphensOnly( enabled );
-                REQUEST_RENDER("propsApply textlang hyphenation_soft_hyphens_only")
-            }
-        } else if (name == PROP_TEXTLANG_HYPH_FORCE_ALGORITHMIC) {
-            bool enabled = props->getIntDef(PROP_TEXTLANG_HYPH_FORCE_ALGORITHMIC, TEXTLANG_DEFAULT_HYPH_FORCE_ALGORITHMIC);
-            if ( enabled != TextLangMan::getHyphenationForceAlgorithmic() ) {
-                TextLangMan::setHyphenationForceAlgorithmic( enabled );
-                REQUEST_RENDER("propsApply textlang hyphenation_force_algorithmic")
-            }
+        } else if (name == PROP_HYPHENATION_DICT
+                   || name == PROP_HYPHENATION_LEFT_HYPHEN_MIN
+                   || name == PROP_HYPHENATION_RIGHT_HYPHEN_MIN
+                   || name == PROP_HYPHENATION_TRUST_SOFT_HYPHENS
+                   || name == PROP_TEXTLANG_MAIN_LANG
+                   || name == PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED
+                   || name == PROP_TEXTLANG_HYPHENATION_ENABLED
+                   || name == PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY
+                   || name == PROP_TEXTLANG_HYPH_FORCE_ALGORITHMIC) {
+            // do nothings, see bellow
+            // just to not add this to the list of unknown props
         } else if (name == PROP_INTERLINE_SPACE) {
             int interlineSpace = props->getIntDef(PROP_INTERLINE_SPACE,
                                                   cr_interline_spaces[20]);
@@ -6888,7 +6835,6 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             int value = props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
             if (m_doc) // not when noDefaultDocument=true
                 if (getDocument()->setDOMVersionRequested(value)) {
-                    needUpdateHyphenation = true;
                     REQUEST_RENDER("propsApply requested dom version")
                 }
         } else if (name == PROP_RENDER_BLOCK_RENDERING_FLAGS) {
@@ -6957,13 +6903,43 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
     }
     if (needUpdateMargins)
         updatePageMargins();
-    if (needUpdateHyphenation) {
-        bool legacyRendering = m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT) == 0 ||
-                m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent) < 20180524;
-        if (legacyRendering) {
+
+    // Always set/reset the TextLangMan & HyphMan properties, as this is one
+    // static instance and when using multiple document instances, the settings
+    // for one document may not match the settings for another document.
+    bool legacyRendering = m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT) == 0 ||
+            m_props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent) < 20180524;
+    if (legacyRendering) {
+        // hyphenation dictionary
+        lString32 id = m_props->getStringDef(PROP_HYPHENATION_DICT,
+                                            DEF_HYPHENATION_DICT);
+        CRLog::debug("PROP_HYPHENATION_DICT = %s", LCSTR(id));
+        HyphDictionaryList * list = HyphMan::getDictList();
+        if (list) {
+            CRLog::debug("Changing hyphenation to %s", LCSTR(id));
+            list->activate(id);
+            REQUEST_RENDER("propsApply hyphenation dict")
+        }
+    } else {
+        bool embeddedLang = m_props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, 0);
+        lString32 mainLang = m_props->getStringDef(PROP_TEXTLANG_MAIN_LANG, TEXTLANG_DEFAULT_MAIN_LANG);
+        bool hyphEnabled = m_props->getBoolDef(PROP_TEXTLANG_HYPHENATION_ENABLED, TEXTLANG_DEFAULT_HYPHENATION_ENABLED);
+        if (embeddedLang != TextLangMan::getEmbeddedLangsEnabled()) {
+            TextLangMan::setEmbeddedLangsEnabled(embeddedLang);
+            REQUEST_RENDER("propsApply textlang embedded_langs_enabled")
+        }
+        if (mainLang != TextLangMan::getMainLang()) {
+            TextLangMan::setMainLang(mainLang);
+            REQUEST_RENDER("propsApply textlang main_lang")
+        }
+        if (hyphEnabled != TextLangMan::getHyphenationEnabled()) {
+            TextLangMan::setHyphenationEnabled(hyphEnabled);
+            REQUEST_RENDER("propsApply textlang hyphenation_enabled")
+        }
+        if (!TextLangMan::getEmbeddedLangsEnabled()) {
             // hyphenation dictionary
             lString32 id = m_props->getStringDef(PROP_HYPHENATION_DICT,
-                                               DEF_HYPHENATION_DICT);
+                                                 DEF_HYPHENATION_DICT);
             CRLog::debug("PROP_HYPHENATION_DICT = %s", LCSTR(id));
             HyphDictionaryList * list = HyphMan::getDictList();
             if (list) {
@@ -6971,35 +6947,32 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 list->activate(id);
                 REQUEST_RENDER("propsApply hyphenation dict")
             }
-        } else {
-            bool embeddedLang = m_props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, 0) != 0;
-            lString32 mainLang = m_props->getStringDef(PROP_TEXTLANG_MAIN_LANG, TEXTLANG_DEFAULT_MAIN_LANG);
-            bool hyphEnabled = m_props->getIntDef(PROP_TEXTLANG_HYPHENATION_ENABLED, TEXTLANG_DEFAULT_HYPHENATION_ENABLED) != 0;
-            if (embeddedLang != TextLangMan::getEmbeddedLangsEnabled()) {
-                TextLangMan::setEmbeddedLangsEnabled(embeddedLang);
-                REQUEST_RENDER("propsApply textlang embedded_langs_enabled")
-            }
-            if (mainLang != TextLangMan::getMainLang()) {
-                TextLangMan::setMainLang(mainLang);
-                REQUEST_RENDER("propsApply textlang main_lang")
-            }
-            if (hyphEnabled != TextLangMan::getHyphenationEnabled()) {
-                TextLangMan::setHyphenationEnabled(hyphEnabled);
-                REQUEST_RENDER("propsApply textlang hyphenation_enabled")
-            }
-            if (!TextLangMan::getEmbeddedLangsEnabled()) {
-                // hyphenation dictionary
-                lString32 id = m_props->getStringDef(PROP_HYPHENATION_DICT,
-                                                   DEF_HYPHENATION_DICT);
-                CRLog::debug("PROP_HYPHENATION_DICT = %s", LCSTR(id));
-                HyphDictionaryList * list = HyphMan::getDictList();
-                if (list) {
-                    CRLog::debug("Changing hyphenation to %s", LCSTR(id));
-                    list->activate(id);
-                    REQUEST_RENDER("propsApply hyphenation dict")
-                }
-            }
         }
+    }
+    bool hyph_soft_only_enabled = m_props->getBoolDef(PROP_TEXTLANG_HYPH_SOFT_HYPHENS_ONLY, TEXTLANG_DEFAULT_HYPH_SOFT_HYPHENS_ONLY);
+    if ( hyph_soft_only_enabled != TextLangMan::getHyphenationSoftHyphensOnly() ) {
+        TextLangMan::setHyphenationSoftHyphensOnly( hyph_soft_only_enabled );
+        REQUEST_RENDER("propsApply textlang hyphenation_soft_hyphens_only")
+    }
+    bool hyph_force_algo_enabled = m_props->getBoolDef(PROP_TEXTLANG_HYPH_FORCE_ALGORITHMIC, TEXTLANG_DEFAULT_HYPH_FORCE_ALGORITHMIC);
+    if ( hyph_force_algo_enabled != TextLangMan::getHyphenationForceAlgorithmic() ) {
+        TextLangMan::setHyphenationForceAlgorithmic( hyph_force_algo_enabled );
+        REQUEST_RENDER("propsApply textlang hyphenation_force_algorithmic")
+    }
+    int leftHyphenMin = m_props->getIntDef(PROP_HYPHENATION_LEFT_HYPHEN_MIN, HYPH_DEFAULT_HYPHEN_MIN);
+    if (HyphMan::getLeftHyphenMin() != leftHyphenMin) {
+        HyphMan::setLeftHyphenMin(leftHyphenMin);
+        REQUEST_RENDER("propsApply hyphenation left_hyphen_min")
+    }
+    int rightHyphenMin = m_props->getIntDef(PROP_HYPHENATION_RIGHT_HYPHEN_MIN, HYPH_DEFAULT_HYPHEN_MIN);
+    if (HyphMan::getRightHyphenMin() != rightHyphenMin) {
+        HyphMan::setRightHyphenMin(rightHyphenMin);
+        REQUEST_RENDER("propsApply hyphenation right_hyphen_min")
+    }
+    int trustSoftHyphens = m_props->getIntDef(PROP_HYPHENATION_TRUST_SOFT_HYPHENS, HYPH_DEFAULT_TRUST_SOFT_HYPHENS);
+    if (HyphMan::getTrustSoftHyphens() != trustSoftHyphens) {
+        HyphMan::setTrustSoftHyphens(trustSoftHyphens);
+        REQUEST_RENDER("propsApply hyphenation trust_soft_hyphens")
     }
     return unknown;
 }
