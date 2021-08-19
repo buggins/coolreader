@@ -367,7 +367,7 @@ public class TTSControlService extends BaseService {
 						} else {
 							log.e("Failed to build notification!");
 						}
-						if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
+						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 							// Workaround for API26+ bug:
 							// https://stackoverflow.com/questions/45960265/android-o-oreo-8-and-higher-media-buttons-issue
 							// https://issuetracker.google.com/issues/65344811
