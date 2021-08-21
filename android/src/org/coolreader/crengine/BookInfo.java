@@ -8,12 +8,26 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
-public class BookInfo {
+public class BookInfo implements Parcelable {
 	private FileInfo fileInfo;
 	private Bookmark lastPosition;
 	private ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>();
+
+	public static final Creator<BookInfo> CREATOR = new Creator<BookInfo>() {
+		@Override
+		public BookInfo createFromParcel(Parcel in) {
+			return new BookInfo(in);
+		}
+
+		@Override
+		public BookInfo[] newArray(int size) {
+			return new BookInfo[size];
+		}
+	};
 
 	synchronized public void setShortcutBookmark(int shortcut, Bookmark bookmark)
 	{
@@ -68,7 +82,13 @@ public class BookInfo {
 	{
 		this.fileInfo = fileInfo; //new FileInfo(fileInfo);
 	}
-	
+
+	protected BookInfo(Parcel in) {
+		fileInfo = in.readParcelable(FileInfo.class.getClassLoader());
+		lastPosition = in.readParcelable(Bookmark.class.getClassLoader());
+		bookmarks = in.createTypedArrayList(Bookmark.CREATOR);
+	}
+
 	public Bookmark getLastPosition()
 	{
 		return lastPosition;
@@ -291,6 +311,16 @@ public class BookInfo {
 				+ lastPosition + "]";
 	}
 
-	
-	
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeParcelable(fileInfo, flags);
+		dest.writeParcelable(lastPosition, flags);
+		dest.writeTypedList(bookmarks);
+	}
 }
