@@ -829,7 +829,7 @@ public:
     }
 
     lString32 getContentsFileName() {
-        if ( _binaryTOCURLTableId!=0 ) {
+        if ( _binaryTOCURLTableId!=0 && _urlTable != NULL ) {
             lString8 url = _urlTable->urlById(_binaryTOCURLTableId);
             if ( !url.empty() )
                 return decodeString(url);
