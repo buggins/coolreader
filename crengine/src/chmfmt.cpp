@@ -11,6 +11,10 @@
 #include "../include/crlog.h"
 #include <chm_lib.h>
 
+#include "../include/fb2def.h"
+#define XS_IMPLEMENT_SCHEME 1
+#include "../include/fb2def.h"
+
 #define DUMP_CHM_DOC 0
 
 struct crChmExternalFileStream : public chmExternalFileStream {
@@ -866,10 +870,10 @@ ldomDocument * LVParseCHMHTMLStream( LVStreamRef stream, lString32 defEncodingNa
     if ( stream.isNull() )
         return NULL;
 
+#if 0
     // detect encondig
     stream->SetPos(0);
 
-#if 0
     ldomDocument * encDetectionDoc = LVParseHTMLStream( stream );
     int encoding = 0;
     if ( encDetectionDoc!=NULL ) {
@@ -905,11 +909,14 @@ ldomDocument * LVParseCHMHTMLStream( LVStreamRef stream, lString32 defEncodingNa
     ldomDocument * doc;
     doc = new ldomDocument();
     doc->setDocFlags( 0 );
+    doc->setNodeTypes(fb2_elem_table);
+    doc->setAttributeTypes(fb2_attr_table);
+    doc->setNameSpaceTypes(fb2_ns_table);
 
     ldomDocumentWriterFilter writerFilter(doc, false, HTML_AUTOCLOSE_TABLE);
     writerFilter.setFlags(writerFilter.getFlags() | TXTFLG_CONVERT_8BIT_ENTITY_ENCODING);
 
-    /// FB2 format
+    /// HTML format
     LVFileFormatParser * parser = new LVHTMLParser(stream, &writerFilter);
     if ( !defEncodingName.empty() )
         parser->SetCharset(defEncodingName.c_str());
@@ -1109,11 +1116,11 @@ public:
                 return false;
             }
 
-    #if DUMP_CHM_DOC==1
-        LVStreamRef out = LVOpenFileStream(U"/tmp/chm-toc.html", LVOM_WRITE);
-        if ( !out.isNull() )
-            doc->saveToStream( out, NULL, true );
-    #endif
+#if DUMP_CHM_DOC==1
+            LVStreamRef out = LVOpenFileStream(U"chm-toc.xml", LVOM_WRITE);
+            if ( !out.isNull() )
+                doc->saveToStream( out, NULL, true );
+#endif
 
             ldomNode * body = doc->getRootNode(); //doc->createXPointer(cs32("/html[1]/body[1]"));
             bool res = false;
