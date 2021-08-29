@@ -14,6 +14,7 @@ public class Services {
 	private static CoverpageManager mCoverpageManager;
 	private static FileSystemFolders mFSFolders;
 	private static GenresCollection mGenresCollection;
+	private static DocumentFileCache mDocumentCache;
 
 	public static Engine getEngine() {
 		if (null != mEngine)
@@ -51,35 +52,36 @@ public class Services {
 		throw new RuntimeException("Services.getGenresCollection(): trying to get null object");
 	}
 
+	public static DocumentFileCache getDocumentCache() {
+		if (null != mDocumentCache)
+			return mDocumentCache;
+		throw new RuntimeException("Services.getDocumentCache(): trying to get null object");
+	}
+
 	public static boolean isStopped() {
-		return null == mEngine || null == mScanner || null == mHistory || null == mCoverpageManager || null == mFSFolders || null == mGenresCollection;
+		return null == mEngine || null == mScanner || null == mHistory || null == mCoverpageManager || null == mFSFolders || null == mGenresCollection || null == mDocumentCache;
 	}
 
 	public static void startServices(BaseActivity activity) {
 		log.i("First activity is created");
 		// testing background thread
 		//mSettings = activity.settings();
-
 		BackgroundThread.instance().setGUIHandler(new Handler());
-
 		mEngine = Engine.getInstance(activity);
-
 		mScanner = new Scanner(activity, mEngine);
-		mScanner.initRoots(Engine.getMountedRootsMap());
-
+		mScanner.initRoots(Engine.getMountedRootsMap(), mEngine.getAppPrivateDirs());
 		mHistory = new History(mScanner);
 		mScanner.setDirScanEnabled(activity.settings().getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
 		mCoverpageManager = new CoverpageManager();
-
 		mFSFolders = new FileSystemFolders(mScanner);
-
 		mGenresCollection = GenresCollection.getInstance(activity);
+		mDocumentCache = new DocumentFileCache(activity);
 	}
 
 	// called after user grant permissions for external storage
 	public static void refreshServices(BaseActivity activity) {
 		mEngine.initAgain();
-		mScanner.initRoots(Engine.getMountedRootsMap());
+		mScanner.initRoots(Engine.getMountedRootsMap(), mEngine.getAppPrivateDirs());
 	}
 
 	public static void stopServices() {
@@ -102,5 +104,6 @@ public class Services {
 		mCoverpageManager = null;
 		mFSFolders = null;
 		mGenresCollection = null;
+		mDocumentCache = null;
 	}
 }

@@ -306,7 +306,7 @@ public class LitresConnection {
 
 					try (InputStream inputStream = is;
 						 OutputStream outputStream = new FileOutputStream(contentHandler.fileToSave)) {
-						int bytesRead = Utils.copyStreamContent(outputStream, inputStream);
+						long bytesRead = Utils.copyStreamContent(outputStream, inputStream);
 						Log.i(TAG, "downloaded bytes: " + bytesRead);
 					}
 				} catch (IOException e) {

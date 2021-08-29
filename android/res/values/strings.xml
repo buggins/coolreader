@@ -774,4 +774,5 @@
     <string name="filter_by_book_language_s">Filter by book language (%s)</string>
     <string name="scanning_font_files">Scanning font files…</string>
     <string name="undetermined">Undetermined</string>
+    <string name="failed_to_save_memory_stream">Failed to save memory stream to device storage!</string>
 </resources>

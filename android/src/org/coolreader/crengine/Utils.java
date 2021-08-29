@@ -76,8 +76,8 @@ public class Utils {
 		return moveFile(oldPlace, newPlace, false);
 	}
 
-	public static int copyStreamContent(OutputStream os, InputStream is) throws IOException {
-		int totalSize = 0;
+	public static long copyStreamContent(OutputStream os, InputStream is) throws IOException {
+		long totalSize = 0;
 		byte[] buf = new byte[0x10000];
 		for (;;) {
 			int bytesRead = is.read(buf);

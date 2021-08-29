@@ -85,6 +85,14 @@ JNIEXPORT jintArray JNICALL Java_org_coolreader_crengine_Engine_getAvailableSynt
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    isArchiveInternal
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_isArchiveInternal
+  (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    getArchiveItemsInternal
  * Signature: (Ljava/lang/String;)[Ljava/lang/String;
  */

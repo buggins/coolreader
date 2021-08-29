@@ -877,12 +877,12 @@ static DocViewNative * getNative(JNIEnv * env, jobject _this)
 	return res;
 }
 
-void DocViewNative::createDefaultDocument( lString32 title, lString32 message )
+void DocViewNative::createDefaultDocument( const lString32& title, const lString32& message )
 {
 	_docview->createDefaultDocument(title, message);
 }
 
-bool DocViewNative::loadDocument( lString32 filename )
+bool DocViewNative::loadDocument( const lString32& filename )
 {
 	CRLog::info("Loading document %s", LCSTR(filename));
 	bool res = _docview->LoadDocument(filename.c_str());
@@ -901,7 +901,7 @@ bool DocViewNative::loadDocument( lString32 filename )
     return res;
 }
 
-bool DocViewNative::loadDocument( LVStreamRef stream, lString32 contentPath )
+bool DocViewNative::loadDocument( LVStreamRef stream, const lString32& contentPath )
 {
 	CRLog::info("Loading document from memory stream, content path: %s", LCSTR(contentPath));
 	bool res = _docview->LoadDocument(stream, contentPath.c_str(), false);
@@ -1549,8 +1549,8 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_loadDocumentFrom
 	}
 	DocViewCallback callback( _env, p->_docview, _this );
 	LVStreamRef stream = env.jbyteArrayToStream(buf);
-	lString32 contentPath16 = env.fromJavaString(contentPath);
-	bool res = p->loadDocument(stream, contentPath16);
+	lString32 contentPath32 = env.fromJavaString(contentPath);
+	bool res = p->loadDocument(stream, contentPath32);
 	return res ? JNI_TRUE : JNI_FALSE;
 }
 
@@ -1790,10 +1790,10 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getCurrentPageBoo
 /*
  * Class:     org_coolreader_crengine_DocView
  * Method:    updateBookInfoInternal
- * Signature: (Lorg/coolreader/crengine/BookInfo;)V
+ * Signature: (Lorg/coolreader/crengine/BookInfo;Z)V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateBookInfoInternal
-  (JNIEnv * _env, jobject _this, jobject _info)
+  (JNIEnv * _env, jobject _this, jobject _info, jboolean _updatePath)
 {
 	CRJNIEnv env(_env);
     DocViewNative * p = getNative(_env, _this);
@@ -1838,6 +1838,43 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateBookInfoIntern
     descriptionField.set(p->_docview->getDescription());
     CRLongField crc32Field(fileinfo,"crc32");
     crc32Field.set((lInt64)p->_docview->getFileCRC32());
+    jclass clazz_docformat = env->FindClass("org/coolreader/crengine/DocumentFormat");
+    jmethodID methodId_byId = NULL;
+    if (NULL != clazz_docformat) {
+        methodId_byId = env->GetStaticMethodID(clazz_docformat, "byId", "(I)Lorg/coolreader/crengine/DocumentFormat;");
+    }
+    if (NULL != methodId_byId) {
+        jobject jformat = env->CallStaticObjectMethod(clazz_docformat, methodId_byId, p->_docview->getDocFormat());
+        CRObjectField formatField(fileinfo, "format", "Lorg/coolreader/crengine/DocumentFormat;");
+        formatField.set(jformat);
+    }
+    if (_updatePath) {
+		CRPropRef doc_props = p->_docview->getDocProps();
+		if (!doc_props.isNull()) {
+			bool isArchive = !doc_props->getStringDef(DOC_PROP_ARC_NAME, "").empty();
+			if (isArchive) {
+				lString32 arcname = doc_props->getStringDef(DOC_PROP_ARC_NAME, "");
+				int arcsize = doc_props->getIntDef(DOC_PROP_ARC_SIZE, 0);
+				CRStringField arcnameField(fileinfo, "arcname");
+				arcnameField.set(arcname);
+				CRLongField arcsizeField(fileinfo, "arcsize");
+				arcsizeField.set(arcsize);
+			}
+			lString32 pathname = doc_props->getStringDef(DOC_PROP_FILE_NAME, "");
+			lString32 filename = LVExtractFilename(pathname);
+			int size = doc_props->getIntDef(DOC_PROP_FILE_SIZE, 0);
+			CRBooleanField isArchiveField(fileinfo, "isArchive");
+			isArchiveField.set(isArchive);
+			CRStringField pathnameField(fileinfo, "pathname");
+			CRStringField pathField(fileinfo, "path");
+			pathnameField.set(pathname);
+			pathField.set(pathname);
+			CRStringField filenameField(fileinfo, "filename");
+			filenameField.set(filename);
+			CRLongField sizeField(fileinfo, "size");
+			sizeField.set(size);
+		}
+	}
 }
 
 /*

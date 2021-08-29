@@ -735,4 +735,5 @@
     <string name="filter_by_book_language_s">Отфильтровать по языку книги (%s)</string>
     <string name="scanning_font_files">Сканирование файлов шрифтов…</string>
     <string name="undetermined">Неопределенный</string>
+    <string name="failed_to_save_memory_stream">Не удалось сохранить внешний поток в хранилище устройства!</string>
 </resources>
