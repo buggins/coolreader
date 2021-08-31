@@ -14,9 +14,11 @@ import android.util.Log;
 
 public class CRDBServiceAccessor {
 	private final static String TAG = "cr3db";
-	private Activity mActivity;
+	private final Activity mActivity;
     private volatile CRDBService.LocalBinder mService;
     private volatile boolean mServiceBound;
+	private volatile boolean bindIsCalled;
+	private final ArrayList<Runnable> onConnectCallbacks = new ArrayList<Runnable>();
     private MountPathCorrector pathCorrector;
 
     public CRDBService.LocalBinder get() {
@@ -36,9 +38,6 @@ public class CRDBServiceAccessor {
     		mService.setPathCorrector(pathCorrector);
 	}
 
-	private ArrayList<Runnable> onConnectCallbacks = new ArrayList<Runnable>();
-	
-	private boolean bindIsCalled;
     public void bind(final Runnable boundCallback) {
     	synchronized(this) {
 			if (mService != null) {
@@ -73,9 +72,10 @@ public class CRDBServiceAccessor {
             mActivity.unbindService(mServiceConnection);
             mServiceBound = false;
             bindIsCalled = false;
+            mService = null;
         }
     }
-    
+
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
 			synchronized(CRDBServiceAccessor.this) {
@@ -96,6 +96,8 @@ public class CRDBServiceAccessor {
 
         public void onServiceDisconnected(ComponentName className) {
         	synchronized(CRDBServiceAccessor.this) {
+				mServiceBound = false;
+				bindIsCalled = false;
 				mService = null;
 			}
 			Log.i(TAG, "disconnected from CRDBService");

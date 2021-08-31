@@ -40,7 +40,7 @@ void crSetFileToRemoveOnFatalError(const char * filename) {
 #ifdef _LINUX
 static struct sigaction old_sa[NSIG];
 
-#if FOR_ANDROID == 1
+#ifdef ANDROID
 //#define ANDROID_BACKTRACE
 #endif
 

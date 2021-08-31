@@ -28,6 +28,11 @@
 #include <fontconfig/fontconfig.h>
 #endif
 
+#include "crlocaledata.h"
+#if USE_LOCALE_DATA==1
+#include "fc-lang-data.h"
+#endif
+
 inline int myabs(int n) { return n < 0 ? -n : n; }
 
 lString8 familyName(FT_Face face) {
@@ -84,6 +89,78 @@ int getFontWeight(FT_Face face) {
         weight = 700;
     return weight;
 }
+
+#if USE_LOCALE_DATA==1
+LVHashTable<lString8, font_lang_compat>* getSupportedLangs(FT_Face face) {
+    LVHashTable<lString8, font_lang_compat>* langs = new LVHashTable<lString8, font_lang_compat>(16);
+#define FC_LANG_START_INTERVAL_CODE     0xF0F0FFFF
+    bool fullSupport;
+    bool partialSupport;
+    unsigned int codePoint = 0;
+    unsigned int tmp;
+    unsigned int first, second;
+    bool inRange;
+    const struct fc_lang_rec* rec = get_fc_lang_data();
+    for (unsigned int l = 0; l < get_fc_lang_data_size(); l++) {
+        CRLocaleData loc(rec->lang_code);
+        if (loc.isValid()) {
+            // Check compatibility
+            codePoint = 0;
+            second = 0;
+            inRange = false;
+            FT_UInt glyphIndex;
+            partialSupport = false;
+            fullSupport = true;
+            for (int i = 0;;) {
+                // get next codePoint
+                if (inRange && codePoint < second) {
+                    codePoint++;
+                } else {
+                    if (i >= rec->char_set_sz)
+                        break;
+                    tmp = rec->char_set[i];
+                    if (FC_LANG_START_INTERVAL_CODE == tmp) {       // code of start interval
+                        if (i + 2 < rec->char_set_sz) {
+                            i++;
+                            first = rec->char_set[i];
+                            i++;
+                            second = rec->char_set[i];
+                            inRange = true;
+                            codePoint = first;
+                            i++;
+                        } else {
+                            // broken language char set
+                            fullSupport = false;
+                            break;
+                        }
+                    } else {
+                        codePoint = tmp;
+                        inRange = false;
+                        i++;
+                    }
+                }
+                // check codePoint in this font
+                glyphIndex = FT_Get_Char_Index(face, codePoint);
+                if (0 == glyphIndex) {
+                    fullSupport = false;
+                } else {
+                    partialSupport = true;
+                }
+            }
+            if (fullSupport)
+                langs->set(loc.langTag(), font_lang_compat_full);
+            else if (partialSupport)
+                langs->set(loc.langTag(), font_lang_compat_partial);
+        } else {
+            CRLog::warn("getSupportedLangs(): invalid lang tag: %s", rec->lang_code);
+        }
+        // to next language
+        rec++;
+    }
+    langs->compact();
+    return langs;
+}
+#endif
 
 lUInt32 LVFreeTypeFontManager::GetFontListHash(int documentId) {
     FONT_MAN_GUARD
@@ -393,7 +470,10 @@ bool LVFreeTypeFontManager::initSystemFonts() {
         
         FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_WEIGHT, FC_FAMILY,
                                            FC_SLANT, FC_SPACING, FC_INDEX,
-                                           FC_STYLE, FC_SCALABLE, FC_COLOR,
+                                           FC_STYLE, FC_SCALABLE,
+#ifdef FC_COLOR
+                                           FC_COLOR,
+#endif
                                            NULL);
         FcPattern *pat = FcPatternCreate();
         //FcBool b = 1;
@@ -445,7 +525,9 @@ bool LVFreeTypeFontManager::initSystemFonts() {
                 weight = 200;
                 break;
             case FC_WEIGHT_LIGHT:         //    50
+#ifdef FC_WEIGHT_DEMILIGHT
             case FC_WEIGHT_DEMILIGHT:     //    55
+#endif
                 weight = 300;
                 break;
             case FC_WEIGHT_BOOK:          //    75
@@ -618,6 +700,13 @@ bool LVFreeTypeFontManager::initSystemFonts() {
 
 LVFreeTypeFontManager::~LVFreeTypeFontManager() {
     FONT_MAN_GUARD
+    LVHashTable<lString8, LVHashTable<lString8, font_lang_compat>* >::iterator it = _supportedLangs.forwardIterator();
+    LVHashTable<lString8, LVHashTable<lString8, font_lang_compat>* >::pair* p;
+    while ((p = it.next()) != NULL) {
+        LVHashTable<lString8, font_lang_compat>* langTable = p->value;
+        if (langTable)
+            delete langTable;
+    }
     _globalCache.clear();
     _cache.clear();
     if (_library)
@@ -630,7 +719,7 @@ LVFreeTypeFontManager::~LVFreeTypeFontManager() {
 }
 
 LVFreeTypeFontManager::LVFreeTypeFontManager()
-        : _library(NULL), _globalCache(GLYPH_CACHE_SIZE) {
+        : _library(NULL), _globalCache(GLYPH_CACHE_SIZE), _supportedLangs(16) {
     FONT_MAN_GUARD
     int error = FT_Init_FreeType(&_library);
     if (error) {
@@ -925,12 +1014,25 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
             ref = LVFontRef( new LVFontBoldTransform( ref, &_globalCache ) );
         }
 #endif
+        // build fallback chain
         for (int i = 0; i < _fallbackFontFaces.length(); i++) {
             if (item->getDef()->getTypeFace() == _fallbackFontFaces[i]) {
                 ref->setFallbackMask(1 << i);
                 break;
             }
         }
+        // filling in the language support table if it is empty
+#if USE_LOCALE_DATA==1
+        LVHashTable<lString8, font_lang_compat>* langTable = NULL;
+        if (!_supportedLangs.get(font->getTypeFace(), langTable) || NULL == langTable) {
+            FT_Face face = (FT_Face) font->GetHandle();
+            if (NULL != face) {
+                langTable = getSupportedLangs(face);
+                _supportedLangs.set(font->getTypeFace(), langTable);
+            }
+        }
+#endif
+        // add to cache
         _cache.update( &newDef, ref );
         //            int rsz = ref->getSize();
         //            if ( rsz!=size ) {
@@ -965,13 +1067,56 @@ bool LVFreeTypeFontManager::checkCharSet(FT_Face face) {
     return true;
 }
 
-font_lang_compat LVFreeTypeFontManager::checkFontLangCompat(const lString8 &typeface, const lString8 &langCode) {
-    LVFontRef fntRef = GetFont(-1, 400, false, css_ff_inherit, typeface, -1);
-    if (!fntRef.isNull())
-        return fntRef->checkFontLangCompat(langCode);
-    else
-        CRLog::debug("checkFontLangCompat(): typeface not found: %s", typeface.c_str());
-    return font_lang_compat_invalid_tag;
+font_lang_compat LVFreeTypeFontManager::checkFontLangCompat(const lString8 &typeface, const lString8 &langTag) {
+    font_lang_compat res = font_lang_compat_invalid_tag;
+#if USE_LOCALE_DATA==1
+    CRLocaleData loc(langTag);
+    if (loc.isValid()) {
+        LVHashTable<lString8, font_lang_compat>* langTable = NULL;
+        res = font_lang_compat_none;
+        if (!_supportedLangs.get(typeface, langTable) || NULL == langTable) {
+            if (NULL != langTable) {
+                delete langTable;
+                langTable = NULL;
+                _supportedLangs.remove(typeface);
+            }
+            LVFontRef fntRef = GetFont(-1, 400, false, css_ff_inherit, typeface, -1);
+            if (!fntRef.isNull()) {
+                FT_Face face = (FT_Face) fntRef->GetHandle();
+                if (NULL != face) {
+                    langTable = getSupportedLangs(face);
+                    _supportedLangs.set(typeface, langTable);
+                }
+            }
+        }
+        if (NULL != langTable) {
+            lString8 best_lang;
+            LVHashTable<lString8, font_lang_compat>::iterator it = langTable->forwardIterator();
+            LVHashTable<lString8, font_lang_compat>::pair* p;
+            int max_match = 0;
+            font_lang_compat compat;
+            while ((p = it.next()) != NULL) {
+                lString8 lang = p->key;
+                compat = p->value;
+                CRLocaleData fc_loc(lang);
+                if (fc_loc.isValid()) {
+                    int match = loc.calcMatch(fc_loc);
+                    if (match > max_match) {
+                        max_match = match;
+                        best_lang = lang;
+                    }
+                }
+            }
+            if (!best_lang.empty()) {
+                if (langTable->get(best_lang, compat))
+                    res = compat;
+            }
+        }
+    } else {
+        CRLog::warn("checkFontLangCompat(): invalid langTag: %s", langTag.c_str());
+    }
+#endif
+    return res;
 }
 
 /*

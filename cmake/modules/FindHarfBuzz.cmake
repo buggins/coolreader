@@ -1,66 +1,91 @@
-#.rst:
-# Find HarfBuzz
-# -------------
+# - Try to find the HarfBuzz
+# Once done this will define
 #
-# Finds the HarfBuzz library. This module defines:
-#
-#  HarfBuzz_FOUND           - True if HarfBuzz library is found
-#  HarfBuzz::HarfBuzz       - HarfBuzz imported target
-#
-# Additionally these variables are defined for internal usage:
-#
-#  HARFBUZZ_LIBRARY         - HarfBuzz library
-#  HARFBUZZ_LIBRARIES       - Same as HARFBUZZ_LIBRARY
-#  HARFBUZZ_INCLUDE_DIRS    - Include dir
+#  HarfBuzz_FOUND - system has HarfBuzz
+#  HarfBuzz_INCLUDE_DIRS - The include directory to use for the HarfBuzz headers
+#  HarfBuzz_LIBRARIES - Link these to use HarfBuzz
+#  HarfBuzz_DEFINITIONS - Compiler switches required for using HarfBuzz
+#  HarfBuzz_VERSION - The version of the HarfBuzz library which was found.
+
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+# IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-#   This file is part of Magnum.
-#
-#   Copyright © 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
-#             Vladimír Vondruš <mosra@centrum.cz>
-#
-#   Permission is hereby granted, free of charge, to any person obtaining a
-#   copy of this software and associated documentation files (the "Software"),
-#   to deal in the Software without restriction, including without limitation
-#   the rights to use, copy, modify, merge, publish, distribute, sublicense,
-#   and/or sell copies of the Software, and to permit persons to whom the
-#   Software is furnished to do so, subject to the following conditions:
-#
-#   The above copyright notice and this permission notice shall be included
-#   in all copies or substantial portions of the Software.
-#
-#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-#   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-#   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-#   DEALINGS IN THE SOFTWARE.
-#
+mark_as_advanced(HarfBuzz_LIBRARY HarfBuzz_INCLUDE_DIR)
 
-# Library
-find_library(HARFBUZZ_LIBRARY NAMES harfbuzz)
+if (HarfBuzz_LIBRARY AND HarfBuzz_INCLUDE_DIR)
 
-# Include dir
-find_path(HARFBUZZ_INCLUDE_DIRS
-    NAMES hb.h
-    PATH_SUFFIXES harfbuzz)
+  # in cache already
+  set(HarfBuzz_FOUND TRUE)
 
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(HarfBuzz DEFAULT_MSG
-    HARFBUZZ_LIBRARY
-    HARFBUZZ_INCLUDE_DIRS)
+else (HarfBuzz_LIBRARY AND HarfBuzz_INCLUDE_DIR)
 
-mark_as_advanced(FORCE
-    HARFBUZZ_LIBRARY
-    HARFBUZZ_INCLUDE_DIRS)
+  if (NOT MSVC)
+    # use pkg-config to get the directories and then use these values
+    # in the FIND_PATH() and FIND_LIBRARY() calls
+    find_package(PkgConfig QUIET)
+    pkg_check_modules(PC_HARFBUZZ QUIET harfbuzz)
 
-if(NOT TARGET HarfBuzz::HarfBuzz)
+    set(HarfBuzz_DEFINITIONS ${PC_HARFBUZZ_CFLAGS_OTHER})
+    set(HarfBuzz_VERSION ${PC_HARFBUZZ_VERSION})
+  endif (NOT MSVC)
+
+  find_path(HarfBuzz_INCLUDE_DIR hb.h
+    PATH_SUFFIXES harfbuzz
+    PATHS
+    ${PC_HARFBUZZ_INCLUDEDIR}
+    ${PC_HARFBUZZ_INCLUDE_DIRS}
+  )
+
+  find_library(HarfBuzz_LIBRARY NAMES harfbuzz
+    PATHS
+    ${PC_HARFBUZZ_LIBDIR}
+    ${PC_HARFBUZZ_LIBRARY_DIRS}
+  )
+
+  if (NOT HarfBuzz_VERSION)
+    if(EXISTS "${HarfBuzz_INCLUDE_DIR}/hb-version.h")
+      file(STRINGS "${HarfBuzz_INCLUDE_DIR}/hb-version.h"
+        _HARFBUZZ_VERSION_MAJOR REGEX "^#define HB_VERSION_MAJOR")
+      string(REGEX MATCH "[0-9]+" HarfBuzz_VERSION_MAJOR "${_HARFBUZZ_VERSION_MAJOR}")
+      file(STRINGS "${HarfBuzz_INCLUDE_DIR}/hb-version.h"
+        _HARFBUZZ_VERSION_MINOR REGEX "^#define HB_VERSION_MINOR")
+      string(REGEX MATCH "[0-9]+" HarfBuzz_VERSION_MINOR "${_HARFBUZZ_VERSION_MINOR}")
+      file(STRINGS "${HarfBuzz_INCLUDE_DIR}/hb-version.h"
+        _HARFBUZZ_VERSION_MICRO REGEX "^#define HB_VERSION_MICRO")
+      string(REGEX MATCH "[0-9]+" HarfBuzz_VERSION_MICRO "${_HARFBUZZ_VERSION_MICRO}")
+      set(HarfBuzz_VERSION ${HarfBuzz_VERSION_MAJOR}.${HarfBuzz_VERSION_MINOR}.${HarfBuzz_VERSION_MICRO})
+    endif()
+  endif()
+
+  include(FindPackageHandleStandardArgs)
+  find_package_handle_standard_args(HarfBuzz
+    FOUND_VAR HarfBuzz_FOUND
+    REQUIRED_VARS
+      HarfBuzz_LIBRARY
+      HarfBuzz_INCLUDE_DIR
+    VERSION_VAR HarfBuzz_VERSION
+  )
+
+endif (HarfBuzz_LIBRARY AND HarfBuzz_INCLUDE_DIR)
+
+if(HarfBuzz_FOUND)
+  set(HarfBuzz_LIBRARIES ${HarfBuzz_LIBRARY})
+  set(HarfBuzz_INCLUDE_DIRS ${HarfBuzz_INCLUDE_DIR})
+  if(NOT TARGET HarfBuzz::HarfBuzz)
     add_library(HarfBuzz::HarfBuzz UNKNOWN IMPORTED)
     set_target_properties(HarfBuzz::HarfBuzz PROPERTIES
-        IMPORTED_LOCATION ${HARFBUZZ_LIBRARY}
-        INTERFACE_INCLUDE_DIRECTORIES ${HARFBUZZ_INCLUDE_DIRS})
-endif()
-
-set(HARFBUZZ_LIBRARIES ${HARFBUZZ_LIBRARY})
+      IMPORTED_LOCATION "${HarfBuzz_LIBRARIES}"
+      INTERFACE_COMPILE_DEFINITIONS "${HarfBuzz_DEFINITIONS}"
+      INTERFACE_INCLUDE_DIRECTORIES "${HarfBuzz_INCLUDE_DIRS}"
+    )
+  endif()
+endif(HarfBuzz_FOUND)

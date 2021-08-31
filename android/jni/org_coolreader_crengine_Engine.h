@@ -85,6 +85,14 @@ JNIEXPORT jintArray JNICALL Java_org_coolreader_crengine_Engine_getAvailableSynt
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    isArchiveInternal
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_isArchiveInternal
+  (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    getArchiveItemsInternal
  * Signature: (Ljava/lang/String;)[Ljava/lang/String;
  */
@@ -134,10 +142,10 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverIn
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    drawBookCoverInternal
- * Signature: (Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
+ * Signature: (Landroid/graphics/Bitmap;[BZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
-  (JNIEnv *, jclass, jobject, jbyteArray, jstring, jstring, jstring, jstring, jint, jint);
+  (JNIEnv *, jclass, jobject, jbyteArray, jboolean, jstring, jstring, jstring, jstring, jint, jint);
 
 /*
  * Class:     org_coolreader_crengine_Engine

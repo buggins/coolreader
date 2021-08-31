@@ -57,6 +57,8 @@ QString crpercent( int p );
 
 void crGetFontFaceList( QStringList & dst );
 
+QString getHumanReadableLocaleName(lString32 langTag);
+
 class QWidget;
 /// save window position to properties
 void saveWindowPosition( QWidget * window, CRPropRef props, const char * prefix );

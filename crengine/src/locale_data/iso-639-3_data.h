@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-#define ISO639_3_DATA_SZ	7893
+#define ISO639_3_DATA_SZ	7894
 #define ISO639_3_UND_INDEX	6780
 
 struct iso639_3_rec {

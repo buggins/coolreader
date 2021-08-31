@@ -103,6 +103,12 @@ public class Engine {
 		return mountRoot;
 	}
 
+	private final Map<String, String> mAppPrivateDirs = new HashMap<String, String>();
+
+	public Map<String, String> getAppPrivateDirs() {
+		return mAppPrivateDirs;
+	}
+
 	public boolean isRootsMountPoint(String path) {
 		if (mountedRootsMap == null)
 			return false;
@@ -577,6 +583,12 @@ public class Engine {
 
 	private void setParams(BaseActivity activity) {
 		this.mActivity = activity;
+		File cacheDir = mActivity.getCacheDir();
+		File filesDir = mActivity.getFilesDir();
+		File bookCacheDir = new File(cacheDir, "bookCache");
+		File downloadDir = new File(filesDir, "downloads");
+		mAppPrivateDirs.put(downloadDir.getAbsolutePath(), "downloads");
+		mAppPrivateDirs.put(bookCacheDir.getAbsolutePath(), "cache");
 	}
 
 	/**
@@ -622,6 +634,8 @@ public class Engine {
 
 	private native static int[] getAvailableSynthFontWeightInternal();
 
+	public native static boolean isArchiveInternal(String arcFileName);
+
 	private native static String[] getArchiveItemsInternal(String arcName); // pairs: pathname, size
 
 	private native static boolean setKeyBacklightInternal(int value);
@@ -634,7 +648,7 @@ public class Engine {
 
 	private native static byte[] scanBookCoverInternal(String path);
 
-	private native static void drawBookCoverInternal(Bitmap bmp, byte[] data, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp);
+	private native static void drawBookCoverInternal(Bitmap bmp, byte[] data, boolean respectAspectRatio, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp);
 
 	private native static void suspendLongOperationInternal(); // cancel current long operation in engine thread (swapping to cache file) -- call it from GUI thread
 
@@ -720,6 +734,12 @@ public class Engine {
 	private static final int HYPH_ALGO = 1;
 	private static final int HYPH_DICT = 2;
 	private static final int HYPH_BOOK = 0;
+
+	public static boolean isArchive(String arcFileName) {
+		synchronized (lock) {
+			return isArchiveInternal(arcFileName);
+		}
+	}
 
 	public ArrayList<ZipEntry> getArchiveItems(String zipFileName) {
 		final int itemsPerEntry = 2;
@@ -949,10 +969,10 @@ public class Engine {
 	 * @param seriesNumber is series number
 	 * @param bpp          is bits per pixel (specify <=8 for eink grayscale dithering)
 	 */
-	public void drawBookCover(Bitmap bmp, byte[] data, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp) {
+	public void drawBookCover(Bitmap bmp, byte[] data, boolean respectAspectRatio, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp) {
 		synchronized (lock) {
 			long start = Utils.timeStamp();
-			drawBookCoverInternal(bmp, data, fontFace, title, authors, seriesName, seriesNumber, bpp);
+			drawBookCoverInternal(bmp, data, respectAspectRatio, fontFace, title, authors, seriesName, seriesNumber, bpp);
 			long duration = Utils.timeInterval(start);
 			L.v("drawBookCover took " + duration + " ms");
 		}

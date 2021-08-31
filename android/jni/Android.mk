@@ -5,9 +5,9 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    := cr3engine-3-2-X
 
-# Generate CREngine blob with statically linked libjpeg, libpng, freetype, harfbuzz, fribidi, libunibreak, chmlib
+# Generate CREngine blob with statically linked libjpeg, libpng, freetype, harfbuzz, fribidi, libunibreak, zstd, utf8proc, antiword, chmlib
 
-CRFLAGS := -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH \
+CRFLAGS := -DLINUX=1 -D_LINUX=1 \
      -DFT2_BUILD_LIBRARY=1 -DFT_CONFIG_MODULES_H=\<android/config/ftmodule.h\> -DFT_CONFIG_OPTIONS_H=\<android/config/ftoption.h\> \
      -DDOC_DATA_COMPRESSION_LEVEL=1 -DDOC_BUFFER_SIZE=0x1000000 \
      -DENABLE_CACHE_FILE_CONTENTS_VALIDATION=1 \

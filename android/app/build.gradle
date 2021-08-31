@@ -24,7 +24,6 @@ android {
             aidl.srcDirs = ['../../android/src']
             java.srcDirs = ['../../android/src']
             res.srcDirs = ['../../android/res']
-            jni.srcDirs = ['../../android/jni']
         }
     }
     buildTypes {

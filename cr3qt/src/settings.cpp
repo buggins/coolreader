@@ -195,7 +195,6 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     optionToUi( PROP_EMBEDDED_STYLES, m_ui->cbEnableDocumentStyles );
     optionToUi( PROP_EMBEDDED_FONTS, m_ui->cbEnableEmbeddedFonts );
     m_ui->cbEnableEmbeddedFonts->setEnabled(m_props->getBoolDef(PROP_EMBEDDED_STYLES, true));
-    optionToUi( PROP_TXT_OPTION_PREFORMATTED, m_ui->cbTxtPreFormatted );
     optionToUi( PROP_FONT_KERNING_ENABLED, m_ui->cbFontKerning );
     optionToUi( PROP_FLOATING_PUNCTUATION, m_ui->cbFloatingPunctuation );
     optionToUiIndex( PROP_IMG_SCALING_ZOOMIN_INLINE_MODE, m_ui->cbImageInlineZoominMode );
@@ -447,8 +446,8 @@ void SettingsDlg::on_buttonBox_accepted()
 
 void SettingsDlg::optionToUi( const char * optionName, QCheckBox * cb )
 {
-    int state = ( m_props->getIntDef( optionName, 1 ) != 0 ) ? 1 : 0;
-    CRLog::debug("optionToUI(%s,%d)", optionName, state);
+    bool state = m_props->getBoolDef( optionName, true );
+    CRLog::debug("optionToUI(%s,%d)", optionName, (int)state);
     cb->setCheckState( state ? Qt::Checked : Qt::Unchecked );
 }
 

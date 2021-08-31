@@ -241,7 +241,7 @@ endif (NOT JPEG_FOUND)
 
 if (NOT MSVC AND NOT CR3_FREETYPE)
 FIND_PACKAGE(Freetype 2.10.0)
-FIND_PACKAGE(HarfBuzz)
+FIND_PACKAGE(HarfBuzz 2.6.0)
 endif (NOT MSVC AND NOT CR3_FREETYPE)
 
 ADD_SUBDIRECTORY(thirdparty_unman/qimagescale)
@@ -249,14 +249,19 @@ ADD_SUBDIRECTORY(thirdparty_unman/qimagescale)
 if (NOT FREETYPE_FOUND)
   message("System FREETYPE not found, will build local one\n")
   if (NOT HarfBuzz_FOUND)
-	SET(HARFBUZZ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${REPO_HARFBUZZ_SRCDIR}/src CACHE PATH "" FORCE)
-	SET(HARFBUZZ_LIBRARIES harfbuzz)
+    SET(HarfBuzz_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${REPO_HARFBUZZ_SRCDIR}/src CACHE PATH "" FORCE)
+    SET(HarfBuzz_INCLUDE_DIRS ${HarfBuzz_INCLUDE_DIR} CACHE PATH "" FORCE)
+    SET(HarfBuzz_LIBRARIES harfbuzz CACHE PATH "" FORCE)
+    SET(HARFBUZZ_INCLUDE_DIR ${HarfBuzz_INCLUDE_DIR} CACHE PATH "" FORCE)
+    SET(HARFBUZZ_INCLUDE_DIRS ${HarfBuzz_INCLUDE_DIRS} CACHE PATH "" FORCE)
+    SET(HARFBUZZ_LIBRARIES ${HarfBuzz_LIBRARIES} CACHE PATH "" FORCE)
   endif (NOT HarfBuzz_FOUND)
   SET(FT_WITH_ZLIB ON CACHE BOOL "Use system zlib instead of internal library." FORCE)
   SET(FT_WITH_PNG ON CACHE BOOL "Support PNG compressed OpenType embedded bitmaps." FORCE)
   SET(ZLIB_LIBRARY ${ZLIB_LIBRARIES})
   SET(PNG_PNG_INCLUDE_DIR ${PNG_INCLUDE_DIR} CACHE PATH "" FORCE)
   SET(PNG_LIBRARY ${PNG_LIBRARIES})
+  SET(SKIP_INSTALL_ALL ON CACHE BOOL "Don't install anything" FORCE)
   ADD_SUBDIRECTORY(thirdparty/${REPO_FREETYPE_SRCDIR})
   SET(FREETYPE_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${REPO_FREETYPE_SRCDIR}/include CACHE PATH "" FORCE)
   SET(FREETYPE_LIBRARIES freetype)
@@ -267,13 +272,14 @@ if (NOT HarfBuzz_FOUND)
   SET(HB_HAVE_FREETYPE ON CACHE BOOL "Enable freetype interop helpers" FORCE)
   SET(HB_BUILD_TESTS OFF CACHE BOOL "Build harfbuzz tests" FORCE)
   SET(FREETYPE_LIBRARY ${FREETYPE_LIBRARIES})
+  SET(SKIP_INSTALL_ALL ON CACHE BOOL "Don't install anything" FORCE)
   ADD_SUBDIRECTORY(thirdparty/${REPO_HARFBUZZ_SRCDIR})
-  SET(HARFBUZZ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${REPO_HARFBUZZ_SRCDIR}/src CACHE PATH "" FORCE)
-  SET(HARFBUZZ_LIBRARY harfbuzz)
+  SET(HarfBuzz_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${REPO_HARFBUZZ_SRCDIR}/src CACHE PATH "" FORCE)
+  SET(HarfBuzz_LIBRARY harfbuzz)
 endif (NOT HarfBuzz_FOUND)
 
 if (NOT MSVC)
-	find_package(FontConfig)
+	find_package(FontConfig 2.11.0)
 endif(NOT MSVC)
 
 if (FONTCONFIG_FOUND)
@@ -283,7 +289,7 @@ else()
 endif (FONTCONFIG_FOUND)
 
 if (NOT MSVC)
-find_package(FriBidi)
+find_package(FriBidi 1.0.0)
 if (NOT FRIBIDI_FOUND)
   message("System FriBidi not found, will build local one\n")
   ADD_SUBDIRECTORY(thirdparty/${REPO_FRIBIDI_SRCDIR})
@@ -295,7 +301,7 @@ endif(NOT MSVC)
 
 
 if (NOT MSVC)
-	find_package(libunibreak)
+	find_package(libunibreak 4.0)
 endif(NOT MSVC)
 
 if (NOT LIBUNIBREAK_FOUND)
@@ -305,7 +311,7 @@ if (NOT LIBUNIBREAK_FOUND)
   SET(LIBUNIBREAK_LIBRARIES unibreak)
 endif (NOT LIBUNIBREAK_FOUND)
 
-find_package(ZSTD)
+find_package(ZSTD 1.4.0)
 if (NOT ZSTD_FOUND)
     message("\nSystem zstd not found, will build local one\n")
     set(ZSTD_LEGACY_SUPPORT OFF CACHE BOOL "LEGACY SUPPORT" FORCE)
@@ -355,7 +361,7 @@ INCLUDE_DIRECTORIES(
   ${JPEG_INCLUDE_DIR}
   ${ZLIB_INCLUDE_DIR}
   ${FREETYPE_INCLUDE_DIRS}
-  ${HARFBUZZ_INCLUDE_DIRS}
+  ${HarfBuzz_INCLUDE_DIRS}
   ${ANTIWORD_INCLUDE_DIR}
   ${CHM_INCLUDE_DIR}
   ${FRIBIDI_INCLUDE_DIR}
@@ -371,7 +377,7 @@ else()
 SET(STD_LIBS
   ${JPEG_LIBRARIES}
   ${FREETYPE_LIBRARIES}
-  ${HARFBUZZ_LIBRARY}
+  ${HarfBuzz_LIBRARY}
   ${PNG_LIBRARIES}
   ${ZLIB_LIBRARIES}
   ${CHM_LIBRARIES}

@@ -1731,15 +1731,15 @@ public:
     bool nextVisibleWordEnd( bool thisBlockOnly = false );
 
     /// move to previous visible word beginning (in sentence)
-    bool prevVisibleWordStartInSentence();
+    bool prevVisibleWordStartInSentence(bool thisBlockOnly);
     /// move to previous visible word end (in sentence)
-    bool prevVisibleWordEndInSentence();
+    bool prevVisibleWordEndInSentence(bool thisBlockOnly);
     /// move to next visible word beginning (in sentence)
-    bool nextVisibleWordStartInSentence();
+    bool nextVisibleWordStartInSentence(bool thisBlockOnly);
     /// move to end of current word (in sentence)
     bool thisVisibleWordEndInSentence();
     /// move to next visible word end (in sentence)
-    bool nextVisibleWordEndInSentence();
+    bool nextVisibleWordEndInSentence(bool thisBlockOnly);
 
     /// move to beginning of current visible text sentence
     bool thisSentenceStart();

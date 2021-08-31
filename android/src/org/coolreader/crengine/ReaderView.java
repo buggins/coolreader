@@ -1,22 +1,5 @@
 package org.coolreader.crengine;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import org.coolreader.CoolReader;
-import org.coolreader.R;
-import org.coolreader.crengine.InputDialog.InputHandler;
-import org.koekak.android.ebookdownloader.SonyBookSelector;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -42,6 +25,25 @@ import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
+
+import org.coolreader.CoolReader;
+import org.coolreader.R;
+import org.coolreader.crengine.InputDialog.InputHandler;
+import org.koekak.android.ebookdownloader.SonyBookSelector;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 public class ReaderView implements android.view.SurfaceHolder.Callback, Settings, DocProperties, OnKeyListener, OnTouchListener, OnFocusChangeListener {
 
@@ -259,6 +261,22 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	private final static int BRIGHTNESS_TYPE_COMMON = 0;
 	private final static int BRIGHTNESS_TYPE_WARM = 1;
+
+	/// Always sync this constants with crengine/include/lvdocview.h!
+	/// Battery state: no battery
+	public static final int BATTERY_STATE_NO_BATTERY = -2;
+	/// Battery state: battery is charging
+	public static final int BATTERY_STATE_CHARGING = -1;
+	/// Battery state: battery is discharging
+	public static final int BATTERY_STATE_DISCHARGING = -3;
+	/// Battery charger connection: no connection
+	public static final int BATTERY_CHARGER_NO = 1;
+	/// Battery charger connection: AC adapter
+	public static final int BATTERY_CHARGER_AC = 2;
+	/// Battery charger connection: USB
+	public static final int BATTERY_CHARGER_USB = 3;
+	/// Battery charger connection: Wireless
+	public static final int BATTERY_CHARGER_WIRELESS = 4;
 
 	private ViewMode viewMode = ViewMode.PAGES;
 
@@ -1666,8 +1684,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		final StringBuilder buf = new StringBuilder();
 //		if (mActivity.isFullscreen()) {
 		buf.append(Utils.formatTime(mActivity, System.currentTimeMillis()) + " ");
-		if (mBatteryState >= 0)
-			buf.append(" [" + mBatteryState + "%]\n");
+		buf.append(" [" + mBatteryChargeLevel + "%]\n");
 //		}
 		execute(new Task() {
 			Bookmark bm;
@@ -1857,7 +1874,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		final ArrayList<String> items = new ArrayList<String>();
 		items.add("section=section.system");
 		items.add("system.version=Cool Reader " + mActivity.getVersion());
-		items.add("system.battery=" + mBatteryState + "%");
+		items.add("system.battery=" + mBatteryChargeLevel + "%");
 		items.add("system.time=" + Utils.formatTime(mActivity, System.currentTimeMillis()));
 		final BookInfo bi = mBookInfo;
 		if (bi != null) {
@@ -2366,14 +2383,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				break;
 			case DCMD_TTS_PLAY: {
 				log.i("DCMD_TTS_PLAY: initializing TTS");
-				if (!mActivity.initTTS(tts -> {
+				mActivity.initTTS(ttsacc -> BackgroundThread.instance().executeGUI(() -> {
 					log.i("TTS created: opening TTS toolbar");
-					ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, tts);
+					ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, ttsacc);
 					ttsToolbar.setOnCloseListener(() -> ttsToolbar = null);
 					ttsToolbar.setAppSettings(mSettings, null);
-				})) {
-					log.e("Cannot initialize TTS");
-				}
+				}));
 			}
 			break;
 			case DCMD_TOGGLE_DOCUMENT_STYLES:
@@ -2544,7 +2559,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	private TTSToolbarDlg ttsToolbar;
 
-	public void stopTTS() {
+	public void pauseTTS() {
 		if (ttsToolbar != null)
 			ttsToolbar.pause();
 	}
@@ -2646,7 +2661,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	private void updateLoadedBookInfo() {
 		BackgroundThread.ensureBackground();
 		// get title, authors, genres, etc.
-		doc.updateBookInfo(mBookInfo);
+		doc.updateBookInfo(mBookInfo, true);
 		updateCurrentPositionStatus();
 		// check whether current book properties updated on another devices
 		// TODO: fix and reenable
@@ -3073,26 +3088,47 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	public boolean loadDocumentFromStream(final InputStream inputStream, final FileInfo fileInfo, final Runnable doneHandler, final Runnable errorHandler) {
-		log.v("loadDocument(" + fileInfo.getPathName() + ")");
-		if (this.mBookInfo != null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname) && mOpened) {
-			log.d("trying to load already opened document");
-			mActivity.showReader();
-			if (null != doneHandler)
-				doneHandler.run();
-			drawPage();
-			return false;
+		log.v("loadDocumentFromStream(" + fileInfo.getPathName() + ")");
+		// When the document is opened from the stream at this moment,
+		// we do not know the real path to the file, since it will be
+		// changed after the successful opening of the document,
+		// so here we cannot compare the path to the document currently
+		// open with the fileinfo argument.
+
+		// Copy data from input stream to byte array
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		boolean copyOk = false;
+		try {
+			byte [] buf = new byte [4096];
+			int readBytes;
+			while (true) {
+				readBytes = inputStream.read(buf);
+				if (readBytes > 0)
+					outputStream.write(buf, 0, readBytes);
+				else
+					break;
+			}
+			copyOk = true;
+		} catch (IOException e1) {
+			log.e("I/O error while copying content from input stream to buffer. Interrupted.");
+		} catch (OutOfMemoryError e2) {
+			log.e("Out of memory while copying content from input stream to buffer. Interrupted.");
 		}
-		Services.getHistory().getOrCreateBookInfo(mActivity.getDB(), fileInfo, bookInfo -> {
+		if (copyOk) {
+			byte[] docBuffer = outputStream.toByteArray();
+			// Don't search in DB this memory stream before opening it
+			BookInfo bookInfo = new BookInfo(fileInfo);
 			log.v("posting LoadDocument task to background thread");
 			BackgroundThread.instance().postBackground(() -> {
 				log.v("posting LoadDocument task to GUI thread");
 				BackgroundThread.instance().postGUI(() -> {
 					log.v("synced posting LoadDocument task to GUI thread");
-					post(new LoadDocumentTask(bookInfo, inputStream, doneHandler, errorHandler));
+					post(new LoadDocumentTask(bookInfo, docBuffer, doneHandler, errorHandler));
 				});
 			});
-		});
-		return true;
+			return true;
+		}
+		return false;
 	}
 
 	public boolean loadDocument(String fileName, final Runnable doneHandler, final Runnable errorHandler) {
@@ -3170,17 +3206,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				errorHandler.run();
 			return false;
 		}
-		BookInfo book = Services.getHistory().getBookInfo(contentPath);
-		if (book != null)
-			log.v("loadDocument() : found book in history : " + book);
-		FileInfo fi = null;
-		if (book == null) {
-			log.v("loadDocument() : book not found in history, building FileInfo by Uri...");
-			fi = new FileInfo(contentPath);
-		} else {
-			fi = book.getFileInfo();
-			log.v("loadDocument() : item from history : " + fi);
-		}
+		FileInfo fi = new FileInfo(contentPath);
 		return loadDocumentFromStream(inputStream, fi, doneHandler, errorHandler);
 	}
 
@@ -3189,20 +3215,53 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		return mBookInfo;
 	}
 
-	private int mBatteryState = 100;
+	private int mBatteryState = BATTERY_STATE_DISCHARGING;
+	private int mBatteryChargingConn = BATTERY_CHARGER_NO;
+	private int mBatteryChargeLevel = 0;
 
-	public void setBatteryState(int state) {
+	public void setBatteryState(int state, int chargingConn, int level) {
+		boolean needUpdate = false;
 		if (state != mBatteryState) {
 			log.i("Battery state changed: " + state);
 			mBatteryState = state;
+			needUpdate = true;
+		}
+		if (chargingConn != mBatteryChargingConn) {
+			log.i("Battery charging connection changed: " + chargingConn);
+			mBatteryChargingConn = chargingConn;
+			needUpdate = true;
+		}
+		if (level != mBatteryChargeLevel) {
+			log.i("Battery charging level changed: " + level);
+			mBatteryChargeLevel = level;
+			needUpdate = true;
+		}
+		if (needUpdate) {
 			if (!DeviceInfo.EINK_SCREEN && !isAutoScrollActive()) {
-				drawPage();
+				redraw();
 			}
 		}
 	}
 
 	public int getBatteryState() {
 		return mBatteryState;
+	}
+
+	public int getBatteryChargingConnection() {
+		return mBatteryChargingConn;
+	}
+
+	public int getBatteryChargeLevel() {
+		return mBatteryChargeLevel;
+	}
+
+	public void onTimeTickReceived() {
+		if (!DeviceInfo.EINK_SCREEN && !isAutoScrollActive()) {
+			if (doc.isTimeChanged()) {
+				log.i("The current time has been changed (minutes), redrawing is scheduled.");
+				redraw();
+			}
+		}
 	}
 
 	private static final VMRuntimeHack runtime = new VMRuntimeHack();
@@ -3385,7 +3444,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			bi.position = currpos;
 			bi.bitmap = factory.get(internalDX > 0 ? internalDX : requestedWidth,
 					internalDY > 0 ? internalDY : requestedHeight);
-			doc.setBatteryState(mBatteryState);
+			doc.setBatteryState(mBatteryState, mBatteryChargingConn, mBatteryChargeLevel);
 			doc.getPageImage(bi.bitmap);
 			mCurrentPageInfo = bi;
 			//log.v("Prepared new current page image " + mCurrentPageInfo);
@@ -3413,7 +3472,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					BitmapInfo bi = new BitmapInfo();
 					bi.position = nextpos;
 					bi.bitmap = factory.get(internalDX, internalDY);
-					doc.setBatteryState(mBatteryState);
+					doc.setBatteryState(mBatteryState, mBatteryChargingConn, mBatteryChargeLevel);
 					doc.getPageImage(bi.bitmap);
 					mNextPageInfo = bi;
 					nextposBitmap = bi;
@@ -3444,7 +3503,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					BitmapInfo bi = new BitmapInfo();
 					bi.position = nextpos;
 					bi.bitmap = factory.get(internalDX, internalDY);
-					doc.setBatteryState(mBatteryState);
+					doc.setBatteryState(mBatteryState, mBatteryChargingConn, mBatteryChargeLevel);
 					doc.getPageImage(bi.bitmap);
 					mNextPageInfo = bi;
 					nextposBitmap = bi;
@@ -5028,7 +5087,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	private class LoadDocumentTask extends Task {
 		String filename;
 		String path;
-		InputStream inputStream;
+		byte[] docBuffer;
 		Runnable doneHandler;
 		Runnable errorHandler;
 		String pos;
@@ -5036,12 +5095,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		boolean disableInternalStyles;
 		boolean disableTextAutoformat;
 
-		LoadDocumentTask(BookInfo bookInfo, InputStream inputStream, Runnable doneHandler, Runnable errorHandler) {
+		LoadDocumentTask(BookInfo bookInfo, byte[] docBuffer, Runnable doneHandler, Runnable errorHandler) {
 			BackgroundThread.ensureGUI();
 			mBookInfo = bookInfo;
 			FileInfo fileInfo = bookInfo.getFileInfo();
 			log.v("LoadDocumentTask for " + fileInfo);
-			if (fileInfo.getTitle() == null && inputStream == null) {
+			if (fileInfo.getTitle() == null && docBuffer == null) {
 				// As a book 'should' have a title, no title means we should
 				// retrieve the book metadata from the engine to get the
 				// book language.
@@ -5053,7 +5112,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.v("update hyphenation language: " + language + " for " + fileInfo.getTitle());
 			this.filename = fileInfo.getPathName();
 			this.path = fileInfo.arcname != null ? fileInfo.arcname : fileInfo.pathname;
-			this.inputStream = inputStream;
+			this.docBuffer = docBuffer;
 			this.doneHandler = doneHandler;
 			this.errorHandler = errorHandler;
 			//FileInfo fileInfo = new FileInfo(filename);
@@ -5063,12 +5122,15 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			//Properties oldSettings = new Properties(mSettings);
 			// TODO: enable storing of profile per book
 			mActivity.setCurrentProfile(profileNumber);
-			if (mBookInfo != null && mBookInfo.getLastPosition() != null)
-				pos = mBookInfo.getLastPosition().getStartPos();
+			Bookmark lastPos = null;
+			if (mBookInfo != null)
+				lastPos = mBookInfo.getLastPosition();
+			if (lastPos != null)
+				pos = lastPos.getStartPos();
 			log.v("LoadDocumentTask : book info " + mBookInfo);
 			log.v("LoadDocumentTask : last position = " + pos);
-			if (mBookInfo != null && mBookInfo.getLastPosition() != null)
-				setTimeElapsed(mBookInfo.getLastPosition().getTimeElapsed());
+			if (lastPos != null)
+				setTimeElapsed(lastPos.getTimeElapsed());
 			//mBitmap = null;
 			//showProgress(1000, R.string.progress_loading);
 			//draw();
@@ -5101,8 +5163,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				doc.doCommand(ReaderCommand.DCMD_SET_RENDER_BLOCK_RENDERING_FLAGS.nativeId, mBookInfo.getFileInfo().blockRenderingFlags);
 			}
 			boolean success;
-			if (null != inputStream)
-				success = doc.loadDocumentFromStream(inputStream, filename);
+			if (null != docBuffer)
+				success = doc.loadDocumentFromBuffer(docBuffer, filename);
 			else
 				success = doc.loadDocument(filename);
 			if (success) {
@@ -5121,10 +5183,20 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				preparePageImage(0);
 				log.v("updating loaded book info");
 				updateLoadedBookInfo();
-				log.i("Document " + filename + " is loaded successfully");
-				if (pos != null) {
-					log.i("Restoring position : " + pos);
-					restorePositionBackground(pos);
+				if (null == docBuffer) {
+					// Opened existing file
+					log.i("Document " + filename + " is loaded successfully");
+					if (pos != null) {
+						log.i("Restoring position : " + pos);
+						restorePositionBackground(pos);
+					}
+				} else {
+					// Opened from memory buffer
+					log.i("Stream " + filename + " loaded successfully");
+					// restore the last read position and other tasks are
+					// performed in the done () function, since we must
+					// receive data from the database through callbacks
+					// and cannot control the completion of the operation.
 				}
 				CoolReader.dumpHeapAllocation();
 			} else {
@@ -5138,46 +5210,122 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			BackgroundThread.ensureGUI();
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
 			if (!Services.isStopped()) {
-				Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
-				final BookInfo finalBookInfo = new BookInfo(mBookInfo);
-				mActivity.waitForCRDBService(() -> mActivity.getDB().saveBookInfo(finalBookInfo));
-				if (coverPageBytes != null && mBookInfo.getFileInfo() != null) {
-					// TODO: fix it
-					/*
-					DocumentFormat format = mBookInfo.getFileInfo().format;
-					if (null != format) {
-						if (format.needCoverPageCaching()) {
-//		        			if (mActivity.getBrowser() != null)
-//		        				mActivity.getBrowser().setCoverpageData(new FileInfo(mBookInfo.getFileInfo()), coverPageBytes);
+				if (null == docBuffer) {
+					// Opened from existing file
+					Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
+					final BookInfo finalBookInfo = new BookInfo(mBookInfo);
+					mActivity.waitForCRDBService(() -> mActivity.getDB().saveBookInfo(finalBookInfo));
+					if (coverPageBytes != null && mBookInfo.getFileInfo() != null) {
+						// TODO: fix it
+						/*
+						DocumentFormat format = mBookInfo.getFileInfo().format;
+						if (null != format) {
+							if (format.needCoverPageCaching()) {
+//			        			if (mActivity.getBrowser() != null)
+//			        				mActivity.getBrowser().setCoverpageData(new FileInfo(mBookInfo.getFileInfo()), coverPageBytes);
+							}
+						}
+						*/
+						if (DeviceInfo.EINK_NOOK)
+							updateNookTouchCoverpage(mBookInfo.getFileInfo().getPathName(), coverPageBytes);
+						//mEngine.setProgressDrawable(coverPageDrawable);
+					}
+					if (DeviceInfo.EINK_SONY) {
+						SonyBookSelector selector = new SonyBookSelector(mActivity);
+						long l = selector.getContentId(path);
+						if (l != 0) {
+							selector.setReadingTime(l);
+							selector.requestBookSelection(l);
 						}
 					}
-					*/
-					if (DeviceInfo.EINK_NOOK)
-						updateNookTouchCoverpage(mBookInfo.getFileInfo().getPathName(), coverPageBytes);
-					//mEngine.setProgressDrawable(coverPageDrawable);
-				}
-				if (DeviceInfo.EINK_SONY) {
-					SonyBookSelector selector = new SonyBookSelector(mActivity);
-					long l = selector.getContentId(path);
-					if (l != 0) {
-						selector.setReadingTime(l);
-						selector.requestBookSelection(l);
+					mActivity.setLastBook(filename);
+				} else {
+					// Opened from memory buffer
+					// After stream successfully opened, find corresponding file it in DB
+					// Now mBookInfo already contains updated data
+					if (0 != mBookInfo.getFileInfo().crc32) {
+						ArrayList<String> fingerprints = new ArrayList<String>(1);
+						String fingerprint = Long.toString(mBookInfo.getFileInfo().crc32);
+						fingerprints.add(fingerprint);
+						mActivity.waitForCRDBService(() -> mActivity.getDB().findByFingerprints(10, fingerprints, fileList -> {
+							FileInfo result = null;
+							// TODO: select more recent file
+							//  or may be file with maximum read pos
+							for (FileInfo f : fileList) {
+								if (f.exists()) {
+									result = f;
+									break;
+								}
+							}
+							if (null == result) {
+								// Tier 1, not found or not exist: save stream as file in app private directory,
+								// At this point, the inputStream has already been fully read to the end
+								// and cannot be reset to its original position.
+								// So, we create a new input stream from docBuffer.
+								ByteArrayInputStream inputStream = new ByteArrayInputStream(docBuffer);
+								BookInfo bi = Services.getDocumentCache().saveStream(mBookInfo.getFileInfo(), inputStream);
+								if (null != bi) {
+									mBookInfo = new BookInfo(bi);
+									Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
+									final BookInfo finalBookInfo = new BookInfo(mBookInfo);
+									mActivity.waitForCRDBService(() -> mActivity.getDB().saveBookInfo(finalBookInfo));
+									mActivity.setLastBook(finalBookInfo.getFileInfo().getPathName());
+								} else {
+									log.e("Failed to save document memory buffer to file!");
+									// Show error? Or something other action?
+									// We cannot throw an exception here so that the fail() function
+									// is called later, since we are in the done() function, not work().
+									// And we cannot move this block of code to the work() function,
+									// since we use callback functions to get information from the database,
+									// i.e. this block of code is not continuously executing.
+									// Therefore, we leave this exception unhandled.
+									mActivity.showToast(R.string.failed_to_save_memory_stream);
+								}
+							} else {
+								// Tier 2, found: update mBookInfo, fileInfo, filename, pos
+								mActivity.getDB().loadBookInfo(result, bookInfo -> {
+									if (null != bookInfo) {
+										// ok, bookmarks is loaded
+										mBookInfo = new BookInfo(bookInfo);
+										FileInfo fileInfo = mBookInfo.getFileInfo();
+										filename = fileInfo.getPathName();
+										path = fileInfo.arcname != null ? fileInfo.arcname : fileInfo.pathname;
+										if (mBookInfo.getLastPosition() != null)
+											pos = mBookInfo.getLastPosition().getStartPos();
+										if (pos != null) {
+											final String finalPos = pos;
+											BackgroundThread.instance().executeBackground(() -> {
+												log.i("Restoring position : " + finalPos);
+												restorePositionBackground(finalPos);
+											});
+										}
+										Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
+										final BookInfo finalBookInfo = new BookInfo(mBookInfo);
+										mActivity.waitForCRDBService(() -> mActivity.getDB().saveBookInfo(finalBookInfo));
+										mActivity.setLastBook(filename);
+										if (null != doneHandler)
+											doneHandler.run();
+									} else {
+										// Logic error: not found by pathname, but found by fingerprint
+										log.e("Failed to load bookmarks for book with fingerprint: " + fingerprint);
+										if (null != errorHandler)
+											errorHandler.run();
+									}
+								});
+							}
+						}));
+					} else {
+						log.e("Invalid CRC32 (0)");
+						// See comment above...
 					}
 				}
-				mOpened = true;
-
 				highlightBookmarks();
-
 				hideProgress();
 				drawPage();
-				BackgroundThread.instance().postGUI(() -> {
-					mActivity.showReader();
-					if (null != doneHandler)
-						doneHandler.run();
-				});
-				// Save last opened book ONLY if book opened from real file not stream.
-				if (null == inputStream)
-					mActivity.setLastBook(filename);
+				mActivity.showReader();
+				if (null != doneHandler)
+					doneHandler.run();
+				mOpened = true;
 			}
 		}
 
@@ -6417,12 +6565,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	public void redraw() {
-		//BackgroundThread.instance().executeBackground(new Runnable() {
 		BackgroundThread.instance().executeGUI(() -> {
 			surface.invalidate();
 			invalidImages = true;
-			//preparePageImage(0);
-			bookView.draw();
+			drawPage();
 		});
 	}
 

@@ -69,7 +69,20 @@ public class Synchronizer {
 		SETTINGS,
 		BOOKMARKS,
 		CURRENTBOOKINFO,
-		CURRENTBOOKBODY
+		CURRENTBOOKBODY;
+
+		public static SyncTarget fromOrdinal(int ordinal) {
+			SyncTarget value = NONE;
+			if (SETTINGS.ordinal() == ordinal)
+				value = SETTINGS;
+			else if (BOOKMARKS.ordinal() == ordinal)
+				value = BOOKMARKS;
+			else if (CURRENTBOOKINFO.ordinal() == ordinal)
+				value = CURRENTBOOKINFO;
+			else if (CURRENTBOOKBODY.ordinal() == ordinal)
+				value = CURRENTBOOKBODY;
+			return value;
+		}
 	}
 
 	public enum SyncDirection {
@@ -110,6 +123,7 @@ public class Synchronizer {
 	private String m_appName;
 	private boolean m_isBusy;
 	private boolean m_isAbortRequested;
+	private boolean m_removeLockFilePassed;
 	private SyncDirection m_syncDirection;
 	private int m_currentOperationIndex;
 	private int m_totalOperationsCount;
@@ -241,47 +255,69 @@ public class Synchronizer {
 		}
 	}
 
+	public OnSyncStatusListener getOnSyncStatusListener() {
+		return m_onStatusListener;
+	}
+
 	public void setOnSyncStatusListener(OnSyncStatusListener listener) {
 		m_onStatusListener = listener;
 	}
 
 	protected void doneSuccessfully() {
+		m_isBusy = false;
 		BackgroundThread.instance().executeGUI(() -> {
 			if (null != m_onStatusListener) {
 				m_onStatusListener.onSyncCompleted(m_syncDirection, (m_flags & SYNC_FLAG_SHOW_PROGRESS) != 0, (m_flags & SYNC_FLAG_QUIETLY) == 0);
 			}
 		});
-		m_isBusy = false;
 	}
 
 	protected void doneFailed(String error) {
-		m_removeLockFileOp.setNext(new SyncOperation() {
-			@Override
-			void call(Runnable onContinue) {
-				BackgroundThread.instance().executeGUI(() -> {
-					if (null != m_onStatusListener) {
-						m_onStatusListener.onSyncError(m_syncDirection, error);
-					}
-				});
-				m_isBusy = false;
-			}
-		});
-		m_removeLockFileOp.exec();
+		if (m_removeLockFilePassed) {
+			m_isBusy = false;
+			BackgroundThread.instance().executeGUI(() -> {
+				if (null != m_onStatusListener) {
+					m_onStatusListener.onSyncError(m_syncDirection, error);
+				}
+			});
+		} else {
+			m_removeLockFileOp.setNext(new SyncOperation() {
+				@Override
+				void call(Runnable onContinue) {
+					m_isBusy = false;
+					BackgroundThread.instance().executeGUI(() -> {
+						if (null != m_onStatusListener) {
+							m_onStatusListener.onSyncError(m_syncDirection, error);
+						}
+					});
+				}
+			});
+			m_removeLockFileOp.exec();
+		}
 	}
 
 	protected void doneAborted() {
-		m_removeLockFileOp.setNext(new SyncOperation() {
-			@Override
-			void call(Runnable onContinue) {
-				BackgroundThread.instance().executeGUI(() -> {
-					if (null != m_onStatusListener) {
-						m_onStatusListener.onAborted(m_syncDirection);
-					}
-				});
-				m_isBusy = false;
-			}
-		});
-		m_removeLockFileOp.exec();
+		if (m_removeLockFilePassed) {
+			m_isBusy = false;
+			BackgroundThread.instance().executeGUI(() -> {
+				if (null != m_onStatusListener) {
+					m_onStatusListener.onAborted(m_syncDirection);
+				}
+			});
+		} else {
+			m_removeLockFileOp.setNext(new SyncOperation() {
+				@Override
+				void call(Runnable onContinue) {
+					m_isBusy = false;
+					BackgroundThread.instance().executeGUI(() -> {
+						if (null != m_onStatusListener) {
+							m_onStatusListener.onAborted(m_syncDirection);
+						}
+					});
+				}
+			});
+			m_removeLockFileOp.exec();
+		}
 	}
 
 	protected void setSyncStarted(SyncDirection dir) {
@@ -303,7 +339,7 @@ public class Synchronizer {
 	}
 
 	protected boolean checkAbort() {
-		if (m_isAbortRequested) {
+		if (m_isAbortRequested && !m_removeLockFilePassed) {
 			if (null != m_onAbortedListener) {
 				m_onAbortedListener.run();
 				m_onAbortedListener = null;
@@ -553,8 +589,7 @@ public class Synchronizer {
 				public void onCompleted(FileMetadata meta, boolean ok) {
 					if (!ok)
 						return;		// onFailed() will be called
-					if (checkAbort())
-						return;
+					// continue processing even if abort is requested, otherwise an interrupt too early will occur.
 					if (null != meta) {
 						// file exist
 						m_remoteAccess.delete(LOCK_FILE_PATH, new OnOperationCompleteListener<Boolean>() {
@@ -562,8 +597,7 @@ public class Synchronizer {
 							public void onCompleted(Boolean result, boolean ok) {
 								//if (!ok)
 								//	return;        // onFailed() will be called
-								if (checkAbort())
-									return;
+								// continue processing even if abort is requested, otherwise an interrupt too early will occur.
 								m_currentOperationIndex++;
 								updateSyncProgress(m_currentOperationIndex, m_totalOperationsCount);
 								onContinue.run();
@@ -588,6 +622,7 @@ public class Synchronizer {
 					doneFailed(e.toString());
 				}
 			});
+			m_removeLockFilePassed = true;
 		}
 	}
 
@@ -1569,6 +1604,7 @@ public class Synchronizer {
 		m_flags = flags;
 		// make "Sync From" operations chain and run it
 		m_isAbortRequested = false;
+		m_removeLockFilePassed = false;
 		setSyncStarted(SyncDirection.SyncFrom);
 
 		clearOperation();
@@ -1607,6 +1643,7 @@ public class Synchronizer {
 			return;
 		// make "Sync To" operations chain and run it
 		m_isAbortRequested = false;
+		m_removeLockFilePassed = false;
 		m_flags = flags;
 		setSyncStarted(SyncDirection.SyncTo);
 
@@ -1656,6 +1693,7 @@ public class Synchronizer {
 		m_flags = flags;
 		// make "Sync From" operations chain and run it
 		m_isAbortRequested = false;
+		m_removeLockFilePassed = false;
 		setSyncStarted(SyncDirection.SyncFrom);
 
 		clearOperation();
@@ -1705,6 +1743,7 @@ public class Synchronizer {
 		m_flags = flags;
 		// make "Sync To" operations chain and run it
 		m_isAbortRequested = false;
+		m_removeLockFilePassed = false;
 		setSyncStarted(SyncDirection.SyncTo);
 
 		clearOperation();
@@ -1746,6 +1785,7 @@ public class Synchronizer {
 			return;
 		// make "Cleanup & Sign out" operations chain and run it
 		m_isAbortRequested = false;
+		m_removeLockFilePassed = false;
 		setSyncStarted(SyncDirection.SyncTo);
 
 		clearOperation();
@@ -1761,6 +1801,7 @@ public class Synchronizer {
 			return;
 		// make "Sign Out" operations chain and run it
 		m_isAbortRequested = false;
+		m_removeLockFilePassed = false;
 		setSyncStarted(SyncDirection.SyncTo);
 
 		clearOperation();

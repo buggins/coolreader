@@ -162,12 +162,12 @@ public class Scanner extends FileInfoChangeSource {
 							// skip mount root
 							continue;
 						}
-						boolean isZip = pathName.toLowerCase().endsWith(".zip");
+						boolean isArc = Engine.isArchive(pathName);
 						FileInfo item = !rescan ? mFileList.get(pathName) : null;
 						boolean isNew = false;
 						if ( item==null ) {
 							item = new FileInfo( f );
-							if ( scanzip && isZip ) {
+							if ( scanzip && isArc ) {
 								item = scanZip( item );
 								if ( item==null )
 									continue;
@@ -723,6 +723,8 @@ public class Scanner extends FileInfoChangeSource {
 			parent = findParentInternal(file, root);
 			if ( parent==null )
 				parent = findParentInternal(file, new FileInfo(mActivity.getFilesDir()));
+			if ( parent==null )
+				parent = findParentInternal(file, new FileInfo(mActivity.getCacheDir()));
 			if ( parent==null ) {
 				L.e("Cannot find root directory for file " + file.pathname);
 				return null;
@@ -829,7 +831,7 @@ public class Scanner extends FileInfoChangeSource {
 		return existingResults;
 	}
 	
-	public void initRoots(Map<String, String> fsRoots) {
+	public void initRoots(Map<String, String> fsRoots, Map<String, String> privateDirs) {
 		Log.d("cr3", "Scanner.initRoots(" + fsRoots + ")");
 		mRoot.clear();
 		// create recent books dir
@@ -837,6 +839,10 @@ public class Scanner extends FileInfoChangeSource {
 
 		// create system dirs
 		for (Map.Entry<String, String> entry : fsRoots.entrySet())
+			addRoot( entry.getKey(), entry.getValue(), true);
+
+		// App private dirs
+		for (Map.Entry<String, String> entry : privateDirs.entrySet())
 			addRoot( entry.getKey(), entry.getValue(), true);
 
 		// create OPDS dir

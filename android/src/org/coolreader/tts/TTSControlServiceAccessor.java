@@ -12,12 +12,16 @@ import java.util.ArrayList;
 
 public class TTSControlServiceAccessor {
 	private final static String TAG = "ttssrv";
-	private Activity mActivity;
-	private volatile TTSControlBinder mService;
+	private final Activity mActivity;
+	private volatile TTSControlBinder mServiceBinder;
 	private volatile boolean mServiceBound;
-	private ArrayList<TTSControlBinder.Callback> onConnectCallbacks = new ArrayList<>();
-	private boolean bindIsCalled;
+	private volatile boolean bindIsCalled;
+	private final ArrayList<TTSControlBinder.Callback> onConnectCallbacks = new ArrayList<>();
 	private final Object mLocker = new Object();
+
+	public interface Callback {
+		void run(TTSControlServiceAccessor ttsacc);
+	}
 
 	public TTSControlServiceAccessor(Activity activity) {
 		mActivity = activity;
@@ -25,10 +29,10 @@ public class TTSControlServiceAccessor {
 
 	public void bind(final TTSControlBinder.Callback boundCallback) {
 		synchronized (this) {
-			if (mService != null) {
+			if (mServiceBinder != null && mServiceBound) {
 				Log.v(TAG, "TTSControlService is already bound");
 				if (boundCallback != null)
-					boundCallback.run(mService);
+					boundCallback.run(mServiceBinder);
 				return;
 			}
 		}
@@ -56,20 +60,21 @@ public class TTSControlServiceAccessor {
 			mActivity.unbindService(mServiceConnection);
 			mServiceBound = false;
 			bindIsCalled = false;
+			mServiceBinder = null;
 		}
 	}
 
-	private ServiceConnection mServiceConnection = new ServiceConnection() {
+	private final ServiceConnection mServiceConnection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			synchronized (TTSControlServiceAccessor.this) {
-				mService = ((TTSControlBinder) service);
+				mServiceBinder = ((TTSControlBinder) service);
 				Log.i(TAG, "connected to TTSControlService");
 			}
 			synchronized (mLocker) {
 				if (onConnectCallbacks.size() != 0) {
 					// run once
 					for (TTSControlBinder.Callback callback : onConnectCallbacks)
-						callback.run(mService);
+						callback.run(mServiceBinder);
 					onConnectCallbacks.clear();
 				}
 			}
@@ -77,9 +82,11 @@ public class TTSControlServiceAccessor {
 
 		public void onServiceDisconnected(ComponentName className) {
 			synchronized (TTSControlServiceAccessor.this) {
-				mService = null;
+				mServiceBound = false;
+				bindIsCalled = false;
+				mServiceBinder = null;
 			}
-			Log.i(TAG, "disconnected from TTSControlService");
+			Log.i(TAG, "Connection to the TTSControlService has been lost");
 		}
 	};
 

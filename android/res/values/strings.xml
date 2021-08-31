@@ -552,6 +552,8 @@
     <string name="options_tts_voice_quality_normal">Normal quality</string>
     <string name="options_tts_voice_quality_high">High quality</string>
     <string name="options_tts_voice_quality_very_high">Very high quality</string>
+    <string name="options_tts_google_abbr_workaround">Use a workaround to disable processing of abbreviations at the end of a sentence</string>
+    <string name="options_tts_google_abbr_workaround_comment">when using "Google Speech Services"</string>
     <string name="tts_init_failure">TTS engine \"%s\" init failure, disabling it…</string>
     <string name="dlg_button_open_book">Open book</string>
     <string name="dlg_button_open_folder">Open containing folder</string>
@@ -769,4 +771,8 @@
     <string name="options_disabled_document_styles">disabled embedded document styles or unsupported document type</string>
     <string name="options_multilingual_enabled">disabled because support for multilingual documents is enabled</string>
     <string name="options_multilingual_disabled">disabled because support for multilingual documents is disabled or legacy rendering is enabled</string>
+    <string name="filter_by_book_language_s">Filter by book language (%s)</string>
+    <string name="scanning_font_files">Scanning font files…</string>
+    <string name="undetermined">Undetermined</string>
+    <string name="failed_to_save_memory_stream">Failed to save memory stream to device storage!</string>
 </resources>

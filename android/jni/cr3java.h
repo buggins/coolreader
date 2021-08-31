@@ -186,6 +186,26 @@ public:
 	void set(lInt64 v) { objacc->SetLongField(objacc.getObject(), fieldid, v); } 
 };
 
+class CRBooleanField : public CRFieldAccessor {
+public:
+	CRBooleanField( CRObjectAccessor & acc, const char * fieldName )
+			: CRFieldAccessor( acc, fieldName, "Z" )
+	{
+	}
+	bool get() { return objacc->GetBooleanField(objacc.getObject(), fieldid); }
+	void set(bool v) { objacc->SetBooleanField(objacc.getObject(), fieldid, v); }
+};
+
+class CRObjectField : public CRFieldAccessor {
+public:
+	CRObjectField( CRObjectAccessor & acc, const char * fieldName, const char* signature )
+			: CRFieldAccessor( acc, fieldName, signature )
+	{
+	}
+	jobject get() { return objacc->GetObjectField(objacc.getObject(), fieldid); }
+	void set(jobject v) { objacc->SetObjectField(objacc.getObject(), fieldid, v); }
+};
+
 class BitmapAccessor : public CRJNIEnv {
 private:
     jobject bitmap;

@@ -39,6 +39,7 @@ private:
     FT_Library _library;
     LVFontGlobalGlyphCache _globalCache;
     lString32 _requiredChars;
+    LVHashTable<lString8, LVHashTable<lString8, font_lang_compat>* > _supportedLangs;
 #if (DEBUG_FONT_MAN == 1)
     FILE * _log;
 #endif
@@ -122,7 +123,7 @@ public:
 
     bool checkCharSet(FT_Face face);
 
-    virtual font_lang_compat checkFontLangCompat(const lString8 &typeface, const lString8 &langCode);
+    virtual font_lang_compat checkFontLangCompat(const lString8 &typeface, const lString8 &langTag);
 
     //bool isMonoSpaced( FT_Face face );
     /// registers document font

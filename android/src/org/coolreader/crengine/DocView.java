@@ -111,9 +111,9 @@ public class DocView {
 	 * Send battery state to native object.
 	 * @param state
 	 */
-	public void setBatteryState(int state) {
+	public void setBatteryState(int state, int chargingConn, int chargeLevel) {
 		synchronized(mutex) {
-			setBatteryStateInternal(state);
+			setBatteryStateInternal(state, chargingConn, chargeLevel);
 		}
 	}
 
@@ -143,7 +143,6 @@ public class DocView {
 	 * create empty document with specified message (e.g. to show errors)
 	 * @param title
 	 * @param message
-	 * @return
 	 */
 	public void createDefaultDocument(String title, String message)
 	{
@@ -164,36 +163,15 @@ public class DocView {
 	}
 
 	/**
-	 * Load document from input stream.
-	 * @param inputStream
-	 * @param contentPath
-	 * @return
+	 * Load document from memory buffer.
+	 * @param buffer document content as byte buffer
+	 * @param contentPath Non empty stream name
+	 * @return true if operation successful, false otherwise.
 	 */
-	public boolean loadDocumentFromStream(InputStream inputStream, String contentPath) {
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		int errorCode = 0;
-		try {
-			byte [] buf = new byte [4096];
-			int readBytes;
-			while (true) {
-				readBytes = inputStream.read(buf);
-				if (readBytes > 0)
-					outputStream.write(buf, 0, readBytes);
-				else
-					break;
-			}
-		} catch (IOException e1) {
-			errorCode = 1;
-		} catch (OutOfMemoryError e2) {
-			errorCode = 2;
+	public boolean loadDocumentFromBuffer(byte[] buffer, String contentPath) {
+		synchronized (mutex) {
+			return loadDocumentFromMemoryInternal(buffer, contentPath);
 		}
-		if (0 == errorCode) {
-			synchronized (mutex) {
-				return loadDocumentFromMemoryInternal(outputStream.toByteArray(), contentPath);
-			}
-		}
-		// TODO: pass error code to caller to show message for user.
-		return false;
 	}
 
 	/**
@@ -317,10 +295,11 @@ public class DocView {
 	/**
 	 * Fill book info fields using metadata from current book. 
 	 * @param info
+	 * @param updatePath
 	 */
-	public void updateBookInfo(BookInfo info) {
+	public void updateBookInfo(BookInfo info, boolean updatePath) {
 		synchronized(mutex) {
-			updateBookInfoInternal(info);
+			updateBookInfoInternal(info, updatePath);
 		}
 	}
 
@@ -433,10 +412,16 @@ public class DocView {
 			hilightBookmarksInternal(bookmarks);
 		}
 	}
-	
+
+	public boolean isTimeChanged() {
+		synchronized(mutex) {
+			return isTimeChangedInternal();
+		}
+	}
+
 	//========================================================================================
 	// Native functions
-	/* implementend by libcr3engine.so */
+	/* implemented by libcr3engine.so */
 	//========================================================================================
 	private native void getPageImageInternal(Bitmap bitmap, int bpp);
 
@@ -469,7 +454,7 @@ public class DocView {
 
 	private native PositionProperties getPositionPropsInternal(String xPath, boolean precise);
 
-	private native void updateBookInfoInternal(BookInfo info);
+	private native void updateBookInfoInternal(BookInfo info, boolean updatePath);
 
 	private native TOCItem getTOCInternal();
 
@@ -478,7 +463,7 @@ public class DocView {
 	private native boolean findTextInternal(String pattern, int origin,
 			int reverse, int caseInsensitive);
 
-	private native void setBatteryStateInternal(int state);
+	private native void setBatteryStateInternal(int state, int chargingConn, int chargeLevel);
 
 	private native byte[] getCoverPageDataInternal();
 
@@ -508,6 +493,8 @@ public class DocView {
 
 	// / returns either SWAP_DONE, SWAP_TIMEOUT or SWAP_ERROR
 	private native int swapToCacheInternal();
+
+	private native boolean isTimeChangedInternal();
 
 	private long mNativeObject; // used from JNI
 

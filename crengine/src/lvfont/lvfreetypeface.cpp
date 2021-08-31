@@ -136,6 +136,11 @@ static lChar32 getReplacementChar(lUInt32 code, bool * can_be_ignored = NULL) {
         case 0x25AA: // css_lst_square:
         case 0x25FE: // css_lst_square:
             return '-';
+        case 0x21AF: // DOWNWARDS ZIGZAG ARROW
+        case 0x26A1: // HIGH VOLTAGE SIGN
+        case 0x2B4D: // DOWNWARDS TRIANGLE-HEADED ZIGZAG ARROW
+        case 0x1F5F2:// LIGHTNING MOOD
+            return '+';
         default:
             break;
     }
@@ -1600,92 +1605,6 @@ bool LVFreeTypeFace::getGlyphExtraMetric( glyph_extra_metric_t metric, lUInt32 c
     return false;
 }
 
-font_lang_compat LVFreeTypeFace::checkFontLangCompat(const lString8 &langCode) {
-    font_lang_compat res = font_lang_compat_invalid_tag;
-#if USE_LOCALE_DATA==1
-#define FC_LANG_START_INTERVAL_CODE     0xF0F0FFFF
-    // find corresponding fc_lang record
-    CRLocaleData loc(langCode);
-    const struct fc_lang_rec* rec = NULL;
-    if (loc.isValid()) {
-        const struct fc_lang_rec* ptr = get_fc_lang_data();
-        int max_match = 0;
-        for (unsigned int i = 0; i < get_fc_lang_data_size(); i++) {
-            CRLocaleData fc_loc(ptr->lang_code);
-            int match = loc.calcMatch(fc_loc);
-            if (match > max_match) {
-                max_match = match;
-                rec = ptr;
-            }
-            ptr++;
-        }
-    }
-    // Check compatibility
-    bool fullSupport = false;
-    bool partialSupport = false;
-    if (rec) {
-        unsigned int codePoint = 0;
-        unsigned int tmp;
-        unsigned int first, second = 0;
-        unsigned int i;
-        bool inRange = false;
-        FT_UInt glyphIndex;
-        fullSupport = true;
-        for (i = 0;;) {
-            // get next codePoint
-            if (inRange && codePoint < second) {
-                codePoint++;
-            } else {
-                if (i >= rec->char_set_sz)
-                    break;
-                tmp = rec->char_set[i];
-                if (FC_LANG_START_INTERVAL_CODE == tmp) {       // code of start interval
-                    if (i + 2 < rec->char_set_sz) {
-                        i++;
-                        first = rec->char_set[i];
-                        i++;
-                        second = rec->char_set[i];
-                        inRange = true;
-                        codePoint = first;
-                        i++;
-                    } else {
-                        // broken language char set
-                        fullSupport = false;
-                        break;
-                    }
-                } else {
-                    codePoint = tmp;
-                    inRange = false;
-                    i++;
-                }
-            }
-            // check codePoint in this font
-            glyphIndex = FT_Get_Char_Index(_face, codePoint);
-            if (0 == glyphIndex) {
-                fullSupport = false;
-            } else {
-                partialSupport = true;
-            }
-        }
-        if (fullSupport) {
-            res = font_lang_compat_full;
-            CRLog::debug("checkFontLangCompat(): Font have full support of language %s",
-                         langCode.c_str());
-        } else if (partialSupport) {
-            res = font_lang_compat_partial;
-            CRLog::debug("checkFontLangCompat(): Font have partial support of language %s",
-                         langCode.c_str());
-        } else {
-            res = font_lang_compat_none;
-            CRLog::debug("checkFontLangCompat(): Font DON'T have support of language %s",
-                         langCode.c_str());
-        }
-    } else
-        CRLog::debug("checkFontLangCompat(): Unsupported language code: %s", langCode.c_str());
-#endif
-    return res;
-}
-
 lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
                                     int len,
                                     lUInt16 *widths,
@@ -1715,7 +1634,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
 
     lUInt16 prev_width = 0;
     lUInt16 cur_width = 0;
-    lUInt32 lastFitChar = 0;
+    lUInt16 lastFitChar = 0;
     updateTransform();  // no-op
     // measure character widths
 
@@ -1934,17 +1853,22 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
                                     fb_hints &= ~LFNT_HINT_BEGINS_PARAGRAPH;
                                 if ( t_notdef_end < len )
                                     fb_hints &= ~LFNT_HINT_ENDS_PARAGRAPH;
-                                fallbackFont->measureText( text + t_notdef_start, t_notdef_end - t_notdef_start,
+                                lUInt16 last_good_width = t_notdef_start > 0 ? widths[t_notdef_start-1] : 0;
+                                lUInt16 chars_measured = fallbackFont->measureText( text + t_notdef_start, t_notdef_end - t_notdef_start,
                                                 widths + t_notdef_start, flags + t_notdef_start,
-                                                max_width, def_char, lang_cfg, letter_spacing, allow_hyphenation,
+                                                max_width - last_good_width, def_char, lang_cfg, letter_spacing, allow_hyphenation,
                                                 fb_hints, fallbackPassMask | _fallback_mask );
+                                lastFitChar = t_notdef_start + chars_measured;
                                 // Fix previous bad measurements
-                                int last_good_width = t_notdef_start > 0 ? widths[t_notdef_start-1] : 0;
-                                for (int tn = t_notdef_start; tn < t_notdef_end; tn++) {
+                                for (int tn = t_notdef_start; tn < lastFitChar; tn++) {
                                     widths[tn] += last_good_width;
+                                    if (widths[tn] > max_width) {
+                                        lastFitChar = tn;
+                                        break;
+                                    }
                                 }
                                 // And fix our current width
-                                cur_width = widths[t_notdef_end-1];
+                                cur_width = widths[lastFitChar-1];
                                 prev_width = cur_width;
                                 #ifdef DEBUG_MEASURE_TEXT
                                     printf("MTHB ### measured past failures > W= %d\n[...]", cur_width);
@@ -2011,8 +1935,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
             if (cur_width > max_width) {
                 if (lastFitChar < hcl + 7)
                     break;
-            }
-            else {
+            } else {
                 lastFitChar = t+1;
             }
         } // process next char t
@@ -2029,23 +1952,26 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
                 lUInt32 fb_hints = hints;
                 if ( t_notdef_start > 0 )
                     fb_hints &= ~LFNT_HINT_BEGINS_PARAGRAPH;
-                int chars_measured = fallbackFont->measureText( text + t_notdef_start, // start
+                lUInt16 last_good_width = t_notdef_start > 0 ? widths[t_notdef_start-1] : 0;
+                lUInt16 chars_measured = fallbackFont->measureText( text + t_notdef_start, // start
                                 t_notdef_end - t_notdef_start, // len
                                 widths + t_notdef_start, flags + t_notdef_start,
-                                max_width, def_char, lang_cfg, letter_spacing, allow_hyphenation,
+                                max_width - last_good_width, def_char, lang_cfg, letter_spacing, allow_hyphenation,
                                 fb_hints, fallbackPassMask | _fallback_mask );
                 lastFitChar = t_notdef_start + chars_measured;
-                int last_good_width = t_notdef_start > 0 ? widths[t_notdef_start-1] : 0;
-                for (int tn = t_notdef_start; tn < t_notdef_end; tn++) {
+                for (int tn = t_notdef_start; tn < lastFitChar; tn++) {
                     widths[tn] += last_good_width;
+                    if (widths[tn] > max_width) {
+                        lastFitChar = tn;
+                        break;
+                    }
                 }
                 // And add all that to our current width
-                cur_width = widths[t_notdef_end-1];
+                cur_width = widths[lastFitChar-1];
                 #ifdef DEBUG_MEASURE_TEXT
                     printf("MTHB ### measured past failures at EOT > W= %d\n[...]", cur_width);
                 #endif
-            }
-            else {
+            } else {
                 #ifdef DEBUG_MEASURE_TEXT
                     printf("[...]\nMTHB no fallback font to measure past failures at EOT, keeping def_char\nMTHB [...]");
                 #endif
@@ -2053,7 +1979,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar32 *text,
         }
 
         // i is used below to "fill props for rest of chars", so make it accurate
-        i = len; // actually make it do nothing
+        i = lastFitChar;
 
         #ifdef DEBUG_MEASURE_TEXT
             printf("MTHB <<< W=%d [%s]\n", cur_width, _faceName.c_str());

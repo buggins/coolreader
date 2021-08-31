@@ -16,10 +16,12 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RadioButton;
@@ -33,25 +35,24 @@ import org.coolreader.Dictionaries;
 import org.coolreader.Dictionaries.DictInfo;
 import org.coolreader.R;
 import org.coolreader.plugins.OnlineStorePluginManager;
+import org.coolreader.tts.OnTTSCreatedListener;
+import org.coolreader.tts.TTSControlBinder;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
 public class OptionsDialog extends BaseDialog implements TabContentFactory, OptionOwner, Settings {
 
 	ReaderView mReaderView;
 	BaseActivity mActivity;
 	String[] mFontFaces;
-	TextToSpeech mTTS;
-	boolean mTemporaryTTS;
+
+	TTSControlBinder mTTSBinder;
+
 	/*
 	int[] mFontSizes = new int[] {
 		9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
@@ -288,23 +289,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.options_selection_action_dictionary, 
 			R.string.options_selection_action_bookmark, 
 		};
-	int[] mAntialiasEINK = new int[] {
-			0, 1, 2
-	};
-	int[] mAntialiasEINKTitles = new int[] {
-			R.string.options_font_antialias_off, R.string.options_font_antialias_on_for_big, R.string.options_font_antialias_on_for_all
-	};
 	// possible values see in crengine/include/lvfont.h: enum font_antialiasing_t
 	int[] mAntialias = new int[] {
-			0, 1, 2,
-			4, 5,
-			8, 9
-		};
+			0, 1, 2
+	};
 	int[] mAntialiasTitles = new int[] {
-			R.string.options_font_antialias_off, R.string.options_font_antialias_on_for_big, R.string.options_font_antialias_on_for_all,
-			R.string.options_font_antialias_lcd_rgb, R.string.options_font_antialias_lcd_bgr,
-			R.string.options_font_antialias_lcd_v_rgb, R.string.options_font_antialias_lcd_v_bgr
-		};
+			R.string.options_font_antialias_off, R.string.options_font_antialias_on_for_big, R.string.options_font_antialias_on_for_all
+	};
 	int[] mLandscapePages = new int[] {
 			1, 2
 		};
@@ -391,6 +382,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionBase mCloudSyncAskConfirmationsOption;
 	OptionBase mGoogleDriveAutoSavePeriodOption;
 	OptionBase mCloudSyncDataKeepAliveOptions;
+	ListOption mTTSEngineOption;
 	OptionBase mTTSUseDocLangOption;
 	ListOption mTTSLanguageOption;
 	ListOption mTTSVoiceOption;
@@ -657,7 +649,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			View view;
 			convertView = myView;
 			if ( convertView==null ) {
-				//view = new TextView(getContext());
 				view = mInflater.inflate(R.layout.option_item_boolean, null);
 			} else {
 				view = convertView;
@@ -665,7 +656,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			myView = view;
 			TextView labelView = view.findViewById(R.id.option_label);
 			TextView commentView = view.findViewById(R.id.option_comment);
-			CheckBox valueView = view.findViewById(R.id.option_value_cb);
+			CompoundButton valueView = view.findViewById(R.id.option_value_cb);
 			labelView.setText(label);
 			labelView.setEnabled(enabled);
 			String commentLabel = null;
@@ -710,7 +701,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			View view;
 			convertView = myView;
 			if ( convertView==null ) {
-				//view = new TextView(getContext());
 				view = mInflater.inflate(R.layout.option_item_boolean, null);
 			} else {
 				view = convertView;
@@ -718,9 +708,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			myView = view;
 			TextView labelView = view.findViewById(R.id.option_label);
 			TextView commentView = view.findViewById(R.id.option_comment);
-			CheckBox valueView = view.findViewById(R.id.option_value_cb);
-//			valueView.setFocusable(false);
-//			valueView.setClickable(false);
+			CompoundButton valueView = view.findViewById(R.id.option_value_cb);
 			labelView.setText(label);
 			labelView.setEnabled(enabled);
 			String commentLabel = comment;
@@ -738,13 +726,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				commentView.setVisibility(View.GONE);
 			}
 			valueView.setChecked(getValueBoolean());
-			valueView.setOnCheckedChangeListener((arg0, checked) -> {
-//						mProperties.setBool(property, checked);
-//						refreshList();
-			});
+			// For this view, the "focusable" and "clickable" properties are
+			// disabled in the layout, so there is no need to set a change listener.
+			//valueView.setOnCheckedChangeListener((arg0, checked) -> {
+			//			mProperties.setBool(property, checked);
+			//			refreshList();
+			//});
 			setupIconView((ImageView)view.findViewById(R.id.option_icon));
-//			view.setClickable(true);
-//			view.setFocusable(true);
 			valueView.setEnabled(enabled);
 			return view;
 		}
@@ -1163,7 +1151,79 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	}
 	
 	public static class ListOption extends OptionBase {
-		private ArrayList<Pair> list = new ArrayList<>();
+		protected ArrayList<Pair> list = new ArrayList<>();
+
+		class ListOptionAdapter extends BaseAdapter {
+
+			private final ListView mListView;
+			private final List<Pair> mList;
+
+			ListOptionAdapter(ListView listView, List<Pair> list) {
+				super();
+				mListView = listView;
+				mList = list;
+			}
+
+			public boolean areAllItemsEnabled() {
+				return true;
+			}
+
+			public boolean isEnabled(int position) {
+				return true;
+			}
+
+			public int getCount() {
+				return mList.size();
+			}
+
+			public Object getItem(int position) {
+				return mList.get(position);
+			}
+
+			public long getItemId(int position) {
+				return position;
+			}
+
+			public int getItemViewType(int position) {
+				return 0;
+			}
+
+			public View getView(final int position, View convertView, ViewGroup parent) {
+				ViewGroup layout;
+				if ( convertView==null ) {
+					layout = (ViewGroup)mInflater.inflate(getItemLayoutId(), null);
+				} else {
+					layout = (ViewGroup)convertView;
+				}
+				final Pair item = mList.get(position);
+				updateItemContents( layout, item, mListView, position );
+				return layout;
+			}
+
+			public int getViewTypeCount() {
+				return 1;
+			}
+
+			public boolean hasStableIds() {
+				return true;
+			}
+
+			public boolean isEmpty() {
+				return mList.size()==0;
+			}
+
+			private ArrayList<DataSetObserver> observers = new ArrayList<>();
+
+			public void registerDataSetObserver(DataSetObserver observer) {
+				observers.add(observer);
+			}
+
+			public void unregisterDataSetObserver(DataSetObserver observer) {
+				observers.remove(observer);
+			}
+
+		};
+
 		public ListOption( OptionOwner owner, String label, String property ) {
 			super(owner, label, property);
 		}
@@ -1275,7 +1335,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		}
 
 		protected void closed() {
-			
 		}
 		
 		protected int getItemLayoutId() {
@@ -1292,10 +1351,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			boolean isSelected = item.value != null && item.value.equals(currValue);//getSelectedItemIndex()==position;
 			cb.setChecked(isSelected);
 			cb.setOnClickListener(v -> {
-				listView.getOnItemClickListener().onItemClick(listView, listView, position, 0);
-//					mProperties.setProperty(property, item.value);
-//					dismiss();
-//					optionsListView.refresh();
+				AdapterView.OnItemClickListener listener = listView.getOnItemClickListener();
+				if (null != listener)
+					listener.onItemClick(listView, listView, position, 0);
 			});
 		}
 		
@@ -1304,82 +1362,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public void onSelect() {
 			if (!enabled)
 				return;
-
 			final BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
-
 			final ListView listView = new BaseListView(mActivity, false);
-			
-			
-			ListAdapter listAdapter = new BaseAdapter() {
-
-				public boolean areAllItemsEnabled() {
-					return true;
-				}
-
-				public boolean isEnabled(int position) {
-					return true;
-				}
-
-				public int getCount() {
-					return list.size();
-				}
-
-				public Object getItem(int position) {
-					return list.get(position);
-				}
-
-				public long getItemId(int position) {
-					return position;
-				}
-
-				public int getItemViewType(int position) {
-					return 0;
-				}
-
-				public View getView(final int position, View convertView,
-						ViewGroup parent) {
-					ViewGroup layout;
-					if ( convertView==null ) {
-						layout = (ViewGroup)mInflater.inflate(getItemLayoutId(), null);
-						//view = new TextView(getContext());
-					} else {
-						layout = (ViewGroup)convertView;
-					}
-					final Pair item = list.get(position);
-					updateItemContents( layout, item, listView, position );
-					//cb.setClickable(false);
-//					cb.setOnClickListener(new View.OnClickListener() {
-//						@Override
-//						public void onClick(View v) {
-//							
-//						}
-//					});
-					return layout;
-				}
-
-				public int getViewTypeCount() {
-					return 1;
-				}
-
-				public boolean hasStableIds() {
-					return true;
-				}
-
-				public boolean isEmpty() {
-					return list.size()==0;
-				}
-
-				private ArrayList<DataSetObserver> observers = new ArrayList<>();
-				
-				public void registerDataSetObserver(DataSetObserver observer) {
-					observers.add(observer);
-				}
-
-				public void unregisterDataSetObserver(DataSetObserver observer) {
-					observers.remove(observer);
-				}
-				
-			};
+			ListOptionAdapter listAdapter = new ListOptionAdapter(listView, list);
 			int selItem = getSelectedItemIndex();
 			if ( selItem<0 )
 				selItem = 0;
@@ -1403,6 +1388,138 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				onChangeHandler.run();
 			if ( optionsListView!=null )
 				optionsListView.refresh();
+		}
+	}
+
+	protected interface FontScanCompleted {
+		void onComplete(ArrayList<Pair> list, boolean canceled);
+	}
+
+	protected class FontSelectOption extends ListOption {
+		protected ArrayList<Pair> sourceList;
+		private String langTag;
+		private String langDescr;
+		private ListOptionAdapter listAdapter;
+
+		public FontSelectOption(OptionOwner owner, String label, String property ) {
+			super(owner, label, property);
+			langTag = null;
+			langDescr = null;
+			BookInfo bookInfo = mReaderView.getBookInfo();
+			if (null != bookInfo) {
+				FileInfo fileInfo = bookInfo.getFileInfo();
+				if (null != fileInfo) {
+					langTag = fileInfo.language;
+					langDescr = Engine.getHumanReadableLocaleName(langTag);
+				}
+			}
+		}
+
+		private void asyncFilterFontsByLanguage(String langTag, FontScanCompleted onComplete) {
+			BackgroundThread.ensureGUI();
+			final Scanner.ScanControl control = new Scanner.ScanControl();
+			final Engine.ProgressControl progress = Services.getEngine().createProgress(R.string.scanning_font_files, control);
+			final ArrayList<Pair> filtered = new ArrayList<Pair>();
+			BackgroundThread.instance().postBackground(() -> {
+				int i = 0;
+				for (Pair pair : list) {
+					if (control.isStopped())
+						break;
+					String faceName = pair.value;
+					Engine.font_lang_compat status = Engine.checkFontLanguageCompatibility(faceName, langTag);
+					switch (status) {
+						case font_lang_compat_full:
+						case font_lang_compat_partial:
+							filtered.add(new Pair(faceName, faceName));
+							break;
+						default:
+							break;
+					}
+					i++;
+					progress.setProgress(10000*i/list.size());
+				}
+				onComplete.onComplete(filtered, control.isStopped());
+				progress.hide();
+			});
+		}
+
+		public void onSelect() {
+			if (!enabled)
+				return;
+			final BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
+
+			LinearLayout layout = new LinearLayout(mActivity);
+			layout.setOrientation(LinearLayout.VERTICAL);
+
+			View panel = mInflater.inflate(R.layout.option_lang_filter, null);
+			layout.addView(panel);
+			CompoundButton filter_by_lang = panel.findViewById(R.id.filter_by_lang);
+			if (null != langDescr && langDescr.length() > 0) {
+				filter_by_lang.setText(mActivity.getString(R.string.filter_by_book_language_s, langDescr));
+			} else {
+				filter_by_lang.setText(mActivity.getString(R.string.filter_by_book_language_s, mActivity.getString(R.string.undetermined)));
+				filter_by_lang.setEnabled(false);
+			}
+			final ListView listView = new BaseListView(mActivity, false);
+			listAdapter = new ListOptionAdapter(listView, list);
+			int selItem = getSelectedItemIndex();
+			if ( selItem<0 )
+				selItem = 0;
+			listView.setAdapter(listAdapter);
+			listView.setSelection(selItem);
+			layout.addView(listView);
+
+			listView.setOnItemClickListener((adapter, listview, position, id) -> {
+				Pair item = (Pair) listAdapter.getItem(position);
+				onClick(item);
+				dlg.dismiss();
+				closed();
+			});
+
+			filter_by_lang.setOnCheckedChangeListener((buttonView, isChecked) -> {
+				if (isChecked) {
+					asyncFilterFontsByLanguage(langTag, (list, canceled) -> {
+						if (!canceled) {
+							BackgroundThread.instance().executeGUI(() -> {
+								FontSelectOption.this.sourceList = FontSelectOption.this.list;
+								FontSelectOption.this.list = list;
+								listAdapter = new ListOptionAdapter(listView, list);
+								int selindex = getSelectedItemIndex();
+								if ( selindex<0 )
+									selindex = 0;
+								listView.setAdapter(listAdapter);
+								listView.setSelection(selindex);
+							});
+						} else {
+							BackgroundThread.instance().executeGUI(() -> {
+								filter_by_lang.setChecked(false);
+							});
+						}
+					});
+				} else {
+					if (null != sourceList) {
+						list = sourceList;
+						listAdapter = new ListOptionAdapter(listView, list);
+						int selindex = getSelectedItemIndex();
+						if (selindex < 0)
+							selindex = 0;
+						listView.setAdapter(listAdapter);
+						listView.setSelection(selindex);
+					}
+				}
+			});
+
+			dlg.setOnDismissListener(dialog -> closed());
+
+			// TODO: set checked for for filter_by_lang (save in settings)
+
+			dlg.setView(layout);
+			dlg.show();
+		}
+
+		protected void closed() {
+			if (null != sourceList)
+				list = sourceList;
 		}
 	}
 
@@ -1806,15 +1923,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		BROWSER,
 		TTS,
 	}
-	public OptionsDialog(BaseActivity activity, Mode mode, ReaderView readerView, String[] fontFaces, TextToSpeech tts)
+	public OptionsDialog(BaseActivity activity, Mode mode, ReaderView readerView, String[] fontFaces, TTSControlBinder ttsbinder)
 	{
 		super(activity, null, false, false);
 		
 		mActivity = activity;
 		mReaderView = readerView;
 		mFontFaces = fontFaces;
-		mTTS = tts;
-		mTemporaryTTS = false;
+		mTTSBinder = ttsbinder;
 		mProperties = new Properties(mActivity.settings()); //  readerView.getSettings();
 		mOldProperties = new Properties(mProperties);
 		if (mode == Mode.READER) {
@@ -2394,67 +2510,48 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	private void fillTTSLanguages(ListOption listOption) {
 		listOption.clear();
-		if (null != mTTS) {
-			Set<Voice> voices = mTTS.getVoices();
-			HashMap<Locale, String> languagesMap = new HashMap<>();
-			for (Voice voice : voices) {
-				Locale locale = voice.getLocale();
-				String language = locale.getDisplayLanguage();
-				String country = locale.getDisplayCountry();
-				if (country.length() > 0)
-					language += " (" + country + ")";
-				languagesMap.put(locale, language);
-			}
-			ArrayList<Pair> list = new ArrayList<>();
-			for (Map.Entry<Locale, String> entry : languagesMap.entrySet()) {
-				list.add(new Pair(entry.getKey().toString(), entry.getValue()));
-			}
-			Collections.sort(list, (o1, o2) -> o1.label.compareTo(o2.label));
-			for (Pair pair : list) {
-				listOption.add(pair.value, pair.label);
-			}
-			Voice defaultVoice = mTTS.getVoice();
-			if (null != defaultVoice) {
-				Locale locale = defaultVoice.getLocale();
-				listOption.setDefaultValue(locale.toString());
-			}
-			listOption.noIcon();
+		if (null != mTTSBinder) {
+			mTTSBinder.retrieveAvailableLocales(list -> {
+				BackgroundThread.instance().executeGUI(() -> {
+					for (Locale locale : list) {
+						String language = locale.getDisplayLanguage();
+						String country = locale.getDisplayCountry();
+						if (country.length() > 0)
+							language += " (" + country + ")";
+						listOption.add(locale.toString(), language);
+					}
+					listOption.noIcon();
+					listOption.refreshList();
+				});
+			});
 		}
 	}
 
 	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	private void fillTTSVoices(ListOption listOption, String language) {
 		listOption.clear();
-		if (null != mTTS) {
-			Set<Voice> voices = mTTS.getVoices();
-			ArrayList<Pair> list = new ArrayList<>();
-			for (Voice voice : voices) {
-				Locale locale = voice.getLocale();
-				String langCode = locale.toString();
-				String quality;
-				int qualityInt = voice.getQuality();
-				if (qualityInt >= Voice.QUALITY_VERY_HIGH)
-					quality = getString(R.string.options_tts_voice_quality_very_high);
-				else if (qualityInt >= Voice.QUALITY_HIGH)
-					quality = getString(R.string.options_tts_voice_quality_high);
-				else if (qualityInt >= Voice.QUALITY_NORMAL)
-					quality = getString(R.string.options_tts_voice_quality_normal);
-				else if (qualityInt >= Voice.QUALITY_LOW)
-					quality = getString(R.string.options_tts_voice_quality_low);
-				else
-					quality = getString(R.string.options_tts_voice_quality_very_low);
-				if (langCode.toLowerCase().equals(language.toLowerCase()))
-					list.add(new Pair(voice.getName(), voice.getName() + " (" + quality + ")"));
-			}
-			Collections.sort(list, (o1, o2) -> o1.label.compareTo(o2.label));
-			for (Pair pair : list) {
-				listOption.add(pair.value, pair.label);
-			}
-			Voice defaultVoice = mTTS.getVoice();
-			if (null != defaultVoice) {
-				listOption.setDefaultValue(defaultVoice.getName());
-			}
-			listOption.noIcon();
+		if (null != mTTSBinder) {
+			mTTSBinder.retrieveAvailableVoices(new Locale(language), list -> {
+				BackgroundThread.instance().executeGUI(() -> {
+					for (Voice voice : list) {
+						String quality;
+						int qualityInt = voice.getQuality();
+						if (qualityInt >= Voice.QUALITY_VERY_HIGH)
+							quality = getString(R.string.options_tts_voice_quality_very_high);
+						else if (qualityInt >= Voice.QUALITY_HIGH)
+							quality = getString(R.string.options_tts_voice_quality_high);
+						else if (qualityInt >= Voice.QUALITY_NORMAL)
+							quality = getString(R.string.options_tts_voice_quality_normal);
+						else if (qualityInt >= Voice.QUALITY_LOW)
+							quality = getString(R.string.options_tts_voice_quality_low);
+						else
+							quality = getString(R.string.options_tts_voice_quality_very_low);
+						listOption.add(voice.getName(), voice.getName() + " (" + quality + ")");
+					}
+					listOption.noIcon();
+					listOption.refreshList();
+				});
+			});
 		}
 	}
 
@@ -2465,32 +2562,43 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 		mOptionsTTS = new OptionsListView(getContext());
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			ListOption engineOption = new ListOption(this, getString(R.string.options_tts_engine), PROP_APP_TTS_ENGINE);
-			List<TextToSpeech.EngineInfo> engines = mTTS.getEngines();
-			String currentEngine = mTTS.getDefaultEngine();
-			for (TextToSpeech.EngineInfo info : engines) {
-				engineOption.add(info.name, info.label);
-			}
-			engineOption.setDefaultValue(currentEngine);
-			mOptionsTTS.add(engineOption.noIcon());
-			// onchange handler
-			engineOption.setOnChangeHandler(() -> {
-				if (mTemporaryTTS && null != mTTS) {
-					mTTS.shutdown();
-				}
-				// update languages & voices list
-				String tts_package = mProperties.getProperty(PROP_APP_TTS_ENGINE, "");
-				mTTS = new TextToSpeech(mActivity, status -> {
-					if (TextToSpeech.SUCCESS == status) {
-						if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-							fillTTSLanguages(mTTSLanguageOption);
-							mTTSVoiceOption.clear();
-						}
-					} else {
-						mTTSLanguageOption.clear();
+			mTTSEngineOption = new ListOption(this, getString(R.string.options_tts_engine), PROP_APP_TTS_ENGINE);
+			mTTSBinder.retrieveAvailableEngines(list -> {
+				BackgroundThread.instance().executeGUI(() -> {
+					for (TextToSpeech.EngineInfo info : list) {
+						mTTSEngineOption.add(info.name, info.label);
 					}
-				}, tts_package);
-				mTemporaryTTS = true;
+					String tts_package = mProperties.getProperty(PROP_APP_TTS_ENGINE, "");
+					mTTSEngineOption.setDefaultValue(tts_package);
+					mTTSEngineOption.refreshList();
+				});
+			});
+			mOptionsTTS.add(mTTSEngineOption.noIcon());
+			mTTSEngineOption.setOnChangeHandler(() -> {
+				String tts_package = mProperties.getProperty(PROP_APP_TTS_ENGINE, "");
+				mTTSBinder.initTTS(tts_package, new OnTTSCreatedListener() {
+					@Override
+					public void onCreated() {
+						if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+							BackgroundThread.instance().executeGUI(() -> {
+								if (null != mTTSLanguageOption)
+									fillTTSLanguages(mTTSLanguageOption);
+								if (null != mTTSVoiceOption)
+									mTTSVoiceOption.clear();
+							});
+						}
+					}
+					@Override
+					public void onFailed() {
+						if (null != mTTSLanguageOption)
+							mTTSLanguageOption.clear();
+					}
+					@Override
+					public void onTimedOut() {
+						if (null != mTTSLanguageOption)
+							mTTSLanguageOption.clear();
+					}
+				});
 			});
 		}
 		mTTSUseDocLangOption = new BoolOption(this, getString(R.string.options_tts_use_doc_lang), PROP_APP_TTS_USE_DOC_LANG).setDefaultValue("1").noIcon();
@@ -2518,6 +2626,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mTTSVoiceOption.setEnabled(!useDocLang);
 			mOptionsTTS.add(mTTSVoiceOption);
 		}
+		mOptionsTTS.add(new BoolOption(this, getString(R.string.options_tts_google_abbr_workaround), PROP_APP_TTS_GOOGLE_END_OF_SENTENCE_ABBR).setComment(getString(R.string.options_tts_google_abbr_workaround_comment)).setDefaultValue("1").noIcon());
 		mOptionsTTS.add(new ListOption(this, getString(R.string.options_app_tts_stop_motion_timeout), PROP_APP_MOTION_TIMEOUT).add(mMotionTimeouts, mMotionTimeoutsTitles).setDefaultValue(Integer.toString(mMotionTimeouts[0])).noIcon());
 		mOptionsTTS.refresh();
 		body.addView(mOptionsTTS);
@@ -2637,7 +2746,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 		mOptionsStyles = new OptionsListView(getContext());
 		mFontHintingOption = new ListOption(this, getString(R.string.options_font_hinting), PROP_FONT_HINTING).add(mHinting, mHintingTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_hinting_drawable, R.drawable.cr3_option_text_hinting);
-		OptionBase fontOption = new ListOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face);
+		OptionBase fontOption = new FontSelectOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face);
 		mOptionsStyles.add(fontOption);
 		mOptionsStyles.add(new NumberPickerOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).setMinValue(mActivity.getMinFontSize()).setMaxValue(mActivity.getMaxFontSize()).setDefaultValue("24").setIconIdByAttr(R.attr.cr3_option_font_size_drawable, R.drawable.cr3_option_font_size));
 		mFontWeightOption = (ListOption) new ListOption(this, getString(R.string.options_font_weight), PROP_FONT_BASE_WEIGHT).setIconIdByAttr(R.attr.cr3_option_text_bold_drawable, R.drawable.cr3_option_text_bold);
@@ -2647,6 +2756,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			String faceName = mProperties.getProperty(PROP_FONT_FACE, "");
 			updateFontWeightValues(mFontWeightOption, faceName);
 		});
+		/*
 		mFontWeightOption.setOnChangeHandler(() -> {
 			// enable/disable font hinting option
 			String faceName = mProperties.getProperty(PROP_FONT_FACE, "");
@@ -2655,14 +2765,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				ArrayList<Integer> nativeWeightsArray = new ArrayList<>();    // for search
 				for (int w : nativeWeights)
 					nativeWeightsArray.add(w);
-				//int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
-				//mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
+				int base_weight = mProperties.getInt(PROP_FONT_BASE_WEIGHT, 400);
+				mFontHintingOption.setEnabled(nativeWeightsArray.contains(base_weight));
 			}
 		});
-		if ( DeviceInfo.EINK_SCREEN )
-			mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialiasEINK, mAntialiasEINKTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_antialias_drawable, R.drawable.cr3_option_text_antialias));
-		else
-			mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_antialias_drawable, R.drawable.cr3_option_text_antialias));
+		 */
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconIdByAttr(R.attr.cr3_option_text_antialias_drawable, R.drawable.cr3_option_text_antialias));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_interline_space), PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100").setIconIdByAttr(R.attr.cr3_option_line_spacing_drawable, R.drawable.cr3_option_line_spacing));
 		//
 		mEnableMultiLangOption = new BoolOption(this, getString(R.string.options_style_multilang), PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_text_multilang_drawable, R.drawable.cr3_option_text_multilang)
@@ -2984,10 +3092,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		//L.d("OptionsDialog.onStop() : calling gc()");
 		//System.gc();
 		super.onStop();
-		if (mTemporaryTTS && null != mTTS) {
-			mTTS.shutdown();
-			mTTS = null;
-		}
 	}
 
 	@Override
