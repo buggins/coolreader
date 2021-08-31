@@ -2658,10 +2658,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	//private File historyFile;
 
-	private void updateLoadedBookInfo() {
+	private void updateLoadedBookInfo(boolean updatePath) {
 		BackgroundThread.ensureBackground();
 		// get title, authors, genres, etc.
-		doc.updateBookInfo(mBookInfo, true);
+		doc.updateBookInfo(mBookInfo, updatePath);
 		updateCurrentPositionStatus();
 		// check whether current book properties updated on another devices
 		// TODO: fix and reenable
@@ -5182,7 +5182,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				}
 				preparePageImage(0);
 				log.v("updating loaded book info");
-				updateLoadedBookInfo();
+				updateLoadedBookInfo(null != docBuffer);
 				if (null == docBuffer) {
 					// Opened existing file
 					log.i("Document " + filename + " is loaded successfully");
