@@ -172,6 +172,13 @@
             </intent-filter>
         </service>
 
+        <!-- Cloud sync service -->
+        <service
+                android:name=".sync2.SyncService"
+                android:enabled="true"
+                android:exported="false" >
+        </service>
+
         <!-- Stop TTS on incoming call -->
         <receiver android:name="org.coolreader.PhoneStateReceiver">
             <intent-filter>

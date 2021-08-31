@@ -1,5 +1,7 @@
 package org.coolreader.crengine;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import org.coolreader.R;
@@ -13,7 +15,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.zip.ZipEntry;
 
-public class FileInfo {
+public class FileInfo implements Parcelable {
 
 	public final static String RECENT_DIR_TAG = "@recent";
 	public final static String SEARCH_RESULT_DIR_TAG = "@searchResults";
@@ -110,6 +112,18 @@ public class FileInfo {
 	// bitmask for field 'tag' when obtained genres list as special folders
 	public static final int GENRE_DATA_INCCHILD_MASK = 0x80000000;
 	public static final int GENRE_DATA_BOOKCOUNT_MASK = 0x00FFFFFF;
+
+	public static final Creator<FileInfo> CREATOR = new Creator<FileInfo>() {
+		@Override
+		public FileInfo createFromParcel(Parcel in) {
+			return new FileInfo(in);
+		}
+
+		@Override
+		public FileInfo[] newArray(int size) {
+			return new FileInfo[size];
+		}
+	};
 
 	/**
 	 * Get book reading state. 
@@ -220,7 +234,43 @@ public class FileInfo {
 		}
 		return res;
 	}
-	
+
+	protected FileInfo(Parcel in) {
+		if (in.readByte() == 0) {
+			id = null;
+		} else {
+			id = in.readLong();
+		}
+		title = in.readString();
+		authors = in.readString();
+		series = in.readString();
+		seriesNumber = in.readInt();
+		genres = in.readString();
+		path = in.readString();
+		filename = in.readString();
+		pathname = in.readString();
+		arcname = in.readString();
+		language = in.readString();
+		description = in.readString();
+		username = in.readString();
+		password = in.readString();
+		size = in.readLong();
+		arcsize = in.readLong();
+		createTime = in.readLong();
+		lastAccessTime = in.readLong();
+		flags = in.readInt();
+		isArchive = in.readByte() != 0;
+		isDirectory = in.readByte() != 0;
+		isListed = in.readByte() != 0;
+		isScanned = in.readByte() != 0;
+		crc32 = in.readLong();
+		domVersion = in.readInt();
+		blockRenderingFlags = in.readInt();
+		parent = in.readParcelable(FileInfo.class.getClassLoader());
+		files = in.createTypedArrayList(FileInfo.CREATOR);
+		dirs = in.createTypedArrayList(FileInfo.CREATOR);
+	}
+
 	public FileInfo( String pathName )
 	{
 		String[] parts = splitArcName( pathName );
@@ -983,7 +1033,50 @@ public class FileInfo {
 		dirs = null;
 		files = null;
 	}
-	
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		if (id == null) {
+			dest.writeByte((byte) 0);
+		} else {
+			dest.writeByte((byte) 1);
+			dest.writeLong(id);
+		}
+		dest.writeString(title);
+		dest.writeString(authors);
+		dest.writeString(series);
+		dest.writeInt(seriesNumber);
+		dest.writeString(genres);
+		dest.writeString(path);
+		dest.writeString(filename);
+		dest.writeString(pathname);
+		dest.writeString(arcname);
+		dest.writeString(language);
+		dest.writeString(description);
+		dest.writeString(username);
+		dest.writeString(password);
+		dest.writeLong(size);
+		dest.writeLong(arcsize);
+		dest.writeLong(createTime);
+		dest.writeLong(lastAccessTime);
+		dest.writeInt(flags);
+		dest.writeByte((byte) (isArchive ? 1 : 0));
+		dest.writeByte((byte) (isDirectory ? 1 : 0));
+		dest.writeByte((byte) (isListed ? 1 : 0));
+		dest.writeByte((byte) (isScanned ? 1 : 0));
+		dest.writeLong(crc32);
+		dest.writeInt(domVersion);
+		dest.writeInt(blockRenderingFlags);
+		dest.writeParcelable(parent, flags);
+		dest.writeTypedList(files);
+		dest.writeTypedList(dirs);
+	}
+
 	public static enum SortOrder {
 		FILENAME(R.string.mi_book_sort_order_filename, new Comparator<FileInfo>() {
 			public int compare( FileInfo f1, FileInfo f2 )
