@@ -104,6 +104,14 @@
 }
 
 -keep class org.coolreader.crengine.FileInfo {
+	java.lang.String arcname;
+	long arcsize;
+	boolean isArchive;
+	java.lang.String pathname;
+	java.lang.String path;
+	java.lang.String filename;
+	long size;
+	org.coolreader.crengine.DocumentFormat format;
 	java.lang.String title;
 	java.lang.String authors;
 	java.lang.String series;
