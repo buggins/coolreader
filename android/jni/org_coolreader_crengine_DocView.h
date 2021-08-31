@@ -136,10 +136,10 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
 /*
  * Class:     org_coolreader_crengine_DocView
  * Method:    updateBookInfoInternal
- * Signature: (Lorg/coolreader/crengine/BookInfo;)V
+ * Signature: (Lorg/coolreader/crengine/BookInfo;Z)V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateBookInfoInternal
-  (JNIEnv *, jobject, jobject);
+  (JNIEnv *, jobject, jobject, jboolean);
 
 /*
  * Class:     org_coolreader_crengine_DocView

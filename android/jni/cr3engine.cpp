@@ -824,6 +824,32 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverIn
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    isArchiveInternal
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_isArchiveInternal
+  (JNIEnv * _env, jclass, jstring jarcName)
+{
+    jboolean res = JNI_FALSE;
+    CRJNIEnv env(_env);
+    lString32 arcName = env.fromJavaString(jarcName);
+    LVStreamRef stream = LVOpenFileStream(arcName.c_str(), LVOM_READ);
+    if (!stream.isNull()) {
+        LVContainerRef arc = LVOpenArchieve(stream);
+        if (!arc.isNull()) {
+            if (!DetectEpubFormat(stream) &&
+                !DetectFb3Format(stream) &&
+                !DetectDocXFormat(stream) &&
+                !DetectOpenDocumentFormat(stream)) {
+                res = JNI_TRUE;
+            }
+        }
+    }
+    return res;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    getArchiveItemsInternal
  * Signature: (Ljava/lang/String;)[Ljava/lang/String;
  */
@@ -1179,6 +1205,7 @@ static JNINativeMethod sEngineMethods[] = {
   {"setCacheDirectoryInternal", "(Ljava/lang/String;I)Z", (void*)Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal},
   {"scanBookPropertiesInternal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal},
   {"updateFileCRC32Internal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_updateFileCRC32Internal},
+  {"isArchiveInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_isArchiveInternal},
   {"getArchiveItemsInternal", "(Ljava/lang/String;)[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getArchiveItemsInternal},
   {"isLink", "(Ljava/lang/String;)Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_isLink},
   {"suspendLongOperationInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_suspendLongOperationInternal},
@@ -1208,7 +1235,7 @@ static JNINativeMethod sDocViewMethods[] = {
   {"getCurrentPageBookmarkInternal", "()Lorg/coolreader/crengine/Bookmark;", (void*)Java_org_coolreader_crengine_DocView_getCurrentPageBookmarkInternal},
   {"goToPositionInternal", "(Ljava/lang/String;Z)Z", (void*)Java_org_coolreader_crengine_DocView_goToPositionInternal},
   {"getPositionPropsInternal", "(Ljava/lang/String;Z)Lorg/coolreader/crengine/PositionProperties;", (void*)Java_org_coolreader_crengine_DocView_getPositionPropsInternal},
-  {"updateBookInfoInternal", "(Lorg/coolreader/crengine/BookInfo;)V", (void*)Java_org_coolreader_crengine_DocView_updateBookInfoInternal},
+  {"updateBookInfoInternal", "(Lorg/coolreader/crengine/BookInfo;Z)V", (void*)Java_org_coolreader_crengine_DocView_updateBookInfoInternal},
   {"getTOCInternal", "()Lorg/coolreader/crengine/TOCItem;", (void*)Java_org_coolreader_crengine_DocView_getTOCInternal},
   {"clearSelectionInternal", "()V", (void*)Java_org_coolreader_crengine_DocView_clearSelectionInternal},
   {"findTextInternal", "(Ljava/lang/String;III)Z", (void*)Java_org_coolreader_crengine_DocView_findTextInternal},

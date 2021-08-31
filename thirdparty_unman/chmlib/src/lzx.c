@@ -268,7 +268,7 @@ int LZXreset(struct LZXstate *pState)
 
 #define ENSURE_BITS(n)							\
   while (bitsleft < (n)) {						\
-    bitbuf |= ((inpos[1]<<8)|inpos[0]) << (ULONG_BITS-16 - bitsleft);	\
+    bitbuf |= (ULONG)((inpos[1]<<8)|inpos[0]) << (ULONG_BITS-16 - bitsleft);	\
     bitsleft += 16; inpos+=2;						\
   }
 

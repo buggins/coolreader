@@ -103,6 +103,12 @@ public class Engine {
 		return mountRoot;
 	}
 
+	private final Map<String, String> mAppPrivateDirs = new HashMap<String, String>();
+
+	public Map<String, String> getAppPrivateDirs() {
+		return mAppPrivateDirs;
+	}
+
 	public boolean isRootsMountPoint(String path) {
 		if (mountedRootsMap == null)
 			return false;
@@ -577,6 +583,12 @@ public class Engine {
 
 	private void setParams(BaseActivity activity) {
 		this.mActivity = activity;
+		File cacheDir = mActivity.getCacheDir();
+		File filesDir = mActivity.getFilesDir();
+		File bookCacheDir = new File(cacheDir, "bookCache");
+		File downloadDir = new File(filesDir, "downloads");
+		mAppPrivateDirs.put(downloadDir.getAbsolutePath(), "downloads");
+		mAppPrivateDirs.put(bookCacheDir.getAbsolutePath(), "cache");
 	}
 
 	/**
@@ -621,6 +633,8 @@ public class Engine {
 	private native static int[] getAvailableFontWeightInternal(String fontFace);
 
 	private native static int[] getAvailableSynthFontWeightInternal();
+
+	public native static boolean isArchiveInternal(String arcFileName);
 
 	private native static String[] getArchiveItemsInternal(String arcName); // pairs: pathname, size
 
@@ -720,6 +734,12 @@ public class Engine {
 	private static final int HYPH_ALGO = 1;
 	private static final int HYPH_DICT = 2;
 	private static final int HYPH_BOOK = 0;
+
+	public static boolean isArchive(String arcFileName) {
+		synchronized (lock) {
+			return isArchiveInternal(arcFileName);
+		}
+	}
 
 	public ArrayList<ZipEntry> getArchiveItems(String zipFileName) {
 		final int itemsPerEntry = 2;

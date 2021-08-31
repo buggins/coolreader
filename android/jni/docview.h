@@ -28,9 +28,9 @@ public:
 	bool closeBook();
 	bool loadHistory( lString32 filename );
 	bool saveHistory( lString32 filename );
-	void createDefaultDocument( lString32 title, lString32 message );
-	bool loadDocument( lString32 filename );
-	bool loadDocument( LVStreamRef stream, lString32 contentPath );
+	void createDefaultDocument( const lString32& title, const lString32& message );
+	bool loadDocument( const lString32& filename );
+	bool loadDocument( LVStreamRef stream, const lString32& contentPath );
 	int doCommand( int cmd, int param );
     bool findText( lString32 pattern, int origin, bool reverse, bool caseInsensitive );
     void clearSelection();
