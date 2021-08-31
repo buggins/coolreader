@@ -12,11 +12,11 @@ import java.util.ArrayList;
 
 public class TTSControlServiceAccessor {
 	private final static String TAG = "ttssrv";
-	private Activity mActivity;
+	private final Activity mActivity;
 	private volatile TTSControlBinder mServiceBinder;
 	private volatile boolean mServiceBound;
-	private ArrayList<TTSControlBinder.Callback> onConnectCallbacks = new ArrayList<>();
-	private boolean bindIsCalled;
+	private volatile boolean bindIsCalled;
+	private final ArrayList<TTSControlBinder.Callback> onConnectCallbacks = new ArrayList<>();
 	private final Object mLocker = new Object();
 
 	public interface Callback {
@@ -60,6 +60,7 @@ public class TTSControlServiceAccessor {
 			mActivity.unbindService(mServiceConnection);
 			mServiceBound = false;
 			bindIsCalled = false;
+			mServiceBinder = null;
 		}
 	}
 
@@ -81,6 +82,8 @@ public class TTSControlServiceAccessor {
 
 		public void onServiceDisconnected(ComponentName className) {
 			synchronized (TTSControlServiceAccessor.this) {
+				mServiceBound = false;
+				bindIsCalled = false;
 				mServiceBinder = null;
 			}
 			Log.i(TAG, "Connection to the TTSControlService has been lost");
