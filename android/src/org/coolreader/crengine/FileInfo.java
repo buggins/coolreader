@@ -48,10 +48,10 @@ public class FileInfo implements Parcelable {
 	public String series; // series name w/o number
 	public int seriesNumber; // number of book inside series
 	public String genres; // genre codes, delimited with '|'
-	public String path; // path to directory where file or archive is located
+	public String path; // path to directory where file is located
 	public String filename; // file name w/o path for normal file, with optional path for file inside archive 
-	public String pathname; // full path+arcname+filename
-	public String arcname; // archive file name w/o path
+	public String pathname; // full path+filename
+	public String arcname; // archive file name with path
 	public String language; // document language
 	public String description;	// book description
 	public String username; // username for online catalogs
@@ -1386,9 +1386,9 @@ public class FileInfo implements Parcelable {
 		if (arcsize != other.arcsize)
 			return false;
 		if (authors == null) {
-			if (other.authors != null)
+			if (other.authors.length() > 0)
 				return false;
-		} else if (!authors.equals(other.authors))
+		} else if ( ! ( authors.equals(other.authors) || (authors.length() == 0 && other.authors == null) ) )
 			return false;
 		// TODO: potentially filename may not match. Perhaps we need to remove this check.
 		if (filename == null) {
