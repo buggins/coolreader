@@ -32,7 +32,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 
-import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.FileInfo;
@@ -44,7 +43,9 @@ import org.coolreader.db.Task;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SyncService extends BaseService {
 
@@ -56,6 +57,53 @@ public class SyncService extends BaseService {
 		public SyncCommand(String action, Bundle params) {
 			this.action = action;
 			this.params = params;
+		}
+		@Override
+		public boolean equals(Object object) {
+			if (this == object)
+				return true;
+			if (null == object)
+				return false;
+			if (getClass() != object.getClass())
+				return false;
+			SyncCommand other = (SyncCommand)object;
+			if (null == action) {
+				if (null != other.action)
+					return false;
+			} else if (!action.equals(other.action))
+				return false;
+			if (null == params) {
+				if (null != other.params)
+					return false;
+			} else if (!bundleEquals(params, other.params))
+				return false;
+			return true;
+		}
+		private boolean bundleEquals(Bundle left, Bundle right) {
+			if (null == left) {
+				return null == right;
+			}
+			if (left.size() != right.size())
+				return false;
+			Set<String> keys = new HashSet<>(left.keySet());
+			keys.addAll(right.keySet());
+			Object leftVal;
+			Object rightVal;
+			for (String key : keys) {
+				if (!left.containsKey(key) || !right.containsKey(key))
+					return false;
+				leftVal = left.get(key);
+				rightVal = right.get(key);
+				if (leftVal instanceof Bundle && rightVal instanceof Bundle &&
+						!bundleEquals((Bundle) leftVal, (Bundle) rightVal)) {
+					return false;
+				} else if (leftVal == null) {
+					if (rightVal != null)
+						return false;
+				} else if (!leftVal.equals(rightVal))
+					return false;
+			}
+			return true;
 		}
 	}
 
@@ -70,6 +118,7 @@ public class SyncService extends BaseService {
 	public static final String SYNC_ACTION_NOOP = "org.coolreader.sync2.noop";
 
 	private final List<SyncCommand> mSyncCommands = Collections.synchronizedList(new ArrayList<SyncCommand>());
+	private SyncCommand mCurrentCommand = null;
 
 	private final SyncServiceBinder mBinder = new SyncServiceBinder(this);
 	private boolean mChannelCreated = false;
@@ -119,6 +168,9 @@ public class SyncService extends BaseService {
 					processSyncCommand(command.action, command.params);
 				}
 			} else {
+				synchronized (mLocker) {
+					mCurrentCommand = null;
+				}
 				stopSelf();
 			}
 		}
@@ -130,6 +182,7 @@ public class SyncService extends BaseService {
 			synchronized (mLocker) {
 				if (null != mStatusListener)
 					mStatusListener.onSyncError(direction, errorString);
+				mCurrentCommand = null;
 			}
 			// forgot about unprocessed commands
 			stopSelf();
@@ -142,6 +195,7 @@ public class SyncService extends BaseService {
 			synchronized (mLocker) {
 				if (null != mStatusListener)
 					mStatusListener.onAborted(direction);
+				mCurrentCommand = null;
 			}
 			// forgot about unprocessed commands
 			stopSelf();
@@ -230,7 +284,7 @@ public class SyncService extends BaseService {
 		}
 		if (ready) {
 			// if Synchronizer instance ready - process command
-			if (action.length() > 0) {
+			if (null != action && action.length() > 0) {
 				log.d("ready: process command \"" + action + "\"");
 				String finalAction = action;
 				execTask(new Task("processSyncCommand") {
@@ -243,8 +297,8 @@ public class SyncService extends BaseService {
 		} else {
 			// otherwise add to list to process later
 			log.d("adding command \"" + action + "\" to deferred list");
-			if (action.length() > 0) {
-				mSyncCommands.add(new SyncCommand(action, intent.getExtras()));
+			if (null != action && action.length() > 0) {
+				postSyncCommand(new SyncCommand(action, intent.getExtras()));
 			}
 		}
 		return START_NOT_STICKY;
@@ -352,11 +406,36 @@ public class SyncService extends BaseService {
 
 	// private implementation
 
+	private void postSyncCommand(SyncCommand command) {
+		if (null == command)
+			return;
+		boolean exist = false;
+		synchronized (mLocker) {
+			if (command.equals(mCurrentCommand))
+				exist = true;
+		}
+		if (!exist) {
+			for (SyncCommand cmd : mSyncCommands) {
+				if (cmd.equals(command)) {
+					exist = true;
+					break;
+				}
+			}
+		}
+		if (exist)
+			log.d("Skipping duplicated sync command");
+		else
+			mSyncCommands.add(command);
+	}
+
 	private void processSyncCommand(String action, Bundle params) {
+		// This is an asynchronous function.
+		// Adds a sync task and exits immediately without waiting for completion.
 		synchronized (mLocker) {
 			if (null != mSynchronizer) {
 				switch (action) {
 					case SYNC_ACTION_SYNCTO: {
+						mCurrentCommand = new SyncCommand(action, params);
 						// args: BookInfo bookInfo, int flags
 						BookInfo bookInfo = params.getParcelable("bookInfo");
 						int flags = params.getInt("flags", 0);
@@ -364,6 +443,7 @@ public class SyncService extends BaseService {
 						break;
 					}
 					case SYNC_ACTION_SYNCTO_ONLY: {
+						mCurrentCommand = new SyncCommand(action, params);
 						// args: BookInfo bookInfo, int flags, Synchronizer.SyncTarget... targets
 						BookInfo bookInfo = params.getParcelable("bookInfo");
 						int flags = params.getInt("flags", 0);
@@ -380,12 +460,14 @@ public class SyncService extends BaseService {
 						break;
 					}
 					case SYNC_ACTION_SYNCFROM: {
+						mCurrentCommand = new SyncCommand(action, params);
 						// args: int flags
 						int flags = params.getInt("flags", 0);
 						mSynchronizer.startSyncFrom(flags);
 						break;
 					}
 					case SYNC_ACTION_SYNCFROM_ONLY: {
+						mCurrentCommand = new SyncCommand(action, params);
 						// args: int flags, Synchronizer.SyncTarget... targets
 						int flags = params.getInt("flags", 0);
 						int[] targets_code = params.getIntArray("targets");
@@ -401,6 +483,7 @@ public class SyncService extends BaseService {
 						break;
 					}
 					case SYNC_ACTION_CANCEL:
+						mCurrentCommand = new SyncCommand(action, params);
 						mSynchronizer.abort();
 						break;
 					case SYNC_ACTION_NOOP:
