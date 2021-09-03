@@ -1310,7 +1310,7 @@ public class Synchronizer {
 								for (DownloadInfo info : filesToCheck) {
 									fingerprints.add(info.m_meta.getCustomPropFingerprint());
 								}
-								db.findByFingerprints(fingerprints.size() + 1, fingerprints, fileList -> {
+								db.findByFingerprints(fingerprints.size() + 10, fingerprints, fileList -> {
 									// db service thread
 									for (DownloadInfo reqinfo : filesToCheck) {
 										boolean found = false;
@@ -1977,7 +1977,7 @@ public class Synchronizer {
 				};
 				ArrayList<String> fingerprints = new ArrayList<String>();
 				fingerprints.add(Long.toString(finalFileInfo.crc32));
-				m_coolReader.getDB().findByFingerprints(2, fingerprints, fileList -> {
+				m_coolReader.getDB().findByFingerprints(10, fingerprints, fileList -> {
 					if (!fileList.isEmpty()) {
 						searchCallback.onBooksFound(fileList);
 					} else {
@@ -2024,7 +2024,7 @@ public class Synchronizer {
 			};
 			ArrayList<String> fingerprints = new ArrayList<String>();
 			fingerprints.add(Long.toString(fileInfo.crc32));
-			m_coolReader.getDB().findByFingerprints(2, fingerprints, fileList -> {
+			m_coolReader.getDB().findByFingerprints(10, fingerprints, fileList -> {
 				if (!fileList.isEmpty()) {
 					searchCallback.onBooksFound(fileList);
 				} else {

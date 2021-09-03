@@ -516,8 +516,11 @@ public class CoolReader extends BaseActivity {
 						int currentPos = -1;
 						if (null != mReaderView) {
 							currentBook = mReaderView.getBookInfo();
-							if (null != currentBook)
-								currentPos = currentBook.getLastPosition().getPercent();
+							if (null != currentBook) {
+								Bookmark lastPos = currentBook.getLastPosition();
+								if (null != lastPos)
+									currentPos = lastPos.getPercent();
+							}
 						}
 						Services.getHistory().updateBookInfo(bookInfo);
 						getDB().saveBookInfo(bookInfo);

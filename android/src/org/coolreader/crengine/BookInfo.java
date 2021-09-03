@@ -323,4 +323,54 @@ public class BookInfo implements Parcelable {
 		dest.writeParcelable(lastPosition, flags);
 		dest.writeTypedList(bookmarks);
 	}
+
+	@Override
+	public boolean equals(Object object) {
+		if (this == object)
+			return true;
+		if (null == object)
+			return false;
+		if (getClass() != object.getClass())
+			return false;
+		BookInfo other = (BookInfo)object;
+		if (null == fileInfo) {
+			if (null != other.fileInfo)
+				return false;
+		} else if (!fileInfo.equals(other.fileInfo))
+			return false;
+		if (null == lastPosition) {
+			if (null != other.lastPosition)
+				return false;
+		} else if (!lastPosition.equals(other.lastPosition))
+			return false;
+		if (null == bookmarks) {
+			if (null != other.bookmarks)
+				return false;
+		} else {
+			if (null == other.bookmarks) {
+				return false;
+			} else {
+				if (bookmarks.size() != other.bookmarks.size())
+					return false;
+				else {
+					try {
+						for (int i = 0; i < bookmarks.size(); i++) {
+							// it is assumed that the bookmarks in both objects are in the same order
+							Bookmark bk = bookmarks.get(i);
+							Bookmark other_bk = other.bookmarks.get(i);
+							if (null == bk) {
+								if (null != other_bk)
+									return false;
+							} else if (!bk.equals(other_bk))
+								return false;
+						}
+					} catch (Exception e) {
+						// for example ClassCastException
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
 }

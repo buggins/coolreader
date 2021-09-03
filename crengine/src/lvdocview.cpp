@@ -4857,6 +4857,17 @@ void LVDocView::createEmptyDocument() {
     m_doc->setNodeTypes(fb2_elem_table);
     m_doc->setAttributeTypes(fb2_attr_table);
     m_doc->setNameSpaceTypes(fb2_ns_table);
+    // Note:
+    // All book formats parsing start with this, and get these fb2def.h
+    // elements defined and included in the document ids maps. This allows
+    // all our specific XHTML DOM element handling in ldomDocumentWriter
+    // using "==el_body", "==el_head" to match on books.
+    // But secondary XML files (.opf, .ncx...) get parsed with
+    // LVParseXMLStream(), which will not inject these known ids maps
+    // and will start a DOM with empty maps: met elements and attributes
+    // will get IDs starting from 512 (even if named <body> or <head>),
+    // and won't trigger these specific elements handling where we
+    // use these < 512 IDs (el_body, el_head...), which is good!
 }
 
 /// format of document from cache is known

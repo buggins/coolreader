@@ -1851,27 +1851,32 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateBookInfoIntern
     if (_updatePath) {
 		CRPropRef doc_props = p->_docview->getDocProps();
 		if (!doc_props.isNull()) {
+			CRStringField arcnameField(fileinfo, "arcname");
+			CRLongField arcsizeField(fileinfo, "arcsize");
+			CRBooleanField isArchiveField(fileinfo, "isArchive");
+			CRStringField pathnameField(fileinfo, "pathname");
+			CRStringField pathField(fileinfo, "path");
+			CRStringField filenameField(fileinfo, "filename");
+			CRLongField sizeField(fileinfo, "size");
 			bool isArchive = !doc_props->getStringDef(DOC_PROP_ARC_NAME, "").empty();
 			if (isArchive) {
 				lString32 arcname = doc_props->getStringDef(DOC_PROP_ARC_NAME, "");
+				lString32 arcpath = doc_props->getStringDef(DOC_PROP_ARC_PATH, "");
 				int arcsize = doc_props->getIntDef(DOC_PROP_ARC_SIZE, 0);
-				CRStringField arcnameField(fileinfo, "arcname");
-				arcnameField.set(arcname);
-				CRLongField arcsizeField(fileinfo, "arcsize");
+				arcnameField.set(LVCombinePaths(arcpath, arcname));
 				arcsizeField.set(arcsize);
+			} else {
+				arcnameField.setObject(NULL);
+				arcsizeField.set(0);
 			}
-			lString32 pathname = doc_props->getStringDef(DOC_PROP_FILE_NAME, "");
-			lString32 filename = LVExtractFilename(pathname);
+			lString32 path = doc_props->getStringDef(DOC_PROP_FILE_PATH, "");
+			LVRemovePathDelimiter(path);
+			lString32 filename = doc_props->getStringDef(DOC_PROP_FILE_NAME, "");
 			int size = doc_props->getIntDef(DOC_PROP_FILE_SIZE, 0);
-			CRBooleanField isArchiveField(fileinfo, "isArchive");
 			isArchiveField.set(isArchive);
-			CRStringField pathnameField(fileinfo, "pathname");
-			CRStringField pathField(fileinfo, "path");
-			pathnameField.set(pathname);
-			pathField.set(pathname);
-			CRStringField filenameField(fileinfo, "filename");
+			pathnameField.set(LVCombinePaths(path, filename));
+			pathField.set(path);
 			filenameField.set(filename);
-			CRLongField sizeField(fileinfo, "size");
 			sizeField.set(size);
 		}
 	}

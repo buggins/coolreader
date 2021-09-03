@@ -771,7 +771,7 @@ public class Scanner extends FileInfoChangeSource {
 		if (maxDepth <= 0 || scanControl.isStopped())
 			return false;
 		// full rescan to scan zip-files
-		boolean res = listDirectory(dir, true, true, !dir.isSpecialDir());
+		boolean res = listDirectory(dir, true, true, !dir.isSpecialDir() && !dir.isArchive);
 		if (res) {
 			for (int i = dir.dirCount() - 1; i >= -0; i--) {
 				res = listSubtreeBg_impl(dir.getDir(i), maxDepth - 1, scanControl);

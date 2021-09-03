@@ -84,15 +84,22 @@ int LVZipArc::ReadContents()
     lvsize_t sz = 0;
     if (m_stream->GetSize( &sz )!=LVERR_OK)
         return 0;
-    lvsize_t m_FileSize = (unsigned)sz;
+    lvsize_t fileSize = sz;
     
     char ReadBuf[1024];
     lUInt32 NextPosition;
+    lvoffset_t NextOffset;
     lvpos_t CurPos;
     lvsize_t ReadSize;
     int Buf;
     bool found = false;
-    CurPos=NextPosition=(int)m_FileSize;
+#if LVLONG_FILE_SUPPORT==1
+    bool found64 = false;
+    bool require64 = false;
+    lUInt64 NextPosition64 = 0;
+#endif
+    CurPos = (lvpos_t)fileSize;
+    NextPosition = 0;
     if (CurPos < sizeof(ReadBuf)-18)
         CurPos = 0;
     else
@@ -107,15 +114,36 @@ int LVZipArc::ReadContents()
             break;
         for (int I=(int)ReadSize-4;I>=0;I--)
         {
-            if (ReadBuf[I]==0x50 && ReadBuf[I+1]==0x4b && ReadBuf[I+2]==0x05 &&
-                ReadBuf[I+3]==0x06)
+            if (ReadBuf[I]==0x50 && ReadBuf[I+1]==0x4b &&
+                ReadBuf[I+2]==0x05 && ReadBuf[I+3]==0x06)
             {
                 m_stream->Seek( CurPos+I+16, LVSEEK_SET, NULL );
                 m_stream->Read( &NextPosition, sizeof(NextPosition), &ReadSize);
                 cnv.lsf( &NextPosition );
                 found=true;
+#if LVLONG_FILE_SUPPORT==1
+                if (0xFFFFFFFFUL == NextPosition) {
+                    require64 = true;
+                    if (found64)
+                        break;
+                } else {
+                    break;
+                }
+#else
+                break;
+#endif
+            }
+#if LVLONG_FILE_SUPPORT==1
+            if (ReadBuf[I]==0x50 && ReadBuf[I+1]==0x4b &&
+                ReadBuf[I+2]==0x06 && ReadBuf[I+3]==0x06)
+            {
+                m_stream->Seek( CurPos+I+48, LVSEEK_SET, NULL );
+                m_stream->Read( &NextPosition64, sizeof(NextPosition64), &ReadSize);
+                cnv.lsf( &NextPosition64 );
+                found64=true;
                 break;
             }
+#endif
         }
         if (CurPos==0)
             break;
@@ -124,9 +152,21 @@ int LVZipArc::ReadContents()
         else
             CurPos-=sizeof(ReadBuf)-4;
     }
-    
+
+#if LVLONG_FILE_SUPPORT==1
+    if (found64 || (found && !require64))
+        truncated = false;
+    else
+        truncated = true;
+    if (found64)
+        NextOffset = NextPosition64;
+    else if (found && !require64)
+        NextOffset = NextPosition;
+#else
     truncated = !found;
-    
+    NextOffset = NextPosition;
+#endif
+
     // If the main reading method (using zip header at the end of the
     // archive) failed, we can try using the alternative method used
     // when this zip header is missing ("truncated"), which uses
@@ -139,7 +179,7 @@ int LVZipArc::ReadContents()
         m_alt_reading_method = true;
     
     if (truncated)
-        NextPosition=0;
+        NextOffset=0;
     
     //================================================================
     // get files
@@ -153,7 +193,7 @@ int LVZipArc::ReadContents()
     
     for (;;) {
         
-        if (m_stream->Seek( NextPosition, LVSEEK_SET, NULL )!=LVERR_OK)
+        if (m_stream->Seek( NextOffset, LVSEEK_SET, NULL )!=LVERR_OK)
             return 0;
         
         if (truncated)
@@ -169,7 +209,7 @@ int LVZipArc::ReadContents()
             //ReadSize = fread(&ZipHd1, 1, sizeof(ZipHd1), f);
             if (ReadSize != ZipHd1_size) {
                 //fclose(f);
-                if (ReadSize==0 && NextPosition==m_FileSize)
+                if (ReadSize==0 && NextOffset==(lvoffset_t)fileSize)
                     return m_list.length();
                 if ( ReadSize==0 )
                     return m_list.length();
@@ -204,7 +244,7 @@ int LVZipArc::ReadContents()
             }
         }
         
-        if (ReadSize==0 || ZipHeader.Mark==0x06054b50 ||
+        if (ReadSize==0 || ZipHeader.Mark==0x06054b50 || ZipHeader.Mark==0x06064b50 ||
             (truncated && ZipHeader.Mark==0x02014b50) )
         {
             //                if (!truncated && *(lUInt16 *)((char *)&ZipHeader+20)!=0)
@@ -236,10 +276,13 @@ int LVZipArc::ReadContents()
         if (truncated)
             SeekLen+=ZipHeader.PackSize;
         
-        NextPosition = (lUInt32)m_stream->GetPos();
-        NextPosition += SeekLen;
-        m_stream->Seek(NextPosition, LVSEEK_SET, NULL);
-        
+        NextOffset = (lvoffset_t)m_stream->GetPos();
+        NextOffset += SeekLen;
+        if (NextOffset >= sz) {
+            CRLog::error("invalid offset, stop to read content.");
+            break;
+        }
+
         lString32 fName;
         if (ZipHeader.PackVer >= 63 && (ZipHeader.Flags & 0x0800) == 0x0800) {
             // Language encoding flag (EFS).  If this bit is set,

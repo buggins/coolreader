@@ -1248,6 +1248,8 @@ public:
     void setAttributeTypes( const attr_def_t * attr_scheme );
     // set namespace types from table
     void setNameSpaceTypes( const ns_def_t * ns_scheme );
+    // set node/attribute/namespace types by copying them from an other document
+    void setAllTypesFrom( lxmlDocBase * d );
 
     // debug dump
     void dumpUnknownEntities( const char * fname );

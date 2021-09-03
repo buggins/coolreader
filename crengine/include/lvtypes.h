@@ -213,6 +213,19 @@ public:
         test.word = 1;
         _lsf = test.bytes[0]!=0;
     }
+    /// reverse 64 bit word
+    inline static lUInt64 rev( lUInt64 w )
+    {
+        return
+            ((w&0xFF00000000000000UL)>>56) |
+            ((w&0x00FF000000000000UL)>>40) |
+            ((w&0x0000FF0000000000UL)>>32) |
+            ((w&0x000000FF00000000UL)>>24) |
+            ((w&0x00000000FF000000UL)<<24) |
+            ((w&0x0000000000FF0000UL)<<32) |
+            ((w&0x000000000000FF00UL)<<40) |
+            ((w&0x00000000000000FFUL)<<56);
+    }
     /// reverse 32 bit word
     inline static lUInt32 rev( lUInt32 w )
     {
@@ -229,6 +242,16 @@ public:
             (lUInt16)(
             ((w&0xFF00)>>8)|
             ((w&0x00FF)<<8) );
+    }
+    /// make 64 bit word least-significant-first byte order (Intel)
+    lUInt32 lsf( lUInt64 w )
+    {
+        return ( _lsf ) ? w : rev(w);
+    }
+    /// make 64 bit word most-significant-first byte order (PPC)
+    lUInt32 msf( lUInt64 w )
+    {
+        return ( !_lsf ) ? w : rev(w);
     }
     /// make 32 bit word least-significant-first byte order (Intel)
     lUInt32 lsf( lUInt32 w )
@@ -250,6 +273,10 @@ public:
     {
         return ( !_lsf ) ? w : rev(w);
     }
+    void rev( lUInt64 * w )
+    {
+        *w = rev(*w);
+    }
     void rev( lUInt32 * w )
     {
         *w = rev(*w);
@@ -257,6 +284,30 @@ public:
     void rev( lUInt16 * w )
     {
         *w = rev(*w);
+    }
+    void msf( lUInt64 * w )
+    {
+        if ( _lsf )
+            *w = rev(*w);
+    }
+    void lsf( lUInt64 * w )
+    {
+        if ( !_lsf )
+            *w = rev(*w);
+    }
+    void msf( lUInt64 * w, int len )
+    {
+        if ( _lsf ) {
+            for ( int i=0; i<len; i++)
+                w[i] = rev(w[i]);
+        }
+    }
+    void lsf( lUInt64 * w, int len )
+    {
+        if ( !_lsf ) {
+            for ( int i=0; i<len; i++)
+                w[i] = rev(w[i]);
+        }
     }
     void msf( lUInt32 * w )
     {

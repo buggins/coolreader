@@ -5349,6 +5349,27 @@ void lxmlDocBase::setNameSpaceTypes( const ns_def_t * ns_scheme )
     }
 }
 
+// set node/attribute/namespace types by copying them from an other document
+void lxmlDocBase::setAllTypesFrom( lxmlDocBase * d )
+{
+    // Simpler to just serialize and deserialize them all
+    SerialBuf buf(0, true);
+    d->_elementNameTable.serialize( buf );
+    buf << d->_nextUnknownElementId;
+    d->_attrNameTable.serialize( buf );
+    buf << d->_nextUnknownAttrId;
+    d->_nsNameTable.serialize( buf );
+    buf << d->_nextUnknownNsId;
+
+    buf.setPos(0);
+    _elementNameTable.deserialize( buf );
+    buf >> _nextUnknownElementId;
+    _attrNameTable.deserialize( buf );
+    buf >> _nextUnknownAttrId;
+    _nsNameTable.deserialize( buf );
+    buf >> _nextUnknownNsId;
+}
+
 void lxmlDocBase::dumpUnknownEntities( const char * fname )
 {
     FILE * f = fopen( fname, "wt" );
