@@ -271,14 +271,12 @@ int LVZipArc::ReadContents()
         
         long SeekLen=ZipHeader.AddLen+ZipHeader.CommLen;
         
-        LVCommonContainerItemInfo * item = new LVCommonContainerItemInfo();
-        
         if (truncated)
             SeekLen+=ZipHeader.PackSize;
         
         NextOffset = (lvoffset_t)m_stream->GetPos();
         NextOffset += SeekLen;
-        if (NextOffset >= sz) {
+        if (NextOffset >= (lvoffset_t)sz) {
             CRLog::error("invalid offset, stop to read content.");
             break;
         }
@@ -307,6 +305,7 @@ int LVZipArc::ReadContents()
             }
         }
         
+        LVCommonContainerItemInfo * item = new LVCommonContainerItemInfo();
         item->SetItemInfo(fName.c_str(), ZipHeader.UnpSize, (ZipHeader.getAttr() & 0x3f));
         item->SetSrc( ZipHeader.getOffset(), ZipHeader.PackSize, ZipHeader.Method );
         
