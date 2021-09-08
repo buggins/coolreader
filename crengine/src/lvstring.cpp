@@ -1515,6 +1515,7 @@ bool lString32::atoi( int &n ) const
 
 bool lString32::atoi( lInt64 &n ) const
 {
+    n = 0;
     int sgn = 1;
     const lChar32 * s = c_str();
     while (*s == ' ' || *s == '\t')
