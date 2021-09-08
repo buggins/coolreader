@@ -67,9 +67,9 @@ int LVZipDecodeStream::fillInBuf()
             inpos = 0;
         }
         int tailpos = inpos + m_zstream.avail_in;
-        int bytes_to_read = ARC_INBUF_SIZE - tailpos;
-        if ( bytes_to_read > (int)m_inbytesleft )
-            bytes_to_read = (int)m_inbytesleft;
+        lvsize_t bytes_to_read = ARC_INBUF_SIZE - tailpos;
+        if ( bytes_to_read > (lvsize_t)m_inbytesleft )
+            bytes_to_read = (lvsize_t)m_inbytesleft;
         if (bytes_to_read > 0)
         {
             lvsize_t bytesRead = 0;
@@ -308,21 +308,78 @@ lverror_t LVZipDecodeStream::Read(void *buf, lvsize_t count, lvsize_t *bytesRead
     return LVERR_OK;
 }
 
-LVStream *LVZipDecodeStream::Create(LVStreamRef stream, lvpos_t pos, lString32 name, lUInt32 srcPackSize, lUInt32 srcUnpSize)
+LVStream *LVZipDecodeStream::Create(LVStreamRef stream, lvpos_t pos, lString32 name, lvsize_t srcPackSize, lvsize_t srcUnpSize)
 {
     ZipLocalFileHdr hdr;
     unsigned hdr_size = 0x1E; //sizeof(hdr);
     if ( stream->Seek( pos, LVSEEK_SET, NULL )!=LVERR_OK )
         return NULL;
-    lvsize_t sz = 0;
-    if ( stream->Read( &hdr, hdr_size, &sz)!=LVERR_OK || sz!=hdr_size )
+    lvsize_t ReadSize = 0;
+    if ( stream->Read( &hdr, hdr_size, &ReadSize)!=LVERR_OK || ReadSize!=hdr_size )
         return NULL;
     hdr.byteOrderConv();
+
+    lvsize_t packSize = (lvsize_t)hdr.getPackSize();
+    lvsize_t unpSize = (lvsize_t)hdr.getUnpSize();
+
+#if LVLONG_FILE_SUPPORT == 1
+    // ZIP64: read extra data and use related fields
+    int extraPosUnpSize = -1;
+    int extraPosPackSize = -1;
+    int extraLastPos = 0;
+    Zip64ExtInfo* zip64ExtInfo = NULL;
+    if (0xFFFFFFFF == hdr.getUnpSize()) {
+        extraPosUnpSize = extraLastPos;
+        extraLastPos += 8;
+    }
+    if (0xFFFFFFFF == hdr.getPackSize()) {
+        extraPosPackSize = extraLastPos;
+        extraLastPos += 8;
+    }
+    bool zip64 = extraLastPos > 0;
+    if ( stream->Seek(hdr.getNameLen(), LVSEEK_CUR, NULL) != LVERR_OK) {
+        return NULL;
+    }
+    // read extra data
+    const lvsize_t max_EXTRA = 128;
+    if (hdr.getAddLen() > max_EXTRA) {
+        CRLog::error("ZIP entry extra length is too big: %d", (int)hdr.getAddLen());
+        return NULL;
+    }
+    lvsize_t extraSizeToRead = (hdr.getAddLen() < max_EXTRA) ? hdr.getAddLen() : max_EXTRA;
+    lUInt8 extra[max_EXTRA];
+    lverror_t err = stream->Read(extra, extraSizeToRead, &ReadSize);
+    if (err != LVERR_OK || ReadSize != extraSizeToRead) {
+        CRLog::error("error while reading zip header extra data");
+        return NULL;
+    }
+    // Find Zip64 extension if required
+    lvsize_t offs = 0;
+    Zip64ExtInfo* ext;
+    if (zip64) {
+        while (offs + 4 < extraSizeToRead) {
+            ext = (Zip64ExtInfo*)&extra[offs];
+            ext->byteOrderConv();
+            if ( 0x0001 == ext->Tag ) {
+                zip64ExtInfo = ext;
+                break;
+            } else {
+                offs += 4 + ext->Size;
+            }
+        }
+    }
+    if (zip64ExtInfo != NULL) {
+        if (extraPosUnpSize >= 0)
+            unpSize = zip64ExtInfo->getField64(extraPosUnpSize);
+        if (extraPosPackSize >= 0)
+            packSize = zip64ExtInfo->getField64(extraPosPackSize);
+    }
+#endif
     pos += 0x1e + hdr.getNameLen() + hdr.getAddLen();
+#if LVLONG_FILE_SUPPORT != 1
     if ( stream->Seek( pos, LVSEEK_SET, NULL )!=LVERR_OK )
         return NULL;
-    lUInt32 packSize = hdr.getPackSize();
-    lUInt32 unpSize = hdr.getUnpSize();
+#endif
     if ( packSize==0 && unpSize==0 ) {
         // Can happen when local header does not carry these sizes
         // Use the ones provided that come from zip central directory
@@ -331,26 +388,24 @@ LVStream *LVZipDecodeStream::Create(LVStreamRef stream, lvpos_t pos, lString32 n
     }
     if ((lvpos_t)(pos + packSize) > (lvpos_t)stream->GetSize())
         return NULL;
-    if (hdr.getMethod() == 0)
-    {
+    if (hdr.getMethod() == 0) {
         // store method, copy as is
         if ( packSize != unpSize )
             return NULL;
         LVStreamFragment * fragment = new LVStreamFragment( stream, pos, packSize);
         fragment->SetName( name.c_str() );
         return fragment;
-    }
-    else if (hdr.getMethod() == 8)
-    {
+    } else if (hdr.getMethod() == 8) {
         // deflate
         LVStreamRef srcStream( new LVStreamFragment( stream, pos, packSize) );
         LVZipDecodeStream * res = new LVZipDecodeStream( srcStream, pos,
                                                          packSize, unpSize, hdr.getCRC() );
         res->SetName( name.c_str() );
         return res;
-    }
-    else
+    } else {
+        CRLog::error("Unimplemented compression method: 0x%02X", hdr.getMethod());
         return NULL;
+    }
 }
 
 #endif  // (USE_ZLIB==1)
