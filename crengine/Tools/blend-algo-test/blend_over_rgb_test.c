@@ -203,7 +203,11 @@ int main() {
         // build input test file
         printf("Preparing data (random)... ");
         fflush(stdout);
+#ifdef _WIN32
+        srand(time(0));
+#else
         srandom(time(0));
+#endif
         uint32_t* test_inp_data = (uint32_t*)malloc(TEST_POINTS_COUNT*sizeof(int));
         uint32_t* test_color_data = (uint32_t*)malloc(TEST_POINTS_COUNT*sizeof(int));
         int* test_alpha_r_data = (int*)malloc(TEST_POINTS_COUNT*sizeof(int));
@@ -216,34 +220,49 @@ int main() {
         long j;
         long r, g, b;
         for (j = 0; j < TEST_POINTS_COUNT; j++) {
+#ifdef _WIN32
+            r = 300L*rand()/RAND_MAX;
+            g = 300L*rand()/RAND_MAX;
+            b = 300L*rand()/RAND_MAX;
+            test_alpha_r_data[j] = (int)(300L*rand()/RAND_MAX);
+            test_alpha_g_data[j] = (int)(300L*rand()/RAND_MAX);
+            test_alpha_b_data[j] = (int)(300L*rand()/RAND_MAX);
+#else
             r = 300L*random()/RAND_MAX;
+            g = 300L*random()/RAND_MAX;
+            b = 300L*random()/RAND_MAX;
+            test_alpha_r_data[j] = (int)(300L*random()/RAND_MAX);
+            test_alpha_g_data[j] = (int)(300L*random()/RAND_MAX);
+            test_alpha_b_data[j] = (int)(300L*random()/RAND_MAX);
+#endif
             if (r > 255)
                 r = 255;
-            g = 300L*random()/RAND_MAX;
             if (g > 255)
                 g = 255;
-            b = 300L*random()/RAND_MAX;
             if (b > 255)
                 b = 255;
             test_inp_data[j] = (uint32_t)((r << 16) | (g << 8) | b);
 
-            test_alpha_r_data[j] = (int)(300L*random()/RAND_MAX);
             if (test_alpha_r_data[j] > 255)
                 test_alpha_r_data[j] = 255;
-            test_alpha_g_data[j] = (int)(300L*random()/RAND_MAX);
             if (test_alpha_g_data[j] > 255)
                 test_alpha_g_data[j] = 255;
-            test_alpha_b_data[j] = (int)(300L*random()/RAND_MAX);
             if (test_alpha_b_data[j] > 255)
                 test_alpha_b_data[j] = 255;
 
+#ifdef _WIN32
+            r = 300L*rand()/RAND_MAX;
+            g = 300L*rand()/RAND_MAX;
+            b = 300L*rand()/RAND_MAX;
+#else
             r = 300L*random()/RAND_MAX;
+            g = 300L*random()/RAND_MAX;
+            b = 300L*random()/RAND_MAX;
+#endif
             if (r > 255)
                 r = 255;
-            g = 300L*random()/RAND_MAX;
             if (g > 255)
                 g = 255;
-            b = 300L*random()/RAND_MAX;
             if (b > 255)
                 b = 255;
             test_color_data[j] = (uint32_t)((r << 16) | (g << 8) | b);

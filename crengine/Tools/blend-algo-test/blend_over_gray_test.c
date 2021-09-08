@@ -165,7 +165,11 @@ int main() {
         // build input test file
         printf("Preparing data (random)... ");
         fflush(stdout);
+#ifdef _WIN32
+        srand(time(0));
+#else
         srandom(time(0));
+#endif
         int* test_inp_data = (int*)malloc(TEST_POINTS_COUNT*sizeof(int));
         int* test_alpha_data = (int*)malloc(TEST_POINTS_COUNT*sizeof(int));
         int* test_color_data = (int*)malloc(TEST_POINTS_COUNT*sizeof(int));
@@ -175,13 +179,19 @@ int main() {
         }
         long j;
         for (j = 0; j < TEST_POINTS_COUNT; j++) {
+#ifdef _WIN32
+            test_inp_data[j] = (int)(300L*rand()/RAND_MAX);
+            test_alpha_data[j] = (int)(300L*rand()/RAND_MAX);
+            test_color_data[j] = (int)(300L*rand()/RAND_MAX);
+#else
             test_inp_data[j] = (int)(300L*random()/RAND_MAX);
+            test_alpha_data[j] = (int)(300L*random()/RAND_MAX);
+            test_color_data[j] = (int)(300L*random()/RAND_MAX);
+#endif
             if (test_inp_data[j] > 255)
                 test_inp_data[j] = 255;
-            test_alpha_data[j] = (int)(300L*random()/RAND_MAX);
             if (test_alpha_data[j] > 255)
                 test_alpha_data[j] = 255;
-            test_color_data[j] = (int)(300L*random()/RAND_MAX);
             if (test_color_data[j] > 255)
                 test_color_data[j] = 255;
         }

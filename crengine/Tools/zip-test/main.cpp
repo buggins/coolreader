@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
                 if ( item->IsContainer())
                     continue;
                 list.add( item->GetName() );
-                list.add( lString32::itoa(item->GetSize()) );
+                list.add( lString32::itoa((lUInt64)item->GetSize()) );
             }
         } else {
             printf("Failed to open archive!\n");
