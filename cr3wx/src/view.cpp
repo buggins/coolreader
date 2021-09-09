@@ -307,33 +307,73 @@ void cr3view::OnTimer(wxTimerEvent& event)
     }
 }
 
+static bool getBatteryState(int& state, int& chargingConn, int& level)
+{
+#ifdef _WIN32
+    // update battery state
+    SYSTEM_POWER_STATUS bstatus;
+    BOOL pow = GetSystemPowerStatus(&bstatus);
+    if (pow) {
+        state = CR_BATTERY_STATE_DISCHARGING;
+        if (bstatus.BatteryFlag & 128)
+            state = CR_BATTERY_STATE_NO_BATTERY;  // no system battery
+        else if (bstatus.BatteryFlag & 8)
+            state = CR_BATTERY_STATE_CHARGING;    // charging
+        chargingConn = CR_BATTERY_CHARGER_NO;
+        if (bstatus.ACLineStatus==1)
+            chargingConn = CR_BATTERY_CHARGER_AC; // AC power charging connected
+        if (bstatus.BatteryLifePercent>=0 && bstatus.BatteryLifePercent<=100)
+            level = bstatus.BatteryLifePercent;
+        return true;
+    }
+    return false;
+#else
+    wxPowerType wxpwrtype = wxGetPowerType();
+    switch (wxpwrtype) {
+        case wxPOWER_SOCKET:
+            state = CR_BATTERY_STATE_CHARGING;
+            chargingConn = CR_BATTERY_CHARGER_AC;
+            break;
+        case wxPOWER_BATTERY:
+            state = CR_BATTERY_STATE_DISCHARGING;
+            chargingConn = CR_BATTERY_CHARGER_NO;
+            break;
+        default:
+            state = CR_BATTERY_STATE_NO_BATTERY;
+            chargingConn = CR_BATTERY_CHARGER_NO;
+            break;
+    }
+    wxBatteryState wxbatstate = wxGetBatteryState();
+    switch (wxbatstate) {
+        case wxBATTERY_NORMAL_STATE:
+            level = 100;
+            break;
+        case wxBATTERY_LOW_STATE:
+            level = 50;
+            break;
+        case wxBATTERY_CRITICAL_STATE:
+            level = 5;
+            break;
+        case wxBATTERY_SHUTDOWN_STATE:
+            level = 0;
+            break;
+        default:
+            level = 0;
+            break;
+    }
+    return true;
+#endif
+}
+
 void cr3view::Paint()
 {
     //printf("cr3view::Paint() \n");
-    int battery_state = -1;
-#ifdef _WIN32
-    SYSTEM_POWER_STATUS bstatus;
-    BOOL pow = GetSystemPowerStatus(&bstatus);
-    if (bstatus.BatteryFlag & 128)
-        pow = FALSE;
-    if (bstatus.ACLineStatus!=0 || bstatus.BatteryLifePercent==255)
-        pow = FALSE;
-    if ( pow )
-        battery_state = bstatus.BatteryLifePercent;
-#else
-    if ( ::wxGetPowerType() == wxPOWER_BATTERY ) {
-        int n = ::wxGetBatteryState();
-        if ( n == wxBATTERY_NORMAL_STATE )
-            battery_state = 100;
-        else if ( n == wxBATTERY_LOW_STATE )
-            battery_state = 50;
-        else if ( n == wxBATTERY_CRITICAL_STATE )
-            battery_state = 0;
-        else if ( n == wxBATTERY_SHUTDOWN_STATE )
-            battery_state = 0;
-    };
-#endif
-    getDocView()->setBatteryState( battery_state );
+    int battery_state;
+    int charging_conn;
+    int charge_level;
+    if (getBatteryState(battery_state, charging_conn, charge_level)) {
+        getDocView()->setBatteryState( battery_state, charging_conn, charge_level );
+    }
     //_docview->Draw();
     UpdateScrollBar();
     Refresh( FALSE );
