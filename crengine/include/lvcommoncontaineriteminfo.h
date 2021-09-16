@@ -32,18 +32,18 @@ protected:
     lString32    m_name;
     lUInt32      m_flags;
     bool         m_is_container;
-    lUInt32      m_srcpos;
-    lUInt32      m_srcsize;
+    lvpos_t      m_srcpos;
+    lvsize_t     m_srcsize;
     lUInt32      m_srcflags;
 public:
     virtual lvsize_t        GetSize() const { return m_size; }
     virtual const lChar32 * GetName() const { return m_name.empty()?NULL:m_name.c_str(); }
     virtual lUInt32         GetFlags() const  { return m_flags; }
     virtual bool            IsContainer() const  { return m_is_container; }
-    lUInt32 GetSrcPos() { return m_srcpos; }
-    lUInt32 GetSrcSize() { return m_srcsize; }
+    lvpos_t GetSrcPos() { return m_srcpos; }
+    lvsize_t GetSrcSize() { return m_srcsize; }
     lUInt32 GetSrcFlags() { return m_srcflags; }
-    void SetSrc( lUInt32 pos, lUInt32 size, lUInt32 flags )
+    void SetSrc( lvpos_t pos, lvsize_t size, lUInt32 flags )
     {
         m_srcpos = pos;
         m_srcsize = size;

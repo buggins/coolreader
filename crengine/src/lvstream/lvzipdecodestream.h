@@ -101,7 +101,7 @@ public:
     {
         return LVERR_NOTIMPL;
     }
-    static LVStream * Create( LVStreamRef stream, lvpos_t pos, lString32 name, lUInt32 srcPackSize, lUInt32 srcUnpSize );
+    static LVStream * Create( LVStreamRef stream, lvpos_t pos, lString32 name, lvsize_t srcPackSize, lvsize_t srcUnpSize );
 };
 
 #endif  // (USE_ZLIB==1)
