@@ -98,8 +98,8 @@ public class CoolReader extends BaseActivity {
 	private final SyncOptions mGoogleDriveSyncOpts = new SyncOptions();
 	private boolean mSyncGoogleDriveEnabledPrev = false;
 	private int mSyncGoogleDriveErrorsCount = 0;
-	private Synchronizer mGoogleDriveSync = null;
-	private OnSyncStatusListener mGoogleDriveSyncStatusListener = null;
+	private Synchronizer mGoogleDriveSync;
+	private OnSyncStatusListener mGoogleDriveSyncStatusListener;
 	private Timer mGoogleDriveAutoSaveTimer = null;
 	private SyncServiceAccessor syncServiceAccessor = null;
 	// can be add more synchronizers
@@ -418,6 +418,12 @@ public class CoolReader extends BaseActivity {
 	private void buildGoogleDriveSynchronizer() {
 		if (!BuildConfig.GSUITE_AVAILABLE)
 			return;
+		if (null != syncServiceAccessor && null != mGoogleDriveSync) {
+			if (!syncServiceAccessor.isServiceBound()) {
+				// lost connection to service, nullify sync instance
+				mGoogleDriveSync = null;
+			}
+		}
 		if (null != mGoogleDriveSync)
 			return;
 		// build synchronizer instance
@@ -584,19 +590,8 @@ public class CoolReader extends BaseActivity {
 					showToast(R.string.sync_info_no_such_document, docInfo);
 				}
 			};
-		}
-	}
-
-	private void checkNinitSyncService() {
-		if (null == syncServiceAccessor) {
 			syncServiceAccessor = new SyncServiceAccessor(this);
 		}
-		// If the sync service is destroyed for any reason,
-		//  we must assign the synchronizer object & status listener again.
-		syncServiceAccessor.bind(sync -> {
-			sync.setSynchronizer(mGoogleDriveSync);
-			sync.setOnSyncStatusListener(mGoogleDriveSyncStatusListener);
-		});
 	}
 
 	private void updateGoogleDriveSynchronizer() {
@@ -625,13 +620,11 @@ public class CoolReader extends BaseActivity {
 						public void run() {
 							if (activityIsRunning && null != mGoogleDriveSync) {
 								//mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY);
-								checkNinitSyncService();
-								Intent syncIntent = new Intent(SyncService.SYNC_ACTION_SYNCTO, Uri.EMPTY, CoolReader.this, SyncService.class);
-								Bundle data = new Bundle();
-								data.putParcelable("bookInfo", getCurrentBookInfo());
-								data.putInt("flags", Synchronizer.SYNC_FLAG_QUIETLY);
-								syncIntent.putExtras(data);
-								startService(syncIntent);
+								syncServiceAccessor.bind(sync -> {
+									sync.setSynchronizer(mGoogleDriveSync);
+									sync.setOnSyncStatusListener(mGoogleDriveSyncStatusListener);
+									sync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY);
+								});
 							}
 						}
 					}, mGoogleDriveSyncOpts.AutoSavePeriod * 60000L, mGoogleDriveSyncOpts.AutoSavePeriod * 60000L);
@@ -682,13 +675,11 @@ public class CoolReader extends BaseActivity {
 				buildGoogleDriveSynchronizer();
 			mGoogleDriveSync.setBookmarksKeepAlive(mGoogleDriveSyncOpts.DataKeepAlive);
 			//mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_FORCE | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | Synchronizer.SYNC_FLAG_ASK_CHANGED);
-			checkNinitSyncService();
-			Intent syncIntent = new Intent(SyncService.SYNC_ACTION_SYNCTO, Uri.EMPTY, CoolReader.this, SyncService.class);
-			Bundle data = new Bundle();
-			data.putParcelable("bookInfo", getCurrentBookInfo());
-			data.putInt("flags", Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_FORCE | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | Synchronizer.SYNC_FLAG_ASK_CHANGED);
-			syncIntent.putExtras(data);
-			startService(syncIntent);
+			syncServiceAccessor.bind(sync -> {
+				sync.setSynchronizer(mGoogleDriveSync);
+				sync.setOnSyncStatusListener(mGoogleDriveSyncStatusListener);
+				sync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_FORCE | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | Synchronizer.SYNC_FLAG_ASK_CHANGED);
+			});
 		}
 	}
 
@@ -700,12 +691,11 @@ public class CoolReader extends BaseActivity {
 				buildGoogleDriveSynchronizer();
 			mGoogleDriveSync.setBookmarksKeepAlive(mGoogleDriveSyncOpts.DataKeepAlive);
 			//mGoogleDriveSync.startSyncFrom(Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_FORCE | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | Synchronizer.SYNC_FLAG_ASK_CHANGED);
-			checkNinitSyncService();
-			Intent syncIntent = new Intent(SyncService.SYNC_ACTION_SYNCFROM, Uri.EMPTY, this, SyncService.class);
-			Bundle data = new Bundle();
-			data.putInt("flags", Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_FORCE | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | Synchronizer.SYNC_FLAG_ASK_CHANGED);
-			syncIntent.putExtras(data);
-			startService(syncIntent);
+			syncServiceAccessor.bind(sync -> {
+				sync.setSynchronizer(mGoogleDriveSync);
+				sync.setOnSyncStatusListener(mGoogleDriveSyncStatusListener);
+				sync.startSyncFrom(Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_FORCE | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | Synchronizer.SYNC_FLAG_ASK_CHANGED);
+			});
 		}
 	}
 
@@ -879,13 +869,16 @@ public class CoolReader extends BaseActivity {
 		if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (mGoogleDriveSyncOpts.Enabled && mGoogleDriveSync != null) {
 				//mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
-				checkNinitSyncService();
-				Intent syncIntent = new Intent(SyncService.SYNC_ACTION_SYNCTO, Uri.EMPTY, CoolReader.this, SyncService.class);
-				Bundle data = new Bundle();
-				data.putParcelable("bookInfo", getCurrentBookInfo());
-				data.putInt("flags", Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
-				syncIntent.putExtras(data);
-				startService(syncIntent);
+				syncServiceAccessor.bind(sync -> {
+					sync.setSynchronizer(mGoogleDriveSync);
+					sync.setOnSyncStatusListener(mGoogleDriveSyncStatusListener);
+					sync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
+				});
+				try {
+					// start SyncService to prevent service destroying on unbinding in onDestroy()
+					Intent intent = new Intent(SyncService.SYNC_ACTION_NOOP, Uri.EMPTY, this, SyncService.class);
+					startService(intent);
+				} catch (Exception ignored) {}
 			}
 		}
 		super.onPause();
@@ -958,21 +951,18 @@ public class CoolReader extends BaseActivity {
 				// If the file is opened from an external file manager, we must disable the "currently reading book" sync operation with google drive.
 				if (null == mFileToOpenFromExt) {
 					//mGoogleDriveSync.startSyncFrom(Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | (mGoogleDriveSyncOpts.AskConfirmations ? Synchronizer.SYNC_FLAG_ASK_CHANGED : 0));
-					checkNinitSyncService();
-					Intent syncIntent = new Intent(SyncService.SYNC_ACTION_SYNCFROM, Uri.EMPTY, this, SyncService.class);
-					Bundle data = new Bundle();
-					data.putInt("flags", Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | (mGoogleDriveSyncOpts.AskConfirmations ? Synchronizer.SYNC_FLAG_ASK_CHANGED : 0));
-					syncIntent.putExtras(data);
-					startService(syncIntent);
+					syncServiceAccessor.bind(sync -> {
+						sync.setSynchronizer(mGoogleDriveSync);
+						sync.setOnSyncStatusListener(mGoogleDriveSyncStatusListener);
+						sync.startSyncFrom(Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | (mGoogleDriveSyncOpts.AskConfirmations ? Synchronizer.SYNC_FLAG_ASK_CHANGED : 0));
+					});
 				} else {
 					//mGoogleDriveSync.startSyncFromOnly(Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | (mGoogleDriveSyncOpts.AskConfirmations ? Synchronizer.SYNC_FLAG_ASK_CHANGED : 0), Synchronizer.SyncTarget.SETTINGS, Synchronizer.SyncTarget.BOOKMARKS);
-					checkNinitSyncService();
-					Intent syncIntent = new Intent(SyncService.SYNC_ACTION_SYNCFROM_ONLY, Uri.EMPTY, this, SyncService.class);
-					Bundle data = new Bundle();
-					data.putInt("flags", Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | (mGoogleDriveSyncOpts.AskConfirmations ? Synchronizer.SYNC_FLAG_ASK_CHANGED : 0));
-					data.putIntArray("targets", new int[]{ Synchronizer.SyncTarget.SETTINGS.ordinal(), Synchronizer.SyncTarget.BOOKMARKS.ordinal() });
-					syncIntent.putExtras(data);
-					startService(syncIntent);
+					syncServiceAccessor.bind(sync -> {
+						sync.setSynchronizer(mGoogleDriveSync);
+						sync.setOnSyncStatusListener(mGoogleDriveSyncStatusListener);
+						sync.startSyncFromOnly(Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | (mGoogleDriveSyncOpts.AskConfirmations ? Synchronizer.SYNC_FLAG_ASK_CHANGED : 0), Synchronizer.SyncTarget.SETTINGS, Synchronizer.SyncTarget.BOOKMARKS);
+					});
 				}
 			}
 		}
@@ -1236,12 +1226,11 @@ public class CoolReader extends BaseActivity {
 				if (mGoogleDriveSyncOpts.Enabled && !mSyncGoogleDriveEnabledPrev && null != mGoogleDriveSync) {
 					// if cloud sync has just been enabled in options dialog
 					//mGoogleDriveSync.startSyncFrom(Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | (mGoogleDriveSyncOpts.AskConfirmations ? Synchronizer.SYNC_FLAG_ASK_CHANGED : 0) );
-					checkNinitSyncService();
-					Intent syncIntent = new Intent(SyncService.SYNC_ACTION_SYNCFROM, Uri.EMPTY, this, SyncService.class);
-					Bundle data = new Bundle();
-					data.putInt("flags", Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | (mGoogleDriveSyncOpts.AskConfirmations ? Synchronizer.SYNC_FLAG_ASK_CHANGED : 0));
-					syncIntent.putExtras(data);
-					startService(syncIntent);
+					syncServiceAccessor.bind(sync -> {
+						sync.setSynchronizer(mGoogleDriveSync);
+						sync.setOnSyncStatusListener(mGoogleDriveSyncStatusListener);
+						sync.startSyncFrom(Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | (mGoogleDriveSyncOpts.AskConfirmations ? Synchronizer.SYNC_FLAG_ASK_CHANGED : 0) );
+					});
 					mSyncGoogleDriveEnabledPrev = mGoogleDriveSyncOpts.Enabled;
 					return;
 				}
@@ -1257,14 +1246,11 @@ public class CoolReader extends BaseActivity {
 								// After setting changed in OptionsDialog
 								log.d("Some settings is changed, uploading to cloud...");
 								//mGoogleDriveSync.startSyncToOnly(null, Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS, Synchronizer.SyncTarget.SETTINGS);
-								checkNinitSyncService();
-								Intent syncIntent = new Intent(SyncService.SYNC_ACTION_SYNCTO_ONLY, Uri.EMPTY, CoolReader.this, SyncService.class);
-								Bundle data = new Bundle();
-								data.putParcelable("bookInfo", null);
-								data.putInt("flags", Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
-								data.putIntArray("targets", new int[]{ Synchronizer.SyncTarget.SETTINGS.ordinal() });
-								syncIntent.putExtras(data);
-								startService(syncIntent);
+								syncServiceAccessor.bind(sync -> {
+									sync.setSynchronizer(mGoogleDriveSync);
+									sync.setOnSyncStatusListener(mGoogleDriveSyncStatusListener);
+									sync.startSyncToOnly(null, Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS, Synchronizer.SyncTarget.SETTINGS);
+								});
 							}
 						}
 					}, 500);
@@ -1329,14 +1315,11 @@ public class CoolReader extends BaseActivity {
 				// Save bookmarks and current reading position on the cloud
 				if (mGoogleDriveSyncOpts.Enabled && null != mGoogleDriveSync) {
 					//mGoogleDriveSync.startSyncToOnly(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY, Synchronizer.SyncTarget.BOOKMARKS);
-					checkNinitSyncService();
-					Intent syncIntent = new Intent(SyncService.SYNC_ACTION_SYNCTO_ONLY, Uri.EMPTY, CoolReader.this, SyncService.class);
-					Bundle data = new Bundle();
-					data.putParcelable("bookInfo", getCurrentBookInfo());
-					data.putInt("flags", Synchronizer.SYNC_FLAG_QUIETLY);
-					data.putIntArray("targets", new int[]{ Synchronizer.SyncTarget.BOOKMARKS.ordinal() });
-					syncIntent.putExtras(data);
-					startService(syncIntent);
+					syncServiceAccessor.bind(sync -> {
+						sync.setSynchronizer(mGoogleDriveSync);
+						sync.setOnSyncStatusListener(mGoogleDriveSyncStatusListener);
+						sync.startSyncToOnly(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY, Synchronizer.SyncTarget.BOOKMARKS);
+					});
 				}
 			}
 		}
@@ -1491,20 +1474,11 @@ public class CoolReader extends BaseActivity {
 						targets.add(Synchronizer.SyncTarget.CURRENTBOOKBODY);
 					if (!targets.isEmpty()) {
 						//mGoogleDriveSync.startSyncToOnly(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS, targets.toArray(new Synchronizer.SyncTarget[0]));
-						checkNinitSyncService();
-						Intent syncIntent = new Intent(SyncService.SYNC_ACTION_SYNCTO_ONLY, Uri.EMPTY, CoolReader.this, SyncService.class);
-						Bundle data = new Bundle();
-						data.putParcelable("bookInfo", getCurrentBookInfo());
-						data.putInt("flags", Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
-						int [] targets_int = new int[targets.size()];
-						int i = 0;
-						for (Synchronizer.SyncTarget target : targets) {
-							targets_int[i] = target.ordinal();
-							i++;
-						}
-						data.putIntArray("targets", targets_int);
-						syncIntent.putExtras(data);
-						startService(syncIntent);
+						syncServiceAccessor.bind(sync -> {
+							sync.setSynchronizer(mGoogleDriveSync);
+							sync.setOnSyncStatusListener(mGoogleDriveSyncStatusListener);
+							sync.startSyncToOnly(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS, targets.toArray(new Synchronizer.SyncTarget[0]));
+						});
 					}
 				}
 			}
