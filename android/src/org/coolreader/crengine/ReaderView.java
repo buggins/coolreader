@@ -261,6 +261,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	private final static int BRIGHTNESS_TYPE_COMMON = 0;
 	private final static int BRIGHTNESS_TYPE_WARM = 1;
+	private final static int BRIGHTNESS_TYPE_BOTH = 2;
 
 	/// Always sync this constants with crengine/include/lvdocview.h!
 	/// Battery state: no battery
@@ -668,6 +669,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	private int isBacklightControlFlick = 1;
 	private int isWarmBacklightControlFlick = 2;
+	private boolean isColdWarmBacklightControlTogether = false;
 	private boolean isTouchScreenEnabled = true;
 	//	private boolean isManualScrollActive = false;
 //	private boolean isBrightnessControlActive = false;
@@ -1329,7 +1331,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 									|| start_x > width - dragThreshold * 170 / 100 && isBacklightControlFlick == 2) {
 								// brightness
 								state = STATE_BRIGHTNESS;
-								brightness_type = BRIGHTNESS_TYPE_COMMON;
+								brightness_type = isColdWarmBacklightControlTogether ? BRIGHTNESS_TYPE_BOTH : BRIGHTNESS_TYPE_COMMON;
 								startBrightnessControl(start_x, start_y, brightness_type);
 								return true;
 							}
@@ -2860,6 +2862,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			isBacklightControlFlick = "1".equals(value) ? 1 : ("2".equals(value) ? 2 : 0);
 		} else if (key.equals(PROP_APP_FLICK_WARMLIGHT_CONTROL)) {
 			isWarmBacklightControlFlick = "1".equals(value) ? 1 : ("2".equals(value) ? 2 : 0);
+		} else if (key.equals(PROP_APP_FLICK_BACKLIGHT_CONTROL_TOGETHER)) {
+			isColdWarmBacklightControlTogether = flg;
 		} else if (PROP_APP_HIGHLIGHT_BOOKMARKS.equals(key)) {
 			flgHighlightBookmarks = !"0".equals(value);
 			clearSelection();
@@ -2915,6 +2919,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					|| PROP_APP_BOUNCE_TAP_INTERVAL.equals(key)
 					|| PROP_APP_FLICK_BACKLIGHT_CONTROL.equals(key)
 					|| PROP_APP_FLICK_WARMLIGHT_CONTROL.equals(key)
+					|| PROP_APP_FLICK_BACKLIGHT_CONTROL_TOGETHER.equals(key)
 					|| PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS.equals(key)
 					|| PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES.equals(key)
 					|| PROP_APP_SELECTION_ACTION.equals(key)
@@ -3877,6 +3882,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	int currentBrightnessValueIndex = -1;
 	int currentBrightnessValue = -1;
+	int currentBrightnessWarmValueIndex = -1;
+	int currentBrightnessWarmValue = -1;
 	int currentBrightnessPrevYPos = -1;
 
 	private void startBrightnessControl(final int startX, final int startY, int type) {
@@ -3891,14 +3898,22 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 						currentBrightnessValue = 50;
 						currentBrightnessValueIndex = OptionsDialog.findBacklightSettingIndex(currentBrightnessValue);
 					}
-				}
-				else if (DeviceInfo.EINK_HAVE_FRONTLIGHT)
+				} else if (DeviceInfo.EINK_HAVE_FRONTLIGHT)
 					currentBrightnessValueIndex = Utils.findNearestIndex(mEinkScreen.getFrontLightLevels(mActivity), currentBrightnessValue);
 				break;
-			case BRIGHTNESS_TYPE_WARM:
-				currentBrightnessValue = mActivity.getWarmBacklightLevel();
+			case BRIGHTNESS_TYPE_BOTH:
+				// only for e-ink
+				currentBrightnessValue = mActivity.getScreenBacklightLevel();
+				currentBrightnessWarmValue = mActivity.getWarmBacklightLevel();
+				if (DeviceInfo.EINK_HAVE_FRONTLIGHT)
+					currentBrightnessValueIndex = Utils.findNearestIndex(mEinkScreen.getFrontLightLevels(mActivity), currentBrightnessValue);
 				if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT)
-					currentBrightnessValueIndex = Utils.findNearestIndex(mEinkScreen.getWarmLightLevels(mActivity), currentBrightnessValue);
+					currentBrightnessWarmValueIndex = Utils.findNearestIndex(mEinkScreen.getWarmLightLevels(mActivity), currentBrightnessWarmValue);
+				break;
+			case BRIGHTNESS_TYPE_WARM:
+				currentBrightnessWarmValue = mActivity.getWarmBacklightLevel();
+				if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT)
+					currentBrightnessWarmValueIndex = Utils.findNearestIndex(mEinkScreen.getWarmLightLevels(mActivity), currentBrightnessWarmValue);
 				break;
 			default:
 				return;
@@ -3909,7 +3924,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	private void updateBrightnessControl(final int x, final int y, int type) {
 		List<Integer> levelList = null;
+		List<Integer> levelWarmList = null;
 		int count = 0;
+		int countWarm = 0;
 		switch (type) {
 			case BRIGHTNESS_TYPE_COMMON:
 				if (!DeviceInfo.EINK_SCREEN)
@@ -3922,11 +3939,26 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 						return;
 				}
 				break;
-			case BRIGHTNESS_TYPE_WARM:
+			case BRIGHTNESS_TYPE_BOTH:
+				// only for e-ink
 				if (null != mEinkScreen) {
-					levelList = mEinkScreen.getWarmLightLevels(mActivity);
+					levelList = mEinkScreen.getFrontLightLevels(mActivity);
 					if (null != levelList)
 						count = levelList.size();
+					else
+						return;
+					levelWarmList = mEinkScreen.getWarmLightLevels(mActivity);
+					if (null != levelWarmList)
+						countWarm = levelWarmList.size();
+					else
+						return;
+				}
+				break;
+			case BRIGHTNESS_TYPE_WARM:
+				if (null != mEinkScreen) {
+					levelWarmList = mEinkScreen.getWarmLightLevels(mActivity);
+					if (null != levelWarmList)
+						countWarm = levelWarmList.size();
 					else
 						return;
 				}
@@ -3934,35 +3966,63 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			default:
 				return;
 		}
-		if (0 == count)
-			return;
-		int diff = count*(currentBrightnessPrevYPos - y)/surface.getHeight();
-		int index = currentBrightnessValueIndex + diff;
-		if (index < 0)
-			index = 0;
-		else if (index >= count)
-			index = count - 1;
-		if (!DeviceInfo.EINK_SCREEN) {
-			if (index == 0) {
-				// ignore system brightness level on non eink devices
-				currentBrightnessPrevYPos = y;
-				return;
+		int index = currentBrightnessValueIndex;
+		if (count > 0) {
+			int diff = count * (currentBrightnessPrevYPos - y) / surface.getHeight();
+			index += diff;
+			if (index < 0)
+				index = 0;
+			else if (index >= count)
+				index = count - 1;
+			if (!DeviceInfo.EINK_SCREEN) {
+				if (index == 0) {
+					// ignore system brightness level on non eink devices
+					currentBrightnessPrevYPos = y;
+					return;
+				}
 			}
 		}
-		if (index != currentBrightnessValueIndex) {
+		int indexWarm = currentBrightnessWarmValueIndex;
+		if (countWarm > 0) {
+			int diffWarm = countWarm * (currentBrightnessPrevYPos - y) / surface.getHeight();
+			indexWarm += diffWarm;
+			if (indexWarm < 0)
+				indexWarm = 0;
+			else if (indexWarm >= countWarm)
+				indexWarm = countWarm - 1;
+		}
+		if (index != currentBrightnessValueIndex || indexWarm != currentBrightnessWarmValueIndex) {
 			currentBrightnessValueIndex = index;
-			if (!DeviceInfo.EINK_SCREEN)
-				currentBrightnessValue = OptionsDialog.mBacklightLevels[currentBrightnessValueIndex];
-			else {
-				// Here levelList already != null
-				currentBrightnessValue = levelList.get(currentBrightnessValueIndex);
-			}
+			currentBrightnessWarmValueIndex = indexWarm;
 			switch (type) {
 				case BRIGHTNESS_TYPE_COMMON:
+					if (!DeviceInfo.EINK_SCREEN)
+						currentBrightnessValue = OptionsDialog.mBacklightLevels[currentBrightnessValueIndex];
+					else {
+						// Here levelList already != null
+						currentBrightnessValue = levelList.get(currentBrightnessValueIndex);
+					}
+					log.e("C: setScreenBacklightLevel()");
 					mActivity.setScreenBacklightLevel(currentBrightnessValue);
 					break;
+				case BRIGHTNESS_TYPE_BOTH:
+					// only for e-ink
+					if (DeviceInfo.EINK_SCREEN) {
+						// Here levelList already != null
+						currentBrightnessValue = levelList.get(currentBrightnessValueIndex);
+						currentBrightnessWarmValue = levelWarmList.get(currentBrightnessWarmValueIndex);
+						log.e("B: setScreenBacklightLevel()");
+						mActivity.setScreenBacklightLevel(currentBrightnessValue);
+						mActivity.setScreenWarmBacklightLevel(currentBrightnessWarmValue);
+					}
+					break;
 				case BRIGHTNESS_TYPE_WARM:
-					mActivity.setScreenWarmBacklightLevel(currentBrightnessValue);
+					if (DeviceInfo.EINK_SCREEN) {
+						// Here levelList already != null
+						currentBrightnessWarmValue = levelWarmList.get(currentBrightnessWarmValueIndex);
+						log.e("W: setScreenWarmBacklightLevel()");
+						mActivity.setScreenWarmBacklightLevel(currentBrightnessWarmValue);
+					}
 					break;
 			}
 			currentBrightnessPrevYPos = y;
@@ -3970,7 +4030,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	private void stopBrightnessControl(final int x, final int y, int type) {
-		if (currentBrightnessValueIndex >= 0) {
+		if (currentBrightnessValueIndex >= 0 || currentBrightnessWarmValueIndex >= 0) {
 			if (x >= 0 && y >= 0) {
 				updateBrightnessControl(x, y, type);
 			}
@@ -3978,13 +4038,17 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				case BRIGHTNESS_TYPE_COMMON:
 					mSettings.setInt(PROP_APP_SCREEN_BACKLIGHT, currentBrightnessValue);
 					break;
+				case BRIGHTNESS_TYPE_BOTH:
+					mSettings.setInt(PROP_APP_SCREEN_BACKLIGHT, currentBrightnessValue);
+					mSettings.setInt(PROP_APP_SCREEN_WARM_BACKLIGHT, currentBrightnessWarmValue);
+					break;
 				case BRIGHTNESS_TYPE_WARM:
-					mSettings.setInt(PROP_APP_SCREEN_WARM_BACKLIGHT, currentBrightnessValue);
+					mSettings.setInt(PROP_APP_SCREEN_WARM_BACKLIGHT, currentBrightnessWarmValue);
 					break;
 				default:
 					return;
 			}
-			if (showBrightnessFlickToast) {
+			if (showBrightnessFlickToast && currentBrightnessValueIndex >= 0) {
 				OptionsDialog.mBacklightLevelsTitles[0] = mActivity.getString(R.string.options_app_backlight_screen_default);
 				String s = OptionsDialog.mBacklightLevelsTitles[currentBrightnessValueIndex];
 				mActivity.showToast(s);
@@ -3992,7 +4056,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			if (!DeviceInfo.EINK_SCREEN)
 				saveSettings(mSettings);
 			currentBrightnessValue = -1;
+			currentBrightnessWarmValue = -1;
 			currentBrightnessValueIndex = -1;
+			currentBrightnessWarmValueIndex = -1;
 			currentBrightnessPrevYPos = -1;
 		}
 	}
