@@ -389,6 +389,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	ListOption mFontWeightOption;
 	OptionBase mFontHintingOption;
 	OptionBase mBounceProtectionOption;
+	ListOption mFlickBacklightControlOption;
+	BoolOption mFlickBacklightTogetherOption;
 
 	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
 	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
@@ -2881,10 +2883,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_touch_drawable, R.drawable.cr3_option_touch));
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
-		if ( !DeviceInfo.EINK_SCREEN || DeviceInfo.EINK_HAVE_FRONTLIGHT )
-			mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
-		if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT)
+		if ( !DeviceInfo.EINK_SCREEN || DeviceInfo.EINK_HAVE_FRONTLIGHT ) {
+			mFlickBacklightControlOption = (ListOption) new ListOption(this, getString(R.string.options_controls_flick_brightness), PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1");
+			mOptionsControls.add(mFlickBacklightControlOption);
+		}
+		if (DeviceInfo.EINK_HAVE_NATURAL_BACKLIGHT) {
+			Runnable onFlickChanged = () -> {
+				int flick = mProperties.getInt(PROP_APP_FLICK_BACKLIGHT_CONTROL, 0);
+				mFlickBacklightTogetherOption.setEnabled(flick != 0);
+			};
+			mFlickBacklightControlOption.setOnChangeHandler(onFlickChanged);
+			mFlickBacklightTogetherOption = (BoolOption) new BoolOption(this, getString(R.string.options_controls_flick_cold_and_warm_together), PROP_APP_FLICK_BACKLIGHT_CONTROL_TOGETHER).setDefaultValue("0");
+			mOptionsControls.add(mFlickBacklightTogetherOption);
 			mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_flick_warm), PROP_APP_FLICK_WARMLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("2"));
+			onFlickChanged.run();
+		}
 		mOptionsControls.add(new ListOption(this, getString(R.string.option_controls_gesture_page_flipping_enabled), PROP_APP_GESTURE_PAGE_FLIPPING).add(mPagesPerFullSwipe, mPagesPerFullSwipeTitles).setDefaultValue("1"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_selection_action), PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_multi_selection_action), PROP_APP_MULTI_SELECTION_ACTION).add(mMultiSelectionAction, mMultiSelectionActionTitles).setDefaultValue("0"));

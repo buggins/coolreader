@@ -189,6 +189,7 @@
     <string name="options_show_titlebar_page_number">Page number</string>
     <string name="options_controls_flick_brightness">Brightness control by flick</string>
     <string name="options_controls_flick_warm">Warm backlight control by flick</string>
+    <string name="options_controls_flick_cold_and_warm_together">Simultaneously control warm and cold backlight</string>
     <string name="options_controls_flick_brightness_right">Right edge</string>
     <string name="options_controls_flick_brightness_left">Left edge</string>
     <string name="options_controls_flick_brightness_none">Disabled</string>

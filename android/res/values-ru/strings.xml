@@ -179,6 +179,7 @@
     <string name="options_show_titlebar_page_number">Новер страницы</string>
     <string name="options_controls_flick_brightness">Управление яркостью скольжением по экрану</string>
     <string name="options_controls_flick_warm">Управление яркостью теплой подсветки скольжением по экрану</string>
+    <string name="options_controls_flick_cold_and_warm_together">Одновременное управление теплой и холодной подсветкой</string>
     <string name="options_controls_flick_brightness_right">Правый край</string>
     <string name="options_controls_flick_brightness_left">Левый край</string>
     <string name="options_controls_flick_brightness_none">Отключено</string>
