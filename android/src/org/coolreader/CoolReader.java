@@ -741,7 +741,17 @@ public class CoolReader extends BaseActivity {
 			if (uri != null) {
 				fileToOpen = filePathFromUri(uri);
 			}
+		} else if ("org.coolreader.PAGE_UP".equals(intent.getAction())) {
+			mReaderView.onCommand(ReaderCommand.DCMD_PAGEUP, 0, null);
+			return true;
+		} else if ("org.coolreader.PAGE_DOWN".equals(intent.getAction())) {
+			mReaderView.onCommand(ReaderCommand.DCMD_PAGEDOWN, 0, null);
+			return true;
+		} else if ("org.coolreader.TTS_PLAY".equals(intent.getAction())) {
+			mReaderView.onCommand(ReaderCommand.DCMD_TTS_PLAY, 0, null);
+			return true;
 		}
+
 		if (fileToOpen == null && intent.getExtras() != null) {
 			log.d("extras=" + intent.getExtras());
 			fileToOpen = intent.getExtras().getString(OPEN_FILE_PARAM);
