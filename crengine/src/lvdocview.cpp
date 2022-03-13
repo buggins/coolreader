@@ -6390,6 +6390,11 @@ int LVDocView::onSelectionCommand( int cmd, int param )
     int y0 = GetPos();
     int h = m_pageRects[0].height() - m_pageMargins.top
             - m_pageMargins.bottom - getPageHeaderHeight();
+
+    //if selection is in the bottom 150px of the screen, scroll the page
+    int bottomMarginBuffer = 150;
+    h = h - bottomMarginBuffer;
+
     //int y1 = y0 + h;
     if (makeSelStartVisible) {
         // make start of selection visible
