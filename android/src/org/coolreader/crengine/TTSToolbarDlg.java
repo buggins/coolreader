@@ -557,7 +557,7 @@ public class TTSToolbarDlg implements Settings {
 
 		mWindow.setBackgroundDrawable(new BitmapDrawable());
 		mWindow.setWidth(WindowManager.LayoutParams.FILL_PARENT);
-		mWindow.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
+		mWindow.setHeight(WindowManager.LayoutParams.FILL_PARENT);
 		mWindow.setFocusable(true);
 		mWindow.setTouchable(true);
 		mWindow.setOutsideTouchable(true);
