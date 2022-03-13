@@ -6395,7 +6395,7 @@ int LVDocView::onSelectionCommand( int cmd, int param )
         // make start of selection visible
         if (isScrollMode()) {
             if (startPoint.y < y0 + m_font_size * 2 || startPoint.y > y0 + h * 3/4)
-                SetPos(startPoint.y - m_font_size * 2);
+                SetPos(startPoint.y - m_font_size * 1);
         } else {
             if (startPoint.y < y0 || startPoint.y >= y0 + h)
                 SetPos(startPoint.y);
@@ -6405,7 +6405,7 @@ int LVDocView::onSelectionCommand( int cmd, int param )
         // make end of selection visible
         if (isScrollMode()) {
             if (endPoint.y > y0 + h * 3/4 - m_font_size * 2)
-                SetPos(endPoint.y - h * 3/4 + m_font_size * 2, false);
+                SetPos(endPoint.y - h * 3/4 + m_font_size * 1, false);
         } else {
             if (endPoint.y < y0 || endPoint.y >= y0 + h)
                 SetPos(endPoint.y, false);
