@@ -115,8 +115,11 @@ public class ReaderAction {
 	public final static ReaderAction BACKLIGHT_SET_DEFAULT = new ReaderAction("BACKLIGHT_SET_DEFAULT", R.string.action_backlight_set_default, ReaderCommand.DCMD_BACKLIGHT_SET_DEFAULT, -1);
 	public final static ReaderAction SHOW_SYSTEM_BACKLIGHT_DIALOG = new ReaderAction("SHOW_SYSTEM_BACKLIGHT_DIALOG", R.string.action_show_onyx_backlight_system_dialog, ReaderCommand.DCMD_SHOW_SYSTEM_BACKLIGHT_DIALOG, -1);
 
+	/*
+	  Commented until the appearance of free implementation of the binding to the Google Drive (R)
 	public final static ReaderAction GDRIVE_SYNCTO = new ReaderAction("GDRIVE_SYNCTO", R.string.googledrive_sync_to, ReaderCommand.DCMD_GOOGLEDRIVE_SYNC, 0).setIconId(R.drawable.google_drive);
 	public final static ReaderAction GDRIVE_SYNCFROM = new ReaderAction("GDRIVE_SYNCFROM", R.string.googledrive_sync_from, ReaderCommand.DCMD_GOOGLEDRIVE_SYNC, 1).setIconId(R.drawable.google_drive);
+	 */
 
 	public final static ReaderAction[] AVAILABLE_ACTIONS;
 
@@ -254,6 +257,8 @@ public class ReaderAction {
 				BACKLIGHT_SET_DEFAULT,
 				SAVE_LOGCAT
 		};
+		/*
+		  Commented until the appearance of free implementation of the binding to the Google Drive (R)
 		if (BuildConfig.GSUITE_AVAILABLE && DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			int count = BASE_ACTIONS.length;
 			ReaderAction[] new_array = new ReaderAction[count + 2];
@@ -262,6 +267,7 @@ public class ReaderAction {
 			new_array[count + 1] = GDRIVE_SYNCFROM;
 			BASE_ACTIONS = new_array;
 		}
+		 */
 		if (DeviceInfo.EINK_HAVE_FRONTLIGHT) {
 			// TODO: and may be other eink devices with frontlight...
 			if (DeviceInfo.EINK_ONYX && DeviceInfo.ONYX_HAVE_BRIGHTNESS_SYSTEM_DIALOG) {

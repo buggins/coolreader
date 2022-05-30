@@ -213,7 +213,7 @@
         <item name="ic_menu_search_drawable">@drawable/ic_menu_search</item>
         <item name="ic_menu_close_clear_cancel_drawable">@drawable/ic_menu_close_clear_cancel</item>
 
-        <item name="google_drive_drawable">@drawable/google_drive</item>
+        <!-- item name="google_drive_drawable">@drawable/google_drive</item -->
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -326,7 +326,7 @@
         <item name="ic_menu_search_drawable">@drawable/ic_menu_search</item>
         <item name="ic_menu_close_clear_cancel_drawable">@drawable/ic_menu_close_clear_cancel</item>
 
-        <item name="google_drive_drawable">@drawable/google_drive</item>
+        <!-- item name="google_drive_drawable">@drawable/google_drive</item -->
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -465,7 +465,7 @@
         <item name="ic_menu_search_drawable">@drawable/ic_menu_search_hc</item>
         <item name="ic_menu_close_clear_cancel_drawable">@drawable/ic_menu_close_clear_cancel_hc</item>
 
-        <item name="google_drive_drawable">@drawable/google_drive_mono</item>
+        <!-- item name="google_drive_drawable">@drawable/google_drive_mono</item -->
 
         <item name="folder_big_drawable">@drawable/folder_big_hc</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_big_bookmark_hc</item>
@@ -578,7 +578,7 @@
         <item name="ic_menu_search_drawable">@drawable/ic_menu_search_hc</item>
         <item name="ic_menu_close_clear_cancel_drawable">@drawable/ic_menu_close_clear_cancel_hc</item>
 
-        <item name="google_drive_drawable">@drawable/google_drive_mono</item>
+        <!-- item name="google_drive_drawable">@drawable/google_drive_mono</item -->
 
         <item name="folder_big_drawable">@drawable/folder_big_hc</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_big_bookmark_hc</item>

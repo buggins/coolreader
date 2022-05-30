@@ -150,16 +150,6 @@ dependencies {
 
     implementation "androidx.documentfile:documentfile:1.0.1"
 
-    // G Suite -> Google Drive API (only for primary flavor)
-    primaryImplementation 'com.google.android.gms:play-services-auth:18.1.0'
-    primaryImplementation 'com.google.http-client:google-http-client-gson:1.36.0'
-    primaryImplementation('com.google.api-client:google-api-client-android:1.30.10') {
-        exclude group: 'org.apache.httpcomponents'
-    }
-    primaryImplementation('com.google.apis:google-api-services-drive:v3-rev136-1.25.0') {
-        exclude group: 'org.apache.httpcomponents'
-    }
-
     implementation project(path: ':genrescollection')
     implementation project(path: ':eink-onyx-reflections')
 

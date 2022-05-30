@@ -2924,6 +2924,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setComment(getString(R.string.options_hide_empty_dirs_slowdown)).setDefaultValue("0").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_genres), PROP_APP_FILE_BROWSER_HIDE_EMPTY_GENRES).setDefaultValue("0").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.mi_book_browser_simple_mode), PROP_APP_FILE_BROWSER_SIMPLE_MODE).noIcon());
+		/*
+		  Commented until the appearance of free implementation of the binding to the Google Drive (R)
 		if (BuildConfig.GSUITE_AVAILABLE && DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			mOptionsCloudSync = new OptionsListView(getContext());
 			Runnable onGoogleDriveEnable = () -> {
@@ -2960,6 +2962,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsCloudSync.add(mGoogleDriveAutoSavePeriodOption);
 			mOptionsCloudSync.add(mCloudSyncDataKeepAliveOptions);
 		}
+		 */
 
 		fillStyleEditorOptions();
 

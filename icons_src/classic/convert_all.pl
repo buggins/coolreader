@@ -15,8 +15,6 @@ my %ic_launcher_sizes = (ldpi=>36, mdpi=>48, hdpi=>72, xhdpi=>96, xxhdpi=>144); 
 my %ic_bigicons_sizes = (ldpi=>36, mdpi=>48, hdpi=>72, xhdpi=>96, xxhdpi=>144); # , xxxhdpi=>192);
 
 my %ic_actions_list=(
-	'../google-drive-logo/drive-icon-48x48.svg' => 'google_drive.png',
-
 	'cr3_browser_back-48x48-src.svg' => 'cr3_browser_back.png',
 	'cr3_browser_book-48x48-src.svg' => 'cr3_browser_book.png',
 	'cr3_browser_book_chm-48x48-src.svg' => 'cr3_browser_book_chm.png',

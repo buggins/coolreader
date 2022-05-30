@@ -177,6 +177,8 @@ public interface Settings {
 
     public static final String PROP_APP_PLUGIN_ENABLED = "app.plugin.enabled.litres";
 
+    /*
+      Commented until the appearance of free implementation of the binding to the Google Drive (R)
     String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED = "app.cloudsync.googledrive.enabled";
     String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_SETTINGS = "app.cloudsync.googledrive.settings";
     String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_BOOKMARKS = "app.cloudsync.googledrive.bookmarks";
@@ -185,6 +187,7 @@ public interface Settings {
     String PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD = "app.cloudsync.googledrive.autosaveperiod";
     String PROP_APP_CLOUDSYNC_CONFIRMATIONS = "app.cloudsync.confirmations";
     String PROP_APP_CLOUDSYNC_DATA_KEEPALIVE = "app.cloudsync.bookmarks.keepalive";		// days
+     */
 
     String PROP_APP_TTS_SPEED = "app.tts.speed";
     String PROP_APP_TTS_ENGINE = "app.tts.engine";

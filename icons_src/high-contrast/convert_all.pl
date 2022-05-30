@@ -12,8 +12,6 @@ my %ic_launcher_sizes = (ldpi=>36, mdpi=>48, hdpi=>72, xhdpi=>96, xxhdpi=>144); 
 my %ic_bigicons_sizes = (ldpi=>36, mdpi=>48, hdpi=>72, xhdpi=>96, xxhdpi=>144); # , xxxhdpi=>192);
 
 my %ic_actions_list=(
-	'../google-drive-logo/drive-icon-mono-48x48.svg' => 'google_drive_mono.png',
-
 	'cr3_button_prev_hc-48x48-src.svg' => 'cr3_button_prev_hc.png',
 	'cr3_button_next_hc-48x48-src.svg' => 'cr3_button_next_hc.png',
 	'cr3_viewer_toc_hc-256x256-src.svg' => 'cr3_viewer_toc_hc.png',
