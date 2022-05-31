@@ -422,7 +422,7 @@ public class BaseActivity extends Activity implements Settings {
 				R.attr.cr3_button_tts_drawable, R.attr.cr3_browser_folder_recent_drawable, R.attr.cr3_button_scroll_go_drawable,
 				R.attr.cr3_btn_books_swap_drawable, R.attr.cr3_logo_button_drawable, R.attr.cr3_viewer_exit_drawable,
 				R.attr.cr3_button_book_open_drawable, R.attr.cr3_browser_folder_current_book_drawable, R.attr.cr3_browser_folder_opds_drawable,
-				R.attr.google_drive_drawable, R.attr.cr3_button_log_drawable, R.attr.cr3_button_light_drawable };
+				/*R.attr.google_drive_drawable,*/ R.attr.cr3_button_log_drawable, R.attr.cr3_button_light_drawable };
 		TypedArray a = getTheme().obtainStyledAttributes(attrs);
 		int btnPrevDrawableRes = a.getResourceId(0, 0);
 		int btnNextDrawableRes = a.getResourceId(1, 0);
@@ -445,7 +445,7 @@ public class BaseActivity extends Activity implements Settings {
 		int btnBookOpenDrawableRes = a.getResourceId(18, 0);
 		int brFolderCurrBookDrawableRes = a.getResourceId(19, 0);
 		int brFolderOpdsDrawableRes = a.getResourceId(20, 0);
-		int googleDriveDrawableRes = a.getResourceId(21, 0);
+		//int googleDriveDrawableRes = a.getResourceId(21, 0);
 		int btnLogDrawableRes = a.getResourceId(22, 0);
 		int btnLightDrawableRes = a.getResourceId(23, 0);
 		a.recycle();
@@ -493,10 +493,12 @@ public class BaseActivity extends Activity implements Settings {
 			ReaderAction.CURRENT_BOOK_DIRECTORY.setIconId(brFolderCurrBookDrawableRes);
 		if (brFolderOpdsDrawableRes != 0)
 			ReaderAction.OPDS_CATALOGS.setIconId(brFolderOpdsDrawableRes);
+		/*
 		if (googleDriveDrawableRes != 0) {
 			ReaderAction.GDRIVE_SYNCTO.setIconId(googleDriveDrawableRes);
 			ReaderAction.GDRIVE_SYNCFROM.setIconId(googleDriveDrawableRes);
 		}
+		 */
 		if (btnLogDrawableRes != 0)
 			ReaderAction.SAVE_LOGCAT.setIconId(btnLogDrawableRes);
 		if (btnLightDrawableRes != 0)
@@ -1984,6 +1986,8 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, Settings.VIEWER_TOOLBAR_NONE);
 			props.applyDefault(ReaderView.PROP_TOOLBAR_HIDE_IN_FULLSCREEN, "0");
 
+			/*
+			  Commented until the appearance of free implementation of the binding to the Google Drive (R)
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED, "0");
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_SETTINGS, "0");
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_BOOKMARKS, "0");
@@ -1992,6 +1996,7 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_GOOGLEDRIVE_AUTOSAVEPERIOD, "5");		// 5 min.
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_CONFIRMATIONS, "1");
 			props.applyDefault(ReaderView.PROP_APP_CLOUDSYNC_DATA_KEEPALIVE, "14");				// 2 weeks
+			 */
 
 			if (!DeviceInfo.EINK_SCREEN) {
 				props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "1");

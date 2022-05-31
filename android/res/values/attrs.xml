@@ -100,7 +100,7 @@
     <attr name="ic_menu_search_drawable" format="reference" />
     <attr name="ic_menu_close_clear_cancel_drawable" format="reference" />
 
-    <attr name="google_drive_drawable" format="reference" />
+    <!-- attr name="google_drive_drawable" format="reference" / -->
 
     <attr name="folder_big_drawable" format="reference" />
     <attr name="folder_big_bookmark_drawable" format="reference" />

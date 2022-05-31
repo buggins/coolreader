@@ -56,12 +56,6 @@ import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
 import org.coolreader.crengine.Utils;
 import org.coolreader.donations.CRDonationService;
-import org.coolreader.sync2.OnSyncStatusListener;
-import org.coolreader.sync2.SyncOptions;
-import org.coolreader.sync2.SyncService;
-import org.coolreader.sync2.SyncServiceAccessor;
-import org.coolreader.sync2.Synchronizer;
-import org.coolreader.sync2.googledrive.GoogleDriveRemoteAccess;
 import org.coolreader.tts.OnTTSCreatedListener;
 import org.coolreader.tts.TTSControlServiceAccessor;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
@@ -76,8 +70,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class CoolReader extends BaseActivity {
 	public static final Logger log = L.create("cr");
@@ -95,6 +87,8 @@ public class CoolReader extends BaseActivity {
 	private ViewGroup mCurrentFrame;
 	private ViewGroup mPreviousFrame;
 
+	/*
+	  Commented until the appearance of free implementation of the binding to the Google Drive (R)
 	private final SyncOptions mGoogleDriveSyncOpts = new SyncOptions();
 	private boolean mSyncGoogleDriveEnabledPrev = false;
 	private int mSyncGoogleDriveErrorsCount = 0;
@@ -104,6 +98,7 @@ public class CoolReader extends BaseActivity {
 	private SyncServiceAccessor syncServiceAccessor = null;
 	// can be add more synchronizers
 	private boolean mSuppressSettingsCopyToCloud;
+	 */
 
 	private String mOptionAppearance = "0";
 
@@ -276,11 +271,14 @@ public class CoolReader extends BaseActivity {
 			ttsControlServiceAccessor = null;
 		}
 
+		/*
+		  Commented until the appearance of free implementation of the binding to the Google Drive (R)
 		// Unbind from Cloud Sync service
 		if (null != syncServiceAccessor) {
 			syncServiceAccessor.unbind();
 			syncServiceAccessor = null;
 		}
+		 */
 
 		if (mHomeFrame != null)
 			mHomeFrame.onClose();
@@ -358,7 +356,9 @@ public class CoolReader extends BaseActivity {
 		} else if (key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE)) {
 			if (mBrowser != null)
 				mBrowser.setSimpleViewMode(flg);
-		} else if (key.equals(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED)) {
+		}
+		/* See notes for buildGoogleDriveSynchronizer() function
+		else if (key.equals(PROP_APP_CLOUDSYNC_GOOGLEDRIVE_ENABLED)) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				mSyncGoogleDriveEnabledPrev = mGoogleDriveSyncOpts.Enabled;
 				mGoogleDriveSyncOpts.Enabled = flg;
@@ -394,7 +394,8 @@ public class CoolReader extends BaseActivity {
 		} else if (key.equals(PROP_APP_CLOUDSYNC_DATA_KEEPALIVE)) {
 			mGoogleDriveSyncOpts.DataKeepAlive = Utils.parseInt(value, 14, 0, 365);
 			updateGoogleDriveSynchronizer();
-		} else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS)) {
+		} */
+		else if (key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS)) {
 			// already in super method:
 			// Services.getScanner().setHideEmptyDirs(flg);
 			// Here only refresh the file browser
@@ -415,6 +416,11 @@ public class CoolReader extends BaseActivity {
 		//
 	}
 
+	/*
+	 * NOTE: Unfortunately, Services Google Play has a proprietary license,
+	 * so we cannot use it in the program under GPL license.
+	 * This code must be rewritten using free libraries compatible with
+	 * the GPL license or write its implementation from scratch.
 	private void buildGoogleDriveSynchronizer() {
 		if (!BuildConfig.GSUITE_AVAILABLE)
 			return;
@@ -698,6 +704,7 @@ public class CoolReader extends BaseActivity {
 			});
 		}
 	}
+	*/
 
 	private BookInfo getCurrentBookInfo() {
 		BookInfo bookInfo = null;
@@ -866,6 +873,8 @@ public class CoolReader extends BaseActivity {
 			log.e("Failed to unregister receiver: " + e.toString());
 		}
 		Services.getCoverpageManager().removeCoverpageReadyListener(mHomeFrame);
+		/*
+		  Commented until the appearance of free implementation of the binding to the Google Drive (R)
 		if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (mGoogleDriveSyncOpts.Enabled && mGoogleDriveSync != null) {
 				//mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
@@ -881,6 +890,7 @@ public class CoolReader extends BaseActivity {
 				} catch (Exception ignored) {}
 			}
 		}
+		 */
 		super.onPause();
 	}
 
@@ -944,6 +954,8 @@ public class CoolReader extends BaseActivity {
 				}
 			}
 		}
+		/*
+		  Commented until the appearance of free implementation of the binding to the Google Drive (R)
 		if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (mGoogleDriveSyncOpts.Enabled && mGoogleDriveSync != null) {
 				// when the program starts, the local settings file is already updated, so the local file is always newer than the remote one
@@ -966,6 +978,7 @@ public class CoolReader extends BaseActivity {
 				}
 			}
 		}
+		 */
 		activityIsRunning = true;
 	}
 
@@ -1222,6 +1235,8 @@ public class CoolReader extends BaseActivity {
 		applyFullscreen(getWindow());
 		if (!justCreated && isInterfaceCreated) {
 			// Only after onStart()!
+			/*
+			  Commented until the appearance of free implementation of the binding to the Google Drive (R)
 			if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				if (mGoogleDriveSyncOpts.Enabled && !mSyncGoogleDriveEnabledPrev && null != mGoogleDriveSync) {
 					// if cloud sync has just been enabled in options dialog
@@ -1256,6 +1271,7 @@ public class CoolReader extends BaseActivity {
 					}, 500);
 				}
 			}
+			 */
 			validateSettings();
 		}
 	}
@@ -1311,6 +1327,8 @@ public class CoolReader extends BaseActivity {
 			mBrowser.stopCurrentScan();
 		setCurrentFrame(mHomeFrame);
 		if (isInterfaceCreated) {
+			/*
+			  Commented until the appearance of free implementation of the binding to the Google Drive (R)
 			if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				// Save bookmarks and current reading position on the cloud
 				if (mGoogleDriveSyncOpts.Enabled && null != mGoogleDriveSync) {
@@ -1322,6 +1340,7 @@ public class CoolReader extends BaseActivity {
 					});
 				}
 			}
+			 */
 		}
 	}
 
@@ -1464,6 +1483,8 @@ public class CoolReader extends BaseActivity {
 		runInReader(() -> mReaderView.loadDocument(item, forceSync ? () -> {
 			if (null != doneCallback)
 				doneCallback.run();
+			/*
+			  Commented until the appearance of free implementation of the binding to the Google Drive (R)
 			if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				// Save last opened document on cloud
 				if (mGoogleDriveSyncOpts.Enabled && null != mGoogleDriveSync) {
@@ -1482,6 +1503,7 @@ public class CoolReader extends BaseActivity {
 					}
 				}
 			}
+			 */
 		} : doneCallback, errorCallback));
 	}
 
@@ -1617,13 +1639,15 @@ public class CoolReader extends BaseActivity {
 		if (mDonationService != null) {
 			mDonationService.onActivityResult(requestCode, resultCode, intent);
 		}
+		/*
+		  Commented until the appearance of free implementation of the binding to the Google Drive (R)
 		if (requestCode == REQUEST_CODE_GOOGLE_DRIVE_SIGN_IN) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				if (null != mGoogleDriveSync) {
 					mGoogleDriveSync.onActivityResultHandler(requestCode, resultCode, intent);
 				}
 			}
-		} else if (requestCode == REQUEST_CODE_OPEN_DOCUMENT_TREE) {
+		} else */ if (requestCode == REQUEST_CODE_OPEN_DOCUMENT_TREE) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 				if (resultCode == Activity.RESULT_OK) {
 					switch (mOpenDocumentTreeCommand) {

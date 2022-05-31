@@ -118,10 +118,13 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 				}
 				// TODO: add other e-ink devices with backlight support
 			}
+			/*
+			  Commented until the appearance of free implementation of the binding to the Google Drive (R)
 			if (BuildConfig.GSUITE_AVAILABLE && DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				actionsList.add(ReaderAction.GDRIVE_SYNCTO);
 				actionsList.add(ReaderAction.GDRIVE_SYNCFROM);
 			}
+			 */
 			actionsList.add(ReaderAction.ABOUT);
 			actionsList.add(ReaderAction.EXIT);
 			this.toolbarView = new CRToolBar(context, actionsList, false);
