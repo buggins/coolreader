@@ -1,12 +1,15 @@
 package com.s_trace.motion_watchdog;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Message;
 import android.util.Log;
 
@@ -18,6 +21,7 @@ import org.coolreader.crengine.TTSToolbarDlg;
  * Handler for motion events
  */
 
+@TargetApi(Build.VERSION_CODES.ECLAIR)
 public class MotionWatchdogHandler extends Handler implements SensorEventListener {
     private static final int MSG_MOTION_DETECTED  = 0;
     private static final int MSG_MOTION_TIMEOUT   = 1;
@@ -39,7 +43,7 @@ public class MotionWatchdogHandler extends Handler implements SensorEventListene
     private final int mTimeout;
 
     public MotionWatchdogHandler(TTSToolbarDlg ttsToolbarDlg, CoolReader coolReader,
-                                 com.s_trace.motion_watchdog.HandlerThread handlerThread, int timeout) {
+                                 HandlerThread handlerThread, int timeout) {
         mHandlerThread = handlerThread;
         mCoolReader = coolReader;
         mTTSToolbarDlg = ttsToolbarDlg;
@@ -149,7 +153,10 @@ public class MotionWatchdogHandler extends Handler implements SensorEventListene
         removeMessages(MotionWatchdogHandler.MSG_MOTION_TIMEOUT);
         removeMessages(MotionWatchdogHandler.MSG_HANDLE_STOP_STEP);
         removeMessages(MotionWatchdogHandler.MSG_MOTION_DETECTED);
-        mHandlerThread.quitSafely();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
+            mHandlerThread.quitSafely();
+        else
+            mHandlerThread.quit();
     }
 
     @Override
