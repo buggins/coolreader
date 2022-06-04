@@ -16,8 +16,6 @@ import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 
-import androidx.documentfile.provider.DocumentFile;
-
 import org.coolreader.R;
 import org.coolreader.crengine.FileInfo.SortOrder;
 
@@ -199,30 +197,6 @@ public class Utils {
 		return found ? file : null;
 	}
 
-	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
-	public static DocumentFile getDocumentFile(FileInfo fi, Context context, Uri sdCardUri) {
-		DocumentFile docFile = null;
-		String filePath;
-		if (fi.isArchive && fi.arcname != null)
-			filePath = fi.arcname;
-		else
-			filePath = fi.pathname;
-		if (null != filePath) {
-			File f = new File(filePath);
-			filePath = f.getAbsolutePath();
-			docFile = DocumentFile.fromTreeUri(context, sdCardUri);
-			if (null != docFile) {
-				String[] parts = filePath.split("\\/");
-				for (int i = 3; i < parts.length; i++) {
-					docFile = docFile.findFile(parts[i]);
-					if (null == docFile)
-						break;
-				}
-			}
-		}
-		return docFile;
-	}
-
 	public static boolean deleteFolder(FileInfo folder, FileInfoOperationListener bookDeleteCallback, FileInfoOperationListener readyCallback) {
 		boolean res = deleteFolder_impl(new FileInfo(folder), bookDeleteCallback);
 		readyCallback.onStatus(folder, res ? 0 : -1);
@@ -241,7 +215,7 @@ public class Utils {
 		boolean res = true;
 		Scanner scanner = Services.getScanner();
 		scanner.listDirectory(folder, false, false);
-		DocumentFile documentFile;
+		Uri documentUri;
 		int i;
 		for (i = 0; i < folder.dirCount(); i++) {
 			res = deleteFolderDocTree_impl(folder.getDir(i), context, sdCardUri, bookDeleteCallback);
@@ -251,9 +225,9 @@ public class Utils {
 		if (res) {
 			for (i = 0; i < folder.fileCount(); i++) {
 				FileInfo fi = folder.getFile(i);
-				documentFile = getDocumentFile(fi, context, sdCardUri);
-				if (null != documentFile) {
-					res = documentFile.delete();
+				documentUri = DocumentsContractWrapper.getDocumentUri(fi, context, sdCardUri);
+				if (null != documentUri) {
+					res = DocumentsContractWrapper.deleteFile(context, documentUri);
 					bookDeleteCallback.onStatus(fi, res ? 0 : -1);
 					if (!res) {
 						break;
@@ -265,9 +239,9 @@ public class Utils {
 			}
 		}
 		if (res) {
-			documentFile = getDocumentFile(folder, context, sdCardUri);
-			if (null != documentFile) {
-				res = documentFile.delete();
+			documentUri = DocumentsContractWrapper.getDocumentUri(folder, context, sdCardUri);
+			if (null != documentUri) {
+				res = DocumentsContractWrapper.deleteFile(context, documentUri);
 			}
 		}
 		return res;
