@@ -140,7 +140,4 @@ dependencies {
 
     implementation project(path: ':genrescollection')
     implementation project(path: ':eink-onyx-reflections')
-
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test:runner:1.4.0'
 }
