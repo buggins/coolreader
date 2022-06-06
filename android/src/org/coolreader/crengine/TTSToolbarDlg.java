@@ -1,6 +1,7 @@
 package org.coolreader.crengine;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -8,6 +9,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -21,7 +23,6 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
-import com.s_trace.motion_watchdog.HandlerThread;
 import com.s_trace.motion_watchdog.MotionWatchdogHandler;
 
 import org.coolreader.CoolReader;
@@ -171,6 +172,7 @@ public class TTSToolbarDlg implements Settings {
 		return newUtterance;
 	}
 
+	@TargetApi(Build.VERSION_CODES.ECLAIR)
 	private void startMotionWatchdog(){
 		String TAG = "MotionWatchdog";
 		log.d("startMotionWatchdog() enter");
@@ -240,8 +242,10 @@ public class TTSToolbarDlg implements Settings {
 		boolean flg = "1".equals(value);
 		switch (key) {
 			case PROP_APP_MOTION_TIMEOUT:
-				mMotionTimeout = Utils.parseInt(value, 0, 0, 100);
-				mMotionTimeout = mMotionTimeout * 60 * 1000; // Convert minutes to msecs
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ECLAIR) {
+					mMotionTimeout = Utils.parseInt(value, 0, 0, 100);
+					mMotionTimeout = mMotionTimeout * 60 * 1000; // Convert minutes to msecs
+				}
 				break;
 			case PROP_APP_TTS_SPEED:
 				mTTSSpeedPercent = Utils.parseInt(value, 50, 0, 100);
@@ -321,7 +325,8 @@ public class TTSToolbarDlg implements Settings {
 						case PLAYING:
 							isSpeaking = true;
 							BackgroundThread.instance().postGUI(() -> mPlayPauseButton.setImageResource(Utils.resolveResourceIdByAttr(mCoolReader, R.attr.ic_media_pause_drawable, R.drawable.ic_media_pause)));
-							startMotionWatchdog();
+							if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ECLAIR && mMotionTimeout > 0)
+								startMotionWatchdog();
 							break;
 						case PAUSED:
 						case STOPPED:

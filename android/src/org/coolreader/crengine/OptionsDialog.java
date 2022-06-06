@@ -29,7 +29,6 @@ import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
 import android.widget.TextView;
 
-import org.coolreader.BuildConfig;
 import org.coolreader.CoolReader;
 import org.coolreader.Dictionaries;
 import org.coolreader.Dictionaries.DictInfo;
@@ -2629,7 +2628,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsTTS.add(mTTSVoiceOption);
 		}
 		mOptionsTTS.add(new BoolOption(this, getString(R.string.options_tts_google_abbr_workaround), PROP_APP_TTS_GOOGLE_END_OF_SENTENCE_ABBR).setComment(getString(R.string.options_tts_google_abbr_workaround_comment)).setDefaultValue("1").noIcon());
-		mOptionsTTS.add(new ListOption(this, getString(R.string.options_app_tts_stop_motion_timeout), PROP_APP_MOTION_TIMEOUT).add(mMotionTimeouts, mMotionTimeoutsTitles).setDefaultValue(Integer.toString(mMotionTimeouts[0])).noIcon());
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ECLAIR)
+			mOptionsTTS.add(new ListOption(this, getString(R.string.options_app_tts_stop_motion_timeout), PROP_APP_MOTION_TIMEOUT).add(mMotionTimeouts, mMotionTimeoutsTitles).setDefaultValue(Integer.toString(mMotionTimeouts[0])).noIcon());
 		mOptionsTTS.refresh();
 		body.addView(mOptionsTTS);
 		setView(view);

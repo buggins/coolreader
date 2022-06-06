@@ -21,8 +21,6 @@ import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.documentfile.provider.DocumentFile;
-
 import org.coolreader.Dictionaries.DictionaryException;
 import org.coolreader.crengine.AboutDialog;
 import org.coolreader.crengine.BackgroundThread;
@@ -35,6 +33,7 @@ import org.coolreader.crengine.BrowserViewLayout;
 import org.coolreader.crengine.CRRootView;
 import org.coolreader.crengine.CRToolBar;
 import org.coolreader.crengine.DeviceInfo;
+import org.coolreader.crengine.DocumentsContractWrapper;
 import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.ErrorDialog;
 import org.coolreader.crengine.FileBrowser;
@@ -1654,13 +1653,11 @@ public class CoolReader extends BaseActivity {
 						case ODT_CMD_DEL_FILE:
 							if (mOpenDocumentTreeArg != null && !mOpenDocumentTreeArg.isDirectory) {
 								Uri sdCardUri = intent.getData();
-								DocumentFile documentFile = null;
-								if (null != sdCardUri)
-									documentFile = Utils.getDocumentFile(mOpenDocumentTreeArg, this, sdCardUri);
-								if (null != documentFile) {
-									if (documentFile.delete()) {
+								Uri docUri = DocumentsContractWrapper.getDocumentUri(mOpenDocumentTreeArg, this, sdCardUri);
+								if (null != docUri) {
+									if (DocumentsContractWrapper.deleteFile(this, docUri)) {
 										Services.getHistory().removeBookInfo(getDB(), mOpenDocumentTreeArg, true, true);
-										final FileInfo dirToUpdate = mOpenDocumentTreeArg.parent;
+										FileInfo dirToUpdate = mOpenDocumentTreeArg.parent;
 										if (null != dirToUpdate)
 											BackgroundThread.instance().postGUI(() -> directoryUpdated(dirToUpdate), 700);
 										updateExtSDURI(mOpenDocumentTreeArg, sdCardUri);
@@ -1675,11 +1672,11 @@ public class CoolReader extends BaseActivity {
 						case ODT_CMD_DEL_FOLDER:
 							if (mOpenDocumentTreeArg != null && mOpenDocumentTreeArg.isDirectory) {
 								Uri sdCardUri = intent.getData();
-								DocumentFile documentFile = null;
+								Uri documentUri = null;
 								if (null != sdCardUri)
-									documentFile = Utils.getDocumentFile(mOpenDocumentTreeArg, this, sdCardUri);
-								if (null != documentFile) {
-									if (documentFile.exists()) {
+									documentUri = DocumentsContractWrapper.getDocumentUri(mOpenDocumentTreeArg, this, sdCardUri);
+								if (null != documentUri) {
+									if (DocumentsContractWrapper.fileExists(this, documentUri)) {
 										updateExtSDURI(mOpenDocumentTreeArg, sdCardUri);
 										deleteFolder(mOpenDocumentTreeArg);
 									}
@@ -1692,14 +1689,14 @@ public class CoolReader extends BaseActivity {
 							if (mOpenDocumentTreeArg != null) {
 								Uri uri = intent.getData();
 								if (null != uri) {
-									DocumentFile docFolder = DocumentFile.fromTreeUri(this, uri);
-									if (null != docFolder) {
-										DocumentFile file = docFolder.createFile("text/x-log", mOpenDocumentTreeArg.filename);
-										if (null != file) {
+									Uri docFolderUri = DocumentsContractWrapper.buildDocumentUriUsingTree(uri);
+									if (null != docFolderUri) {
+										Uri fileUri = DocumentsContractWrapper.createFile(this, docFolderUri, "text/x-log", mOpenDocumentTreeArg.filename);
+										if (null != fileUri) {
 											try {
-												OutputStream ostream = getContentResolver().openOutputStream(file.getUri());
+												OutputStream ostream = getContentResolver().openOutputStream(fileUri);
 												if (null != ostream) {
-													saveLogcat(file.getName(), ostream);
+													saveLogcat(mOpenDocumentTreeArg.filename, ostream);
 													ostream.close();
 												} else {
 													log.e("logcat: failed to open stream!");
@@ -1938,12 +1935,12 @@ public class CoolReader extends BaseActivity {
 				});
 			} else {
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-					DocumentFile documentFile = null;
+					Uri docUri = null;
 					Uri sdCardUri = getExtSDURIByFileInfo(file);
 					if (sdCardUri != null)
-						documentFile = Utils.getDocumentFile(file, this, sdCardUri);
-					if (null != documentFile) {
-						if (documentFile.delete()) {
+						docUri = DocumentsContractWrapper.getDocumentUri(file, this, sdCardUri);
+					if (null != docUri) {
+						if (DocumentsContractWrapper.deleteFile(this, docUri)) {
 							waitForCRDBService(() -> {
 								Services.getHistory().removeBookInfo(getDB(), finalFile, true, true);
 								BackgroundThread.instance().postGUI(() -> directoryUpdated(finalFile.parent), 700);
@@ -2007,7 +2004,7 @@ public class CoolReader extends BaseActivity {
 					BackgroundThread.instance().executeGUI(() -> directoryUpdated(fileInfo.parent));
 				} else {
 					// Can't be deleted using standard Java I/O,
-					// Try DocumentFile interface...
+					// Try DocumentContract wrapper...
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 						Uri sdCardUri = getExtSDURIByFileInfo(item);
 						if (null != sdCardUri) {
