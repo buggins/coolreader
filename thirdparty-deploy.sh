@@ -83,7 +83,7 @@ deploy_package()
 		then
 			rm -f "${SRCFILE}"
 		fi
-		curl -L -O ${URL} || die "Failed to fetch sources!"
+		curl -f -L -O ${URL} || die "Failed to fetch sources!"
 		if [ ! -f "${SRCFILE}" ]
 		then
 			die "Something wrong... source file not found!"
@@ -96,7 +96,7 @@ deploy_package()
 	then
 		# make sha512 sum file
 		echo "${SHA512} *${SRCFILE}" > "${SRCFILE}.sha512"
-		sha512sum -c "${SRCFILE}.sha512" || if [ "x" = "x" ]; then rm -f .downloaded; rm -f "${SRCFILE}.sha512"; die "Failed to verify checksum!"; fi
+                shasum -c "${SRCFILE}.sha512" || if [ "x" = "x" ]; then rm -f .downloaded; rm -f "${SRCFILE}.sha512"; die "Failed to verify checksum!"; fi
 		echo "1" > .verified
 		rm -f "${SRCFILE}.sha512"
 		echo "Checksum OK."
