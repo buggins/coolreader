@@ -432,7 +432,8 @@ public class TTSControlService extends BaseService {
 					mNotificationManager.cancel(NOTIFICATION_ID);
 					stopForeground(true);
 					abandonAudioFocusRequestWrapper();
-					mMediaSession.setActive(false);
+					//WORKAROUND TO PREVENT CRASH ON STOP
+					//mMediaSession.setActive(false);
 					try {
 						unregisterReceiver(mBecomingNoisyReceiver);
 					} catch (Exception ignored) {}
