@@ -1095,6 +1095,10 @@ public class TTSControlService extends BaseService {
 		});
 	}
 
+	public void setCurrentUtterance(String utterance) {
+		mCurrentUtterance = utterance;
+	}
+
 	public void pause(BooleanResultCallback callback, Handler handler) {
 		execTask(new Task("pause") {
 			@Override
