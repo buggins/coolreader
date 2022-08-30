@@ -2423,6 +2423,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				}));
 			}
 			break;
+			case DCMD_TTS_STOP:
+				if(ttsToolbar != null){
+					log.i("DCMD_TTS_STOP: stopping TTS");
+					ttsToolbar.stopAndClose();
+				}
+				break;
 			case DCMD_TOGGLE_DOCUMENT_STYLES:
 				if (isBookLoaded())
 					toggleDocumentStyles();
