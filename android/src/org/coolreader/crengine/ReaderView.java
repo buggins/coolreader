@@ -2487,10 +2487,19 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				break;
 			case DCMD_PAGEUP:
 				if (isBookLoaded()) {
-					if (param == 1 && !DeviceInfo.EINK_SCREEN)
-						animatePageFlip(-1, onFinishHandler);
-					else
+					if (param == 1 && !DeviceInfo.EINK_SCREEN) {
+						if (mIsPageMode) {
+							animatePageFlip(-1, onFinishHandler);
+						} else{
+							//PAGEUP animation is broken in ScrollView, so skip it
+							PositionProperties currPos = doc.getPositionProps(null, false);
+							int offset = currPos.pageHeight * 7/8;
+							int destPos = currPos.y - offset;
+							doEngineCommand(ReaderCommand.DCMD_GO_POS, destPos, onFinishHandler);
+						}
+					} else {
 						doEngineCommand(cmd, param, onFinishHandler);
+					}
 				}
 				break;
 			case DCMD_BEGIN:
