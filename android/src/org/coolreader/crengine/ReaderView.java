@@ -2479,26 +2479,39 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				break;
 			case DCMD_PAGEDOWN:
 				if (isBookLoaded()) {
-					if (param == 1 && !DeviceInfo.EINK_SCREEN)
+					boolean animationEnabled = pageFlipAnimationMode != PAGE_ANIMATION_NONE;
+					if (animationEnabled && param == 1 && !DeviceInfo.EINK_SCREEN) {
 						animatePageFlip(1, onFinishHandler);
-					else
-						doEngineCommand(cmd, param, onFinishHandler);
+					} else {
+						if (mIsPageMode) {
+							doEngineCommand(ReaderCommand.DCMD_PAGEDOWN, param, onFinishHandler);
+						} else {
+							PositionProperties currPos = doc.getPositionProps(null, false);
+							int offset = currPos.pageHeight * 7/8;
+							int destPos = currPos.y + offset;
+							doEngineCommand(ReaderCommand.DCMD_GO_POS, destPos, onFinishHandler);
+						}
+					}
 				}
 				break;
 			case DCMD_PAGEUP:
 				if (isBookLoaded()) {
-					if (param == 1 && !DeviceInfo.EINK_SCREEN) {
+					boolean animationEnabled = pageFlipAnimationMode != PAGE_ANIMATION_NONE;
+					if (!mIsPageMode) {
+						//PAGEUP animation is broken in ViewMode=SCROLL, so skip it
+						animationEnabled = false;
+					}
+					if (animationEnabled && param == 1 && !DeviceInfo.EINK_SCREEN) {
+						animatePageFlip(-1, onFinishHandler);
+					} else {
 						if (mIsPageMode) {
-							animatePageFlip(-1, onFinishHandler);
-						} else{
-							//PAGEUP animation is broken in ScrollView, so skip it
+							doEngineCommand(ReaderCommand.DCMD_PAGEUP, param, onFinishHandler);
+						} else {
 							PositionProperties currPos = doc.getPositionProps(null, false);
 							int offset = currPos.pageHeight * 7/8;
 							int destPos = currPos.y - offset;
 							doEngineCommand(ReaderCommand.DCMD_GO_POS, destPos, onFinishHandler);
 						}
-					} else {
-						doEngineCommand(cmd, param, onFinishHandler);
 					}
 				}
 				break;
