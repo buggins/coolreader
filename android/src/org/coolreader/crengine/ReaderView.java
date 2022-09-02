@@ -2497,10 +2497,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			case DCMD_PAGEUP:
 				if (isBookLoaded()) {
 					boolean animationEnabled = pageFlipAnimationMode != PAGE_ANIMATION_NONE;
-					if (!mIsPageMode) {
-						//PAGEUP animation is broken in ViewMode=SCROLL, so skip it
-						animationEnabled = false;
-					}
 					if (animationEnabled && param == 1 && !DeviceInfo.EINK_SCREEN) {
 						animatePageFlip(-1, onFinishHandler);
 					} else {
@@ -3835,14 +3831,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 							BackgroundThread.instance().executeGUI(onFinishHandler);
 					}
 				} else {
-					//new ScrollViewAnimation(startY, maxY);
-					int fromY = dir > 0 ? h * 7 / 8 : 0;
-					int toY = dir > 0 ? 0 : h * 7 / 8;
-					new ScrollViewAnimation(fromY, h);
+					new ScrollViewAnimation(dir > 0 ? h*7/8 : 0-(h*7/8));
 					if (currentAnimation != null) {
 						nextHiliteId++;
 						hiliteRect = null;
-						currentAnimation.update(w / 2, toY);
 						currentAnimation.move(speed, true);
 						currentAnimation.stop(-1, -1);
 						if (onFinishHandler != null)
@@ -4137,7 +4129,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 //						sx = 0;
 				new PageViewAnimation(sx, maxX, dir);
 			} else {
-				new ScrollViewAnimation(startY, maxY);
+				int dir = newX < startX || newY < startY ? -1 : 1;
+				new ScrollViewAnimation(dir * currPos.pageHeight * 7 / 8);
 			}
 			if (currentAnimation != null) {
 				nextHiliteId++;
@@ -4354,46 +4347,34 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	//private static final int PAGE_ANIMATION_DURATION = 3000;
 	class ScrollViewAnimation extends ViewAnimationBase {
-		int startY;
-		int maxY;
+		int offset;
+		int dir;
+		int posStart;
+		int posEnd;
+		double progress;
 		int pageHeight;
-		int fullHeight;
-		int pointerStartPos;
-		int pointerDestPos;
-		int pointerCurrPos;
-		BitmapInfo image1;
-		BitmapInfo image2;
+		int pageWidth;
+		Bitmap imgStart;
+		Bitmap imgEnd;
 
-		ScrollViewAnimation(int startY, int maxY) {
+		ScrollViewAnimation(int offset) {
 			super();
-			this.startY = startY;
-			this.maxY = maxY;
-			long start = android.os.SystemClock.uptimeMillis();
 			log.v("ScrollViewAnimation -- creating: drawing two pages to buffer");
+			this.offset = offset;
+			this.dir = offset < 0 ? -1 : 1;
+
 			PositionProperties currPos = doc.getPositionProps(null, false);
-			int pos = currPos.y;
-			int pos0 = pos - (maxY - startY);
-			if (pos0 < 0)
-				pos0 = 0;
-			pointerStartPos = pos;
-			pointerCurrPos = pos;
-			pointerDestPos = startY;
-			pageHeight = currPos.pageHeight;
-			fullHeight = currPos.fullHeight;
-			doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, pos0);
-			image1 = preparePageImage(0);
-			if (image1 == null) {
+			this.posStart = currPos.y;
+			this.posEnd = posStart + offset;
+			this.pageHeight = currPos.pageHeight;
+			this.pageWidth = currPos.pageWidth;
+			this.progress = 0.0;
+			this.imgStart = preparePageImage(0).bitmap;
+			this.imgEnd = preparePageImage(offset).bitmap;
+			if (this.imgStart == null || this.imgEnd == null) {
 				log.v("ScrollViewAnimation -- not started: image is null");
 				return;
 			}
-			image2 = preparePageImage(image1.position.pageHeight);
-			doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, pos);
-			if (image2 == null) {
-				log.v("ScrollViewAnimation -- not started: image is null");
-				return;
-			}
-			long duration = android.os.SystemClock.uptimeMillis() - start;
-			log.v("ScrollViewAnimation -- created in " + duration + " millis");
 			currentAnimation = this;
 		}
 
@@ -4401,19 +4382,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		public void stop(int x, int y) {
 			if (currentAnimation == null)
 				return;
-			//if ( started ) {
-			if (y != -1) {
-				int delta = startY - y;
-				pointerCurrPos = pointerStartPos + delta;
-			}
-			if (pointerCurrPos < 0)
-				pointerCurrPos = 0;
-			if (pointerCurrPos > fullHeight - pageHeight)
-				pointerCurrPos = fullHeight - pageHeight;
-			pointerDestPos = pointerCurrPos;
+			this.progress = 1.0;
 			draw();
-			doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, pointerDestPos);
-			//}
+			doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, this.posEnd);
 			scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
 			close();
 		}
@@ -4422,84 +4393,66 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		public void move(int duration, boolean accelerated) {
 			if (duration > 0 && pageFlipAnimationSpeedMs != 0) {
 				int steps = (int) (duration / getAvgAnimationDrawDuration()) + 2;
-				int x0 = pointerCurrPos;
-				int x1 = pointerDestPos;
-				if ((x0 - x1) < 10 && (x0 - x1) > -10)
-					steps = 2;
 				for (int i = 1; i < steps; i++) {
-					int x = x0 + (x1 - x0) * i / steps;
-					pointerCurrPos = accelerated ? accelerate(x0, x1, x) : x;
-					if (pointerCurrPos < 0)
-						pointerCurrPos = 0;
-					if (pointerCurrPos > fullHeight - pageHeight)
-						pointerCurrPos = fullHeight - pageHeight;
+					this.progress = i/steps;
+					if(accelerated){
+						double accelFactor = Math.pow(i, 2)/Math.pow(steps, 2);
+						this.progress += (1-progress) * accelFactor;
+					}
 					draw();
 				}
+			}else{
+				draw();
 			}
-			pointerCurrPos = pointerDestPos;
-			draw();
 		}
 
 		@Override
 		public void update(int x, int y) {
-			int delta = startY - y;
-			pointerDestPos = pointerStartPos + delta;
-			if (pointerDestPos < 0)
-				pointerDestPos = 0;
-			if (pointerDestPos > fullHeight - pageHeight)
-				pointerDestPos = fullHeight - pageHeight;
 		}
 
 		public void animate() {
-			//log.d("animate() is called");
-			if (pointerDestPos != pointerCurrPos) {
-				if (!started)
-					started = true;
-				if (pageFlipAnimationSpeedMs == 0)
-					pointerCurrPos = pointerDestPos;
-				else {
-					int delta = pointerCurrPos - pointerDestPos;
-					if (delta < 0)
-						delta = -delta;
-					long avgDraw = getAvgAnimationDrawDuration();
-					//int maxStep = (int)(maxY * PAGE_ANIMATION_DURATION / avgDraw);
-					int maxStep = pageFlipAnimationSpeedMs > 0 ? (int) (maxY * 1000 / avgDraw / pageFlipAnimationSpeedMs) : maxY;
-					int step;
-					if (delta > maxStep * 2)
-						step = maxStep;
-					else
-						step = (delta + 3) / 4;
-					//int step = delta<3 ? 1 : (delta<5 ? 2 : (delta<10 ? 3 : (delta<15 ? 6 : (delta<25 ? 10 : (delta<50 ? 15 : 30)))));
-					if (pointerCurrPos < pointerDestPos)
-						pointerCurrPos += step;
-					else
-						pointerCurrPos -= step;
-					log.d("animate(" + pointerCurrPos + " => " + pointerDestPos + "  step=" + step + ")");
-				}
-				//pointerCurrPos = pointerDestPos;
-				draw();
-				if (pointerDestPos != pointerCurrPos)
-					scheduleAnimation();
+			if (!started) {
+				started = true;
+			}
+			if (pageFlipAnimationSpeedMs == 0) {
+				progress = 1.0;
+			}else {
+				//int duration = pageFlipAnimationSpeedMs;
+				//long frameDur = getAvgAnimationDrawDuration();
+				/* just move 12px per frame */
+				int absOffset = offset < 0 ? 0-offset : offset;
+				long remainingPx = Math.round(absOffset * (1 - progress)); //delta
+				long targetStepCount = Math.round(remainingPx / 12);
+				targetStepCount = targetStepCount < 1 ? 1 : targetStepCount;
+				progress += (1-progress)/targetStepCount;
+			}
+			draw();
+			if (progress < 1.0) {
+				scheduleAnimation();
 			}
 		}
 
 		public void draw(Canvas canvas) {
-//			BitmapInfo image1 = mCurrentPageInfo;
-//			BitmapInfo image2 = mNextPageInfo;
-			if (image1 == null || image1.isReleased() || image2 == null || image2.isReleased())
+			if (imgStart == null || imgEnd == null){
 				return;
-			int h = image1.position.pageHeight;
-			int rowsFromImg1 = image1.position.y + h - pointerCurrPos;
-			int rowsFromImg2 = h - rowsFromImg1;
-			Rect src1 = new Rect(0, h - rowsFromImg1, mCurrentPageInfo.bitmap.getWidth(), h);
-			Rect dst1 = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), rowsFromImg1);
-			drawDimmedBitmap(canvas, image1.bitmap, src1, dst1);
-			if (image2 != null) {
-				Rect src2 = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), rowsFromImg2);
-				Rect dst2 = new Rect(0, rowsFromImg1, mCurrentPageInfo.bitmap.getWidth(), h);
-				drawDimmedBitmap(canvas, image2.bitmap, src2, dst2);
 			}
-			//log.v("anim.drawScroll( pos=" + pointerCurrPos + ", " + src1 + "=>" + dst1 + ", " + src2 + "=>" + dst2 + " )");
+			int h = this.pageHeight;
+			int w = this.pageWidth;
+			int yBoundary = (int) (this.pageHeight * progress);
+			Rect rectImgStartBitmapSrc, rectImgStartCanvasDest, rectImgEndBitmapSrc, rectImgEndCanvasDest;
+			if(dir > 0){
+				rectImgStartBitmapSrc  = new Rect(0, yBoundary,     w, h);
+				rectImgStartCanvasDest = new Rect(0, 0,             w, h - yBoundary);
+				rectImgEndBitmapSrc    = new Rect(0, 0,             w, yBoundary);
+				rectImgEndCanvasDest   = new Rect(0, h - yBoundary, w, h);
+			} else {
+				rectImgStartBitmapSrc  = new Rect(0, 0,             w, h - yBoundary);
+				rectImgStartCanvasDest = new Rect(0, yBoundary,     w, h);
+				rectImgEndBitmapSrc    = new Rect(0, h - yBoundary, w, h);
+				rectImgEndCanvasDest   = new Rect(0, 0,             w, yBoundary);
+			}
+			drawDimmedBitmap(canvas, imgStart, rectImgStartBitmapSrc, rectImgStartCanvasDest);
+			drawDimmedBitmap(canvas, imgEnd, rectImgEndBitmapSrc, rectImgEndCanvasDest);
 		}
 	}
 
