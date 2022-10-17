@@ -17,7 +17,7 @@
 /**
     \mainpage CoolReader Engine Library
     \author Vadim Lopatin
-    \date 2000-2008
+    \date 2000-2018
 
     \section main_intro Introduction
 
@@ -85,19 +85,18 @@
 
     \section main_authors Authors
 
-    - Vadim Lopatin (http://www.coolreader.org/) - most source code
-    - Alan (http://alreader.kms.ru/) - hyphenation sypport code
-    
+    - Vadim Lopatin (coolreader.org@gmail.com) - most source code
+    - Alan (alan@alreader.com) - hyphenation support code
+    - Other authors - in file AUTHORS
+
 
     \section main_install Installation
 
-    - download source code from CoolReader homepage http://www.coolreader.org/
+    - download source code from CoolReader homepage https://github.com/buggins/coolreader/
     - unpack archieve into some folder
     - change options in crsetup.h file if necessary
     - build library
-    - build sample applications located in /tools folder
-
-    \note current version supports only build under Win32 with MS VC++ 6.0
+    - build sample applications located in "Tools" folder
 
 
     \section getting_started Getting started
@@ -130,8 +129,7 @@
     \section main_license License
 
 
-    This source code is distributed under the terms of
-    GNU General Public License.
+    This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 
     See LICENSE file for details.
     

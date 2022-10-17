@@ -22,8 +22,9 @@ Sourceforge repository will be used as a mirror
 
 
 
-LICENSE: All source codes (except thirdparty directory) 
-are provided under the terms of GNU GPL license, version 2
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+The "thirdparty_unman" directory contains some patched libraries with their own licenses (compatible with GPLv2).
 
 
 
