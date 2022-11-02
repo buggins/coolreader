@@ -1,14 +1,43 @@
-// Cool Reader Engine 
-// generator for glyph gamma correction tables
-// (c) Vadim Lopatin, 2011
-// this program is distributed under the terms of GNU GPL2 license
+/***************************************************************************
+ *   CoolReader engine                                                     *
+ *   Copyright (C) 2011 Vadim Lopatin <coolreader.org@gmail.com>           *
+ *   Copyright (C) 2018 poire-z <poire-z@users.noreply.github.com>         *
+ *   Copyright (C) 2022 Aleksey Chernov <valexlin@gmail.com>               *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU General Public License           *
+ *   as published by the Free Software Foundation; either version 2        *
+ *   of the License, or (at your option) any later version.                *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
+ *   MA 02110-1301, USA.                                                   *
+ ***************************************************************************/
+
+/**
+ * Generator for glyph gamma correction tables
+ */
 
 #include <stdio.h>
 #include <math.h>
 
-#define GAMMA_LEVELS 31
+#define GAMMA_LEVELS 42
+#define GAMMA_NORMAL 15
 
-static const double gamma_levels[GAMMA_LEVELS] = { 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.98, 1, 1.02, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.6, 1.7, 1.8, 1.9 };
+static const double gamma_levels[] = {
+//     0     1     2     3     4     5     6     7     8     9    10    11    12    13    14    15
+    0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 0.98, 1.00,
+//    16    17    18    19    20    21    22    23    24    25    26    27    28    29    30    31
+    1.02, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40, 1.45, 1.50, 1.60, 1.70, 1.80, 1.90, 2.00,
+//    32    33    34    35    36    37    38    39    40    41
+    2.10, 2.20, 2.30, 2.40, 2.50, 2.60, 2.70, 2.80, 2.90, 3.00
+};
 
 void genTable( FILE * out, double gamma, int index ) {
     fprintf(out, "static const unsigned char gamma_table_%d[256] = { // gamma=%f\n    ", index, gamma);
@@ -19,7 +48,7 @@ void genTable( FILE * out, double gamma, int index ) {
         n = 255 - n;
 	fprintf(out, "%3d, ", n);
 	if ( i%22==21 )
-	    fprintf(out, "\n    ", n);
+	    fprintf(out, "\n    ");
     }
     fprintf(out, "};\n");
 }
