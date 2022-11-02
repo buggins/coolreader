@@ -6,10 +6,9 @@
 #include <stdio.h>
 #include <math.h>
 
-static const double gamma_levels[] = { 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.98, 1, 1.02, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3 };
+#define GAMMA_LEVELS 31
 
-#define GAMMA_NORMAL 15
-#define GAMMA_LEVELS ((int)(sizeof(gamma_levels)/sizeof(gamma_levels[0])))
+static const double gamma_levels[GAMMA_LEVELS] = { 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.98, 1, 1.02, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.6, 1.7, 1.8, 1.9 };
 
 void genTable( FILE * out, double gamma, int index ) {
     fprintf(out, "static const unsigned char gamma_table_%d[256] = { // gamma=%f\n    ", index, gamma);
@@ -20,7 +19,7 @@ void genTable( FILE * out, double gamma, int index ) {
         n = 255 - n;
 	fprintf(out, "%3d, ", n);
 	if ( i%22==21 )
-	    fprintf(out, "\n    ");
+	    fprintf(out, "\n    ", n);
     }
     fprintf(out, "};\n");
 }
