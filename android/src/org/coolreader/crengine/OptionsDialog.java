@@ -1,3 +1,31 @@
+/*
+ * CoolReader for Android
+ * Copyright (C) 2010-2015 Vadim Lopatin <coolreader.org@gmail.com>
+ * Copyright (C) 2011 a_lone
+ * Copyright (C) 2012 Michael Berganovsky <mike0berg@gmail.com>
+ * Copyright (C) 2012 Jeff Doozan <jeff@doozan.com>
+ * Copyright (C) 2012 Daniel Savard <daniels@xsoli.com>
+ * Copyright (C) 2012 Peter Vagner <pvdeejay@gmail.com>
+ * Copyright (C) 2018 Yuri Plotnikov <plotnikovya@gmail.com>
+ * Copyright (C) 2018 S-trace <S-trace@list.ru>
+ * Copyright (C) 2021 ourairquality <info@ourairquality.org>
+ * Copyright (C) 2018,2020-2022 Aleksey Chernov <valexlin@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.coolreader.crengine;
 
 import android.annotation.TargetApi;
