@@ -204,7 +204,6 @@ static void getBatteryIcons(LVRefVec<LVImageSource> & icons, lUInt32 color, int 
 {
 	CRLog::debug("Making list of Battery icon bitmats");
 
-	#include "battery_icons.h"
     lUInt32 cl1 = 0x00000000|(color&0xFFFFFF);
     lUInt32 cl2 = 0x40000000|(color&0xFFFFFF);
     lUInt32 cl3 = 0x80000000|(color&0xFFFFFF);

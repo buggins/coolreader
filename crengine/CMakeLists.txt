@@ -18,7 +18,6 @@ SET (CRENGINE_SOURCES
     src/crtxtenc.cpp
     src/lvtinydom.cpp
     src/lvstsheet.cpp
-    src/txtselector.cpp
     #src/xutils.cpp
     src/crtest.cpp
     src/textlang.cpp

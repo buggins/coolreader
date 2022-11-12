@@ -1,8 +1,8 @@
 /***************************************************************************
  *   CoolReader engine                                                     *
  *   Copyright (C) 2007 Vadim Lopatin <coolreader.org@gmail.com>           *
- *   Copyright (C) 2020,2021 Aleksey Chernov <valexlin@gmail.com>          *
  *   Copyright (C) 2020 poire-z <poire-z@users.noreply.github.com>         *
+ *   Copyright (C) 2020,2022 Aleksey Chernov <valexlin@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or         *
  *   modify it under the terms of the GNU General Public License           *
@@ -32,6 +32,7 @@
 #include "lvfntman.h"
 
 #include "lvfontcache.h"
+#include "lvfontglyphcache.h"
 
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE != 1
@@ -41,6 +42,7 @@ class LVWin32FontManager : public LVFontManager
 private:
     lString8    _path;
     LVFontCache _cache;
+    LVFontGlobalGlyphCache _globalCache;
     //FILE * _log;
 public:
     virtual int GetFontCount()
@@ -62,7 +64,8 @@ public:
         return false;
     }
     virtual bool Init( lString8 path );
-
+    /// clear glyph cache
+    virtual void clearGlyphCache();
     virtual void getFaceList( lString32Collection & list )
     {
         _cache.getFaceList(list);

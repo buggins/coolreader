@@ -76,7 +76,6 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/odtfmt.cpp \
     ../../crengine/src/odxutil.cpp \
     ../../crengine/src/lvstsheet.cpp \
-    ../../crengine/src/txtselector.cpp \
     ../../crengine/src/crtest.cpp \
     ../../crengine/src/lvbmpbuf.cpp \
     ../../crengine/src/hyphman.cpp \
