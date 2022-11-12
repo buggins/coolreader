@@ -1,7 +1,7 @@
 /***************************************************************************
  *   CoolReader engine                                                     *
  *   Copyright (C) 2008,2011 Vadim Lopatin <coolreader.org@gmail.com>      *
- *   Copyright (C) 2020 Aleksey Chernov <valexlin@gmail.com>               *
+ *   Copyright (C) 2020,2022 Aleksey Chernov <valexlin@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or         *
  *   modify it under the terms of the GNU General Public License           *
@@ -18,6 +18,18 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
  *   MA 02110-1301, USA.                                                   *
  ***************************************************************************/
+
+/**
+ * Support for rar archives is not implemented yet.
+ * When implementing support for rar archives, we cannot use 'unrar'
+ * library, we cannot link the program with it, since it has a license
+ * that is not compatible with the GPL.
+ * Instead, we can call the 'unrar' or 'rar' program installed on the
+ * system and process the data it returns.
+ * After support for rar archives is implemented, this comment should be removed.
+ * 
+ * See https://www.gnu.org/licenses/gpl-faq.html#GPLPlugins
+ */
 
 #include "lvrararc.h"
 
