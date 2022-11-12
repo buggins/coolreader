@@ -139,5 +139,4 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     implementation project(path: ':genrescollection')
-    implementation project(path: ':eink-onyx-reflections')
 }

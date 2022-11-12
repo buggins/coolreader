@@ -19,14 +19,16 @@
 
 package org.coolreader.crengine;
 
+/*
+ * Support for ONYX devices is disabled until the ONYX SDK is released under a GPL compatible license.
+ * When enabling this code don't forget to update related code in DeviceInfo.java and BaseActivity.java
+ *
+
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
 
 import org.coolreader.CoolReader;
-import org.eink_onyx_reflections.OnyxDevice;
-import org.eink_onyx_reflections.OnyxEinkDeviceImpl;
-import org.eink_onyx_reflections.UpdateMode;
 
 import java.util.List;
 
@@ -335,3 +337,4 @@ public class EinkScreenOnyx implements EinkScreen {
 		}
 	}
 }
+*/

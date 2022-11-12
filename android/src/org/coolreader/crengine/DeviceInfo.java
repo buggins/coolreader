@@ -26,17 +26,11 @@
 
 package org.coolreader.crengine;
 
-import android.app.Application;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.util.Log;
 
-import org.eink_onyx_reflections.OnyxDevice;
-import org.eink_onyx_reflections.OnyxEinkDeviceImpl;
-
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.List;
 
 public class DeviceInfo {
 
@@ -165,7 +159,7 @@ public class DeviceInfo {
 				(MODEL.toLowerCase().contentEquals("tolino") && DEVICE.toLowerCase().contentEquals("tolino_vision2")); //Tolino Vision HD4 doesn't show any Brand, only Model=tolino and  DEVICE=tolino_vision2)
 
 
-		EINK_SCREEN = EINK_SONY || EINK_NOOK || EINK_ONYX || EINK_ENERGYSYSTEM || EINK_DNS || EINK_TOLINO; // TODO: set to true for eink devices like Nook Touch
+		EINK_SCREEN = EINK_SONY || EINK_NOOK || EINK_ENERGYSYSTEM || EINK_DNS || EINK_TOLINO; // TODO: set to true for eink devices like Nook Touch
 
 		// On Onyx Boox Monte Cristo 3 (and possible Monte Cristo, Monte Cristo 2) long press action on buttons are catch by system and not available for application
 		// TODO: check this on other ONYX BOOX Readers
@@ -176,6 +170,10 @@ public class DeviceInfo {
 		int onyx_max_screen_brightness_warm_value = 100;
 		boolean onyx_support_regal = false;
 		boolean onyx_have_brightness_system_dialog = false;
+		/*
+		 * Support for ONYX devices is disabled until the ONYX SDK is released under a GPL compatible license.
+		 * When enabling this code don't forget to update related code in EinkScreenOnyx.java and BaseActivity.java
+		 *
 		if (EINK_ONYX) {
 			OnyxEinkDeviceImpl onyxEinkDevice = OnyxDevice.currentDevice();
 			onyx_support_regal = onyxEinkDevice.supportRegal();
@@ -222,7 +220,9 @@ public class DeviceInfo {
 					onyx_have_brightness_system_dialog = true;
 					break;
 			}
+			EINK_SCREEN = true; // error, just to say that you need update line above `EINK_SCREEN = ... `
 		}
+		*/
 		ONYX_HAVE_BRIGHTNESS_SYSTEM_DIALOG = onyx_have_brightness_system_dialog;
 		ONYX_HAVE_FRONTLIGHT = onyx_have_frontlight;
 		ONYX_HAVE_NATURAL_BACKLIGHT = onyx_have_natural_backlight;

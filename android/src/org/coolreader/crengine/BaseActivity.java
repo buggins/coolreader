@@ -142,8 +142,13 @@ public class BaseActivity extends Activity implements Settings {
 			mEinkScreen = new EinkScreenNook();
 		else if (DeviceInfo.EINK_TOLINO)
 			mEinkScreen = new EinkScreenTolino();
+		/*
+		 * Support for ONYX devices is disabled until the ONYX SDK is released under a GPL compatible license.
+		 * When enabling this code don't forget to update related code in DeviceInfo.java and EinkScreenOnyx.java
+		 *
 		else if (DeviceInfo.EINK_ONYX)
 			mEinkScreen = new EinkScreenOnyx();
+		 */
 		else
 			mEinkScreen = new EinkScreenDummy();
 

@@ -1,3 +1,2 @@
-include ':eink-onyx-reflections'
 include ':genrescollection'
 include ':app'
