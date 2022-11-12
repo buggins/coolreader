@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <climits>
+#include <limits.h>
 #include "lvtypes.h"
 #include "lvmemman.h"
 
