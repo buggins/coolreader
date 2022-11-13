@@ -24,7 +24,6 @@ package org.coolreader.crengine;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
-import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +32,6 @@ import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
 import android.widget.TextView;
 
-import org.coolreader.BuildConfig;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
@@ -163,9 +161,9 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		String license = Engine.getInstance(mCoolReader).loadResourceUtf8(R.raw.license);
 		((TextView)mLicenseTab.findViewById(R.id.license)).setText(license);
 		boolean billingSupported = mCoolReader.isDonationSupported();
+		mDonationTab = inflater.inflate(billingSupported ? R.layout.about_dialog_donation2 : R.layout.about_dialog_donation, null);
 
 		if (billingSupported) {
-			mDonationTab = inflater.inflate(R.layout.about_dialog_donation2, null);
 			setupInAppDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_vip), 100);
 			setupInAppDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_platinum), 30);
 			setupInAppDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_gold), 10);
@@ -176,16 +174,9 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 			mCoolReader.setDonationListener(total -> updateTotalDonations());
 			setOnDismissListener(dialog -> mCoolReader.setDonationListener(null));
 		} else {
-			mDonationTab = inflater.inflate(R.layout.about_dialog_donation, null);
-			if (BuildConfig.GSUITE_AVAILABLE) {
-				setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_gold), "org.coolreader.donation.gold");
-				setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_silver), "org.coolreader.donation.silver");
-				setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), "org.coolreader.donation.bronze");
-			}
-			TextView paypalLink = mDonationTab.findViewById(R.id.paypalLink);
-			if (null != paypalLink) {
-				paypalLink.setMovementMethod(LinkMovementMethod.getInstance());
-			}
+			setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_gold), "org.coolreader.donation.gold");
+			setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_silver), "org.coolreader.donation.silver");
+			setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), "org.coolreader.donation.bronze");
 		}
 		
 		tabs.setup();
