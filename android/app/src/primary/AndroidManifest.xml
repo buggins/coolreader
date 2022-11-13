@@ -2,7 +2,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Required permission to use in-app billing. -->
-    <uses-permission android:name="com.android.vending.BILLING" />
-
 </manifest>
