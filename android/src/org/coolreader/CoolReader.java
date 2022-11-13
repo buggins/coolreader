@@ -445,8 +445,6 @@ public class CoolReader extends BaseActivity {
 	 * This code must be rewritten using free libraries compatible with
 	 * the GPL license or write its implementation from scratch.
 	private void buildGoogleDriveSynchronizer() {
-		if (!BuildConfig.GSUITE_AVAILABLE)
-			return;
 		if (null != syncServiceAccessor && null != mGoogleDriveSync) {
 			if (!syncServiceAccessor.isServiceBound()) {
 				// lost connection to service, nullify sync instance
@@ -624,8 +622,6 @@ public class CoolReader extends BaseActivity {
 	}
 
 	private void updateGoogleDriveSynchronizer() {
-		if (!BuildConfig.GSUITE_AVAILABLE)
-			return;
 		// DeviceInfo.getSDKLevel() not applicable here -> lint error about Android API compatibility
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (mGoogleDriveSyncOpts.Enabled) {
@@ -697,8 +693,6 @@ public class CoolReader extends BaseActivity {
 	}
 
 	public void forceSyncToGoogleDrive() {
-		if (!BuildConfig.GSUITE_AVAILABLE)
-			return;
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (null == mGoogleDriveSync)
 				buildGoogleDriveSynchronizer();
@@ -713,8 +707,6 @@ public class CoolReader extends BaseActivity {
 	}
 
 	public void forceSyncFromGoogleDrive() {
-		if (!BuildConfig.GSUITE_AVAILABLE)
-			return;
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (null == mGoogleDriveSync)
 				buildGoogleDriveSynchronizer();
@@ -898,7 +890,7 @@ public class CoolReader extends BaseActivity {
 		Services.getCoverpageManager().removeCoverpageReadyListener(mHomeFrame);
 		/*
 		  Commented until the appearance of free implementation of the binding to the Google Drive (R)
-		if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (mGoogleDriveSyncOpts.Enabled && mGoogleDriveSync != null) {
 				//mGoogleDriveSync.startSyncTo(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS);
 				syncServiceAccessor.bind(sync -> {
@@ -979,7 +971,7 @@ public class CoolReader extends BaseActivity {
 		}
 		/*
 		  Commented until the appearance of free implementation of the binding to the Google Drive (R)
-		if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			if (mGoogleDriveSyncOpts.Enabled && mGoogleDriveSync != null) {
 				// when the program starts, the local settings file is already updated, so the local file is always newer than the remote one
 				// Therefore, the synchronization mode is quiet, i.e. without comparing modification times and without prompting the user for action.
@@ -1260,7 +1252,7 @@ public class CoolReader extends BaseActivity {
 			// Only after onStart()!
 			/*
 			  Commented until the appearance of free implementation of the binding to the Google Drive (R)
-			if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				if (mGoogleDriveSyncOpts.Enabled && !mSyncGoogleDriveEnabledPrev && null != mGoogleDriveSync) {
 					// if cloud sync has just been enabled in options dialog
 					//mGoogleDriveSync.startSyncFrom(Synchronizer.SYNC_FLAG_SHOW_SIGN_IN | Synchronizer.SYNC_FLAG_QUIETLY | Synchronizer.SYNC_FLAG_SHOW_PROGRESS | (mGoogleDriveSyncOpts.AskConfirmations ? Synchronizer.SYNC_FLAG_ASK_CHANGED : 0) );
@@ -1352,7 +1344,7 @@ public class CoolReader extends BaseActivity {
 		if (isInterfaceCreated) {
 			/*
 			  Commented until the appearance of free implementation of the binding to the Google Drive (R)
-			if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				// Save bookmarks and current reading position on the cloud
 				if (mGoogleDriveSyncOpts.Enabled && null != mGoogleDriveSync) {
 					//mGoogleDriveSync.startSyncToOnly(getCurrentBookInfo(), Synchronizer.SYNC_FLAG_QUIETLY, Synchronizer.SyncTarget.BOOKMARKS);
@@ -1508,7 +1500,7 @@ public class CoolReader extends BaseActivity {
 				doneCallback.run();
 			/*
 			  Commented until the appearance of free implementation of the binding to the Google Drive (R)
-			if (BuildConfig.GSUITE_AVAILABLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 				// Save last opened document on cloud
 				if (mGoogleDriveSyncOpts.Enabled && null != mGoogleDriveSync) {
 					ArrayList<Synchronizer.SyncTarget> targets = new ArrayList<Synchronizer.SyncTarget>();

@@ -22,11 +22,8 @@
 
 package org.coolreader.crengine;
 
-import android.os.Build;
-
 import java.util.ArrayList;
 
-import org.coolreader.BuildConfig;
 import org.coolreader.R;
 
 public class ReaderAction {
@@ -281,7 +278,7 @@ public class ReaderAction {
 		};
 		/*
 		  Commented until the appearance of free implementation of the binding to the Google Drive (R)
-		if (BuildConfig.GSUITE_AVAILABLE && DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+		if (DeviceInfo.getSDKLevel() >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			int count = BASE_ACTIONS.length;
 			ReaderAction[] new_array = new ReaderAction[count + 2];
 			System.arraycopy(BASE_ACTIONS, 0, new_array, 0, count);

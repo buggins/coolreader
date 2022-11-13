@@ -67,19 +67,6 @@ android {
             }
         }
     }
-    flavorDimensions "market"
-    productFlavors {
-        primary {
-            dimension "market"
-            buildConfigField "boolean", "GSUITE_AVAILABLE", "true"
-        }
-        fdroid {
-            dimension "market"
-            applicationIdSuffix ".fdroid"
-            versionNameSuffix "-fdroid"
-            buildConfigField "boolean", "GSUITE_AVAILABLE", "false"
-        }
-    }
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
             options.compilerArgs << "-Xlint:unchecked"
