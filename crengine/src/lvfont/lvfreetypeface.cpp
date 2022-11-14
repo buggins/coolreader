@@ -416,7 +416,7 @@ static bool downScaleColorGlyphBitmap(FT_GlyphSlot slot, int scale_mul, int scal
 // have since been upgraded to be lUInt16)
 // (LCHAR_DEPRECATED_WRAP_AFTER for '-' and '/', as they may be used to
 // separate words.)
-static lUInt16 char_flags[] = {
+static const lUInt16 char_flags[] = {
         0, 0, 0, 0, 0, 0, 0, 0, // 0    00
     0, 0, LCHAR_IS_SPACE | LCHAR_ALLOW_WRAP_AFTER, 0, // 8    08
     0, LCHAR_IS_SPACE | LCHAR_ALLOW_WRAP_AFTER, 0, 0, // 12   0C
