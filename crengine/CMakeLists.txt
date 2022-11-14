@@ -18,7 +18,6 @@ SET (CRENGINE_SOURCES
     src/crtxtenc.cpp
     src/lvtinydom.cpp
     src/lvstsheet.cpp
-    #src/xutils.cpp
     src/crtest.cpp
     src/textlang.cpp
     src/lvstream/lvdefstreambuffer.cpp
@@ -111,7 +110,6 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
         src/lvdrawbuf/lvinkmeasurementdrawbuf.cpp
         src/lvdrawbuf/lvimagescaleddrawcallback.cpp
         src/lvdrawbuf/lvdrawbuf_utils.cpp
-        #src/xutils.cpp
     )
 endif (NOT ${GUI} STREQUAL FB2PROPS)
 

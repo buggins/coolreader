@@ -11,7 +11,7 @@ include_directories(${X11_INCLUDE_DIR})
 
 set(SRC_LIST
     fb2v.cpp
-    ../../src/xutils.cpp
+    xutils.cpp
 )
 
 file(COPY fb2.css DESTINATION ${CMAKE_CURRENT_BINARY_DIR} USE_SOURCE_PERMISSIONS)
