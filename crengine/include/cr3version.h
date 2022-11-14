@@ -20,5 +20,10 @@
  *   MA 02110-1301, USA.                                                   *
  ***************************************************************************/
 
+#ifndef __CR3VERSION_H_INCLUDED__
+#define __CR3VERSION_H_INCLUDED__
+
 #define CR_ENGINE_VERSION "3.2.58-1"
 #define CR_ENGINE_BUILD_DATE "2021-06-13"
+
+#endif  // __CR3VERSION_H_INCLUDED__
