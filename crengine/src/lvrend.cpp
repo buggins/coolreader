@@ -2375,7 +2375,6 @@ LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId)
         lString8(style->font_name.c_str()),
         style->font_features.value, // (.type is always css_val_unspecified after setNodeStyle())
         documentId, true); // useBias=true, so that our preferred font gets used
-    //fnt = LVCreateFontTransform( fnt, LVFONT_TRANSFORM_EMBOLDEN );
     return fnt;
 }
 

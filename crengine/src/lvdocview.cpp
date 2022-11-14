@@ -2890,7 +2890,6 @@ void LVDocView::setRenderProps(int dx, int dy) {
 	m_font_size = scaleFontSizeForDPI(m_requested_font_size);
 	m_font = fontMan->GetFont(m_font_size, LVRendGetBaseFontWeight(),
 			false, DEFAULT_FONT_FAMILY, m_defaultFontFace);
-	//m_font = LVCreateFontTransform( m_font, LVFONT_TRANSFORM_EMBOLDEN );
 	m_infoFont = fontMan->GetFont(m_status_font_size, 400, false,
 			DEFAULT_FONT_FAMILY, m_statusFontFace);
 	if (!m_font || !m_infoFont)

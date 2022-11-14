@@ -173,9 +173,6 @@ public:
 
 #define LVFONT_TRANSFORM_EMBOLDEN 1
 
-/// create transform for font
-LVFontRef LVCreateFontTransform(LVFontRef baseFont, int transformFlags);
-
 /// current font manager pointer
 extern LVFontManager *fontMan;
 
