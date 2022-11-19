@@ -66,7 +66,8 @@ AboutDialog::AboutDialog(QWidget *parent) :
     aboutText += "<p>" + tr("chmlib - chm format support") + "</p>";
     aboutText += "<p>" + tr("antiword - Microsoft Word format support") + "</p>";
     aboutText += "<p>" + tr("hyphman - AlReader hyphenation manager") + "</p>";
-    aboutText += "<p>" + tr("Hyphenation dictionaries - from KOReader") + "</p>";
+    aboutText += "<p>" + tr("Most hyphenation dictionaries - TEX hyphenation patterns") + "</p>";
+    aboutText += "<p>" + tr("Russian hyphenation dictionary - ") + QString("https://github.com/laboratory50/russian-spellpack") + "</p>";
     aboutText += "<p>" + tr("Languages character set database by Fontconfig") + "</p>";
     aboutText += "</body></html>";
     m_ui->textBrowser->setHtml(aboutText);

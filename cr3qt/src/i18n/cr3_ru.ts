@@ -96,10 +96,6 @@
         <translation>hyphman - система переносов из AlReader</translation>
     </message>
     <message>
-        <source>Hyphenation dictionaries - from KOReader</source>
-        <translation>Словари переносов - из проекта KOReader</translation>
-    </message>
-    <message>
         <source>Languages character set database by Fontconfig</source>
         <translation>Набор символов различных письменностей от Fontconfig</translation>
     </message>
@@ -118,6 +114,14 @@
     <message>
         <source>as GUI library</source>
         <translation>библиотека ГПИ</translation>
+    </message>
+    <message>
+        <source>Russian hyphenation dictionary - </source>
+        <translation>Русский словарь переносов - </translation>
+    </message>
+    <message>
+        <source>Most hyphenation dictionaries - TEX hyphenation patterns</source>
+        <translation>Основные словари переносов - TEX hyphenation patterns</translation>
     </message>
 </context>
 <context>
