@@ -91,8 +91,8 @@ static int isCorrectHyphFile(LVStream * stream)
 
 
 
-MyTexHyph::MyTexHyph( lString32 id, int leftHyphenMin, int rightHyphenMin )
- : HyphMethod(id, leftHyphenMin, rightHyphenMin)
+MyTexHyph::MyTexHyph( lString32 id )
+ : HyphMethod(id)
 {
     memset( table, 0, sizeof(table) );
     _hash = 123456;

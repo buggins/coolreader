@@ -36,7 +36,7 @@ public:
     bool match( const lChar32 * str, char * mask );
     virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
     void addPattern( MyTexPattern * pattern );
-    MyTexHyph( lString32 id=HYPH_DICT_ID_DICTIONARY, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN, int rightHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN );
+    MyTexHyph( lString32 id=HYPH_DICT_ID_DICTIONARY );
     virtual ~MyTexHyph();
     bool load( LVStreamRef stream );
     bool load( lString32 fileName );

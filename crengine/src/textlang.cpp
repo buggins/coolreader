@@ -5,7 +5,7 @@
  *   Copyright (C) 2020 Jellby <jellby@yahoo.com>                          *
  *   Copyright (C) 2020 roshavagarga <roshavagarga@users.noreply.github.com>
  *   Copyright (C) 2020 Strana (eng: Page) <strn@users.noreply.github.com> *
- *   Copyright (C) 2020,2021 Aleksey Chernov <valexlin@gmail.com>          *
+ *   Copyright (C) 2020-2022 Aleksey Chernov <valexlin@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or         *
  *   modify it under the terms of the GNU General Public License           *
@@ -72,71 +72,6 @@ static bool langStartsWith(const lString32 lang_tag, const char * prefix) {
 #define LANG_STARTS_WITH_EACH_1_END false
 #define LANG_STARTS_WITH_EACH_2_END false
 
-// (hyph_filename_prefix added because CoolReader may still have both
-// current "Italian.pattern" and old "Italian_hyphen_(Alan).pdb".)
-// (Romanian and Ukrainian have the prefix truncated because previous
-// pattern files, still in CoolReader, had these truncated names.)
-static struct {
-    const char * lang_tag;
-    const char * hyph_filename_prefix;
-    const char * hyph_filename;
-    int left_hyphen_min;
-    int right_hyphen_min;
-} _hyph_dict_table[] = {
-    { "hy",    "Armenian",      "Armenian.pattern",      1, 2 },
-    { "eu",    "Basque",        "Basque.pattern",        2, 2 },
-    { "bg",    "Bulgarian",     "Bulgarian.pattern",     2, 2 },
-    { "ca",    "Catalan",       "Catalan.pattern",       2, 2 },
-    { "cs",    "Czech",         "Czech.pattern",         2, 3 },
-    { "da",    "Danish",        "Danish.pattern",        2, 2 },
-    { "nl",    "Dutch",         "Dutch.pattern",         2, 2 },
-    { "en-GB", "English_GB",    "English_GB.pattern",    2, 3 },
-    { "en",    "English_US",    "English_US.pattern",    2, 3 },
-    { "eo",    "Esperanto",     "Esperanto.pattern",     2, 2 },
-    { "et",    "Estonian",      "Estonian.pattern",      2, 3 },
-    { "fi",    "Finnish",       "Finnish.pattern",       2, 2 },
-    { "fr",    "French",        "French.pattern",        2, 1 }, // see French.pattern file for why right_hyphen_min=1
-    { "fur",   "Friulian",      "Friulian.pattern",      2, 2 },
-    { "gl",    "Galician",      "Galician.pattern",      2, 2 },
-    { "ka",    "Georgian",      "Georgian.pattern",      1, 2 },
-    { "de",    "German",        "German.pattern",        2, 2 },
-    { "el",    "Greek",         "Greek.pattern",         1, 1 },
-    { "hr",    "Croatian",      "Croatian.pattern",      2, 2 },
-    { "hu",    "Hungarian",     "Hungarian.pattern",     2, 2 },
-    { "is",    "Icelandic",     "Icelandic.pattern",     2, 2 },
-    { "ga",    "Irish",         "Irish.pattern",         2, 3 },
-    { "it",    "Italian",       "Italian.pattern",       2, 2 },
-    { "la-lit","Latin_liturgical","Latin_liturgical.pattern",2, 2 },
-    { "la",    "Latin",         "Latin.pattern",         2, 2 },
-    { "lv",    "Latvian",       "Latvian.pattern",       2, 2 },
-    { "lt",    "Lithuanian",    "Lithuanian.pattern",    2, 2 },
-    { "mk",    "Macedonian",    "Macedonian.pattern",    2, 2 },
-    { "no",    "Norwegian",     "Norwegian.pattern",     2, 2 },
-    { "oc",    "Occitan",       "Occitan.pattern",       2, 2 },
-    { "pms",   "Piedmontese",   "Piedmontese.pattern",   2, 2 },
-    { "pl",    "Polish",        "Polish.pattern",        2, 2 },
-    { "pt-BR", "Portuguese_BR", "Portuguese_BR.pattern", 2, 3 },
-    { "pt",    "Portuguese",    "Portuguese.pattern",    2, 3 },
-    { "ro",    "Roman",         "Romanian.pattern",      2, 2 }, // truncated prefix (see above)
-    { "rm",    "Romansh",       "Romansh.pattern",       2, 2 },
-    { "ru-GB", "Russian_EnGB",  "Russian_EnGB.pattern",  2, 2 },
-    { "ru-US", "Russian_EnUS",  "Russian_EnUS.pattern",  2, 2 },
-    { "ru",    "Russian",       "Russian.pattern",       2, 2 },
-    { "sr",    "Serbian",       "Serbian.pattern",       2, 2 },
-    { "sk",    "Slovak",        "Slovak.pattern",        2, 3 },
-    { "sl",    "Slovenian",     "Slovenian.pattern",     2, 2 },
-    { "es",    "Spanish",       "Spanish.pattern",       2, 2 },
-    { "sv",    "Swedish",       "Swedish.pattern",       2, 2 },
-    { "tr",    "Turkish",       "Turkish.pattern",       2, 2 },
-    { "uk",    "Ukrain",        "Ukrainian.pattern",     2, 2 }, // truncated prefix (see above)
-    { "cy",    "Welsh",         "Welsh.pattern",         2, 3 },
-    { "zu",    "Zulu",          "Zulu.pattern",          2, 1 }, // defaulting to 2,1, left hyphenmin might need tweaking
-    // No-lang hyph methods, for legacy HyphMan methods: other lang properties will be from English
-    { "en#@none",        "@none",        "@none",        2, 2 },
-    { "en#@softhyphens", "@softhyphens", "@softhyphens", 2, 2 },
-    { "en#@algorithm",   "@algorithm",   "@algorithm",   2, 2 },
-    { NULL, NULL, NULL, 0, 0 }
-};
 
 // Init global TextLangMan members
 lString32 TextLangMan::_main_lang = TEXTLANG_DEFAULT_MAIN_LANG_32;
@@ -187,10 +122,12 @@ void TextLangMan::setMainLangFromHyphDict( lString32 id ) {
     TextLangMan::setHyphenationSoftHyphensOnly( id == HYPH_DICT_ID_SOFTHYPHENS );
     TextLangMan::setHyphenationForceAlgorithmic( id == HYPH_DICT_ID_ALGORITHM );
 
-    for (int i=0; _hyph_dict_table[i].lang_tag!=NULL; i++) {
-        if ( id.startsWith( _hyph_dict_table[i].hyph_filename_prefix ) ) {
-            TextLangMan::setMainLang( lString32(_hyph_dict_table[i].lang_tag) );
-            #ifdef DEBUG_LANG_USAGE
+    HyphDictionaryList* dictList = HyphMan::getDictList();
+    for (int i = 0; dictList && i < dictList->length(); i++) {
+        HyphDictionary* dict = dictList->get(i);
+        if (id == dict->getId()) {
+            TextLangMan::setMainLang(lString32(dict->getLangTag()));
+#ifdef DEBUG_LANG_USAGE
             printf("TextLangMan::setMainLangFromHyphDict %s => %s\n",
                 UnicodeToLocal(id).c_str(), UnicodeToLocal(TextLangMan::getMainLang()).c_str());
             #endif
@@ -198,87 +135,6 @@ void TextLangMan::setMainLangFromHyphDict( lString32 id ) {
         }
     }
     CRLog::warn("lang not found for hyphenation dict: %s\n", UnicodeToLocal(id).c_str());
-}
-
-// Used only by TextLangCfg
-HyphMethod * TextLangMan::getHyphMethodForLang( lString32 lang_tag ) {
-    // Look for full lang_tag
-#if 1
-    // CoolReader use dynamically loaded hyphenation dictionaries (at startup)
-    HyphDictionaryList* dictList = HyphMan::getDictList();
-    HyphDictionary* dict;
-    lString32 dict_lang_tag;
-    lang_tag.lowercase();
-    int left_hyphen_min = 2;
-    int right_hyphen_min = 3;
-    for (int i = 0; i < dictList->length(); i++) {
-        dict = dictList->get(i);
-        if (dict) {
-            if (dict->getType() == HDT_DICT_ALAN || dict->getType() == HDT_DICT_TEX)
-                dict_lang_tag = TextLangMan::getLangTag(dict->getTitle());      // for dictionary's files
-            else
-                dict_lang_tag = TextLangMan::getLangTag(dict->getId());         // for default dictionaries
-            dict_lang_tag.lowercase();
-            if (lang_tag == dict_lang_tag) {
-                for (int j=0; _hyph_dict_table[j].lang_tag!=NULL; j++) {
-                    if ( lang_tag == lString32(_hyph_dict_table[j].lang_tag).lowercase() ) {
-                        left_hyphen_min = _hyph_dict_table[j].left_hyphen_min;
-                        right_hyphen_min = _hyph_dict_table[j].right_hyphen_min;
-                        break;
-                    }
-                }
-                return HyphMan::getHyphMethodForDictionary( dict->getId(), left_hyphen_min, right_hyphen_min );
-            }
-        }
-    }
-    // Look for lang_tag initial subpart
-    int m_pos = lang_tag.pos("-");
-    if ( m_pos > 0 ) {
-        lString32 lang_tag2 = lang_tag.substr(0, m_pos);
-        lang_tag2.lowercase();
-        for (int i = 0; i < dictList->length(); i++) {
-            dict = dictList->get(i);
-            if (dict) {
-                if (dict->getType() == HDT_DICT_ALAN || dict->getType() == HDT_DICT_TEX)
-                    dict_lang_tag = TextLangMan::getLangTag(dict->getTitle());
-                else
-                    dict_lang_tag = TextLangMan::getLangTag(dict->getId());     // for default dictionaries
-                dict_lang_tag.lowercase();
-                if (lang_tag2 == dict_lang_tag)
-                    for (int j=0; _hyph_dict_table[j].lang_tag!=NULL; j++) {
-                        if ( lang_tag == lString32(_hyph_dict_table[j].lang_tag).lowercase() ) {
-                            left_hyphen_min = _hyph_dict_table[j].left_hyphen_min;
-                            right_hyphen_min = _hyph_dict_table[j].right_hyphen_min;
-                            break;
-                        }
-                    }
-                    return HyphMan::getHyphMethodForDictionary( dict->getId(), left_hyphen_min, right_hyphen_min );
-            }
-        }
-    }
-#else
-    // koreader use hardcoded hyphenation dictionary table
-    for (int i=0; _hyph_dict_table[i].lang_tag!=NULL; i++) {
-        if ( lang_tag == lString32(_hyph_dict_table[i].lang_tag).lowercase() ) {
-            return HyphMan::getHyphMethodForDictionary( lString32(_hyph_dict_table[i].hyph_filename),
-                        _hyph_dict_table[i].left_hyphen_min, _hyph_dict_table[i].right_hyphen_min);
-        }
-    }
-    // Look for lang_tag initial subpart
-    int m_pos = lang_tag.pos("-");
-    if ( m_pos > 0 ) {
-        lString32 lang_tag2 = lang_tag.substr(0, m_pos);
-        for (int i=0; _hyph_dict_table[i].lang_tag!=NULL; i++) {
-            if ( lang_tag2 == lString32(_hyph_dict_table[i].lang_tag).lowercase() ) {
-                return HyphMan::getHyphMethodForDictionary( lString32(_hyph_dict_table[i].hyph_filename),
-                            _hyph_dict_table[i].left_hyphen_min, _hyph_dict_table[i].right_hyphen_min);
-            }
-        }
-    }
-#endif
-    // Fallback to English_US, as other languages are more likely to get mixed
-    // with english text (it feels better than using @algorithm)
-    return HyphMan::getHyphMethodForDictionary(TEXTLANG_FALLBACK_HYPH_DICT_ID);
 }
 
 // Return the (single and cached) TextLangCfg for the provided lang_tag
@@ -354,16 +210,6 @@ int TextLangMan::getLangNodeIndex( ldomNode * node ) {
 // For HyphMan::hyphenate()
 HyphMethod * TextLangMan::getMainLangHyphMethod() {
     return getTextLangCfg()->getHyphMethod();
-}
-
-lString32 TextLangMan::getLangTag(const lString32& title)
-{
-    for (int i = 0; _hyph_dict_table[i].lang_tag!=NULL; i++) {
-        if (title == lString32(_hyph_dict_table[i].hyph_filename_prefix)) {
-            return lString32(_hyph_dict_table[i].lang_tag);
-        }
-    }
-    return lString32();
 }
 
 void TextLangMan::resetCounters() {
@@ -886,8 +732,13 @@ TextLangCfg::TextLangCfg( lString32 lang_tag ) {
     // Lowercase it for our tests
     lang_tag.lowercase(); // (used by LANG_STARTS_WITH() macros)
 
-    // Get hyph method/dictionary from _hyph_dict_table
-    _hyph_method = TextLangMan::getHyphMethodForLang(lang_tag);
+    // Get hyph method/dictionary from HyphMan::_dictList
+    _hyph_method = HyphMan::getHyphMethodForLang(lang_tag);
+    if (_hyph_method->getId() == HYPH_DICT_ID_NONE) {
+        // Fallback to en-US, as other languages are more likely to get mixed
+        // with english text (it feels better than using @algorithm)
+        _hyph_method = HyphMan::getHyphMethodForDictionary(TEXTLANG_FALLBACK_HYPH_DICT_ID);
+    }
 
     // Cleanup if we got "en#@something" from legacy HyphMan methods
     int h_pos = lang_tag.pos("#");

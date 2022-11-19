@@ -17,7 +17,7 @@
  *   Copyright (C) 2020 Jellby <jellby@yahoo.com>                          *
  *   Copyright (C) 2021 zwim <martin.zwicknagl@kirchbichl.net>             *
  *   Copyright (C) 2017-2021 poire-z <poire-z@users.noreply.github.com>    *
- *   Copyright (C) 2018-2021 Aleksey Chernov <valexlin@gmail.com>          *
+ *   Copyright (C) 2018-2022 Aleksey Chernov <valexlin@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or         *
  *   modify it under the terms of the GNU General Public License           *
@@ -6994,13 +6994,13 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         REQUEST_RENDER("propsApply textlang hyphenation_force_algorithmic")
     }
     int leftHyphenMin = m_props->getIntDef(PROP_HYPHENATION_LEFT_HYPHEN_MIN, HYPH_DEFAULT_HYPHEN_MIN);
-    if (HyphMan::getLeftHyphenMin() != leftHyphenMin) {
-        HyphMan::setLeftHyphenMin(leftHyphenMin);
+    if (HyphMan::getOverriddenLeftHyphenMin() != leftHyphenMin) {
+        HyphMan::overrideLeftHyphenMin(leftHyphenMin);
         REQUEST_RENDER("propsApply hyphenation left_hyphen_min")
     }
     int rightHyphenMin = m_props->getIntDef(PROP_HYPHENATION_RIGHT_HYPHEN_MIN, HYPH_DEFAULT_HYPHEN_MIN);
-    if (HyphMan::getRightHyphenMin() != rightHyphenMin) {
-        HyphMan::setRightHyphenMin(rightHyphenMin);
+    if (HyphMan::getOverriddenRightHyphenMin() != rightHyphenMin) {
+        HyphMan::overrideRightHyphenMin(rightHyphenMin);
         REQUEST_RENDER("propsApply hyphenation right_hyphen_min")
     }
     int trustSoftHyphens = m_props->getIntDef(PROP_HYPHENATION_TRUST_SOFT_HYPHENS, HYPH_DEFAULT_TRUST_SOFT_HYPHENS);
