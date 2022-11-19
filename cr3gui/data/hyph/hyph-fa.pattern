@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf8"?>
+<!--
+    Hyphenations description for CoolReader
+    from original file: tex-hyphen/hyph-utf8/tex/generic/hyph-utf8/patterns/tex/hyph-fa.tex
+
+title: (No) Hyphenation patterns for Persian
+copyright: Copyright (C) Arthur Reutenauer 2018
+notice: This file is part of the hyph-utf8 package.
+    See http://www.hyphenation.org/tex for more information.
+language:
+    name: Persian
+    tag: fa
+version: 0
+authors:
+    - Arthur Reutenauer
+licence:
+    -
+       name: MIT
+hyphenmins:
+    typesetting:
+        left:
+        right:
+texlive:
+    babelname: farsi
+    synonyms:
+        - persian
+    use_old_loader: true
+    legacy_patterns: zerohyph.tex
+    message:
+    description: Prevent hyphenation in Persian.
+-->
+
+<HyphenationDescription
+    title="Persian" lang="fa"
+    lefthyphenmin="100" righthyphenmin="100">
+</HyphenationDescription>
