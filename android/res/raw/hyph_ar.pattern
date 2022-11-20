@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf8"?>
+<!--
+    Hyphenations description for CoolReader
+    from original file: tex-hyphen/hyph-utf8/tex/generic/hyph-utf8/patterns/tex/hyph-ar.tex
+
+title: (No) Hyphenation patterns for Arabic
+copyright: Copyright (C) Arthur Reutenauer 2018
+notice: This file is part of the hyph-utf8 package.
+    See http://www.hyphenation.org/tex for more information.
+language:
+    name: Arabic
+    tag: ar
+version: 0
+authors:
+    - Arthur Reutenauer
+licence:
+    -
+        name: MIT
+hyphenmins:
+    typesetting:
+        left:
+        right:
+texlive:
+    babelname: arabic
+    use_old_loader: true
+    legacy_patterns: zerohyph.tex
+    message:
+    description: Prevent hyphenation in Arabic.
+-->
+
+<HyphenationDescription
+    title="Arabic" lang="ar"
+    lefthyphenmin="100" righthyphenmin="100">
+</HyphenationDescription>

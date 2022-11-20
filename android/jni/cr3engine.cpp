@@ -2,7 +2,7 @@
  *   CoolReader engine                                                     *
  *   Copyright (C) 2010-2015,2020 Vadim Lopatin <coolreader.org@gmail.com> *
  *   Copyright (C) 2012 Daniel Savard <daniels@xsoli.com>                  *
- *   Copyright (C) 2018-2021 Aleksey Chernov <valexlin@gmail.com>          *
+ *   Copyright (C) 2018-2022 Aleksey Chernov <valexlin@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or         *
  *   modify it under the terms of the GNU General Public License           *
@@ -639,6 +639,7 @@ public:
     virtual ~HyphDataLoaderProxy() {}
 
     virtual LVStreamRef loadData(lString32 id) {
+        // id - language id under which it is registered using the HyphMan::addDictionaryItem() method
         JNIEnv *penv = NULL;
         bool attached = false;
         mJavaVM->GetEnv((void **) &penv, JNI_VERSION_1_6);
@@ -678,6 +679,12 @@ jboolean initDictionaries(JNIEnv *penv, jclass clazz, jobjectArray dictArray) {
     jfieldID pjfHyphDict_code = penv->GetFieldID(pjcHyphDict, "code", "Ljava/lang/String;");
     if (NULL == pjfHyphDict_code)
         return JNI_FALSE;
+    jfieldID pjfHyphDict_name = penv->GetFieldID(pjcHyphDict, "name", "Ljava/lang/String;");
+    if (NULL == pjfHyphDict_name)
+        return JNI_FALSE;
+    jfieldID pjfHyphDict_language = penv->GetFieldID(pjcHyphDict, "language", "Ljava/lang/String;");
+    if (NULL == pjfHyphDict_language)
+        return JNI_FALSE;
 
     int len = penv->GetArrayLength(dictArray);
     HyphDictionary *dict;
@@ -687,6 +694,8 @@ jboolean initDictionaries(JNIEnv *penv, jclass clazz, jobjectArray dictArray) {
         jobject obj = penv->GetObjectArrayElement(dictArray, i);
         int type = penv->GetIntField(obj, pjfHyphDict_type);
         jstring code = static_cast<jstring>(penv->GetObjectField(obj, pjfHyphDict_code));
+        jstring name = static_cast<jstring>(penv->GetObjectField(obj, pjfHyphDict_name));
+        jstring language = static_cast<jstring>(penv->GetObjectField(obj, pjfHyphDict_language));
         switch (type) {     // convert org/coolreader/crengine/Engine$HyphDict$type into HyphDictType
             case 0:         // org/coolreader/crengine/Engine$HYPH_NONE
                 dict_type = HDT_NONE;
@@ -702,7 +711,9 @@ jboolean initDictionaries(JNIEnv *penv, jclass clazz, jobjectArray dictArray) {
                 break;
         }
         lString32 dict_code = env.fromJavaString(code);
-        dict = new HyphDictionary(dict_type, dict_code, dict_code, dict_code);
+        lString32 dict_name = env.fromJavaString(name);
+        lString32 dict_langTag = env.fromJavaString(language);
+        dict = new HyphDictionary(dict_type, dict_name, dict_code, dict_langTag, dict_code);
         if (!HyphMan::addDictionaryItem(dict))
             delete dict;
     }

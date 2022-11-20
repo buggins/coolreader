@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf8"?>
+<!--
+    Hyphenations description for CoolReader
+    from original file: tex-hyphen/hyph-utf8/tex/generic/hyph-utf8/patterns/tex/hyph-te.tex
+
+title: Hyphenation patterns for Telugu
+copyright: Copyright (C) 2016 Santhosh Thottingal
+notice: This file is part of the hyph-utf8 package.
+    See http://www.hyphenation.org/tex for more information.
+source: https://github.com/santhoshtr/hyphenation/
+language:
+    name: Telugu
+    tag: te
+version: 0.9.0 2016-01-16
+authors:
+  -
+    name: Santhosh Thottingal
+    contact: santhosh.thottingal (at) gmail.com
+licence:
+    - This file is available under any of the following licences:
+    -
+        name: MIT
+        url: https://opensource.org/licenses/MIT
+        text: >
+            Permission is hereby granted, free of charge, to any person
+            obtaining a copy of this software and associated documentation
+            files (the "Software"), to deal in the Software without
+            restriction, including without limitation the rights to use,
+            copy, modify, merge, publish, distribute, sublicense, and/or sell
+            copies of the Software, and to permit persons to whom the
+            Software is furnished to do so, subject to the following
+            conditions:
+            The above copyright notice and this permission notice shall be
+            included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+            EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+            OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+            NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+            HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+            WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+            FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+            OTHER DEALINGS IN THE SOFTWARE.
+    -
+        name: LGPL
+        version: 3
+        or_later: true
+        url: http://www.gnu.org/licenses/lgpl.html
+    -
+        name: GPL
+        version: 3
+        or_later: true
+        url: http://www.gnu.org/licenses/gpl.html
+hyphenmins:
+    generation:
+        left: 1
+        right: 1
+texlive:
+    babelname: telugu
+    message: Telugu hyphenation patterns
+    package: indic
+-->
+
+<HyphenationDescription
+    title="Telugu" lang="te"
+    lefthyphenmin="1" righthyphenmin="1">
+<!--  GENERAL RULE -->
+<!--  Do not break either side of ZERO-WIDTH JOINER  (U+200D) -->
+  <pattern>2‍2</pattern>
+<!--  Break on both sides of ZERO-WIDTH NON JOINER  (U+200C) -->
+  <pattern>1‌1</pattern>
+<!--  Break before or after any independent vowel. -->
+  <pattern>అ1</pattern>
+  <pattern>ఆ1</pattern>
+  <pattern>ఇ1</pattern>
+  <pattern>ఈ1</pattern>
+  <pattern>ఉ1</pattern>
+  <pattern>ఊ1</pattern>
+  <pattern>ఋ1</pattern>
+  <pattern>ౠ1</pattern>
+  <pattern>ఌ1</pattern>
+  <pattern>ౡ1</pattern>
+  <pattern>ఎ1</pattern>
+  <pattern>ఏ1</pattern>
+  <pattern>ఐ1</pattern>
+  <pattern>ఒ1</pattern>
+  <pattern>ఓ1</pattern>
+  <pattern>ఔ1</pattern>
+<!--  Break after any dependent vowel, but not before. -->
+  <pattern>ా1</pattern>
+  <pattern>ి1</pattern>
+  <pattern>ీ1</pattern>
+  <pattern>ు1</pattern>
+  <pattern>ూ1</pattern>
+  <pattern>ృ1</pattern>
+  <pattern>ౄ1</pattern>
+  <pattern>ె1</pattern>
+  <pattern>ే1</pattern>
+  <pattern>ై1</pattern>
+  <pattern>ొ1</pattern>
+  <pattern>ో1</pattern>
+  <pattern>ౌ1</pattern>
+<!--  Break before or after any consonant. -->
+  <pattern>1క</pattern>
+  <pattern>1ఖ</pattern>
+  <pattern>1గ</pattern>
+  <pattern>1ఘ</pattern>
+  <pattern>1ఙ</pattern>
+  <pattern>1చ</pattern>
+  <pattern>1ఛ</pattern>
+  <pattern>1జ</pattern>
+  <pattern>1ఝ</pattern>
+  <pattern>1ఞ</pattern>
+  <pattern>1ట</pattern>
+  <pattern>1ఠ</pattern>
+  <pattern>1డ</pattern>
+  <pattern>1ఢ</pattern>
+  <pattern>1ణ</pattern>
+  <pattern>1త</pattern>
+  <pattern>1థ</pattern>
+  <pattern>1ద</pattern>
+  <pattern>1ధ</pattern>
+  <pattern>1న</pattern>
+  <pattern>1ప</pattern>
+  <pattern>1ఫ</pattern>
+  <pattern>1బ</pattern>
+  <pattern>1భ</pattern>
+  <pattern>1మ</pattern>
+  <pattern>1య</pattern>
+  <pattern>1ర</pattern>
+  <pattern>1ఱ</pattern>
+  <pattern>1ల</pattern>
+  <pattern>1ళ</pattern>
+  <pattern>1వ</pattern>
+  <pattern>1శ</pattern>
+  <pattern>1ష</pattern>
+  <pattern>1స</pattern>
+  <pattern>1హ</pattern>
+<!--  Do not break before chandrabindu, anusvara, visarga, -->
+<!--  length mark and ai length mark. -->
+  <pattern>2ఁ1</pattern>
+  <pattern>2ం1</pattern>
+  <pattern>2ః1</pattern>
+  <pattern>2ౕ1</pattern>
+  <pattern>2ౖ1</pattern>
+<!--  Do not break either side of virama (may be within conjunct). -->
+  <pattern>2్2</pattern>
+</HyphenationDescription>

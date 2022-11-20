@@ -11,7 +11,7 @@
  * Copyright (C) 2018 norbi24 <norbert.bartalsky@gmail.com>
  * Copyright (C) 2018 Yuri Plotnikov <plotnikovya@gmail.com>
  * Copyright (C) 2021 ourairquality <info@ourairquality.org>
- * Copyright (C) 2018-2021 Aleksey Chernov <valexlin@gmail.com>
+ * Copyright (C) 2018-2022 Aleksey Chernov <valexlin@gmail.com>
  *
  * This program is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -2008,7 +2008,7 @@ public class BaseActivity extends Activity implements Settings {
 
 			props.setProperty(ReaderView.PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
 			props.setProperty(ReaderView.PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
-			props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
+			props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.HYPH_RU_RU_EN_US.toString());
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, "0");
 
 			props.applyDefault(ReaderView.PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, "0");

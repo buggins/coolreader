@@ -144,6 +144,8 @@
 -keep class org.coolreader.crengine.Engine$HyphDict {
 	int type;
 	java.lang.String code;
+	java.lang.String name;
+	java.lang.String language;
 }
 
 -keep class org.coolreader.crengine.FileInfo {

@@ -6,7 +6,7 @@
  * Copyright (C) 2014 klush
  * Copyright (C) 2018 S-trace <S-trace@list.ru>
  * Copyright (C) 2021 ourairquality <info@ourairquality.org>
- * Copyright (C) 2018-2021 Aleksey Chernov <valexlin@gmail.com>
+ * Copyright (C) 2018-2022 Aleksey Chernov <valexlin@gmail.com>
  *
  * This program is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -787,33 +787,40 @@ public class Engine {
 		public final static HyphDict NONE = new HyphDict("@none", HYPH_NONE, 0, "[None]", "");
 		public final static HyphDict ALGORITHM = new HyphDict("@algorithm", HYPH_ALGO, 0, "[Algorythmic]", "");
 		public final static HyphDict BOOK_LANGUAGE = new HyphDict("BOOK LANGUAGE", HYPH_BOOK, 0, "[From Book Language]", "");
-		public final static HyphDict RUSSIAN = new HyphDict("Russian_EnUS", HYPH_DICT, R.raw.russian_enus_hyphen, "Russian", "ru");
-		public final static HyphDict RUSSIAN2 = new HyphDict("Russian", HYPH_DICT, R.raw.russian_enus_hyphen, "Russian", "ru", true);	// for compatibilty with textlang.cpp
-		public final static HyphDict ENGLISH = new HyphDict("English_US", HYPH_DICT, R.raw.english_us_hyphen, "English US", "en");
-		public final static HyphDict GERMAN = new HyphDict("German", HYPH_DICT, R.raw.german_hyphen, "German", "de");
-		public final static HyphDict UKRAINIAN = new HyphDict("Ukrain", HYPH_DICT, R.raw.ukrainian_hyphen, "Ukrainian", "uk");
-		public final static HyphDict SPANISH = new HyphDict("Spanish", HYPH_DICT, R.raw.spanish_hyphen, "Spanish", "es");
-		public final static HyphDict FRENCH = new HyphDict("French", HYPH_DICT, R.raw.french_hyphen, "French", "fr");
-		public final static HyphDict BULGARIAN = new HyphDict("Bulgarian", HYPH_DICT, R.raw.bulgarian_hyphen, "Bulgarian", "bg");
-		public final static HyphDict SWEDISH = new HyphDict("Swedish", HYPH_DICT, R.raw.swedish_hyphen, "Swedish", "sv");
-		public final static HyphDict POLISH = new HyphDict("Polish", HYPH_DICT, R.raw.polish_hyphen, "Polish", "pl");
-		public final static HyphDict HUNGARIAN = new HyphDict("Hungarian", HYPH_DICT, R.raw.hungarian_hyphen, "Hungarian", "hu");
-		public final static HyphDict GREEK = new HyphDict("Greek", HYPH_DICT, R.raw.greek_hyphen, "Greek", "el");
-		public final static HyphDict FINNISH = new HyphDict("Finnish", HYPH_DICT, R.raw.finnish_hyphen, "Finnish", "fi");
-		public final static HyphDict TURKISH = new HyphDict("Turkish", HYPH_DICT, R.raw.turkish_hyphen, "Turkish", "tr");
-		public final static HyphDict DUTCH = new HyphDict("Dutch", HYPH_DICT, R.raw.dutch_hyphen, "Dutch", "nl");
-		public final static HyphDict CATALAN = new HyphDict("Catalan", HYPH_DICT, R.raw.catalan_hyphen, "Catalan", "ca");
-		// Remember that when adding a new hyphenation dictionary, you should update the _hyph_dict_table[] array in textlang.cpp
-		// Field 'code' must be equal field 'hyph_filename_prefix' in the _hyph_dict_table[] array.
 
-		public final String code;
+		public final static HyphDict HYPH_AR = new HyphDict("HYPH_AR", HYPH_DICT, R.raw.hyph_ar, "Arabic (no hyphenation)", "ar");
+		public final static HyphDict HYPH_BG = new HyphDict("HYPH_BG", HYPH_DICT, R.raw.hyph_bg, "Bulgarian", "bg");
+		public final static HyphDict HYPH_BN = new HyphDict("HYPH_BN", HYPH_DICT, R.raw.hyph_bn, "Bengali", "bn");
+		public final static HyphDict HYPH_CS = new HyphDict("HYPH_CS", HYPH_DICT, R.raw.hyph_cs, "Czech", "cs");
+		public final static HyphDict HYPH_DA = new HyphDict("HYPH_DA", HYPH_DICT, R.raw.hyph_da, "Danish", "da");
+		public final static HyphDict HYPH_DE_1996 = new HyphDict("HYPH_DE_1996", HYPH_DICT, R.raw.hyph_de_1996, "German", "de");
+		public final static HyphDict HYPH_EL_MONOTON = new HyphDict("HYPH_EL_MONOTON", HYPH_DICT, R.raw.hyph_el_monoton, "Modern Greek, monotonic", "el");
+		public final static HyphDict HYPH_EN_GB = new HyphDict("HYPH_EN_GB", HYPH_DICT, R.raw.hyph_en_gb, "British English", "en-GB");
+		public final static HyphDict HYPH_EN_US = new HyphDict("HYPH_EN_US", HYPH_DICT, R.raw.hyph_en_us, "US English", "en-US");
+		public final static HyphDict HYPH_ES = new HyphDict("HYPH_ES", HYPH_DICT, R.raw.hyph_es, "Spanish", "es");
+		public final static HyphDict HYPH_FA = new HyphDict("HYPH_FA", HYPH_DICT, R.raw.hyph_fa, "Persian (no hyphenation)", "fa");
+		public final static HyphDict HYPH_FI = new HyphDict("HYPH_FI", HYPH_DICT, R.raw.hyph_fi, "Finnish", "fi");
+		public final static HyphDict HYPH_GU = new HyphDict("HYPH_GU", HYPH_DICT, R.raw.hyph_gu, "Gujarati", "gu");
+		public final static HyphDict HYPH_HU = new HyphDict("HYPH_HU", HYPH_DICT, R.raw.hyph_hu, "Hungarian", "hu");
+		public final static HyphDict HYPH_IT = new HyphDict("HYPH_IT", HYPH_DICT, R.raw.hyph_it, "Italian", "it");
+		public final static HyphDict HYPH_MR = new HyphDict("HYPH_MR", HYPH_DICT, R.raw.hyph_mr, "Marathi", "mr");
+		public final static HyphDict HYPH_NL = new HyphDict("HYPH_NL", HYPH_DICT, R.raw.hyph_nl, "Dutch", "nl");
+		public final static HyphDict HYPH_PA = new HyphDict("HYPH_PA", HYPH_DICT, R.raw.hyph_pa, "Panjabi", "pa");
+		public final static HyphDict HYPH_PL = new HyphDict("HYPH_PL", HYPH_DICT, R.raw.hyph_pl, "Polish", "pl");
+		public final static HyphDict HYPH_PT = new HyphDict("HYPH_PT", HYPH_DICT, R.raw.hyph_pt, "Portuguese", "pt");
+		public final static HyphDict HYPH_RU_RU = new HyphDict("HYPH_RU_RU", HYPH_DICT, R.raw.hyph_ru_ru, "Russian", "ru-RU");
+		public final static HyphDict HYPH_RU_RU_EN_US = new HyphDict("HYPH_RU_RU_EN_US", HYPH_DICT, R.raw.hyph_ru_ru_en_us, "Russian, US English", "ru-RU,en-US");
+		public final static HyphDict HYPH_TA = new HyphDict("HYPH_TA", HYPH_DICT, R.raw.hyph_ta, "Tamil", "ta");
+		public final static HyphDict HYPH_TE = new HyphDict("HYPH_TE", HYPH_DICT, R.raw.hyph_te, "Telugu", "te");
+		public final static HyphDict HYPH_UK = new HyphDict("HYPH_UK", HYPH_DICT, R.raw.hyph_uk, "Ukrainian", "uk");
+		public final static HyphDict HYPH_ZH_LATN_PINYIN = new HyphDict("HYPH_ZH_LATN_PINYIN", HYPH_DICT, R.raw.hyph_zh_latn_pinyin, "Chinese pinyin (Mandarin)", "zh-latn");
+
+		public final String code;	// language id under which it will be registered using the HyphMan::addDictionaryItem() method
 		public final int type;
 		public final int resource;
 		public final String name;
 		public final File file;
 		public String language;
-		public boolean hide;
-
 
 		public static HyphDict[] values() {
 			return values;
@@ -835,19 +842,6 @@ public class Engine {
 			this.file = null;
 			this.code = code;
 			this.language = language;
-			this.hide = false;
-			// register in list
-			add(this);
-		}
-
-		private HyphDict(String code, int type, int resource, String name, String language, boolean hide) {
-			this.type = type;
-			this.resource = resource;
-			this.name = name;
-			this.file = null;
-			this.code = code;
-			this.language = language;
-			this.hide = hide;
 			// register in list
 			add(this);
 		}
@@ -927,7 +921,9 @@ public class Engine {
 	}
 
 	@SuppressWarnings("unused")		// used in jni
-	public static final byte[] loadHyphDictData(String id) {
+	public static byte[] loadHyphDictData(String id) {
+		// id - language id under which it was registered using the HyphMan::addDictionaryItem() method
+		//  matches the language code under which the language was registered in the HyphDict class (field 'code')
 		if (null == instance) {
 			log.e("Engine not initialized yet!");
 			return null;
