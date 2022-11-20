@@ -1,7 +1,7 @@
 /*
  * CoolReader for Android
  * Copyright (C) 2012 Vadim Lopatin <coolreader.org@gmail.com>
- * Copyright (C) 2019-2021 Aleksey Chernov <valexlin@gmail.com>
+ * Copyright (C) 2019-2022 Aleksey Chernov <valexlin@gmail.com>
  *
  * This program is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -241,8 +241,8 @@ public class CoverpageManager {
 		public BitmapCache(int maxSize) {
 			this.maxSize = maxSize;
 		}
-		private ArrayList<BitmapCacheItem> list = new ArrayList<BitmapCacheItem>();
-		private int maxSize;
+		private final ArrayList<BitmapCacheItem> list = new ArrayList<BitmapCacheItem>();
+		private final int maxSize;
 		private int find(ImageItem file) {
 			for (int i = 0; i < list.size(); i++) {
 				BitmapCacheItem item = list.get(i); 
@@ -314,7 +314,7 @@ public class CoverpageManager {
 			}
 		}
 	}
-	private BitmapCache mCache = new BitmapCache(32);
+	private final BitmapCache mCache = new BitmapCache(32);
 	
 	private FileInfoQueue mCheckFileCacheQueue = new FileInfoQueue(); 
 	private FileInfoQueue mScanFileQueue = new FileInfoQueue();
@@ -377,7 +377,7 @@ public class CoverpageManager {
 		}
 	}
 	
-	private Object LOCK = new Object();
+	private final Object LOCK = new Object();
 
 	private Runnable lastCheckCacheTask = null;
 	private Runnable lastScanFileTask = null;
@@ -633,7 +633,13 @@ public class CoverpageManager {
 					if (bitmap != null) {
 						log.d("Image for " + book + " is found in cache, drawing...");
 						Rect dst = getBestCoverSize(rc, bitmap.getWidth(), bitmap.getHeight());
-						canvas.drawBitmap(bitmap, null, dst, defPaint);
+						try {
+							canvas.drawBitmap(bitmap, null, dst, defPaint);
+						} catch (Exception ignored) {
+							log.e("Exception thrown while drawing coverpage");
+							// Remove broken bitmap from cache
+							mCache.remove(book);
+						}
 						if (shadowSizePercent > 0) {
 							Rect shadowRect = new Rect(rc.left + shadowW, rc.top + shadowH, rc.right + shadowW, rc.bottom + shadowW);
 							drawShadow(canvas, rc, shadowRect);
