@@ -24,7 +24,6 @@ Sourceforge repository will be used as a mirror
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
-The "thirdparty_unman" directory contains some patched libraries with their own licenses (compatible with GPLv2).
 
 
 
@@ -62,6 +61,18 @@ To build Qt frontend:
 To build wxWidgets frontend:
 
         $ sudo apt install libwxgtk3.0-gtk3-dev
+
+
+Embedded Third Party Components
+-------------------------------
+* antiword (GPLv2+)
+* chmlib (LGPLv2.1+)
+* nanosvg (ZLib)
+* qimagescale (imlib2, GPLv2, LGPLv3+)
+* xxhash (BSD-2)
+* coffeecatch (BSD-2)
+* Some hyphenation patterns from http://www.hyphenation.org (only patterns under Unlicense, MIT, BSD, MPL, GPLv2, LGPLv2.1)
+* Russian hyphenation patterns - https://github.com/laboratory50/russian-spellpack (LGPL)
 
 
 Packaging
