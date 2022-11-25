@@ -1,15 +1,38 @@
-﻿/*******************************************************
+﻿/***************************************************************************
+ *   CoolReader engine                                                     *
+ *   Copyright (C) 2007-2014,2019 Vadim Lopatin <coolreader.org@gmail.com> *
+ *   Copyright (C) 2011,2019,2020 Konstantin Potapov <pkbo@users.sourceforge.net>
+ *   Copyright (C) 2014 Huang Xin <chrox.huang@gmail.com>                  *
+ *   Copyright (C) 2016 Bob Gordon <bobgordon62@gmail.com>                 *
+ *   Copyright (C) 2015,2016 Qingping Hou <dave2008713@gmail.com>          *
+ *   Copyright (C) 2015-2017 Yifei(Frank) ZHU <fredyifei@gmail.com>        *
+ *   Copyright (C) 2017 Robert <robert.styla@gmail.com>                    *
+ *   Copyright (C) 2020 Jellby <jellby@yahoo.com>                          *
+ *   Copyright (C) 2018,2020,2021 Aleksey Chernov <valexlin@gmail.com>     *
+ *   Copyright (C) 2021 NiLuJe <ninuje@gmail.com>                          *
+ *   Copyright (C) 2021 ourairquality <info@ourairquality.org>             *
+ *   Copyright (C) 2018-2021 poire-z <poire-z@users.noreply.github.com>    *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU General Public License           *
+ *   as published by the Free Software Foundation; either version 2        *
+ *   of the License, or (at your option) any later version.                *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
+ *   MA 02110-1301, USA.                                                   *
+ ***************************************************************************/
 
-   CoolReader Engine C-compatible API
-
-   lvtextfm.cpp:  Text formatter
-
-   (c) Vadim Lopatin, 2000-2011
-   This source code is distributed under the terms of
-   GNU General Public License
-   See LICENSE file for details
-
-*******************************************************/
+/**
+ * \file lvtextfm.cpp
+ * \brief Text formatter
+ */
 
 #include <stdlib.h>
 #include <stdio.h>

@@ -1,21 +1,36 @@
-/** \file hyphman.h
-    \brief AlReader hyphenation manager
+/***************************************************************************
+ *   CoolReader engine                                                     *
+ *   Copyright (C) 2007-2012,2015 Vadim Lopatin <coolreader.org@gmail.com> *
+ *   Copyright (C) Alan <alan@alreader.com>                                *
+ *   Copyright (C) 2018-2020 poire-z <poire-z@users.noreply.github.com>    *
+ *   Copyright (C) 2020,2022 Aleksey Chernov <valexlin@gmail.com>          *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU General Public License           *
+ *   as published by the Free Software Foundation; either version 2        *
+ *   of the License, or (at your option) any later version.                *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
+ *   MA 02110-1301, USA.                                                   *
+ ***************************************************************************/
 
-    (c) Alan, http://alreader.kms.ru/
-
-    Adapted for CREngine by Vadim Lopatin
-
-    This source code is distributed under the terms of
-    GNU General Public License.
-
-    See LICENSE file for details.
-
-*/
+/**
+ *  \file hyphman.h
+ *  \brief AlReader hyphenation manager adapted for CREngine by Vadim Lopatin
+ */
 
 #ifndef _HYPHEN_
 #define _HYPHEN_
 
 #include "lvtypes.h"
+#include "lvstring.h"
 #include "lvstream.h"
 #include "lvhashtable.h"
 #include "lvptrvec.h"
@@ -44,20 +59,18 @@ protected:
     int _left_hyphen_min;
     int _right_hyphen_min;
 public:
-    HyphMethod(lString32 id, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN, int rightHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN)
+    HyphMethod(lString32 id)
         : _id(id)
-        , _left_hyphen_min(leftHyphenMin)
-        , _right_hyphen_min(rightHyphenMin)
-        { }
+        , _left_hyphen_min(HYPHMETHOD_DEFAULT_HYPHEN_MIN)
+        , _right_hyphen_min(HYPHMETHOD_DEFAULT_HYPHEN_MIN)
+    {}
     lString32 getId() { return _id; }
-    virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize=1 ) = 0;
-    virtual ~HyphMethod() { }
-    virtual lUInt32 getCount() { return 0; }
-    virtual lUInt32 getSize() { return 0; }
+    virtual bool hyphenate( const lChar32 *str, int len, lUInt16 *widths, lUInt8 *flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize = 1 ) = 0;
+    virtual ~HyphMethod() {}
+    virtual lUInt32 getPatternsCount() { return 0; }
     virtual int getLeftHyphenMin() { return _left_hyphen_min; }
     virtual int getRightHyphenMin() { return _right_hyphen_min; }
 };
-
 
 enum HyphDictType
 {
@@ -73,13 +86,15 @@ class HyphDictionary
 	HyphDictType _type;
 	lString32 _title;
 	lString32 _id;
+	lString32 _langTag;
 	lString32 _filename;
 public:
-	HyphDictionary( HyphDictType type, lString32 title, lString32 id, lString32 filename )
-		: _type(type), _title(title), _id( id ), _filename( filename ) { }
+	HyphDictionary(HyphDictType type, lString32 title, lString32 id, lString32 langTag, lString32 filename)
+		: _type(type), _title(title), _id(id), _langTag(langTag), _filename(filename) {}
 	HyphDictType getType() const { return _type; }
 	lString32 getTitle() const { return _title; }
 	lString32 getId() const { return _id; }
+	lString32 getLangTag() const { return _langTag; }
 	lString32 getFilename() const { return _filename; }
 	bool activate();
 	virtual lUInt32 getHash() const { return getTitle().getHash(); }
@@ -105,8 +120,8 @@ public:
 	bool activate( lString32 id );
 };
 
-#define DEF_HYPHENATION_DICT "English_US.pattern"
-// We'll be loading English_US.pattern even if non-english users
+#define DEF_HYPHENATION_DICT "hyph-en-us.pattern"
+// We'll be loading hyph-en-us.pattern even if non-english users
 // may never use it, but it's a bit tedious not going with it.
 // It might use around 1M of memory, but it will avoid re-rendering
 // the document if the book does not contain any language tag, and
@@ -137,27 +152,28 @@ class HyphMan
     static HyphDictionaryList * _dictList; // available hyph dict files (+ none/algo/softhyphens)
     static LVHashTable<lString32, HyphMethod*> _loaded_hyph_methods; // methods with loaded dictionaries
     static HyphDataLoader* _dataLoader;
-    static int _LeftHyphenMin;
-    static int _RightHyphenMin;
+    static int _OverriddenLeftHyphenMin;
+    static int _OverriddenRightHyphenMin;
     static int _TrustSoftHyphens;
+    static HyphMethod* getHyphMethodForLang_impl(lString32 lang_tag);
 public:
     static void uninit();
     static bool initDictionaries(lString32 dir, bool clear = true);
     static HyphDictionaryList * getDictList() { return _dictList; }
     static bool addDictionaryItem(HyphDictionary* dict);
     static void setDataLoader(HyphDataLoader* loader);
-    static bool activateDictionary( lString32 id ) { return _dictList->activate(id); }
-    static HyphDictionary * getSelectedDictionary(); // was: { return _selectedDictionary; }
-    static int getLeftHyphenMin() { return _LeftHyphenMin; }
-    static int getRightHyphenMin() { return _RightHyphenMin; }
-    static bool setLeftHyphenMin( int left_hyphen_min );
-    static bool setRightHyphenMin( int right_hyphen_min );
+    static bool activateDictionary(lString32 id) { return _dictList->activate(id); }
+    static HyphDictionary* getSelectedDictionary(); // was: { return _selectedDictionary; }
+    static int getOverriddenLeftHyphenMin() { return _OverriddenLeftHyphenMin; }
+    static int getOverriddenRightHyphenMin() { return _OverriddenRightHyphenMin; }
+    static bool overrideLeftHyphenMin(int left_hyphen_min);
+    static bool overrideRightHyphenMin(int right_hyphen_min);
     static int getTrustSoftHyphens() { return _TrustSoftHyphens; }
     static bool setTrustSoftHyphens( int trust_soft_hyphen );
     static bool isEnabled();
-    static HyphMethod * getHyphMethodForDictionary( lString32 id, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN,
-                                                        int rightHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN );
-
+    static HyphMethod* getHyphMethodForDictionary(lString32 id);
+    static HyphMethod* getHyphMethodForLang(lString32 lang_tag);
+    
     HyphMan();
     ~HyphMan();
 

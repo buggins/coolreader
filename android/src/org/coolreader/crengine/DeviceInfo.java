@@ -1,16 +1,36 @@
+/*
+ * CoolReader for Android
+ * Copyright (C) 2011-2015,2019 Vadim Lopatin <coolreader.org@gmail.com>
+ * Copyright (C) 2011 a_lone
+ * Copyright (C) 2012 madlynx
+ * Copyright (C) 2012 klush
+ * Copyright (C) 2012 Jeff Doozan <jeff@doozan.com>
+ * Copyright (C) 2014 fuero <the_master_of_disaster@gmx.at>
+ * Copyright (C) 2018 norbi24 <norbert.bartalsky@gmail.com>
+ * Copyright (C) 2018,2020,2021 Aleksey Chernov <valexlin@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.coolreader.crengine;
 
-import android.app.Application;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.util.Log;
 
-import org.eink_onyx_reflections.OnyxDevice;
-import org.eink_onyx_reflections.OnyxEinkDeviceImpl;
-
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.List;
 
 public class DeviceInfo {
 
@@ -139,7 +159,7 @@ public class DeviceInfo {
 				(MODEL.toLowerCase().contentEquals("tolino") && DEVICE.toLowerCase().contentEquals("tolino_vision2")); //Tolino Vision HD4 doesn't show any Brand, only Model=tolino and  DEVICE=tolino_vision2)
 
 
-		EINK_SCREEN = EINK_SONY || EINK_NOOK || EINK_ONYX || EINK_ENERGYSYSTEM || EINK_DNS || EINK_TOLINO; // TODO: set to true for eink devices like Nook Touch
+		EINK_SCREEN = EINK_SONY || EINK_NOOK || EINK_ENERGYSYSTEM || EINK_DNS || EINK_TOLINO; // TODO: set to true for eink devices like Nook Touch
 
 		// On Onyx Boox Monte Cristo 3 (and possible Monte Cristo, Monte Cristo 2) long press action on buttons are catch by system and not available for application
 		// TODO: check this on other ONYX BOOX Readers
@@ -150,6 +170,10 @@ public class DeviceInfo {
 		int onyx_max_screen_brightness_warm_value = 100;
 		boolean onyx_support_regal = false;
 		boolean onyx_have_brightness_system_dialog = false;
+		/*
+		 * Support for ONYX devices is disabled until the ONYX SDK is released under a GPL compatible license.
+		 * When enabling this code don't forget to update related code in EinkScreenOnyx.java and BaseActivity.java
+		 *
 		if (EINK_ONYX) {
 			OnyxEinkDeviceImpl onyxEinkDevice = OnyxDevice.currentDevice();
 			onyx_support_regal = onyxEinkDevice.supportRegal();
@@ -196,7 +220,9 @@ public class DeviceInfo {
 					onyx_have_brightness_system_dialog = true;
 					break;
 			}
+			EINK_SCREEN = true; // error, just to say that you need update line above `EINK_SCREEN = ... `
 		}
+		*/
 		ONYX_HAVE_BRIGHTNESS_SYSTEM_DIALOG = onyx_have_brightness_system_dialog;
 		ONYX_HAVE_FRONTLIGHT = onyx_have_frontlight;
 		ONYX_HAVE_NATURAL_BACKLIGHT = onyx_have_natural_backlight;

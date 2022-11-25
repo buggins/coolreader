@@ -1,45 +1,39 @@
-/** \file lvstsheet.h
-    \brief style sheet
+/***************************************************************************
+ *   CoolReader engine                                                     *
+ *   Copyright (C) 2007-2012,2015 Vadim Lopatin <coolreader.org@gmail.com> *
+ *   Copyright (C) 2020 Aleksey Chernov <valexlin@gmail.com>               *
+ *   Copyright (C) 2018-2021 poire-z <poire-z@users.noreply.github.com>    *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU General Public License           *
+ *   as published by the Free Software Foundation; either version 2        *
+ *   of the License, or (at your option) any later version.                *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
+ *   MA 02110-1301, USA.                                                   *
+ ***************************************************************************/
 
-    Implements CSS compiler for CoolReader Engine.
-
-    Supports only subset of CSS.
-
-    Selectors supported:
-
-    - * { } - universal selector
-    - element-name { } - selector by element name
-    - element1, element2 { } - several selectors delimited by comma
-
-    Properties supported:
-
-    - display
-    - white-space
-    - text-align
-    - vertical-align
-    - font-family
-    - font-size
-    - font-style
-    - font-weight
-    - text-indent
-    - line-height
-    - width
-    - height
-    - margin-left
-    - margin-right
-    - margin-top
-    - margin-bottom
-    - margin
-    
-
-    (c) Vadim Lopatin, 2000-2006
-    This source code is distributed under the terms of
-    GNU General Public License.
-
-    See LICENSE file for details.
-
-*/
-
+/**
+ * \file lvstsheet.h
+ * \brief style sheet
+ *
+ * Implements CSS compiler for CoolReader Engine.
+ *
+ * Supports only subset of CSS.
+ *
+ * Selectors supported:
+ *
+ *  - * { } - universal selector
+ *  - element-name { } - selector by element name
+ *  - element1, element2 { } - several selectors delimited by comma
+ */
 
 #ifndef __LVSTSHEET_H_INCLUDED__
 #define __LVSTSHEET_H_INCLUDED__

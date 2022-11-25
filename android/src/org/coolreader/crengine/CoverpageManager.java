@@ -1,3 +1,23 @@
+/*
+ * CoolReader for Android
+ * Copyright (C) 2012 Vadim Lopatin <coolreader.org@gmail.com>
+ * Copyright (C) 2019-2022 Aleksey Chernov <valexlin@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.coolreader.crengine;
 
 import java.util.ArrayList;
@@ -221,8 +241,8 @@ public class CoverpageManager {
 		public BitmapCache(int maxSize) {
 			this.maxSize = maxSize;
 		}
-		private ArrayList<BitmapCacheItem> list = new ArrayList<BitmapCacheItem>();
-		private int maxSize;
+		private final ArrayList<BitmapCacheItem> list = new ArrayList<BitmapCacheItem>();
+		private final int maxSize;
 		private int find(ImageItem file) {
 			for (int i = 0; i < list.size(); i++) {
 				BitmapCacheItem item = list.get(i); 
@@ -294,7 +314,7 @@ public class CoverpageManager {
 			}
 		}
 	}
-	private BitmapCache mCache = new BitmapCache(32);
+	private final BitmapCache mCache = new BitmapCache(32);
 	
 	private FileInfoQueue mCheckFileCacheQueue = new FileInfoQueue(); 
 	private FileInfoQueue mScanFileQueue = new FileInfoQueue();
@@ -357,7 +377,7 @@ public class CoverpageManager {
 		}
 	}
 	
-	private Object LOCK = new Object();
+	private final Object LOCK = new Object();
 
 	private Runnable lastCheckCacheTask = null;
 	private Runnable lastScanFileTask = null;
@@ -613,7 +633,13 @@ public class CoverpageManager {
 					if (bitmap != null) {
 						log.d("Image for " + book + " is found in cache, drawing...");
 						Rect dst = getBestCoverSize(rc, bitmap.getWidth(), bitmap.getHeight());
-						canvas.drawBitmap(bitmap, null, dst, defPaint);
+						try {
+							canvas.drawBitmap(bitmap, null, dst, defPaint);
+						} catch (Exception ignored) {
+							log.e("Exception thrown while drawing coverpage");
+							// Remove broken bitmap from cache
+							mCache.remove(book);
+						}
 						if (shadowSizePercent > 0) {
 							Rect shadowRect = new Rect(rc.left + shadowW, rc.top + shadowH, rc.right + shadowW, rc.bottom + shadowW);
 							drawShadow(canvas, rc, shadowRect);

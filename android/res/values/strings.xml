@@ -270,8 +270,6 @@
     <string name="dlg_book_search_not_found">No books found</string>
     <string name="dir_search_results">Search results</string>
     <string name="dlg_about_donation">Cool Reader is free and will always be free. If you want to support development of this project, you can buy donation package from Android Market.</string>
-    <string name="dlg_about_donation_paypal" />
-    <string name="dlg_about_donation_paypal_link" />
     <string name="dlg_about_donation_bronze">$1: buy Cool Reader Bronze Donation</string>
     <string name="dlg_about_donation_silver">$3: buy Cool Reader Silver Donation</string>
     <string name="dlg_about_donation_gold">$10: buy Cool Reader Gold Donation</string>
@@ -676,7 +674,7 @@
     <string name="fontconfig_language_orthography_database">"Languages character set database by Fontconfig:
         https://www.fontconfig.org/ "
     </string>
-    <string name="third_party_components_used">"Third party components used: zlib, libpng, libjpeg, freetype, harfbuzz,
+    <string name="third_party_components_used">"Third party components used: zlib, libpng, libjpeg, freetype, harfbuzz, fribidi, utf8proc, zstd,
         chmlib, antiword, Nook EPD utils by DairyKnight "
     </string>
     <string name="third_party_farm_fresh_icon_set">Farm-Fresh icon set from http://www.fatcow.com/free-icons</string>
@@ -776,4 +774,6 @@
     <string name="scanning_font_files">Scanning font files…</string>
     <string name="undetermined">Undetermined</string>
     <string name="failed_to_save_memory_stream">Failed to save memory stream to device storage!</string>
+    <string name="third_party_hyphenations1_used">Most hyphenation dictionaries - TEX hyphenation patterns http://www.hyphenation.org/</string>
+    <string name="third_party_hyphenations2_used">Russian hyphenation dictionary - https://github.com/laboratory50/russian-spellpack</string>
 </resources>

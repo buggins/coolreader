@@ -132,7 +132,7 @@ Latest source code is available from GIT repository:
 
 See README.TXT at root directory of project for build instructions.
 </source>
-        <translation>Zdrojový kód lze stáhnout ze stránek projektu crengine na sourceforge.
+        <translation type="vanished">Zdrojový kód lze stáhnout ze stránek projektu crengine na sourceforge.
 
 Nejnovější zdrojový kód je dostupný z úložiště GIT:
 &gt; git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
@@ -158,7 +158,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libjpeg - JPEG image format support&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Hyphenation dictionaries - from AlReader&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+        <translation type="obsolete">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
@@ -175,6 +175,98 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libjpeg - podpora pro obrázkový formát JPEG&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Slovníky na dělení slov - z AlReader&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>CoolReader is free open source e-book viewer based on CoolReader engine.</source>
+        <translation>CoolReader je svobodný prohlížeč elektronických knih s otevřeným zdrojovým kódem založený na stroji CoolReader.</translation>
+    </message>
+    <message>
+        <source>Source code is available at</source>
+        <translation>Zdrojový kód je dostupný na</translation>
+    </message>
+    <message>
+        <source>under the terms of GNU GPL license either version 2 or (at your option) any later version.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Third party components used:</source>
+        <translation type="unfinished">Použité součásti od třetích stran:</translation>
+    </message>
+    <message>
+        <source>as GUI library</source>
+        <translation>jako knihovna GUI</translation>
+    </message>
+    <message>
+        <source>FreeType - font rendering</source>
+        <translation type="unfinished">FreeType - písmo</translation>
+    </message>
+    <message>
+        <source>HarfBuzz - text shaping, font kerning, ligatures</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ZLib - compressing library</source>
+        <translation>ZLib - kompresní knihovna</translation>
+    </message>
+    <message>
+        <source>ZSTD - compressing library</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>libpng - PNG image format support</source>
+        <translation>libpng - podpora pro obrázkový formát PNG</translation>
+    </message>
+    <message>
+        <source>libjpeg - JPEG image format support</source>
+        <translation>libjpeg - podpora pro obrázkový formát JPEG</translation>
+    </message>
+    <message>
+        <source>FriBiDi - RTL writing support</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>libunibreak - line breaking and word breaking algorithms</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>utf8proc - for unicode string comparision</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>NanoSVG - SVG image format support</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>chmlib - chm format support</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>antiword - Microsoft Word format support</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>hyphman - AlReader hyphenation manager</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hyphenation dictionaries - from KOReader</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Languages character set database by Fontconfig</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Source code may be downloaded from github CoolReader project page:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Latest source code is available from GIT repository:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>See README.md at root directory of project for build instructions.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -309,6 +401,14 @@ p, li { white-space: pre-wrap; }
         <source>Loading: please wait...</source>
         <translation>Nahrává se: Počkejte, prosím...</translation>
     </message>
+    <message>
+        <source>Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Font &quot;%1&quot; isn&apos;t compatible with language &quot;%2&quot;. Instead will be used fallback font.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ExportProgressDlg</name>
@@ -319,6 +419,21 @@ p, li { white-space: pre-wrap; }
     <message>
         <source>Export is in progress...</source>
         <translation>Probíhá vyvádění...</translation>
+    </message>
+</context>
+<context>
+    <name>FallbackFontsDialog</name>
+    <message>
+        <source>Fallback fonts</source>
+        <translation type="unfinished">Záložní písma</translation>
+    </message>
+    <message>
+        <source>List of fallback fonts:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove this fallback font</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -479,6 +594,10 @@ p, li { white-space: pre-wrap; }
         <source>Dialog</source>
         <translation>Dialog</translation>
     </message>
+    <message>
+        <source>Language</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>
@@ -553,6 +672,14 @@ p, li { white-space: pre-wrap; }
     <message>
         <source>ZIP archives</source>
         <translation>Archivy ZIP</translation>
+    </message>
+    <message>
+        <source>FB3 books</source>
+        <translation type="unfinished">Knihy FB2 {3 ?}</translation>
+    </message>
+    <message>
+        <source>Open Document files</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1886,6 +2013,110 @@ p, li { white-space: pre-wrap; }
         <source>Enable font kerning</source>
         <translation type="unfinished">Povolit kerning písma</translation>
     </message>
+    <message>
+        <source>Page header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Page footer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rendering flags</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Legacy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Flat</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Book</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Web (Full)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>DOM level:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Newest</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Multi languages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Support for multilingual documents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Text Shaping</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Simple (FreeType only, fastest)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Light (HarfBuzz without ligatures)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Full (HarfBuzz with ligatures)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Internal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore document margins</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable hyphenation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Manage...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Antialiasing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>LCD (RGB)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>LCD (BGR)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>LCD (RGB) vertical</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>LCD (BGR) vertical</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>synthetic*</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>synthetic</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>TocDlg</name>
@@ -1927,6 +2158,13 @@ p, li { white-space: pre-wrap; }
     <message>
         <source>3</source>
         <translation>3</translation>
+    </message>
+</context>
+<context>
+    <name>crqtutils</name>
+    <message>
+        <source>Undetermined</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

@@ -1,15 +1,39 @@
-/*******************************************************
-
- CoolReader Engine
-
- lvdocview.cpp:  XML DOM tree rendering tools
-
- (c) Vadim Lopatin, 2000-2009
- This source code is distributed under the terms of
- GNU General Public License
- See LICENSE file for details
-
- *******************************************************/
+/***************************************************************************
+ *   CoolReader engine                                                     *
+ *   Copyright (C) 2007-2015 Vadim Lopatin <coolreader.org@gmail.com>      *
+ *   Copyright (C) 2010 Kirill Erofeev <erofeev.info@gmail.com>            *
+ *   Copyright (C) 2011,2012,2014,2019,2020 Konstantin Potapov <pkbo@users.sourceforge.net>
+ *   Copyright (C) 2012 Olexandr Nesterenko <olexn@ukr.net>                *
+ *   Copyright (C) 2012 Daniel Savard <daniels@xsoli.com>                  *
+ *   Copyright (C) 2014 Huang Xin <chrox.huang@gmail.com>                  *
+ *   Copyright (C) 2012,2014,2015 Qingping Hou <dave2008713@gmail.com>     *
+ *   Copyright (C) 2016 Yifei(Frank) ZHU <fredyifei@gmail.com>             *
+ *   Copyright (C) 2016 Hzj_jie <hzj_jie@hotmail.com>                      *
+ *   Copyright (C) 2018 EXL <exlmotodev@gmail.com>                         *
+ *   Copyright (C) 2018 Yuri Plotnikov <plotnikovya@gmail.com>             *
+ *   Copyright (C) 2018 Frans de Jonge <fransdejonge@gmail.com>            *
+ *   Copyright (C) 2018 phi <crispyfrog@163.com>                           *
+ *   Copyright (C) 2020 NiLuJe <ninuje@gmail.com>                          *
+ *   Copyright (C) 2020 Jellby <jellby@yahoo.com>                          *
+ *   Copyright (C) 2021 zwim <martin.zwicknagl@kirchbichl.net>             *
+ *   Copyright (C) 2017-2021 poire-z <poire-z@users.noreply.github.com>    *
+ *   Copyright (C) 2018-2022 Aleksey Chernov <valexlin@gmail.com>          *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU General Public License           *
+ *   as published by the Free Software Foundation; either version 2        *
+ *   of the License, or (at your option) any later version.                *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
+ *   MA 02110-1301, USA.                                                   *
+ ***************************************************************************/
 
 #include "../include/crsetup.h"
 #include "../include/fb2def.h"
@@ -2866,7 +2890,6 @@ void LVDocView::setRenderProps(int dx, int dy) {
 	m_font_size = scaleFontSizeForDPI(m_requested_font_size);
 	m_font = fontMan->GetFont(m_font_size, LVRendGetBaseFontWeight(),
 			false, DEFAULT_FONT_FAMILY, m_defaultFontFace);
-	//m_font = LVCreateFontTransform( m_font, LVFONT_TRANSFORM_EMBOLDEN );
 	m_infoFont = fontMan->GetFont(m_status_font_size, 400, false,
 			DEFAULT_FONT_FAMILY, m_statusFontFace);
 	if (!m_font || !m_infoFont)
@@ -6971,13 +6994,13 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         REQUEST_RENDER("propsApply textlang hyphenation_force_algorithmic")
     }
     int leftHyphenMin = m_props->getIntDef(PROP_HYPHENATION_LEFT_HYPHEN_MIN, HYPH_DEFAULT_HYPHEN_MIN);
-    if (HyphMan::getLeftHyphenMin() != leftHyphenMin) {
-        HyphMan::setLeftHyphenMin(leftHyphenMin);
+    if (HyphMan::getOverriddenLeftHyphenMin() != leftHyphenMin) {
+        HyphMan::overrideLeftHyphenMin(leftHyphenMin);
         REQUEST_RENDER("propsApply hyphenation left_hyphen_min")
     }
     int rightHyphenMin = m_props->getIntDef(PROP_HYPHENATION_RIGHT_HYPHEN_MIN, HYPH_DEFAULT_HYPHEN_MIN);
-    if (HyphMan::getRightHyphenMin() != rightHyphenMin) {
-        HyphMan::setRightHyphenMin(rightHyphenMin);
+    if (HyphMan::getOverriddenRightHyphenMin() != rightHyphenMin) {
+        HyphMan::overrideRightHyphenMin(rightHyphenMin);
         REQUEST_RENDER("propsApply hyphenation right_hyphen_min")
     }
     int trustSoftHyphens = m_props->getIntDef(PROP_HYPHENATION_TRUST_SOFT_HYPHENS, HYPH_DEFAULT_TRUST_SOFT_HYPHENS);

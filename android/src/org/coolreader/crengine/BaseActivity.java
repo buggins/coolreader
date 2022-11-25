@@ -1,3 +1,33 @@
+/*
+ * CoolReader for Android
+ * Copyright (C) 2011-2015,2018,2020 Vadim Lopatin <coolreader.org@gmail.com>
+ * Copyright (C) 2011 a_lone
+ * Copyright (C) 2011 Viktor Soskin <xorzone@gmail.com>
+ * Copyright (C) 2012 madlynx
+ * Copyright (C) 2013 Alexey Kabelitskiy <akabelytskyi@hmstn.com>
+ * Copyright (C) 2013 Jeff Doozan <jeff@doozan.com>
+ * Copyright (C) 2014 klush
+ * Copyright (C) 2018 S-trace <S-trace@list.ru>
+ * Copyright (C) 2018 norbi24 <norbert.bartalsky@gmail.com>
+ * Copyright (C) 2018 Yuri Plotnikov <plotnikovya@gmail.com>
+ * Copyright (C) 2021 ourairquality <info@ourairquality.org>
+ * Copyright (C) 2018-2022 Aleksey Chernov <valexlin@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.coolreader.crengine;
 
 import android.annotation.SuppressLint;
@@ -112,8 +142,13 @@ public class BaseActivity extends Activity implements Settings {
 			mEinkScreen = new EinkScreenNook();
 		else if (DeviceInfo.EINK_TOLINO)
 			mEinkScreen = new EinkScreenTolino();
+		/*
+		 * Support for ONYX devices is disabled until the ONYX SDK is released under a GPL compatible license.
+		 * When enabling this code don't forget to update related code in DeviceInfo.java and EinkScreenOnyx.java
+		 *
 		else if (DeviceInfo.EINK_ONYX)
 			mEinkScreen = new EinkScreenOnyx();
+		 */
 		else
 			mEinkScreen = new EinkScreenDummy();
 
@@ -1973,7 +2008,7 @@ public class BaseActivity extends Activity implements Settings {
 
 			props.setProperty(ReaderView.PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
 			props.setProperty(ReaderView.PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
-			props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
+			props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.HYPH_RU_RU_EN_US.toString());
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, "0");
 
 			props.applyDefault(ReaderView.PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, "0");

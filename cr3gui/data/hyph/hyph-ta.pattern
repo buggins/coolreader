@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf8"?>
+<!--
+    Hyphenations description for CoolReader
+    from original file: tex-hyphen/hyph-utf8/tex/generic/hyph-utf8/patterns/tex/hyph-ta.tex
+
+title: Hyphenation patterns for Tamil
+copyright: Copyright (C) 2016 Santhosh Thottingal
+notice: This file is part of the hyph-utf8 package.
+    See http://www.hyphenation.org/tex for more information.
+source: https://github.com/santhoshtr/hyphenation/
+language:
+    name: Tamil
+    tag: ta
+version: 0.9.0 2016-01-16
+authors:
+  -
+    name: Santhosh Thottingal
+    contact: santhosh.thottingal (at) gmail.com
+licence:
+    - This file is available under any of the following licences:
+    -
+        name: MIT
+        url: https://opensource.org/licenses/MIT
+        text: >
+            Permission is hereby granted, free of charge, to any person
+            obtaining a copy of this software and associated documentation
+            files (the "Software"), to deal in the Software without
+            restriction, including without limitation the rights to use,
+            copy, modify, merge, publish, distribute, sublicense, and/or sell
+            copies of the Software, and to permit persons to whom the
+            Software is furnished to do so, subject to the following
+            conditions:
+            The above copyright notice and this permission notice shall be
+            included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+            EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+            OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+            NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+            HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+            WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+            FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+            OTHER DEALINGS IN THE SOFTWARE.
+    -
+        name: LGPL
+        version: 3
+        or_later: true
+        url: http://www.gnu.org/licenses/lgpl.html
+    -
+        name: GPL
+        version: 3
+        or_later: true
+        url: http://www.gnu.org/licenses/gpl.html
+hyphenmins:
+    generation:
+        left: 1
+        right: 1
+texlive:
+    babelname: tamil
+    message: Tamil hyphenation patterns
+    package: indic
+-->
+
+<HyphenationDescription
+    title="Tamil" lang="ta"
+    lefthyphenmin="1" righthyphenmin="1">
+<!--  GENERAL RULE -->
+<!--  Do not break either side of ZERO-WIDTH JOINER  (U+200D) -->
+  <pattern>2‍2</pattern>
+<!--  Break on both sides of ZERO-WIDTH NON JOINER  (U+200C) -->
+  <pattern>1‌1</pattern>
+<!--  Break before or after any independent vowel. -->
+  <pattern>1அ1</pattern>
+  <pattern>1ஆ1</pattern>
+  <pattern>1இ1</pattern>
+  <pattern>1ஈ1</pattern>
+  <pattern>1உ1</pattern>
+  <pattern>1ஊ1</pattern>
+  <pattern>1எ1</pattern>
+  <pattern>1ஏ1</pattern>
+  <pattern>1ஐ1</pattern>
+  <pattern>1ஒ1</pattern>
+  <pattern>1ஓ1</pattern>
+  <pattern>1ஔ1</pattern>
+<!--  Break after any dependent vowel, but not before. -->
+  <pattern>ா1</pattern>
+  <pattern>ி1</pattern>
+  <pattern>ீ1</pattern>
+  <pattern>ு1</pattern>
+  <pattern>ூ1</pattern>
+  <pattern>ெ1</pattern>
+  <pattern>ே1</pattern>
+  <pattern>ை1</pattern>
+  <pattern>ொ1</pattern>
+  <pattern>ோ1</pattern>
+  <pattern>ௌ1</pattern>
+<!--  Break before or after any consonant. -->
+  <pattern>1க</pattern>
+  <pattern>1ங</pattern>
+  <pattern>1ச</pattern>
+  <pattern>1ஜ</pattern>
+  <pattern>1ஞ</pattern>
+  <pattern>1ட</pattern>
+  <pattern>1ண</pattern>
+  <pattern>1த</pattern>
+  <pattern>1ந</pattern>
+  <pattern>1ப</pattern>
+  <pattern>1ம</pattern>
+  <pattern>1ய</pattern>
+  <pattern>1ர</pattern>
+  <pattern>1ற</pattern>
+  <pattern>1ல</pattern>
+  <pattern>1ள</pattern>
+  <pattern>1ழ</pattern>
+  <pattern>1வ</pattern>
+  <pattern>1ஷ</pattern>
+  <pattern>1ஸ</pattern>
+  <pattern>1ஹ</pattern>
+<!--  Do not break before any consonant + virama. -->
+  <pattern>2க்1</pattern>
+  <pattern>2ங்1</pattern>
+  <pattern>2ச்1</pattern>
+  <pattern>2ஞ்1</pattern>
+  <pattern>2ட்1</pattern>
+  <pattern>2ண்1</pattern>
+  <pattern>2த்1</pattern>
+  <pattern>2ன்1</pattern>
+  <pattern>2ந்1</pattern>
+  <pattern>2ப்1</pattern>
+  <pattern>2ம்1</pattern>
+  <pattern>2ய்1</pattern>
+  <pattern>2ர்1</pattern>
+  <pattern>2ற்1</pattern>
+  <pattern>2ல்1</pattern>
+  <pattern>2ள்1</pattern>
+  <pattern>2ழ்1</pattern>
+  <pattern>2வ்1</pattern>
+  <pattern>2ஷ்1</pattern>
+  <pattern>2ஸ்1</pattern>
+  <pattern>2ஹ்1</pattern>
+<!--  Do not break before anusvara, visarga and length mark. -->
+  <pattern>2ஂ1</pattern>
+  <pattern>2ஃ1</pattern>
+  <pattern>2ௗ1</pattern>
+<!--  Do not break before virama but break after virama. -->
+  <pattern>2்1</pattern>
+</HyphenationDescription>

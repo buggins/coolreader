@@ -1,19 +1,30 @@
-/** @file lvwin32font.cpp
-    @brief Win32 font implementation
-
-    CoolReader Engine
-
-
-    (c) Vadim Lopatin, 2000-2006
-    This source code is distributed under the terms of
-    GNU General Public License.
-
-    See LICENSE file for details.
-
-*/
+/***************************************************************************
+ *   CoolReader engine                                                     *
+ *   Copyright (C) 2007,2008,2010,2011,2013 Vadim Lopatin <coolreader.org@gmail.com>
+ *   Copyright (C) 2018 Frans de Jonge <fransdejonge@gmail.com>            *
+ *   Copyright (C) 2019-2021 poire-z <poire-z@users.noreply.github.com>    *
+ *   Copyright (C) 2019-2022 Aleksey Chernov <valexlin@gmail.com>          *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU General Public License           *
+ *   as published by the Free Software Foundation; either version 2        *
+ *   of the License, or (at your option) any later version.                *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
+ *   MA 02110-1301, USA.                                                   *
+ ***************************************************************************/
 
 #include "lvwin32font.h"
 #include "lvfnt.h"
+#include "textlang.h"
+#include "../lvdrawbuf/lvdrawbuf_utils.h"
 
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE != 1
@@ -132,9 +143,7 @@ int LVWin32DrawFont::getCharWidth( lChar32 ch, lChar32 def_char )
     GCP_RESULTSW gcpres = { 0 };
 
     gcpres.lStructSize = sizeof(gcpres);
-    lChar32 str[2];
-    str[0] = ch;
-    str[1] = 0;
+    lString16 str16 = UnicodeToUtf16(&ch, 1);
     int dx[2];
     gcpres.lpDx = dx;
     gcpres.nMaxFit = 1;
@@ -142,8 +151,8 @@ int LVWin32DrawFont::getCharWidth( lChar32 ch, lChar32 def_char )
 
     lUInt32 res = GetCharacterPlacementW( 
         _drawbuf.GetDC(),
-        str,
-        1,
+        str16.c_str(),
+        str16.length(),
         100,
         &gcpres,
         GCP_MAXEXTENT); //|GCP_USEKERNING
@@ -157,7 +166,7 @@ int LVWin32DrawFont::getCharWidth( lChar32 ch, lChar32 def_char )
     return dx[0];
 }
 
-lUInt32 LVWin32DrawFont::getTextWidth( const lChar32 * text, int len, TextLangCfg * lang_cfg = NULL )
+lUInt32 LVWin32DrawFont::getTextWidth( const lChar32 * text, int len, TextLangCfg * lang_cfg )
 {
     //
     static lUInt16 widths[MAX_LINE_CHARS+1];
@@ -189,7 +198,7 @@ lUInt16 LVWin32DrawFont::measureText(
                     lUInt8 * flags,
                     int max_width,
                     lChar32 def_char,
-                    TextLangCfg * lang_cfg = NULL,
+                    TextLangCfg * lang_cfg,
                     int letter_spacing,
                     bool allow_hyphenation,
                     lUInt32 hints,
@@ -198,11 +207,12 @@ lUInt16 LVWin32DrawFont::measureText(
 {
     if (_hfont==NULL)
         return 0;
-
-    lString32 str(text, len);
-    assert(str[len]==0);
+    
+    lString16 str16 = UnicodeToUtf16(text, len);
+    lChar16* pstr = str16.modify();
+    len = str16.length();
+    assert(pstr[len]==0);
     //str += L"         ";
-    lChar32 * pstr = str.modify();
     assert(pstr[len]==0);
     // substitute soft hyphens with zero width spaces
     for (int i=0; i<len; i++)
@@ -243,7 +253,7 @@ lUInt16 LVWin32DrawFont::measureText(
     lUInt16 gwidth = 0;
     lUInt8 bflags;
     int isSpace;
-    lChar32 ch;
+    lChar16 ch;
     int hwStart, hwEnd;
 
     assert(pstr[len]==0);
@@ -251,7 +261,7 @@ lUInt16 LVWin32DrawFont::measureText(
     for ( ; wsum < max_width && nchars < len && nchars<gcpres.nMaxFit; nchars++ ) 
     {
         bflags = 0;
-        ch = text[nchars];
+        ch = str16[nchars];
         isSpace = lvfontIsUnicodeSpace(ch);
         if (isSpace ||  ch == UNICODE_SOFT_HYPHEN_CODE )
             bflags |= LCHAR_ALLOW_WRAP_AFTER;
@@ -278,7 +288,7 @@ lUInt16 LVWin32DrawFont::measureText(
     }
     for (hwEnd=nchars; hwEnd<len; hwEnd++)
     {
-        lChar32 ch = text[hwEnd];
+        ch = str16[hwEnd];
         if (lvfontIsUnicodeSpace(ch))
             break;
         if (flags[hwEnd-1]&LCHAR_ALLOW_WRAP_AFTER)
@@ -289,9 +299,9 @@ lUInt16 LVWin32DrawFont::measureText(
     }
     HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
     if ( lang_cfg )
-        lang_cfg->getHyphMethod()->hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, hyphwidth, max_width);
+        lang_cfg->getHyphMethod()->hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
     else // Use global lang hyph method
-        HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, hyphwidth, max_width);
+        HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
 
     return nchars;
 }
@@ -307,13 +317,13 @@ int LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
 {
     if (_hfont==NULL)
         return 0;
-
-    lString32 str(text, len);
+    
+    lString16 str16 = UnicodeToUtf16(text, len);
     // substitute soft hyphens with zero width spaces
     if (addHyphen)
-        str += UNICODE_SOFT_HYPHEN_CODE;
-    //str += U"       ";
-    lChar32 * pstr = str.modify();
+        str16 += UNICODE_SOFT_HYPHEN_CODE;
+    //str16 += U"       ";
+    lChar16 * pstr = str16.modify();
     for (int i=0; i<len-1; i++)
     {
         if (pstr[i]==UNICODE_SOFT_HYPHEN_CODE)
@@ -329,7 +339,7 @@ int LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
         // draw using backbuffer
         SIZE sz;
         if ( !GetTextExtentPoint32W(_drawbuf.GetDC(), 
-                str.c_str(), str.length(), &sz) )
+                str16.c_str(), str16.length(), &sz) )
             return 0;
         LVColorDrawBuf colorbuf( sz.cx, sz.cy );
         colorbuf.Clear(0xFFFFFF);
@@ -341,7 +351,7 @@ int LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
         if (ExtTextOutW( dc, 0, 0, 
                 0, //ETO_OPAQUE
                 NULL,
-                str.c_str(), str.length(), NULL ))
+                str16.c_str(), str16.length(), NULL ))
         {
             // COPY colorbuf to buf with converting
             colorbuf.DrawTo( buf, x, y, 0, NULL );
@@ -358,7 +368,7 @@ int LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
         ExtTextOutW( dc, x, y, 
             0, //ETO_OPAQUE
             NULL,
-            str.c_str(), str.length(), NULL );
+            str16.c_str(), str16.length(), NULL );
         SelectObject( dc, oldfont );
     }
     return 0; // advance not implemented
@@ -575,14 +585,13 @@ lUInt16 LVWin32Font::measureText(
     lUInt16 nchars = 0;
     glyph_t * glyph; //GetGlyphRec( lChar32 ch )
     lUInt16 gwidth = 0;
-    lUInt16 hyphwidth = 0;
     lUInt8 bflags;
     int isSpace;
     lChar32 ch;
     int hwStart, hwEnd;
 
-    glyph = GetGlyphRec( UNICODE_SOFT_HYPHEN_CODE );
-    hyphwidth = glyph ? glyph->gi.width : 0;
+    if (!_hyphen_width)
+        _hyphen_width = getCharWidth(UNICODE_SOFT_HYPHEN_CODE);
 
     for ( ; wsum < max_width && nchars < len; nchars++ ) 
     {

@@ -24,6 +24,8 @@ cr3gui/data/tessdata/
 .directory
 *.orig
 *.rej
+*.diff
+*.patch
 /clang-analyzer-reports/
 /thirdparty
 /thirdparty_tmp

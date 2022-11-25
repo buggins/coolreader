@@ -1,3 +1,22 @@
+/***************************************************************************
+ *   CoolReader engine                                                     *
+ *   Copyright (C) 2009,2010 Vadim Lopatin <coolreader.org@gmail.com>      *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU General Public License           *
+ *   as published by the Free Software Foundation; either version 2        *
+ *   of the License, or (at your option) any later version.                *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
+ *   MA 02110-1301, USA.                                                   *
+ ***************************************************************************/
 
 // Copied from coolreader-3.2.49 (crengine/src/hyphman.cpp)
 
@@ -17,7 +36,7 @@ public:
     bool match( const lChar32 * str, char * mask );
     virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
     void addPattern( MyTexPattern * pattern );
-    MyTexHyph( lString32 id=HYPH_DICT_ID_DICTIONARY, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN, int rightHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN );
+    MyTexHyph( lString32 id=HYPH_DICT_ID_DICTIONARY );
     virtual ~MyTexHyph();
     bool load( LVStreamRef stream );
     bool load( lString32 fileName );

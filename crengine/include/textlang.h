@@ -1,3 +1,25 @@
+/***************************************************************************
+ *   CoolReader engine                                                     *
+ *   Copyright (C) 2020,2021 poire-z <poire-z@users.noreply.github.com>    *
+ *   Copyright (C) 2020 Jellby <jellby@yahoo.com>                          *
+ *   Copyright (C) 2020-2022 Aleksey Chernov <valexlin@gmail.com>          *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU General Public License           *
+ *   as published by the Free Software Foundation; either version 2        *
+ *   of the License, or (at your option) any later version.                *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
+ *   MA 02110-1301, USA.                                                   *
+ ***************************************************************************/
+
 #ifndef __TEXTLANG_H_INCLUDED__
 #define __TEXTLANG_H_INCLUDED__
 
@@ -22,14 +44,14 @@
     #endif
 #endif
 
-// Be similar to HyphMan default state with "English_US.pattern"
+// Be similar to HyphMan default state with "hyph-en-us.pattern"
 #define TEXTLANG_DEFAULT_MAIN_LANG              "en"   // for LVDocView
 #define TEXTLANG_DEFAULT_MAIN_LANG_32           U"en"  // for textlang.cpp
 #define TEXTLANG_DEFAULT_EMBEDDED_LANGS_ENABLED false
 #define TEXTLANG_DEFAULT_HYPHENATION_ENABLED    true
 #define TEXTLANG_DEFAULT_HYPH_SOFT_HYPHENS_ONLY false
 #define TEXTLANG_DEFAULT_HYPH_FORCE_ALGORITHMIC false
-#define TEXTLANG_FALLBACK_HYPH_DICT_ID  U"English_US.pattern" // For languages without specific hyph dicts
+#define TEXTLANG_FALLBACK_HYPH_DICT_ID          U"hyph-en-us.pattern" // For languages without specific hyph dicts
 
 class TextLangCfg;
 class HyphMethod;
@@ -49,8 +71,6 @@ class TextLangMan
     static HyphMethod * _no_hyph_method;       // instance of hyphman NoHyph
     static HyphMethod * _soft_hyphens_method;  // instance of hyphman SoftHyphensHyph
     static HyphMethod * _algo_hyph_method;     // instance of hyphman AlgoHyph
-
-    static HyphMethod * getHyphMethodForLang( lString32 lang_tag ); // Used by TextLangCfg
 public:
     static void uninit();
     static lUInt32 getHash();
@@ -93,8 +113,6 @@ public:
     static LVPtrVector<TextLangCfg> * getLangCfgList() {
         return &_lang_cfg_list;
     }
-
-    static lString32 getLangTag(const lString32& title);
 
     TextLangMan();
     ~TextLangMan();
@@ -174,6 +192,5 @@ public:
     TextLangCfg( lString32 lang_tag );
     ~TextLangCfg();
 };
-
 
 #endif

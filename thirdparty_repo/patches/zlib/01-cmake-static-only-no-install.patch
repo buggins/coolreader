@@ -1,9 +1,9 @@
-diff -urBb zlib-1.2.11-orig/CMakeLists.txt zlib-1.2.11/CMakeLists.txt
---- zlib-1.2.11-orig/CMakeLists.txt	2017-01-15 21:29:40.000000000 +0400
-+++ zlib-1.2.11/CMakeLists.txt	2021-01-25 12:59:48.888570230 +0400
-@@ -8,12 +8,6 @@
- option(ASM686 "Enable building i686 assembly implementation")
- option(AMD64 "Enable building amd64 assembly implementation")
+diff -urBb zlib-1.2.13-orig/CMakeLists.txt zlib-1.2.13/CMakeLists.txt
+--- zlib-1.2.13-orig/CMakeLists.txt	2022-10-13 09:06:55.000000000 +0400
++++ zlib-1.2.13/CMakeLists.txt	2022-11-12 13:04:34.332384109 +0400
+@@ -5,12 +5,6 @@
+ 
+ set(VERSION "1.2.13")
  
 -set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 -set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
@@ -14,7 +14,7 @@ diff -urBb zlib-1.2.11-orig/CMakeLists.txt zlib-1.2.11/CMakeLists.txt
  include(CheckTypeSize)
  include(CheckFunctionExists)
  include(CheckIncludeFile)
-@@ -78,9 +72,6 @@
+@@ -75,9 +69,6 @@
    endif()
  endif()
  
@@ -24,7 +24,7 @@ diff -urBb zlib-1.2.11-orig/CMakeLists.txt zlib-1.2.11/CMakeLists.txt
  configure_file(	${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.cmakein
  		${CMAKE_CURRENT_BINARY_DIR}/zconf.h @ONLY)
  include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR})
-@@ -123,12 +114,6 @@
+@@ -120,94 +111,9 @@
      zutil.c
  )
  
@@ -34,10 +34,8 @@ diff -urBb zlib-1.2.11-orig/CMakeLists.txt zlib-1.2.11/CMakeLists.txt
 -    )
 -endif()
 -
- if(CMAKE_COMPILER_IS_GNUCC)
-     if(ASM686)
-         set(ZLIB_ASMS contrib/asm686/match.S)
-@@ -167,83 +152,4 @@
+ # parse the full version number from zlib.h and include in ZLIB_FULL_VERSION
+ file(READ ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h _zlib_h_contents)
  string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
      "\\1" ZLIB_FULL_VERSION ${_zlib_h_contents})
  
@@ -57,8 +55,8 @@ diff -urBb zlib-1.2.11-orig/CMakeLists.txt zlib-1.2.11/CMakeLists.txt
 -    set(ZLIB_DLL_SRCS ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj)
 -endif(MINGW)
 -
--add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
- add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+-add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+ add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 -set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
 -set_target_properties(zlib PROPERTIES SOVERSION 1)
 -
@@ -121,5 +119,3 @@ diff -urBb zlib-1.2.11-orig/CMakeLists.txt zlib-1.2.11/CMakeLists.txt
 -    target_link_libraries(minigzip64 zlib)
 -    set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
 -endif()
-Только в zlib-1.2.11-orig: zconf.h
-Только в zlib-1.2.11: zconf.h.included

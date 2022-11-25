@@ -81,7 +81,6 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/odtfmt.cpp
     ${CR3_ROOT}/crengine/src/odxutil.cpp
     ${CR3_ROOT}/crengine/src/lvstsheet.cpp
-    ${CR3_ROOT}/crengine/src/txtselector.cpp
     ${CR3_ROOT}/crengine/src/crtest.cpp
     ${CR3_ROOT}/crengine/src/lvbmpbuf.cpp
     ${CR3_ROOT}/crengine/src/hyphman.cpp

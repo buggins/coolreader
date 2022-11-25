@@ -647,7 +647,7 @@
     <string name="fontconfig_language_orthography_database">Набор символов различных писменностей от Fontconfig:
         https://www.fontconfig.org/
     </string>
-    <string name="third_party_components_used">Использованы следующие компоненты третьих сторон: zlib, libpng, libjpeg,
+    <string name="third_party_components_used">Использованы следующие компоненты третьих сторон: zlib, libpng, libjpeg, fribidi, utf8proc, zstd,
         freetype, harfbuzz, chmlib, antiword, Nook EPD utils от DairyKnight
     </string>
     <string name="third_party_tango_mod_icon_set">Высококонтрастные значки основаны на Tango Icon Library: http://tango.freedesktop.org/Tango_Icon_Library</string>
@@ -731,8 +731,8 @@
     <string name="options_eink_app_optimization_enabled">отключено, так как включена оптимизация приложения</string>
     <string name="options_legacy_rendering_enabled">отключено, так как включен устаревший рендеринг</string>
     <string name="options_disabled_document_styles">отключены встроенные стили документа или неподдерживаемый тип документа</string>
-    <string name="options_multilingual_enabled">отключено, так как включена поддежка мультиязычных документов</string>
-    <string name="options_multilingual_disabled">отключено, так как отключена поддежка мультиязычных документов или включен устаревший рендеринг</string>
+    <string name="options_multilingual_enabled">отключено, так как включена поддержка мультиязычных документов</string>
+    <string name="options_multilingual_disabled">отключено, так как отключена поддержка мультиязычных документов или включен устаревший рендеринг</string>
     <string name="filter_by_book_language_s">Отфильтровать по языку книги (%s)</string>
     <string name="scanning_font_files">Сканирование файлов шрифтов…</string>
     <string name="undetermined">Неопределенный</string>

@@ -1,23 +1,39 @@
-/** \file fb2def.h
-    \brief FictionBook2 format defitions
+/***************************************************************************
+ *   CoolReader engine                                                     *
+ *   Copyright (C) 2007-2010 Vadim Lopatin <coolreader.org@gmail.com>      *
+ *   Copyright (C) 2020 Jellby <jellby@yahoo.com>                          *
+ *   Copyright (C) 2021 ourairquality <info@ourairquality.org>             *
+ *   Copyright (C) 2018-2021 poire-z <poire-z@users.noreply.github.com>    *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU General Public License           *
+ *   as published by the Free Software Foundation; either version 2        *
+ *   of the License, or (at your option) any later version.                *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
+ *   MA 02110-1301, USA.                                                   *
+ ***************************************************************************/
 
-    When included w/o XS_IMPLEMENT_SCHEME defined,
-    declares enums for element, attribute and namespace names.
-
-    When included with XS_IMPLEMENT_SCHEME defined,
-    defines fb2_elem_table, fb2_attr_table and fb2_ns_table tables
-    which can be passed to document to define schema.
-    Please include it with XS_IMPLEMENT_SCHEME only into once in project.
-
-    CoolReader Engine
-
-    (c) Vadim Lopatin, 2000-2006
-    This source code is distributed under the terms of
-    GNU General Public License.
-
-    See LICENSE file for details.
-
-*/
+/**
+ * \file fb2def.h
+ * \brief FictionBook2 format definitions
+ *
+ * When included w/o XS_IMPLEMENT_SCHEME defined,
+ * declares enums for element, attribute and namespace names.
+ *
+ * When included with XS_IMPLEMENT_SCHEME defined,
+ * defines fb2_elem_table, fb2_attr_table and fb2_ns_table tables
+ * which can be passed to document to define schema.
+ *
+ * Please include it with XS_IMPLEMENT_SCHEME only once in project.
+ */
 
 #if !defined(__FB2_DEF_H_INCLUDED__) || defined(XS_IMPLEMENT_SCHEME)
 #define __FB2_DEF_H_INCLUDED__

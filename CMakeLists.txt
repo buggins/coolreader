@@ -156,21 +156,9 @@ endif( ${GUI} STREQUAL QT5 )
 # thirdparty sources definitions
 include("${CMAKE_SOURCE_DIR}/thirdparty_repo/repo_srcdirs.cmake")
 
-#UNRAR support
+#UNRAR support (not implemented yet)
 if(DEFINED USE_UNRAR)
-  message("Will build static UNRAR library")
-  SET(USE_UNRAR 1)
-  SET(UNRAR_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty_unman/unrar)
-  SET(UNRAR_LIBRARIES unrar)
   ADD_DEFINITIONS(-DUSE_UNRAR=1)
-  INCLUDE_DIRECTORIES(${UNRAR_INCLUDE_DIR})
-  ADD_SUBDIRECTORY(thirdparty_unman/unrar)
-else()
-  message("NO_UNRAR parameter specified: Will not support UNRAR")
-  SET(UNRAR_INCLUDE_DIR)
-  SET(UNRAR_LIBRARIES)
-  ADD_DEFINITIONS(-DUSE_UNRAR=0)
-  SET(USE_UNRAR 0)
 endif(DEFINED USE_UNRAR)
 
 find_path(NANOSVG_INCLUDE_DIR nanosvg.h DOC "Path to NanoSVG include dir")

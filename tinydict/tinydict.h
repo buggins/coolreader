@@ -1,16 +1,28 @@
-/** \file tinydict.h
-    \brief .dict dictionary file support interface
+/***************************************************************************
+ *   CoolReader, .dict dictionary file support interface                   *
+ *   Copyright (C) 2009 Vadim Lopatin <coolreader.org@gmail.com>           *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU General Public License           *
+ *   as published by the Free Software Foundation; either version 2        *
+ *   of the License, or (at your option) any later version.                *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
+ *   MA 02110-1301, USA.                                                   *
+ ***************************************************************************/
 
-    Lightweight implementation of .dict support, written from scratch.
-
-    (c) Vadim Lopatin, 2009
-
-    This source code is distributed under the terms of
-    GNU General Public License.
-
-    See LICENSE file for details.
-
-
+/**
+ * \file tinydict.h
+ * \brief .dict dictionary file support interface
+ *
+ * Lightweight implementation of .dict support, written from scratch.
 
 	usage: 
 
@@ -38,7 +50,7 @@
 					printf("article: %s\n", words->getArticle( i ) );
 				}
 			}
-*/
+ */
 
 #ifndef TINYDICT_H_INCLUDED
 #define TINYDICT_H_INCLUDED

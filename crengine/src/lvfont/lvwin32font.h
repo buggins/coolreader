@@ -1,16 +1,30 @@
-/** \file lvwin32font.h
-    \brief Win32 font interface
+/***************************************************************************
+ *   CoolReader engine                                                     *
+ *   Copyright (C) 2007-2009 Vadim Lopatin <coolreader.org@gmail.com>      *
+ *   Copyright (C) 2015 Yifei(Frank) ZHU <fredyifei@gmail.com>             *
+ *   Copyright (C) 2019-2021 poire-z <poire-z@users.noreply.github.com>    *
+ *   Copyright (C) 2019-2022 Aleksey Chernov <valexlin@gmail.com>          *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU General Public License           *
+ *   as published by the Free Software Foundation; either version 2        *
+ *   of the License, or (at your option) any later version.                *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
+ *   MA 02110-1301, USA.                                                   *
+ ***************************************************************************/
 
-    CoolReader Engine
-
-    (c) Vadim Lopatin, 2000-2006
-
-    This source code is distributed under the terms of
-    GNU General Public License.
-
-    See LICENSE file for details.
-
-*/
+/**
+ * \file lvwin32font.h
+ * \brief Win32 font interface
+ */
 
 #ifndef __LV_WIN32FONT_H_INCLUDED__
 #define __LV_WIN32FONT_H_INCLUDED__
@@ -37,10 +51,11 @@ protected:
     int     _height;
     int     _baseline;
     LVColorDrawBuf _drawbuf;
+    int _hyphen_width;
 
 public:
 
-    LVBaseWin32Font() : _hfont(NULL), _height(0), _baseline(0), _drawbuf(1,1)
+    LVBaseWin32Font() : _hfont(NULL), _height(0), _baseline(0), _drawbuf(1,1), _hyphen_width(0)
         { }
 
     virtual ~LVBaseWin32Font() { Clear(); }
@@ -63,11 +78,25 @@ public:
         return false;
     }
 
+    /// returns char glyph left side bearing
+    int getLeftSideBearing(lChar32 ch, bool negative_only = false, bool italic_only = false) {
+        return 0;
+    }
+
+    /// returns char glyph right side bearing
+    virtual int getRightSideBearing(lChar32 ch, bool negative_only = false, bool italic_only = false) {
+        return 0;
+    }
+
     /// returns extra metric
-    virtual int getExtraMetric(font_extra_metric_t metric, bool scaled_to_px=true) = 0;
+    virtual int getExtraMetric(font_extra_metric_t metric, bool scaled_to_px=true) {
+        return 0;
+    }
 
     /// returns if font has OpenType Math tables
-    virtual bool hasOTMathSupport() const = 0;
+    virtual bool hasOTMathSupport() const {
+        return false;
+    }
 
     /// retrieves font handle
     virtual void * GetHandle()
@@ -129,11 +158,9 @@ public:
 
 class LVWin32DrawFont : public LVBaseWin32Font
 {
-private:
-    int _hyphen_width;
 public:
 
-    LVWin32DrawFont() : _hyphen_width(0) { }
+    LVWin32DrawFont() { }
 
     /** \brief get glyph info
         \param glyph is pointer to glyph_info_t struct to place retrieved info
@@ -170,7 +197,7 @@ public:
     virtual int getCharWidth( lChar32 ch, lChar32 def_char=0 );
 
     /// draws text string
-    virtual void DrawTextString( LVDrawBuf * buf, int x, int y,
+    virtual int DrawTextString( LVDrawBuf * buf, int x, int y,
                        const lChar32 * text, int len,
                        lChar32 def_char, lUInt32 * palette,
                        bool addHyphen, TextLangCfg * lang_cfg = NULL,

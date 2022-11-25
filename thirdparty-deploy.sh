@@ -153,12 +153,12 @@ then
 	mkdir "${repo_tmpdir}" || die "Failed to create repo tmpdir!"
 fi
 
-deploy_package libunibreak
+deploy_package zlib
 deploy_package libpng
 deploy_package libjpeg
 deploy_package freetype
 deploy_package harfbuzz
 deploy_package fribidi
-deploy_package zlib
-deploy_package zstd
 deploy_package utf8proc
+deploy_package libunibreak
+deploy_package zstd

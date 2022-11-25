@@ -1,9 +1,29 @@
+/*
+ * CoolReader for Android
+ * Copyright (C) 2011,2012 Vadim Lopatin <coolreader.org@gmail.com>
+ * Copyright (C) 2018 Yuri Plotnikov <plotnikovya@gmail.com>
+ * Copyright (C) 2018,2021 Aleksey Chernov <valexlin@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package org.coolreader.crengine;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
-import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +32,6 @@ import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
 import android.widget.TextView;
 
-import org.coolreader.BuildConfig;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
@@ -142,9 +161,9 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		String license = Engine.getInstance(mCoolReader).loadResourceUtf8(R.raw.license);
 		((TextView)mLicenseTab.findViewById(R.id.license)).setText(license);
 		boolean billingSupported = mCoolReader.isDonationSupported();
+		mDonationTab = inflater.inflate(billingSupported ? R.layout.about_dialog_donation2 : R.layout.about_dialog_donation, null);
 
 		if (billingSupported) {
-			mDonationTab = inflater.inflate(R.layout.about_dialog_donation2, null);
 			setupInAppDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_vip), 100);
 			setupInAppDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_platinum), 30);
 			setupInAppDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_gold), 10);
@@ -155,16 +174,9 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 			mCoolReader.setDonationListener(total -> updateTotalDonations());
 			setOnDismissListener(dialog -> mCoolReader.setDonationListener(null));
 		} else {
-			mDonationTab = inflater.inflate(R.layout.about_dialog_donation, null);
-			if (BuildConfig.GSUITE_AVAILABLE) {
-				setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_gold), "org.coolreader.donation.gold");
-				setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_silver), "org.coolreader.donation.silver");
-				setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), "org.coolreader.donation.bronze");
-			}
-			TextView paypalLink = mDonationTab.findViewById(R.id.paypalLink);
-			if (null != paypalLink) {
-				paypalLink.setMovementMethod(LinkMovementMethod.getInstance());
-			}
+			setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_gold), "org.coolreader.donation.gold");
+			setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_silver), "org.coolreader.donation.silver");
+			setupDonationButton(mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), "org.coolreader.donation.bronze");
 		}
 		
 		tabs.setup();

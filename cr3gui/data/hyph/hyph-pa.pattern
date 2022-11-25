@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf8"?>
+<!--
+    Hyphenations description for CoolReader
+    from original file: tex-hyphen/hyph-utf8/tex/generic/hyph-utf8/patterns/tex/hyph-pa.tex
+
+title: Hyphenation patterns for Panjabi
+copyright: Copyright (C) 2016 Santhosh Thottingal
+notice: This file is part of the hyph-utf8 package.
+    See http://www.hyphenation.org/tex for more information.
+source: https://github.com/santhoshtr/hyphenation/
+language:
+    name: Panjabi, Punjabi
+    tag: pa
+version: 0.9.0 2016-01-16
+authors:
+  -
+    name: Santhosh Thottingal
+    contact: santhosh.thottingal (at) gmail.com
+licence:
+    - This file is available under any of the following licences:
+    -
+        name: MIT
+        url: https://opensource.org/licenses/MIT
+        text: >
+            Permission is hereby granted, free of charge, to any person
+            obtaining a copy of this software and associated documentation
+            files (the “Software”), to deal in the Software without
+            restriction, including without limitation the rights to use,
+            copy, modify, merge, publish, distribute, sublicense, and/or sell
+            copies of the Software, and to permit persons to whom the
+            Software is furnished to do so, subject to the following
+            conditions:
+            The above copyright notice and this permission notice shall be
+            included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+            EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+            OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+            NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+            HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+            WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+            FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+            OTHER DEALINGS IN THE SOFTWARE.
+    -
+        name: LGPL
+        version: 3
+        or_later: true
+        url: http://www.gnu.org/licenses/lgpl.html
+    -
+        name: GPL
+        version: 3
+        or_later: true
+        url: http://www.gnu.org/licenses/gpl.html
+hyphenmins:
+    generation:
+        left: 1
+        right: 1
+texlive:
+    babelname: panjabi
+    message: Panjabi hyphenation patterns
+    package: indic
+-->
+
+<HyphenationDescription
+    title="Panjabi, Punjabi" lang="pa"
+    lefthyphenmin="1" righthyphenmin="1">
+<!--  GENERAL RULE -->
+<!--  Do not break either side of ZERO-WIDTH JOINER  (U+200D) -->
+  <pattern>2‍2</pattern>
+<!--  Break on both sides of ZERO-WIDTH NON JOINER  (U+200C) -->
+  <pattern>1‌1</pattern>
+<!--  Break before or after any independent vowel. -->
+  <pattern>ਅ1</pattern>
+  <pattern>ਆ1</pattern>
+  <pattern>ਇ1</pattern>
+  <pattern>ਈ1</pattern>
+  <pattern>ਉ1</pattern>
+  <pattern>ਊ1</pattern>
+  <pattern>ਏ1</pattern>
+  <pattern>ਐ1</pattern>
+  <pattern>ਓ1</pattern>
+  <pattern>ਔ1</pattern>
+<!--  Break after any dependent vowel but not before. -->
+  <pattern>ਾ1</pattern>
+  <pattern>ਿ1</pattern>
+  <pattern>ੀ1</pattern>
+  <pattern>ੁ1</pattern>
+  <pattern>ੂ1</pattern>
+  <pattern>ੇ1</pattern>
+  <pattern>ੈ1</pattern>
+  <pattern>ੋ1</pattern>
+  <pattern>ੌ1</pattern>
+<!--  Break before or after any consonant. -->
+  <pattern>1ਕ</pattern>
+  <pattern>1ਖ</pattern>
+  <pattern>1ਗ</pattern>
+  <pattern>1ਘ</pattern>
+  <pattern>1ਙ</pattern>
+  <pattern>1ਚ</pattern>
+  <pattern>1ਛ</pattern>
+  <pattern>1ਜ</pattern>
+  <pattern>1ਝ</pattern>
+  <pattern>1ਞ</pattern>
+  <pattern>1ਟ</pattern>
+  <pattern>1ਠ</pattern>
+  <pattern>1ਡ</pattern>
+  <pattern>1ਢ</pattern>
+  <pattern>1ਣ</pattern>
+  <pattern>1ਤ</pattern>
+  <pattern>1ਥ</pattern>
+  <pattern>1ਦ</pattern>
+  <pattern>1ਧ</pattern>
+  <pattern>1ਨ</pattern>
+  <pattern>1ਪ</pattern>
+  <pattern>1ਫ</pattern>
+  <pattern>1ਬ</pattern>
+  <pattern>1ਭ</pattern>
+  <pattern>1ਮ</pattern>
+  <pattern>1ਯ</pattern>
+  <pattern>1ਰ</pattern>
+  <pattern>1ਲ</pattern>
+  <pattern>1ਲ਼</pattern>
+  <pattern>1ਵ</pattern>
+  <pattern>1ਸ਼</pattern>
+  <pattern>1ਸ</pattern>
+  <pattern>1ਹ</pattern>
+<!--  Do not break before chandrabindu, anusvara, visarga, avagraha -->
+<!--  and accents. -->
+  <pattern>2ਁ1</pattern>
+  <pattern>2ਂ1</pattern>
+  <pattern>2ਃ1</pattern>
+<!--  Do not break either side of virama (may be within conjunct). -->
+  <pattern>2੍2</pattern>
+  <pattern>2ੰ2</pattern>
+  <pattern>2ੱ2</pattern>
+</HyphenationDescription>

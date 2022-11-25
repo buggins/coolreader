@@ -1,40 +1,52 @@
-/** \file lvfnt.h
-    \brief Grayscale Bitmap Font engine
+/***************************************************************************
+ *   CoolReader engine                                                     *
+ *   Copyright (C) 2007,2008,2010,2014 Vadim Lopatin <coolreader.org@gmail.com>
+ *   Copyright (C) 2018-2020 poire-z <poire-z@users.noreply.github.com>    *
+ *   Copyright (C) 2020 Aleksey Chernov <valexlin@gmail.com>               *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU General Public License           *
+ *   as published by the Free Software Foundation; either version 2        *
+ *   of the License, or (at your option) any later version.                *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
+ *   MA 02110-1301, USA.                                                   *
+ ***************************************************************************/
 
-    CoolReader Engine
-
-    (c) Vadim Lopatin, 2000-2006
-
-    This source code is distributed under the terms of
-    GNU General Public License.
-
-    See LICENSE file for details.
-
-   \section Unicode greyscale bitmap font file structure
-
-   (pointers are byte offsets from file beginning)
-
-   - <font file>::
-      - <file header>      -- lvfont_header_t
-      - <decode table>     -- huffman decode table
-      - <glyph chunk 1>    -- lvfont_glyph_t * [64]
-      - ...
-      - <glyph chunk N>    -- lvfont_glyph_t * [64]
-   - <file header>::
-      - <signature>        -- 4 bytes
-      - <version>          -- 4 bytes
-      - <fontName>         -- 64 bytes
-      - <copyright>        -- 64 bytes
-      - <fileSize>         -- 4 bytes
-      - <fontAttributes>   -- 8 bytes
-      - <font ranges>      -- lvfont_glyph_t * * [1024], 0 if no chunk
-   - <glyph chunk>::
-      - <glyph table>      -- lvfont_glyph_t * [64], 0 if no glyph
-      - <glyph 1>          -- lvfont_glyph_t [arbitrary size]
-      - ...
-      - <glyph M>          -- lvfont_glyph_t [arbitrary size]
-
-*/
+/**
+ * \file lvfnt.h
+ * \brief Grayscale Bitmap Font engine
+ * \section Unicode greyscale bitmap font file structure
+ *
+ * (pointers are byte offsets from file beginning)
+ *
+ * - <font file>::
+ *    - <file header>      -- lvfont_header_t
+ *    - <decode table>     -- huffman decode table
+ *    - <glyph chunk 1>    -- lvfont_glyph_t * [64]
+ *    - ...
+ *    - <glyph chunk N>    -- lvfont_glyph_t * [64]
+ * - <file header>::
+ *    - <signature>        -- 4 bytes
+ *    - <version>          -- 4 bytes
+ *    - <fontName>         -- 64 bytes
+ *    - <copyright>        -- 64 bytes
+ *    - <fileSize>         -- 4 bytes
+ *    - <fontAttributes>   -- 8 bytes
+ *    - <font ranges>      -- lvfont_glyph_t * * [1024], 0 if no chunk
+ * - <glyph chunk>::
+ *    - <glyph table>      -- lvfont_glyph_t * [64], 0 if no glyph
+ *    - <glyph 1>          -- lvfont_glyph_t [arbitrary size]
+ *    - ...
+ *    - <glyph M>          -- lvfont_glyph_t [arbitrary size]
+ */
 
 #ifndef __LVFNT_H_INCLUDED__
 #define __LVFNT_H_INCLUDED__
