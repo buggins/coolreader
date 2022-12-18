@@ -1,0 +1,1362 @@
+<?xml version="1.0" encoding="utf8"?>
+<!--
+    Hyphenations description for coolreader-ng
+    from original file: tex-hyphen/hyph-utf8/tex/generic/hyph-utf8/patterns/tex/hyph-fr.tex
+
+title: Hyphenation patterns for French
+copyright: Copyright (C) 1994-2002 Daniel Flipo, Bernard Gaulle, 2016 Arthur Reutenauer
+notice: This file is part of the hyph-utf8 package.
+    See http://www.hyphenation.org/tex for more information.
+language:
+    name: French
+    tag: fr
+version: V2.13 2016/05/12
+authors:
+    -
+        name: Daniel Flipo
+    -
+        name: Bernard Gaulle
+        note: deceased
+    -
+        name: Arthur Reutenauer
+        contact: arthur (at) reutenauer.eu
+    -
+        email: cesure-l (at) gutenberg (dot} eu (dot) org
+licence:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+    text: >
+        Permission is hereby granted, free of charge, to any person obtaining
+        a copy of this software and associated documentation files (the
+        "Software"), to deal in the Software without restriction, including
+        without limitation the rights to use, copy, modify, merge, publish,
+        distribute, sublicense, and/or sell copies of the Software, and to
+        permit persons to whom the Software is furnished to do so, subject to
+        the following conditions:
+        The above copyright notice and this permission notice shall be
+        included in all copies or substantial portions of the Software.
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+        EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+        NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+        BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+        ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+        CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+hyphenmins:
+    typesetting:
+        left: 2
+        right: 2
+texlive:
+    synonyms:
+        - patois
+        - francais
+    encoding: ec
+    babelname: french
+    legacy_patterns: frhyph.tex
+    message: French hyphenation patterns
+    description: Hyphenation patterns for French in T1/EC and UTF-8 encodings.
+==========================================
+%%%%%%% The most famous good guys who worked hard to obtain something usable.
+Jacques Desarmenien, Universite de Strasbourg :
+         -  << how to run TeX in a French environment: hyphenation, fonts,
+            typography. >> in Tugboat, 5 (1984) 91-102. and TeX85 conference
+         -  << La division par ordinateur des mots francais :
+            application a TeX >> in TSI vol. 5 No 4, 1986 (C) AFCET-
+                                                            Gauthier-Villars
+Norman Buckle, UQAH (nb; many additions)
+Michael Ferguson, INRS-Telecommunications (mjf) June 1988
+Justin Bur, Universite de Montreal (jbb; checked against original list)
+                   all patterns including apostrophe missing from nb list
+after that, GUTenberg  and specially Daniel Flipo and Bernard Gaulle
+did their best effort to improve the list of patterns.
+-->
+
+<HyphenationDescription
+    title="French" lang="fr"
+    lefthyphenmin="2" righthyphenmin="2">
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %* -->
+  <pattern>2'2</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %a -->
+  <pattern> a4</pattern>
+  <pattern>'a4</pattern>
+  <pattern> â4</pattern>
+  <pattern>'â4</pattern>
+  <pattern>ab2h</pattern>
+  <pattern> ab3réa</pattern>
+  <pattern>'ab3réa</pattern>
+  <pattern>ad2h</pattern>
+  <pattern>a1è2dre</pattern>
+  <pattern> ae3s4ch</pattern>
+  <pattern>'ae3s4ch</pattern>
+  <pattern>1alcool</pattern>
+  <pattern>'2alcool</pattern>
+  <pattern>a2l1algi</pattern>
+  <pattern> amino1a2c</pattern>
+  <pattern>'amino1a2c</pattern>
+  <pattern> ana3s4tr</pattern>
+  <pattern>'ana3s4tr</pattern>
+  <pattern>1a2nesthési</pattern>
+  <pattern>'2a2nesthési</pattern>
+  <pattern> anti1a2</pattern>
+  <pattern>'anti1a2</pattern>
+  <pattern> anti1e2</pattern>
+  <pattern>'anti1e2</pattern>
+  <pattern> anti1é2</pattern>
+  <pattern> anti2enne</pattern>
+  <pattern>'anti2enne</pattern>
+  <pattern>'anti1é2</pattern>
+  <pattern> anti1s2</pattern>
+  <pattern>'anti1s2</pattern>
+  <pattern> apo2s3ta</pattern>
+  <pattern>'apo2s3ta</pattern>
+  <pattern>apo2s3tr</pattern>
+  <pattern>archi1é2pis</pattern>
+  <pattern> as2ta</pattern>
+  <pattern>'as2ta</pattern>
+  <pattern>a2s3tro</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %b -->
+  <pattern>1ba</pattern>
+  <pattern>1bâ</pattern>
+  <pattern> bai2se3main</pattern>
+  <pattern>1be</pattern>
+  <pattern>1bé</pattern>
+  <pattern>1bè</pattern>
+  <pattern>1bê</pattern>
+  <pattern>4be </pattern>
+  <pattern>4bes </pattern>
+  <pattern>2bent </pattern>
+  <pattern>1bi</pattern>
+  <pattern>1bî</pattern>
+  <pattern> bi1a2c</pattern>
+  <pattern> bi1a2t</pattern>
+  <pattern> bi1au</pattern>
+  <pattern> bio1a2</pattern>
+  <pattern> bi2s1a2</pattern>
+  <pattern> bi1u2</pattern>
+  <pattern>1b2l</pattern>
+  <pattern>4ble </pattern>
+  <pattern>4bles </pattern>
+  <pattern>2blent </pattern>
+  <pattern>1bo</pattern>
+  <pattern>1bô</pattern>
+  <pattern>1b2r</pattern>
+  <pattern>4bre </pattern>
+  <pattern>4bres </pattern>
+  <pattern>2brent </pattern>
+  <pattern>1bu</pattern>
+  <pattern>1bû</pattern>
+  <pattern>1by</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %c -->
+  <pattern>1ç</pattern>
+  <pattern>1ca</pattern>
+  <pattern>1câ</pattern>
+  <pattern>ca3ou3t2</pattern>
+  <pattern>1ce</pattern>
+  <pattern>1cé</pattern>
+  <pattern>1cè</pattern>
+  <pattern>1cê</pattern>
+  <pattern>4ce </pattern>
+  <pattern>4ces </pattern>
+<!--  words ending with -cent (df) 22/02/94 -->
+  <pattern>2cent </pattern>
+  <pattern>ja3cent </pattern>
+  <pattern>ac3cent </pattern>
+  <pattern>é3cent </pattern>
+  <pattern>munifi3cent </pattern>
+  <pattern>réti3cent </pattern>
+  <pattern>privatdo3cent </pattern>
+  <pattern>inno3cent </pattern>
+  <pattern>es3cent </pattern>
+  <pattern>acquies4cent </pattern>
+  <pattern>is3cent </pattern>
+  <pattern>immis4cent </pattern>
+  <pattern> ch4</pattern>
+  <pattern>1c2h</pattern>
+  <pattern>4ch </pattern>
+  <pattern>2chb</pattern>
+  <pattern>4che </pattern>
+  <pattern>4ches </pattern>
+  <pattern>2chent </pattern>
+  <pattern> chè2vre3feuille</pattern>
+  <pattern>2chg</pattern>
+  <pattern>ch2l</pattern>
+  <pattern>4chle </pattern>
+  <pattern>4chles </pattern>
+  <pattern>chlo2r3a2c</pattern>
+  <pattern>chlo2r3é2t</pattern>
+  <pattern>2chm</pattern>
+  <pattern>2chn</pattern>
+  <pattern>2chp</pattern>
+  <pattern>ch2r</pattern>
+  <pattern>4chre </pattern>
+  <pattern>4chres </pattern>
+  <pattern>2chs</pattern>
+  <pattern>2cht</pattern>
+  <pattern>2chw</pattern>
+  <pattern>1ci</pattern>
+  <pattern>1cî</pattern>
+  <pattern> ci2s1alp</pattern>
+  <pattern>1c2k</pattern>
+  <pattern>4ck </pattern>
+  <pattern>2ckb</pattern>
+  <pattern>4cke </pattern>
+  <pattern>4ckes </pattern>
+  <pattern>2ckent </pattern>
+  <pattern>2ckf</pattern>
+  <pattern>2ckg</pattern>
+  <pattern>2ck3h</pattern>
+  <pattern>2ckp</pattern>
+  <pattern>2cks</pattern>
+  <pattern>2ckt</pattern>
+  <pattern>1c2l</pattern>
+  <pattern>4cle </pattern>
+  <pattern>4cles </pattern>
+  <pattern>2clent </pattern>
+  <pattern>1co</pattern>
+  <pattern>1cô</pattern>
+  <pattern>co1acc</pattern>
+  <pattern>co1acq</pattern>
+  <pattern>co1a2d</pattern>
+  <pattern>co1ap</pattern>
+  <pattern>co1ar</pattern>
+  <pattern>co1assoc</pattern>
+  <pattern>co1assur</pattern>
+  <pattern>co1au</pattern>
+  <pattern>co1ax</pattern>
+  <pattern>1cœ</pattern>
+  <pattern>co1é2</pattern>
+  <pattern>co1ef</pattern>
+  <pattern>co1en</pattern>
+  <pattern>co1ex</pattern>
+  <pattern> con4</pattern>
+  <pattern> cons4</pattern>
+  <pattern> contre1s2c</pattern>
+  <pattern> contre3maître</pattern>
+  <pattern>co2nurb</pattern>
+  <pattern> co1o2</pattern>
+  <pattern> co2o3lie</pattern>
+  <pattern>1c2r</pattern>
+  <pattern>4cre </pattern>
+  <pattern>4cres </pattern>
+  <pattern>2crent </pattern>
+  <pattern>1cu</pattern>
+  <pattern>1cû</pattern>
+  <pattern>1cy</pattern>
+  <pattern> cul4</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %d -->
+  <pattern>1d'</pattern>
+  <pattern>1da</pattern>
+  <pattern>1dâ</pattern>
+  <pattern> dacryo1a2</pattern>
+  <pattern>d1d2h</pattern>
+  <pattern>1de</pattern>
+  <pattern>1dé</pattern>
+  <pattern>1dè</pattern>
+  <pattern>1dê</pattern>
+  <pattern>4de </pattern>
+  <pattern>4des </pattern>
+<!--  words ending with -dent (df) 22/02/94 -->
+  <pattern>2dent </pattern>
+  <pattern>déca3dent </pattern>
+  <pattern>é3dent </pattern>
+  <pattern>cci3dent </pattern>
+  <pattern>inci3dent </pattern>
+  <pattern>confi3dent </pattern>
+  <pattern>tri3dent </pattern>
+  <pattern>dissi3dent </pattern>
+  <pattern>chien3dent </pattern>
+  <pattern> ar3dent </pattern>
+  <pattern>impu3dent </pattern>
+  <pattern>pru3dent </pattern>
+  <pattern> dé1a2</pattern>
+  <pattern> dé1io</pattern>
+  <pattern> dé1o2</pattern>
+  <pattern> dé2s</pattern>
+<!-- .dé2s1a2 removed 09/17/92 because wrong for the -->
+<!--  original JD 500 words test -->
+  <pattern> dé3s2a3cr</pattern>
+  <pattern> dés2a3m</pattern>
+<!--  can't see why désamidonner ran in JD. -->
+<!--  Moved to .dés2a3m df 12/27/93. -->
+  <pattern> dé3s2a3tell</pattern>
+  <pattern> dé3s2astr</pattern>
+  <pattern> dé3s2c</pattern>
+<!-- .dé2s1e2 removed 09/17/92 because wrong for the -->
+<!--  original JD 500 words test -->
+  <pattern> dé2s1é2</pattern>
+  <pattern> dé3s2é3gr</pattern>
+  <pattern> dé3s2ensib</pattern>
+  <pattern> dé3s2ert</pattern>
+  <pattern> dé3s2exu</pattern>
+<!-- .dé2s3h removed 09/17/92 because wrong for the -->
+<!--  original JD 500 words test -->
+  <pattern> dé2s1i2</pattern>
+  <pattern> dé3s2i3d</pattern>
+  <pattern> dé3s2i3gn</pattern>
+  <pattern> dé3s2i3li</pattern>
+  <pattern> dé3s2i3nen</pattern>
+  <pattern> dé3s2invo</pattern>
+  <pattern> dé3s2i3r</pattern>
+  <pattern> dé3s2ist</pattern>
+<!-- .dé2s1o2 removed 09/17/92 because wrong for the -->
+<!--  original JD 500 words test -->
+  <pattern> dé3s2o3dé</pattern>
+  <pattern> dé2s1œ</pattern>
+  <pattern> dé3s2o3l</pattern>
+  <pattern> dé3s2o3pil</pattern>
+  <pattern> dé3s2orm</pattern>
+  <pattern> dé3s2orp</pattern>
+  <pattern> dé3s2oufr</pattern>
+  <pattern> dé3s2p</pattern>
+  <pattern> dé3s2t</pattern>
+  <pattern> dé2s1u2n</pattern>
+  <pattern>3d2hal</pattern>
+  <pattern>3d2houd</pattern>
+  <pattern>1di</pattern>
+  <pattern>1dî</pattern>
+  <pattern>di2s3cop</pattern>
+  <pattern> di1a2cé</pattern>
+  <pattern> di1a2cid</pattern>
+  <pattern> di1ald</pattern>
+  <pattern> di1a2mi</pattern>
+  <pattern> di1a2tom</pattern>
+  <pattern> di1e2n</pattern>
+  <pattern> di2s3h</pattern>
+  <pattern>2dlent </pattern>
+  <pattern>1do</pattern>
+  <pattern>1dô</pattern>
+  <pattern>1d2r</pattern>
+  <pattern>4dre </pattern>
+  <pattern>4dres </pattern>
+  <pattern>2drent </pattern>
+  <pattern>d1s2</pattern>
+  <pattern>1du</pattern>
+  <pattern>1dû</pattern>
+  <pattern>1dy</pattern>
+  <pattern> dy2s3</pattern>
+  <pattern> dy2s1a2</pattern>
+  <pattern> dy2s1i2</pattern>
+  <pattern> dy2s1o2</pattern>
+  <pattern> dy2s1u2</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %e -->
+  <pattern> e4</pattern>
+  <pattern>'e4</pattern>
+  <pattern> ê4</pattern>
+  <pattern>'ê4</pattern>
+  <pattern> é4</pattern>
+  <pattern>'é4</pattern>
+  <pattern> è4</pattern>
+  <pattern>'è4</pattern>
+  <pattern>éd2hi</pattern>
+  <pattern>1é2drie</pattern>
+  <pattern>1é2drique</pattern>
+  <pattern>1é2lectr</pattern>
+  <pattern>1é2lément</pattern>
+  <pattern> en1a2</pattern>
+  <pattern>'en1a2</pattern>
+  <pattern>1é2nerg</pattern>
+  <pattern>e2n1i2vr</pattern>
+  <pattern> en1o2</pattern>
+  <pattern>'en1o2</pattern>
+  <pattern>épi2s3cop</pattern>
+  <pattern>épi3s4cope</pattern>
+  <pattern>e2s3cop</pattern>
+  <pattern> eu2r1a2</pattern>
+  <pattern>'eu2r1a2</pattern>
+  <pattern>eu1s2tat</pattern>
+  <pattern>extra1</pattern>
+  <pattern>extra2c</pattern>
+  <pattern>extra2i</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %f -->
+  <pattern>1fa</pattern>
+  <pattern>1fâ</pattern>
+  <pattern>1fe</pattern>
+  <pattern>1fé</pattern>
+  <pattern>1fè</pattern>
+  <pattern>1fê</pattern>
+  <pattern>4fe </pattern>
+  <pattern>4fes </pattern>
+  <pattern>2fent </pattern>
+  <pattern>1fi</pattern>
+  <pattern>1fî</pattern>
+  <pattern>1f2l</pattern>
+  <pattern>4fle </pattern>
+  <pattern>4fles </pattern>
+  <pattern>2flent </pattern>
+  <pattern>1fo</pattern>
+  <pattern>1fô</pattern>
+  <pattern>1f2r</pattern>
+  <pattern>4fre </pattern>
+  <pattern>4fres </pattern>
+  <pattern>2frent </pattern>
+  <pattern>f1s2</pattern>
+  <pattern>1fu</pattern>
+  <pattern>1fû</pattern>
+  <pattern>1fy</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %g -->
+  <pattern>1ga</pattern>
+  <pattern>1gâ</pattern>
+  <pattern>1ge</pattern>
+  <pattern>1gé</pattern>
+  <pattern>1gè</pattern>
+  <pattern>1gê</pattern>
+  <pattern>4ge </pattern>
+  <pattern>4ges </pattern>
+<!--  words ending with -gent (df) 22/02/94 -->
+  <pattern>2gent </pattern>
+  <pattern>ré3gent </pattern>
+  <pattern>entre3gent </pattern>
+  <pattern>indi3gent </pattern>
+  <pattern>dili3gent </pattern>
+  <pattern>intelli3gent </pattern>
+  <pattern>indul3gent </pattern>
+  <pattern>tan3gent </pattern>
+  <pattern>rin3gent </pattern>
+  <pattern>contin3gent </pattern>
+  <pattern> ar3gent </pattern>
+  <pattern>'ar3gent </pattern>
+  <pattern>ser3gent </pattern>
+  <pattern>ter3gent </pattern>
+  <pattern>résur3gent </pattern>
+  <pattern>1g2ha</pattern>
+  <pattern>1g2he</pattern>
+  <pattern>1g2hi</pattern>
+  <pattern>1g2ho</pattern>
+  <pattern>1g2hy</pattern>
+  <pattern>1gi</pattern>
+  <pattern>1gî</pattern>
+  <pattern>1g2l</pattern>
+  <pattern>4gle </pattern>
+  <pattern>4gles </pattern>
+  <pattern>2glent </pattern>
+  <pattern>1g2n</pattern>
+  <pattern>'a2g3nat</pattern>
+  <pattern> a2g3nat</pattern>
+  <pattern>a2g3nos</pattern>
+  <pattern>co2g3niti</pattern>
+  <pattern>'i2g3né</pattern>
+  <pattern> i2g3né</pattern>
+  <pattern>'i2g3ni</pattern>
+  <pattern> i2g3ni</pattern>
+  <pattern> ma2g3nicide</pattern>
+  <pattern> ma2g3nificat</pattern>
+  <pattern> ma2g3num</pattern>
+  <pattern>o2g3nomoni</pattern>
+  <pattern>o2g3nosi</pattern>
+  <pattern> pro2g3nath</pattern>
+  <pattern>pu2g3nable</pattern>
+  <pattern>pu2g3nac</pattern>
+  <pattern> sta2g3n</pattern>
+  <pattern> syn2g3nath</pattern>
+  <pattern>wa2g3n</pattern>
+  <pattern>4gne </pattern>
+  <pattern>4gnes </pattern>
+  <pattern>2gnent </pattern>
+  <pattern>1go</pattern>
+  <pattern>1gô</pattern>
+  <pattern>1g2r</pattern>
+  <pattern>4gre </pattern>
+  <pattern>4gres </pattern>
+  <pattern>2grent </pattern>
+  <pattern>1gu</pattern>
+  <pattern>1gû</pattern>
+  <pattern>g1s2</pattern>
+  <pattern>4gue </pattern>
+  <pattern>4gues </pattern>
+<!--  words ending with -guent (df) 22/02/94 -->
+  <pattern>2guent </pattern>
+  <pattern> on3guent </pattern>
+  <pattern>'on3guent </pattern>
+  <pattern>1gy</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %h -->
+  <pattern>1ha</pattern>
+  <pattern>1hâ</pattern>
+  <pattern>1he</pattern>
+  <pattern>1hé</pattern>
+  <pattern>1hè</pattern>
+  <pattern>1hê</pattern>
+  <pattern>hémi1é</pattern>
+  <pattern>hémo1p2t</pattern>
+  <pattern>4he </pattern>
+  <pattern>4hes </pattern>
+  <pattern>1hi</pattern>
+  <pattern>1hî</pattern>
+  <pattern>1ho</pattern>
+  <pattern>1hô</pattern>
+  <pattern>1hu</pattern>
+  <pattern>1hû</pattern>
+  <pattern>1hy</pattern>
+  <pattern>hypera2</pattern>
+  <pattern>hypere2</pattern>
+  <pattern>hyperé2</pattern>
+  <pattern>hyperi2</pattern>
+  <pattern>hypero2</pattern>
+  <pattern>hypers2</pattern>
+  <pattern>hype4r1</pattern>
+  <pattern>hyperu2</pattern>
+  <pattern>hypo1a2</pattern>
+  <pattern>hypo1e2</pattern>
+  <pattern>hypo1é2</pattern>
+  <pattern>hypo1i2</pattern>
+  <pattern>hypo1o2</pattern>
+  <pattern>hypo1s2</pattern>
+  <pattern>hypo1u2</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %i -->
+  <pattern> i4</pattern>
+  <pattern>'i4</pattern>
+  <pattern> î4</pattern>
+  <pattern>'î4</pattern>
+  <pattern>i1algi</pattern>
+  <pattern>i1arthr</pattern>
+  <pattern>i1è2dre</pattern>
+<!--  ill patterns missing from nb list -->
+  <pattern>il2l</pattern>
+  <pattern>cil3l</pattern>
+  <pattern>rcil4l</pattern>
+  <pattern>ucil4l</pattern>
+  <pattern>vacil4l</pattern>
+  <pattern>gil3l</pattern>
+  <pattern>hil3l</pattern>
+  <pattern>lil3l</pattern>
+  <pattern>l3lion</pattern>
+  <pattern>mil3l</pattern>
+  <pattern>mil4let</pattern>
+  <pattern>émil4l</pattern>
+  <pattern>semil4l</pattern>
+  <pattern>rmil4l</pattern>
+  <pattern>armil5l</pattern>
+  <pattern>capil3l</pattern>
+  <pattern>papil3la</pattern>
+  <pattern>papil3le</pattern>
+  <pattern>papil3li</pattern>
+  <pattern>papil3lom</pattern>
+  <pattern>pupil3l</pattern>
+  <pattern>piril3l</pattern>
+  <pattern>thril3l</pattern>
+  <pattern>cyril3l</pattern>
+  <pattern>ibril3l</pattern>
+  <pattern>pusil3l</pattern>
+  <pattern> stil3l</pattern>
+  <pattern>distil3l</pattern>
+  <pattern>instil3l</pattern>
+  <pattern>fritil3l</pattern>
+  <pattern>boutil3l</pattern>
+  <pattern>vanil3lin</pattern>
+  <pattern>vanil3lis</pattern>
+  <pattern>vil3l</pattern>
+  <pattern>avil4l</pattern>
+  <pattern>chevil4l</pattern>
+  <pattern>uevil4l</pattern>
+  <pattern>uvil4l</pattern>
+  <pattern>xil3l</pattern>
+<!--  end of ill patterns -->
+  <pattern>1informat</pattern>
+  <pattern>'2informat</pattern>
+  <pattern> in1a2</pattern>
+  <pattern>'in1a2</pattern>
+  <pattern> in2a3nit</pattern>
+  <pattern>'in2a3nit</pattern>
+  <pattern> in2augur</pattern>
+  <pattern>'in2augur</pattern>
+  <pattern> in1e2</pattern>
+  <pattern>'in1e2</pattern>
+  <pattern> in1é2</pattern>
+  <pattern>'in1é2</pattern>
+  <pattern> in2effab</pattern>
+  <pattern>'in2effab</pattern>
+  <pattern> in2é3lucta</pattern>
+  <pattern>'in2é3lucta</pattern>
+  <pattern> in2é3narra</pattern>
+  <pattern>'in2é3narra</pattern>
+  <pattern> in2ept</pattern>
+  <pattern>'in2ept</pattern>
+  <pattern> in2er</pattern>
+  <pattern>'in2er</pattern>
+  <pattern> in2exora</pattern>
+  <pattern>'in2exora</pattern>
+  <pattern> in1i2</pattern>
+  <pattern>'in1i2</pattern>
+  <pattern> in2i3miti</pattern>
+  <pattern>'in2i3miti</pattern>
+  <pattern> in2i3q</pattern>
+  <pattern>'in2i3q</pattern>
+  <pattern> in2i3t</pattern>
+  <pattern>'in2i3t</pattern>
+  <pattern> in1o2</pattern>
+  <pattern>'in1o2</pattern>
+  <pattern> in2o3cul</pattern>
+  <pattern>'in2o3cul</pattern>
+  <pattern> in2ond</pattern>
+  <pattern>'in2ond</pattern>
+  <pattern> in1s2tab</pattern>
+  <pattern>'in1s2tab</pattern>
+  <pattern>'inte4r3</pattern>
+  <pattern> intera2</pattern>
+  <pattern>'intera2</pattern>
+  <pattern> intere2</pattern>
+  <pattern>'intere2</pattern>
+  <pattern> interé2</pattern>
+  <pattern>'interé2</pattern>
+  <pattern> interi2</pattern>
+  <pattern>'interi2</pattern>
+  <pattern> intero2</pattern>
+  <pattern>'intero2</pattern>
+  <pattern> inte4r3</pattern>
+  <pattern> interu2</pattern>
+  <pattern>'interu2</pattern>
+  <pattern> inters2</pattern>
+  <pattern>'inters2</pattern>
+  <pattern> in1u2</pattern>
+  <pattern>'in1u2</pattern>
+  <pattern> in2uit</pattern>
+  <pattern>'in2uit</pattern>
+  <pattern> in2u3l</pattern>
+  <pattern>'in2u3l</pattern>
+  <pattern>io1a2ct</pattern>
+  <pattern>i1oxy</pattern>
+  <pattern>i1s2tat</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %j -->
+  <pattern>1j</pattern>
+  <pattern>2jk</pattern>
+  <pattern>4je </pattern>
+  <pattern>4jes </pattern>
+  <pattern>2jent </pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %k -->
+  <pattern>1ka</pattern>
+  <pattern>1kâ</pattern>
+  <pattern>1ke</pattern>
+  <pattern>1ké</pattern>
+  <pattern>1kè</pattern>
+  <pattern>1kê</pattern>
+  <pattern>4ke </pattern>
+  <pattern>4kes </pattern>
+  <pattern>2kent </pattern>
+  <pattern>1k2h</pattern>
+  <pattern>4kh </pattern>
+  <pattern> kh4</pattern>
+  <pattern>1ki</pattern>
+  <pattern>1kî</pattern>
+  <pattern>1ko</pattern>
+  <pattern>1kô</pattern>
+  <pattern>1k2r</pattern>
+  <pattern>1ku</pattern>
+  <pattern>1kû</pattern>
+  <pattern>1ky</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %l -->
+  <pattern>1la</pattern>
+  <pattern>1lâ</pattern>
+  <pattern>1là</pattern>
+  <pattern>la2w3re</pattern>
+  <pattern>1le</pattern>
+  <pattern>1lé</pattern>
+  <pattern>1lè</pattern>
+  <pattern>1lê</pattern>
+  <pattern>4le </pattern>
+  <pattern>4les </pattern>
+<!--  words ending with -lent (df) 22/02/94 -->
+  <pattern>2lent </pattern>
+  <pattern> ta3lent </pattern>
+  <pattern>iva3lent </pattern>
+  <pattern>équiva4lent </pattern>
+  <pattern>monova3lent </pattern>
+  <pattern>polyva3lent </pattern>
+  <pattern>re3lent </pattern>
+  <pattern> do3lent </pattern>
+  <pattern>indo3lent </pattern>
+  <pattern>inso3lent </pattern>
+  <pattern>turbu3lent </pattern>
+  <pattern>succu3lent </pattern>
+  <pattern>fécu3lent </pattern>
+  <pattern>trucu3lent </pattern>
+  <pattern>opu3lent </pattern>
+  <pattern>corpu3lent </pattern>
+  <pattern>ru3lent </pattern>
+  <pattern>sporu4lent </pattern>
+  <pattern>1li</pattern>
+  <pattern>1lî</pattern>
+  <pattern>1lo</pattern>
+  <pattern>1lô</pattern>
+  <pattern>l1s2t</pattern>
+  <pattern>1lu</pattern>
+  <pattern>1lû</pattern>
+  <pattern>1ly</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %m -->
+  <pattern>1ma</pattern>
+  <pattern>1mâ</pattern>
+  <pattern> ma2c3k</pattern>
+  <pattern> macro1s2c</pattern>
+  <pattern> ma2l1a2dres</pattern>
+  <pattern> ma2l1a2dro</pattern>
+  <pattern> ma2l1aisé</pattern>
+  <pattern> ma2l1ap</pattern>
+  <pattern> ma2l1a2v</pattern>
+  <pattern> ma2l1en</pattern>
+  <pattern> ma2l1int</pattern>
+  <pattern> ma2l1oc</pattern>
+  <pattern> ma2l1o2d</pattern>
+  <pattern> ma2r1x</pattern>
+  <pattern>1me</pattern>
+  <pattern>1mé</pattern>
+  <pattern>1mè</pattern>
+  <pattern>1mê</pattern>
+  <pattern> mé2g1oh</pattern>
+  <pattern> mé2sa</pattern>
+  <pattern> mé3san</pattern>
+  <pattern> mé2s1es</pattern>
+  <pattern> mé2s1i</pattern>
+  <pattern> mé2s1u2s</pattern>
+  <pattern> méta1s2ta</pattern>
+  <pattern>4me </pattern>
+  <pattern>4mes </pattern>
+<!--  words ending with -ment (df) 22/02/94 -->
+  <pattern>â2ment </pattern>
+  <pattern>da2ment </pattern>
+  <pattern>fa2ment </pattern>
+  <pattern>amalga2ment </pattern>
+  <pattern>cla2ment </pattern>
+  <pattern>ra2ment </pattern>
+  <pattern>tempéra3ment </pattern>
+  <pattern>ta2ment </pattern>
+  <pattern>testa3ment </pattern>
+  <pattern>qua2ment </pattern>
+  <pattern>è2ment </pattern>
+  <pattern>carê2ment </pattern>
+  <pattern>diaphrag2ment </pattern>
+  <pattern>ryth2ment </pattern>
+  <pattern>ai2ment </pattern>
+  <pattern>rai3ment </pattern>
+  <pattern>abî2ment </pattern>
+  <pattern>éci2ment </pattern>
+  <pattern>vidi2ment </pattern>
+  <pattern>subli2ment </pattern>
+  <pattern>éli2ment </pattern>
+  <pattern>reli2ment </pattern>
+  <pattern>mi2ment </pattern>
+  <pattern>ani2ment </pattern>
+  <pattern>veni2ment </pattern>
+  <pattern>ri2ment </pattern>
+  <pattern>détri3ment </pattern>
+  <pattern>nutri3ment </pattern>
+  <pattern>inti2ment </pattern>
+  <pattern>esti2ment </pattern>
+  <pattern>l2ment </pattern>
+  <pattern>flam2ment </pattern>
+  <pattern>gram2ment </pattern>
+  <pattern> gem2ment </pattern>
+  <pattern>om2ment </pattern>
+  <pattern> com3ment </pattern>
+  <pattern>ô2ment </pattern>
+  <pattern>slalo2ment </pattern>
+  <pattern>chro2ment </pattern>
+  <pattern>to2ment </pattern>
+  <pattern>ar2ment </pattern>
+  <pattern> sar3ment </pattern>
+  <pattern>er2ment </pattern>
+  <pattern>antifer3ment </pattern>
+  <pattern> ser3ment </pattern>
+  <pattern>fir2ment </pattern>
+  <pattern>or2ment </pattern>
+  <pattern>as2ment </pattern>
+  <pattern>au2ment </pattern>
+  <pattern>écu2ment </pattern>
+  <pattern>fu2ment </pattern>
+  <pattern>hu2ment </pattern>
+  <pattern>fichu3ment </pattern>
+  <pattern>llu2ment </pattern>
+  <pattern>plu2ment </pattern>
+  <pattern>bou2ment </pattern>
+  <pattern>bru2ment </pattern>
+  <pattern>su2ment </pattern>
+  <pattern>tu2ment </pattern>
+  <pattern>1mi</pattern>
+  <pattern>1mî</pattern>
+  <pattern> milli1am</pattern>
+  <pattern>1m2némo</pattern>
+  <pattern>1m2nès</pattern>
+  <pattern>1m2nési</pattern>
+  <pattern>1mo</pattern>
+  <pattern>1mô</pattern>
+  <pattern>1mœ</pattern>
+  <pattern> mono1a2</pattern>
+  <pattern> mono1e2</pattern>
+  <pattern> mono1é2</pattern>
+  <pattern> mono1i2</pattern>
+  <pattern> mono1ï2dé</pattern>
+  <pattern> mono1o2</pattern>
+  <pattern> mono1u2</pattern>
+  <pattern> mono1s2</pattern>
+  <pattern>mon2t3réal</pattern>
+  <pattern>m1s2</pattern>
+  <pattern>1mu</pattern>
+  <pattern>1mû</pattern>
+  <pattern>1my</pattern>
+  <pattern>moye2n1â2g</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %n -->
+  <pattern>1na</pattern>
+  <pattern>1nâ</pattern>
+  <pattern>1ne</pattern>
+  <pattern>1né</pattern>
+  <pattern>1nè</pattern>
+  <pattern>1nê</pattern>
+  <pattern>4ne </pattern>
+  <pattern>4nes </pattern>
+<!--  words ending with -nent (df) 22/02/94 -->
+  <pattern>2nent </pattern>
+  <pattern>réma3nent </pattern>
+  <pattern>imma3nent </pattern>
+  <pattern>perma3nent </pattern>
+  <pattern> émi3nent </pattern>
+  <pattern>préémi3nent </pattern>
+  <pattern>proémi3nent </pattern>
+  <pattern>surémi3nent </pattern>
+  <pattern>immi3nent </pattern>
+  <pattern>conti3nent </pattern>
+  <pattern>perti3nent </pattern>
+  <pattern>absti3nent </pattern>
+  <pattern>1ni</pattern>
+  <pattern>1nî</pattern>
+  <pattern>1no</pattern>
+  <pattern>1nô</pattern>
+  <pattern>1nœ</pattern>
+  <pattern> no2n1obs</pattern>
+  <pattern>1nu</pattern>
+  <pattern>1nû</pattern>
+  <pattern>n3s2at </pattern>
+  <pattern>n3s2ats </pattern>
+  <pattern>n1x</pattern>
+  <pattern>1ny</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %o -->
+  <pattern> o4</pattern>
+  <pattern>'o4</pattern>
+  <pattern>'ô4</pattern>
+  <pattern> ô4</pattern>
+<!-- '\"o2 % mjf % deleted 3/1/94 df-bg -->
+  <pattern>o2b3long</pattern>
+  <pattern>1octet</pattern>
+  <pattern>'2octet</pattern>
+  <pattern>o1d2l</pattern>
+  <pattern>o1è2dre</pattern>
+  <pattern>o1ioni</pattern>
+  <pattern>ombud2s3</pattern>
+  <pattern>omni1s2</pattern>
+  <pattern>o1s2tas</pattern>
+  <pattern>o1s2tat</pattern>
+  <pattern>o1s2téro</pattern>
+  <pattern>o1s2tim</pattern>
+  <pattern>o1s2tom</pattern>
+  <pattern>o1s2trad</pattern>
+  <pattern>o1s2tratu</pattern>
+  <pattern>o1s2triction</pattern>
+  <pattern> oua1ou</pattern>
+  <pattern>'oua1ou</pattern>
+  <pattern> ovi1s2c</pattern>
+  <pattern>'ovi1s2c</pattern>
+  <pattern>oxy1a2</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %p -->
+  <pattern>1pa</pattern>
+  <pattern>1pâ</pattern>
+  <pattern>paléo1é2</pattern>
+  <pattern> pa2n1a2f</pattern>
+  <pattern> pa2n1a2mé</pattern>
+  <pattern> pa2n1a2ra</pattern>
+  <pattern> pa2n1is</pattern>
+  <pattern> pa2n1o2ph</pattern>
+  <pattern> pa2n1opt</pattern>
+  <pattern> pa2r1a2che</pattern>
+  <pattern> pa2r1a2chè</pattern>
+  <pattern> para1s2</pattern>
+  <pattern> pa2r3hé</pattern>
+  <pattern>1pe</pattern>
+  <pattern>1pé</pattern>
+  <pattern>1pè</pattern>
+  <pattern>1pê</pattern>
+  <pattern>4pe </pattern>
+  <pattern>4pes </pattern>
+<!--  words ending with -pent (df) 22/02/94 -->
+  <pattern>2pent </pattern>
+  <pattern>re3pent </pattern>
+  <pattern> ar3pent </pattern>
+  <pattern>'ar3pent </pattern>
+  <pattern>ser3pent </pattern>
+  <pattern> pen2ta</pattern>
+  <pattern>per3h</pattern>
+  <pattern>pé2nul</pattern>
+  <pattern> pe4r</pattern>
+  <pattern> per1a2</pattern>
+  <pattern> per1e2</pattern>
+  <pattern> per1é2</pattern>
+  <pattern> per1i2</pattern>
+  <pattern> per1o2</pattern>
+  <pattern> per1u2</pattern>
+  <pattern>pé1r2é2q</pattern>
+  <pattern> péri1os</pattern>
+  <pattern> péri1s2</pattern>
+  <pattern> péri2s3s</pattern>
+  <pattern> péri2s3ta</pattern>
+  <pattern> péri1u2</pattern>
+  <pattern>1p2h</pattern>
+  <pattern> ph4</pattern>
+  <pattern>4ph </pattern>
+  <pattern> phalan3s2t</pattern>
+  <pattern>4phe </pattern>
+  <pattern>4phes </pattern>
+  <pattern>2phent </pattern>
+  <pattern>ph2l</pattern>
+  <pattern>4phle </pattern>
+  <pattern>4phles </pattern>
+  <pattern>2phn</pattern>
+  <pattern>photo1s2</pattern>
+  <pattern>ph2r</pattern>
+  <pattern>4phre </pattern>
+  <pattern>4phres </pattern>
+  <pattern>2phs</pattern>
+  <pattern>2pht</pattern>
+  <pattern>3ph2talé</pattern>
+  <pattern>3ph2tis</pattern>
+<!-- %%% Here is an example of a pb involving phonetic and etymologic patterns 5/94 -->
+<!-- %%%                .phyto3ph2 % originaly, but wrong for phy-toph-thora   9/92 -->
+<!-- %%%                .phy2topha % for -pharmacie but wrong for phyto-biol.. 5/94 -->
+  <pattern>1pi</pattern>
+  <pattern>1pî</pattern>
+  <pattern>1p2l</pattern>
+  <pattern>4ple </pattern>
+  <pattern>4ples </pattern>
+  <pattern>2plent </pattern>
+  <pattern> pluri1a</pattern>
+  <pattern>1p2né</pattern>
+  <pattern>1p2neu</pattern>
+  <pattern>1po</pattern>
+  <pattern>1pô</pattern>
+  <pattern>po1astre</pattern>
+  <pattern>poly1a2</pattern>
+  <pattern>poly1e2</pattern>
+  <pattern>poly1é2</pattern>
+  <pattern>poly1è2</pattern>
+  <pattern>poly1i2</pattern>
+  <pattern>poly1o2</pattern>
+  <pattern>poly1s2</pattern>
+  <pattern>poly1u2</pattern>
+  <pattern> pon2tet</pattern>
+  <pattern> pos2t3h</pattern>
+  <pattern> pos2t1in</pattern>
+  <pattern> pos2t1o2</pattern>
+  <pattern> pos2t3r</pattern>
+  <pattern> post1s2</pattern>
+  <pattern>1p2r</pattern>
+  <pattern>4pre </pattern>
+  <pattern>4pres </pattern>
+  <pattern>2prent </pattern>
+  <pattern> pré1a2</pattern>
+  <pattern> pré2a3la</pattern>
+  <pattern> pré2au</pattern>
+  <pattern> pré1é2</pattern>
+  <pattern> pré1e2</pattern>
+  <pattern> pré1i2</pattern>
+  <pattern> pré1o2</pattern>
+  <pattern> pré1u2</pattern>
+  <pattern> pré1s2</pattern>
+  <pattern> pro1é2</pattern>
+  <pattern> pro1s2cé</pattern>
+  <pattern>pro2s3tat</pattern>
+  <pattern> prou3d2h</pattern>
+  <pattern>1p2sych</pattern>
+  <pattern> psycho1a2n</pattern>
+  <pattern>1p2tèr</pattern>
+  <pattern>1p2tér</pattern>
+  <pattern>1pu</pattern>
+  <pattern> pud1d2l</pattern>
+  <pattern>1pû</pattern>
+  <pattern>1py</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %q -->
+  <pattern>1q</pattern>
+  <pattern>4que </pattern>
+  <pattern>4ques </pattern>
+<!--  words ending with -quent (df) 22/02/94 -->
+  <pattern>2quent </pattern>
+  <pattern>é3quent </pattern>
+  <pattern>élo3quent </pattern>
+  <pattern>grandilo3quent </pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %r -->
+  <pattern>1ra</pattern>
+  <pattern>1râ</pattern>
+  <pattern>radio1a2</pattern>
+  <pattern>1re</pattern>
+  <pattern>1ré</pattern>
+  <pattern>1rè</pattern>
+  <pattern>1rê</pattern>
+  <pattern> ré1a2</pattern>
+  <pattern> ré2a3le</pattern>
+  <pattern> ré2a3lis</pattern>
+  <pattern> ré2a3lit</pattern>
+  <pattern> ré2aux</pattern>
+  <pattern> ré1é2</pattern>
+  <pattern> ré1e2</pattern>
+  <pattern> ré2el</pattern>
+  <pattern> ré2er</pattern>
+  <pattern> ré2èr</pattern>
+  <pattern> ré1i2</pattern>
+  <pattern> ré2i3fi</pattern>
+  <pattern> ré1o2</pattern>
+  <pattern> re1s2</pattern>
+  <pattern> re2s3cap</pattern>
+  <pattern> re2s3cisi</pattern>
+  <pattern> re2s3ciso</pattern>
+  <pattern> re2s3cou</pattern>
+  <pattern> re2s3cri</pattern>
+  <pattern> re2s3pect</pattern>
+  <pattern> re2s3pir</pattern>
+  <pattern> re2s3plend</pattern>
+  <pattern> re2s3pons</pattern>
+  <pattern> re2s3quil</pattern>
+  <pattern> re2s3s</pattern>
+  <pattern> re2s3t</pattern>
+  <pattern> re3s4tab</pattern>
+  <pattern> re3s4tag</pattern>
+  <pattern> re3s4tand</pattern>
+  <pattern> re3s4tat</pattern>
+  <pattern> re3s4tén</pattern>
+  <pattern> re3s4tér</pattern>
+  <pattern> re3s4tim</pattern>
+  <pattern> re3s4tip</pattern>
+  <pattern> re3s4toc</pattern>
+  <pattern> re3s4top</pattern>
+  <pattern> re3s4tr</pattern>
+  <pattern> re4s5trein</pattern>
+  <pattern> re4s5trict</pattern>
+  <pattern> re4s5trin</pattern>
+  <pattern> re3s4tu</pattern>
+  <pattern> re3s4ty</pattern>
+  <pattern> réu2</pattern>
+<!--  (don't hyphenate as ré-union nor réu-nion) -->
+  <pattern> ré2uss</pattern>
+  <pattern> rétro1a2</pattern>
+  <pattern>4re </pattern>
+  <pattern>4res </pattern>
+<!--  words ending with -rent (df) 22/02/94 -->
+  <pattern>2rent </pattern>
+  <pattern> pa3rent </pattern>
+  <pattern>appa3rent </pattern>
+  <pattern>transpa3rent </pattern>
+  <pattern>é3rent </pattern>
+  <pattern>tor3rent </pattern>
+  <pattern>cur3rent </pattern>
+  <pattern>1r2h</pattern>
+  <pattern>4rhe </pattern>
+  <pattern>4rhes </pattern>
+  <pattern>2r3heur</pattern>
+  <pattern>2r3hydr</pattern>
+  <pattern>1ri</pattern>
+  <pattern>1rî</pattern>
+  <pattern>1ro</pattern>
+  <pattern>1rô</pattern>
+  <pattern>1ru</pattern>
+  <pattern>1rû</pattern>
+  <pattern>1ry</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %s -->
+  <pattern>1sa</pattern>
+  <pattern>1sâ</pattern>
+  <pattern> sch4</pattern>
+  <pattern>1s2caph</pattern>
+  <pattern>1s2clér</pattern>
+  <pattern>1s2cop</pattern>
+  <pattern>1s2ch</pattern>
+  <pattern>e2s3ch</pattern>
+  <pattern>i2s3ché</pattern>
+  <pattern>i2s3chia</pattern>
+  <pattern>i2s3chio</pattern>
+  <pattern>4sch </pattern>
+  <pattern>4sche </pattern>
+  <pattern>4sches </pattern>
+  <pattern>2schs</pattern>
+  <pattern>1se</pattern>
+  <pattern>1sé</pattern>
+  <pattern>1sè</pattern>
+  <pattern>1sê</pattern>
+  <pattern>sesqui1a2</pattern>
+  <pattern>4se </pattern>
+  <pattern>4ses </pattern>
+<!--  words ending with -sent (df) 22/02/94 -->
+  <pattern>2sent </pattern>
+  <pattern>ab3sent </pattern>
+  <pattern>pré3sent </pattern>
+  <pattern> res3sent </pattern>
+  <pattern> seu2le</pattern>
+  <pattern> sh4</pattern>
+  <pattern>1s2h</pattern>
+  <pattern>4sh </pattern>
+  <pattern>4she </pattern>
+  <pattern>4shes </pattern>
+  <pattern>2shent </pattern>
+  <pattern>2shm</pattern>
+  <pattern>2s3hom</pattern>
+  <pattern>2shr</pattern>
+  <pattern>2shs</pattern>
+  <pattern>1si</pattern>
+  <pattern>1sî</pattern>
+  <pattern>1s2lav</pattern>
+  <pattern>1s2lov</pattern>
+  <pattern>1so</pattern>
+  <pattern>1sô</pattern>
+  <pattern>1sœ</pattern>
+  <pattern>1s2patia</pattern>
+  <pattern>1s2perm</pattern>
+  <pattern>1s2por</pattern>
+  <pattern>1s2phèr</pattern>
+  <pattern>1s2phér</pattern>
+  <pattern>1s2piel</pattern>
+  <pattern>1s2piros</pattern>
+  <pattern>1s2tandard</pattern>
+  <pattern>1s2tein</pattern>
+  <pattern>stéréo1s2</pattern>
+  <pattern>1s2tigm</pattern>
+  <pattern>1s2tock</pattern>
+  <pattern>1s2tomos</pattern>
+  <pattern>1s2troph</pattern>
+  <pattern>1s2tructu</pattern>
+  <pattern>1s2tyle</pattern>
+  <pattern>1su</pattern>
+  <pattern>1sû</pattern>
+  <pattern> su2b1a2</pattern>
+  <pattern> su3b2alt</pattern>
+  <pattern> su2b1é2</pattern>
+  <pattern> su3b2é3r</pattern>
+  <pattern> su2b1in</pattern>
+  <pattern> su2b3limin</pattern>
+  <pattern> su2b3lin</pattern>
+  <pattern> su2b3lu</pattern>
+  <pattern>sub1s2</pattern>
+  <pattern> su2b1ur</pattern>
+  <pattern>supero2</pattern>
+  <pattern>supe4r1</pattern>
+  <pattern>supers2</pattern>
+  <pattern> su2r1a2</pattern>
+  <pattern>su3r2ah</pattern>
+  <pattern> su3r2a3t</pattern>
+  <pattern> su2r1e2</pattern>
+  <pattern> su3r2eau</pattern>
+  <pattern> su3r2ell</pattern>
+  <pattern> su3r2et</pattern>
+  <pattern> su2r1é2</pattern>
+  <pattern> su2r3h</pattern>
+  <pattern> su2r1i2m</pattern>
+  <pattern> su2r1inf</pattern>
+  <pattern> su2r1int</pattern>
+  <pattern> su2r1of</pattern>
+  <pattern> su2r1ox</pattern>
+  <pattern>1sy</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %t -->
+  <pattern>1ta</pattern>
+  <pattern>1tâ</pattern>
+  <pattern>1tà</pattern>
+  <pattern>tachy1a2</pattern>
+  <pattern>tchin3t2</pattern>
+  <pattern>1te</pattern>
+  <pattern>1té</pattern>
+  <pattern>1tè</pattern>
+  <pattern>1tê</pattern>
+  <pattern>télé1e2</pattern>
+  <pattern>télé1i2</pattern>
+  <pattern>télé1o2b</pattern>
+  <pattern>télé1o2p</pattern>
+  <pattern>télé1s2</pattern>
+  <pattern>4te </pattern>
+  <pattern>4tes </pattern>
+<!--  words ending with -tent (df) 22/02/94 -->
+  <pattern>2tent </pattern>
+  <pattern> la3tent </pattern>
+  <pattern> pa3tent </pattern>
+  <pattern>compé3tent </pattern>
+  <pattern>éni3tent </pattern>
+  <pattern>mécon3tent </pattern>
+  <pattern>omnipo3tent </pattern>
+  <pattern>ventripo3tent </pattern>
+  <pattern>équipo3tent </pattern>
+  <pattern>impo3tent </pattern>
+  <pattern>mit3tent </pattern>
+  <pattern> th4</pattern>
+  <pattern>1t2h</pattern>
+  <pattern>4th </pattern>
+  <pattern>4the </pattern>
+  <pattern>4thes </pattern>
+  <pattern>thermo1s2</pattern>
+  <pattern>2t3heur</pattern>
+  <pattern>2thl</pattern>
+  <pattern>2thm</pattern>
+  <pattern>2thn</pattern>
+  <pattern>th2r</pattern>
+  <pattern>4thre </pattern>
+  <pattern>4thres </pattern>
+  <pattern>2ths</pattern>
+  <pattern>1ti</pattern>
+  <pattern>1tî</pattern>
+  <pattern>1to</pattern>
+  <pattern>1tô</pattern>
+  <pattern>1t2r</pattern>
+  <pattern>tran2s1a2</pattern>
+  <pattern>tran3s2act</pattern>
+  <pattern>tran3s2ats</pattern>
+  <pattern>tran2s3h</pattern>
+  <pattern>tran2s1o2</pattern>
+  <pattern>tran2s3p</pattern>
+  <pattern>tran2s1u2</pattern>
+  <pattern>4tre </pattern>
+  <pattern>4tres </pattern>
+  <pattern>2trent </pattern>
+  <pattern> tri1a2c</pattern>
+  <pattern> tri1a2n</pattern>
+  <pattern> tri1a2t</pattern>
+  <pattern> tri1o2n</pattern>
+  <pattern>t1t2l</pattern>
+  <pattern>1tu</pattern>
+  <pattern>1tû</pattern>
+  <pattern>tung2s3</pattern>
+  <pattern>1ty</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %u -->
+  <pattern> u4</pattern>
+  <pattern>'u4</pattern>
+  <pattern> û4</pattern>
+  <pattern>'û4</pattern>
+  <pattern>uni1o2v</pattern>
+  <pattern>uni1a2x</pattern>
+  <pattern>u2s3tr</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %v -->
+  <pattern>1va</pattern>
+  <pattern>1vâ</pattern>
+  <pattern>1ve</pattern>
+  <pattern>1vé</pattern>
+  <pattern>1vè</pattern>
+  <pattern>1vê</pattern>
+  <pattern>vélo1s2ki</pattern>
+  <pattern>4ve </pattern>
+  <pattern>4ves </pattern>
+<!--  words ending with -vent (df) 22/02/94 -->
+  <pattern>2vent </pattern>
+  <pattern>conni3vent </pattern>
+  <pattern> sou3vent </pattern>
+  <pattern>1vi</pattern>
+  <pattern>1vî</pattern>
+  <pattern>1vo</pattern>
+  <pattern>1vô</pattern>
+  <pattern>vol2t1amp</pattern>
+  <pattern>1v2r</pattern>
+  <pattern>4vre </pattern>
+  <pattern>4vres </pattern>
+  <pattern>2vrent </pattern>
+  <pattern>1vu</pattern>
+  <pattern>1vû</pattern>
+  <pattern>1vy</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %w -->
+  <pattern>1wa</pattern>
+  <pattern>1we</pattern>
+  <pattern>4we </pattern>
+  <pattern>4wes </pattern>
+  <pattern>2went </pattern>
+  <pattern>1wi</pattern>
+  <pattern>1wo</pattern>
+  <pattern>1wu</pattern>
+  <pattern>1w2r</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %x -->
+  <pattern>2xent </pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %y -->
+  <pattern> y4</pattern>
+  <pattern>'y4</pattern>
+  <pattern>y1asth</pattern>
+  <pattern>y1s2tom</pattern>
+  <pattern>y1algi</pattern>
+<!-- -------------------%-----------------------% -->
+<!--  phonetic patterns % etymological patterns % -->
+<!-- -------------------%-----------------------% -->
+<!-- %z -->
+  <pattern>1za</pattern>
+  <pattern>1ze</pattern>
+  <pattern>1zé</pattern>
+  <pattern>1zè</pattern>
+  <pattern>4ze </pattern>
+  <pattern>4zes </pattern>
+<!--  words ending with -zent (df) 22/02/94 -->
+  <pattern>2zent </pattern>
+  <pattern>privatdo3zent </pattern>
+  <pattern>1zi</pattern>
+  <pattern>1zo</pattern>
+  <pattern>1zu</pattern>
+  <pattern>1zy</pattern>
+</HyphenationDescription>
