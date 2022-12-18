@@ -6,6 +6,8 @@ thirdparty_dir="${top_srcdir}/thirdparty"
 repo_dir="${top_srcdir}/thirdparty_repo"
 repo_tmpdir="${top_srcdir}/thirdparty_tmp"
 
+SHA512SUM=
+
 cleanup()
 {
 	:
@@ -34,6 +36,22 @@ _get_tar_args()
 		;;
 	esac
 	echo "${args}"
+}
+
+find_shasum()
+{
+	if [ "x${SHA512SUM}" = "x" ]
+	then
+		which shasum > /dev/null 2>&1 && SHA512SUM=shasum
+	fi
+	if [ "x${SHA512SUM}" = "x" ]
+	then
+		which sha512sum > /dev/null 2>&1 && SHA512SUM=sha512sum
+	fi
+	if [ "x${SHA512SUM}" = "x" ]
+	then
+		die "Nor sha512sum nor shasum found!"
+	fi
 }
 
 deploy_package()
@@ -96,7 +114,7 @@ deploy_package()
 	then
 		# make sha512 sum file
 		echo "${SHA512} *${SRCFILE}" > "${SRCFILE}.sha512"
-                shasum -c "${SRCFILE}.sha512" || if [ "x" = "x" ]; then rm -f .downloaded; rm -f "${SRCFILE}.sha512"; die "Failed to verify checksum!"; fi
+		${SHA512SUM} -c "${SRCFILE}.sha512" || if [ "x" = "x" ]; then rm -f .downloaded; rm -f "${SRCFILE}.sha512"; die "Failed to verify checksum!"; fi
 		echo "1" > .verified
 		rm -f "${SRCFILE}.sha512"
 		echo "Checksum OK."
@@ -152,6 +170,8 @@ if [ ! -d "${repo_tmpdir}" ]
 then
 	mkdir "${repo_tmpdir}" || die "Failed to create repo tmpdir!"
 fi
+
+find_shasum
 
 deploy_package zlib
 deploy_package libpng
