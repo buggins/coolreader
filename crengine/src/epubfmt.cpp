@@ -1372,7 +1372,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     int fragmentCount = 0;
     size_t spineItemsNb = spineItems.length();
     for ( size_t i=0; i<spineItemsNb; i++ ) {
-        if (spineItems[i]->mediaType == "application/xhtml+xml") {
+        if (spineItems[i]->mediaType == "application/xhtml+xml" || spineItems[i]->mediaType == "text/html") {
             lString32 name = LVCombinePaths(codeBase, spineItems[i]->href);
             lString32 subst = cs32("_doc_fragment_") + fmt::decimal(i);
             appender.addPathSubstitution( name, subst );
@@ -1388,7 +1388,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 lastProgressPercent = percent;
             }
         }
-        if (spineItems[i]->mediaType == "application/xhtml+xml") {
+        if (spineItems[i]->mediaType == "application/xhtml+xml" || spineItems[i]->mediaType == "text/html") {
             lString32 name = LVCombinePaths(codeBase, spineItems[i]->href);
             {
                 CRLog::debug("Checking fragment: %s", LCSTR(name));
