@@ -51,6 +51,7 @@ import android.speech.tts.Voice;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.crengine.CRStateFileLogger;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.SentenceInfo;
@@ -310,6 +311,7 @@ public class TTSControlService extends BaseService {
 
 	@Override
 	public void onCreate() {
+		CRStateFileLogger.appendState("TTS_CREATE");
 		log.d("onCreate");
 		super.onCreate();
 		mState = State.STOPPED;
@@ -571,6 +573,7 @@ public class TTSControlService extends BaseService {
 
 	@Override
 	public void onDestroy() {
+		CRStateFileLogger.appendState("TTS_DESTROY");
 		log.d("onDestroy");
 		getApplicationContext().getContentResolver().unregisterContentObserver(mVolumeSettingsContentObserver);
 		synchronized (mLocker) {
