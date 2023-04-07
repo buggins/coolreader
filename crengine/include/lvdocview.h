@@ -579,6 +579,8 @@ public:
     virtual void clearSelection();
     /// update selection -- command handler
     int onSelectionCommand( int cmd, int param );
+    /// select the next sentence, for iterating through all
+    bool nextSentence();
 
 
     /// navigation history
