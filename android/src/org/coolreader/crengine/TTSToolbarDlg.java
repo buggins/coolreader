@@ -53,6 +53,7 @@ import org.coolreader.tts.TTSControlBinder;
 import org.coolreader.tts.TTSControlService;
 import org.coolreader.tts.TTSControlServiceAccessor;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -90,6 +91,7 @@ public class TTSToolbarDlg implements Settings {
 	private boolean mGoogleTTSAbbreviationWorkaround;
 	private int mTTSSpeedPercent = 50;		// 50% (normal)
 
+	private List<SentenceInfo> allSentences;
 
 	static public TTSToolbarDlg showDialog( CoolReader coolReader, ReaderView readerView, TTSControlServiceAccessor ttsacc) {
 		TTSToolbarDlg dlg = new TTSToolbarDlg(coolReader, readerView, ttsacc);
@@ -632,5 +634,7 @@ public class TTSToolbarDlg implements Settings {
 		});
 		// And finally, setup status change handler
 		setupSpeechStatusHandler();
+		allSentences = mReaderView.getAllSentences();
+		moveSelection(ReaderCommand.DCMD_SELECT_FIRST_SENTENCE, null);
 	}
 }

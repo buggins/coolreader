@@ -3253,6 +3253,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		return mBookInfo;
 	}
 
+	public List<SentenceInfo> getAllSentences() {
+		return doc.getAllSentences();
+	}
+
 	private int mBatteryState = BATTERY_STATE_DISCHARGING;
 	private int mBatteryChargingConn = BATTERY_CHARGER_NO;
 	private int mBatteryChargeLevel = 0;
