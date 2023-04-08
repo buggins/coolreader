@@ -53,6 +53,7 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
+import org.coolreader.crengine.SentenceInfo;
 import org.coolreader.db.BaseService;
 import org.coolreader.db.Task;
 
@@ -96,6 +97,10 @@ public class TTSControlService extends BaseService {
 	public static final String TTS_CONTROL_ACTION_NEXT = "org.coolreader.tts.tts_next";
 	public static final String TTS_CONTROL_ACTION_PREV = "org.coolreader.tts.tts_prev";
 	public static final String TTS_CONTROL_ACTION_STOP = "org.coolreader.tts.tts_stop";
+
+	private boolean useAudioBook = false;
+	private File audioFile = null;
+	private double startTime = 0;
 
 	private boolean mChannelCreated = false;
 	private final TTSControlBinder mBinder = new TTSControlBinder(this);
@@ -152,6 +157,15 @@ public class TTSControlService extends BaseService {
 						}
 						break;
 					case TTSControlService.TTS_CONTROL_ACTION_NEXT:
+						if(useAudioBook){
+							if (null != mStatusListener){
+								if(mMediaPlayer != null){
+									mMediaPlayer.stop();
+								}
+								mStatusListener.onNextSentenceRequested(mBinder);
+							}
+							break;
+						}
 						if (State.PLAYING == mState) {
 							stopUtterance_impl(() -> {
 								if (null != mStatusListener)
@@ -163,6 +177,15 @@ public class TTSControlService extends BaseService {
 						}
 						break;
 					case TTSControlService.TTS_CONTROL_ACTION_PREV:
+						if(useAudioBook){
+							if (null != mStatusListener){
+								if(mMediaPlayer != null){
+									mMediaPlayer.stop();
+								}
+								mStatusListener.onPreviousSentenceRequested(mBinder);
+							}
+							break;
+						}
 						if (State.PLAYING == mState) {
 							stopUtterance_impl(() -> {
 								if (null != mStatusListener)
@@ -319,6 +342,10 @@ public class TTSControlService extends BaseService {
 
 				@Override
 				public void onPlay() {
+					if(useAudioBook){
+						ensureAudioBookPlaying();
+						return;
+					}
 					if (null == mCurrentUtterance) {
 						if (null != mStatusListener)
 							mStatusListener.onCurrentSentenceRequested(mBinder);
@@ -392,6 +419,10 @@ public class TTSControlService extends BaseService {
 
 				@Override
 				public void onPause() {
+					if(useAudioBook){
+						pauseAudioBook();
+						return;
+					}
 					stopUtterance_impl(null);
 					synchronized (mLocker) {
 						mState = State.PAUSED;
@@ -585,6 +616,10 @@ public class TTSControlService extends BaseService {
 
 	public interface RetrieveStateCallback {
 		void onResult(State state);
+	}
+
+	public interface IntResultCallback {
+		void onResult(int result);
 	}
 
 	public interface BooleanResultCallback {
@@ -782,6 +817,9 @@ public class TTSControlService extends BaseService {
 	}
 
 	private void playWrapper_api_less_than_21() {
+		if(useAudioBook){
+			return;
+		}
 		if (null != mCurrentUtterance) {
 			if (!mPlaybackNowAuthorized)
 				requestAudioFocusWrapper();
@@ -818,6 +856,9 @@ public class TTSControlService extends BaseService {
 	}
 
 	private void pauseWrapper_api_less_than_21() {
+		if(useAudioBook){
+			return;
+		}
 		stopUtterance_impl(null);
 		synchronized (mLocker) {
 			mState = State.PAUSED;
@@ -1256,6 +1297,32 @@ public class TTSControlService extends BaseService {
 		});
 	}
 
+	public void isAudioBookPlaybackAfterSentence(
+		SentenceInfo sentenceInfo, BooleanResultCallback callback, Handler handler
+	) {
+		execTask(new Task("isAudioBookPlaybackAfterSentence") {
+			@Override
+			public void work() {
+				boolean isAfterSentence = false;
+				if(audioFile != null && mState == State.PLAYING){
+					if(sentenceInfo.audioFile.equals(audioFile)){
+						double curPos = mMediaPlayer.getCurrentPosition() / 1000.0;
+						if(mMediaPlayer.isPlaying() && curPos >= sentenceInfo.startTime){
+							isAfterSentence= true;
+						}
+					}else{
+						if(!mMediaPlayer.isPlaying()){
+							//next file
+							isAfterSentence = true;
+						}
+					}
+				}
+				final boolean result = isAfterSentence;
+				sendTask(handler, () -> callback.onResult(result));
+			}
+		});
+	}
+
 	public void retrieveVolume(VolumeResultCallback callback, Handler handler) {
 		execTask(new Task("retrieveVolume") {
 			@Override
@@ -1290,20 +1357,57 @@ public class TTSControlService extends BaseService {
 	}
 
 
-	public void playAudioFile(File audioFile, double startTime) {
-		if (null != mMediaPlayer) {
-			mMediaPlayer.stop();
-			mMediaPlayer.release();
-			mMediaPlayer = null;
+	public void setAudioFile(File audioFile, double startTime) {
+		if(this.audioFile != null && !this.audioFile.equals(audioFile)){
+			if(mMediaPlayer != null){
+				mMediaPlayer.stop();
+			}
 		}
+
+		this.useAudioBook = true;
+		this.audioFile = audioFile;
+		this.startTime = startTime;
+
+		if(mState == State.PLAYING){
+			ensureAudioBookPlaying();
+		}
+	}
+
+	public void ensureAudioBookPlaying() {
+		if(mMediaPlayer != null && mMediaPlayer.isPlaying()){
+			return;
+		}
+
 		try{
-			mMediaPlayer = MediaPlayer.create(getApplicationContext(), Uri.parse(audioFile.toString()));
+			if(mMediaPlayer != null){
+				mMediaPlayer.stop();
+				mMediaPlayer.release();
+				mMediaPlayer = null;
+			}
+			mMediaPlayer = MediaPlayer.create(
+				getApplicationContext(), Uri.parse("file://" + audioFile.toString()));
 		}catch(Exception e){
 			log.d("ERROR: " + e.getMessage());
 		}
+
 		int millis = (int) (startTime*1000.0 + 0.5);
 		mMediaPlayer.seekTo(millis);
+
 		mMediaPlayer.start();
+		mMediaSession.setPlaybackState(
+			mPlaybackStateBuilder.setState(PlaybackState.STATE_PLAYING,
+					PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0).build());
+		mState = State.PLAYING;
+		mStatusListener.onStateChanged(mState);
+	}
+
+	public void pauseAudioBook() {
+		mMediaPlayer.pause();
+		mMediaSession.setPlaybackState(
+			mPlaybackStateBuilder.setState(PlaybackState.STATE_PAUSED,
+					PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0).build());
+		mState = State.PAUSED;
+		mStatusListener.onStateChanged(mState);
 	}
 
 	// ======================================
@@ -1415,6 +1519,9 @@ public class TTSControlService extends BaseService {
 	}
 
 	private void setupTTSHandlers() {
+		if(useAudioBook){
+			return;
+		}
 		if (null != mTTS) {
 			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
 				mTTS.setOnUtteranceCompletedListener(utteranceId -> {

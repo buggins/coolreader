@@ -31,6 +31,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.HandlerThread;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -93,6 +95,28 @@ public class TTSToolbarDlg implements Settings {
 	private int mTTSSpeedPercent = 50;		// 50% (normal)
 
 	private WordTimingAudiobookMatcher wordTimingAudiobookMatcher;
+	private SentenceInfo currentSentenceInfo;
+	private Handler audioBookPosHandler = new Handler(Looper.getMainLooper());
+	private Runnable audioBookPosRunnable = new Runnable() {
+		@Override
+		public void run() {
+			try{
+				SentenceInfo currentSentence = fetchSelectedSentenceInfo();
+				if(currentSentence != null && currentSentence.nextSentence != null){
+					mTTSControl.bind(ttsbinder -> ttsbinder.isAudioBookPlaybackAfterSentence(
+						currentSentence.nextSentence,
+						isAfter -> {
+							if(isAfter){
+								moveSelection(ReaderCommand.DCMD_SELECT_NEXT_SENTENCE, null);
+							}
+						}
+					));
+				}
+			} finally {
+				audioBookPosHandler.postDelayed(this, 500);
+			}
+		}
+	};
 
 	static public TTSToolbarDlg showDialog( CoolReader coolReader, ReaderView readerView, TTSControlServiceAccessor ttsacc) {
 		TTSToolbarDlg dlg = new TTSToolbarDlg(coolReader, readerView, ttsacc);
@@ -149,6 +173,14 @@ public class TTSToolbarDlg implements Settings {
 		}
 	}
 
+	private SentenceInfo fetchSelectedSentenceInfo() {
+		if(wordTimingAudiobookMatcher != null && mCurrentSelection != null){
+			return wordTimingAudiobookMatcher.getSentence(
+				mCurrentSelection.startY, mCurrentSelection.startX);
+		}
+		return null;
+	}
+
 	/**
 	 * Select next or previous sentence. ONLY the selection changes and the specified callback is called!
 	 * Not affected to speech synthesis process.
@@ -161,17 +193,14 @@ public class TTSToolbarDlg implements Settings {
 
 			@Override
 			public void onNewSelection(Selection selection) {
-				log.d("onNewSelection: " + selection.text);
-				if(wordTimingAudiobookMatcher != null){
-					SentenceInfo s = wordTimingAudiobookMatcher.getSentence(selection.startY, selection.startX);
-					if(s.audioFile != null){
-						File audioFile = wordTimingAudiobookMatcher.getAudioFile(s.audioFile);
-						mTTSControl.bind(ttsbinder -> {
-							ttsbinder.playAudioFile(audioFile, s.startTime);
-						});
-					}
-				}
+				log.d("onNewSelection: " + selection.text + " : " + selection.startY + " x " + selection.startX);
 				mCurrentSelection = selection;
+				SentenceInfo sentenceInfo = fetchSelectedSentenceInfo();
+				if(sentenceInfo != null && sentenceInfo.audioFile != null){
+					mTTSControl.bind(ttsbinder -> {
+						ttsbinder.setAudioFile(sentenceInfo.audioFile, sentenceInfo.startTime);
+					});
+				}
 				if (null != callback)
 					callback.onNewSelection(mCurrentSelection);
 			}
@@ -651,12 +680,15 @@ public class TTSToolbarDlg implements Settings {
 		// And finally, setup status change handler
 		setupSpeechStatusHandler();
 
+		audioBookPosHandler.removeCallbacks(audioBookPosRunnable);
+
 		if(wordTimingFile != null && wordTimingFile.exists()){
 			List<SentenceInfo> allSentences = mReaderView.getAllSentences();
 			wordTimingAudiobookMatcher = new WordTimingAudiobookMatcher(wordTimingFile, allSentences);
 			wordTimingAudiobookMatcher.parseWordTimingsFile();
 
 			moveSelection(ReaderCommand.DCMD_SELECT_FIRST_SENTENCE, null);
+			audioBookPosHandler.postDelayed(audioBookPosRunnable, 500);
 		}else{
 			wordTimingAudiobookMatcher = null;
 		}
