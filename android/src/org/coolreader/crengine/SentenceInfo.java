@@ -1,5 +1,6 @@
 package org.coolreader.crengine;
 
+import java.io.File;
 import java.util.List;
 
 public class SentenceInfo {
@@ -8,8 +9,9 @@ public class SentenceInfo {
 	public String text;
 
 	public double startTime;
-	public String audioFile;
+	public File audioFile;
 	public List<String> words;
+	public SentenceInfo nextSentence;
 
 	public SentenceInfo() {
 	}

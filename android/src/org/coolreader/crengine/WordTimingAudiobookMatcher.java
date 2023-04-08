@@ -19,9 +19,9 @@ public class WordTimingAudiobookMatcher {
 	private static class WordTiming {
 		String word;
 		Double startTime;
-		String audioFile;
+		File audioFile;
 
-		public WordTiming(String word, Double startTime, String audioFile){
+		public WordTiming(String word, Double startTime, File audioFile){
 			this.word = word;
 			this.startTime = startTime;
 			this.audioFile = audioFile;
@@ -50,14 +50,30 @@ public class WordTimingAudiobookMatcher {
 			lines = new ArrayList<>();
 		}
 
+		String dir = wordTimingsFile.getAbsoluteFile().getParent();
+
 		wordTimings = new ArrayList<>();
 		for(String line : lines){
 			Matcher m = WORD_TIMING_REGEX.matcher(line);
 			if(m.matches()){
-				wordTimings.add(new WordTiming(m.group(2), Double.parseDouble(m.group(1)), m.group(3)));
+				String word = m.group(2);
+				Double startTime = Double.parseDouble(m.group(1));
+				File audioFile = new File(dir + "/" + m.group(3));
+				wordTimings.add(new WordTiming(word, startTime, audioFile));
 			}else{
 				log.d("ERROR: could not parse word timings line: " + line);
 			}
+		}
+
+		for(int i=0; i<allSentences.size(); i++){
+			SentenceInfo s = allSentences.get(i);
+			SentenceInfo nextSentence;
+			if(i+1<allSentences.size()){
+				nextSentence = allSentences.get(i+1);
+			}else{
+				nextSentence = null;
+			}
+			s.nextSentence = nextSentence;
 		}
 
 		for(SentenceInfo s : allSentences){
@@ -79,7 +95,7 @@ public class WordTimingAudiobookMatcher {
 
 		int wtIndex = 0;
 		double prevStartTime = 0;
-		String prevAudioFile = wordTimings.get(0).audioFile;
+		File prevAudioFile = wordTimings.get(0).audioFile;
 		for(SentenceInfo s : allSentences){
 			if(s.words.size() == 0){
 				s.startTime = prevStartTime;
@@ -132,10 +148,5 @@ public class WordTimingAudiobookMatcher {
 			}
 		}
 		return null;
-	}
-
-	public File getAudioFile(String audioFileName){
-		String dir = wordTimingsFile.getAbsoluteFile().getParent();
-		return new File(dir + "/" + audioFileName);
 	}
 }
