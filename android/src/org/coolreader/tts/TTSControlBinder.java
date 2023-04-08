@@ -24,6 +24,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.speech.tts.Voice;
 
+import java.io.File;
 import java.util.Locale;
 
 public class TTSControlBinder extends Binder {
@@ -124,6 +125,10 @@ public class TTSControlBinder extends Binder {
 
 	public void setStatusListener(OnTTSStatusListener listener) {
 		mService.setStatusListener(listener);
+	}
+
+	public void playAudioFile(File audioFile, double startTime) {
+		mService.playAudioFile(audioFile, startTime);
 	}
 
 }
