@@ -40,6 +40,7 @@ import android.media.MediaMetadata;
 import android.media.MediaPlayer;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -55,6 +56,7 @@ import org.coolreader.crengine.Logger;
 import org.coolreader.db.BaseService;
 import org.coolreader.db.Task;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1285,6 +1287,23 @@ public class TTSControlService extends BaseService {
 		synchronized (mLocker) {
 			mStatusListener = listener;
 		}
+	}
+
+
+	public void playAudioFile(File audioFile, double startTime) {
+		if (null != mMediaPlayer) {
+			mMediaPlayer.stop();
+			mMediaPlayer.release();
+			mMediaPlayer = null;
+		}
+		try{
+			mMediaPlayer = MediaPlayer.create(getApplicationContext(), Uri.parse(audioFile.toString()));
+		}catch(Exception e){
+			log.d("ERROR: " + e.getMessage());
+		}
+		int millis = (int) (startTime*1000.0 + 0.5);
+		mMediaPlayer.seekTo(millis);
+		mMediaPlayer.start();
 	}
 
 	// ======================================

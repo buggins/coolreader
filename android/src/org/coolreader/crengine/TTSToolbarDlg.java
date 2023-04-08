@@ -53,6 +53,7 @@ import org.coolreader.tts.TTSControlBinder;
 import org.coolreader.tts.TTSControlService;
 import org.coolreader.tts.TTSControlServiceAccessor;
 
+import java.io.File;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -91,7 +92,7 @@ public class TTSToolbarDlg implements Settings {
 	private boolean mGoogleTTSAbbreviationWorkaround;
 	private int mTTSSpeedPercent = 50;		// 50% (normal)
 
-	private List<SentenceInfo> allSentences;
+	private WordTimingAudiobookMatcher wordTimingAudiobookMatcher;
 
 	static public TTSToolbarDlg showDialog( CoolReader coolReader, ReaderView readerView, TTSControlServiceAccessor ttsacc) {
 		TTSToolbarDlg dlg = new TTSToolbarDlg(coolReader, readerView, ttsacc);
@@ -161,6 +162,15 @@ public class TTSToolbarDlg implements Settings {
 			@Override
 			public void onNewSelection(Selection selection) {
 				log.d("onNewSelection: " + selection.text);
+				if(wordTimingAudiobookMatcher != null){
+					SentenceInfo s = wordTimingAudiobookMatcher.getSentence(selection.startY, selection.startX);
+					if(s.audioFile != null){
+						File audioFile = wordTimingAudiobookMatcher.getAudioFile(s.audioFile);
+						mTTSControl.bind(ttsbinder -> {
+							ttsbinder.playAudioFile(audioFile, s.startTime);
+						});
+					}
+				}
 				mCurrentSelection = selection;
 				if (null != callback)
 					callback.onNewSelection(mCurrentSelection);
@@ -598,6 +608,7 @@ public class TTSToolbarDlg implements Settings {
 		// All tasks bellow after service start
 		// Fetch book's metadata
 		BookInfo bookInfo = mReaderView.getBookInfo();
+		File wordTimingFile = null;
 		if (null != bookInfo) {
 			FileInfo fileInfo = bookInfo.getFileInfo();
 			if (null != fileInfo) {
@@ -607,6 +618,11 @@ public class TTSToolbarDlg implements Settings {
 				mBookCover = Bitmap.createBitmap(MEDIA_COVER_WIDTH, MEDIA_COVER_HEIGHT, Bitmap.Config.RGB_565);
 				Services.getCoverpageManager().drawCoverpageFor(mCoolReader.getDB(), fileInfo, mBookCover, true,
 						(file, bitmap) -> mTTSControl.bind(ttsbinder -> ttsbinder.setMediaItemInfo(mBookAuthors, mBookTitle, bitmap)));
+				String pathName = fileInfo.getPathName();
+				String wordTimingPath = pathName.replaceAll("\\.\\w+$", ".wordtiming");
+				if(wordTimingPath.matches(".*\\.wordtiming$")){
+					wordTimingFile = new File(wordTimingPath);
+				}
 			}
 		}
 		// Show volume
@@ -634,7 +650,15 @@ public class TTSToolbarDlg implements Settings {
 		});
 		// And finally, setup status change handler
 		setupSpeechStatusHandler();
-		allSentences = mReaderView.getAllSentences();
-		moveSelection(ReaderCommand.DCMD_SELECT_FIRST_SENTENCE, null);
+
+		if(wordTimingFile != null && wordTimingFile.exists()){
+			List<SentenceInfo> allSentences = mReaderView.getAllSentences();
+			wordTimingAudiobookMatcher = new WordTimingAudiobookMatcher(wordTimingFile, allSentences);
+			wordTimingAudiobookMatcher.parseWordTimingsFile();
+
+			moveSelection(ReaderCommand.DCMD_SELECT_FIRST_SENTENCE, null);
+		}else{
+			wordTimingAudiobookMatcher = null;
+		}
 	}
 }
