@@ -1898,6 +1898,8 @@ public class BaseActivity extends Activity implements Settings {
 			// By default enable workaround to disable processing of abbreviations at the end of a sentence when using "Google Speech Services".
 			props.applyDefault(ReaderView.PROP_APP_TTS_GOOGLE_END_OF_SENTENCE_ABBR, "1");
 
+			props.applyDefault(ReaderView.PROP_APP_TTS_USE_AUDIOBOOK, "1");
+
 			props.applyDefault(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST1" : "LIGHT");
 			props.applyDefault(ReaderView.PROP_APP_THEME_DAY, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST1" : "LIGHT");
 			props.applyDefault(ReaderView.PROP_APP_THEME_NIGHT, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST2" : "DARK");

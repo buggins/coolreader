@@ -1370,7 +1370,7 @@ public class TTSControlService extends BaseService {
 			}
 		}
 
-		this.useAudioBook = true;
+		this.useAudioBook = audioFile == null ? false : true;
 		this.audioFile = audioFile;
 		this.startTime = startTime;
 
@@ -1381,6 +1381,9 @@ public class TTSControlService extends BaseService {
 
 	public void ensureAudioBookPlaying() {
 		if(mMediaPlayer != null && mMediaPlayer.isPlaying()){
+			return;
+		}
+		if(audioFile == null){
 			return;
 		}
 
