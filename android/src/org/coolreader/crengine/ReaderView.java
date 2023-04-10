@@ -2424,6 +2424,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, ttsacc);
 					ttsToolbar.setOnCloseListener(() -> ttsToolbar = null);
 					ttsToolbar.setAppSettings(mSettings, null);
+					ttsToolbar.initAudiobookWordTimings(null);
 				}));
 			}
 			break;
