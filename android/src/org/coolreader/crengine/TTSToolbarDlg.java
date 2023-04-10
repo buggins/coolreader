@@ -92,6 +92,7 @@ public class TTSToolbarDlg implements Settings {
 	private String mCurrentLanguage;
 	private String mCurrentVoiceName;
 	private boolean mGoogleTTSAbbreviationWorkaround;
+	private boolean allowUseAudiobook;
 	private int mTTSSpeedPercent = 50;		// 50% (normal)
 
 	private File wordTimingFile;
@@ -200,11 +201,13 @@ public class TTSToolbarDlg implements Settings {
 			public void onNewSelection(Selection selection) {
 				log.d("onNewSelection: " + selection.text + " : " + selection.startY + " x " + selection.startX);
 				mCurrentSelection = selection;
-				SentenceInfo sentenceInfo = fetchSelectedSentenceInfo();
-				if(sentenceInfo != null && sentenceInfo.audioFile != null){
-					mTTSControl.bind(ttsbinder -> {
-						ttsbinder.setAudioFile(sentenceInfo.audioFile, sentenceInfo.startTime);
-					});
+				if(allowUseAudiobook){
+					SentenceInfo sentenceInfo = fetchSelectedSentenceInfo();
+					if(sentenceInfo != null && sentenceInfo.audioFile != null){
+						mTTSControl.bind(ttsbinder -> {
+							ttsbinder.setAudioFile(sentenceInfo.audioFile, sentenceInfo.startTime);
+						});
+					}
 				}
 				if (null != callback)
 					callback.onNewSelection(mCurrentSelection);
@@ -284,9 +287,15 @@ public class TTSToolbarDlg implements Settings {
 	public void setAppSettings(Properties newSettings, Properties oldSettings) {
 		log.v("setAppSettings()");
 		BackgroundThread.ensureGUI();
-		if (oldSettings == null)
+		boolean initialSetup;
+		if (oldSettings == null){
 			oldSettings = new Properties();
+			initialSetup = true;
+		}else{
+			initialSetup = false;
+		}
 		int oldTTSSpeed = mTTSSpeedPercent;
+		boolean oldAllowUseAudiobook = this.allowUseAudiobook;
 		Properties changedSettings = newSettings.diff(oldSettings);
 		for (Map.Entry<Object, Object> entry : changedSettings.entrySet()) {
 			String key = (String) entry.getKey();
@@ -301,6 +310,41 @@ public class TTSToolbarDlg implements Settings {
 					if (result)
 						BackgroundThread.instance().postGUI(() -> mSbSpeed.setProgress(mTTSSpeedPercent));
 				});
+			});
+		}
+		boolean newAllowUseAudiobook = allowUseAudiobook;
+		if (!initialSetup && oldAllowUseAudiobook && !newAllowUseAudiobook){
+			mTTSControl.bind(ttsbinder -> {
+				ttsbinder.stop(null);
+				ttsbinder.setAudioFile(null, 0);
+				initAudiobookWordTimings(new InitAudiobookWordTimingsCallback(){
+					public void onComplete(){
+						moveSelection(ReaderCommand.DCMD_SELECT_FIRST_SENTENCE, new ReaderView.MoveSelectionCallback() {
+							@Override
+							public void onNewSelection(Selection selection) {
+								if (isSpeaking) {
+									ttsbinder.say(preprocessUtterance(selection.text), null);
+								} else {
+									ttsbinder.setCurrentUtterance(preprocessUtterance(selection.text));
+								}
+							}
+
+							@Override
+							public void onFail() {
+							}
+						});
+					}
+				});
+			});
+		}else if(!initialSetup && !oldAllowUseAudiobook && newAllowUseAudiobook){
+			mTTSControl.bind(ttsbinder -> {
+				ttsbinder.stop(null);
+				SentenceInfo sentenceInfo = fetchSelectedSentenceInfo();
+				if(sentenceInfo != null){
+					ttsbinder.setAudioFile(sentenceInfo.audioFile, sentenceInfo.startTime);
+				}
+				initAudiobookWordTimings(null);
+				moveSelection(ReaderCommand.DCMD_SELECT_FIRST_SENTENCE, null);
 			});
 		}
 	}
@@ -331,6 +375,10 @@ public class TTSToolbarDlg implements Settings {
 				break;
 			case PROP_APP_TTS_GOOGLE_END_OF_SENTENCE_ABBR:
 				mGoogleTTSAbbreviationWorkaround = flg;
+				break;
+			case PROP_APP_TTS_USE_AUDIOBOOK:
+				allowUseAudiobook = flg;
+				break;
 		}
 	}
 
@@ -689,7 +737,7 @@ public class TTSToolbarDlg implements Settings {
 	public void initAudiobookWordTimings(InitAudiobookWordTimingsCallback callback){
 		audioBookPosHandler.removeCallbacks(audioBookPosRunnable);
 
-		if(wordTimingFile != null && wordTimingFile.exists()){
+		if(allowUseAudiobook && wordTimingFile != null && wordTimingFile.exists()){
 			if(wordTimingCalcHandler == null){
 				if(wordTimingCalcHandlerThread == null){
 					wordTimingCalcHandlerThread = new HandlerThread("word-timing-calc-handler");
