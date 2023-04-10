@@ -94,8 +94,13 @@ public class TTSToolbarDlg implements Settings {
 	private boolean mGoogleTTSAbbreviationWorkaround;
 	private int mTTSSpeedPercent = 50;		// 50% (normal)
 
+	private File wordTimingFile;
 	private WordTimingAudiobookMatcher wordTimingAudiobookMatcher;
 	private SentenceInfo currentSentenceInfo;
+
+	private HandlerThread wordTimingCalcHandlerThread;
+	private Handler wordTimingCalcHandler;
+
 	private Handler audioBookPosHandler = new Handler(Looper.getMainLooper());
 	private Runnable audioBookPosRunnable = new Runnable() {
 		@Override
@@ -637,7 +642,7 @@ public class TTSToolbarDlg implements Settings {
 		// All tasks bellow after service start
 		// Fetch book's metadata
 		BookInfo bookInfo = mReaderView.getBookInfo();
-		File wordTimingFile = null;
+		wordTimingFile = null;
 		if (null != bookInfo) {
 			FileInfo fileInfo = bookInfo.getFileInfo();
 			if (null != fileInfo) {
@@ -679,16 +684,42 @@ public class TTSToolbarDlg implements Settings {
 		});
 		// And finally, setup status change handler
 		setupSpeechStatusHandler();
+	}
 
+	public void initAudiobookWordTimings(InitAudiobookWordTimingsCallback callback){
 		audioBookPosHandler.removeCallbacks(audioBookPosRunnable);
 
 		if(wordTimingFile != null && wordTimingFile.exists()){
-			List<SentenceInfo> allSentences = mReaderView.getAllSentences();
-			wordTimingAudiobookMatcher = new WordTimingAudiobookMatcher(wordTimingFile, allSentences);
-			wordTimingAudiobookMatcher.parseWordTimingsFile();
+			if(wordTimingCalcHandler == null){
+				if(wordTimingCalcHandlerThread == null){
+					wordTimingCalcHandlerThread = new HandlerThread("word-timing-calc-handler");
+					wordTimingCalcHandlerThread.start();
+				}
+				Looper wordTimingCalcLooper = wordTimingCalcHandlerThread.getLooper();
+				wordTimingCalcHandler = new Handler(wordTimingCalcLooper);
+			}
 
-			moveSelection(ReaderCommand.DCMD_SELECT_FIRST_SENTENCE, null);
-			audioBookPosHandler.postDelayed(audioBookPosRunnable, 500);
+
+			wordTimingCalcHandler.removeCallbacksAndMessages(null);
+			mCoolReader.showToast("matching audiobook word timings");
+			wordTimingCalcHandler.post(
+				new Runnable() {
+						public void run() {
+							List<SentenceInfo> allSentences = mReaderView.getAllSentences();
+							wordTimingAudiobookMatcher = new WordTimingAudiobookMatcher(wordTimingFile, allSentences);
+
+							//can be very long
+							wordTimingAudiobookMatcher.parseWordTimingsFile();
+
+							moveSelection(ReaderCommand.DCMD_SELECT_FIRST_SENTENCE, null);
+							audioBookPosHandler.postDelayed(audioBookPosRunnable, 500);
+
+							if(callback != null){
+								callback.onComplete();
+							}
+						}
+				}
+			);
 		}else{
 			wordTimingAudiobookMatcher = null;
 		}
