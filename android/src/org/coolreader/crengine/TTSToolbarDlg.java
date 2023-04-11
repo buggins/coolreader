@@ -108,9 +108,9 @@ public class TTSToolbarDlg implements Settings {
 		public void run() {
 			try{
 				SentenceInfo currentSentence = fetchSelectedSentenceInfo();
-				if(currentSentence != null && currentSentence.nextSentence != null){
+				if(currentSentence != null){
 					mTTSControl.bind(ttsbinder -> ttsbinder.isAudioBookPlaybackAfterSentence(
-						currentSentence.nextSentence,
+						currentSentence,
 						isAfter -> {
 							if(isAfter){
 								moveSelection(ReaderCommand.DCMD_SELECT_NEXT_SENTENCE, null);

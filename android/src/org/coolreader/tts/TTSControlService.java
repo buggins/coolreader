@@ -1304,19 +1304,25 @@ public class TTSControlService extends BaseService {
 			@Override
 			public void work() {
 				boolean isAfterSentence = false;
-				if(audioFile != null && mState == State.PLAYING){
-					if(sentenceInfo.audioFile.equals(audioFile)){
-						double curPos = mMediaPlayer.getCurrentPosition() / 1000.0;
-						if(mMediaPlayer.isPlaying() && curPos >= sentenceInfo.startTime){
-							isAfterSentence= true;
-						}
-					}else{
-						if(!mMediaPlayer.isPlaying()){
-							//next file
-							isAfterSentence = true;
+				if(sentenceInfo != null && sentenceInfo.nextSentence != null){
+					SentenceInfo nextSentenceInfo = sentenceInfo.nextSentence;
+					if(sentenceInfo.audioFile == TTSControlService.this.audioFile){
+						if(nextSentenceInfo.isFirstSentenceInAudioFile){
+							if(mState == State.PLAYING && !mMediaPlayer.isPlaying()){
+								//this is the last sentence in the file, and the media player ended
+								isAfterSentence = true;
+							}
+						}else{
+							if(mMediaPlayer.isPlaying()){
+								double curPos = mMediaPlayer.getCurrentPosition() / 1000.0;
+								if(curPos >= nextSentenceInfo.startTime){
+									isAfterSentence = true;
+								}
+							}
 						}
 					}
 				}
+
 				final boolean result = isAfterSentence;
 				sendTask(handler, () -> callback.onResult(result));
 			}

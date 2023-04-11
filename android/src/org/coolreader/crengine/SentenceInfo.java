@@ -9,6 +9,7 @@ public class SentenceInfo {
 	public String text;
 
 	public double startTime;
+	public boolean isFirstSentenceInAudioFile = false;
 	public File audioFile;
 	public List<String> words;
 	public SentenceInfo nextSentence;
