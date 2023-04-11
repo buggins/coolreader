@@ -127,6 +127,16 @@ public class WordTimingAudiobookMatcher {
 				prevAudioFile = s.audioFile;
 			}
 		}
+
+		//start first sentence of all audio files at 0.0
+		// prevents skipping intros
+		File curAudioFile = null;
+		for(SentenceInfo s : allSentences){
+			if(curAudioFile == null || s.audioFile != curAudioFile){
+				s.startTime = 0;
+				curAudioFile = s.audioFile;
+			}
+		}
 	}
 
 	public SentenceInfo getSentence(double y, double x){
