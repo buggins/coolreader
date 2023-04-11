@@ -77,16 +77,7 @@ public class WordTimingAudiobookMatcher {
 		}
 
 		for(SentenceInfo s : allSentences){
-			String text = s.text;
-			text = text.replaceAll("’", "'");
-			text = text.toLowerCase();
-			String[] words = text.split("[^a-z0-9']");
-			s.words = new ArrayList<>();
-			for(String word : words){
-				if(word.matches(".*\\w.*")){
-					s.words.add(word);
-				}
-			}
+			s.words = splitSentenceIntoWords(s.text);
 		}
 
 		if(wordTimings.size() == 0){
@@ -148,5 +139,49 @@ public class WordTimingAudiobookMatcher {
 			}
 		}
 		return null;
+	}
+
+	private List<String> splitSentenceIntoWords(String sentence){
+		List<String> words = new ArrayList<String>();
+
+		StringBuilder str = null;
+		boolean wordContainsLetterOrNumber = false;
+		for(int i=0; i<sentence.length(); i++){
+			char ch = sentence.charAt(i);
+			if(ch == '’'){
+				ch = '\'';
+			}
+			ch = Character.toLowerCase(ch);
+
+			boolean isWordChar;
+			if('a' <= ch && ch <= 'z'){
+				isWordChar = true;
+				wordContainsLetterOrNumber = true;
+			}else if('0' <= ch && ch <= '9'){
+				isWordChar = true;
+				wordContainsLetterOrNumber = true;
+			}else if(ch == '\''){
+				isWordChar = true;
+			}else{
+				isWordChar = false;
+			}
+
+			if(isWordChar){
+				if(str == null){
+					str = new StringBuilder();
+				}
+				str.append(ch);
+			}
+
+			if(str != null && (!isWordChar || i == sentence.length()-1)){
+				if(wordContainsLetterOrNumber){
+					words.add(str.toString());
+				}
+				str = null;
+				wordContainsLetterOrNumber = false;
+			}
+		}
+
+		return words;
 	}
 }
