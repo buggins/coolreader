@@ -13,9 +13,6 @@ import java.util.regex.Pattern;
 public class WordTimingAudiobookMatcher {
 	public static final Logger log = L.create("wordtiming");
 
-	private static final Pattern WORD_TIMING_REGEX = Pattern.compile(
-		"^(\\d+|\\d*\\.\\d+),([^,]+),(.+)$"
-	);
 	private static class WordTiming {
 		String word;
 		Double startTime;
@@ -54,15 +51,11 @@ public class WordTimingAudiobookMatcher {
 
 		wordTimings = new ArrayList<>();
 		for(String line : lines){
-			Matcher m = WORD_TIMING_REGEX.matcher(line);
-			if(m.matches()){
-				String word = m.group(2);
-				Double startTime = Double.parseDouble(m.group(1));
-				File audioFile = new File(dir + "/" + m.group(3));
-				wordTimings.add(new WordTiming(word, startTime, audioFile));
-			}else{
+			WordTiming wordTiming = parseWordTimingsLine(dir, line);
+			if(wordTiming == null){
 				log.d("ERROR: could not parse word timings line: " + line);
 			}
+			wordTimings.add(wordTiming);
 		}
 
 		for(int i=0; i<allSentences.size(); i++){
@@ -139,6 +132,18 @@ public class WordTimingAudiobookMatcher {
 			}
 		}
 		return null;
+	}
+
+	private WordTiming parseWordTimingsLine(String dir, String line){
+		int sep1 = line.indexOf(',');
+		int sep2 = line.indexOf(',', sep1+1);
+		if(sep1 < 0 || sep2 < 0 || sep1 >= line.length() || sep2 >= line.length()){
+			return null;
+		}
+		String word = line.substring(sep1+1, sep2);
+		Double startTime = Double.parseDouble(line.substring(0, sep1));
+		File audioFile = new File(dir + "/" + line.substring(sep2+1));
+		return new WordTiming(word, startTime, audioFile);
 	}
 
 	private List<String> splitSentenceIntoWords(String sentence){
