@@ -133,6 +133,7 @@ public class WordTimingAudiobookMatcher {
 		File curAudioFile = null;
 		for(SentenceInfo s : allSentences){
 			if(curAudioFile == null || s.audioFile != curAudioFile){
+				s.isFirstSentenceInAudioFile = true;
 				s.startTime = 0;
 				curAudioFile = s.audioFile;
 			}
