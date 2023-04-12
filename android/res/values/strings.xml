@@ -286,6 +286,7 @@
     <string name="progress_downloading">Downloading</string>
     <string name="mi_book_opds_root">Online catalogs</string>
     <string name="mi_tts_play">Read Aloud</string>
+    <string name="mi_tts_stop">Stop Read Aloud</string>
     <string name="options_format_image_scaling_block_scale">Block image max zoom</string>
     <string name="options_format_image_scaling_mode_integer_factor">Integer scale</string>
     <string name="options_format_image_scaling_block_mode">Block image scaling mode</string>
