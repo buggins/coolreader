@@ -2414,15 +2414,17 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				showManual();
 				break;
 			case DCMD_TTS_PLAY: {
-				if(!isTTSActive()){
-					log.i("DCMD_TTS_PLAY: initializing TTS");
-					mActivity.initTTS(ttsacc -> BackgroundThread.instance().executeGUI(() -> {
-						log.i("TTS created: opening TTS toolbar");
-						ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, ttsacc);
-						ttsToolbar.setOnCloseListener(() -> ttsToolbar = null);
-						ttsToolbar.setAppSettings(mSettings, null);
-					}));
+				if(isTTSActive()){
+					log.i("DCMD_TTS_PLAY: skipping re-init of TTS");
+					return;
 				}
+				log.i("DCMD_TTS_PLAY: initializing TTS");
+				mActivity.initTTS(ttsacc -> BackgroundThread.instance().executeGUI(() -> {
+					log.i("TTS created: opening TTS toolbar");
+					ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, ttsacc);
+					ttsToolbar.setOnCloseListener(() -> ttsToolbar = null);
+					ttsToolbar.setAppSettings(mSettings, null);
+				}));
 			}
 			break;
 			case DCMD_TOGGLE_DOCUMENT_STYLES:
