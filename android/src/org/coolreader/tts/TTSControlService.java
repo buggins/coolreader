@@ -1308,12 +1308,12 @@ public class TTSControlService extends BaseService {
 					SentenceInfo nextSentenceInfo = sentenceInfo.nextSentence;
 					if(sentenceInfo.audioFile == TTSControlService.this.audioFile){
 						if(nextSentenceInfo.isFirstSentenceInAudioFile){
-							if(mState == State.PLAYING && !mMediaPlayer.isPlaying()){
+							if(mState == State.PLAYING && (mMediaPlayer == null || !mMediaPlayer.isPlaying())){
 								//this is the last sentence in the file, and the media player ended
 								isAfterSentence = true;
 							}
 						}else{
-							if(mMediaPlayer.isPlaying()){
+							if(mMediaPlayer != null && mMediaPlayer.isPlaying()){
 								double curPos = mMediaPlayer.getCurrentPosition() / 1000.0;
 								if(curPos >= nextSentenceInfo.startTime){
 									isAfterSentence = true;
