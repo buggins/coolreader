@@ -1,191 +1,206 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Layout for TTS dialog -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/tts_toolbar_body"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dip"
-        android:layout_marginBottom="3dip"
-        android:background="?attr/tts_toolbar_background"
-        android:baselineAligned="true"
-        android:orientation="vertical">
+        android:layout_height="fill_parent">
 
     <LinearLayout
-            android:id="@+id/tts_toolbar_buttons"
+            android:id="@+id/tts_glass_panel"
+            android:orientation="vertical"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:baselineAligned="true"
-            android:orientation="horizontal">
-
-        <ImageButton
-                android:id="@+id/tts_play_pause"
-                android:layout_width="0dip"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="2dip"
-                android:layout_marginTop="5dip"
-                android:layout_marginRight="2dip"
-                android:layout_marginBottom="5dip"
-                android:layout_weight="1"
-                android:contentDescription="@string/tts_play"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:src="?attr/ic_media_play_drawable" />
-
-        <ImageButton
-                android:id="@+id/tts_back"
-                android:layout_width="0dip"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="2dip"
-                android:layout_marginTop="5dip"
-                android:layout_marginRight="2dip"
-                android:layout_marginBottom="5dip"
-                android:layout_weight="1"
-                android:contentDescription="@string/tts_back"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:src="?attr/ic_media_rew_drawable" />
-
-        <ImageButton
-                android:id="@+id/tts_forward"
-                android:layout_width="0dip"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="2dip"
-                android:layout_marginTop="5dip"
-                android:layout_marginRight="2dip"
-                android:layout_marginBottom="5dip"
-                android:layout_weight="1"
-                android:contentDescription="@string/tts_forward"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:src="?attr/ic_media_ff_drawable" />
-
-        <ImageButton
-                android:id="@+id/tts_stop"
-                android:layout_width="0dip"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="2dip"
-                android:layout_marginTop="5dip"
-                android:layout_marginRight="2dip"
-                android:layout_marginBottom="5dip"
-                android:layout_weight="1"
-                android:contentDescription="@string/tts_stop"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:src="?attr/ic_media_stop_drawable" />
-
-        <ImageButton
-                android:id="@+id/tts_options"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="2dip"
-                android:layout_marginTop="5dip"
-                android:layout_marginRight="2dip"
-                android:layout_marginBottom="5dip"
-                android:layout_weight="0"
-                android:contentDescription="@string/tts_options"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:src="?attr/cr3_viewer_settings_drawable" />
+            android:layout_height="fill_parent"
+            android:background="#00000000"
+            android:gravity="top">
     </LinearLayout>
 
     <LinearLayout
+            android:id="@+id/tts_toolbar_body"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginTop="3dip"
+            android:layout_marginBottom="3dip"
+            android:background="?attr/tts_toolbar_background"
             android:baselineAligned="true"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-        <ImageButton
-                android:id="@+id/btn_dec_volume"
-                android:layout_width="wrap_content"
+        <LinearLayout
+                android:id="@+id/tts_toolbar_buttons"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="2dp"
-                android:layout_marginLeft="2dp"
-                android:contentDescription="@string/btn_decrease"
-                android:padding="1dp"
-                android:src="?attr/cr3_button_dec_drawable" />
+                android:baselineAligned="true"
+                android:orientation="horizontal">
 
-        <TextView
-                android:id="@+id/tts_lbl_volume"
-                android:layout_width="0dip"
+            <ImageButton
+                    android:id="@+id/tts_play_pause"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="2dip"
+                    android:layout_marginTop="5dip"
+                    android:layout_marginRight="2dip"
+                    android:layout_marginBottom="5dip"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/tts_play"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:src="?attr/ic_media_play_drawable" />
+
+            <ImageButton
+                    android:id="@+id/tts_back"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="2dip"
+                    android:layout_marginTop="5dip"
+                    android:layout_marginRight="2dip"
+                    android:layout_marginBottom="5dip"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/tts_back"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:src="?attr/ic_media_rew_drawable" />
+
+            <ImageButton
+                    android:id="@+id/tts_forward"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="2dip"
+                    android:layout_marginTop="5dip"
+                    android:layout_marginRight="2dip"
+                    android:layout_marginBottom="5dip"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/tts_forward"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:src="?attr/ic_media_ff_drawable" />
+
+            <ImageButton
+                    android:id="@+id/tts_stop"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="2dip"
+                    android:layout_marginTop="5dip"
+                    android:layout_marginRight="2dip"
+                    android:layout_marginBottom="5dip"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/tts_stop"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:src="?attr/ic_media_stop_drawable" />
+
+            <ImageButton
+                    android:id="@+id/tts_options"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="2dip"
+                    android:layout_marginTop="5dip"
+                    android:layout_marginRight="2dip"
+                    android:layout_marginBottom="5dip"
+                    android:layout_weight="0"
+                    android:contentDescription="@string/tts_options"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:src="?attr/cr3_viewer_settings_drawable" />
+        </LinearLayout>
+
+        <LinearLayout
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="5dip"
-                android:layout_marginTop="5dip"
-                android:layout_marginRight="5dip"
-                android:layout_marginBottom="2dip"
-                android:layout_weight="1"
-                android:text="@string/tts_volume" />
+                android:baselineAligned="true"
+                android:orientation="horizontal">
 
-        <ImageButton
-                android:id="@+id/btn_inc_volume"
-                android:layout_width="wrap_content"
+            <ImageButton
+                    android:id="@+id/btn_dec_volume"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="2dp"
+                    android:layout_marginLeft="2dp"
+                    android:contentDescription="@string/btn_decrease"
+                    android:padding="1dp"
+                    android:src="?attr/cr3_button_dec_drawable" />
+
+            <TextView
+                    android:id="@+id/tts_lbl_volume"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dip"
+                    android:layout_marginTop="5dip"
+                    android:layout_marginRight="5dip"
+                    android:layout_marginBottom="2dip"
+                    android:layout_weight="1"
+                    android:text="@string/tts_volume" />
+
+            <ImageButton
+                    android:id="@+id/btn_inc_volume"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginRight="10dp"
+                    android:contentDescription="@string/btn_increase"
+                    android:padding="1dp"
+                    android:src="?attr/cr3_button_inc_drawable" />
+
+            <ImageButton
+                    android:id="@+id/btn_dec_speed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginLeft="10dp"
+                    android:contentDescription="@string/btn_decrease"
+                    android:padding="1dp"
+                    android:src="?attr/cr3_button_dec_drawable" />
+
+            <TextView
+                    android:id="@+id/tts_lbl_speed"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dip"
+                    android:layout_marginTop="5dip"
+                    android:layout_marginRight="5dip"
+                    android:layout_marginBottom="2dip"
+                    android:layout_weight="1"
+                    android:text="@string/tts_rate" />
+
+            <ImageButton
+                    android:id="@+id/btn_inc_speed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="2dp"
+                    android:layout_marginRight="2dp"
+                    android:contentDescription="@string/btn_increase"
+                    android:padding="1dp"
+                    android:src="?attr/cr3_button_inc_drawable" />
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
-                android:layout_marginRight="10dp"
-                android:contentDescription="@string/btn_increase"
-                android:padding="1dp"
-                android:src="?attr/cr3_button_inc_drawable" />
+                android:baselineAligned="true"
+                android:orientation="horizontal">
 
-        <ImageButton
-                android:id="@+id/btn_dec_speed"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginLeft="10dp"
-                android:contentDescription="@string/btn_decrease"
-                android:padding="1dp"
-                android:src="?attr/cr3_button_dec_drawable" />
+            <SeekBar
+                    android:id="@+id/tts_sb_volume"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="2dip"
+                    android:layout_marginLeft="2dip"
+                    android:layout_marginTop="5dip"
+                    android:layout_marginEnd="10dip"
+                    android:layout_marginRight="10dip"
+                    android:layout_marginBottom="5dip"
+                    android:layout_weight="1" />
 
-        <TextView
-                android:id="@+id/tts_lbl_speed"
-                android:layout_width="0dip"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dip"
-                android:layout_marginTop="5dip"
-                android:layout_marginRight="5dip"
-                android:layout_marginBottom="2dip"
-                android:layout_weight="1"
-                android:text="@string/tts_rate" />
-
-        <ImageButton
-                android:id="@+id/btn_inc_speed"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="2dp"
-                android:layout_marginRight="2dp"
-                android:contentDescription="@string/btn_increase"
-                android:padding="1dp"
-                android:src="?attr/cr3_button_inc_drawable" />
-
+            <SeekBar
+                    android:id="@+id/tts_sb_speed"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dip"
+                    android:layout_marginLeft="10dip"
+                    android:layout_marginTop="5dip"
+                    android:layout_marginEnd="2dip"
+                    android:layout_marginRight="2dip"
+                    android:layout_marginBottom="5dip"
+                    android:layout_weight="1" />
+        </LinearLayout>
     </LinearLayout>
-
-    <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:baselineAligned="true"
-            android:orientation="horizontal">
-
-        <SeekBar
-                android:id="@+id/tts_sb_volume"
-                android:layout_width="0dip"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="2dip"
-                android:layout_marginLeft="2dip"
-                android:layout_marginTop="5dip"
-                android:layout_marginEnd="10dip"
-                android:layout_marginRight="10dip"
-                android:layout_marginBottom="5dip"
-                android:layout_weight="1" />
-
-        <SeekBar
-                android:id="@+id/tts_sb_speed"
-                android:layout_width="0dip"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dip"
-                android:layout_marginLeft="10dip"
-                android:layout_marginTop="5dip"
-                android:layout_marginEnd="2dip"
-                android:layout_marginRight="2dip"
-                android:layout_marginBottom="5dip"
-                android:layout_weight="1" />
-    </LinearLayout>
-</LinearLayout>
+</RelativeLayout>
