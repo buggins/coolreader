@@ -763,7 +763,16 @@ public class CoolReader extends BaseActivity {
 			if (uri != null) {
 				fileToOpen = filePathFromUri(uri);
 			}
+		} else {
+			for (ReaderAction ra: ReaderAction.AVAILABLE_ACTIONS) {
+				String raIntentName = "org.coolreader.cmd." + ra.id;
+				if (raIntentName.equals(intent.getAction())) {
+					mReaderView.onCommand(ra.cmd, ra.param, null);
+					return true;
+				}
+			}
 		}
+
 		if (fileToOpen == null && intent.getExtras() != null) {
 			log.d("extras=" + intent.getExtras());
 			fileToOpen = intent.getExtras().getString(OPEN_FILE_PARAM);
