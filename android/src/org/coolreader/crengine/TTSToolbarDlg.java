@@ -71,10 +71,18 @@ public class TTSToolbarDlg implements Settings {
 	private final ReaderView mReaderView;
 	private final TTSControlServiceAccessor mTTSControl;
 	private final ImageButton mPlayPauseButton;
+	private final ImageButton backButton;
+	private final ImageButton forwardButton;
+	private final ImageButton stopButton;
+	private final ImageButton optionsButton;
 	private final TextView mVolumeTextView;
 	private final TextView mSpeedTextView;
 	private final SeekBar mSbSpeed;
 	private final SeekBar mSbVolume;
+	private final ImageButton btnDecVolume;
+	private final ImageButton btnIncVolume;
+	private final ImageButton btnDecSpeed;
+	private final ImageButton btnIncSpeed;
 	private HandlerThread mMotionWatchdog;
 	private boolean changedPageMode;
 	private Runnable mOnCloseListener;
@@ -534,10 +542,10 @@ public class TTSToolbarDlg implements Settings {
 
 		mPlayPauseButton = panel.findViewById(R.id.tts_play_pause);
 		mPlayPauseButton.setImageResource(Utils.resolveResourceIdByAttr(mCoolReader, R.attr.ic_media_play_drawable, R.drawable.ic_media_play));
-		ImageButton backButton = panel.findViewById(R.id.tts_back);
-		ImageButton forwardButton = panel.findViewById(R.id.tts_forward);
-		ImageButton stopButton = panel.findViewById(R.id.tts_stop);
-		ImageButton optionsButton = panel.findViewById(R.id.tts_options);
+		backButton = panel.findViewById(R.id.tts_back);
+		forwardButton = panel.findViewById(R.id.tts_forward);
+		stopButton = panel.findViewById(R.id.tts_stop);
+		optionsButton = panel.findViewById(R.id.tts_options);
 
 		mWindow = new PopupWindow( context );
 		mWindow.setBackgroundDrawable(new BitmapDrawable());
@@ -583,18 +591,18 @@ public class TTSToolbarDlg implements Settings {
 				mCoolReader.setSetting(PROP_APP_TTS_SPEED, String.valueOf(mProgress), true);
 			}
 		});
-		ImageButton btnDecVolume = panel.findViewById(R.id.btn_dec_volume);
+		btnDecVolume = panel.findViewById(R.id.btn_dec_volume);
 		btnDecVolume.setOnTouchListener(new RepeatOnTouchListener(500, 150,
 				view -> mSbVolume.setProgress(mSbVolume.getProgress() - 1)));
-		ImageButton btnIncVolume = panel.findViewById(R.id.btn_inc_volume);
+		btnIncVolume = panel.findViewById(R.id.btn_inc_volume);
 		btnIncVolume.setOnTouchListener(new RepeatOnTouchListener(500, 150, view -> mSbVolume.setProgress(mSbVolume.getProgress() + 1)));
 
-		ImageButton btnDecSpeed = panel.findViewById(R.id.btn_dec_speed);
+		btnDecSpeed = panel.findViewById(R.id.btn_dec_speed);
 		btnDecSpeed.setOnTouchListener(new RepeatOnTouchListener(500, 150, view -> {
 			mSbSpeed.setProgress(mSbSpeed.getProgress() - 1);
 			mCoolReader.setSetting(PROP_APP_TTS_SPEED, String.valueOf(mSbSpeed.getProgress()), true);
 		}));
-		ImageButton btnIncSpeed = panel.findViewById(R.id.btn_inc_speed);
+		btnIncSpeed = panel.findViewById(R.id.btn_inc_speed);
 		btnIncSpeed.setOnTouchListener(new RepeatOnTouchListener(500, 150, view -> {
 			mSbSpeed.setProgress(mSbSpeed.getProgress() + 1);
 			mCoolReader.setSetting(PROP_APP_TTS_SPEED, String.valueOf(mSbSpeed.getProgress()), true);
