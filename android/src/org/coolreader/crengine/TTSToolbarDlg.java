@@ -755,6 +755,11 @@ public class TTSToolbarDlg implements Settings {
 				wordTimingCalcHandler = new Handler(wordTimingCalcLooper);
 			}
 
+			mPlayPauseButton.setVisibility(View.GONE);
+			backButton.setVisibility(View.GONE);
+			forwardButton.setVisibility(View.GONE);
+			stopButton.setVisibility(View.GONE);
+			optionsButton.setVisibility(View.GONE);
 
 			wordTimingCalcHandler.removeCallbacksAndMessages(null);
 			mCoolReader.showToast("matching audiobook word timings");
@@ -769,6 +774,14 @@ public class TTSToolbarDlg implements Settings {
 
 							moveSelection(ReaderCommand.DCMD_SELECT_FIRST_SENTENCE, null);
 							audioBookPosHandler.postDelayed(audioBookPosRunnable, 500);
+
+							BackgroundThread.instance().postGUI(() -> {
+								mPlayPauseButton.setVisibility(View.VISIBLE);
+								backButton.setVisibility(View.VISIBLE);
+								forwardButton.setVisibility(View.VISIBLE);
+								stopButton.setVisibility(View.VISIBLE);
+								optionsButton.setVisibility(View.VISIBLE);
+							});
 
 							if(callback != null){
 								callback.onComplete();
