@@ -29,6 +29,7 @@ public class WordTimingAudiobookMatcher {
 
 	private final File wordTimingsFile;
 	private final List<SentenceInfo> allSentences;
+	private final Map<String, SentenceInfo> sentencesByStartPos = new HashMap<>();
 	private final Map<String, File> fileCache = new HashMap<>();
 	private String wordTimingsDir;
 	private List<WordTiming> wordTimings;
@@ -36,6 +37,9 @@ public class WordTimingAudiobookMatcher {
 	public WordTimingAudiobookMatcher(File wordTimingsFile, List<SentenceInfo> allSentences) {
 		this.wordTimingsFile = wordTimingsFile;
 		this.allSentences = allSentences;
+		for(SentenceInfo s : allSentences){
+			sentencesByStartPos.put(s.startPos, s);
+		}
 	}
 
 	public void parseWordTimingsFile(){
@@ -140,13 +144,8 @@ public class WordTimingAudiobookMatcher {
 		}
 	}
 
-	public SentenceInfo getSentence(double y, double x){
-		for(SentenceInfo s : allSentences){
-			if(s.startY > y || (s.startY == y && s.startX >= x)){
-				return s;
-			}
-		}
-		return null;
+	public SentenceInfo getSentence(String startPos){
+		return sentencesByStartPos.get(startPos);
 	}
 
 	private WordTiming parseWordTimingsLine(String line){

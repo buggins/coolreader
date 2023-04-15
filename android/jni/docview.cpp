@@ -1829,9 +1829,8 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getAllSentencesIn
 
     jclass sentenceInfoClass = _env->FindClass("org/coolreader/crengine/SentenceInfo");
     jmethodID sentenceInfoCtor = _env->GetMethodID(sentenceInfoClass, "<init>", "()V");
-    jmethodID sentenceInfoSetStartX = _env->GetMethodID(sentenceInfoClass, "setStartX", "(I)V");
-    jmethodID sentenceInfoSetStartY = _env->GetMethodID(sentenceInfoClass, "setStartY", "(I)V");
     jmethodID sentenceInfoSetText = _env->GetMethodID(sentenceInfoClass, "setText", "(Ljava/lang/String;)V");
+    jmethodID sentenceInfoSetStartPos = _env->GetMethodID(sentenceInfoClass, "setStartPos", "(Ljava/lang/String;)V");
 
     jobject arrList = env->NewObject(arrListClass, arrListCtor);
 
@@ -1853,10 +1852,11 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getAllSentencesIn
         lvPoint startPoint = currSel.getStart().toPoint();
         lvPoint endPoint = currSel.getEnd().toPoint();
 
-        env->CallVoidMethod(sentenceInfo, sentenceInfoSetStartX, startPoint.x);
-        env->CallVoidMethod(sentenceInfo, sentenceInfoSetStartY, startPoint.y);
         env->CallVoidMethod(sentenceInfo, sentenceInfoSetText, env->NewStringUTF(
           UnicodeToUtf8(currSel.getRangeText()).c_str()
+        ));
+        env->CallVoidMethod(sentenceInfo, sentenceInfoSetStartPos, env->NewStringUTF(
+          UnicodeToUtf8(currSel.getStart().toString()).c_str()
         ));
 
         env->CallBooleanMethod(arrList, arrListAdd, sentenceInfo);

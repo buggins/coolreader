@@ -189,8 +189,7 @@ public class TTSToolbarDlg implements Settings {
 
 	private SentenceInfo fetchSelectedSentenceInfo() {
 		if(wordTimingAudiobookMatcher != null && mCurrentSelection != null){
-			return wordTimingAudiobookMatcher.getSentence(
-				mCurrentSelection.startY, mCurrentSelection.startX);
+			return wordTimingAudiobookMatcher.getSentence(mCurrentSelection.startPos);
 		}
 		return null;
 	}
