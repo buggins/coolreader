@@ -111,7 +111,7 @@ public class WordTimingAudiobookMatcher {
 				int wordWtIndex = sentenceWtIndex;
 				boolean wordFound = false;
 				while(wordWtIndex <= wordTimings.size()){
-					if(wordInSentence.equals(wordTimings.get(wordWtIndex).word)){
+					if(wordsMatch(wordInSentence, wordTimings.get(wordWtIndex).word)){
 						wordFound = true;
 						break;
 					}else if(wordWtIndex - sentenceWtIndex > 20){
@@ -172,6 +172,28 @@ public class WordTimingAudiobookMatcher {
 		}
 		File audioFile = fileCache.get(audioFileName);
 		return new WordTiming(word, startTime, audioFile);
+	}
+
+	private boolean wordsMatch(String word1, String word2){
+		if(word1 == null && word2 == null) {
+			return true;
+		} else if(word1 == null || word2 == null) {
+			return false;
+		} else if(word1.equals(word2)) {
+			return true;
+		} else {
+			//expensive calculation, but relatively rarely performed
+			if(word1.matches(".*[a-z].*") || word2.matches(".*[a-z].*")){
+				//if there is at least one letter in the word: compare only letters
+				word1 = word1.replaceAll("[^a-z]", "");
+				word2 = word2.replaceAll("[^a-z]", "");
+			}else{
+				//otherwise: compare only numbers
+				word1 = word1.replaceAll("[^0-9]", "");
+				word2 = word2.replaceAll("[^0-9]", "");
+			}
+			return word1.equals(word2);
+		}
 	}
 
 	private List<String> splitSentenceIntoWords(String sentence){
