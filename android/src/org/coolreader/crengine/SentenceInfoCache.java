@@ -36,18 +36,19 @@ public class SentenceInfoCache {
 
 	public List<SentenceInfo> readCache() throws IOException {
 		List<SentenceInfo> allSentences = new ArrayList<>();
-		BufferedReader br = new BufferedReader(new FileReader(sentenceInfoCacheFile));
-		String line;
-		while ((line = br.readLine()) != null) {
-			SentenceInfo sentenceInfo = parseSentenceInfoLine(line);
-			if(sentenceInfo == null){
-				log.e("ERROR: could not parse sentence info cache line: " + line);
-				br.close();
-				return null;
+		try (
+			BufferedReader br = new BufferedReader(new FileReader(sentenceInfoCacheFile));
+		) {
+			String line;
+			while ((line = br.readLine()) != null) {
+				SentenceInfo sentenceInfo = parseSentenceInfoLine(line);
+				if(sentenceInfo == null){
+					log.e("ERROR: could not parse sentence info cache line: " + line);
+					return null;
+				}
+				allSentences.add(sentenceInfo);
 			}
-			allSentences.add(sentenceInfo);
 		}
-		br.close();
 		if(allSentences.isEmpty()){
 			return null;
 		}
