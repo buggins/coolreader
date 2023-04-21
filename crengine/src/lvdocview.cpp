@@ -4043,6 +4043,41 @@ static bool needToConvertBookmarks(CRFileHistRecord* historyRecord, lUInt32 domV
     return convertBookmarks;
 }
 
+bool LVDocView::exportSentenceInfo(const lChar32 * inputFileName, const lChar32 * outputFileName) {
+    if (!LoadDocument(inputFileName, false)) {
+        return false;
+    }
+
+    LVStreamRef out = LVOpenFileStream(outputFileName, LVOM_WRITE);
+    if ( out.isNull() ) {
+        return false;
+    }
+
+    checkRender();
+
+    ldomXPointerEx ptrStart( m_doc->getRootNode(), m_doc->getRootNode()->getChildCount());
+    if ( !ptrStart.thisSentenceStart() ) {
+        ptrStart.nextSentenceStart();
+    }
+
+    if ( !ptrStart.thisSentenceStart() ) {
+        return false;
+    }
+
+    while ( 1 ) {
+        ldomXPointerEx ptrEnd(ptrStart);
+        ptrEnd.thisSentenceEnd();
+
+        ldomXRange range(ptrStart, ptrEnd);
+        lString32 sentenceText = range.getRangeText();
+        *out << UnicodeToUtf8(ptrStart.toString()) << "," << UnicodeToUtf8(sentenceText) << "\n";
+        if ( !ptrStart.nextSentenceStart() ) {
+            break;
+        }
+    }
+    return true;
+}
+
 /// load document from file
 bool LVDocView::LoadDocument(const lChar32 * fname, bool metadataOnly) {
 	if (!fname || !fname[0])
