@@ -29,6 +29,7 @@
 #else
 #include <QtGui/QApplication>
 #endif
+#include <QTimer>
 #include "../crengine/include/crengine.h"
 #include "../crengine/include/cr3version.h"
 #include "mainwindow.h"
@@ -77,6 +78,18 @@ static void printHelp() {
            "  -v or --version: print program version\n"
            "  --loglevel=ERROR|WARN|INFO|DEBUG|TRACE: set logging level\n"
            "  --logfile=<filename>|stdout|stderr: set log file\n"
+           "\n"
+           "  --get-sentence-info|-s INPUT_FILE_NAME OUTPUT_FILE_NAME\n"
+           "     analyze INPUT_FILE_NAME and write sentence structure info to OUTPUT_FILE_NAME\n"
+           "       -one sentence per line, formatted: START_POS,TEXT\n"
+           "       -every word appears in exactly one sentence\n"
+           "       -not every character appears; all newlines are omitted, and some whitespace\n"
+           "       -START_POS is a UTF8-encoded string representing a unique position in the DOM of the first word\n"
+           "           -START_POS never contains a comma\n"
+           "           -e.g.: /body/DocFragment[3]/body/div/div[4]/p/a/text()[1].3\n"
+           "       -TEXT is the full UTF8-encoded text of the sentence, without quotes or escaping\n"
+           "           -TEXT never contains newline characters\n"
+           "           -TEXT can contain commas, double quotes, and single quotes\n"
            );
 }
 
@@ -95,6 +108,9 @@ int main(int argc, char *argv[])
         lString8 loglevel("ERROR");
         lString8 logfile("stderr");
 #endif
+        bool exportSentenceInfo = false;
+        QString exportSentenceInfoInputFileName;
+        QString exportSentenceInfoOutputFileName;
         for ( int i=1; i<argc; i++ ) {
             if ( !strcmp("-h", argv[i]) || !strcmp("-?", argv[i]) || !strcmp("/?", argv[i]) || !strcmp("--help", argv[i]) ) {
                 printHelp();
@@ -118,6 +134,16 @@ int main(int argc, char *argv[])
                 MakeStatsForFile( argv[i+1], argv[i+3], argv[i+4], 0, out, list );
                 fclose(out);
                 return 0;
+            }
+            if ( !strcmp("-s", argv[i]) || !strcmp("--get-sentence-info", argv[i])) {
+                if(i<argc-2){
+                    exportSentenceInfo = true;
+                    exportSentenceInfoInputFileName = QString(argv[++i]);
+                    exportSentenceInfoOutputFileName = QString(argv[++i]);
+                }else{
+                    printf("ERROR: missing input/output filename args to --get-sentence-info\n");
+                    return 1;
+                }
             }
             lString8 s(argv[i]);
             if ( s.startsWith(cs8("--loglevel=")) ) {
@@ -223,7 +249,15 @@ int main(int argc, char *argv[])
              else
                 CRLog::error("Canot load translation file %s from dir %s", UnicodeToUtf8(qt2cr(trname)).c_str(), UnicodeToUtf8(qt2cr(translations)).c_str() );
             MainWindow w;
-            w.show();
+            if(exportSentenceInfo){
+                //run w.exportSentenceInfo() as soon as possible in event loop, and then quit
+                QTimer::singleShot(0, NULL, [&w, exportSentenceInfoInputFileName, exportSentenceInfoOutputFileName] () {
+                    w.exportSentenceInfo(exportSentenceInfoInputFileName, exportSentenceInfoOutputFileName);
+                    qApp->quit();
+                });
+            }else{
+                w.show();
+            }
             res = a.exec();
         }
     }

@@ -53,6 +53,7 @@ protected:
     virtual void focusInEvent ( QFocusEvent * event );
     virtual void closeEvent ( QCloseEvent * event );
 public slots:
+    void exportSentenceInfo(QString inputFileName, QString outputFileName);
     void contextMenu( QPoint pos );
 void on_actionFindText_triggered();
     private slots:
