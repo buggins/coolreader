@@ -4056,10 +4056,10 @@ bool LVDocView::exportSentenceInfo(const lChar32 * inputFileName, const lChar32 
     ldomXPointerEx ptrStart( m_doc->getRootNode(), m_doc->getRootNode()->getChildCount());
     if ( !ptrStart.thisSentenceStart() ) {
         ptrStart.nextSentenceStart();
-    }
 
-    if ( !ptrStart.thisSentenceStart() ) {
-        return false;
+        if ( !ptrStart.thisSentenceStart() ) {
+            return false;
+        }
     }
 
     while ( 1 ) {
