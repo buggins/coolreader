@@ -1383,7 +1383,12 @@ public class TTSControlService extends BaseService {
 		if(mMediaPlayer != null && mMediaPlayer.isPlaying()){
 			return;
 		}
-		if(audioFile == null){
+		File fileToPlay = audioFile;
+		if(fileToPlay != null && !fileToPlay.exists()){
+			fileToPlay = getAlternativeAudioFile(fileToPlay);
+		}
+
+		if(fileToPlay == null || !fileToPlay.exists()){
 			return;
 		}
 
@@ -1394,7 +1399,7 @@ public class TTSControlService extends BaseService {
 				mMediaPlayer = null;
 			}
 			mMediaPlayer = MediaPlayer.create(
-				getApplicationContext(), Uri.parse("file://" + audioFile.toString()));
+				getApplicationContext(), Uri.parse("file://" + fileToPlay.toString()));
 		}catch(Exception e){
 			log.d("ERROR: " + e.getMessage());
 		}
@@ -1525,6 +1530,38 @@ public class TTSControlService extends BaseService {
 			notification.contentIntent = pendingIntent;
 		}
 		return notification;
+	}
+
+	private File getAlternativeAudioFile(File origAudioFile) {
+		if(origAudioFile == null) {
+			return null;
+		}
+		String fileNoExt = origAudioFile.toString().replaceAll("\\.\\w+$", "");
+		File dir = origAudioFile.getParentFile();
+		if(dir.exists() && dir.isDirectory()) {
+			Map<String, List<File>> filesByExt = new HashMap<>();
+			File firstFile = null;
+			for(File file : dir.listFiles()) {
+				if(!file.toString().startsWith(fileNoExt + ".")){
+					continue;
+				}
+				String ext = file.toString().toLowerCase().replaceAll(".*\\.", "");
+				if(filesByExt.get(ext) == null) {
+					filesByExt.put(ext, new ArrayList<>());
+				}
+				filesByExt.get(ext).add(file);
+				if(firstFile == null) {
+					firstFile = file;
+				}
+			}
+			for(String ext : new String[]{"flac", "wav", "m4a", "ogg", "mp3"}) {
+				if(filesByExt.get(ext) != null){
+					return filesByExt.get(ext).get(0);
+				}
+			}
+			return firstFile;
+		}
+		return null;
 	}
 
 	private void setupTTSHandlers() {
