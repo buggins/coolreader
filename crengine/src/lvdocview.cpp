@@ -4053,8 +4053,6 @@ bool LVDocView::exportSentenceInfo(const lChar32 * inputFileName, const lChar32 
         return false;
     }
 
-    checkRender();
-
     ldomXPointerEx ptrStart( m_doc->getRootNode(), m_doc->getRootNode()->getChildCount());
     if ( !ptrStart.thisSentenceStart() ) {
         ptrStart.nextSentenceStart();
