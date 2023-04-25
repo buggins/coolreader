@@ -4068,6 +4068,11 @@ bool LVDocView::exportSentenceInfo(const lChar32 * inputFileName, const lChar32 
         ldomXPointerEx ptrEnd(ptrStart);
         ptrEnd.thisSentenceEnd();
 
+        //include last sentence even if it does not appear very sentence-like
+        if(ptrStart == ptrEnd){
+          ptrEnd.setOffset(ptrEnd.getNode()->getText().length());
+        }
+
         ldomXRange range(ptrStart, ptrEnd);
         lString32 sentenceText = range.getRangeText();
         *out << UnicodeToUtf8(ptrStart.toString()) << "," << UnicodeToUtf8(sentenceText) << "\n";
