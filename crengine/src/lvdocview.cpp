@@ -6390,12 +6390,17 @@ int LVDocView::onSelectionCommand( int cmd, int param )
     int y0 = GetPos();
     int h = m_pageRects[0].height() - m_pageMargins.top
             - m_pageMargins.bottom - getPageHeaderHeight();
+
+    //if selection is in the bottom 150px of the screen, scroll the page
+    int bottomMarginBuffer = 150;
+    h = h - bottomMarginBuffer;
+
     //int y1 = y0 + h;
     if (makeSelStartVisible) {
         // make start of selection visible
         if (isScrollMode()) {
-            if (startPoint.y < y0 + m_font_size * 2 || startPoint.y > y0 + h * 3/4)
-                SetPos(startPoint.y - m_font_size * 2);
+            if (startPoint.y < y0 + m_font_size * 2 || startPoint.y > y0 + h * 3/4 || endPoint.y > y0 + h)
+                SetPos(startPoint.y - m_font_size * 1);
         } else {
             if (startPoint.y < y0 || startPoint.y >= y0 + h)
                 SetPos(startPoint.y);
@@ -6405,7 +6410,7 @@ int LVDocView::onSelectionCommand( int cmd, int param )
         // make end of selection visible
         if (isScrollMode()) {
             if (endPoint.y > y0 + h * 3/4 - m_font_size * 2)
-                SetPos(endPoint.y - h * 3/4 + m_font_size * 2, false);
+                SetPos(endPoint.y - h * 3/4 + m_font_size * 1, false);
         } else {
             if (endPoint.y < y0 || endPoint.y >= y0 + h)
                 SetPos(endPoint.y, false);
