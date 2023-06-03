@@ -2418,7 +2418,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				mActivity.initTTS(ttsacc -> BackgroundThread.instance().executeGUI(() -> {
 					log.i("TTS created: opening TTS toolbar");
 					ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, ttsacc);
-					ttsToolbar.setOnCloseListener(() -> ttsToolbar = null);
+					ttsToolbar.setOnCloseListener(() -> {
+						ttsToolbar = null;
+					});
 					ttsToolbar.setAppSettings(mSettings, null);
 				}));
 			}
