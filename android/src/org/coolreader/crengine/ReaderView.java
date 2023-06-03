@@ -58,6 +58,7 @@ import android.view.View.OnTouchListener;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.crengine.CRStateFileLogger;
 import org.coolreader.crengine.InputDialog.InputHandler;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
@@ -2417,9 +2418,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				log.i("DCMD_TTS_PLAY: initializing TTS");
 				mActivity.initTTS(ttsacc -> BackgroundThread.instance().executeGUI(() -> {
 					log.i("TTS created: opening TTS toolbar");
+					CRStateFileLogger.appendState("TTS_ON");
 					ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, ttsacc);
 					ttsToolbar.setOnCloseListener(() -> {
 						ttsToolbar = null;
+						CRStateFileLogger.appendState("TTS_OFF");
 					});
 					ttsToolbar.setAppSettings(mSettings, null);
 				}));
