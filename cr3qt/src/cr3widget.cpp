@@ -537,6 +537,14 @@ bool CR3View::loadDocument( QString fileName )
     return res;
 }
 
+bool CR3View::exportSentenceInfo( QString inputFileName, QString outputFileName )
+{
+    return _docview->exportSentenceInfo(
+      qt2cr(inputFileName).c_str(),
+      qt2cr(outputFileName).c_str()
+    );
+}
+
 void CR3View::wheelEvent( QWheelEvent * event )
 {
     // Get degrees delta from vertical scrolling

@@ -504,6 +504,25 @@ void MainWindow::showEvent ( QShowEvent * event )
     }
 }
 
+void MainWindow::exportSentenceInfo(QString inputFileName, QString outputFileName) {
+    if (inputFileName.length() <= 0 ) {
+        CRLog::error("ERROR: no file to export sentenceinfo\n");
+    }
+
+    bool res = ui->view->exportSentenceInfo(inputFileName, outputFileName);
+    if ( res ) {
+      CRLog::info(
+        "\n\n\nSUCCESS: exported "
+        + inputFileName.toUtf8()
+        + " to "
+        + outputFileName.toUtf8()
+        + "\n\n\n"
+      );
+    } else {
+      CRLog::error("\n\n\nERROR: export sentence info failed\n\n\n");
+    }
+}
+
 static bool firstFocus = true;
 
 void MainWindow::focusInEvent ( QFocusEvent * event )

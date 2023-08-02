@@ -220,6 +220,7 @@ public interface Settings {
     String PROP_APP_TTS_FORCE_LANGUAGE = "app.tts.force.lang";		// Force use specified language
     String PROP_APP_TTS_VOICE = "app.tts.voice";
     String PROP_APP_TTS_GOOGLE_END_OF_SENTENCE_ABBR = "app.tts.google.end-of-sentence-abbreviation.workaround";	// Use a workaround to disable processing of abbreviations at the end of a sentence when using "Google Speech Services"
+    String PROP_APP_TTS_USE_AUDIOBOOK = "app.tts.use.audiobook"; //if *.wordtiming file exists for ebook
 
     String PROP_APP_VIEW_ANIM_DURATION ="app.view.anim.duration";
 
