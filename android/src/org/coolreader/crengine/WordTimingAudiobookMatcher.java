@@ -201,10 +201,10 @@ public class WordTimingAudiobookMatcher {
 			ch = Character.toLowerCase(ch);
 
 			boolean isWordChar;
-			if('a' <= ch && ch <= 'z'){
+			if(Character.isLetter(ch)){
 				isWordChar = true;
 				wordContainsLetterOrNumber = true;
-			}else if('0' <= ch && ch <= '9'){
+			}else if(Character.isDigit(ch)){
 				isWordChar = true;
 				wordContainsLetterOrNumber = true;
 			}else if(ch == '\''){
