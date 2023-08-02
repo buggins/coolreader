@@ -248,4 +248,12 @@ public class WordTimingAudiobookMatcher {
 
 		return words;
 	}
+
+	public static void main(String[] args){
+		if(args.length != 2){
+			System.out.println("USAGE: SENTENCE_INFO_FILE WORDTIMING_FILE");
+		}
+		List<SentenceInfo> sentences = SentenceInfoCache.maybeReadCache(new File(args[0]));
+		new WordTimingAudiobookMatcher(new File(args[1]), sentences).parseWordTimingsFile();
+	}
 }
