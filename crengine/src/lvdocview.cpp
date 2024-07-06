@@ -5478,7 +5478,7 @@ bool LVDocView::getBookmarkPosText(ldomXPointer bm, lString32 & titleText,
 			lString32 txt = getSectionHeader(el);
 			lChar32 lastch = !txt.empty() ? txt[txt.length() - 1] : 0;
 			if (!titleText.empty()) {
-				if (lastch != '.' && lastch != '?' && lastch != '!')
+				if (lastch != '.' && lastch != '?' && lastch != '!' && lastch != ':' && lastch != ';')
                     txt += ".";
                 txt += " ";
 			}
