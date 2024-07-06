@@ -955,8 +955,8 @@ static void wrapLine( lString32Collection & dst, lString32 stringToSplit, int ma
             if ( ch!=' ' && ch!=0 )
                 q = 1;
             else
-                q = (prevChar=='.' || prevChar==',' || prevChar==';'
-                     || prevChar=='!'  || prevChar=='?'
+                q = (prevChar=='.' || prevChar==',' || prevChar==':'
+                     || prevChar==';' || prevChar=='!'  || prevChar=='?'
                      ) ? (w<maxWidth*2/3 ? 3 : 2) : 2;
             if ( q>wquality && w<maxWidth ) {
                 wquality = q;
