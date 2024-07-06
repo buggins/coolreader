@@ -41,29 +41,24 @@ public class WordTimingAudiobookMatcher {
 	}
 
 	public void parseWordTimingsFile(){
-		List<String> lines = new ArrayList<>();
-		try(
+		this.wordTimingsDir = wordTimingsFile.getAbsoluteFile().getParent();
+
+		try {
 			BufferedReader br = new BufferedReader(new FileReader(wordTimingsFile));
-		) {
 			String line;
+			wordTimings = new ArrayList<>();
 			while ((line = br.readLine()) != null) {
-				lines.add(line);
+				WordTiming wordTiming = parseWordTimingsLine(line);
+				if(wordTiming == null){
+					log.d("ERROR: could not parse word timings line: " + line);
+				}else{
+					wordTimings.add(wordTiming);
+				}
 			}
 			br.close();
 		} catch(Exception e) {
-			log.d("ERROR: could not read  word timings file: " + wordTimingsFile + " " + e);
-			lines = new ArrayList<>();
-		}
-
-		this.wordTimingsDir = wordTimingsFile.getAbsoluteFile().getParent();
-
-		wordTimings = new ArrayList<>();
-		for(String line : lines){
-			WordTiming wordTiming = parseWordTimingsLine(line);
-			if(wordTiming == null){
-				log.d("ERROR: could not parse word timings line: " + line);
-			}
-			wordTimings.add(wordTiming);
+			log.d("ERROR: could not read word timings file: " + wordTimingsFile + " " + e);
+			wordTimings = new ArrayList<>();
 		}
 
 		for(int i=0; i<allSentences.size(); i++){
