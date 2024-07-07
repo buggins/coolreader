@@ -31,6 +31,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.HandlerThread;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -53,6 +55,8 @@ import org.coolreader.tts.TTSControlBinder;
 import org.coolreader.tts.TTSControlService;
 import org.coolreader.tts.TTSControlServiceAccessor;
 
+import java.io.File;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -67,10 +71,18 @@ public class TTSToolbarDlg implements Settings {
 	private final ReaderView mReaderView;
 	private final TTSControlServiceAccessor mTTSControl;
 	private final ImageButton mPlayPauseButton;
+	private final ImageButton backButton;
+	private final ImageButton forwardButton;
+	private final ImageButton stopButton;
+	private final ImageButton optionsButton;
 	private final TextView mVolumeTextView;
 	private final TextView mSpeedTextView;
 	private final SeekBar mSbSpeed;
 	private final SeekBar mSbVolume;
+	private final ImageButton btnDecVolume;
+	private final ImageButton btnIncVolume;
+	private final ImageButton btnDecSpeed;
+	private final ImageButton btnIncSpeed;
 	private HandlerThread mMotionWatchdog;
 	private boolean changedPageMode;
 	private Runnable mOnCloseListener;
@@ -88,8 +100,38 @@ public class TTSToolbarDlg implements Settings {
 	private String mCurrentLanguage;
 	private String mCurrentVoiceName;
 	private boolean mGoogleTTSAbbreviationWorkaround;
+	private boolean allowUseAudiobook;
 	private int mTTSSpeedPercent = 50;		// 50% (normal)
 
+	private File wordTimingFile;
+	private File sentenceInfoCacheFile;
+	private WordTimingAudiobookMatcher wordTimingAudiobookMatcher;
+	private SentenceInfo currentSentenceInfo;
+
+	private HandlerThread wordTimingCalcHandlerThread;
+	private Handler wordTimingCalcHandler;
+
+	private Handler audioBookPosHandler = new Handler(Looper.getMainLooper());
+	private Runnable audioBookPosRunnable = new Runnable() {
+		@Override
+		public void run() {
+			try{
+				SentenceInfo currentSentence = fetchSelectedSentenceInfo();
+				if(currentSentence != null){
+					mTTSControl.bind(ttsbinder -> ttsbinder.isAudioBookPlaybackAfterSentence(
+						currentSentence,
+						isAfter -> {
+							if(isAfter){
+								moveSelection(ReaderCommand.DCMD_SELECT_NEXT_SENTENCE, null);
+							}
+						}
+					));
+				}
+			} finally {
+				audioBookPosHandler.postDelayed(this, 500);
+			}
+		}
+	};
 
 	static public TTSToolbarDlg showDialog( CoolReader coolReader, ReaderView readerView, TTSControlServiceAccessor ttsacc) {
 		TTSToolbarDlg dlg = new TTSToolbarDlg(coolReader, readerView, ttsacc);
@@ -146,6 +188,13 @@ public class TTSToolbarDlg implements Settings {
 		}
 	}
 
+	private SentenceInfo fetchSelectedSentenceInfo() {
+		if(wordTimingAudiobookMatcher != null && mCurrentSelection != null){
+			return wordTimingAudiobookMatcher.getSentence(mCurrentSelection.startPos);
+		}
+		return null;
+	}
+
 	/**
 	 * Select next or previous sentence. ONLY the selection changes and the specified callback is called!
 	 * Not affected to speech synthesis process.
@@ -158,8 +207,16 @@ public class TTSToolbarDlg implements Settings {
 
 			@Override
 			public void onNewSelection(Selection selection) {
-				log.d("onNewSelection: " + selection.text);
+				log.d("onNewSelection: " + selection.text + " : " + selection.startY + " x " + selection.startX);
 				mCurrentSelection = selection;
+				if(allowUseAudiobook){
+					SentenceInfo sentenceInfo = fetchSelectedSentenceInfo();
+					if(sentenceInfo != null && sentenceInfo.audioFile != null){
+						mTTSControl.bind(ttsbinder -> {
+							ttsbinder.setAudioFile(sentenceInfo.audioFile, sentenceInfo.startTime);
+						});
+					}
+				}
 				if (null != callback)
 					callback.onNewSelection(mCurrentSelection);
 			}
@@ -238,9 +295,15 @@ public class TTSToolbarDlg implements Settings {
 	public void setAppSettings(Properties newSettings, Properties oldSettings) {
 		log.v("setAppSettings()");
 		BackgroundThread.ensureGUI();
-		if (oldSettings == null)
+		boolean initialSetup;
+		if (oldSettings == null){
 			oldSettings = new Properties();
+			initialSetup = true;
+		}else{
+			initialSetup = false;
+		}
 		int oldTTSSpeed = mTTSSpeedPercent;
+		boolean oldAllowUseAudiobook = this.allowUseAudiobook;
 		Properties changedSettings = newSettings.diff(oldSettings);
 		for (Map.Entry<Object, Object> entry : changedSettings.entrySet()) {
 			String key = (String) entry.getKey();
@@ -255,6 +318,41 @@ public class TTSToolbarDlg implements Settings {
 					if (result)
 						BackgroundThread.instance().postGUI(() -> mSbSpeed.setProgress(mTTSSpeedPercent));
 				});
+			});
+		}
+		boolean newAllowUseAudiobook = allowUseAudiobook;
+		if (!initialSetup && oldAllowUseAudiobook && !newAllowUseAudiobook){
+			mTTSControl.bind(ttsbinder -> {
+				ttsbinder.stop(null);
+				ttsbinder.setAudioFile(null, 0);
+				initAudiobookWordTimings(new InitAudiobookWordTimingsCallback(){
+					public void onComplete(){
+						moveSelection(ReaderCommand.DCMD_SELECT_FIRST_SENTENCE, new ReaderView.MoveSelectionCallback() {
+							@Override
+							public void onNewSelection(Selection selection) {
+								if (isSpeaking) {
+									ttsbinder.say(preprocessUtterance(selection.text), null);
+								} else {
+									ttsbinder.setCurrentUtterance(preprocessUtterance(selection.text));
+								}
+							}
+
+							@Override
+							public void onFail() {
+							}
+						});
+					}
+				});
+			});
+		}else if(!initialSetup && !oldAllowUseAudiobook && newAllowUseAudiobook){
+			mTTSControl.bind(ttsbinder -> {
+				ttsbinder.stop(null);
+				SentenceInfo sentenceInfo = fetchSelectedSentenceInfo();
+				if(sentenceInfo != null){
+					ttsbinder.setAudioFile(sentenceInfo.audioFile, sentenceInfo.startTime);
+				}
+				initAudiobookWordTimings(null);
+				moveSelection(ReaderCommand.DCMD_SELECT_FIRST_SENTENCE, null);
 			});
 		}
 	}
@@ -285,6 +383,10 @@ public class TTSToolbarDlg implements Settings {
 				break;
 			case PROP_APP_TTS_GOOGLE_END_OF_SENTENCE_ABBR:
 				mGoogleTTSAbbreviationWorkaround = flg;
+				break;
+			case PROP_APP_TTS_USE_AUDIOBOOK:
+				allowUseAudiobook = flg;
+				break;
 		}
 	}
 
@@ -440,10 +542,10 @@ public class TTSToolbarDlg implements Settings {
 
 		mPlayPauseButton = panel.findViewById(R.id.tts_play_pause);
 		mPlayPauseButton.setImageResource(Utils.resolveResourceIdByAttr(mCoolReader, R.attr.ic_media_play_drawable, R.drawable.ic_media_play));
-		ImageButton backButton = panel.findViewById(R.id.tts_back);
-		ImageButton forwardButton = panel.findViewById(R.id.tts_forward);
-		ImageButton stopButton = panel.findViewById(R.id.tts_stop);
-		ImageButton optionsButton = panel.findViewById(R.id.tts_options);
+		backButton = panel.findViewById(R.id.tts_back);
+		forwardButton = panel.findViewById(R.id.tts_forward);
+		stopButton = panel.findViewById(R.id.tts_stop);
+		optionsButton = panel.findViewById(R.id.tts_options);
 
 		mWindow = new PopupWindow( context );
 		mWindow.setBackgroundDrawable(new BitmapDrawable());
@@ -489,18 +591,18 @@ public class TTSToolbarDlg implements Settings {
 				mCoolReader.setSetting(PROP_APP_TTS_SPEED, String.valueOf(mProgress), true);
 			}
 		});
-		ImageButton btnDecVolume = panel.findViewById(R.id.btn_dec_volume);
+		btnDecVolume = panel.findViewById(R.id.btn_dec_volume);
 		btnDecVolume.setOnTouchListener(new RepeatOnTouchListener(500, 150,
 				view -> mSbVolume.setProgress(mSbVolume.getProgress() - 1)));
-		ImageButton btnIncVolume = panel.findViewById(R.id.btn_inc_volume);
+		btnIncVolume = panel.findViewById(R.id.btn_inc_volume);
 		btnIncVolume.setOnTouchListener(new RepeatOnTouchListener(500, 150, view -> mSbVolume.setProgress(mSbVolume.getProgress() + 1)));
 
-		ImageButton btnDecSpeed = panel.findViewById(R.id.btn_dec_speed);
+		btnDecSpeed = panel.findViewById(R.id.btn_dec_speed);
 		btnDecSpeed.setOnTouchListener(new RepeatOnTouchListener(500, 150, view -> {
 			mSbSpeed.setProgress(mSbSpeed.getProgress() - 1);
 			mCoolReader.setSetting(PROP_APP_TTS_SPEED, String.valueOf(mSbSpeed.getProgress()), true);
 		}));
-		ImageButton btnIncSpeed = panel.findViewById(R.id.btn_inc_speed);
+		btnIncSpeed = panel.findViewById(R.id.btn_inc_speed);
 		btnIncSpeed.setOnTouchListener(new RepeatOnTouchListener(500, 150, view -> {
 			mSbSpeed.setProgress(mSbSpeed.getProgress() + 1);
 			mCoolReader.setSetting(PROP_APP_TTS_SPEED, String.valueOf(mSbSpeed.getProgress()), true);
@@ -596,6 +698,8 @@ public class TTSToolbarDlg implements Settings {
 		// All tasks bellow after service start
 		// Fetch book's metadata
 		BookInfo bookInfo = mReaderView.getBookInfo();
+		wordTimingFile = null;
+		sentenceInfoCacheFile = null;
 		if (null != bookInfo) {
 			FileInfo fileInfo = bookInfo.getFileInfo();
 			if (null != fileInfo) {
@@ -605,6 +709,13 @@ public class TTSToolbarDlg implements Settings {
 				mBookCover = Bitmap.createBitmap(MEDIA_COVER_WIDTH, MEDIA_COVER_HEIGHT, Bitmap.Config.RGB_565);
 				Services.getCoverpageManager().drawCoverpageFor(mCoolReader.getDB(), fileInfo, mBookCover, true,
 						(file, bitmap) -> mTTSControl.bind(ttsbinder -> ttsbinder.setMediaItemInfo(mBookAuthors, mBookTitle, bitmap)));
+				String pathName = fileInfo.getPathName();
+				String wordTimingPath = pathName.replaceAll("\\.\\w+$", ".wordtiming");
+				String sentenceInfoPath = pathName.replaceAll("\\.\\w+$", ".sentenceinfo");
+				if(wordTimingPath.matches(".*\\.wordtiming$")){
+					wordTimingFile = new File(wordTimingPath);
+					sentenceInfoCacheFile = new File(sentenceInfoPath);
+				}
 			}
 		}
 		// Show volume
@@ -632,5 +743,61 @@ public class TTSToolbarDlg implements Settings {
 		});
 		// And finally, setup status change handler
 		setupSpeechStatusHandler();
+	}
+
+	public void initAudiobookWordTimings(InitAudiobookWordTimingsCallback callback){
+		audioBookPosHandler.removeCallbacks(audioBookPosRunnable);
+
+		if(allowUseAudiobook && wordTimingFile != null && wordTimingFile.exists()){
+			if(wordTimingCalcHandler == null){
+				if(wordTimingCalcHandlerThread == null){
+					wordTimingCalcHandlerThread = new HandlerThread("word-timing-calc-handler");
+					wordTimingCalcHandlerThread.start();
+				}
+				Looper wordTimingCalcLooper = wordTimingCalcHandlerThread.getLooper();
+				wordTimingCalcHandler = new Handler(wordTimingCalcLooper);
+			}
+
+			mPlayPauseButton.setVisibility(View.GONE);
+			backButton.setVisibility(View.GONE);
+			forwardButton.setVisibility(View.GONE);
+			stopButton.setVisibility(View.GONE);
+			optionsButton.setVisibility(View.GONE);
+
+			wordTimingCalcHandler.removeCallbacksAndMessages(null);
+			mCoolReader.showToast("matching audiobook word timings");
+			wordTimingCalcHandler.post(
+				new Runnable() {
+						public void run() {
+							List<SentenceInfo> allSentences = SentenceInfoCache.maybeReadCache(sentenceInfoCacheFile);
+							if(allSentences == null){
+								allSentences = mReaderView.getAllSentences();
+								SentenceInfoCache.maybeWriteCache(sentenceInfoCacheFile, allSentences);
+							}
+							wordTimingAudiobookMatcher = new WordTimingAudiobookMatcher(wordTimingFile, allSentences);
+
+							//can be very long
+							wordTimingAudiobookMatcher.parseWordTimingsFile();
+
+							moveSelection(ReaderCommand.DCMD_SELECT_FIRST_SENTENCE, null);
+							audioBookPosHandler.postDelayed(audioBookPosRunnable, 500);
+
+							BackgroundThread.instance().postGUI(() -> {
+								mPlayPauseButton.setVisibility(View.VISIBLE);
+								backButton.setVisibility(View.VISIBLE);
+								forwardButton.setVisibility(View.VISIBLE);
+								stopButton.setVisibility(View.VISIBLE);
+								optionsButton.setVisibility(View.VISIBLE);
+							});
+
+							if(callback != null){
+								callback.onComplete();
+							}
+						}
+				}
+			);
+		}else{
+			wordTimingAudiobookMatcher = null;
+		}
 	}
 }

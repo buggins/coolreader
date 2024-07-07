@@ -579,6 +579,8 @@ public:
     virtual void clearSelection();
     /// update selection -- command handler
     int onSelectionCommand( int cmd, int param );
+    /// select the next sentence, for iterating through all
+    bool nextSentence();
 
 
     /// navigation history
@@ -952,6 +954,9 @@ public:
     bool LoadDocument( const lChar32 * fname, bool metadataOnly = false );
     /// load document from stream
     bool LoadDocument( LVStreamRef stream, const lChar32 * contentPath, bool metadataOnly = false );
+
+    /// load document and export sentence info
+    bool exportSentenceInfo(const lChar32 * inputFileName, const lChar32 * outputFileName);
 
     /// save last file position
     void savePosition();

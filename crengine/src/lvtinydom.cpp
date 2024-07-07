@@ -12622,6 +12622,7 @@ bool ldomXPointerEx::isSentenceStart()
             case '.':
             case '?':
             case '!':
+            case ';':
             case U'\x2026': // horizontal ellipsis
                 return false;
         }
@@ -12633,6 +12634,7 @@ bool ldomXPointerEx::isSentenceStart()
         case '.':
         case '?':
         case '!':
+        case ';':
         case U'\x2026': // horizontal ellipsis
             return true;
         case '"':       // QUOTATION MARK
@@ -12641,6 +12643,7 @@ bool ldomXPointerEx::isSentenceStart()
             case '.':
             case '?':
             case '!':
+            case ';':
             case U'\x2026': // horizontal ellipsis
                 return true;
             }
@@ -12672,6 +12675,7 @@ bool ldomXPointerEx::isSentenceEnd()
         case '.':
         case '?':
         case '!':
+        case ';':
         case U'\x2026': // horizontal ellipsis
             return true;
         case '"':
@@ -12680,6 +12684,7 @@ bool ldomXPointerEx::isSentenceEnd()
             case '.':
             case '?':
             case '!':
+            case ';':
             case U'\x2026': // horizontal ellipsis
                 return true;
             }
@@ -12688,7 +12693,7 @@ bool ldomXPointerEx::isSentenceEnd()
             break;
         }
     }
-    // word is not ended with . ! ?
+    // word is not ended with '.' or '!' or '?' or ';' or '...'
     // check whether it's last word of block
     ldomXPointerEx pos(*this);
     return !pos.nextVisibleWordStartInSentence(false);
