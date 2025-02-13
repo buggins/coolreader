@@ -12575,6 +12575,20 @@ lChar32 getChar(lString32 text, int idx) {
     }
 }
 
+lChar32 getPrevNonSpaceChar(lString32 text, int idx, int skipCount) {
+    for(int i=idx-1; i>=0; i--){
+        lChar32 ch = getChar(text, i);
+        if(!IsUnicodeSpace(ch)){
+            if(skipCount > 0){
+                skipCount--;
+            }else{
+                return ch;
+            }
+        }
+    }
+    return 0;
+}
+
 /// returns true if points to beginning of sentence
 bool ldomXPointerEx::isSentenceStart()
 {
@@ -12588,44 +12602,14 @@ bool ldomXPointerEx::isSentenceStart()
     int i = _data->getOffset();
     lChar32 currCh = getChar(text, i);
     lChar32 prevCh = getChar(text, i-1);
-    lChar32 prevPrevNonSpace = 0;
-    lChar32 prevNonSpace = 0;
-    int prevNonSpace_i = -1;
-    for ( ;i>0; i-- ) {
-        lChar32 ch = getChar(text, i-1);
-        if ( !IsUnicodeSpace(ch) ) {
-            prevNonSpace = ch;
-            prevNonSpace_i = i - 1;
-            break;
-        }
-    }
-    if (prevNonSpace) {
-        for (i = prevNonSpace_i; i>0; i-- ) {
-            lChar32 ch = getChar(text, i-1);
-            if ( !IsUnicodeSpace(ch) ) {
-                prevPrevNonSpace = ch;
-                break;
-            }
-        }
-    }
+    lChar32 prevPrevNonSpace = getPrevNonSpaceChar(text, i, 1);
+    lChar32 prevNonSpace = getPrevNonSpaceChar(text, i, 0);
     if ( !prevNonSpace ) {
         ldomXPointerEx pos(*this);
         while ( !prevNonSpace && pos.prevVisibleText(true) ) {
             lString32 prevText = pos.getText();
-            for ( int j=prevText.length()-1; j>=0; j-- ) {
-                lChar32 ch = getChar(prevText, j);
-                if ( !IsUnicodeSpace(ch) ) {
-                    prevNonSpace = ch;
-                    for (int k = j; k > 0; k--) {
-                        ch = getChar(prevText, k-1);
-                        if (!IsUnicodeSpace(ch)) {
-                            prevPrevNonSpace = ch;
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
+            prevNonSpace = getPrevNonSpaceChar(prevText, prevText.length(), 0);
+            prevPrevNonSpace = getPrevNonSpaceChar(prevText, prevText.length(), 1);
         }
     }
 
