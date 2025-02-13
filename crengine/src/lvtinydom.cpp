@@ -12696,12 +12696,19 @@ bool ldomXPointerEx::isSentenceEnd()
     lChar32 currCh = getChar(text, i);
     lChar32 prevCh = getChar(text, i-1);
     lChar32 prevPrevCh = getChar(text, i-2);
+    lChar32 nextNonSpaceCh = getNextNonSpaceChar(text, i, 0);
 
     if(!IsUnicodeSpaceOrNull(currCh)){
         // sentences must end with whitespace (or the end of the node)
         return false;
     }else if(prevCh == 0 && currCh == 0){
         // empty sentence
+        return false;
+    }else if(isCharSentenceEndMark(nextNonSpaceCh)){
+        // next non-space char is end punctuation, so the sentence cannot end before that
+        // e.g.: "S1 . . . S2" => ["S1 . . . ", "S2"]
+        //         instead of
+        //       "S1 . . . S2" => ["S1 . ", ". ", ". ", "S2"]
         return false;
     }else if(isCharSentenceEndMark(prevCh)){
         // previous char is sentence end punctuation
