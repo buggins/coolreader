@@ -12700,8 +12700,9 @@ bool ldomXPointerEx::isSentenceEnd()
     if(!IsUnicodeSpaceOrNull(currCh)){
         // sentences must end with whitespace (or the end of the node)
         return false;
-    }else if(prevCh == 0){
-        return true;
+    }else if(prevCh == 0 && currCh == 0){
+        // empty sentence
+        return false;
     }else if(isCharSentenceEndMark(prevCh)){
         // previous char is sentence end punctuation
         return true;
