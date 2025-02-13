@@ -12567,6 +12567,13 @@ bool ldomXPointerEx::isFirstVisibleTextInBlock()
 }
 
 // sentence navigation
+lChar32 getChar(lString32 text, int idx) {
+    if (0 <= idx && idx < text.length()) {
+        return text[idx];
+    } else {
+        return 0;
+    }
+}
 
 /// returns true if points to beginning of sentence
 bool ldomXPointerEx::isSentenceStart()
@@ -12579,13 +12586,13 @@ bool ldomXPointerEx::isSentenceStart()
     lString32 text = node->getText();
     int textLen = text.length();
     int i = _data->getOffset();
-    lChar32 currCh = i<textLen ? text[i] : 0;
-    lChar32 prevCh = i>0 ? text[i-1] : 0;
+    lChar32 currCh = getChar(text, i);
+    lChar32 prevCh = getChar(text, i-1);
     lChar32 prevPrevNonSpace = 0;
     lChar32 prevNonSpace = 0;
     int prevNonSpace_i = -1;
     for ( ;i>0; i-- ) {
-        lChar32 ch = text[i-1];
+        lChar32 ch = getChar(text, i-1);
         if ( !IsUnicodeSpace(ch) ) {
             prevNonSpace = ch;
             prevNonSpace_i = i - 1;
@@ -12594,7 +12601,7 @@ bool ldomXPointerEx::isSentenceStart()
     }
     if (prevNonSpace) {
         for (i = prevNonSpace_i; i>0; i-- ) {
-            lChar32 ch = text[i-1];
+            lChar32 ch = getChar(text, i-1);
             if ( !IsUnicodeSpace(ch) ) {
                 prevPrevNonSpace = ch;
                 break;
@@ -12606,11 +12613,11 @@ bool ldomXPointerEx::isSentenceStart()
         while ( !prevNonSpace && pos.prevVisibleText(true) ) {
             lString32 prevText = pos.getText();
             for ( int j=prevText.length()-1; j>=0; j-- ) {
-                lChar32 ch = prevText[j];
+                lChar32 ch = getChar(prevText, j);
                 if ( !IsUnicodeSpace(ch) ) {
                     prevNonSpace = ch;
                     for (int k = j; k > 0; k--) {
-                        ch = prevText[k-1];
+                        ch = getChar(prevText, k-1);
                         if (!IsUnicodeSpace(ch)) {
                             prevPrevNonSpace = ch;
                             break;
@@ -12672,9 +12679,9 @@ bool ldomXPointerEx::isSentenceEnd()
     lString32 text = node->getText();
     int textLen = text.length();
     int i = _data->getOffset();
-    lChar32 currCh = i<textLen ? text[i] : 0;
-    lChar32 prevCh = i>0 ? text[i-1] : 0;
-    lChar32 prevPrevCh = i>1 ? text[i-2] : 0;
+    lChar32 currCh = getChar(text, i);
+    lChar32 prevCh = getChar(text, i-1);
+    lChar32 prevPrevCh = getChar(text, i-2);
     if ( IsUnicodeSpaceOrNull(currCh) ) {
         switch (prevCh) {
         case 0:
