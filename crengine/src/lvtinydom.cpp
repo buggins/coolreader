@@ -12657,8 +12657,8 @@ bool ldomXPointerEx::isSentenceStart()
         }
     }
 
-    if (1 == textLen && isCharSentenceEndMark(currCh)){
-        // skip separated separator
+    if (isCharSentenceEndMark(currCh)){
+        // current character is end punctuation (never sentence start)
         return false;
     }else if(IsUnicodeSpace(currCh)){
         // current character is a space (never sentence start)
