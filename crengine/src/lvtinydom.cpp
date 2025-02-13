@@ -12589,6 +12589,21 @@ lChar32 getPrevNonSpaceChar(lString32 text, int idx, int skipCount) {
     return 0;
 }
 
+lChar32 getNextNonSpaceChar(lString32 text, int idx, int skipCount) {
+    int len = text.length();
+    for(int i=idx+1; i<len; i++){
+        lChar32 ch = getChar(text, i);
+        if(!IsUnicodeSpace(ch)){
+            if(skipCount > 0){
+                skipCount--;
+            }else{
+                return ch;
+            }
+        }
+    }
+    return 0;
+}
+
 bool isCharSentenceEndMark(lChar32 ch) {
     switch (ch) {
         case '.':
