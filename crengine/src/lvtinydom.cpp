@@ -12625,14 +12625,14 @@ bool ldomXPointerEx::isSentenceStart()
     int i = _data->getOffset();
     lChar32 currCh = getChar(text, i);
     lChar32 prevCh = getChar(text, i-1);
-    lChar32 prevPrevNonSpace = getPrevNonSpaceChar(text, i, 1);
-    lChar32 prevNonSpace = getPrevNonSpaceChar(text, i, 0);
-    if ( !prevNonSpace ) {
+    lChar32 prevNonSpaceCh = getPrevNonSpaceChar(text, i, 0);
+    lChar32 prevPrevNonSpaceCh = getPrevNonSpaceChar(text, i, 1);
+    if ( !prevNonSpaceCh ) {
         ldomXPointerEx pos(*this);
-        while ( !prevNonSpace && pos.prevVisibleText(true) ) {
+        while ( !prevNonSpaceCh && pos.prevVisibleText(true) ) {
             lString32 prevText = pos.getText();
-            prevNonSpace = getPrevNonSpaceChar(prevText, prevText.length(), 0);
-            prevPrevNonSpace = getPrevNonSpaceChar(prevText, prevText.length(), 1);
+            prevNonSpaceCh = getPrevNonSpaceChar(prevText, prevText.length(), 0);
+            prevPrevNonSpaceCh = getPrevNonSpaceChar(prevText, prevText.length(), 1);
         }
     }
 
@@ -12644,10 +12644,10 @@ bool ldomXPointerEx::isSentenceStart()
     }
 
     if ( !IsUnicodeSpace(currCh) && IsUnicodeSpaceOrNull(prevCh) ) {
-        if(prevNonSpace == 0 || isCharSentenceEndMark(prevNonSpace)){
+        if(prevNonSpaceCh == 0 || isCharSentenceEndMark(prevNonSpaceCh)){
             return true;
-        }else if(isCharDoubleQuoteEnd(prevNonSpace)){
-            if(isCharSentenceEndMark(prevPrevNonSpace)){
+        }else if(isCharDoubleQuoteEnd(prevNonSpaceCh)){
+            if(isCharSentenceEndMark(prevPrevNonSpaceCh)){
                 return true;
             }
         }else{
