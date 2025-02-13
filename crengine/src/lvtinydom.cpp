@@ -12589,6 +12589,19 @@ lChar32 getPrevNonSpaceChar(lString32 text, int idx, int skipCount) {
     return 0;
 }
 
+bool isCharSentenceEndMark(lChar32 ch) {
+    switch (ch) {
+        case '.':
+        case '?':
+        case '!':
+        case ';':
+        case U'\x2026': // horizontal ellipsis
+            return true;
+        default:
+            return false;
+    }
+}
+
 /// returns true if points to beginning of sentence
 bool ldomXPointerEx::isSentenceStart()
 {
@@ -12615,33 +12628,19 @@ bool ldomXPointerEx::isSentenceStart()
 
     // skip separated separator.
     if (1 == textLen) {
-        switch (currCh) {
-            case '.':
-            case '?':
-            case '!':
-            case ';':
-            case U'\x2026': // horizontal ellipsis
-                return false;
+        if(isCharSentenceEndMark(currCh)){
+            return false;
         }
     }
 
     if ( !IsUnicodeSpace(currCh) && IsUnicodeSpaceOrNull(prevCh) ) {
-        switch (prevNonSpace) {
-        case 0:
-        case '.':
-        case '?':
-        case '!':
-        case ';':
-        case U'\x2026': // horizontal ellipsis
+        if(prevNonSpace == 0 || isCharSentenceEndMark(prevNonSpace)){
             return true;
+        }
+        switch (prevNonSpace) {
         case '"':       // QUOTATION MARK
         case U'\x201d': // RIGHT DOUBLE QUOTATION MARK
-            switch (prevPrevNonSpace) {
-            case '.':
-            case '?':
-            case '!':
-            case ';':
-            case U'\x2026': // horizontal ellipsis
+            if(isCharSentenceEndMark(prevPrevNonSpace)){
                 return true;
             }
             break;
@@ -12667,22 +12666,13 @@ bool ldomXPointerEx::isSentenceEnd()
     lChar32 prevCh = getChar(text, i-1);
     lChar32 prevPrevCh = getChar(text, i-2);
     if ( IsUnicodeSpaceOrNull(currCh) ) {
-        switch (prevCh) {
-        case 0:
-        case '.':
-        case '?':
-        case '!':
-        case ';':
-        case U'\x2026': // horizontal ellipsis
+        if(prevCh == 0 || isCharSentenceEndMark(prevCh)){
             return true;
+        }
+        switch (prevCh) {
         case '"':
         case U'\x201d': // RIGHT DOUBLE QUOTATION MARK
-            switch (prevPrevCh) {
-            case '.':
-            case '?':
-            case '!':
-            case ';':
-            case U'\x2026': // horizontal ellipsis
+            if(isCharSentenceEndMark(prevPrevCh)){
                 return true;
             }
             break;
