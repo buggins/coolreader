@@ -1,6 +1,6 @@
 project(blend-algo-test C)
 
-cmake_minimum_required(VERSION 2.6.2)
+cmake_minimum_required(VERSION 3.5..4.0)
 
 include_directories(${CMAKE_BINARY_DIR})
 
