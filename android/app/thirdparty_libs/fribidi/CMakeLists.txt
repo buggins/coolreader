@@ -1,6 +1,6 @@
 project(local_fribidi C)
 
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.5..4.0)
 
 set(FRIBIDI_SOURCE_DIR "${PROJECT_SOURCE_DIR}/../../../../thirdparty/${REPO_FRIBIDI_SRCDIR}")
 set(FRIBIDI_CONFIG_DIR "${PROJECT_SOURCE_DIR}")

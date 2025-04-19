@@ -1,6 +1,6 @@
 project(local_unibreak C)
 
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.5..4.0)
 
 set(LIBUNIBREAK_SOURCE_DIR "${PROJECT_SOURCE_DIR}/../../../../thirdparty/${REPO_LIBUNIBREAK_SRCDIR}/src")
 
