@@ -1,5 +1,7 @@
 package org.coolreader.crengine;
 
+import android.media.MediaMetadataRetriever;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -130,12 +132,38 @@ public class WordTimingAudiobookMatcher {
 		//start first sentence of all audio files at 0.0
 		// prevents skipping intros
 		File curAudioFile = null;
+		double prevTotalAudioFileDurations = 0;
 		for(SentenceInfo s : allSentences){
 			if(curAudioFile == null || s.audioFile != curAudioFile){
 				s.isFirstSentenceInAudioFile = true;
 				s.startTime = 0;
+				if(curAudioFile != null){
+					prevTotalAudioFileDurations += getAudioFileDuration(curAudioFile);
+				}
 				curAudioFile = s.audioFile;
 			}
+			s.startTimeInBook = s.startTime + prevTotalAudioFileDurations;
+		}
+
+		double totalBookDuration = prevTotalAudioFileDurations;
+		if(curAudioFile != null){
+			totalBookDuration += getAudioFileDuration(curAudioFile);
+		}
+
+		for(SentenceInfo s : allSentences){
+			s.totalBookDuration = totalBookDuration;
+		}
+	}
+
+	public Double getAudioFileDuration(File file){
+		try{
+			MediaMetadataRetriever m = new MediaMetadataRetriever();
+			m.setDataSource(file.getAbsolutePath());
+			String durationStr = m.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+			return Long.parseLong(durationStr) / 1000.0;
+		}catch(Exception e){
+			log.d("ERROR: could not get audio file duration for " + file, e);
+			return 0.0;
 		}
 	}
 

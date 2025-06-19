@@ -8,6 +8,8 @@ public class SentenceInfo {
 	public String startPos;
 
 	public double startTime;
+	public double startTimeInBook;
+	public double totalBookDuration;
 	public boolean isFirstSentenceInAudioFile = false;
 	public File audioFile;
 	public List<String> words;
