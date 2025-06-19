@@ -78,6 +78,7 @@ public class TTSToolbarDlg implements Settings {
 	private final ImageButton forwardButton;
 	private final ImageButton stopButton;
 	private final ImageButton optionsButton;
+	private final TextView mAudioProgressTextView;
 	private final TextView mVolumeTextView;
 	private final TextView mSpeedTextView;
 	private final SeekBar mSbSpeed;
@@ -214,6 +215,30 @@ public class TTSToolbarDlg implements Settings {
 		return null;
 	}
 
+	private String formatDurationHHHMMSS(double duration) {
+		return String.format(Locale.getDefault(), "%3d:%02d:%02d",
+			((int) duration) / 60 / 60,
+			((int) duration) / 60 % 60,
+			((int) duration) % 60);
+	}
+
+	private void setAudioBookProgressDisplay(SentenceInfo sentenceInfo) {
+		if(sentenceInfo == null){
+			mAudioProgressTextView.setVisibility(View.GONE);
+			mAudioProgressTextView.setText("");
+
+			mSbSpeed.setVisibility(View.VISIBLE);
+		}else{
+			mAudioProgressTextView.setVisibility(View.VISIBLE);
+			mAudioProgressTextView.setText(String.format(Locale.getDefault(),
+				"%s / %s",
+				formatDurationHHHMMSS(sentenceInfo.startTimeInBook),
+				formatDurationHHHMMSS(sentenceInfo.totalBookDuration)));
+
+			mSbSpeed.setVisibility(View.GONE);
+		}
+	}
+
 	/**
 	 * Select next or previous sentence. ONLY the selection changes and the specified callback is called!
 	 * Not affected to speech synthesis process.
@@ -230,11 +255,14 @@ public class TTSToolbarDlg implements Settings {
 				mCurrentSelection = selection;
 				if(allowUseAudiobook){
 					SentenceInfo sentenceInfo = fetchSelectedSentenceInfo();
+					setAudioBookProgressDisplay(sentenceInfo);
 					if(sentenceInfo != null && sentenceInfo.audioFile != null){
 						mTTSControl.bind(ttsbinder -> {
 							ttsbinder.setAudioFile(sentenceInfo.audioFile, sentenceInfo.startTime);
 						});
 					}
+				}else{
+					setAudioBookProgressDisplay(null);
 				}
 				if (null != callback)
 					callback.onNewSelection(mCurrentSelection);
@@ -588,6 +616,11 @@ public class TTSToolbarDlg implements Settings {
 			dlg.show();
 		}));
 		stopButton.setOnClickListener(v -> stopAndClose());
+
+
+		// setup audiobook speed && volume seek bars
+		mAudioProgressTextView = panel.findViewById(R.id.tts_lbl_audio_progress);
+		mAudioProgressTextView.setVisibility(View.GONE);
 
 		// setup speed && volume seek bars
 		mVolumeTextView = panel.findViewById(R.id.tts_lbl_volume);

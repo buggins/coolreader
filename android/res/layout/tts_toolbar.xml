@@ -201,6 +201,19 @@
                 android:layout_marginRight="2dip"
                 android:layout_marginBottom="5dip"
                 android:layout_weight="1" />
+
+        <TextView
+                android:id="@+id/tts_lbl_audio_progress"
+                android:typeface="monospace"
+                android:textSize="14sp"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dip"
+                android:layout_marginTop="0dip"
+                android:layout_marginRight="5dip"
+                android:layout_marginBottom="0dip"
+                android:layout_weight="1"
+                android:text="" />
     </LinearLayout>
 </LinearLayout>
 </RelativeLayout>
