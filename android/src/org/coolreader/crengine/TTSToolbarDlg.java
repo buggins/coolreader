@@ -109,7 +109,7 @@ public class TTSToolbarDlg implements Settings {
 	private int mTTSSpeedPercent = 50;		// 50% (normal)
 
 	private File wordTimingFile;
-	private File sentenceInfoCacheFile;
+	private File sentenceInfoFile;
 	private WordTimingAudiobookMatcher wordTimingAudiobookMatcher;
 	private SentenceInfo currentSentenceInfo;
 
@@ -762,7 +762,7 @@ public class TTSToolbarDlg implements Settings {
 		// Fetch book's metadata
 		BookInfo bookInfo = mReaderView.getBookInfo();
 		wordTimingFile = null;
-		sentenceInfoCacheFile = null;
+		sentenceInfoFile = null;
 		if (null != bookInfo) {
 			FileInfo fileInfo = bookInfo.getFileInfo();
 			if (null != fileInfo) {
@@ -777,7 +777,7 @@ public class TTSToolbarDlg implements Settings {
 				String sentenceInfoPath = pathName.replaceAll("\\.\\w+$", ".sentenceinfo");
 				if(wordTimingPath.matches(".*\\.wordtiming$")){
 					wordTimingFile = new File(wordTimingPath);
-					sentenceInfoCacheFile = new File(sentenceInfoPath);
+					sentenceInfoFile = new File(sentenceInfoPath);
 				}
 			}
 		}
@@ -832,10 +832,10 @@ public class TTSToolbarDlg implements Settings {
 			wordTimingCalcHandler.post(
 				new Runnable() {
 						public void run() {
-							List<SentenceInfo> allSentences = SentenceInfoCache.maybeReadCache(sentenceInfoCacheFile);
+							List<SentenceInfo> allSentences = SentenceInfoCache.maybeReadCache(sentenceInfoFile);
 							if(allSentences == null){
 								allSentences = mReaderView.getAllSentences();
-								SentenceInfoCache.maybeWriteCache(sentenceInfoCacheFile, allSentences);
+								SentenceInfoCache.maybeWriteCache(sentenceInfoFile, allSentences);
 							}
 							wordTimingAudiobookMatcher = new WordTimingAudiobookMatcher(wordTimingFile, allSentences);
 
