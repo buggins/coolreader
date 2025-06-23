@@ -34,6 +34,8 @@ public class WordTimingAudiobookMatcher {
 	private final Map<String, File> audioFilesByAudioFileName = new HashMap<>();
 	private final Map<File, String> audioFileNamesByAudioFile = new HashMap<>();
 
+	private boolean sentenceTimingReady = false;
+
 	public WordTimingAudiobookMatcher(File wordTimingsFile, List<SentenceInfo> allSentences) {
 		this.wordTimingsFile = wordTimingsFile;
 		this.audioFileRelativeDir = wordTimingsFile.getAbsoluteFile().getParent();
@@ -159,6 +161,12 @@ public class WordTimingAudiobookMatcher {
 		for(SentenceInfo s : allSentences){
 			s.sentenceTiming.totalBookDuration = totalBookDuration;
 		}
+
+		this.sentenceTimingReady = true;
+	}
+
+	public boolean isSentenceTimingReady(){
+		return this.sentenceTimingReady;
 	}
 
 	public Double getAudioFileDuration(File file){
