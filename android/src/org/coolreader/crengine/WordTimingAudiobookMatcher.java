@@ -74,8 +74,9 @@ public class WordTimingAudiobookMatcher {
 			s.nextSentence = nextSentence;
 		}
 
+		Map<String, List<String>> wordsBySentencePos = new HashMap<>();
 		for(SentenceInfo s : allSentences){
-			s.words = splitSentenceIntoWords(s.text);
+			wordsBySentencePos.put(s.startPos, splitSentenceIntoWords(s.text));
 		}
 
 		if(wordTimings.size() == 0){
@@ -86,7 +87,8 @@ public class WordTimingAudiobookMatcher {
 		double prevStartTime = 0;
 		File prevAudioFile = wordTimings.get(0).audioFile;
 		for(SentenceInfo s : allSentences){
-			if(s.words.size() == 0){
+			List<String> words = wordsBySentencePos.get(s.startPos);
+			if(words.size() == 0){
 				s.startTime = prevStartTime;
 				s.audioFile = prevAudioFile;
 				continue;
@@ -94,7 +96,7 @@ public class WordTimingAudiobookMatcher {
 			boolean matchFailed = false;
 			WordTiming firstWordTiming = null;
 			int sentenceWtIndex = wtIndex;
-			for(String wordInSentence : s.words){
+			for(String wordInSentence : words){
 				int wordWtIndex = sentenceWtIndex;
 				boolean wordFound = false;
 				while(wordWtIndex <= wordTimings.size()){

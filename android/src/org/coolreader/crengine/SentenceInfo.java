@@ -12,7 +12,6 @@ public class SentenceInfo {
 	public double totalBookDuration;
 	public boolean isFirstSentenceInAudioFile = false;
 	public File audioFile;
-	public List<String> words;
 	public SentenceInfo nextSentence;
 
 	public SentenceInfo() {
