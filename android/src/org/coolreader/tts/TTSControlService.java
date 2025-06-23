@@ -1312,8 +1312,8 @@ public class TTSControlService extends BaseService {
 				boolean isAfterSentence = false;
 				if(sentenceInfo != null && sentenceInfo.nextSentence != null){
 					SentenceInfo nextSentenceInfo = sentenceInfo.nextSentence;
-					if(sentenceInfo.audioFile == TTSControlService.this.audioFile){
-						if(nextSentenceInfo.isFirstSentenceInAudioFile){
+					if(sentenceInfo.sentenceTiming.audioFile == TTSControlService.this.audioFile){
+						if(nextSentenceInfo.sentenceTiming.isFirstSentenceInAudioFile){
 							if(mState == State.PLAYING && (mMediaPlayer == null || !mMediaPlayer.isPlaying())){
 								//this is the last sentence in the file, and the media player ended
 								isAfterSentence = true;
@@ -1321,7 +1321,7 @@ public class TTSControlService extends BaseService {
 						}else{
 							if(mMediaPlayer != null && mMediaPlayer.isPlaying()){
 								double curPos = mMediaPlayer.getCurrentPosition() / 1000.0;
-								if(curPos >= nextSentenceInfo.startTime){
+								if(curPos >= nextSentenceInfo.sentenceTiming.startTime){
 									isAfterSentence = true;
 								}
 							}

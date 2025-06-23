@@ -232,8 +232,8 @@ public class TTSToolbarDlg implements Settings {
 			mAudioProgressTextView.setVisibility(View.VISIBLE);
 			mAudioProgressTextView.setText(String.format(Locale.getDefault(),
 				"%s / %s",
-				formatDurationHHHMMSS(sentenceInfo.startTimeInBook),
-				formatDurationHHHMMSS(sentenceInfo.totalBookDuration)));
+				formatDurationHHHMMSS(sentenceInfo.sentenceTiming.startTimeInBook),
+				formatDurationHHHMMSS(sentenceInfo.sentenceTiming.totalBookDuration)));
 
 			mSbSpeed.setVisibility(View.GONE);
 		}
@@ -256,9 +256,9 @@ public class TTSToolbarDlg implements Settings {
 				if(allowUseAudiobook){
 					SentenceInfo sentenceInfo = fetchSelectedSentenceInfo();
 					setAudioBookProgressDisplay(sentenceInfo);
-					if(sentenceInfo != null && sentenceInfo.audioFile != null){
+					if(sentenceInfo != null && sentenceInfo.sentenceTiming.audioFile != null){
 						mTTSControl.bind(ttsbinder -> {
-							ttsbinder.setAudioFile(sentenceInfo.audioFile, sentenceInfo.startTime);
+							ttsbinder.setAudioFile(sentenceInfo.sentenceTiming.audioFile, sentenceInfo.sentenceTiming.startTime);
 						});
 					}
 				}else{
@@ -396,7 +396,7 @@ public class TTSToolbarDlg implements Settings {
 				ttsbinder.stop(null);
 				SentenceInfo sentenceInfo = fetchSelectedSentenceInfo();
 				if(sentenceInfo != null){
-					ttsbinder.setAudioFile(sentenceInfo.audioFile, sentenceInfo.startTime);
+					ttsbinder.setAudioFile(sentenceInfo.sentenceTiming.audioFile, sentenceInfo.sentenceTiming.startTime);
 				}
 				initAudiobookWordTimings(null);
 				moveSelection(ReaderCommand.DCMD_SELECT_FIRST_SENTENCE, null);

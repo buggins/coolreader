@@ -87,10 +87,13 @@ public class WordTimingAudiobookMatcher {
 		double prevStartTime = 0;
 		File prevAudioFile = wordTimings.get(0).audioFile;
 		for(SentenceInfo s : allSentences){
+			SentenceTiming t = new SentenceTiming();
+			s.sentenceTiming = t;
+
 			List<String> words = wordsBySentencePos.get(s.startPos);
 			if(words.size() == 0){
-				s.startTime = prevStartTime;
-				s.audioFile = prevAudioFile;
+				t.startTime = prevStartTime;
+				t.audioFile = prevAudioFile;
 				continue;
 			}
 			boolean matchFailed = false;
@@ -120,14 +123,14 @@ public class WordTimingAudiobookMatcher {
 				}
 			}
 			if(matchFailed){
-				s.startTime = prevStartTime;
-				s.audioFile = prevAudioFile;
+				t.startTime = prevStartTime;
+				t.audioFile = prevAudioFile;
 			}else{
 				wtIndex = sentenceWtIndex;
-				s.startTime = firstWordTiming.startTime;
-				s.audioFile = firstWordTiming.audioFile;
-				prevStartTime = s.startTime;
-				prevAudioFile = s.audioFile;
+				t.startTime = firstWordTiming.startTime;
+				t.audioFile = firstWordTiming.audioFile;
+				prevStartTime = t.startTime;
+				prevAudioFile = t.audioFile;
 			}
 		}
 
@@ -136,15 +139,16 @@ public class WordTimingAudiobookMatcher {
 		File curAudioFile = null;
 		double prevTotalAudioFileDurations = 0;
 		for(SentenceInfo s : allSentences){
-			if(curAudioFile == null || s.audioFile != curAudioFile){
-				s.isFirstSentenceInAudioFile = true;
-				s.startTime = 0;
+			SentenceTiming t = s.sentenceTiming;
+			if(curAudioFile == null || t.audioFile != curAudioFile){
+				t.isFirstSentenceInAudioFile = true;
+				t.startTime = 0;
 				if(curAudioFile != null){
 					prevTotalAudioFileDurations += getAudioFileDuration(curAudioFile);
 				}
-				curAudioFile = s.audioFile;
+				curAudioFile = t.audioFile;
 			}
-			s.startTimeInBook = s.startTime + prevTotalAudioFileDurations;
+			t.startTimeInBook = t.startTime + prevTotalAudioFileDurations;
 		}
 
 		double totalBookDuration = prevTotalAudioFileDurations;
@@ -153,7 +157,7 @@ public class WordTimingAudiobookMatcher {
 		}
 
 		for(SentenceInfo s : allSentences){
-			s.totalBookDuration = totalBookDuration;
+			s.sentenceTiming.totalBookDuration = totalBookDuration;
 		}
 	}
 

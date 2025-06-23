@@ -7,11 +7,7 @@ public class SentenceInfo {
 	public String text;
 	public String startPos;
 
-	public double startTime;
-	public double startTimeInBook;
-	public double totalBookDuration;
-	public boolean isFirstSentenceInAudioFile = false;
-	public File audioFile;
+	public SentenceTiming sentenceTiming;
 	public SentenceInfo nextSentence;
 
 	public SentenceInfo() {
