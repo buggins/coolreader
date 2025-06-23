@@ -5,6 +5,8 @@ import android.media.MediaMetadataRetriever;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -156,6 +158,56 @@ public class WordTimingAudiobookMatcher {
 		this.sentenceTimingReady = true;
 	}
 
+	public void maybeReadSentenceTimingCache(File sentenceTimingCacheFile){
+		try {
+			if(sentenceTimingCacheFile == null || !sentenceTimingCacheFile.exists()){
+				return;
+			}
+
+			BufferedReader br = new BufferedReader(new FileReader(sentenceTimingCacheFile));
+			String line;
+			while ((line = br.readLine()) != null) {
+				Map.Entry<String, SentenceTiming> sentenceTimingRes = parseSentenceTimingLine(line);
+				if(sentenceTimingRes == null){
+					log.d("ERROR: could not parse sentence timing line: " + line);
+				}else{
+					String startPos = sentenceTimingRes.getKey();
+					SentenceTiming t = sentenceTimingRes.getValue();
+					SentenceInfo s = sentencesByStartPos.get(startPos);
+					s.sentenceTiming = t;
+				}
+			}
+			br.close();
+
+			updateSentenceInfoNextSentence();
+
+			this.sentenceTimingReady = true;
+		} catch(Exception e) {
+			log.d("ERROR: could not read timing cache file: " + sentenceTimingCacheFile, e);
+		}
+	}
+
+	public void maybeWriteSentenceTimingCache(File sentenceTimingCacheFile){
+		try{
+			FileWriter fw = new FileWriter(sentenceTimingCacheFile);
+			for(SentenceInfo s : allSentences){
+				SentenceTiming t = s.sentenceTiming;
+				fw.write(""
+					+ ""  + s.startPos
+					+ "," + t.startTime
+					+ "," + t.startTimeInBook
+					+ "," + t.totalBookDuration
+					+ "," + t.isFirstSentenceInAudioFile
+					+ "," + audioFileNamesByAudioFile.get(t.audioFile)
+					+ "\n"
+				);
+			}
+			fw.close();
+		} catch(Exception e) {
+			log.d("ERROR: could not write timing cache file: " + sentenceTimingCacheFile, e);
+		}
+	}
+
 	public boolean isSentenceTimingReady(){
 		return this.sentenceTimingReady;
 	}
@@ -205,6 +257,28 @@ public class WordTimingAudiobookMatcher {
 			audioFileNamesByAudioFile.put(audioFile, audioFileName);
 		}
 		return new WordTiming(word, startTime, audioFile);
+	}
+
+	private Map.Entry<String, SentenceTiming> parseSentenceTimingLine(String line){
+		String[] cols = line.split(",", 6);
+		if(cols.length != 6){
+			return null;
+		}
+		SentenceTiming t = new SentenceTiming();
+		String startPos = cols[0];
+		t.startTime = Double.parseDouble(cols[1]);
+		t.startTimeInBook = Double.parseDouble(cols[2]);
+		t.totalBookDuration = Double.parseDouble(cols[3]);
+		t.isFirstSentenceInAudioFile = Boolean.parseBoolean(cols[4]);
+		String audioFileName = cols[5];
+		File audioFile = audioFilesByAudioFileName.get(audioFileName);
+		if(audioFile == null){
+			audioFile = new File(audioFileRelativeDir + "/" + audioFileName);
+			audioFilesByAudioFileName.put(audioFileName, audioFile);
+			audioFileNamesByAudioFile.put(audioFile, audioFileName);
+		}
+		t.audioFile = audioFile;
+		return new AbstractMap.SimpleEntry<>(startPos, t);
 	}
 
 	private boolean wordsMatch(String word1, String word2){
