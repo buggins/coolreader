@@ -169,7 +169,11 @@ public class WordTimingAudiobookMatcher {
 		return this.sentenceTimingReady;
 	}
 
-	public Double getAudioFileDuration(File file){
+	public SentenceInfo getSentence(String startPos){
+		return sentencesByStartPos.get(startPos);
+	}
+
+	private Double getAudioFileDuration(File file){
 		try{
 			MediaMetadataRetriever m = new MediaMetadataRetriever();
 			m.setDataSource(file.getAbsolutePath());
@@ -179,10 +183,6 @@ public class WordTimingAudiobookMatcher {
 			log.d("ERROR: could not get audio file duration for " + file, e);
 			return 0.0;
 		}
-	}
-
-	public SentenceInfo getSentence(String startPos){
-		return sentencesByStartPos.get(startPos);
 	}
 
 	private WordTiming parseWordTimingsLine(String line){
