@@ -65,16 +65,7 @@ public class WordTimingAudiobookMatcher {
 			wordTimings = new ArrayList<>();
 		}
 
-		for(int i=0; i<allSentences.size(); i++){
-			SentenceInfo s = allSentences.get(i);
-			SentenceInfo nextSentence;
-			if(i+1<allSentences.size()){
-				nextSentence = allSentences.get(i+1);
-			}else{
-				nextSentence = null;
-			}
-			s.nextSentence = nextSentence;
-		}
+		updateSentenceInfoNextSentence();
 
 		Map<String, List<String>> wordsBySentencePos = new HashMap<>();
 		for(SentenceInfo s : allSentences){
@@ -171,6 +162,19 @@ public class WordTimingAudiobookMatcher {
 
 	public SentenceInfo getSentence(String startPos){
 		return sentencesByStartPos.get(startPos);
+	}
+
+	private void updateSentenceInfoNextSentence(){
+		for(int i=0; i<allSentences.size(); i++){
+			SentenceInfo s = allSentences.get(i);
+			SentenceInfo nextSentence;
+			if(i+1<allSentences.size()){
+				nextSentence = allSentences.get(i+1);
+			}else{
+				nextSentence = null;
+			}
+			s.nextSentence = nextSentence;
+		}
 	}
 
 	private Double getAudioFileDuration(File file){
