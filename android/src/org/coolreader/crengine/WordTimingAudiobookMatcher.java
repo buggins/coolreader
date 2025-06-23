@@ -32,7 +32,6 @@ public class WordTimingAudiobookMatcher {
 	private final Map<String, SentenceInfo> sentencesByStartPos = new HashMap<>();
 	private final Map<String, File> fileCache = new HashMap<>();
 	private String wordTimingsDir;
-	private List<WordTiming> wordTimings;
 
 	public WordTimingAudiobookMatcher(File wordTimingsFile, List<SentenceInfo> allSentences) {
 		this.wordTimingsFile = wordTimingsFile;
@@ -45,6 +44,7 @@ public class WordTimingAudiobookMatcher {
 	public void parseWordTimingsFile(){
 		this.wordTimingsDir = wordTimingsFile.getAbsoluteFile().getParent();
 
+		List<WordTiming> wordTimings;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(wordTimingsFile));
 			String line;
