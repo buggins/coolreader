@@ -28,13 +28,15 @@ public class WordTimingAudiobookMatcher {
 	}
 
 	private final File wordTimingsFile;
+	private final String audioFileRelativeDir;
 	private final List<SentenceInfo> allSentences;
 	private final Map<String, SentenceInfo> sentencesByStartPos = new HashMap<>();
-	private final Map<String, File> fileCache = new HashMap<>();
-	private String wordTimingsDir;
+	private final Map<String, File> audioFilesByAudioFileName = new HashMap<>();
+	private final Map<File, String> audioFileNamesByAudioFile = new HashMap<>();
 
 	public WordTimingAudiobookMatcher(File wordTimingsFile, List<SentenceInfo> allSentences) {
 		this.wordTimingsFile = wordTimingsFile;
+		this.audioFileRelativeDir = wordTimingsFile.getAbsoluteFile().getParent();
 		this.allSentences = allSentences;
 		for(SentenceInfo s : allSentences){
 			sentencesByStartPos.put(s.startPos, s);
@@ -42,8 +44,6 @@ public class WordTimingAudiobookMatcher {
 	}
 
 	public void parseWordTimingsFile(){
-		this.wordTimingsDir = wordTimingsFile.getAbsoluteFile().getParent();
-
 		List<WordTiming> wordTimings;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(wordTimingsFile));
@@ -186,10 +186,12 @@ public class WordTimingAudiobookMatcher {
 		String word = line.substring(sep1+1, sep2);
 		Double startTime = Double.parseDouble(line.substring(0, sep1));
 		String audioFileName = line.substring(sep2+1);
-		if(!fileCache.containsKey(audioFileName)){
-			fileCache.put(audioFileName, new File(wordTimingsDir + "/" + audioFileName));
+		File audioFile = audioFilesByAudioFileName.get(audioFileName);
+		if(audioFile == null){
+			audioFile = new File(audioFileRelativeDir + "/" + audioFileName);
+			audioFilesByAudioFileName.put(audioFileName, audioFile);
+			audioFileNamesByAudioFile.put(audioFile, audioFileName);
 		}
-		File audioFile = fileCache.get(audioFileName);
 		return new WordTiming(word, startTime, audioFile);
 	}
 
