@@ -50,10 +50,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 public class Utils {
+	public static final String[] AUDIO_FILE_EXTS = new String[]{"flac", "wav", "m4a", "ogg", "mp3"};
+
 	public static long timeStamp() {
 		return android.os.SystemClock.uptimeMillis();
 	}
@@ -107,7 +111,46 @@ public class Utils {
 		}
 		return totalSize;
 	}
-	
+
+	/**
+	 * @return an existing file, either origFile or a file with
+	 *         the same basename ending in one of allowedExts
+	 */
+	public static File getAlternativeFile(File origFile, String[] allowedExts) {
+		if(origFile == null) {
+			return null;
+		}
+		if(origFile.exists()) {
+			return origFile;
+		}
+		String fileNoExt = origFile.toString().replaceAll("\\.\\w+$", "");
+		File dir = origFile.getParentFile();
+		if(dir.exists() && dir.isDirectory()) {
+			Map<String, List<File>> filesByExt = new HashMap<>();
+			File firstFile = null;
+			for(File file : dir.listFiles()) {
+				if(!file.toString().startsWith(fileNoExt + ".")){
+					continue;
+				}
+				String ext = file.toString().toLowerCase().replaceAll(".*\\.", "");
+				if(filesByExt.get(ext) == null) {
+					filesByExt.put(ext, new ArrayList<>());
+				}
+				filesByExt.get(ext).add(file);
+				if(firstFile == null) {
+					firstFile = file;
+				}
+			}
+			for(String ext : allowedExts) {
+				if(filesByExt.get(ext) != null){
+					return filesByExt.get(ext).get(0);
+				}
+			}
+			return firstFile;
+		}
+		return null;
+	}
+
 	private static boolean moveFile(File oldPlace, File newPlace, boolean removeOld) {
 		boolean removeNewFile = true;
 		Log.i("cr3", "Moving file " + oldPlace.getAbsolutePath() + " to " + newPlace.getAbsolutePath());
