@@ -7,7 +7,7 @@ public class SentenceInfo {
 	public String text;
 	public String startPos;
 
-	public SentenceTiming sentenceTiming;
+	public SentenceTiming sentenceTiming = new SentenceTiming();
 	public SentenceInfo nextSentence;
 
 	public SentenceInfo() {
