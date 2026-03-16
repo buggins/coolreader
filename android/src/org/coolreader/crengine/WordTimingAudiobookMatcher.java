@@ -97,7 +97,7 @@ public class WordTimingAudiobookMatcher {
 			for(String wordInSentence : words){
 				int wordWtIndex = sentenceWtIndex;
 				boolean wordFound = false;
-				while(wordWtIndex <= wordTimings.size()){
+				while(wordWtIndex < wordTimings.size()){
 					if(wordsMatch(wordInSentence, wordTimings.get(wordWtIndex).word)){
 						wordFound = true;
 						break;
