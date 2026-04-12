@@ -135,6 +135,21 @@ public class TTSToolbarDlg implements Settings {
 		});
 	}
 
+	public void hideSystemNavBar(View view){
+		try{
+			view.setSystemUiVisibility(
+						0
+						| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+			);
+		}catch(Exception e){
+			log.e("ERROR: failed to hide system nav bar\n" + e);
+			e.printStackTrace();
+		}
+	}
 	private void setReaderMode() {
 		String oldViewSetting = mReaderView.getSetting( ReaderView.PROP_PAGE_VIEW_MODE );
 		if ( "1".equals(oldViewSetting) ) {
@@ -574,6 +589,8 @@ public class TTSToolbarDlg implements Settings {
 		mWindow.setTouchable(true);
 		mWindow.setOutsideTouchable(true);
 		mWindow.setContentView(panel);
+
+		hideSystemNavBar(panel);
 
 		int [] location = new int[2];
 		anchor.getLocationOnScreen(location);
