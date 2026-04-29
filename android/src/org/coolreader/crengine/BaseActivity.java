@@ -1323,6 +1323,8 @@ public class BaseActivity extends Activity implements Settings {
 			setScreenBacklightDuration(Utils.parseInt(value, 0));
 		} else if (key.equals(PROP_NIGHT_MODE)) {
 			setNightMode(flg);
+		} else if (key.equals(PROP_APP_PAGEWISE_SCROLL)) {
+			DeviceInfo.PAGEWISE_SCROLLING = flg;
 		} else if (key.equals(PROP_APP_SCREEN_UPDATE_MODE)) {
 			setScreenUpdateMode(EinkScreen.EinkUpdateMode.byCode(Utils.parseInt(value, 0)), getContentView());
 		} else if (key.equals(PROP_APP_SCREEN_UPDATE_INTERVAL)) {
@@ -1957,6 +1959,7 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_SHOW_COVERPAGES, "1");
 			props.applyDefault(ReaderView.PROP_APP_COVERPAGE_SIZE, "1");
 			props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, "0"); // "0"
+			props.applyDefault(ReaderView.PROP_APP_PAGEWISE_SCROLL, "0");
 			props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 			props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
 			props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
