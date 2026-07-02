@@ -212,6 +212,11 @@ public class TTSToolbarDlg implements Settings {
 	private SentenceInfo fetchSelectedSentenceInfo() {
 		if(wordTimingAudiobookMatcher != null && mCurrentSelection != null){
 			SentenceInfo cur = wordTimingAudiobookMatcher.getSentence(mCurrentSelection.startPos);
+			if(cur == null){
+				// use the previous sentenceInfo if current selection is not in sentenceinfo cache
+				log.i("WARNING: reusing previous sentenceinfo for missing selection\n");
+				cur = currentSentenceInfo;
+			}
 			currentSentenceInfo = cur;
 		}else{
 			currentSentenceInfo = null;
