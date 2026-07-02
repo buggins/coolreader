@@ -211,9 +211,12 @@ public class TTSToolbarDlg implements Settings {
 
 	private SentenceInfo fetchSelectedSentenceInfo() {
 		if(wordTimingAudiobookMatcher != null && mCurrentSelection != null){
-			return wordTimingAudiobookMatcher.getSentence(mCurrentSelection.startPos);
+			SentenceInfo cur = wordTimingAudiobookMatcher.getSentence(mCurrentSelection.startPos);
+			currentSentenceInfo = cur;
+		}else{
+			currentSentenceInfo = null;
 		}
-		return null;
+		return currentSentenceInfo;
 	}
 
 	private String formatDurationHHHMMSS(double duration) {
