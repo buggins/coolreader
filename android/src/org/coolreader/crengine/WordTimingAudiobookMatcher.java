@@ -213,7 +213,20 @@ public class WordTimingAudiobookMatcher {
 	}
 
 	public SentenceInfo getSentence(String startPos){
-		return sentencesByStartPos.get(startPos);
+		if(startPos == null){
+			return null;
+		}
+		SentenceInfo s = sentencesByStartPos.get(startPos);
+		if(s == null && startPos.contains("autoBoxing")){
+			String noAutoBoxingStartPos = startPos.replaceAll("/autoBoxing[^/]*/", "/");
+			s = sentencesByStartPos.get(noAutoBoxingStartPos);
+			if(s != null){
+				log.i("WARNING: using '" + noAutoBoxingStartPos + "' instead of '" + startPos + "'\n");
+			}else{
+				log.i("WARNING: missing sentenceinfo for startPos '" + startPos + "'\n");
+			}
+		}
+		return s;
 	}
 
 	private void updateSentenceInfoNextSentence(){
