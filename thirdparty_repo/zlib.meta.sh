@@ -2,12 +2,12 @@
 # Metadata for deploy script
 
 PN="zlib"
-PV="1.3.1"
+PV="1.3.2"
 # package revision: when patchset is changed (but not version), increase it
 # when version changed, reset to "1".
 REV="1"
 SRCFILE="${PN}-${PV}.tar.xz"
-SHA512="1e8e70b362d64a233591906a1f50b59001db04ca14aaffad522198b04680be501736e7d536b4191e2f99767e7001ca486cd802362cca2be05d5d409b83ea732d"
+SHA512="cf3d49fbabddc57cca99858feeca8f910e9de42a16014cddd406814d2d24ee33fee2af3805d7efbb1b04b05f55818092b000daf82502b675df65f2512c353f73"
 
 URL="http://www.zlib.net/${SRCFILE}"
 
