@@ -432,7 +432,8 @@ public class TTSControlService extends BaseService {
 					mNotificationManager.cancel(NOTIFICATION_ID);
 					stopForeground(true);
 					abandonAudioFocusRequestWrapper();
-					mMediaSession.setActive(false);
+					//WORKAROUND TO PREVENT CRASH ON STOP
+					//mMediaSession.setActive(false);
 					try {
 						unregisterReceiver(mBecomingNoisyReceiver);
 					} catch (Exception ignored) {}
@@ -554,10 +555,11 @@ public class TTSControlService extends BaseService {
 		} catch (Exception ignored) {}
 		stopUtterance_impl(null);
 		abandonAudioFocusRequestWrapper();
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-			mMediaSession.setActive(false);
-			mMediaSession.release();
-		}
+		//WORKAROUND TO PREVENT RARE CRASH ON STOP
+		//if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+		//	mMediaSession.setActive(false);
+		//	mMediaSession.release();
+		//}
 		mNotificationManager.cancel(NOTIFICATION_ID);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			mNotificationManager.deleteNotificationChannel(NOTIFICATION_CHANNEL_ID);
