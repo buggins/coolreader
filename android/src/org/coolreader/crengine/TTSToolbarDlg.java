@@ -384,38 +384,39 @@ public class TTSToolbarDlg implements Settings {
 
 				@Override
 				public void onNextSentenceRequested(TTSControlBinder ttsbinder) {
-					if (isSpeaking) {
-						moveSelection(ReaderCommand.DCMD_SELECT_NEXT_SENTENCE, new ReaderView.MoveSelectionCallback() {
-							@Override
-							public void onNewSelection(Selection selection) {
+					moveSelection(ReaderCommand.DCMD_SELECT_NEXT_SENTENCE, new ReaderView.MoveSelectionCallback() {
+						@Override
+						public void onNewSelection(Selection selection) {
+							boolean wasSpeaking = isSpeaking;
+							if (isSpeaking) {
 								ttsbinder.say(preprocessUtterance(selection.text), null);
+							} else {
+								ttsbinder.setCurrentUtterance(preprocessUtterance(selection.text));
 							}
+						}
 
-							@Override
-							public void onFail() {
-							}
-						});
-					} else {
-						moveSelection(ReaderCommand.DCMD_SELECT_NEXT_SENTENCE, null);
-					}
+						@Override
+						public void onFail() {
+						}
+					});
 				}
 
 				@Override
 				public void onPreviousSentenceRequested(TTSControlBinder ttsbinder) {
-					if (isSpeaking) {
-						moveSelection(ReaderCommand.DCMD_SELECT_PREV_SENTENCE, new ReaderView.MoveSelectionCallback() {
-							@Override
-							public void onNewSelection(Selection selection) {
+					moveSelection(ReaderCommand.DCMD_SELECT_PREV_SENTENCE, new ReaderView.MoveSelectionCallback() {
+						@Override
+						public void onNewSelection(Selection selection) {
+							if (isSpeaking) {
 								ttsbinder.say(preprocessUtterance(selection.text), null);
+							} else {
+								ttsbinder.setCurrentUtterance(preprocessUtterance(selection.text));
 							}
+						}
 
-							@Override
-							public void onFail() {
-							}
-						});
-					} else {
-						moveSelection(ReaderCommand.DCMD_SELECT_PREV_SENTENCE, null);
-					}
+						@Override
+						public void onFail() {
+						}
+					});
 				}
 
 				@Override
