@@ -282,7 +282,7 @@ protected:
     int numrows;
     _Ty ** rows;
 public:
-    LVMatrix<_Ty> () : numcols(0), numrows(0), rows(NULL) {}
+    LVMatrix() : numcols(0), numrows(0), rows(NULL) {}
     void Clear() {
         if (rows) {
 			if (numrows && numcols) {
@@ -295,7 +295,7 @@ public:
         numrows = 0;
         numcols = 0;
     }
-    ~LVMatrix<_Ty> () {
+    ~LVMatrix() {
         Clear();
     }   
 

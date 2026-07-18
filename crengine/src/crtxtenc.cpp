@@ -1661,6 +1661,7 @@ public:
     {
         if ( !stats ) {
             stats = new lUInt16* [256]();
+            memset(stats, 0, sizeof(lUInt16*)*256);
         }
         if (c1==' ' && c2==' ')
             return;
@@ -1732,7 +1733,7 @@ public:
 
 bool isValidUtf8Data( const unsigned char * buf, int buf_size )
 {
-    const unsigned char * start = buf;
+    //const unsigned char * start = buf;
     const unsigned char * end_buf = buf + buf_size - 5;
     while ( buf < end_buf ) {
         lUInt8 ch = *buf++;
@@ -2089,11 +2090,12 @@ void MakeStatsForFile( const char * fname, const char * cp_name, const char * la
    if (!in)
       return;
    fseek( in, 0, SEEK_END );
-   int buf_size = ftell(in);
+   size_t buf_size = ftell(in);
    fseek( in, 0, SEEK_SET );
    unsigned char * buf = new unsigned char[buf_size];
    if ( fread(buf, 1, buf_size, in) != buf_size ) {
       fclose(in);
+       delete[] buf;
       return;
    }
    short char_stat[256] = { 0 };
