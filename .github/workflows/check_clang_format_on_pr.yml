@@ -1,0 +1,44 @@
+name: Check Style in Code
+
+on: [pull_request]
+
+jobs:
+  clang-format:
+    name: Check sources by clang-format for added/changed files in PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "18.1.8"
+
+      - name: Install parallel for work with check many files
+        run: |
+          sudo apt-get update
+          sudo apt-get install parallel -y
+
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # for work tj-actions/changed-files
+          persist-credentials: false # for work tj-actions/changed-files
+
+      - name: Get C/C++/Protobuf source files that have added/changed
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files: '**/*.{h,H,hpp,hh,h++,hxx,c,C,cpp,cc,c++,cxx,ino,pde,cu,proto}'
+          files_ignore: 'thirdparty*/**/*.{h,H,hpp,hh,h++,hxx,c,C,cpp,cc,c++,cxx,ino,pde,cu,proto}'
+
+      - name: List added/changed C/C++/Protobuf source file(s) for check
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "$file was changed"
+          done
+
+      - name: Check added/changed C/C++/Protobuf source file(s) by clang-format
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          parallel clang-format --style=file --Werror  --dry-run --verbose ::: \
+            ${{ steps.changed-files.outputs.all_changed_files }}

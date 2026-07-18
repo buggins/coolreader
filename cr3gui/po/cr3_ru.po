@@ -2,14 +2,15 @@
 # This file is put in the public domain.
 # LVE <vadim.lopatin@coolreader.org>, 2009.
 # Vladimir <v@v>, 2011.
+# VikrotOn <https://github.com/viktoron>, 2022.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: cr3 3.0.17\n"
+"Project-Id-Version: cr3 3.2.58\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
 "POT-Creation-Date: 2012-04-12 22:34+0000\n"
-"PO-Revision-Date: 2011-05-08 16:02+0700\n"
-"Last-Translator: Vladimir <v@v>\n"
+"PO-Revision-Date: 2022-09-01 16:42+0700\n"
+"Last-Translator: ViktorOn <https://github.com/viktoron>\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
@@ -112,11 +113,11 @@ msgstr "Убрать предложение"
 
 #: ../src/citedlg.cpp:112
 msgid "Select text"
-msgstr "Выделите текст"
+msgstr "Выделить текст"
 
 #: ../src/cr3pocketbook.cpp:2190
 msgid "Press $1 to translate"
-msgstr "Нажмите чтобы перевести"
+msgstr "Нажмите $1 для перевода"
 
 #: ../src/cr3qt.cpp:323 ../src/cr3xcb.cpp:1314 ../src/settings.cpp:331
 #: ../src/settings.cpp:337 ../src/settings.cpp:342 ../src/settings.cpp:383
@@ -127,7 +128,7 @@ msgstr "Вкл."
 
 #: ../src/cr3qt.cpp:324 ../src/cr3xcb.cpp:1315
 msgid "About..."
-msgstr "Свойства документа"
+msgstr "Информация..."
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
@@ -227,7 +228,7 @@ msgstr "Статус"
 
 #: ../src/mainwnd.cpp:1030
 msgid "Archive name"
-msgstr "Имя файла архива"
+msgstr "Имя архива"
 
 #: ../src/mainwnd.cpp:1031
 msgid "Archive path"
@@ -251,7 +252,7 @@ msgstr "Размер файла"
 
 #: ../src/mainwnd.cpp:1036
 msgid "File format"
-msgstr "Формат"
+msgstr "Формат файла"
 
 #: ../src/mainwnd.cpp:1037
 msgid "File info"
@@ -271,7 +272,7 @@ msgstr "Серия"
 
 #: ../src/mainwnd.cpp:1043
 msgid "Series number"
-msgstr "Номер в серии"
+msgstr "Номер серии"
 
 #: ../src/mainwnd.cpp:1044
 msgid "Date"
@@ -295,7 +296,7 @@ msgstr "Язык оригинала"
 
 #: ../src/mainwnd.cpp:1049
 msgid "Book info"
-msgstr "Прочая информация"
+msgstr "Информация о книге"
 
 #: ../src/mainwnd.cpp:1052
 msgid "Document author"
@@ -327,11 +328,11 @@ msgstr "ID"
 
 #: ../src/mainwnd.cpp:1059
 msgid "Program used"
-msgstr "Использованы программы"
+msgstr "Используемая программа"
 
 #: ../src/mainwnd.cpp:1060
 msgid "Document info"
-msgstr "Версия документа"
+msgstr "Информация о документе"
 
 #: ../src/mainwnd.cpp:1063
 msgid "Publication name"
@@ -355,7 +356,7 @@ msgstr "ISBN"
 
 #: ../src/mainwnd.cpp:1068
 msgid "Publication info"
-msgstr "Название издания"
+msgstr "Информация об издании"
 
 #: ../src/mainwnd.cpp:1070
 msgid "Custom info"
@@ -375,7 +376,7 @@ msgstr "О программе"
 
 #: ../src/mainwnd.cpp:1197
 msgid "Loading: please wait..."
-msgstr "Открытие файла... Поожалуйста, подождите..."
+msgstr "Загрузка: пожалуйста, подождите..."
 
 #: ../src/recentdlg.cpp:104
 msgid "Open book"
@@ -423,7 +424,7 @@ msgstr "Альбомная (перевернутая)"
 
 #: ../src/settings.cpp:206
 msgid "Page orientation"
-msgstr "Формат страницы"
+msgstr "Ориентация страницы"
 
 #: ../src/settings.cpp:222
 msgid "Default font size"
@@ -458,7 +459,7 @@ msgstr "Байт-код"
 
 #: ../src/settings.cpp:326
 msgid "Disable"
-msgstr "Выкл."
+msgstr "Отлючить"
 
 #: ../src/settings.cpp:419 ../src/settings.cpp:425
 msgid "Normal"
@@ -638,7 +639,7 @@ msgstr "Не масштабировать (1:1)"
 
 #: ../src/settings.cpp:549
 msgid "Integer scale"
-msgstr "В целое число раз"
+msgstr "Целое число раз"
 
 #: ../src/settings.cpp:550
 msgid "Arbitrary scale"
@@ -662,7 +663,7 @@ msgstr "*3"
 
 #: ../src/settings.cpp:572
 msgid "Default font face"
-msgstr "Шрифт"
+msgstr "Шрифт по умолчанию"
 
 #: ../src/settings.cpp:595
 msgid "Fallback font face"
@@ -670,11 +671,11 @@ msgstr "Резервный шрифт"
 
 #: ../src/settings.cpp:615
 msgid "Font weight"
-msgstr "Насыщенность шрифта"
+msgstr "Жирность шрифта"
 
 #: ../src/settings.cpp:621
 msgid "Font antialiasing"
-msgstr "Сглаживание букв"
+msgstr "Сглаживание шрифта"
 
 #: ../src/settings.cpp:627
 msgid "Font hinting"
@@ -702,7 +703,7 @@ msgstr "Сноски внизу страницы"
 
 #: ../src/settings.cpp:672
 msgid "Show time"
-msgstr "Отображение часов в колонтитуле"
+msgstr "Отображение времени"
 
 #: ../src/settings.cpp:678
 msgid "Landscape pages"
@@ -730,7 +731,7 @@ msgstr "Режим обновления экрана"
 
 #: ../src/settings.cpp:718
 msgid "Turbo update mode"
-msgstr "Турбо режим"
+msgstr "Турбо режим обновления"
 
 #: ../src/settings.cpp:726
 msgid "Show bookmark icons"
@@ -742,7 +743,7 @@ msgstr "Подсвечивать закладки"
 
 #: ../src/settings.cpp:739
 msgid "Status line"
-msgstr "Колонтитул"
+msgstr "Строка состояния"
 
 #: ../src/settings.cpp:745
 msgid "Font kerning"
@@ -762,7 +763,7 @@ msgstr "Переносы"
 
 #: ../src/settings.cpp:772
 msgid "Floating punctuation"
-msgstr "Висячая пунктуация"
+msgstr "Плавающая пунктуация"
 
 #: ../src/settings.cpp:780
 msgid "Page margins"
@@ -798,11 +799,11 @@ msgstr "Макс. увеличение для обычных картинок"
 
 #: ../src/settings.cpp:834
 msgid "Inline image scaling mode"
-msgstr "Режим для inline картинок"
+msgstr "Режим для встроенных картинок"
 
 #: ../src/settings.cpp:839
 msgid "Inline image max zoom"
-msgstr "Макс. увеличение для inline картинок"
+msgstr "Макс. увеличение для встроенных картинок"
 
 #: ../src/settings.cpp:861
 msgid ""
@@ -830,15 +831,15 @@ msgstr "Разместите словари в каталоге 'dict' на ка
 
 #: ../src/viewdlg.cpp:162
 msgid "Dictionaries in standard unix .dict format are supported."
-msgstr "Поддерживаются словари в формате .dict (как в unix системах)"
+msgstr "Поддерживаются словари в формате .dict (как в системах unix)"
 
 #: ../src/viewdlg.cpp:163
 msgid ""
 "For each dictionary, pair of files should be provided: data file (with .dict "
 "or .dict.dz extension, and index file with .index extension"
 msgstr ""
-"Каждый словарь состоит из файла данных (.dict или .dict.dz), и файла-индекса "
-"слов (.index)."
+"Каждый словарь состоит из файла данных с расширением .dict или .dict.dz, "
+"и файла-индекса с расширением .index."
 
 #: ../src/viewdlg.cpp:178
 msgid "Table of contents"
@@ -862,7 +863,7 @@ msgstr "М"
 
 #: ../src/viewdlg.cpp:473
 msgid "Ok"
-msgstr "ОК"
+msgstr "Ок"
 
 #: ../src/viewdlg.cpp:475
 msgid "Up"
@@ -898,19 +899,19 @@ msgstr "Боковая Нажатие"
 
 #: ../src/viewdlg.cpp:491
 msgid "Menu"
-msgstr "Основное меню"
+msgstr "Меню"
 
 #: ../src/viewdlg.cpp:493
 msgid "Zoom"
-msgstr "Изменить шрифт"
+msgstr "Увеличить"
 
 #: ../src/viewdlg.cpp:504
 msgid "Long"
-msgstr "Длинн. "
+msgstr "Длинн."
 
 #: ../src/viewdlg.cpp:511
 msgid "To first page"
-msgstr "В начало книги"
+msgstr "На первую страницу"
 
 #: ../src/viewdlg.cpp:513
 msgid "Back by page"
@@ -922,11 +923,11 @@ msgstr "Вперед на страницу"
 
 #: ../src/viewdlg.cpp:516
 msgid "Forward in move history"
-msgstr "Назад по истории перемещений"
+msgstr "Вперед по истории перемещений"
 
 #: ../src/viewdlg.cpp:517
 msgid "Back in move history"
-msgstr "Вперед по истории перемещений"
+msgstr "Назад по истории перемещений"
 
 #: ../src/viewdlg.cpp:518
 msgid "Next link"
@@ -942,7 +943,7 @@ msgstr "Перейти по ссылке"
 
 #: ../src/viewdlg.cpp:521
 msgid "To last page"
-msgstr "В конец книги"
+msgstr "На последнюю страницу"
 
 #: ../src/viewdlg.cpp:522
 msgid "Go to position"
@@ -962,7 +963,7 @@ msgstr "Переключить жирность шрифта"
 
 #: ../src/viewdlg.cpp:527
 msgid "Toggle text format"
-msgstr "Переключить автоформат текста"
+msgstr "Переключить формат текста"
 
 #: ../src/viewdlg.cpp:528
 msgid "Save bookmark by number"
@@ -1046,11 +1047,11 @@ msgstr "Цитаты"
 
 #: ../src/viewdlg.cpp:555
 msgid "Go to bookmark..."
-msgstr "По закладкам"
+msgstr "По закладкам..."
 
 #: ../src/viewdlg.cpp:556
 msgid "Recent books list"
-msgstr "Последние открытые"
+msgstr "Последние открытые книги"
 
 #: ../src/viewdlg.cpp:557
 msgid "Open recent book by number"
@@ -1152,13 +1153,13 @@ msgstr "Клавиша"
 #~ msgstr " Введите номер страницы: "
 
 #~ msgid "Open recent book..."
-#~ msgstr "Последние книги"
+#~ msgstr "Последняя книга..."
 
 #~ msgid "Dictionary..."
 #~ msgstr "Словарь"
 
 #~ msgid "Search..."
-#~ msgstr "Поиск"
+#~ msgstr "Поиск..."
 
 #~ msgid "Settings..."
-#~ msgstr "Настройки"
+#~ msgstr "Настройки..."
