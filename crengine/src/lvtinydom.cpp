@@ -1775,6 +1775,8 @@ void CacheFile::cleanupCompressor() {
         zlibCompCleanup();
 #endif
         break;
+    default:
+        break;
     }
 }
 
@@ -1789,6 +1791,8 @@ void CacheFile::cleanupUncompressor() {
 #if (USE_ZLIB==1)
         zlibUncompCleanup();
 #endif
+        break;
+    default:
         break;
     }
 }
@@ -1825,6 +1829,8 @@ bool CacheFile::ldomUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &d
 #if (USE_ZLIB==1)
         return zlibUnpack(compbuf, compsize, dstbuf, dstsize);
 #endif
+        break;
+    default:
         break;
     }
     return false;
@@ -2953,7 +2959,7 @@ bool tinyNodeCollection::loadNodeData(lUInt16 type, ldomNode ** list, int nodeco
             // add into `list' zero filled (TNC_PART_LEN - sz) items
             list[i] = (ldomNode *)realloc(buf, TNC_PART_LEN * sizeof(ldomNode));
             if (NULL == list[i]) {
-                free(buf);
+                //free(buf);
                 CRLog::error("Not enough memory!");
                 return false;
             }
@@ -3550,9 +3556,9 @@ void ldomDataStorageManager::compact( int reservedSpace, const ldomTextStorageCh
         }
         _owner->setCacheFileStale(true); // we may write: consider cache file stale
         // do compacting
-        int sumsize = reservedSpace;
+        lUInt32 sumsize = reservedSpace;
         for ( ldomTextStorageChunk * p = _recentChunk; p; p = p->_nextRecent ) {
-            if ( (int)p->_bufsize + sumsize < _maxUncompressedSize ||
+            if ( p->_bufsize + sumsize < _maxUncompressedSize ||
                  (p==_activeChunk && reservedSpace<0xFFFFFFF) || 
                  p == excludedChunk) {
 				// fits
@@ -3728,7 +3734,7 @@ int ldomTextStorageChunk::space()
 /// returns free space in buffer
 int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text )
 {
-    int itemsize = (sizeof(TextDataStorageItem)+text.length()-2 + 15) & 0xFFFFFFF0;
+    lUInt32 itemsize = (sizeof(TextDataStorageItem)+text.length()-2 + 15) & 0xFFFFFFF0;
     if ( !_buf ) {
         // create new buffer, if necessary
         _bufsize = _manager->_chunkSize > itemsize ? _manager->_chunkSize : itemsize;
@@ -3736,7 +3742,7 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
         _bufpos = 0;
         _manager->_uncompressedSize += _bufsize;
     }
-    if ( (int)_bufsize - (int)_bufpos < itemsize )
+    if ( _bufsize - _bufpos < itemsize )
         return -1;
     TextDataStorageItem * p = (TextDataStorageItem*)(_buf + _bufpos);
     p->sizeDiv16 = (lUInt16)(itemsize >> 4);
@@ -3753,7 +3759,7 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
 /// adds new element item to buffer, returns offset inside chunk of stored data
 int ldomTextStorageChunk::addElem(lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount)
 {
-    int itemsize = (sizeof(ElementDataStorageItem) + attrCount*(sizeof(lUInt16)*2 + sizeof(lUInt32)) + childCount*sizeof(lUInt32) - sizeof(lUInt32) + 15) & 0xFFFFFFF0;
+    lUInt32 itemsize = (sizeof(ElementDataStorageItem) + attrCount*(sizeof(lUInt16)*2 + sizeof(lUInt32)) + childCount*sizeof(lUInt32) - sizeof(lUInt32) + 15) & 0xFFFFFFF0;
     if ( !_buf ) {
         // create new buffer, if necessary
         _bufsize = _manager->_chunkSize > itemsize ? _manager->_chunkSize : itemsize;
@@ -8933,7 +8939,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
         // Ignore fake floats (no srctext) made from outer floats footprint
         if ( flt->srctext == NULL )
             continue;
-        if (pt.x >= flt->x && pt.x < flt->x + flt->width && pt.y >= flt->y && pt.y < flt->y + flt->height ) {
+        if (pt.x >= flt->x && pt.x < flt->x + flt->width && pt.y >= flt->y && pt.y < flt->y + (int)flt->height ) {
             // pt is inside this float.
             ldomNode * node = (ldomNode *) flt->srctext->object; // floatBox node
             ldomXPointer inside_ptr = createXPointer( orig_pt, direction, strictBounds, node );
@@ -11265,7 +11271,7 @@ bool ldomXRange::getRectEx( lvRect & rect, bool & isSingleLine )
 void ldomXRange::getSegmentRects( LVArray<lvRect> & rects )
 {
     bool go_on = true;
-    int lcount = 1;
+    //sint lcount = 1;
     lvRect lineStartRect = lvRect();
     lvRect nodeStartRect = lvRect();
     lvRect curCharRect = lvRect();
