@@ -2,12 +2,12 @@
 # Metadata for deploy script
 
 PN="freetype"
-PV="2.11.0"
+PV="2.14.3"
 # package revision: when patchset is changed (but not version), increase it
 # when version changed, reset to "1".
 REV="2"
 SRCFILE="${PN}-${PV}.tar.xz"
-SHA512="bf1991f3c382832586be1d21ae73c20840ee8546807ba60d0eb0215134545656c0c8de488f27357d4a4f6497d7cb540998cda98ec59061a3e640036fb209147d"
+SHA512="43de86ea70b4b47f6efaae67f3440f65a24ffac29dc6d11203a9764e4f1a749ce1ba7645acd23525220b3ba12ddad8687b962b9f1254e2c0a86070854e85d5a0"
 URL="https://download.savannah.gnu.org/releases/${PN}/${SRCFILE}"
 
 SOURCESDIR="${PN}-${PV}"

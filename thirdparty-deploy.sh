@@ -114,7 +114,7 @@ deploy_package()
 	then
 		# make sha512 sum file
 		echo "${SHA512} *${SRCFILE}" > "${SRCFILE}.sha512"
-		${SHA512SUM} -c "${SRCFILE}.sha512" || if [ "x" = "x" ]; then rm -f .downloaded; rm -f "${SRCFILE}.sha512"; die "Failed to verify checksum!"; fi
+		${SHA512SUM} -c "${SRCFILE}.sha512" || if [ "x" = "x" ]; then ${SHA512SUM} "${SRCFILE}"; rm -f .downloaded; rm -f "${SRCFILE}.sha512"; die "Failed to verify checksum!"; fi
 		echo "1" > .verified
 		rm -f "${SRCFILE}.sha512"
 		echo "Checksum OK."
