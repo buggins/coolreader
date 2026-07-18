@@ -3,12 +3,13 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
+    namespace 'org.coolreader.genrescollection'
+    compileSdkVersion 35
     //buildToolsVersion "30.0.2"
 
     defaultConfig {
         minSdkVersion 3
-        targetSdkVersion 30
+        targetSdkVersion 35
 
         consumerProguardFiles "consumer-rules.pro"
     }

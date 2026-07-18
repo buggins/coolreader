@@ -1,12 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 31
-    buildToolsVersion "33.0.0"
+    namespace 'org.coolreader'
+    compileSdkVersion 35
+    buildToolsVersion "35.0.0"
     defaultConfig {
         applicationId "org.coolreader"
         minSdkVersion 4
-        targetSdkVersion 34
+        targetSdkVersion 35
         // When new version released, version code must be incremented at least by 8
         // for compatibility with ABI versioning of split apk (see below).
         versionCode 32570
@@ -121,7 +122,19 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    buildFeatures {
+        aidl true
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
 }
+
+task prepareKotlinBuildScriptModel {}
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
