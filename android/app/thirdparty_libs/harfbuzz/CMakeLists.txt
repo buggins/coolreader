@@ -62,3 +62,5 @@ set(HARFBUZZ_SRC_FILES
 )
 
 add_library(local_harfbuzz STATIC ${HARFBUZZ_SRC_FILES})
+
+target_compile_options(local_harfbuzz PRIVATE "-Wno-cast-function-type-strict")
