@@ -1,14 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Layout for TTS dialog -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/tts_toolbar_body"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dip"
-        android:layout_marginBottom="3dip"
-        android:background="?attr/tts_toolbar_background"
-        android:baselineAligned="true"
-        android:orientation="vertical">
+        android:layout_height="fill_parent">
+
+    <LinearLayout
+            android:id="@+id/tts_glass_panel"
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:background="#00000000"
+            android:gravity="top">
+    </LinearLayout>
+
+    <LinearLayout
+            android:id="@+id/tts_toolbar_body"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginTop="3dip"
+            android:layout_marginBottom="3dip"
+            android:background="?attr/tts_toolbar_background"
+            android:baselineAligned="true"
+            android:orientation="vertical">
 
     <LinearLayout
             android:id="@+id/tts_toolbar_buttons"
@@ -189,3 +203,4 @@
                 android:layout_weight="1" />
     </LinearLayout>
 </LinearLayout>
+</RelativeLayout>

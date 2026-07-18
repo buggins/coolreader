@@ -39,6 +39,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -65,6 +66,8 @@ public class TTSToolbarDlg implements Settings {
 	private final PopupWindow mWindow;
 	private final CoolReader mCoolReader;
 	private final ReaderView mReaderView;
+	private final LinearLayout glassPanel;
+	private final LinearLayout toolbarBody;
 	private final TTSControlServiceAccessor mTTSControl;
 	private final ImageButton mPlayPauseButton;
 	private final TextView mVolumeTextView;
@@ -77,6 +80,7 @@ public class TTSToolbarDlg implements Settings {
 	private boolean mClosed;
 	private Selection mCurrentSelection;
 	private boolean isSpeaking;
+	private boolean isToolbarHidden;
 	private int mMotionTimeout;
 	private boolean mAutoSetDocLang;
 	private String mBookAuthors;
@@ -131,6 +135,21 @@ public class TTSToolbarDlg implements Settings {
 		});
 	}
 
+	public void hideSystemNavBar(View view){
+		try{
+			view.setSystemUiVisibility(
+						0
+						| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+			);
+		}catch(Exception e){
+			log.e("ERROR: failed to hide system nav bar\n" + e);
+			e.printStackTrace();
+		}
+	}
 	private void setReaderMode() {
 		String oldViewSetting = mReaderView.getSetting( ReaderView.PROP_PAGE_VIEW_MODE );
 		if ( "1".equals(oldViewSetting) ) {
@@ -439,6 +458,14 @@ public class TTSToolbarDlg implements Settings {
 		LayoutInflater inflater = LayoutInflater.from(context);
 		View panel = inflater.inflate(R.layout.tts_toolbar, null);
 
+		glassPanel = panel.findViewById(R.id.tts_glass_panel);
+		toolbarBody = panel.findViewById(R.id.tts_toolbar_body);
+
+                glassPanel.setOnClickListener(v -> {
+                    isToolbarHidden = !isToolbarHidden;
+                    toolbarBody.setVisibility(isToolbarHidden ? View.INVISIBLE: View.VISIBLE);
+                });
+
 		mPlayPauseButton = panel.findViewById(R.id.tts_play_pause);
 		mPlayPauseButton.setImageResource(Utils.resolveResourceIdByAttr(mCoolReader, R.attr.ic_media_play_drawable, R.drawable.ic_media_play));
 		ImageButton backButton = panel.findViewById(R.id.tts_back);
@@ -558,11 +585,13 @@ public class TTSToolbarDlg implements Settings {
 
 		mWindow.setBackgroundDrawable(new BitmapDrawable());
 		mWindow.setWidth(WindowManager.LayoutParams.FILL_PARENT);
-		mWindow.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
+		mWindow.setHeight(WindowManager.LayoutParams.FILL_PARENT);
 		mWindow.setFocusable(true);
 		mWindow.setTouchable(true);
 		mWindow.setOutsideTouchable(true);
 		mWindow.setContentView(panel);
+
+		hideSystemNavBar(panel);
 
 		int [] location = new int[2];
 		anchor.getLocationOnScreen(location);
