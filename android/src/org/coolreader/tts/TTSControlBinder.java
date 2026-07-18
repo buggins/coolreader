@@ -54,6 +54,10 @@ public class TTSControlBinder extends Binder {
 		mService.say(utterance, callback, new Handler());
 	}
 
+	public void setCurrentUtterance(String utterance) {
+		mService.setCurrentUtterance(utterance);
+	}
+
 	public void pause(TTSControlService.BooleanResultCallback callback) {
 		mService.pause(callback, new Handler());
 	}

@@ -1,31 +1,10 @@
 CoolReader 3 - cross platform open source e-book reader
 =======================================================
 
-(c) Vadim Lopatin, 1998-2018
-
-
-
-
-Development is moved to GitHub
-------------------------------
-
-
-        https://github.com/buggins/coolreader
-
-
-Sourceforge repository will be used as a mirror
-
-        git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
-
-
-[![Join the chat at https://gitter.im/coolreader/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/coolreader/Lobby)
-
-
+(c) Vadim Lopatin, 1998-2026
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
-
-
 
 Directories
 -----------
@@ -101,6 +80,25 @@ In Windows can be used git bash terminal
 * Use Android Studio - open subdirectory "android" as Android Studio project
 
 Ensure that you have Android SDK and NDK installed
+
+QtCreator Build Instructions (Windows)
+--------------------------------------
+
+You will need to download dependencies.
+Use some bash console, e.g. "Git Bash"
+
+First, clone CoolReader repository:
+
+        $ git clone https://github.com/buggins/coolreader.git
+        $ cd coolreader
+
+Now you can download source code for third party dependencies.
+
+        $ ./thirdparty-deploy.sh
+
+Now you can open CoolReader project in QtCreator.
+
+Use File/Open project or file menu item, and choose `coolreader` root directory.
 
 
 

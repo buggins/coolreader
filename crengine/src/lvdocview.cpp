@@ -2476,7 +2476,7 @@ void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate, b
 		return;
 	if (isScrollMode()) {
 		drawbuf.SetClipRect(NULL);
-        drawbuf.setHidePartialGlyphs(false);
+        drawbuf.setHidePartialGlyphs(true);
         drawPageBackground(drawbuf, 0, position);
         int cover_height = 0;
 		if (m_pages.length() > 0 && (m_pages[0]->flags & RN_PAGE_TYPE_COVER))
@@ -2492,9 +2492,37 @@ void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate, b
 			rc.right -= m_pageMargins.right;
 			drawCoverTo(&drawbuf, rc);
 		}
-		DrawDocument(drawbuf, m_doc->getRootNode(), m_pageMargins.left, 0, drawbuf.GetWidth()
-				- m_pageMargins.left - m_pageMargins.right, drawbuf.GetHeight(), 0, -position,
-				drawbuf.GetHeight(), &m_markRanges, &m_bmkRanges);
+
+		int curPage = m_pages.FindNearestPage(position, 0);
+		int totalPages = m_pages.length();
+
+		lvRect info;
+		getPageHeaderRectangle(curPage, info);
+		drawPageHeader(&drawbuf, info, curPage, m_pageHeaderInfo, totalPages);
+
+		int top = m_pageMargins.top
+		  + (PAGE_HEADER_POS_TOP == m_pageHeaderPos ? info.height() : 0);
+		int left = m_pageMargins.left;
+
+		int contentWidth = drawbuf.GetWidth()
+		  - left
+		  - m_pageMargins.right;
+		int contentHeight = drawbuf.GetHeight()
+		  - top
+		  - m_pageMargins.bottom;
+
+		lvRect clip;
+		clip.top = top;
+		clip.bottom = top + contentHeight;
+		//do not clip left/right
+		//  (ignore left/right margins, allow partial glyphs to dangle)
+		clip.left = 0;
+		clip.right = drawbuf.GetWidth();
+
+		drawbuf.SetClipRect(&clip);
+
+		DrawDocument(drawbuf, m_doc->getRootNode(), left, top, contentWidth,
+		    contentHeight, 0, -position, m_dy, &m_markRanges, &m_bmkRanges);
 	} else {
 		int pc = getVisiblePageCount();
 		//CRLog::trace("searching for page with offset=%d", position);
@@ -2534,7 +2562,8 @@ bool LVDocView::windowToDocPoint(lvPoint & pt) {
 #endif
 	if (getViewMode() == DVM_SCROLL) {
 		// SCROLL mode
-		pt.y += _pos;
+		int headerHeight = (PAGE_HEADER_POS_TOP == m_pageHeaderPos) ? getPageHeaderHeight() : 0;
+		pt.y += _pos + m_pageMargins.top + headerHeight;
 		pt.x -= m_pageMargins.left;
 		return true;
 	} else {
@@ -2582,7 +2611,8 @@ bool LVDocView::docToWindowPoint(lvPoint & pt, bool isRectBottom, bool fitToPage
 	// TODO: implement coordinate conversion here
 	if (getViewMode() == DVM_SCROLL) {
 		// SCROLL mode
-		pt.y -= _pos;
+		int headerHeight = (PAGE_HEADER_POS_TOP == m_pageHeaderPos) ? getPageHeaderHeight() : 0;
+		pt.y -= _pos + m_pageMargins.top + headerHeight;
 		pt.x += m_pageMargins.left;
 		return true;
 	} else {
@@ -6390,12 +6420,17 @@ int LVDocView::onSelectionCommand( int cmd, int param )
     int y0 = GetPos();
     int h = m_pageRects[0].height() - m_pageMargins.top
             - m_pageMargins.bottom - getPageHeaderHeight();
+
+    //if selection is in the bottom 150px of the screen, scroll the page
+    int bottomMarginBuffer = 150;
+    h = h - bottomMarginBuffer;
+
     //int y1 = y0 + h;
     if (makeSelStartVisible) {
         // make start of selection visible
         if (isScrollMode()) {
-            if (startPoint.y < y0 + m_font_size * 2 || startPoint.y > y0 + h * 3/4)
-                SetPos(startPoint.y - m_font_size * 2);
+            if (startPoint.y < y0 + m_font_size * 2 || startPoint.y > y0 + h * 3/4 || endPoint.y > y0 + h)
+                SetPos(startPoint.y - m_font_size * 1);
         } else {
             if (startPoint.y < y0 || startPoint.y >= y0 + h)
                 SetPos(startPoint.y);
@@ -6405,7 +6440,7 @@ int LVDocView::onSelectionCommand( int cmd, int param )
         // make end of selection visible
         if (isScrollMode()) {
             if (endPoint.y > y0 + h * 3/4 - m_font_size * 2)
-                SetPos(endPoint.y - h * 3/4 + m_font_size * 2, false);
+                SetPos(endPoint.y - h * 3/4 + m_font_size * 1, false);
         } else {
             if (endPoint.y < y0 || endPoint.y >= y0 + h)
                 SetPos(endPoint.y, false);

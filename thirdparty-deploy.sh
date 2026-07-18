@@ -42,11 +42,11 @@ find_shasum()
 {
 	if [ "x${SHA512SUM}" = "x" ]
 	then
-		which shasum > /dev/null 2>&1 && SHA512SUM=shasum
+		which sha512sum > /dev/null 2>&1 && SHA512SUM=sha512sum
 	fi
 	if [ "x${SHA512SUM}" = "x" ]
 	then
-		which sha512sum > /dev/null 2>&1 && SHA512SUM=sha512sum
+		which shasum > /dev/null 2>&1 && SHA512SUM=shasum
 	fi
 	if [ "x${SHA512SUM}" = "x" ]
 	then

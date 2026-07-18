@@ -23,12 +23,13 @@
 // CoolReader3 / Qt
 // main.cpp - entry point
 
-#include <qglobal.h>
+#include <QtCore/qglobal.h>
 #if QT_VERSION >= 0x050000
 #include <QtWidgets/QApplication>
 #else
 #include <QtGui/QApplication>
 #endif
+
 #include "../crengine/include/crengine.h"
 #include "../crengine/include/cr3version.h"
 #include "mainwindow.h"
@@ -241,13 +242,13 @@ int WINAPI WinMain( HINSTANCE hInstance,
 	wchar_t buf0[MAX_PATH];
 	GetModuleFileNameW(NULL, buf0, MAX_PATH-1);
 	lString32 str032 = Utf16ToUnicode(buf0);
-#ifdef _UNICODE
-	lString32 str132 = Utf16ToUnicode(lpCmdLine);
-#else
+// #ifdef _UNICODE
+// 	lString32 str132 = Utf16ToUnicode(lpCmdLine);
+// #else
 	lString8 str18(lpCmdLine);
 	lString32 str132 = LocalToUnicode(str18);
-#endif
-	lString8 str0 = UnicodeToUtf8(str032);
+// #endif
+    lString8 str0 = UnicodeToUtf8(str032);
 	lString8 str1 = UnicodeToUtf8(str132);
 	if ( !str1.empty() && str1[0]=='\"' ) {
 		// quoted filename support
