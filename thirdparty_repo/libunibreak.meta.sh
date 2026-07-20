@@ -2,16 +2,15 @@
 # Metadata for deploy script
 
 PN="libunibreak"
-PV="4.3"
+PV="7.0"
 # package revision: when patchset is changed (but not version), increase it
 # when version changed, reset to "1".
-REV="1"
+REV="4"
 SRCFILE="${PN}-${PV}.tar.gz"
-SHA512="4b53fd169912033403b6ca09047b7b928211fab3607ef26070ab731054138b9a291f7d138d3a479f9cde8edb0fabf8da114da68aee32e60cddf45cc3baae1170"
+SHA512="2dec8aa5788486dcbe1f676d31a103f7a3f253a2bf4af7772b3f3019667b352aa04aae369e0838ce6d554b207a2d555738f3510bb1cfec65adcc8c4164aeb00b"
 
 URL="https://github.com/adah1972/libunibreak/releases/download/libunibreak_${PV/./_}/${SRCFILE}"
 
 SOURCESDIR="${PN}-${PV}"
 
-PATCHES="01-add_lb_get_char_class.patch
-		02-cmake-static.patch"
+PATCHES="02-cmake-static.patch"

@@ -1,7 +1,7 @@
 diff -urBbN libunibreak-4.3-orig/CMakeLists.txt libunibreak-4.3/CMakeLists.txt
 --- libunibreak-4.3-orig/CMakeLists.txt	1970-01-01 04:00:00.000000000 +0400
 +++ libunibreak-4.3/CMakeLists.txt	2021-01-24 18:54:37.740977000 +0400
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,38 @@
 +# Custom lightweight cmake project to compile libunibreak as static library
 +
 +project(libunibreak C)
@@ -29,8 +29,14 @@ diff -urBbN libunibreak-4.3-orig/CMakeLists.txt libunibreak-4.3/CMakeLists.txt
 +	src/linebreakdata.c
 +	src/linebreakdef.c
 +	src/emojidef.c
++	src/emojidata.c
++	src/eastasianwidthdef.c
++	src/eastasianwidthdata.c
 +	src/graphemebreak.c
++	src/graphemebreakdata.c
++	src/indicconjunctbreakdata.c
 +	src/wordbreak.c
++	src/wordbreakdata.c
 +)
 +
 +add_library(unibreak STATIC ${LIBUNIBREAK_SOURCE})
