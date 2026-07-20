@@ -70,6 +70,9 @@
     long timeStamp;
 }
 
+-keep class org.coolreader.genrescollection.GenresCollection$GenreRecord { *; }
+-keep class org.coolreader.genrescollection.GenresCollection { *; }
+
 -keep class org.coolreader.crengine.PositionProperties {
     <init>();
     <init>(org.coolreader.crengine.PositionProperties);
