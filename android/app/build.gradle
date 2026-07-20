@@ -11,7 +11,7 @@ android {
         // When new version released, version code must be incremented at least by 8
         // for compatibility with ABI versioning of split apk (see below).
         versionCode 32570
-        versionName "3.2.57-1"
+        versionName "3.2.59-1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
