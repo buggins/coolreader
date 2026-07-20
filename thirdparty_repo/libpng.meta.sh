@@ -2,15 +2,15 @@
 # Metadata for deploy script
 
 PN="libpng"
-PV="1.6.37"
+PV="1.6.58"
 # package revision: when patchset is changed (but not version), increase it
 # when version changed, reset to "1".
 REV="1"
 SRCFILE="${PN}-${PV}.tar.xz"
-SHA512="59e8c1059013497ae616a14c3abbe239322d3873c6ded0912403fc62fb260561768230b6ab997e2cccc3b868c09f539fd13635616b9fa0dd6279a3f63ec7e074"
+SHA512="5937d6409d7ad564c9dba7969c5d39eea8bbc01936f433bf5936c872ec290dea353783f89bded91e124b3b3b15518320097de365acd3b0bcc922a0e90c94adc8"
 
 URL="https://download.sourceforge.net/${PN}/${PN}-${PV}.tar.xz"
 
 SOURCESDIR="${PN}-${PV}"
 
-PATCHES="01-cmake-static-r1.patch"
+PATCHES=

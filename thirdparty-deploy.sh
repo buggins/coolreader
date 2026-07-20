@@ -86,6 +86,13 @@ deploy_package()
 		fi
 	fi
 
+	# A previous unpack or patch attempt did not complete.  The source tree is
+	# deploy-script-owned, so start over instead of reusing partial contents.
+	if [ ! -f .prepared ] && [ -d "${thirdparty_dir}/${SOURCESDIR}" ]
+	then
+		rm -r "${thirdparty_dir}/${SOURCESDIR}" >/dev/null 2>&1 || die "rm (partial dir) failed!"
+	fi
+
 	if [ ! -d "${thirdparty_dir}/${SOURCESDIR}" ]
 	then
 		rm -f .unpacked .prepared
@@ -114,7 +121,7 @@ deploy_package()
 	then
 		# make sha512 sum file
 		echo "${SHA512} *${SRCFILE}" > "${SRCFILE}.sha512"
-		${SHA512SUM} -c "${SRCFILE}.sha512" || if [ "x" = "x" ]; then rm -f .downloaded; rm -f "${SRCFILE}.sha512"; die "Failed to verify checksum!"; fi
+		${SHA512SUM} -c "${SRCFILE}.sha512" || if [ "x" = "x" ]; then ${SHA512SUM} "${SRCFILE}"; rm -f .downloaded; rm -f "${SRCFILE}.sha512"; die "Failed to verify checksum!"; fi
 		echo "1" > .verified
 		rm -f "${SRCFILE}.sha512"
 		echo "Checksum OK."
@@ -124,7 +131,7 @@ deploy_package()
 	if [ ! -f .unpacked ]
 	then
 		cd "${thirdparty_dir}" || die "chdir to thirdparty_dir failed!"
-		tar -x${tar_args}f "${pkg_datadir}/${SRCFILE}" || die "Failed to unpack sources!"
+		tar -x${tar_args}f "${pkg_datadir}/${SRCFILE}" ${TAR_EXCLUDES} || die "Failed to unpack sources!"
 		cd "${pkg_datadir}" || die "chdir failed!"
 		echo "1" > .unpacked
 		echo "Unpacked OK."
@@ -151,6 +158,7 @@ deploy_package()
 	unset -v URL
 	unset -v SOURCEDIR
 	unset -v PATCHES
+	unset -v TAR_EXCLUDES
 
 	cd "${pwd1}"
 }

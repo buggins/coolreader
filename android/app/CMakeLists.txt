@@ -39,7 +39,7 @@ add_definitions(-DLVLONG_FILE_SUPPORT=1)
 add_definitions(-DMAX_IMAGE_SCALE_MUL=2)
 add_definitions(-DUSE_NANOSVG=1)
 add_definitions(-DBUNDLED_FRIBIDI=1)
-add_definitions(-DKO_LIBUNIBREAK_PATCH=1)       # libunibreak patched with "add_lb_get_char_class.patch" file from koreader
+add_definitions(-DKO_LIBUNIBREAK_PATCH=1)       # lb_get_char_class is provided by bundled libunibreak 7.0
 add_definitions(-DUSE_UTF8PROC=1)
 
 #set(LOCAL_CFLAGS "-Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall")
