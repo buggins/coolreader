@@ -33,6 +33,10 @@
 #include <QtGui/QStyleFactory>
 #endif
 
+#if USE_QT5_XDG
+#include <XdgDirs>
+#endif
+
 #include <QClipboard>
 #include <QTranslator>
 #include <QLibraryInfo>
@@ -97,20 +101,49 @@ MainWindow::MainWindow(QWidget *parent)
     addAction(ui->actionNextSentence);
     addAction(ui->actionPrevSentence);
 
+
+#if _LINUX
+# ifdef USE_QT5_XDG
+    bool use_xdg_dir    = ! QDir(QDir::homePath() + "/.cr3").exists();
+    QString xdgCfgDir   = QDir::toNativeSeparators(XdgDirs::configHome() + "/cr3/");
+    QString xdgDataDir  = QDir::toNativeSeparators(XdgDirs::dataHome() + "/cr3/");
+    QString xdgCacheDir = QDir::toNativeSeparators(XdgDirs::cacheHome() + "/cr3/");
+# else
+    bool use_xdg_dir    = false;
+    QString xdgCfgDir   = "";
+    QString xdgDataDir  = "";
+    QString xdgCacheDir = "";
+# endif
+#endif
+
 #ifdef _LINUX
-    QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/.cr3/");
+    QString homeDir = use_xdg_dir ? xdgCfgDir : QDir::toNativeSeparators(QDir::homePath() + "/.cr3/");
 #else
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/cr3/");
 #endif
+
 #ifdef _LINUX
     QString exeDir = QString(CR3_DATA_DIR);
 #else
     QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
 #endif
+
+
+#ifdef _LINUX
+    QString cacheDir = use_xdg_dir ? xdgCacheDir : (homeDir + "cache");
+    QString bookmarksDir = (use_xdg_dir? xdgDataDir:homeDir) + "bookmarks";
+#else
     QString cacheDir = homeDir + "cache";
     QString bookmarksDir = homeDir + "bookmarks";
+#endif
+
     QString histFile2 = exeDir + "cr3hist.bmk";
+#ifdef _LINUX
+    QString histFile = (use_xdg_dir? xdgDataDir:homeDir) + "cr3hist.bmk";
+#else
     QString histFile = homeDir + "cr3hist.bmk";
+#endif
+
     QString iniFile2 = exeDir + "cr3.ini";
     QString iniFile = homeDir + "cr3.ini";
     QString cssFile = homeDir + "fb2.css";
@@ -119,8 +152,12 @@ MainWindow::MainWindow(QWidget *parent)
     //CRLog::info("Translations directory: %s", LCSTR(qt2cr(translations)) );
     QString hyphDir = exeDir + "hyph" + QDir::separator();
     ui->view->setHyphDir(hyphDir);
-    ui->view->setHyphDir(homeDir + "hyph" + QDir::separator(), false);
 
+#ifdef _LINUX
+    ui->view->setHyphDir((use_xdg_dir?xdgDataDir:homeDir) + "hyph" + QDir::separator(), false);
+#else
+    ui->view->setHyphDir(homeDir + "hyph" + QDir::separator(), false);
+#endif
     ldomDocCache::init( qt2cr( cacheDir ), DOC_CACHE_SIZE );
     ui->view->setPropsChangeCallback( this );
     if (!ui->view->loadSettings( iniFile )) {
