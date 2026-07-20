@@ -6,7 +6,7 @@
 set(REPO_FREETYPE_SRCDIR "freetype-2.14.3")
 set(REPO_FRIBIDI_SRCDIR "fribidi-1.0.16")
 set(REPO_HARFBUZZ_SRCDIR "harfbuzz-2.8.2")
-set(REPO_LIBJPEG_SRCDIR "jpeg-9d")
+set(REPO_LIBJPEG_SRCDIR "jpeg-10")
 set(REPO_LIBPNG_SRCDIR "libpng-1.6.58")
 set(REPO_LIBUNIBREAK_SRCDIR "libunibreak-4.3")
 set(REPO_ZLIB_SRCDIR "zlib-1.3.2")

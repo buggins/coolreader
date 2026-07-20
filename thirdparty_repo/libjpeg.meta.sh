@@ -2,16 +2,16 @@
 # Metadata for deploy script
 
 PN="libjpeg"
-PV="9.4.0"
+PV="10.0.0"
 # package revision: when patchset is changed (but not version), increase it
 # when version changed, reset to "1".
 REV="1"
-SRCFILE="jpegsrc.v9d.tar.gz"
-SHA512="c64d3ee269367351211c077a64b2395f2cfa49b9f8257fae62fa1851dc77933a44b436d8c70ceb52b73a5bedff6dbe560cc5d6e3ed5f2997d724e2ede9582bc3"
+SRCFILE="jpegsrc.v10.tar.gz"
+SHA512="3bdd55d805d76f35cbcd44074e27684a25b40f4811c62374ec9300dde31fa75a17ff3fccfcb8f5947311fa7b07f52dc9cba343562ae4ceb8b3cbe30fda1e4311"
 
 URL="http://www.ijg.org/files/${SRCFILE}"
 
-SOURCESDIR="jpeg-9d"
+SOURCESDIR="jpeg-10"
 
 PATCHES="01-cmake-static.patch
 		02-preconfigured.patch
