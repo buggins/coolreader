@@ -2,12 +2,12 @@
 # Metadata for deploy script
 
 PN="utf8proc"
-PV="2.6.1"
+PV="2.11.3"
 # package revision: when patchset is changed (but not version), increase it
 # when version changed, reset to "1".
 REV="1"
 SRCFILE="v${PV}.tar.gz"
-SHA512="9a09fe58a63c8c7983b8968b9b2c82f3d188724ed125097ea0de6a18d87569c678e226dc5de183108e47b3f068117e6bb352da1c3d24ebfd8018fb0b2346592e"
+SHA512="148701fce506d076f03497b6d085f1993eff743debad4a2f6d3cbac91e19a5c22d9938245bdb460c1b22b51842c7416c42124db7416c684ee63d622490baac0e"
 
 URL="https://github.com/JuliaStrings/utf8proc/archive/refs/tags/v${PV}.tar.gz"
 
