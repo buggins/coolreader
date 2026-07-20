@@ -4073,6 +4073,44 @@ static bool needToConvertBookmarks(CRFileHistRecord* historyRecord, lUInt32 domV
     return convertBookmarks;
 }
 
+bool LVDocView::exportSentenceInfo(const lChar32 * inputFileName, const lChar32 * outputFileName) {
+    if (!LoadDocument(inputFileName, false)) {
+        return false;
+    }
+
+    LVStreamRef out = LVOpenFileStream(outputFileName, LVOM_WRITE);
+    if ( out.isNull() ) {
+        return false;
+    }
+
+    ldomXPointerEx ptrStart( m_doc->getRootNode(), m_doc->getRootNode()->getChildCount());
+    if ( !ptrStart.thisSentenceStart() ) {
+        ptrStart.nextSentenceStart();
+
+        if ( !ptrStart.thisSentenceStart() ) {
+            return false;
+        }
+    }
+
+    while ( 1 ) {
+        ldomXPointerEx ptrEnd(ptrStart);
+        ptrEnd.thisSentenceEnd();
+
+        //include last sentence even if it does not appear very sentence-like
+        if(ptrStart == ptrEnd){
+          ptrEnd.setOffset(ptrEnd.getNode()->getText().length());
+        }
+
+        ldomXRange range(ptrStart, ptrEnd);
+        lString32 sentenceText = range.getRangeText();
+        *out << UnicodeToUtf8(ptrStart.toString()) << "," << UnicodeToUtf8(sentenceText) << "\n";
+        if ( !ptrStart.nextSentenceStart() ) {
+            break;
+        }
+    }
+    return true;
+}
+
 /// load document from file
 bool LVDocView::LoadDocument(const lChar32 * fname, bool metadataOnly) {
 	if (!fname || !fname[0])
@@ -5440,7 +5478,7 @@ bool LVDocView::getBookmarkPosText(ldomXPointer bm, lString32 & titleText,
 			lString32 txt = getSectionHeader(el);
 			lChar32 lastch = !txt.empty() ? txt[txt.length() - 1] : 0;
 			if (!titleText.empty()) {
-				if (lastch != '.' && lastch != '?' && lastch != '!')
+				if (lastch != '.' && lastch != '?' && lastch != '!' && lastch != ':' && lastch != ';')
                     txt += ".";
                 txt += " ";
 			}
@@ -6448,6 +6486,42 @@ int LVDocView::onSelectionCommand( int cmd, int param )
     }
     CRLog::debug("Sel: %s", LCSTR(currSel.getRangeText()));
     return 1;
+}
+
+bool LVDocView::nextSentence(){
+    LVRef<ldomXRange> pageRange = getPageDocumentRange();
+    if (pageRange.isNull()) {
+        clearSelection();
+        return false;
+    }
+    ldomXPointerEx pos( getBookmark() );
+    ldomXRangeList & sel = getDocument()->getSelections();
+    ldomXRange currSel;
+    if ( sel.length()>0 ){
+        currSel = *sel[0];
+    }
+
+    if ( currSel.isNull() || currSel.getStart().isNull() ) {
+        // select first sentence on page
+        if ( pos.thisSentenceStart() ) {
+            currSel.setStart(pos);
+        }
+    } else if ( !currSel.getStart().isSentenceStart() ) {
+        currSel.getStart().thisSentenceStart();
+    } else {
+      bool movedToNext = currSel.getStart().nextSentenceStart();
+      if(!movedToNext){
+        //presumably already on the last sentence
+        return false;
+      }
+    }
+
+    currSel.setEnd(currSel.getStart());
+    currSel.getEnd().thisSentenceEnd();
+
+    currSel.setFlags(1);
+    selectRange(currSel);
+    return true;
 }
 
 //static int cr_font_sizes[] = { 24, 29, 33, 39, 44 };

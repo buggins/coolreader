@@ -12567,6 +12567,65 @@ bool ldomXPointerEx::isFirstVisibleTextInBlock()
 }
 
 // sentence navigation
+lChar32 getChar(lString32 text, int idx) {
+    if (0 <= idx && idx < text.length()) {
+        return text[idx];
+    } else {
+        return 0;
+    }
+}
+
+lChar32 getPrevNonSpaceChar(lString32 text, int idx, int skipCount) {
+    for(int i=idx-1; i>=0; i--){
+        lChar32 ch = getChar(text, i);
+        if(!IsUnicodeSpace(ch)){
+            if(skipCount > 0){
+                skipCount--;
+            }else{
+                return ch;
+            }
+        }
+    }
+    return 0;
+}
+
+lChar32 getNextNonSpaceChar(lString32 text, int idx, int skipCount) {
+    int len = text.length();
+    for(int i=idx+1; i<len; i++){
+        lChar32 ch = getChar(text, i);
+        if(!IsUnicodeSpace(ch)){
+            if(skipCount > 0){
+                skipCount--;
+            }else{
+                return ch;
+            }
+        }
+    }
+    return 0;
+}
+
+bool isCharSentenceEndMark(lChar32 ch) {
+    switch (ch) {
+        case '.':
+        case '?':
+        case '!':
+        case ';':
+        case U'\x2026': // horizontal ellipsis
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool isCharDoubleQuoteEnd(lChar32 ch) {
+    switch (ch) {
+        case '"':       // QUOTATION MARK
+        case U'\x201d': // RIGHT DOUBLE QUOTATION MARK
+            return true;
+        default:
+            return false;
+    }
+}
 
 /// returns true if points to beginning of sentence
 bool ldomXPointerEx::isSentenceStart()
@@ -12575,87 +12634,50 @@ bool ldomXPointerEx::isSentenceStart()
         return false;
     if ( !isText() || !isVisible() )
         return false;
+
     ldomNode * node = getNode();
     lString32 text = node->getText();
     int textLen = text.length();
     int i = _data->getOffset();
-    lChar32 currCh = i<textLen ? text[i] : 0;
-    lChar32 prevCh = i>0 ? text[i-1] : 0;
-    lChar32 prevPrevNonSpace = 0;
-    lChar32 prevNonSpace = 0;
-    int prevNonSpace_i = -1;
-    for ( ;i>0; i-- ) {
-        lChar32 ch = text[i-1];
-        if ( !IsUnicodeSpace(ch) ) {
-            prevNonSpace = ch;
-            prevNonSpace_i = i - 1;
-            break;
-        }
-    }
-    if (prevNonSpace) {
-        for (i = prevNonSpace_i; i>0; i-- ) {
-            lChar32 ch = text[i-1];
-            if ( !IsUnicodeSpace(ch) ) {
-                prevPrevNonSpace = ch;
-                break;
-            }
-        }
-    }
-    if ( !prevNonSpace ) {
+
+    lChar32 currCh = getChar(text, i);
+    lChar32 prevCh = getChar(text, i-1);
+    lChar32 prevNonSpaceCh = getPrevNonSpaceChar(text, i, 0);
+    lChar32 prevPrevNonSpaceCh = getPrevNonSpaceChar(text, i, 1);
+
+    // look at previous text nodes if there is no previous non-space char in current
+    if ( !prevNonSpaceCh ) {
         ldomXPointerEx pos(*this);
-        while ( !prevNonSpace && pos.prevVisibleText(true) ) {
+        while(prevNonSpaceCh == 0 && pos.prevVisibleText(true)){
+            // get last and second-to-last non-space chars from previous text
+            // if that node has no non-space chars, use the node before that one
             lString32 prevText = pos.getText();
-            for ( int j=prevText.length()-1; j>=0; j-- ) {
-                lChar32 ch = prevText[j];
-                if ( !IsUnicodeSpace(ch) ) {
-                    prevNonSpace = ch;
-                    for (int k = j; k > 0; k--) {
-                        ch = prevText[k-1];
-                        if (!IsUnicodeSpace(ch)) {
-                            prevPrevNonSpace = ch;
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
+            prevNonSpaceCh = getPrevNonSpaceChar(prevText, prevText.length(), 0);
+            prevPrevNonSpaceCh = getPrevNonSpaceChar(prevText, prevText.length(), 1);
         }
     }
 
-    // skip separated separator.
-    if (1 == textLen) {
-        switch (currCh) {
-            case '.':
-            case '?':
-            case '!':
-            case U'\x2026': // horizontal ellipsis
-                return false;
-        }
+    if (isCharSentenceEndMark(currCh)){
+        // current character is end punctuation (never sentence start)
+        return false;
+    }else if(IsUnicodeSpace(currCh)){
+        // current character is a space (never sentence start)
+        return false;
+    }else if(prevCh != 0 && !IsUnicodeSpace(prevCh)){
+        // previous char exists and is not a space (never sentence start)
+        return false;
+    }else if(prevNonSpaceCh == 0){
+        // there is no previous non-space character
+        return true;
+    }else if(isCharSentenceEndMark(prevNonSpaceCh)){
+        // previous non-space char is end punctuation
+        return true;
+    }else if(isCharDoubleQuoteEnd(prevNonSpaceCh) && isCharSentenceEndMark(prevPrevNonSpaceCh)){
+        // previous two non-space chars are end-mark followed by dbl-quote
+        return true;
+    }else{
+        return false;
     }
-
-    if ( !IsUnicodeSpace(currCh) && IsUnicodeSpaceOrNull(prevCh) ) {
-        switch (prevNonSpace) {
-        case 0:
-        case '.':
-        case '?':
-        case '!':
-        case U'\x2026': // horizontal ellipsis
-            return true;
-        case '"':       // QUOTATION MARK
-        case U'\x201d': // RIGHT DOUBLE QUOTATION MARK
-            switch (prevPrevNonSpace) {
-            case '.':
-            case '?':
-            case '!':
-            case U'\x2026': // horizontal ellipsis
-                return true;
-            }
-            break;
-        default:
-            return false;
-        }
-    }
-    return false;
 }
 
 /// returns true if points to end of sentence
@@ -12665,40 +12687,42 @@ bool ldomXPointerEx::isSentenceEnd()
         return false;
     if ( !isText() || !isVisible() )
         return false;
+
     ldomNode * node = getNode();
     lString32 text = node->getText();
     int textLen = text.length();
     int i = _data->getOffset();
-    lChar32 currCh = i<textLen ? text[i] : 0;
-    lChar32 prevCh = i>0 ? text[i-1] : 0;
-    lChar32 prevPrevCh = i>1 ? text[i-2] : 0;
-    if ( IsUnicodeSpaceOrNull(currCh) ) {
-        switch (prevCh) {
-        case 0:
-        case '.':
-        case '?':
-        case '!':
-        case U'\x2026': // horizontal ellipsis
-            return true;
-        case '"':
-        case U'\x201d': // RIGHT DOUBLE QUOTATION MARK
-            switch (prevPrevCh) {
-            case '.':
-            case '?':
-            case '!':
-            case U'\x2026': // horizontal ellipsis
-                return true;
-            }
-            break;
-        default:
-            break;
-        }
+
+    lChar32 currCh = getChar(text, i);
+    lChar32 prevCh = getChar(text, i-1);
+    lChar32 prevPrevCh = getChar(text, i-2);
+    lChar32 nextNonSpaceCh = getNextNonSpaceChar(text, i, 0);
+
+    if(!IsUnicodeSpaceOrNull(currCh)){
+        // sentences must end with whitespace (or the end of the node)
+        return false;
+    }else if(prevCh == 0 && currCh == 0){
+        // empty sentence
+        return false;
+    }else if(isCharSentenceEndMark(nextNonSpaceCh)){
+        // next non-space char is end punctuation, so the sentence cannot end before that
+        // e.g.: "S1 . . . S2" => ["S1 . . . ", "S2"]
+        //         instead of
+        //       "S1 . . . S2" => ["S1 . ", ". ", ". ", "S2"]
+        return false;
+    }else if(isCharSentenceEndMark(prevCh)){
+        // previous char is sentence end punctuation
+        return true;
+    }else if(isCharDoubleQuoteEnd(prevCh) && isCharSentenceEndMark(prevPrevCh)){
+        // previous two chars are sentence end punctuation and dbl-quote
+        return true;
+    }else{
+        // the current char may be a space between words,
+        //   but it may also be the last word of a block with no end punctuation
+        // check if there is a next word to move to, and if not, it is sentence end
+        ldomXPointerEx pos(*this);
+        return !pos.nextVisibleWordStartInSentence(false);
     }
-    // word is not ended with . ! ?
-    // check whether it's last word of block
-    ldomXPointerEx pos(*this);
-    return !pos.nextVisibleWordStartInSentence(false);
-    //return !pos.thisVisibleWordEndInSentence();
 }
 
 /// move to beginning of current visible text sentence

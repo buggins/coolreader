@@ -293,7 +293,7 @@ lUInt16 LVWin32DrawFont::measureText(
             break;
         if (flags[hwEnd-1]&LCHAR_ALLOW_WRAP_AFTER)
             break;
-        if (ch=='.' || ch==',' || ch=='!' || ch=='?' || ch=='?' || ch==':' || ch==';')
+        if (ch=='.' || ch==',' || ch=='!' || ch=='?' || ch==':' || ch==';')
             break;
         
     }
@@ -630,7 +630,7 @@ lUInt16 LVWin32Font::measureText(
             break;
         if (flags[hwEnd-1]&LCHAR_ALLOW_WRAP_AFTER)
             break;
-        if (ch=='.' || ch==',' || ch=='!' || ch=='?' || ch=='?')
+        if (ch=='.' || ch==',' || ch=='!' || ch=='?' || ch==':' || ch==';')
             break;
         
     }

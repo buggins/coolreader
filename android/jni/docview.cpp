@@ -1810,6 +1810,64 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getCurrentPageBoo
 
 /*
  * Class:     org_coolreader_crengine_DocView
+ * Method:    getAllSentencesInternal
+ * Signature: ()Ljava/util/ArrayList;
+ */
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getAllSentencesInternal
+    (JNIEnv * _env, jobject _this)
+{
+    CRJNIEnv env(_env);
+    DocViewNative * p = getNative(_env, _this);
+    if (!p) {
+        CRLog::error("Cannot get native view");
+        return NULL;
+    }
+
+    jclass arrListClass = _env->FindClass("java/util/ArrayList");
+    jmethodID arrListCtor = _env->GetMethodID(arrListClass, "<init>", "()V");
+    jmethodID arrListAdd = env->GetMethodID(arrListClass, "add", "(Ljava/lang/Object;)Z");
+
+    jclass sentenceInfoClass = _env->FindClass("org/coolreader/crengine/SentenceInfo");
+    jmethodID sentenceInfoCtor = _env->GetMethodID(sentenceInfoClass, "<init>", "()V");
+    jmethodID sentenceInfoSetText = _env->GetMethodID(sentenceInfoClass, "setText", "(Ljava/lang/String;)V");
+    jmethodID sentenceInfoSetStartPos = _env->GetMethodID(sentenceInfoClass, "setStartPos", "(Ljava/lang/String;)V");
+
+    jobject arrList = env->NewObject(arrListClass, arrListCtor);
+
+
+    p->_docview->savePosition();
+    p->_docview->clearSelection();
+    p->_docview->goToPage(0);
+    p->_docview->SetPos(0, false);
+    while(p->_docview->nextSentence()){
+        jobject sentenceInfo = _env->NewObject(sentenceInfoClass, sentenceInfoCtor);
+        jint startX = 0;
+        jint startY = 0;
+
+        ldomXRangeList & sel = p->_docview->getDocument()->getSelections();
+        ldomXRange currSel;
+        if ( sel.length()>0 ){
+            currSel = *sel[0];
+        }
+        lvPoint startPoint = currSel.getStart().toPoint();
+        lvPoint endPoint = currSel.getEnd().toPoint();
+
+        env->CallVoidMethod(sentenceInfo, sentenceInfoSetText, env->NewStringUTF(
+          UnicodeToUtf8(currSel.getRangeText()).c_str()
+        ));
+        env->CallVoidMethod(sentenceInfo, sentenceInfoSetStartPos, env->NewStringUTF(
+          UnicodeToUtf8(currSel.getStart().toString()).c_str()
+        ));
+
+        env->CallBooleanMethod(arrList, arrListAdd, sentenceInfo);
+    }
+    p->_docview->restorePosition();
+
+    return arrList;
+}
+
+/*
+ * Class:     org_coolreader_crengine_DocView
  * Method:    updateBookInfoInternal
  * Signature: (Lorg/coolreader/crengine/BookInfo;Z)V
  */

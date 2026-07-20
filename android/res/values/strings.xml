@@ -554,6 +554,7 @@
     <string name="options_tts_voice_quality_very_high">Very high quality</string>
     <string name="options_tts_google_abbr_workaround">Use a workaround to disable processing of abbreviations at the end of a sentence</string>
     <string name="options_tts_google_abbr_workaround_comment">when using "Google Speech Services"</string>
+    <string name="options_tts_use_audiobook">Use audiobook instead of TTS, if *.wordtiming file exists</string>
     <string name="tts_init_failure">TTS engine \"%s\" init failure, disabling it…</string>
     <string name="dlg_button_open_book">Open book</string>
     <string name="dlg_button_open_folder">Open containing folder</string>

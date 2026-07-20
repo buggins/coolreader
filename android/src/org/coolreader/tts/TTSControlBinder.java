@@ -24,6 +24,9 @@ import android.os.Binder;
 import android.os.Handler;
 import android.speech.tts.Voice;
 
+import org.coolreader.crengine.SentenceInfo;
+
+import java.io.File;
 import java.util.Locale;
 
 public class TTSControlBinder extends Binder {
@@ -110,6 +113,10 @@ public class TTSControlBinder extends Binder {
 		mService.setSpeechRate(rate, callback, new Handler());
 	}
 
+	public void isAudioBookPlaybackAfterSentence(SentenceInfo sentence, TTSControlService.BooleanResultCallback callback) {
+		mService.isAudioBookPlaybackAfterSentence(sentence, callback, new Handler());
+	}
+
 	public void retrieveVolume(TTSControlService.VolumeResultCallback callback) {
 		mService.retrieveVolume(callback, new Handler());
 	}
@@ -124,6 +131,10 @@ public class TTSControlBinder extends Binder {
 
 	public void setStatusListener(OnTTSStatusListener listener) {
 		mService.setStatusListener(listener);
+	}
+
+	public void setAudioFile(File audioFile, double startTime) {
+		mService.setAudioFile(audioFile, startTime);
 	}
 
 }
