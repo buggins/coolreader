@@ -20,19 +20,26 @@ LOCAL_CFLAGS += -DHAVE_CONFIG_H=1
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
 LOCAL_SRC_FILES := \
+    $(HARFBUZZ_SRC_DIR)/src/OT/Var/VARC/VARC.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-aat-layout.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-aat-map.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-blob.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-buffer.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-buffer-serialize.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-buffer-verify.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-common.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-draw.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-face.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-face-builder.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-fallback-shape.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-font.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-paint.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-paint-extents.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-paint-bounded.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ft.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-map.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-number.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-outline.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-cff1-table.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-cff2-table.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-color.cc \
@@ -44,18 +51,18 @@ LOCAL_SRC_FILES := \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-meta.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-metrics.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-name.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-arabic.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-default.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-hangul.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-hebrew.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-indic.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-indic-table.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-khmer.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-myanmar.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-syllabic.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-thai.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-use.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-vowel-constraints.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shaper-arabic.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shaper-default.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shaper-hangul.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shaper-hebrew.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shaper-indic.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shaper-indic-table.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shaper-khmer.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shaper-myanmar.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shaper-syllabic.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shaper-thai.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shaper-use.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shaper-vowel-constraints.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-fallback.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-normalize.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape.cc \

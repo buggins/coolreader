@@ -41,6 +41,7 @@ set(ZSTD_SRC_FILES
     ${ZSTD_SRC_DIR}/lib/compress/zstd_lazy.c
     ${ZSTD_SRC_DIR}/lib/compress/zstd_ldm.c
     ${ZSTD_SRC_DIR}/lib/compress/zstd_opt.c
+    ${ZSTD_SRC_DIR}/lib/compress/zstd_preSplit.c
     ${ZSTD_SRC_DIR}/lib/compress/zstdmt_compress.c
     ${ZSTD_SRC_DIR}/lib/compress/zstd_preSplit.c
     ${ZSTD_SRC_DIR}/lib/decompress/huf_decompress.c

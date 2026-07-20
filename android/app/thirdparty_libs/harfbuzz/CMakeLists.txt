@@ -10,6 +10,7 @@ include_directories(${HARFBUZZ_CONFIG_DIR})
 add_definitions(-DHAVE_CONFIG_H=1)
 
 set(HARFBUZZ_SRC_FILES
+    ${HARFBUZZ_SRC_DIR}/src/OT/Var/VARC/VARC.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-aat-layout.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-aat-map.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-blob.cc
@@ -22,6 +23,9 @@ set(HARFBUZZ_SRC_FILES
     ${HARFBUZZ_SRC_DIR}/src/hb-face-builder.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-fallback-shape.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-font.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-paint.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-paint-extents.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-paint-bounded.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-ft.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-map.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-number.cc
@@ -37,6 +41,18 @@ set(HARFBUZZ_SRC_FILES
     ${HARFBUZZ_SRC_DIR}/src/hb-ot-meta.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-ot-metrics.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-ot-name.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-ot-shaper-arabic.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-ot-shaper-default.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-ot-shaper-hangul.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-ot-shaper-hebrew.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-ot-shaper-indic.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-ot-shaper-indic-table.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-ot-shaper-khmer.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-ot-shaper-myanmar.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-ot-shaper-syllabic.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-ot-shaper-thai.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-ot-shaper-use.cc
+    ${HARFBUZZ_SRC_DIR}/src/hb-ot-shaper-vowel-constraints.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-ot-shape-fallback.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-ot-shape-normalize.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-ot-shaper-default.cc
