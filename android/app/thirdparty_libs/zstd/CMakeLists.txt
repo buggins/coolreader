@@ -10,6 +10,16 @@ add_definitions(-DZSTD_LEGACY_SUPPORT=0)
 add_definitions(-UZSTD_MULTITHREAD)
 add_definitions(-DZSTD_NO_TRACE -DZSTD_TRACE=0)
 
+# We set ZSTD_HAS_NOEXECSTACK if we are certain we've set all the required
+# compiler flags to mark the stack as non-executable.
+set(ZSTD_HAS_NOEXECSTACK false)
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "amd64.*|AMD64.*|x86_64.*|X86_64.*" AND ${ZSTD_HAS_NOEXECSTACK})
+    set(DecompressSources ${DecompressSources} ${LIBRARY_DIR}/decompress/huf_decompress_amd64.S)
+else()
+    add_compile_options(-DZSTD_DISABLE_ASM)
+endif()
+
 set(ZSTD_SRC_FILES
     ${ZSTD_SRC_DIR}/lib/common/debug.c
     ${ZSTD_SRC_DIR}/lib/common/entropy_common.c
@@ -32,6 +42,7 @@ set(ZSTD_SRC_FILES
     ${ZSTD_SRC_DIR}/lib/compress/zstd_ldm.c
     ${ZSTD_SRC_DIR}/lib/compress/zstd_opt.c
     ${ZSTD_SRC_DIR}/lib/compress/zstdmt_compress.c
+    ${ZSTD_SRC_DIR}/lib/compress/zstd_preSplit.c
     ${ZSTD_SRC_DIR}/lib/decompress/huf_decompress.c
     ${ZSTD_SRC_DIR}/lib/decompress/zstd_ddict.c
     ${ZSTD_SRC_DIR}/lib/decompress/zstd_decompress.c

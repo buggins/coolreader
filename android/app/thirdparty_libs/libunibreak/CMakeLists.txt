@@ -15,6 +15,7 @@ set(LIBUNIBREAK_SOURCE
 	${LIBUNIBREAK_SOURCE_DIR}/emojidef.c
 	${LIBUNIBREAK_SOURCE_DIR}/graphemebreak.c
 	${LIBUNIBREAK_SOURCE_DIR}/wordbreak.c
+	${LIBUNIBREAK_SOURCE_DIR}/eastasianwidthdata.c
 )
 
 add_library(local_unibreak STATIC ${LIBUNIBREAK_SOURCE})

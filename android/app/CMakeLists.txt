@@ -3,9 +3,13 @@
 
 # Sets the minimum version of CMake required to build the native library.
 
-cmake_minimum_required(VERSION 3.4.1)
+cmake_minimum_required(VERSION 3.5.0)
 
 project(cr3engine)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 
 set(CR3_ROOT ${PROJECT_SOURCE_DIR}/../..)
 
