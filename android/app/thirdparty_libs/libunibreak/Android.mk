@@ -17,6 +17,7 @@ LOCAL_SRC_FILES := \
     $(LIBUNIBREAK_SRC_DIR)/linebreak.c \
     $(LIBUNIBREAK_SRC_DIR)/linebreakdata.c \
     $(LIBUNIBREAK_SRC_DIR)/linebreakdef.c \
+    $(LIBUNIBREAK_SRC_DIR)/eastasianwidthdata.c \
     $(LIBUNIBREAK_SRC_DIR)/emojidef.c \
     $(LIBUNIBREAK_SRC_DIR)/graphemebreak.c \
     $(LIBUNIBREAK_SRC_DIR)/wordbreak.c

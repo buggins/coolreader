@@ -29,6 +29,7 @@ LOCAL_SRC_FILES := \
     $(FREETYPE_SRC_DIR)/src/base/ftdebug.c \
     $(FREETYPE_SRC_DIR)/src/base/ftinit.c \
     $(FREETYPE_SRC_DIR)/src/base/ftfntfmt.c \
+    $(FREETYPE_SRC_DIR)/src/base/ftmm.c \
     $(FREETYPE_SRC_DIR)/src/base/ftsystem.c \
     $(FREETYPE_SRC_DIR)/src/base/ftglyph.c \
     $(FREETYPE_SRC_DIR)/src/base/ftbitmap.c \
