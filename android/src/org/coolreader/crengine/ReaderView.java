@@ -2903,6 +2903,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 
 	private boolean hiliteTapZoneOnTap = false;
+	private boolean enablePagewiseScroll = false;
 	private boolean enableVolumeKeys = true;
 	static private final int DEF_PAGE_FLIP_MS = 300;
 
@@ -2936,6 +2937,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			pageFlipAnimationSpeedMs = pageFlipAnimationMode != PAGE_ANIMATION_NONE ? DEF_PAGE_FLIP_MS : 0;
 		} else if (PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key)) {
 			enableVolumeKeys = flg;
+		} else if (PROP_APP_PAGEWISE_SCROLL.equals(key)) {
+			enablePagewiseScroll = flg;
 		} else if (PROP_APP_SELECTION_ACTION.equals(key)) {
 			mSelectionAction = Utils.parseInt(value, SELECTION_ACTION_TOOLBAR);
 		} else if (PROP_APP_MULTI_SELECTION_ACTION.equals(key)) {
@@ -2977,6 +2980,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					|| PROP_APP_SCREEN_BACKLIGHT_LOCK.equals(key)
 					|| PROP_APP_TAP_ZONE_HILIGHT.equals(key)
 					|| PROP_APP_DICTIONARY.equals(key)
+					|| PROP_APP_PAGEWISE_SCROLL.equals(key)
 					|| PROP_APP_DOUBLE_TAP_SELECTION.equals(key)
 					|| PROP_APP_BOUNCE_TAP_INTERVAL.equals(key)
 					|| PROP_APP_FLICK_BACKLIGHT_CONTROL.equals(key)
