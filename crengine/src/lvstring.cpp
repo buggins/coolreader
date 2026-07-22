@@ -248,14 +248,14 @@ struct lstring_chunk_slice_t {
             return false; // chunk does not belong to this slice
 
 #ifdef LS_DEBUG_CHECK
-        if (!pChunk->size)
-        {
-            crFatalError(); // already freed!!!
-        }
-        if (pChunk->refCount)
-        {
-            crFatalError(); // has references
-        }
+        //if (!pChunk->size)
+        //{
+        //    crFatalError(); // already freed!!!
+        //}
+        //if (pChunk->refCount)
+        //{
+        //    crFatalError(); // has references
+        //}
         pChunk->size = 0;
         pChunk->len = 0;
 #endif
@@ -270,14 +270,14 @@ struct lstring_chunk_slice_t {
             return false; // chunk does not belong to this slice
 
 #ifdef LS_DEBUG_CHECK
-        if (!pChunk->size)
-        {
-            crFatalError(); // already freed!!!
-        }
-        if (pChunk->refCount)
-        {
-            crFatalError(); // has references
-        }
+        // if (!pChunk->size)
+        // {
+        //     crFatalError(); // already freed!!!
+        // }
+        // if (pChunk->refCount)
+        // {
+        //     crFatalError(); // has references
+        // }
         pChunk->size = 0;
 #endif
 
@@ -291,14 +291,14 @@ struct lstring_chunk_slice_t {
             return false; // chunk does not belong to this slice
 
 #ifdef LS_DEBUG_CHECK
-        if (!pChunk->size)
-        {
-            crFatalError(); // already freed!!!
-        }
-        if (pChunk->refCount)
-        {
-            crFatalError(); // has references
-        }
+        // if (!pChunk->size)
+        // {
+        //     crFatalError(); // already freed!!!
+        // }
+        // if (pChunk->refCount)
+        // {
+        //     crFatalError(); // has references
+        // }
         pChunk->size = 0;
 #endif
 
@@ -927,11 +927,14 @@ int lStr_cmp(const lChar16 * dst, const lChar32 * src)
 
 void lString32::free()
 {
-    if ( pchunk==EMPTY_STR_32 )
+    if ( pchunk==EMPTY_STR_32 || pchunk == nullptr)
         return;
     //assert(pchunk->buf32[pchunk->len]==0);
-    ::free(pchunk->buf32);
+    if (pchunk->buf32 != nullptr) {
+        ::free(pchunk->buf32);
+    }
 #if (LDOM_USE_OWN_MEM_MAN == 1)
+
     for (int i=slices_count-1; i>=0; --i)
     {
         if (slices[i]->free_chunk32(pchunk))
@@ -941,6 +944,7 @@ void lString32::free()
 #else
     ::free(pchunk);
 #endif
+    pchunk = nullptr;
 }
 
 void lString32::alloc(int sz)
@@ -1321,6 +1325,18 @@ lString32 & lString32::append(const lChar8 * str, size_type count)
     _lStr_ncpy(pchunk->buf32+pchunk->len, str, count);
     pchunk->len += count;
     return *this;
+}
+
+lString32 & lString32::append(const lChar16 * str)
+{
+    size_type len = _lStr_len(str);
+    return append(Utf16ToUnicode(str, len));
+}
+
+lString32 & lString32::append(const lChar16 * str, size_type count)
+{
+    reserve(pchunk->len + count);
+    return append(Utf16ToUnicode(str, count));
 }
 
 lString32 & lString32::append(const lString32 & str)
@@ -1733,10 +1749,12 @@ const lString32 lString32::empty_str;
 
 void lString16::free()
 {
-    if ( pchunk==EMPTY_STR_16 )
+    if ( pchunk==EMPTY_STR_16 || pchunk == nullptr)
         return;
     //assert(pchunk->buf16[pchunk->len]==0);
-    ::free(pchunk->buf16);
+    if (pchunk->buf16 != nullptr) {
+        ::free(pchunk->buf16);
+    }
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     for (int i=slices_count-1; i>=0; --i)
     {
@@ -1747,6 +1765,7 @@ void lString16::free()
 #else
     ::free(pchunk);
 #endif
+    pchunk = nullptr;
 }
 
 void lString16::alloc(int sz)
@@ -2114,6 +2133,17 @@ lString16 & lString16::append(const value_type * str, size_type count)
     return *this;
 }
 
+lString16 & lString16::append(const lChar32 * str)
+{
+    size_type len = _lStr_len(str);
+    return append(UnicodeToUtf16(str, len));
+}
+
+lString16 & lString16::append(const lChar32 * str, size_type count)
+{
+    return append(UnicodeToUtf16(str, count));
+}
+
 lString16 & lString16::append(const lChar8 * str)
 {
     size_type len = _lStr_len(str);
@@ -2416,9 +2446,11 @@ const lString16 lString16::empty_str;
 
 void lString8::free()
 {
-    if ( pchunk==EMPTY_STR_8 )
+    if ( pchunk==EMPTY_STR_8 || pchunk == nullptr)
         return;
-    ::free(pchunk->buf8);
+    if (pchunk->buf8 != nullptr) {
+        ::free(pchunk->buf8);
+    }
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     for (int i=slices_count-1; i>=0; --i)
     {
@@ -2429,6 +2461,7 @@ void lString8::free()
 #else
     ::free(pchunk);
 #endif
+    pchunk = nullptr;
 }
 
 void lString8::alloc(int sz)

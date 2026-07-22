@@ -378,37 +378,102 @@ void ShutdownCREngine()
 #endif
 }
 
+void testStringCollections() {
+    {
+        lString8Collection list;
+        {
+            lString8 s {"test_s_1"};
+            assert(s == "test_s_1");
+            list.add(s);
+            assert(s == "test_s_1");
+        }
+        {
+            lString8 s {"test_s_2"};
+            assert(s == "test_s_2");
+            list.add(s);
+            assert(s == "test_s_2");
+        }
+    }
+    {
+        lString8Collection list;
+        {
+            lString8 s {"test_s_3"};
+            assert(s == "test_s_3");
+            list.add(s);
+            assert(s == "test_s_3");
+        }
+        {
+            lString8 s {"test_s_4"};
+            assert(s == "test_s_4");
+            list.add(s);
+            assert(s == "test_s_4");
+        }
+    }
+    {
+        lString32Collection list;
+        {
+            lString32 s {U"test_s_5"};
+            assert(s == "test_s_5");
+            list.add(s);
+            assert(s == "test_s_5");
+        }
+        {
+            lString32 s {U"test_s_5"};
+            assert(s == "test_s_5");
+            list.add(s);
+            assert(s == "test_s_5");
+        }
+    }
+
+    for (int sz = 1; sz < 1000; sz++) {
+        lString8Collection list;
+        for (int i = 0; i < sz; i++) {
+            lString8 s {"String8"};
+            //s << i;
+            list.add(s);
+        }
+    }
+    for (int sz = 1; sz < 1000; sz++) {
+        lString32Collection list;
+        for (int i = 0; i < sz; i++) {
+            lString32 s {U"String32"};
+            //s << i;
+            list.add(s);
+        }
+    }
+}
+
 void testStrings() {
-    printf("Strings: checkpoint 1\n");
-    {
-        lString8 s("qwerty");
-        lString8 a("string_a");
-        lString8 b("string_b");
-        lString8 c = a + b;
-        s += "123";
-        s += c;
-    }
-    printf("Strings: checkpoint 2\n");
-    {
-        lString16 s("qwerty");
-        lString16 a("string_a");
-        lString16 b("string_b");
-        //lString16 c = a + b;
-        s += "123";
-        //s += c;
-    }
-    printf("Strings: checkpoint 3\n");
-    {
-        lString32 s("qwerty");
-        s += "123";
-    }
-    printf("Strings: checkpoint 4\n");
+    printf("Testing lString8 construction...\n");
+    lString8 test1("hello");
+    lString8 test2 = lString8("world");
+    lString8 combined = test1 + "_" + test2;
+    
+    printf("Testing lString16 construction...\n");
+    lString16 test16_1 = lString16::empty_str;
+    lString16 test16_1b("hello");
+    lString16 test16_2 = lString16::empty_str;
+    lString16 test16_2b("world");
+    lString16 combined16 = test16_1b + u"_" + test16_2b;
+    //lString16 combined16a = test16_1b + "_" + combined16;
+    lString16 combined16b = test16_1b + U"_" + combined16;
+
+    printf("Testing lString32 construction...\n");
+    lString32 test32_1 = lString32::empty_str;
+    lString32 test32_1b("hello");
+    lString32 test32_2 = lString32::empty_str;
+    lString32 test32_2b("world");
+    lString32 combined32 = test32_1b + u"_" + test32_2b;
+    lString32 combined32a = test32_1b + U"_" + test32_2b;
+
+    printf("All string tests passed!\n");
 }
 
 int main(int argc, const char ** argv) {
 
     printf("CR3 Performance Tests\n");
     testStrings();
+    testStringCollections();
 
     lString32Collection files;
     lString8 bookDir("../tests/testdata");

@@ -370,7 +370,10 @@ public:
     /// copy constructor
     lString8(const lString8 & str) : pchunk(str.pchunk) { addref(); }
     /// move constructor
-    lString8(lString8&& str) : pchunk(str.pchunk) { str.pchunk = nullptr; }
+    lString8(lString8&& str) : pchunk(nullptr) { 
+        pchunk = str.pchunk; 
+        str.pchunk = nullptr; 
+    }
     /// constructor from C string
     explicit lString8(const value_type * str);
     /// constructor from 16-bit C string
@@ -646,7 +649,10 @@ public:
     /// copy constructor
     lString16(const lString16 & str) : pchunk(str.pchunk) { addref(); }
     /// move constructor
-    lString16(lString16 && str) : pchunk(str.pchunk) { str.pchunk = nullptr; }
+    lString16(lString16 && str) : pchunk(nullptr) { 
+        pchunk = str.pchunk; 
+        str.pchunk = nullptr; 
+    }
     /// constructor from wide c-string
     lString16(const value_type * str);
     /// constructor from 8bit c-string (ASCII only)
@@ -702,6 +708,8 @@ public:
     lString16 & operator = (lString16 && str) { return assign(std::move(str)); }
     lString16 & erase(size_type offset, size_type count);
 
+    lString16 & append(const lChar32 * str);
+    lString16 & append(const lChar32 * str, size_type count);
     lString16 & append(const value_type * str);
     lString16 & append(const value_type * str, size_type count);
     lString16 & append(const lChar8 * str);
@@ -960,6 +968,8 @@ public:
     lString32 & append(const value_type * str, size_type count);
     lString32 & append(const lChar8 * str);
     lString32 & append(const lChar8 * str, size_type count);
+    lString32 & append(const lChar16 * str);
+    lString32 & append(const lChar16 * str, size_type count);
     lString32 & append(const lString32 & str);
     lString32 & append(const lString32 & str, size_type offset, size_type count);
     lString32 & append(size_type count, value_type ch);
@@ -1241,6 +1251,7 @@ inline bool operator != (const lChar8 * s1, const lString16& s2 )
     { return s2.compare(s1)!=0; }
 inline bool operator != (const lChar8 * s1, const lString32& s2 )
     { return s2.compare(s1)!=0; }
+inline lString32 operator + (const lString32 &s1, const lChar16 * s2) { lString32 s(s1); s.append(s2); return s; }
 inline lString32 operator + (const lString32 &s1, const lString32 &s2) { lString32 s(s1); s.append(s2); return s; }
 inline lString32 operator + (const lString32 &s1, const lChar32 * s2) { lString32 s(s1); s.append(s2); return s; }
 inline lString32 operator + (const lString32 &s1, const lChar8 * s2) { lString32 s(s1); s.append(s2); return s; }
@@ -1270,6 +1281,11 @@ inline lString8 operator + (const lString8 &s1, fmt::decimal v)
 inline lString8 operator + (const lString8 &s1, fmt::hex v)
     { lString8 s(s1); s.appendHex(v.get()); return s; }
 
+inline lString16 operator + (const lString16 &s1, const lChar32 * s2) { lString16 s(s1); s.append(s2); return s; }
+inline lString16 operator + (const lString16 &s1, const lString16 &s2) { lString16 s(s1); s.append(s2); return s; }
+inline lString16 operator + (const lString16 &s1, const lChar16 * s2) { lString16 s(s1); s.append(s2); return s; }
+inline lString16 operator + (const lString16 &s1, fmt::decimal v) { lString16 s(s1); s.appendDecimal(v.get()); return s; }
+inline lString16 operator + (const lString16 &s1, fmt::hex v) { lString16 s(s1); s.appendHex(v.get()); return s; }
 
 lString8  UnicodeToTranslit( const lString32 & str );
 /// converts wide unicode string to local 8-bit encoding
