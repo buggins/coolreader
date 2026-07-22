@@ -61,6 +61,7 @@ extern "C" {
 }
 #endif
 
+// define LS_DEBUG_CHECK for debug string chunk allocations
 #define LS_DEBUG_CHECK
 
 // set to 1 to enable debugging
@@ -185,44 +186,80 @@ struct lstring_chunk_slice_t {
         {
             p->buf8 = (char*)(p+1);
             p->size = 0;
+            p->len = 0;
         }
-        (pEnd-1)->buf8 = NULL;
+        (pEnd-1)->buf8 = nullptr;
     }
     ~lstring_chunk_slice_t()
     {
         free( pChunks );
+        pChunks = nullptr;
+        pEnd = nullptr;
+        pFree = nullptr;
     }
     inline lstring8_chunk_t * alloc_chunk()
     {
         lstring8_chunk_t * res = pFree;
         pFree = (lstring8_chunk_t *)res->buf8;
+#ifdef LS_DEBUG_CHECK
+        if ((lstring8_chunk_t *)res < pChunks || (lstring8_chunk_t *)res >= pEnd) {
+            crFatalError(); // corrupted pointer
+        }
+        res->buf8 = nullptr;
+        res->size = 0;
+        res->len = 0;
+        res->refCount = 0;
+#endif
         return res;
     }
     inline lstring16_chunk_t * alloc_chunk16()
     {
         lstring16_chunk_t * res = (lstring16_chunk_t *)pFree;
         pFree = (lstring8_chunk_t *)res->buf16;
+#ifdef LS_DEBUG_CHECK
+        if ((lstring8_chunk_t *)res < pChunks || (lstring8_chunk_t *)res >= pEnd) {
+            crFatalError(); // corrupted pointer
+        }
+        res->buf16 = nullptr;
+        res->size = 0;
+        res->len = 0;
+        res->refCount = 0;
+#endif
         return res;
     }
     inline lstring32_chunk_t * alloc_chunk32()
     {
         lstring32_chunk_t * res = (lstring32_chunk_t *)pFree;
         pFree = (lstring8_chunk_t *)res->buf32;
+#ifdef LS_DEBUG_CHECK
+        if ((lstring8_chunk_t *)res < pChunks || (lstring8_chunk_t *)res >= pEnd) {
+            crFatalError(); // corrupted pointer
+        }
+        res->buf32 = nullptr;
+        res->size = 0;
+        res->len = 0;
+        res->refCount = 0;
+#endif
         return res;
     }
     inline bool free_chunk( lstring8_chunk_t * pChunk )
     {
         if (pChunk < pChunks || pChunk >= pEnd)
             return false; // chunk does not belong to this slice
-/*
+
 #ifdef LS_DEBUG_CHECK
         if (!pChunk->size)
         {
             crFatalError(); // already freed!!!
         }
+        if (pChunk->refCount)
+        {
+            crFatalError(); // has references
+        }
         pChunk->size = 0;
+        pChunk->len = 0;
 #endif
-*/
+
         pChunk->buf8 = (char *)pFree;
         pFree = pChunk;
         return true;
@@ -231,15 +268,19 @@ struct lstring_chunk_slice_t {
     {
         if ((lstring8_chunk_t *)pChunk < pChunks || (lstring8_chunk_t *)pChunk >= pEnd)
             return false; // chunk does not belong to this slice
-/*
+
 #ifdef LS_DEBUG_CHECK
         if (!pChunk->size)
         {
             crFatalError(); // already freed!!!
         }
+        if (pChunk->refCount)
+        {
+            crFatalError(); // has references
+        }
         pChunk->size = 0;
 #endif
-*/
+
         pChunk->buf16 = (lChar16 *)pFree;
         pFree = (lstring8_chunk_t *)pChunk;
         return true;
@@ -248,15 +289,19 @@ struct lstring_chunk_slice_t {
     {
         if ((lstring8_chunk_t *)pChunk < pChunks || (lstring8_chunk_t *)pChunk >= pEnd)
             return false; // chunk does not belong to this slice
-/*
+
 #ifdef LS_DEBUG_CHECK
         if (!pChunk->size)
         {
             crFatalError(); // already freed!!!
         }
+        if (pChunk->refCount)
+        {
+            crFatalError(); // has references
+        }
         pChunk->size = 0;
 #endif
-*/
+
         pChunk->buf32 = (lChar32 *)pFree;
         pFree = (lstring8_chunk_t *)pChunk;
         return true;
@@ -1190,8 +1235,13 @@ void lString32::reserve(size_type n)
     else
     {
         lstring_chunk_t * poldchunk = pchunk;
+        // ensure that reserved space is enough for len
+        size_type sz = n;
+        if (sz <= pchunk->len) {
+            sz = pchunk->len + 1;
+        }
         release();
-        alloc( n );
+        alloc( sz );
         _lStr_memcpy( pchunk->buf32, poldchunk->buf32, poldchunk->len+1 );
         pchunk->len = poldchunk->len;
     }
@@ -1593,7 +1643,7 @@ bool lString32::atod( double &d, char dp ) const {
             s++;
         }
     }
-    if (res && *s == dp) {
+    if (res && (unsigned)*s == (unsigned)dp) {
         // decimal point found
         s++;
         res = false;
@@ -1993,8 +2043,13 @@ void lString16::reserve(size_type n)
     else
     {
         lstring_chunk_t * poldchunk = pchunk;
+        // ensure that reserved space is enough for len
+        size_type sz = n;
+        if (sz <= pchunk->len) {
+            sz = pchunk->len + 1;
+        }
         release();
-        alloc( n );
+        alloc( sz );
         _lStr_memcpy( pchunk->buf16, poldchunk->buf16, poldchunk->len+1 );
         pchunk->len = poldchunk->len;
     }
@@ -2596,8 +2651,13 @@ void lString8::reserve(size_type n)
     else
     {
         lstring_chunk_t * poldchunk = pchunk;
+        // ensure that reserved space is enough for len
+        size_type sz = n;
+        if (sz <= pchunk->len) {
+            sz = pchunk->len + 1;
+        }
         release();
-        alloc( n );
+        alloc( sz );
         _lStr_memcpy( pchunk->buf8, poldchunk->buf8, poldchunk->len+1 );
         pchunk->len = poldchunk->len;
     }
@@ -3107,7 +3167,7 @@ int lString32::pos(const lChar8 * subStr) const
     {
         int flg = 1;
         for (int j=0; j<l; j++)
-            if (pchunk->buf32[i+j] != subStr[j])
+            if ((unsigned)pchunk->buf32[i+j] != (unsigned)subStr[j])
             {
                 flg = 0;
                 break;
@@ -3131,7 +3191,7 @@ int lString32::pos(const lChar8 * subStr, int start) const
     {
         int flg = 1;
         for (int j=0; j<l; j++)
-            if (pchunk->buf32[i+j] != subStr[j])
+            if ((unsigned)pchunk->buf32[i+j] != (unsigned)subStr[j])
             {
                 flg = 0;
                 break;
@@ -5687,7 +5747,7 @@ void lStr_findWordBounds( const lChar32 * str, int sz, int pos, int & start, int
         start = end = pos;
         return;
     }
-    hwEnd = hwStart+1;
+    //hwEnd = hwStart+1;
     // skipping while alpha
     for (; hwStart>0; hwStart--)
     {
@@ -5971,7 +6031,7 @@ bool lString32::startsWith(const lChar8 * substring) const
     const lChar32 * s1 = c_str();
     const lChar8 * s2 = substring;
     for ( int i=0; i<len; i++ )
-        if (s1[i] != s2[i])
+        if ((unsigned)s1[i] != (unsigned)s2[i])
             return false;
     return true;
 }

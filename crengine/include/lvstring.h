@@ -38,6 +38,7 @@
 #include <limits.h>
 #include "lvtypes.h"
 #include "lvmemman.h"
+#include "utility"
 
 // (Note: some of these 0x have lowercase hex digit, to avoid
 // 'redefined' warnings as they are already defined in lowercase
@@ -347,13 +348,15 @@ private:
         ++pchunk->refCount;
 #endif
     }
-    inline void release() { 
+    inline void release() {
+        if (!pchunk) return;
 #ifdef USE_ATOMIC_REFCOUNT
         if (pchunk->refCount.fetch_sub(1) <= 1)
             free();
 #else
         if (--pchunk->refCount==0) free();
 #endif
+        pchunk = nullptr;
     }
     inline int refCount() {
         return pchunk->refCount;
@@ -366,6 +369,8 @@ public:
     explicit lString8( int size ) : pchunk(EMPTY_STR_8) { addref(); reserve(size); }
     /// copy constructor
     lString8(const lString8 & str) : pchunk(str.pchunk) { addref(); }
+    /// move constructor
+    lString8(lString8&& str) : pchunk(str.pchunk) { str.pchunk = nullptr; }
     /// constructor from C string
     explicit lString8(const value_type * str);
     /// constructor from 16-bit C string
@@ -388,6 +393,18 @@ public:
         }
         return *this;
     }
+    /// move assignment
+    lString8 & assign(lString8 && str)
+    {
+        if (pchunk!=str.pchunk)
+        {
+            release();
+            pchunk = str.pchunk;
+            str.pchunk = nullptr;
+            //addref();
+        }
+        return *this;
+    }
     /// C-string assignment
     lString8 & assign(const value_type * str);
     /// C-string fragment assignment
@@ -398,6 +415,8 @@ public:
     lString8 & operator = (const value_type * str) { return assign(str); }
     /// string copy assignment
     lString8 & operator = (const lString8 & str) { return assign(str); }
+    /// string copy assignment
+    lString8 & operator = (lString8 && str) { return assign(std::move(str)); }
     /// erase part of string
     lString8 & erase(size_type offset, size_type count);
     /// append C-string
@@ -607,13 +626,15 @@ private:
         ++pchunk->refCount;
 #endif
     }
-    inline void release() { 
+    inline void release() {
+        if (!pchunk) return;
 #ifdef USE_ATOMIC_REFCOUNT
         if (pchunk->refCount.fetch_sub(1) <= 1)
             free();
 #else
         if (--pchunk->refCount==0) free();
 #endif
+        pchunk = nullptr;
     }
     inline int refCount() {
         return pchunk->refCount;
@@ -624,6 +645,8 @@ public:
     explicit lString16() : pchunk(EMPTY_STR_16) { addref(); }
     /// copy constructor
     lString16(const lString16 & str) : pchunk(str.pchunk) { addref(); }
+    /// move constructor
+    lString16(lString16 && str) : pchunk(str.pchunk) { str.pchunk = nullptr; }
     /// constructor from wide c-string
     lString16(const value_type * str);
     /// constructor from 8bit c-string (ASCII only)
@@ -648,6 +671,17 @@ public:
         }
         return *this;
     }
+    /// move assignment from string
+    lString16 & assign(lString16 && str)
+    {
+        if (pchunk!=str.pchunk)
+        {
+            release();
+            pchunk = str.pchunk;
+            str.pchunk = nullptr;
+        }
+        return *this;
+    }
     /// assignment from c-string
     lString16 & assign(const value_type * str);
     /// assignment from 8bit c-string (ASCII only)
@@ -664,6 +698,8 @@ public:
     lString16 & operator = (const lChar8 * str) { return assign(str); }
     /// assignment from string
     lString16 & operator = (const lString16 & str) { return assign(str); }
+    /// move assignment from string
+    lString16 & operator = (lString16 && str) { return assign(std::move(str)); }
     lString16 & erase(size_type offset, size_type count);
 
     lString16 & append(const value_type * str);
@@ -842,13 +878,15 @@ private:
         ++pchunk->refCount;
 #endif
     }
-    inline void release() { 
+    inline void release() {
+        if (!pchunk) return;
 #ifdef USE_ATOMIC_REFCOUNT
         if (pchunk->refCount.fetch_sub(1) <= 1)
             free();
 #else
         if (--pchunk->refCount==0) free();
 #endif
+        pchunk = nullptr;
     }
     inline int refCount() {
         return pchunk->refCount;
@@ -859,6 +897,8 @@ public:
     explicit lString32() : pchunk(EMPTY_STR_32) { addref(); }
     /// copy constructor
     lString32(const lString32 & str) : pchunk(str.pchunk) { addref(); }
+    /// move constructor
+    lString32(lString32 && str) : pchunk(str.pchunk) { str.pchunk = nullptr; }
     /// constructor from wide c-string
     lString32(const value_type * str);
     /// constructor from 8bit c-string (ASCII only)
@@ -870,7 +910,9 @@ public:
     /// constructor from another string substring
     explicit lString32(const lString32 & str, size_type offset, size_type count);
     /// desctructor
-    ~lString32() { release(); }
+    ~lString32() {
+        release();
+    }
 
     /// assignment from string
     lString32 & assign(const lString32 & str)
@@ -880,6 +922,17 @@ public:
             release();
             pchunk = str.pchunk;
             addref();
+        }
+        return *this;
+    }
+    /// assignment from string
+    lString32 & assign(lString32 && str)
+    {
+        if (pchunk!=str.pchunk)
+        {
+            release();
+            pchunk = str.pchunk;
+            str.pchunk = nullptr;
         }
         return *this;
     }
@@ -899,6 +952,8 @@ public:
     lString32 & operator = (const lChar8 * str) { return assign(str); }
     /// assignment from string
     lString32 & operator = (const lString32 & str) { return assign(str); }
+    /// moving assignment from string
+    lString32 & operator = (lString32 && str) { return assign(std::move(str)); }
     lString32 & erase(size_type offset, size_type count);
 
     lString32 & append(const value_type * str);

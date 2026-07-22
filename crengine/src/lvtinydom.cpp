@@ -8120,7 +8120,7 @@ void ldomDocumentWriter::OnTagBody()
     }
 
     #if MATHML_SUPPORT==1
-        if ( _currNode->_insideMathML ) {
+        if (  _currNode && _currNode->_insideMathML ) {
             // At this point, the style for this node has been applied.
             // Check if the <math> element (or any of its parent) is display:none,
             // in which case we don't need to spend time handling MathML that
@@ -12637,7 +12637,7 @@ bool ldomXPointerEx::isSentenceStart()
 
     ldomNode * node = getNode();
     lString32 text = node->getText();
-    int textLen = text.length();
+    //int textLen = text.length();
     int i = _data->getOffset();
 
     lChar32 currCh = getChar(text, i);
@@ -12690,7 +12690,7 @@ bool ldomXPointerEx::isSentenceEnd()
 
     ldomNode * node = getNode();
     lString32 text = node->getText();
-    int textLen = text.length();
+    //int textLen = text.length();
     int i = _data->getOffset();
 
     lChar32 currCh = getChar(text, i);
@@ -19617,7 +19617,7 @@ bool LVPageMap::deserialize( ldomDocument * doc, SerialBuf & buf )
     if ( buf.error() )
         return false;
     _page_info_valid = (bool)pageInfoValid;
-    for ( int i=0; i<childCount; i++ ) {
+    for ( lUInt32 i=0; i<childCount; i++ ) {
         LVPageMapItem * item = new LVPageMapItem(doc);
         if ( !item->deserialize( doc, buf ) ) {
             delete item;

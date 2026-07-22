@@ -1963,7 +1963,7 @@ bool LVCssDeclaration::parse( const char * &decl, lUInt32 domVersionRequested, b
                 {
                     int dom_version;
                     if ( parse_integer( decl, dom_version ) ) {
-                        if ( domVersionRequested >= dom_version ) {
+                        if ( domVersionRequested >= (lUInt32)dom_version ) {
                             return false; // ignore the whole declaration
                         }
                     }
@@ -4639,8 +4639,8 @@ bool LVStyleSheet::parse( const char * str, bool higher_importance, lString32 co
     }
     LVCssSelector * selector = NULL;
     LVCssSelector * prev_selector;
-    int err_count = 0;
-    int rule_count = 0;
+    //int err_count = 0;
+    //int rule_count = 0;
     lUInt32 domVersionRequested = _doc->getDOMVersionRequested();
     for (;*str;)
     {
@@ -4678,14 +4678,14 @@ bool LVStyleSheet::parse( const char * str, bool higher_importance, lString32 co
             if ( !decl->parse( str, domVersionRequested, higher_importance, _doc, codeBase ) )
             {
                 err = true;
-                err_count++;
+                //err_count++;
             }
             else
             {
                 // set decl to selectors
                 for (LVCssSelector * p = selector; p; p=p->getNext())
                     p->setDeclaration( decl );
-                rule_count++;
+                //rule_count++;
             }
             break;
         }
