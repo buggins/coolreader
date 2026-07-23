@@ -384,15 +384,19 @@ void ShutdownCREngine()
 
 bool testsOnly = false;
 
+void runLibraryTestSuite() {
+    printf("CR3 Library Tests\n");
+    testStrings();
+    testStringCollections();
+    printf("CR3 Library Tests\n");
+}
+
 int main(int argc, const char ** argv) {
 
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     printf("LDOM_USE_OWN_MEM_MAN is turned ON\n");
 #endif
-    printf("CR3 Library Tests\n");
-    testStrings();
-    testStringCollections();
-
+    runLibraryTestSuite();
     if (testsOnly) {
 #if (LDOM_USE_OWN_MEM_MAN == 1)
         free_ls_storage();

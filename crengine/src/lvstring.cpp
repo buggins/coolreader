@@ -248,14 +248,14 @@ struct lstring_chunk_slice_t {
             return false; // chunk does not belong to this slice
 
 #ifdef LS_DEBUG_CHECK
-        //if (!pChunk->size)
-        //{
-        //    crFatalError(); // already freed!!!
-        //}
-        //if (pChunk->refCount)
-        //{
-        //    crFatalError(); // has references
-        //}
+        if (!pChunk->size)
+        {
+            crFatalError(); // already freed!!!
+        }
+        if (pChunk->refCount)
+        {
+            crFatalError(); // has references
+        }
         pChunk->size = 0;
         pChunk->len = 0;
 #endif
@@ -270,14 +270,14 @@ struct lstring_chunk_slice_t {
             return false; // chunk does not belong to this slice
 
 #ifdef LS_DEBUG_CHECK
-        // if (!pChunk->size)
-        // {
-        //     crFatalError(); // already freed!!!
-        // }
-        // if (pChunk->refCount)
-        // {
-        //     crFatalError(); // has references
-        // }
+        if (!pChunk->size)
+        {
+            crFatalError(); // already freed!!!
+        }
+        if (pChunk->refCount)
+        {
+            crFatalError(); // has references
+        }
         pChunk->size = 0;
 #endif
 
@@ -291,14 +291,14 @@ struct lstring_chunk_slice_t {
             return false; // chunk does not belong to this slice
 
 #ifdef LS_DEBUG_CHECK
-        // if (!pChunk->size)
-        // {
-        //     crFatalError(); // already freed!!!
-        // }
-        // if (pChunk->refCount)
-        // {
-        //     crFatalError(); // has references
-        // }
+        if (!pChunk->size)
+        {
+            crFatalError(); // already freed!!!
+        }
+        if (pChunk->refCount)
+        {
+            crFatalError(); // has references
+        }
         pChunk->size = 0;
 #endif
 
