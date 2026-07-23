@@ -298,6 +298,10 @@ namespace fmt {
     };
 }
 
+#if LDOM_USE_OWN_MEM_MAN==1
+    /// returns true if string chunk storage has been destroyed
+    bool ls_storage_is_destroyed();
+#endif
 
 /**
     \brief lChar8 string
@@ -342,6 +346,9 @@ private:
     void alloc(size_type sz);
     void free();
     inline void addref() const {
+#if LDOM_USE_OWN_MEM_MAN==1
+        if (ls_storage_is_destroyed()) return;
+#endif
 #ifdef USE_ATOMIC_REFCOUNT
         pchunk->refCount.fetch_add(1);
 #else
@@ -350,6 +357,12 @@ private:
     }
     inline void release() {
         if (!pchunk) return;
+#if LDOM_USE_OWN_MEM_MAN==1
+        if (ls_storage_is_destroyed()) {
+            pchunk = nullptr;
+            return;
+        }
+#endif
 #ifdef USE_ATOMIC_REFCOUNT
         if (pchunk->refCount.fetch_sub(1) <= 1)
             free();
@@ -359,6 +372,9 @@ private:
         pchunk = nullptr;
     }
     inline int refCount() {
+#if LDOM_USE_OWN_MEM_MAN==1
+        if (ls_storage_is_destroyed()) return 0;
+#endif
         return pchunk->refCount;
     }
     explicit lString8(lstring_chunk_t * chunk) : pchunk(chunk) { addref(); }
@@ -544,7 +560,7 @@ public:
     /// changes buffer size
     void  resize(size_type count = 0, value_type e = 0);
     /// returns maximum number of chars that can fit into buffer
-    size_type   capacity() const { return pchunk->size-1; }
+    size_type   capacity() const { return pchunk->size; }
     /// reserve space for specified amount of chars
     void  reserve(size_type count = 0);
     /// returns true if string is empty
@@ -623,6 +639,9 @@ private:
     void alloc(size_type sz);
     void free();
     inline void addref() const {
+#if LDOM_USE_OWN_MEM_MAN==1
+        if (ls_storage_is_destroyed()) return;
+#endif
 #ifdef USE_ATOMIC_REFCOUNT
         pchunk->refCount.fetch_add(1);
 #else
@@ -631,6 +650,12 @@ private:
     }
     inline void release() {
         if (!pchunk) return;
+#if LDOM_USE_OWN_MEM_MAN==1
+        if (ls_storage_is_destroyed()) {
+            pchunk = nullptr;
+            return;
+        }
+#endif
 #ifdef USE_ATOMIC_REFCOUNT
         if (pchunk->refCount.fetch_sub(1) <= 1)
             free();
@@ -640,6 +665,9 @@ private:
         pchunk = nullptr;
     }
     inline int refCount() {
+#if LDOM_USE_OWN_MEM_MAN==1
+        if (ls_storage_is_destroyed()) return 0;
+#endif
         return pchunk->refCount;
     }
 public:
@@ -797,7 +825,7 @@ public:
     /// resizes string buffer, appends with specified character if buffer is being extended
     void  resize(size_type count = 0, value_type e = 0);
     /// returns string buffer size
-    size_type   capacity() const { return pchunk->size-1; }
+    size_type   capacity() const { return pchunk->size; }
     /// ensures string buffer can hold at least count characters
     void  reserve(size_type count = 0);
     /// erase all extra characters from end of string after size
@@ -880,6 +908,9 @@ private:
     void alloc(size_type sz);
     void free();
     inline void addref() const {
+#if LDOM_USE_OWN_MEM_MAN==1
+        if (ls_storage_is_destroyed()) return;
+#endif
 #ifdef USE_ATOMIC_REFCOUNT
         pchunk->refCount.fetch_add(1);
 #else
@@ -888,6 +919,12 @@ private:
     }
     inline void release() {
         if (!pchunk) return;
+#if LDOM_USE_OWN_MEM_MAN==1
+        if (ls_storage_is_destroyed()) {
+            pchunk = nullptr;
+            return;
+        }
+#endif
 #ifdef USE_ATOMIC_REFCOUNT
         if (pchunk->refCount.fetch_sub(1) <= 1)
             free();
@@ -897,6 +934,9 @@ private:
         pchunk = nullptr;
     }
     inline int refCount() {
+#if LDOM_USE_OWN_MEM_MAN==1
+        if (ls_storage_is_destroyed()) return 0;
+#endif
         return pchunk->refCount;
     }
 public:
@@ -1101,7 +1141,7 @@ public:
     /// resizes string buffer, appends with specified character if buffer is being extended
     void  resize(size_type count = 0, value_type e = 0);
     /// returns string buffer size
-    size_type   capacity() const { return pchunk->size-1; }
+    size_type   capacity() const { return pchunk->size; }
     /// ensures string buffer can hold at least count characters
     void  reserve(size_type count = 0);
     /// erase all extra characters from end of string after size
@@ -1346,6 +1386,9 @@ bool splitIntegerList( lString32 s, lString32 delim, int & value1, int & value2 
 
 #if LDOM_USE_OWN_MEM_MAN==1
 void free_ls_storage();
+bool ls_storage_is_destroyed();
+/// checks free list in string chunk storage for consistency
+void check_ls_storage(const char * msg);
 #endif
 
 #endif  // __LV_STRING_H_INCLUDED__

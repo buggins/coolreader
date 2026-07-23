@@ -27,7 +27,7 @@
 
 #pragma pack(push, 1)
 
-typedef struct {
+struct ZipLocalFileHdr {
     lUInt32  Mark;      // 0
     lUInt8   UnpVer;    // 4
     lUInt8   UnpOS;     // 5
@@ -71,7 +71,7 @@ typedef struct {
     //  Omitted fields (which follow this structure):
     // FileName (size = NameLen)
     // ExtraField (size = AddLen)
-} ZipLocalFileHdr;
+};
 
 struct ZipHd2
 {

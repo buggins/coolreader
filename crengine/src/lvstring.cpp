@@ -197,6 +197,16 @@ struct lstring_chunk_slice_t {
         pEnd = nullptr;
         pFree = nullptr;
     }
+    void check_free_node_chain(const char * msg = "free node chunk corrupted") {
+        lstring8_chunk_t * p = pFree;
+        while (p != nullptr) {
+            if (p < pChunks || p >= pEnd) {
+                printf("corrupted chunk %p\n", p);
+                crFatalError(3, msg);
+            }
+            p = (lstring8_chunk_t *)p->buf8;
+        }
+    }
     inline lstring8_chunk_t * alloc_chunk()
     {
         lstring8_chunk_t * res = pFree;
@@ -314,6 +324,7 @@ struct lstring_chunk_slice_t {
 static lstring_chunk_slice_t * slices[MAX_SLICE_COUNT];
 static int slices_count = 0;
 static bool slices_initialized = false;
+static bool slices_destroyed = false;
 #endif
 
 #if (LDOM_USE_OWN_MEM_MAN == 1)
@@ -334,7 +345,22 @@ void free_ls_storage()
     }
     slices_count = 0;
     slices_initialized = false;
+    slices_destroyed = true;
 }
+
+bool ls_storage_is_destroyed()
+{
+    return slices_destroyed;
+}
+
+void check_ls_storage(const char * msg) {
+    for (int i=slices_count-1; i>=0; --i)
+    {
+        lstring_chunk_slice_t * slice = slices[i];
+        slice->check_free_node_chain(msg);
+    }
+}
+
 
 lstring8_chunk_t * lstring8_chunk_t::alloc()
 {
@@ -1290,6 +1316,7 @@ void lString32::resize(size_type n, lChar32 e)
     // fill with data if expanded
     for (size_type i=pchunk->len; i<n; i++)
         pchunk->buf32[i] = e;
+    pchunk->len = n;
     pchunk->buf32[pchunk->len] = 0;
 }
 

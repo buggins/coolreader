@@ -338,7 +338,7 @@ int CRPropAccessor::getIntDef( const char * propName, int defValue ) const
 void CRPropAccessor::setHex( const char * propName, lUInt32 value )
 {
     char s[16];
-    sprintf(s, "0x%08lX", value);
+    sprintf(s, "0x%08X", value);
     setString( propName, Utf8ToUnicode(lString8(s)) );
 }
 
