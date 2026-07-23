@@ -1,5 +1,6 @@
 SET (CR3TEST_SOURCES 
-    src/testmain.cpp  
+    src/testmain.cpp
+    src/stringtest.cpp
 )
 
 IF(${CMAKE_BUILD_TYPE} STREQUAL Debug)
