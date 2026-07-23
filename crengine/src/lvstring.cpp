@@ -613,7 +613,7 @@ inline void _lStr_memcpy(lChar32 * dst, const lChar32 * src, int count)
 
 inline void _lStr_memcpy(lChar8 * dst, const lChar8 * src, int count)
 {
-    memcpy(dst, (const lChar8 *) src, count);
+    memmove(dst, (const lChar8 *) src, count);
 }
 
 inline void _lStr_memset(lChar16 * dst, lChar16 value, int count)
