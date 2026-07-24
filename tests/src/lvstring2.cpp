@@ -160,6 +160,22 @@ void test_lstring8() {
     ls_alloc_stats.dump("after clear");
     s4.reset(500);
     ls_alloc_stats.dump("after reset");
+    lString8 s5 {"abc"};
+    lString8 s6 {"abc"};
+    lString8 s7 {"Abc"};
+    ls_alloc_stats.dump("before compare");
+    TCHECK(s5 == s6);
+    TCHECK(s5 <= s6);
+    TCHECK(s5 >= s6);
+    TCHECK(s5 > s7);
+    TCHECK(s7 < s5);
+    TCHECK(s5 >= s7);
+    TCHECK(s7 <= s5);
+    TCHECK(s5 != s7);
+    TCHECK(s5 == "abc");
+    TCHECK(s5 > "ab");
+    TCHECK(s5 < "abcd");
+    ls_alloc_stats.dump("after compare");
 }
 
 void test_lstring2() {

@@ -41,6 +41,104 @@ inline size_type str_len(const char_type * s) {
     return i;
 }
 
+/// arbitrary char type strcmp, supports empty strings
+template<typename char_type, typename size_type>
+inline int str_cmp(const char_type * s1, size_type sz1, const char_type * s2, size_type sz2) {
+    // support case when one of strings or both are empty
+    if (sz1 == 0) {
+        return sz2 > 0 ? -1 : 0;
+    } else if (sz2 == 0) {
+        return 1;
+    }
+    for (size_type i = 0; ; i++) {
+        if (i >= sz1) {
+            // equal or s2 is bigger
+            return i < sz2 ? -1 : 0;
+        } else if (i >= sz2) {
+            // less
+            return 1;
+        }
+        if (s1[i] < s2[i]) {
+            return -1;
+        }
+        if (s1[i] > s2[i]) {
+            return 1;
+        }
+        // char [i] is matching, continue
+    }
+}
+
+/// arbitrary char type strcmp, both args are non-empty
+template<typename char_type, typename size_type>
+inline int str_cmp_nonempty(const char_type * s1, size_type sz1, const char_type * s2, size_type sz2) {
+    // we are sure that sz1>0 && sz2>0
+    for (size_type i = 0; ; i++) {
+        if (i >= sz1) {
+            // end of s1
+            // equal or s2 is bigger
+            return (i < sz2) ? -1 : 0;
+        } else if (i >= sz2) {
+            // s2 not yet ended
+            return 1;
+        }
+        if (s1[i] < s2[i]) {
+            return -1;
+        }
+        if (s1[i] > s2[i]) {
+            return 1;
+        }
+        // char [i] is matching, continue
+    }
+}
+
+/// arbitrary char type strcmp, both args are non-empty, s2 is zero-terminated
+template<typename char_type, typename size_type>
+inline int str_cmp_nonempty(const char_type * s1, size_type sz1, const char_type * s2) {
+    // we are sure that sz1>0 && sz2>0
+    for (size_type i = 0; ; i++) {
+        if (i >= sz1) {
+            // end of s1
+            // equal or s2 is bigger
+            return s2[i] ? -1 : 0;
+        } else if (!s2[i]) {
+            // end of s2
+            // bigger
+            return 1;
+        }
+        if (s1[i] < s2[i]) {
+            return -1;
+        }
+        if (s1[i] > s2[i]) {
+            return 1;
+        }
+        // char [i] is matching, continue
+    }
+}
+
+/// arbitrary char type strcmp, both args are non-empty, zero-terminated
+template<typename char_type, typename size_type>
+inline int str_cmp_nonempty(const char_type * s1, const char_type * s2) {
+    // we are sure that sz1>0 && sz2>0
+    for (size_type i = 0; ; i++) {
+        if (!s1[i]) {
+            // end of s1
+            // equal or s2 is bigger
+            return s2[i] ? -1 : 0;
+        } else if (!s2[i]) {
+            // end of s2
+            // bigger
+            return 1;
+        }
+        if (s1[i] < s2[i]) {
+            return -1;
+        }
+        if (s1[i] > s2[i]) {
+            return 1;
+        }
+        // char [i] is matching, continue
+    }
+}
+
 // String data buffer with ref count
 
 // forward declaration of string class
@@ -237,6 +335,89 @@ public:
         return *this;
     }
 
+    /// compare this string with another string, returns -1 if this < s, 1 if this > s, 0 if equal
+    int compare(const string& s) const noexcept {
+        size_t sz1 = length();
+        size_t sz2 = s.length();
+        if (sz1 == 0) {
+            return sz2 > 0 ? -1 : 0;
+        } else if (sz2 == 0) {
+            return 1;
+        }
+        return str_cmp_nonempty<char_type, size_type>(pchunk->buf, sz1, s.pchunk->buf, sz2);
+    }
+
+    /// compare this string with string literal, returns -1 if this < s, 1 if this > s, 0 if equal
+    int compare(const char_type* s) const noexcept {
+        size_t sz1 = length();
+        if (sz1 == 0) {
+            return (s != nullptr && *s != 0) ? -1 : 0;
+        } else if (s == nullptr || *s == 0) {
+            return 1;
+        }
+        return str_cmp_nonempty<char_type, size_type>(pchunk->buf, sz1, s);
+    }
+
+    /// returns true when strings are equal
+    bool operator == (const string& s) const noexcept {
+        return compare(s) == 0;
+    }
+
+    /// returns true when strings are not equal
+    bool operator != (const string& s) const noexcept {
+        return compare(s) != 0;
+    }
+
+    /// returns true when this string < s
+    bool operator < (const string& s) const noexcept {
+        return compare(s) < 0;
+    }
+
+    /// returns true when this string >= s
+    bool operator <= (const string& s) const noexcept {
+        return compare(s) <= 0;
+    }
+
+    /// returns true when this string > s
+    bool operator > (const string& s) const noexcept {
+        return compare(s) > 0;
+    }
+
+    /// returns true when this string <= s
+    bool operator >= (const string& s) const noexcept {
+        return compare(s) >= 0;
+    }
+
+    /// returns true when strings are equal
+    bool operator == (const char_type * s) const noexcept {
+        return compare(s) == 0;
+    }
+
+    /// returns true when strings are not equal
+    bool operator != (const char_type * s) const noexcept {
+        return compare(s) != 0;
+    }
+
+    /// returns true when this string < s
+    bool operator < (const char_type * s) const noexcept {
+        return compare(s) < 0;
+    }
+
+    /// returns true when this string <= s
+    bool operator <= (const char_type * s) const noexcept {
+        return compare(s) <= 0;
+    }
+
+    /// returns true when this string > s
+    bool operator > (const char_type * s) const noexcept {
+        return compare(s) > 0;
+    }
+
+    /// returns true when this string >= s
+    bool operator >= (const char_type * s) const noexcept {
+        return compare(s) >= 0;
+    }
+
     /// sets value to null string, freeing buffer
     void clear() noexcept {
         if (pchunk != nullptr) {
@@ -297,6 +478,7 @@ public:
 private:
     chunk_t * pchunk {nullptr};
 };
+
 
 typedef lstring_chunk_t<lChar8, lUInt32, std::atomic_int> lstring8_chunk_t;
 typedef lstring_chunk_t<lChar16, lUInt32, std::atomic_int> lstring16_chunk_t;
