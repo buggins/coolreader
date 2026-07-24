@@ -9,6 +9,22 @@
 
 namespace lv {
 
+struct lStringStats {
+    int allocCount {0};
+    int freeCount {0};
+    int copyConstr {0};
+    int moveConstr {0};
+    int copyAssign {0};
+    int moveAssign {0};
+    void dump(const char * msg = "");
+};
+extern lStringStats ls_alloc_stats;
+#define LS_COUNT_ALLOC ls_alloc_stats.allocCount++
+#define LS_COUNT_FREE ls_alloc_stats.freeCount++
+#define LS_COUNT_COPY_CONSTR ls_alloc_stats.copyConstr++
+#define LS_COUNT_MOVE_CONSTR ls_alloc_stats.moveConstr++
+#define LS_COUNT_COPY_ASSIGN ls_alloc_stats.copyAssign++
+#define LS_COUNT_MOVE_ASSIGN ls_alloc_stats.moveAssign++
 
 // Helper functions
 
@@ -96,6 +112,7 @@ public:
 
     /// chunk allocation function: create string buffer with reserved sz characters + zero termination char, ref counter 1
     static lstring_chunk_t * alloc(size_type sz) noexcept {
+        LS_COUNT_ALLOC;
         //lstring_chunk_t * res = static_cast<lstring_chunk_t *>( ::malloc(sizeof(lstring_chunk_t) + sizeof(char_type) * (sz + 1)) );
         //lstring_chunk_t * res = static_cast<lstring_chunk_t *>( ::malloc(sizeof(lstring_chunk_t) + sizeof(char_type) * (sz + 1)) );
         sz = alignSize(sz);
@@ -104,12 +121,14 @@ public:
         res->size = sz;
         res->len = 0;
         res->buf[0] = 0;
+        res->buf[sz] = 0;
         res->refCount = 1;
         return res;
     }
 
     /// chunk allocation function: create string buffer initialized with count chars from string s with reserved sz characters + zero termination char, ref counter 1
     static lstring_chunk_t * alloc(const char_type * s, size_type count, size_type sz = 0) noexcept {
+        LS_COUNT_ALLOC;
         if (sz < count)
             sz = count;
         sz = alignSize(sz);
@@ -118,6 +137,7 @@ public:
         lstring_chunk_t * res = static_cast<lstring_chunk_t *>( std::aligned_alloc(alloc_align_bytes, allocBytes) );
         std::memcpy(res->buf, s, count * sizeof(char_type));
         res->buf[count] = 0;
+        res->buf[sz] = 0;
         res->size = sz;
         res->len = count;
         res->refCount = 1;
@@ -126,6 +146,7 @@ public:
 
     /// free chunk memory
     static void free( const lstring_chunk_t * pChunk ) noexcept {
+        LS_COUNT_FREE;
         ::free(const_cast<lstring_chunk_t *>(pChunk));
     }
 
@@ -164,11 +185,13 @@ public:
     }
     /// copy constructor
     string(const string&s) noexcept {
+        LS_COUNT_COPY_CONSTR;
         pchunk = s.pchunk;
         intrusive_ptr_add_ref(pchunk);
     }
     /// move constructor
     string(string&&s ) noexcept {
+        LS_COUNT_MOVE_CONSTR;
         pchunk = s.pchunk;
         s.pchunk = nullptr;
     }
@@ -179,6 +202,7 @@ public:
     }
     /// move assignment
     string& operator = (string&& s) noexcept {
+        LS_COUNT_MOVE_ASSIGN;
         if (pchunk != nullptr) {
             intrusive_ptr_release(pchunk);
         }
@@ -188,9 +212,10 @@ public:
     }
     /// copy assignment
     string& operator = (const string& s) noexcept {
+        LS_COUNT_COPY_ASSIGN;
         if (&s == this) {
             // safe self assignment: do nothing
-            return;
+            return *this;
         }
         if (pchunk != nullptr) {
             // ignore self-assignment
@@ -211,6 +236,53 @@ public:
         }
         return *this;
     }
+
+    /// sets value to null string, freeing buffer
+    void clear() noexcept {
+        if (pchunk != nullptr) {
+            intrusive_ptr_release(pchunk);
+            pchunk = nullptr;
+        }
+    }
+
+    /// resets length to zero, preparing to modification with reserved size
+    void reset(size_type size) noexcept {
+        if (pchunk == nullptr) {
+            // buffer is allocated and has capacity at least size
+            pchunk = chunk_t::alloc(size);
+        } else {
+            // this string is non-empty
+            if (pchunk->getRefCount() == 1 && pchunk->size >= size) {
+                // this is already our own string with enough capacity -- just reset length
+                pchunk->len = 0;
+            } else {
+                // this string has not enough capacity for size, clear and alloc new
+                intrusive_ptr_release(pchunk);
+                pchunk = chunk_t::alloc(size);
+            }
+        }
+    }
+
+    /// resize and make editable, presercing current content, preparing to modification with reserved size
+    void resize(size_type size, char_type e = 0) noexcept {
+        if (pchunk == nullptr) {
+            // buffer is allocated and has capacity at least size
+            pchunk = chunk_t::alloc(size);
+        } else {
+            // this string is non-empty
+            if (pchunk->getRefCount() == 1 && pchunk->size >= size) {
+                // this is already our own string with enough capacity -- do nothing
+            } else {
+                // create new object and copy existing data
+                chunk_t * tmp = chunk_t::alloc(pchunk->buf, pchunk->len, size);
+                tmp->buf[tmp->len] = 0; // zterm
+                // release old chunk and assign new one
+                intrusive_ptr_release(pchunk);
+                pchunk = tmp;
+            }
+        }
+    }
+
     /// returns true if string is empty
     bool empty() const noexcept { return pchunk == nullptr || pchunk->len==0; }
     /// returns character count

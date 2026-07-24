@@ -5,6 +5,17 @@ using namespace lv;
 
 namespace lv {
 
+lStringStats ls_alloc_stats;
+void lStringStats::dump(const char * msg) {
+    printf("stats[%s]:"
+           " \talloc=%d \tfree=%d \tactive=%d"
+           " \tcopyc=%d \tmovec=%d \tcopyass=%d \tmoveass=%d"
+           "\n", msg,
+                allocCount, freeCount, allocCount-freeCount,
+                copyConstr, moveConstr, copyAssign, moveAssign
+            );
+}
+
 static int test_errors = 0;
 #define TCHECK(cond) do { if (!(cond)) { printf("LS FAIL line %d: %s\n", __LINE__, #cond); test_errors++; } } while(0)
 
@@ -121,16 +132,19 @@ void test_lstring2_chunks() {
 
 void test_lstring8() {
     printf("running test_lstring8()\n");
+    ls_alloc_stats.dump();
     lString8 s {};
     TCHECK(s.capacity() == 0);
     TCHECK(s.size() == 0);
     TCHECK(s.length() == 0);
     TCHECK(s.empty());
+    ls_alloc_stats.dump();
     lString8 s2 {"qwerty"};
     TCHECK(s2.capacity() >= 6);
     TCHECK(s2.size() >= 6);
     TCHECK(s2.length() == 6);
     TCHECK(!s2.empty());
+    ls_alloc_stats.dump();
     lString8 s3 {"qwerty", 3, 100};
     TCHECK(s3.capacity() >= 100);
     TCHECK(s3.size() >= 100);
@@ -139,12 +153,21 @@ void test_lstring8() {
     TCHECK(!s3.empty());
     lString8 s4 = lString8("move");
     s4 = lString8("move consturctor assignment");
+    // copy assignment
+    s2 = s4;
+    ls_alloc_stats.dump("before clear");
+    s2.clear();
+    ls_alloc_stats.dump("after clear");
+    s4.reset(500);
+    ls_alloc_stats.dump("after reset");
 }
 
 void test_lstring2() {
     printf("New strings library tests\n");
     test_lstring2_chunks();
+    ls_alloc_stats.dump("before test_lstring8()");
     test_lstring8();
+    ls_alloc_stats.dump("after test_lstring8()");
 
     if (test_errors == 0) {
         printf("New strings library tests completed successfully\n");
