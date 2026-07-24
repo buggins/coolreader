@@ -385,7 +385,7 @@ void ShutdownCREngine()
 bool testsOnly = true;
 
 void runLibraryTestSuite() {
-    printf("CR3 Library Tests\n");
+    printf("String Tests\n");
     testStrings();
     testStringCollections();
     printf("CR3 Library Tests\n");

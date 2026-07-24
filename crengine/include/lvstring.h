@@ -317,8 +317,8 @@ class lString8
 public:
     // typedefs for STL compatibility
     typedef lChar8              value_type;      ///< character type
-    typedef int                 size_type;       ///< size type
-    typedef int                 difference_type; ///< difference type
+    typedef lUInt32             size_type;       ///< size type
+    typedef lInt32              difference_type; ///< difference type
     typedef value_type *        pointer;         ///< pointer to char type
     typedef value_type &        reference;       ///< reference to char type
     typedef const value_type *  const_pointer;   ///< pointer to const char type
@@ -357,12 +357,6 @@ private:
     }
     inline void release() {
         if (!pchunk) return;
-#if LDOM_USE_OWN_MEM_MAN==1
-        if (ls_storage_is_destroyed()) {
-            pchunk = nullptr;
-            return;
-        }
-#endif
 #ifdef USE_ATOMIC_REFCOUNT
         if (pchunk->refCount.fetch_sub(1) <= 1)
             free();
@@ -624,8 +618,8 @@ class lString16
 public:
     // typedefs for STL compatibility
     typedef lChar16             value_type;
-    typedef int                 size_type;
-    typedef int                 difference_type;
+    typedef lUInt32             size_type;
+    typedef lInt32              difference_type;
     typedef value_type *        pointer;
     typedef value_type &        reference;
     typedef const value_type *  const_pointer;
@@ -650,12 +644,6 @@ private:
     }
     inline void release() {
         if (!pchunk) return;
-#if LDOM_USE_OWN_MEM_MAN==1
-        if (ls_storage_is_destroyed()) {
-            pchunk = nullptr;
-            return;
-        }
-#endif
 #ifdef USE_ATOMIC_REFCOUNT
         if (pchunk->refCount.fetch_sub(1) <= 1)
             free();
@@ -893,8 +881,8 @@ class lString32
 public:
     // typedefs for STL compatibility
     typedef lChar32             value_type;
-    typedef int                 size_type;
-    typedef int                 difference_type;
+    typedef lUInt32             size_type;
+    typedef lInt32              difference_type;
     typedef value_type *        pointer;
     typedef value_type &        reference;
     typedef const value_type *  const_pointer;
@@ -919,12 +907,6 @@ private:
     }
     inline void release() {
         if (!pchunk) return;
-#if LDOM_USE_OWN_MEM_MAN==1
-        if (ls_storage_is_destroyed()) {
-            pchunk = nullptr;
-            return;
-        }
-#endif
 #ifdef USE_ATOMIC_REFCOUNT
         if (pchunk->refCount.fetch_sub(1) <= 1)
             free();

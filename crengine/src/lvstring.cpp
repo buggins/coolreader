@@ -339,13 +339,10 @@ void free_ls_storage()
 {
     if (!slices_initialized)
         return;
-    for (int i=0; i<slices_count; i++)
-    {
-        delete slices[i];
-    }
-    slices_count = 0;
     slices_initialized = false;
     slices_destroyed = true;
+    /* Don't actually delete slices - static string objects may still
+       reference chunks in them. Memory is reclaimed on process exit. */
 }
 
 bool ls_storage_is_destroyed()
@@ -960,20 +957,21 @@ void lString32::free()
         ::free(pchunk->buf32);
     }
 #if (LDOM_USE_OWN_MEM_MAN == 1)
-
-    for (int i=slices_count-1; i>=0; --i)
-    {
-        if (slices[i]->free_chunk32(pchunk))
-            return;
+    if (!ls_storage_is_destroyed()) {
+        for (int i=slices_count-1; i>=0; --i)
+        {
+            if (slices[i]->free_chunk32(pchunk))
+                return;
+        }
+        crFatalError(); // wrong pointer!!!
     }
-    crFatalError(); // wrong pointer!!!
 #else
     ::free(pchunk);
 #endif
     pchunk = nullptr;
 }
 
-void lString32::alloc(int sz)
+void lString32::alloc(size_type sz)
 {
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     pchunk = lstring_chunk_t::alloc();
@@ -1417,8 +1415,10 @@ lString32 & lString32::insert(size_type p0, const lString32 & str)
         p0 = pchunk->len;
     int count = str.length();
     reserve( pchunk->len+count );
-    for (size_type i=pchunk->len-1; i>=p0; i--)
-        pchunk->buf32[i+count] = pchunk->buf32[i];
+    for (size_type i=pchunk->len + count - 1; i>= p0 + count  ; i--)
+        pchunk->buf32[i] = pchunk->buf32[i - count];
+    // for (size_type i=pchunk->len-1; i>=p0; i--)
+    //     pchunk->buf32[i+count] = pchunk->buf32[i];
     _lStr_memcpy(pchunk->buf32 + p0, str.c_str(), count);
     pchunk->len += count;
     pchunk->buf32[pchunk->len] = 0;
@@ -1783,19 +1783,21 @@ void lString16::free()
         ::free(pchunk->buf16);
     }
 #if (LDOM_USE_OWN_MEM_MAN == 1)
-    for (int i=slices_count-1; i>=0; --i)
-    {
-        if (slices[i]->free_chunk16(pchunk))
-            return;
+    if (!ls_storage_is_destroyed()) {
+        for (int i=slices_count-1; i>=0; --i)
+        {
+            if (slices[i]->free_chunk16(pchunk))
+                return;
+        }
+        crFatalError(); // wrong pointer!!!
     }
-    crFatalError(); // wrong pointer!!!
 #else
     ::free(pchunk);
 #endif
     pchunk = nullptr;
 }
 
-void lString16::alloc(int sz)
+void lString16::alloc(size_type sz)
 {
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     pchunk = lstring_chunk_t::alloc();
@@ -2226,8 +2228,10 @@ lString16 & lString16::insert(size_type p0, const value_type * str)
         p0 = pchunk->len;
     int count = lStr_len(str);
     reserve( pchunk->len+count );
-    for (size_type i=pchunk->len+count; i>p0; i--)
-        pchunk->buf16[i] = pchunk->buf16[i-1];
+    for (size_type i=pchunk->len + count - 1; i>= p0 + count  ; i--)
+        pchunk->buf16[i] = pchunk->buf16[i - count];
+    //for (size_type i=pchunk->len+count; i>p0; i--)
+    //    pchunk->buf16[i] = pchunk->buf16[i-1];
     _lStr_memcpy(pchunk->buf16 + p0, str, count);
     pchunk->len += count;
     pchunk->buf16[pchunk->len] = 0;
@@ -2239,8 +2243,10 @@ lString16 & lString16::insert(size_type p0, const value_type * str, size_type co
     if (p0>pchunk->len)
         p0 = pchunk->len;
     reserve( pchunk->len+count );
-    for (size_type i=pchunk->len+count; i>p0; i--)
-        pchunk->buf16[i] = pchunk->buf16[i-1];
+    for (size_type i=pchunk->len + count - 1; i>= p0 + count  ; i--)
+        pchunk->buf16[i] = pchunk->buf16[i - count];
+    // for (size_type i=pchunk->len+count; i>p0; i--)
+    //     pchunk->buf16[i] = pchunk->buf16[i-1];
     _lStr_memcpy(pchunk->buf16 + p0, str, count);
     pchunk->len += count;
     pchunk->buf16[pchunk->len] = 0;
@@ -2252,8 +2258,10 @@ lString16 & lString16::insert(size_type p0, size_type count, value_type ch)
     if (p0>pchunk->len)
         p0 = pchunk->len;
     reserve( pchunk->len+count );
-    for (size_type i=pchunk->len+count; i>p0; i--)
-        pchunk->buf16[i] = pchunk->buf16[i-1];
+    for (size_type i=pchunk->len + count - 1; i>= p0 + count  ; i--)
+        pchunk->buf16[i] = pchunk->buf16[i - count];
+    // for (size_type i=pchunk->len+count; i>p0; i--)
+    //     pchunk->buf16[i] = pchunk->buf16[i-1];
     _lStr_memset(pchunk->buf16+p0, ch, count);
     pchunk->len += count;
     pchunk->buf16[pchunk->len] = 0;
@@ -2266,8 +2274,10 @@ lString16 & lString16::insert(size_type p0, const lString16 & str)
         p0 = pchunk->len;
     int count = str.length();
     reserve( pchunk->len+count );
-    for (size_type i=pchunk->len+count; i>p0; i--)
-        pchunk->buf16[i] = pchunk->buf16[i-1];
+    for (size_type i=pchunk->len + count - 1; i>= p0 + count  ; i--)
+        pchunk->buf16[i] = pchunk->buf16[i - count];
+    // for (size_type i=pchunk->len+count; i>p0; i--)
+    //     pchunk->buf16[i] = pchunk->buf16[i-1];
     _lStr_memcpy(pchunk->buf16 + p0, str.c_str(), count);
     pchunk->len += count;
     pchunk->buf16[pchunk->len] = 0;
@@ -2479,19 +2489,21 @@ void lString8::free()
         ::free(pchunk->buf8);
     }
 #if (LDOM_USE_OWN_MEM_MAN == 1)
-    for (int i=slices_count-1; i>=0; --i)
-    {
-        if (slices[i]->free_chunk(pchunk))
-            return;
+    if (!ls_storage_is_destroyed()) {
+        for (int i=slices_count-1; i>=0; --i)
+        {
+            if (slices[i]->free_chunk(pchunk))
+                return;
+        }
+        crFatalError(); // wrong pointer!!!
     }
-    crFatalError(); // wrong pointer!!!
 #else
     ::free(pchunk);
 #endif
     pchunk = nullptr;
 }
 
-void lString8::alloc(int sz)
+void lString8::alloc(size_type sz)
 {
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     pchunk = lstring_chunk_t::alloc();
@@ -2941,11 +2953,18 @@ lString8 & lString8::append(size_type count, lChar8 ch)
 
 lString8 & lString8::insert(size_type p0, size_type count, lChar8 ch)
 {
-    if (p0>pchunk->len)
+    if (count == 0) {
+        return *this;
+    }
+    if (p0 > pchunk->len)
         p0 = pchunk->len;
-    reserve( pchunk->len+count );
-    for (size_type i=pchunk->len-1; i>=p0; i--)
-        pchunk->buf8[i+count] = pchunk->buf8[i];
+    reserve( pchunk->len + count );
+    // mindst
+    // p0 + count
+    for (size_type i=pchunk->len + count - 1; i>= p0 + count  ; i--)
+        pchunk->buf8[i] = pchunk->buf8[i - count];
+    // for (size_type i=pchunk->len-1; i>=p0; i--)
+    //     pchunk->buf8[i+count] = pchunk->buf8[i];
     //_lStr_memset(pchunk->buf8+p0, ch, count);
     memset(pchunk->buf8+p0, ch, count);
     pchunk->len += count;

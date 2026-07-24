@@ -4,12 +4,20 @@
 #include "../crengine/include/lvstring8collection.h"
 #include "../crengine/include/lvstring32collection.h"
 #include "stringtest.h"
-
-static int test_errors = 0;
-#define TCHECK(cond) do { if (!(cond)) { printf("FAIL line %d: %s\n", __LINE__, #cond); test_errors++; } } while(0)
+#include "lvstring2.h"
 
 #define CHECKBUF_(file, line) check_ls_storage(file ":" #line)
 #define CHECKBUF CHECKBUF_(__FILE__, __LINE__)
+static int test_errors = 0;
+#define TCHECK(cond) do { CHECKBUF; if (!(cond)) { printf("FAIL line %d: %s\n", __LINE__, #cond); test_errors++; } } while(0)
+
+
+class TempStringHolder8 {
+  public:
+    lString8 data;
+    TempStringHolder8(const lString8 & s) : data(s) { }
+    ~TempStringHolder8() = default;
+};
 
 void testStrings8_16() {
     printf("=== MIX lString8 tests ===\n");
@@ -24,6 +32,24 @@ void testStrings8_16() {
     lString8 s8_cstr("hello");
     TCHECK(s8_cstr.length() == 5);
     TCHECK(s8_cstr == "hello");
+
+    TempStringHolder8 s8_str_hld1(s8_cstr);
+    TempStringHolder8 s8_str_hld2(s8_cstr + "bla bla");
+    TempStringHolder8 s8_str_hld3(s8_cstr + "bla bla" + s8_str_hld1.data);
+
+    {
+        lString8 face((const char*)"serifExtraCondensed");
+        lString8 style8((const char*)"italic");
+        style8.lowercase();
+        if (style8.pos("extracondensed") >= 0)
+            face << " ExtraCondensed";
+        else if (style8.pos("semicondensed") >= 0)
+            face << " SemiCondensed";
+        else if (style8.pos("condensed") >= 0)
+            face << " Condensed";
+        TempStringHolder8 fontFace(face);
+    }
+
 
     lString8 s8_fragment("hello world", 5);
     TCHECK(s8_fragment == "hello");
@@ -1117,7 +1143,14 @@ void testStringsMixed() {
 
 }
 
+bool test_newstring_only = true;
+
 void testStrings() {
+    lv::test_lstring2();
+
+    if (test_newstring_only) {
+        return;
+    }
 
     testStrings8_16();
     testStrings8();
@@ -1137,60 +1170,71 @@ void testStringCollections() {
         lString8Collection list;
         {
             lString8 s {"test_s_1"};
-            assert(s == "test_s_1");
+            TCHECK(s == "test_s_1");
             list.add(s);
-            assert(s == "test_s_1");
+            TCHECK(s == "test_s_1");
         }
         {
             lString8 s {"test_s_2"};
-            assert(s == "test_s_2");
+            s << "_less";
+            TCHECK(s == "test_s_2");
             list.add(s);
-            assert(s == "test_s_2");
+            TCHECK(s == "test_s_2");
+            TCHECK(s.pos("_s") != 0);
+            s << "_more";
+            s << "_more";
         }
     }
     {
         lString8Collection list;
         {
             lString8 s {"test_s_3"};
-            assert(s == "test_s_3");
+            TCHECK(s == "test_s_3");
             list.add(s);
-            assert(s == "test_s_3");
+            TCHECK(s == "test_s_3");
+            TCHECK(s.pos("_s") != 0);
         }
         {
             lString8 s {"test_s_4"};
-            assert(s == "test_s_4");
+            TCHECK(s == "test_s_4");
             list.add(s);
-            assert(s == "test_s_4");
+            TCHECK(s == "test_s_4");
+            TCHECK(s.pos("_s") != 0);
         }
     }
     {
         lString32Collection list;
         {
             lString32 s {U"test_s_5"};
-            assert(s == "test_s_5");
+            TCHECK(s == "test_s_5");
             list.add(s);
-            assert(s == "test_s_5");
+            TCHECK(s == "test_s_5");
+            TCHECK(s.pos("_s") != 0);
         }
-        {
-            lString32 s {U"test_s_5"};
-            assert(s == "test_s_5");
-            list.add(s);
-            assert(s == "test_s_5");
-        }
+        lString32 s {U"test_s_5"};
+        TCHECK(s == "test_s_5");
+        list.add(s);
+        TCHECK(s.pos("_s") != 0);
+        TCHECK(s == "test_s_5");
     }
 
     for (int sz = 1; sz < 1000; sz++) {
         lString8Collection list;
         for (int i = 0; i < sz; i++) {
             lString8 s {"String8"};
+            lString8 s2 {"tail"};
+            TCHECK(s.pos("ing") != 0);
             list.add(s);
+            list.add(s + s2);
+            list.add(s + "tails");
         }
     }
     for (int sz = 1; sz < 1000; sz++) {
         lString32Collection list;
         for (int i = 0; i < sz; i++) {
             lString32 s {U"String32"};
-            list.add(s);
+            TCHECK(s.pos("ing") != 0);
+            list.add(s + s);
         }
     }
 }
