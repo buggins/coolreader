@@ -487,6 +487,43 @@ void test_lstring8() {
     p_ld[0] = 'A';
     TCHECK(s_lock_data2 == "Aefore");
     TCHECK(s_lock_data == "before");
+
+           // --- firstChar() / lastChar() on non-empty string ---
+    lString8 s_fl {"abc"};
+    TCHECK(s_fl.firstChar() == 'a');
+    TCHECK(s_fl.lastChar() == 'c');
+
+           // --- firstChar() / lastChar() on single-char string ---
+    lString8 s_one2 {"x"};
+    TCHECK(s_one2.firstChar() == 'x');
+    TCHECK(s_one2.lastChar() == 'x');
+
+           // --- firstChar() / lastChar() on empty string ---
+    lString8 s_empty_fl;
+    TCHECK(s_empty_fl.firstChar() == 0);
+    TCHECK(s_empty_fl.lastChar() == 0);
+
+           // --- firstChar() / lastChar() on shared string ---
+    lString8 s_fl_shared {"shared"};
+    lString8 s_fl_copy = s_fl_shared;
+    TCHECK(s_fl_shared.firstChar() == 's');
+    TCHECK(s_fl_shared.lastChar() == 'd');
+    TCHECK(s_fl_copy.firstChar() == 's');
+    TCHECK(s_fl_copy.lastChar() == 'd');
+
+           // --- firstChar() / lastChar() after modification ---
+    lString8 s_fl_mod {"hello"};
+    char * p_fl = s_fl_mod.data();
+    p_fl[0] = 'H';
+    p_fl[4] = 'O';
+    TCHECK(s_fl_mod.firstChar() == 'H');
+    TCHECK(s_fl_mod.lastChar() == 'O');
+
+           // --- firstChar() / lastChar() with embedded null ---
+    lString8 s_fl_null {"ab\0cd", 5, 5};
+    TCHECK(s_fl_null.firstChar() == 'a');
+    TCHECK(s_fl_null.lastChar() == 'd');
+    TCHECK(s_fl_null.length() == 5);
 }
 
 void test_lstring2() {

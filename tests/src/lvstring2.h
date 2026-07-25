@@ -717,6 +717,24 @@ public:
     /// returns maximum number of chars that can fit into buffer (there is always additional one char space for trailing 0 which is not counted)
     size_type   capacity() const noexcept { return pchunk==nullptr ? 0 : pchunk->size; }
 
+    /// returns last character from string, or 0 for empty string
+    char_type lastChar() const noexcept {
+        if (pchunk && pchunk->len) {
+            return pchunk->buf[pchunk->len-1];
+        } else {
+            return 0;
+        }
+    }
+
+    /// returns first character from string, or 0 for empty string
+    char_type firstChar() const noexcept {
+        if (pchunk && pchunk->len) {
+            return pchunk->buf[0];
+        } else {
+            return 0;
+        }
+    }
+
 private:
     chunk_t * pchunk {nullptr};
 };
