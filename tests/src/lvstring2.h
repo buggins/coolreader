@@ -94,7 +94,7 @@ inline int str_cmp_nonempty(const char_type * s1, size_type sz1, const char_type
             return (i < sz2) ? -1 : 0;
         } else if (i >= sz2) {
             // s2 not yet ended
-            return 1;
+            return 0;
         }
         if (s1[i] < s2[i]) {
             return -1;
@@ -296,7 +296,11 @@ public:
         }
     }
     explicit string(const char_type* s) noexcept {
-        pchunk = chunk_t::alloc(s, str_len<char_type, size_type>(s), 0);
+        if (s != nullptr && *s) {
+            pchunk = chunk_t::alloc(s, str_len<char_type, size_type>(s), 0);
+        } else {
+            pchunk = nullptr;
+        }
     }
     /// copy constructor
     string(const string&s) noexcept {
@@ -318,11 +322,13 @@ public:
     /// move assignment
     string& operator = (string&& s) noexcept {
         LS_COUNT_MOVE_ASSIGN
-        if (pchunk != nullptr) {
-            intrusive_ptr_release(pchunk);
+        if (this != &s) {
+            if (pchunk != nullptr) {
+                intrusive_ptr_release(pchunk);
+            }
+            pchunk = s.pchunk;
+            s.pchunk = nullptr;
         }
-        pchunk = s.pchunk;
-        s.pchunk = nullptr;
         return *this;
     }
     /// copy assignment
@@ -333,29 +339,30 @@ public:
     /// move assignment
     string& assign(string&& s) noexcept {
         LS_COUNT_MOVE_ASSIGN
-        if (pchunk != nullptr) {
-            intrusive_ptr_release(pchunk);
+        if (this != &s) {
+            if (pchunk != nullptr) {
+                intrusive_ptr_release(pchunk);
+            }
+            pchunk = s.pchunk;
+            s.pchunk = nullptr;
         }
-        pchunk = s.pchunk;
-        s.pchunk = nullptr;
         return *this;
     }
 
     /// copy assignment
     string& assign(const string& s) noexcept {
         LS_COUNT_COPY_ASSIGN
-        if (&s == this) {
+        if (&s == this || pchunk == s.pchunk) {
             // safe self assignment: do nothing
             return *this;
         }
         if (pchunk != nullptr) {
             // ignore self-assignment
-            if (pchunk != s.pchunk) {
-                intrusive_ptr_release(pchunk);
-                if (pchunk) {
-                    // assigned non-empty string
-                    intrusive_ptr_add_ref(pchunk);
-                }
+            intrusive_ptr_release(pchunk);
+            pchunk = s.pchunk;
+            if (pchunk) {
+                // assigned non-empty string
+                intrusive_ptr_add_ref(pchunk);
             }
         } else {
             // this string is null
@@ -445,6 +452,10 @@ public:
 
     /// compare this string with another string, returns -1 if this < s, 1 if this > s, 0 if equal
     int compare(const string& s) const noexcept {
+        if (pchunk == s.pchunk) {
+            // same string
+            return 0;
+        }
         size_t sz1 = length();
         size_t sz2 = s.length();
         if (sz1 == 0) {
