@@ -1012,6 +1012,109 @@ void test_lstring8() {
     TCHECK(s_pack_copy == "shared");
     TCHECK(s_pack_copy.capacity() < 100);
     TCHECK(s_pack_shared == "shared");
+
+           // --- replace(pos, n, char*, count) normal ---
+    lString8 s_rep1 {"hello world"};
+    s_rep1.replace(6, 5, "earth", 5);
+    TCHECK(s_rep1 == "hello earth");
+
+           // --- replace(pos, n, char*, count) longer replacement ---
+    lString8 s_rep2 {"abc"};
+    s_rep2.replace(1, 1, "XYZ", 3);
+    TCHECK(s_rep2 == "aXYZc");
+    TCHECK(s_rep2.length() == 5);
+
+           // --- replace(pos, n, char*, count) shorter replacement ---
+    lString8 s_rep3 {"hello world"};
+    s_rep3.replace(6, 5, "there", 5);
+    TCHECK(s_rep3 == "hello there");
+
+           // --- replace(pos, n, char*, count) n=0 (insert) ---
+    lString8 s_rep4 {"ab"};
+    s_rep4.replace(1, 0, "X", 1);
+    TCHECK(s_rep4 == "aXb");
+
+           // --- replace(pos, n, char*, count) pos beyond length ---
+    lString8 s_rep5 {"ab"};
+    s_rep5.replace(100, 5, "X", 1);
+    TCHECK(s_rep5 == "abX");
+
+           // --- replace(pos, n, char*, count) n exceeds remaining ---
+    lString8 s_rep6 {"hello"};
+    s_rep6.replace(3, 100, "X", 1);
+    TCHECK(s_rep6 == "helX");
+
+           // --- replace(pos, n, char*, count) on shared string ---
+    lString8 s_rep7 {"shared"};
+    lString8 s_rep7_copy = s_rep7;
+    s_rep7_copy.replace(0, 6, "new", 3);
+    TCHECK(s_rep7_copy == "new");
+    TCHECK(s_rep7 == "shared");
+
+           // --- replace(pos, n, char*) ---
+    lString8 s_rep8 {"hello world"};
+    s_rep8.replace(6, 5, "earth");
+    TCHECK(s_rep8 == "hello earth");
+
+           // --- replace(pos, n, char*) with nullptr ---
+    lString8 s_rep9 {"test"};
+    s_rep9.replace(1, 2, nullptr);
+    TCHECK(s_rep9 == "test");
+
+           // --- replace(pos, n, string&) ---
+    lString8 s_rep10 {"hello world"};
+    lString8 s_rep10_src {"earth"};
+    s_rep10.replace(6, 5, s_rep10_src);
+    TCHECK(s_rep10 == "hello earth");
+
+           // --- replace(pos, n, string&) self-replace ---
+    lString8 s_rep11 {"abcde"};
+    s_rep11.replace(1, 3, s_rep11);
+    TCHECK(s_rep11 == "aabcdee");
+
+           // --- replace(pos, n, string&, offset, count) ---
+    lString8 s_rep12 {"hello world"};
+    lString8 s_rep12_src {"abcdefgh"};
+    s_rep12.replace(6, 5, s_rep12_src, 2, 3);
+    TCHECK(s_rep12 == "hello cde");
+
+           // --- replace(pos, n, string&, offset, count) offset beyond ---
+    lString8 s_rep13 {"test"};
+    lString8 s_rep13_src {"abc"};
+    s_rep13.replace(1, 2, s_rep13_src, 100, 5);
+    TCHECK(s_rep13 == "test");
+
+           // --- replace(pos, n, count, char) ---
+    lString8 s_rep14 {"hello world"};
+    s_rep14.replace(6, 5, 5, 'X');
+    TCHECK(s_rep14 == "hello XXXXX");
+
+           // --- replace(pos, n, count, char) longer ---
+    lString8 s_rep15 {"abc"};
+    s_rep15.replace(1, 1, 3, 'X');
+    TCHECK(s_rep15 == "aXXXc");
+
+           // --- replace(char, char) ---
+    lString8 s_rep16 {"hello world"};
+    s_rep16.replace('l', 'L');
+    TCHECK(s_rep16 == "heLLo worLd");
+
+           // --- replace(char, char) no match ---
+    lString8 s_rep17 {"hello"};
+    s_rep17.replace('z', 'Z');
+    TCHECK(s_rep17 == "hello");
+
+           // --- replace(char, char) on shared string ---
+    lString8 s_rep18 {"abcabc"};
+    lString8 s_rep18_copy = s_rep18;
+    s_rep18_copy.replace('a', 'X');
+    TCHECK(s_rep18_copy == "XbcXbc");
+    TCHECK(s_rep18 == "abcabc");
+
+           // --- replace(char, char) empty string ---
+    lString8 s_rep19;
+    s_rep19.replace('a', 'b');
+    TCHECK(s_rep19.empty());
 }
 
 void test_lstring2() {

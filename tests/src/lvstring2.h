@@ -947,6 +947,190 @@ public:
         return *this;
     }
 
+    /// replace part of string with count chars from char*
+    string& replace(size_type pos, size_type n, const char_type * s, size_type count) noexcept {
+        if (!count) {
+            return *this;
+        }
+        if (empty()) {
+            return assign(s, count);
+        } else {
+            // need to modify
+            size_type old_len = pchunk->len;
+            if (pos > old_len) {
+                pos = old_len;
+            }
+            if (pos + n > old_len) {
+                n = old_len - pos;
+            }
+            if (!n) {
+                // delegate to insert
+                return insert(pos, s, count);
+            }
+            if (pos == old_len) {
+                // use append
+                return append(s, count);
+            }
+            size_type new_len = old_len + count - n;
+            size_type tail_len = old_len - (pos + n);
+            if (new_len > pchunk->size || pchunk->getRefCount() != 1) {
+                // need to create copy -- no space or has other refs
+                chunk_t * tmp = chunk_t::alloc(pchunk->buf, new_len, new_len);
+                // move tail to the end of buffer
+                std::memmove(tmp->buf + new_len - tail_len, tmp->buf + old_len - tail_len, sizeof(char_type) * tail_len);
+                // fill gap with inserted string
+                std::memcpy(tmp->buf + pos, s, sizeof(char_type) * count);
+                // replace this string with new
+                intrusive_ptr_release(pchunk);
+                pchunk = tmp;
+            } else {
+                // may edit in-place
+                // move tail to the end of buffer
+                std::memmove(pchunk->buf + new_len - tail_len, pchunk->buf + old_len - tail_len, sizeof(char_type) * tail_len);
+                // fill gap with inserted string
+                std::memcpy(pchunk->buf + pos, s, sizeof(char_type) * count);
+            }
+            // update length
+            pchunk->len = new_len;
+            pchunk->buf[new_len] = 0;
+            return *this;
+        }
+    }
+
+    /// replace part of string with count chars from char*
+    string& replace(size_type pos, size_type n, size_type count, char_type c) noexcept {
+        if (!count) {
+            // nothing to insert
+            return *this;
+        }
+        if (empty()) {
+            return append(count, c);
+        } else {
+            // need to modify
+            size_type old_len = pchunk->len;
+            if (pos > old_len) {
+                pos = old_len;
+            }
+            if (pos + n > old_len) {
+                n = old_len - pos;
+            }
+            if (!n) {
+                // delegate to insert
+                return insert(pos, count, c);
+            }
+            if (pos == old_len) {
+                // use append
+                return append(count, c);
+            }
+            size_type new_len = old_len + count - n;
+            size_type tail_len = old_len - (pos + n);
+            if (new_len > pchunk->size || pchunk->getRefCount() != 1) {
+                // need to create copy -- no space or has other refs
+                chunk_t * tmp = chunk_t::alloc(pchunk->buf, new_len, new_len);
+                // move tail to the end of buffer
+                std::memmove(tmp->buf + new_len - tail_len, tmp->buf + old_len - tail_len, sizeof(char_type) * tail_len);
+                // fill gap with inserted string
+                for (size_type i = 0; i < count; i++) {
+                    tmp->buf[pos + i] = c;
+                }
+                // replace this string with new
+                intrusive_ptr_release(pchunk);
+                pchunk = tmp;
+            } else {
+                // may edit in-place
+                // move tail to the end of buffer
+                std::memmove(pchunk->buf + new_len - tail_len, pchunk->buf + old_len - tail_len, sizeof(char_type) * tail_len);
+                // fill gap with inserted string
+                for (size_type i = 0; i < count; i++) {
+                    pchunk->buf[pos + i] = c;
+                }
+            }
+            // update length
+            pchunk->len = new_len;
+            pchunk->buf[new_len] = 0;
+            return *this;
+        }
+    }
+
+    /// replace part of string with count chars from char*
+    string& replace(size_type pos, size_type n, const char_type * s) noexcept {
+        if (!s || !*s) {
+            // nothing to insert
+            return *this;
+        }
+        size_type count = str_len<char_type, size_type>(s);
+        return replace(pos, n, s, count);
+    }
+
+    /// replace part of string with count chars from char*
+    string& replace(size_type pos, size_type n, const string& s) noexcept {
+        if (s.empty()) {
+            // nothing to insert
+            return *this;
+        }
+        return replace(pos, n, s.pchunk->buf, s.pchunk->len);
+    }
+
+    /// replace part of string with count chars from char*
+    string& replace(size_type pos, size_type n, const string& s, size_type offset, size_type count) noexcept {
+        if (s.empty()) {
+            // nothing to insert
+            return *this;
+        }
+        size_type s_len = s.pchunk->len;
+        if (offset >= s_len) {
+            // source data indexes outside source string bounds
+            return *this;
+        }
+        // ensure source range is inside string - truncate if needed
+        if (offset + count > s_len) {
+            count = s_len - offset;
+        }
+        return replace(pos, n, s.pchunk->buf + offset, count);
+    }
+
+    /// replace all occurences of character replaceWhat with character replaceTo
+    string& replace(char_type replaceWhat, char_type replaceTo) noexcept {
+        if (empty()) {
+            // nothing to replace
+            return *this;
+        }
+        size_type len = pchunk->len;
+        char_type * buf = pchunk->buf;
+        for (size_type i = 0; i < len; i++) {
+            if (buf[i] == replaceWhat) {
+                // first match found: replace is needed
+                if (pchunk->getRefCount() == 1) {
+                    // own buffer : replace in-place
+                    buf[i++] = replaceTo;
+                    while (i < len) {
+                        if (buf[i] == replaceWhat) {
+                            buf[i] = replaceTo;
+                        }
+                        i++;
+                    }
+                } else {
+                    // need to create a copy
+                    chunk_t * tmp = chunk_t::alloc(pchunk->buf, pchunk->len, pchunk->len);
+                    // switch to new buffer
+                    buf = tmp->buf;
+                    // replace first char
+                    buf[i++] = replaceTo;
+                    while (i < len) {
+                        if (buf[i] == replaceWhat) {
+                            buf[i] = replaceTo;
+                        }
+                        i++;
+                    }
+                    intrusive_ptr_release(pchunk);
+                    pchunk = tmp;
+                }
+                break;
+            }
+        }
+        return *this;
+    }
+
     /// return C-style null-terminated string pointer
     const char_type * c_str() const noexcept {
         if (pchunk == nullptr) {
