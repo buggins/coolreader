@@ -94,7 +94,7 @@ inline int str_cmp_nonempty(const char_type * s1, size_type sz1, const char_type
             return (i < sz2) ? -1 : 0;
         } else if (i >= sz2) {
             // s2 not yet ended
-            return 0;
+            return 1;
         }
         if (s1[i] < s2[i]) {
             return -1;
@@ -504,14 +504,84 @@ public:
             // same string
             return 0;
         }
-        size_t sz1 = length();
-        size_t sz2 = s.length();
+        size_type sz1 = length();
+        size_type sz2 = s.length();
         if (sz1 == 0) {
             return sz2 > 0 ? -1 : 0;
         } else if (sz2 == 0) {
             return 1;
         }
         return str_cmp_nonempty<char_type, size_type>(pchunk->buf, sz1, s.pchunk->buf, sz2);
+    }
+
+    /// compare substring (pos..pos+n) of this string with another string, returns -1 if this < s, 1 if this > s, 0 if equal
+    int compare(size_type pos, size_type n, const string& s) const noexcept {
+        if (!pchunk || pos >= pchunk->len) {
+            // this string fragment is empty
+            return s.empty() ? 0 : -1;
+        }
+        // clamp this fragment size
+        if (pos + n > pchunk->len) {
+            n = pchunk->len - pos;
+        }
+        // n > 0
+        size_type sz2 = s.length();
+        if (sz2 == 0) {
+            return 1;
+        }
+        return str_cmp_nonempty<char_type, size_type>(pchunk->buf + pos, n, s.pchunk->buf, sz2);
+    }
+
+    /// compare substring (pos..pos+n) of this string with substring of another string (pos2..pos2+n2), returns -1 if this < s, 1 if this > s, 0 if equal
+    int compare(size_type pos, size_type n, const string& s, size_type pos2, size_type n2) const noexcept {
+        // check if another string fragment is empty
+        bool s_empty = (!s.pchunk || pos2 >= s.pchunk->len);
+        if (!pchunk || pos >= pchunk->len) {
+            // this string fragment is empty
+            return s_empty ? 0 : -1;
+        }
+        if (s_empty) {
+            // this string non-empty, another string is empty
+            return 1;
+        }
+        // both string fragments are non-empty
+        // clamp this fragment size
+        if (pos + n > pchunk->len) {
+            n = pchunk->len - pos;
+        }
+        // clamp other fragment size
+        if (pos2 + n2 > s.pchunk->len) {
+            n2 = s.pchunk->len - pos2;
+        }
+        // n > 0, n2 > 0
+        return str_cmp_nonempty<char_type, size_type>(pchunk->buf + pos, n, s.pchunk->buf, n2);
+    }
+
+    /// compare substring (pos..pos+n) of this string with substring of another string s of len n2, returns -1 if this < s, 1 if this > s, 0 if equal
+    int compare(size_type pos, size_type n, const char_type * s, size_type n2) const noexcept {
+        // check if another string fragment is empty
+        bool s_empty = !s || !n2;
+        if (!pchunk || pos >= pchunk->len) {
+            // this string fragment is empty
+            return s_empty ? 0 : -1;
+        }
+        if (s_empty) {
+            // this string non-empty, another string is empty
+            return 1;
+        }
+        // both string fragments are non-empty
+        // clamp this fragment size
+        if (pos + n > pchunk->len) {
+            n = pchunk->len - pos;
+        }
+        // n > 0, n2 > 0
+        return str_cmp_nonempty<char_type, size_type>(pchunk->buf + pos, n, s, n2);
+    }
+
+    /// compare substring (pos..pos+n) of this string with another string s, returns -1 if this < s, 1 if this > s, 0 if equal
+    int compare(size_type pos, size_type n, const char_type * s) const noexcept {
+        size_type n2 = (!s) ? 0 : str_len<char_type, size_type>(s);
+        return compare(pos, n, s, n2);
     }
 
     /// compare this string with string literal, returns -1 if this < s, 1 if this > s, 0 if equal

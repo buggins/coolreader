@@ -1115,6 +1115,62 @@ void test_lstring8() {
     lString8 s_rep19;
     s_rep19.replace('a', 'b');
     TCHECK(s_rep19.empty());
+
+           // --- compare(pos, n, string&) ---
+    lString8 s_cmp1 {"hello world"};
+    lString8 s_cmp1_src {"world"};
+    TCHECK(s_cmp1.compare(6, 5, s_cmp1_src) == 0);
+    TCHECK(s_cmp1.compare(6, 5, lString8{"hello"}) > 0);  // "world" > "hello"
+    TCHECK(s_cmp1.compare(6, 5, lString8{"zebra"}) < 0);  // "world" < "zebra"
+
+           // --- compare(pos, n, string&) n exceeds bounds ---
+    TCHECK(s_cmp1.compare(6, 100, s_cmp1_src) == 0);
+
+           // --- compare(pos, n, string&) pos beyond length ---
+    TCHECK(s_cmp1.compare(100, 5, lString8{"x"}) < 0);  // "" < "x"
+
+           // --- compare(pos, n, string&, pos2, n2) ---
+    lString8 s_cmp2 {"abcdef"};
+    lString8 s_cmp2_src {"xyzbcdefg"};
+    TCHECK(s_cmp2.compare(1, 4, s_cmp2_src, 3, 4) == 0);  // "bcde" == "bcde"
+    TCHECK(s_cmp2.compare(1, 4, s_cmp2_src, 3, 3) > 0);   // "bcde" > "bcd"
+    TCHECK(s_cmp2.compare(1, 3, s_cmp2_src, 3, 4) < 0);   // "bcd" < "bcde"
+
+           // --- compare(pos, n, string&, pos2, n2) pos2 beyond ---
+    TCHECK(s_cmp2.compare(1, 4, s_cmp2_src, 100, 5) > 0);  // "bcde" > ""
+
+           // --- compare(pos, n, char*, n2) ---
+    TCHECK(s_cmp2.compare(1, 4, "bcde", 4) == 0);
+    TCHECK(s_cmp2.compare(1, 4, "bcd", 3) > 0);
+    TCHECK(s_cmp2.compare(1, 3, "bcde", 4) < 0);
+
+           // --- compare(pos, n, char*, n2) nullptr ---
+    TCHECK(s_cmp2.compare(1, 4, nullptr, 0) > 0);  // "bcde" > ""
+
+           // --- compare(pos, n, char*) ---
+    TCHECK(s_cmp2.compare(1, 4, "bcde") == 0);
+    TCHECK(s_cmp2.compare(1, 4, nullptr) > 0);
+    TCHECK(s_cmp2.compare(1, 4, "") > 0);
+
+           // --- compare(pos, n, char*) n exceeds bounds ---
+    TCHECK(s_cmp2.compare(1, 100, "bcde") == 0);
+
+           // --- compare(pos, n, char*) pos beyond length ---
+    TCHECK(s_cmp2.compare(100, 5, "x") < 0);
+
+           // --- compare(const char*) with nullptr ---
+    lString8 s_cmp3 {"test"};
+    TCHECK(s_cmp3.compare(nullptr) > 0);
+
+           // --- compare(const char*) with empty ---
+    TCHECK(s_cmp3.compare("") > 0);
+
+           // --- compare(const char*) equal ---
+    TCHECK(s_cmp3.compare("test") == 0);
+
+           // --- compare(const char*) less/greater ---
+    TCHECK(s_cmp3.compare("zebra") < 0);
+    TCHECK(s_cmp3.compare("abc") > 0);
 }
 
 void test_lstring2() {
