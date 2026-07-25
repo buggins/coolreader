@@ -325,6 +325,10 @@ public:
         pchunk = s.pchunk;
         intrusive_ptr_add_ref(pchunk);
     }
+    /// constructor of empty buffer with reserved size
+    string(size_type size) noexcept {
+        pchunk = chunk_t::alloc(size);
+    }
     /// move constructor
     string(string&&s ) noexcept {
         LS_COUNT_MOVE_CONSTR
