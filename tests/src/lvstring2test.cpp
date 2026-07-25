@@ -693,6 +693,175 @@ void test_lstring8() {
     s_erase_sh_all2.erase(0, 3);
     TCHECK(s_erase_sh_all2.empty());
     TCHECK(s_erase_sh_all == "abc");
+
+           // --- append(const char*) on empty string ---
+    lString8 s_app_empty;
+    s_app_empty.append("hello");
+    TCHECK(s_app_empty == "hello");
+    TCHECK(s_app_empty.length() == 5);
+
+           // --- append(const char*) on non-empty owned string ---
+    lString8 s_app_own {"hello"};
+    s_app_own.append(" world");
+    TCHECK(s_app_own == "hello world");
+    TCHECK(s_app_own.length() == 11);
+
+           // --- append(const char*) with nullptr ---
+    lString8 s_app_null {"test"};
+    s_app_null.append(nullptr);
+    TCHECK(s_app_null == "test");
+
+           // --- append(const char*) with empty string ---
+    lString8 s_app_emptystr {"test"};
+    s_app_emptystr.append("");
+    TCHECK(s_app_emptystr == "test");
+
+           // --- append(const char*, count) on empty string ---
+    lString8 s_app_fc_empty;
+    s_app_fc_empty.append("hello world", 5);
+    TCHECK(s_app_fc_empty == "hello");
+    TCHECK(s_app_fc_empty.length() == 5);
+
+           // --- append(const char*, count) with zero count ---
+    lString8 s_app_fc_zero {"test"};
+    s_app_fc_zero.append("ignored", 0);
+    TCHECK(s_app_fc_zero == "test");
+
+           // --- append(const char*, count) on shared string (COW) ---
+    lString8 s_app_fc_shared {"base"};
+    lString8 s_app_fc_copy = s_app_fc_shared;
+    s_app_fc_copy.append(" extended", 9);
+    TCHECK(s_app_fc_copy == "base extended");
+    TCHECK(s_app_fc_copy.length() == 13);
+    TCHECK(s_app_fc_shared == "base");
+
+           // --- append(const char*, count) when capacity is insufficient ---
+    lString8 s_app_fc_cap {"short"};
+    s_app_fc_cap.reserve(5);  // ensure small capacity
+    s_app_fc_cap.append(" much longer string", 19);
+    TCHECK(s_app_fc_cap == "short much longer string");
+    TCHECK(s_app_fc_cap.length() == 24);
+
+           // --- append(const char*) chaining ---
+    lString8 s_app_chain;
+    s_app_chain.append("a");
+    s_app_chain.append("b");
+    s_app_chain.append("c");
+    TCHECK(s_app_chain == "abc");
+
+           // --- append(const char*, count) self-append ---
+    lString8 s_app_self {"ab"};
+    s_app_self.append(s_app_self.c_str(), 2);
+    TCHECK(s_app_self == "abab");
+
+           // --- append(const string&) on empty string ---
+    lString8 s_app_s_empty;
+    lString8 s_app_s_src {"hello"};
+    s_app_s_empty.append(s_app_s_src);
+    TCHECK(s_app_s_empty == "hello");
+
+           // --- append(const string&) on non-empty string ---
+    lString8 s_app_s_own {"hello "};
+    s_app_s_own.append(s_app_s_src);
+    TCHECK(s_app_s_own == "hello hello");
+
+           // --- append(const string&) with empty source ---
+    lString8 s_app_s_empty_src;
+    lString8 s_app_s_nochange {"test"};
+    s_app_s_nochange.append(s_app_s_empty_src);
+    TCHECK(s_app_s_nochange == "test");
+
+           // --- append(const string&) self-append ---
+    lString8 s_app_s_self {"ab"};
+    s_app_s_self.append(s_app_s_self);
+    TCHECK(s_app_s_self == "abab");
+
+           // --- append(const string&) self-append multiple times ---
+    lString8 s_app_s_multi {"x"};
+    s_app_s_multi.append(s_app_s_multi);
+    TCHECK(s_app_s_multi == "xx");
+    s_app_s_multi.append(s_app_s_multi);
+    TCHECK(s_app_s_multi == "xxxx");
+
+           // --- append(const string&) with insufficient capacity ---
+    lString8 s_app_s_cap {"short"};
+    s_app_s_cap.reserve(5);
+    lString8 s_app_s_long {" much longer string"};
+    s_app_s_cap.append(s_app_s_long);
+    TCHECK(s_app_s_cap == "short much longer string");
+
+           // --- append(const string&, offset, count) normal ---
+    lString8 s_app_sf_src {"hello world"};
+    lString8 s_app_sf {"start "};
+    s_app_sf.append(s_app_sf_src, 6, 5);
+    TCHECK(s_app_sf == "start world");
+
+           // --- append(const string&, offset, count) self-append ---
+    lString8 s_app_sf_self {"abcd"};
+    s_app_sf_self.append(s_app_sf_self, 0, 4);
+    TCHECK(s_app_sf_self == "abcdabcd");
+
+           // --- append(const string&, offset, count) self-append fragment ---
+    lString8 s_app_sf_self2 {"abcd"};
+    s_app_sf_self2.append(s_app_sf_self2, 1, 2);
+    TCHECK(s_app_sf_self2 == "abcdbc");
+
+           // --- append(const string&, offset, count) count exceeds remaining ---
+    lString8 s_app_sf_clamp {"hello"};
+    lString8 s_app_sf_clap {"start"};
+    s_app_sf_clap.append(s_app_sf_clamp, 3, 100);
+    TCHECK(s_app_sf_clap == "startlo");
+
+           // --- append(const string&, offset, count) offset beyond length ---
+    lString8 s_app_sf_off {"hello"};
+    lString8 s_app_sf_off2 {"start"};
+    s_app_sf_off2.append(s_app_sf_off, 100, 5);
+    TCHECK(s_app_sf_off2 == "start");
+
+           // --- append(const string&, offset, count) empty source ---
+    lString8 s_app_sf_empty;
+    lString8 s_app_sf_empty2 {"test"};
+    s_app_sf_empty2.append(s_app_sf_empty, 0, 5);
+    TCHECK(s_app_sf_empty2 == "test");
+
+           // --- append(count, char) on empty string ---
+    lString8 s_app_cc_empty;
+    s_app_cc_empty.append(5, 'x');
+    TCHECK(s_app_cc_empty == "xxxxx");
+    TCHECK(s_app_cc_empty.length() == 5);
+
+           // --- append(count, char) on owned string with capacity ---
+    lString8 s_app_cc_cap {"ab"};
+    s_app_cc_cap.reserve(10);
+    s_app_cc_cap.append(3, 'c');
+    TCHECK(s_app_cc_cap == "abccc");
+    TCHECK(s_app_cc_cap.length() == 5);
+
+           // --- append(count, char) on owned string without capacity ---
+    lString8 s_app_cc_nocap {"ab"};
+    s_app_cc_nocap.append(5, 'z');
+    TCHECK(s_app_cc_nocap == "abzzzzz");
+    TCHECK(s_app_cc_nocap.length() == 7);
+
+           // --- append(count, char) on shared string ---
+    lString8 s_app_cc_shared {"base"};
+    lString8 s_app_cc_copy = s_app_cc_shared;
+    s_app_cc_copy.append(3, '!');
+    TCHECK(s_app_cc_copy == "base!!!");
+    TCHECK(s_app_cc_shared == "base");
+
+           // --- append(count, char) with zero count ---
+    lString8 s_app_cc_zero {"test"};
+    s_app_cc_zero.append(0, 'x');
+    TCHECK(s_app_cc_zero == "test");
+
+           // --- append(count, char) with null char ---
+    lString8 s_app_cc_null {"ab"};
+    s_app_cc_null.append(2, '\0');
+    TCHECK(s_app_cc_null.length() == 4);
+    TCHECK(s_app_cc_null[2] == 0);
+    TCHECK(s_app_cc_null[3] == 0);
+    TCHECK(s_app_cc_null.c_str()[0] == 'a');
 }
 
 void test_lstring2() {

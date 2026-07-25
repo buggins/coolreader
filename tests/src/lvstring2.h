@@ -686,7 +686,7 @@ public:
     }
 
     /// erases fragment from string; if requested fragment exceeds string bounds, it's size is truncated
-    void erase(size_type offset, size_type count) {
+    void erase(size_type offset, size_type count) noexcept {
         if (pchunk && offset < pchunk->len && count) {
             if (offset + count > pchunk->len) {
                 // truncate requested erased fragment size to not exceed bounds
@@ -717,6 +717,101 @@ public:
             pchunk->len = new_len;
             pchunk->buf[pchunk->len] = 0;
         }
+    }
+
+    /// append fragment from null-terminated string; no validation of input string is performed
+    string& append(const char_type* s, size_type count) noexcept {
+        if (count) {
+            if (!pchunk) {
+                pchunk = chunk_t::alloc(s, count, count);
+            } else {
+                size_type new_len = pchunk->len + count;
+                if (pchunk->getRefCount() != 1 || pchunk->size < new_len) {
+                    // need new buffer: either shared or not enough capacity
+                    // if s points to our own buffer, save data before releasing
+                    bool self_append = (s == pchunk->buf);
+                    chunk_t * tmp = chunk_t::alloc(pchunk->buf, pchunk->len, new_len);
+                    if (self_append) {
+                        // s was our old buffer, now freed; copy from the new tmp which has the old data
+                        std::memcpy(tmp->buf + tmp->len, tmp->buf, sizeof(char_type) * count);
+                    } else {
+                        std::memcpy(tmp->buf + tmp->len, s, sizeof(char_type) * count);
+                    }
+                    tmp->len = new_len;
+                    tmp->buf[new_len] = 0;
+                    intrusive_ptr_release(pchunk);
+                    pchunk = tmp;
+                } else {
+                    std::memmove(pchunk->buf + pchunk->len, s, sizeof(char_type) * count);
+                    pchunk->len = new_len;
+                    pchunk->buf[new_len] = 0;
+                }
+            }
+        }
+        return *this;
+    }
+
+    /// append null-terminated string
+    string& append(const char_type* s) noexcept {
+        if (!s || !*s) {
+            return *this;
+        }
+        size_type count = str_len<char_type, size_type>(s);
+        if (count) {
+            append(s, count);
+        }
+        return *this;
+    }
+
+    /// append another string
+    string& append(const string& s) noexcept {
+        if (!s.empty()) {
+            return append(s.pchunk->buf, s.pchunk->len);
+        }
+        return *this;
+    }
+
+    /// append fragment of another string
+    string& append(const string& s, size_type offset, size_type count) noexcept {
+        if (!s.empty() && offset < s.pchunk->len) {
+            if (offset + count > s.pchunk->len) {
+                count = s.pchunk->len - offset;
+            }
+            return append(s.pchunk->buf + offset, count);
+        }
+        return *this;
+    }
+
+    /// append one or more characters
+    string& append(size_type count, char_type c) noexcept {
+        if (pchunk) {
+            size_type new_len = pchunk->len + count;
+            if (pchunk->getRefCount() != 1 || pchunk->size < new_len) {
+                chunk_t * tmp = chunk_t::alloc(pchunk->buf, pchunk->len, new_len);
+                for (size_type i = 0; i < count; i++) {
+                    tmp->buf[pchunk->len + i] = c;
+                }
+                tmp->len = new_len;
+                tmp->buf[new_len] = 0;
+                intrusive_ptr_release(pchunk);
+                pchunk = tmp;
+            } else {
+                // own buffer with enough capacity
+                for (size_type i = 0; i < count; i++) {
+                    pchunk->buf[pchunk->len + i] = c;
+                }
+                pchunk->buf[new_len] = 0;
+            }
+        } else {
+            // appending to empty string
+            pchunk = chunk_t::alloc(count);
+            for (size_type i = 0; i < count; i++) {
+                pchunk->buf[i] = c;
+            }
+            pchunk->len = count;
+            pchunk->buf[count] = 0;
+        }
+        return *this;
     }
 
     /// return C-style null-terminated string pointer
