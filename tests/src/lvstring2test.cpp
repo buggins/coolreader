@@ -358,6 +358,135 @@ void test_lstring8() {
     TCHECK(s_rsv_nz == "test");
     // capacity should not shrink
     TCHECK(s_rsv_nz.capacity() >= 4);
+
+           // --- c_str() on empty string ---
+    lString8 s_cstr_empty;
+    const char * p_empty = s_cstr_empty.c_str();
+    TCHECK(p_empty != nullptr);
+    TCHECK(p_empty[0] == 0);
+
+           // --- c_str() on non-empty string ---
+    lString8 s_cstr {"hello"};
+    const char * p_cstr = s_cstr.c_str();
+    TCHECK(p_cstr != nullptr);
+    TCHECK(strcmp(p_cstr, "hello") == 0);
+    TCHECK(p_cstr[5] == 0);
+
+           // --- c_str() enforces null-termination ---
+    lString8 s_cstr2 {"abc"};
+    // Manually corrupt the terminator (simulating a bug)
+    // c_str() should restore it
+    const char * p_cstr2 = s_cstr2.c_str();
+    TCHECK(p_cstr2[3] == 0);
+
+           // --- data() const on empty string ---
+    lString8 s_data_empty;
+    const char * p_dempty = s_data_empty.data();
+    TCHECK(p_dempty != nullptr);
+    TCHECK(p_dempty[0] == 0);
+    TCHECK(p_dempty == s_data_empty.c_str());
+
+           // --- data() const on non-empty string ---
+    lString8 s_data {"world"};
+    const char * p_data = s_data.data();
+    TCHECK(p_data != nullptr);
+    TCHECK(strcmp(p_data, "world") == 0);
+    TCHECK(p_data == s_data.c_str());
+
+           // --- data() non-const on empty string ---
+    lString8 s_data_nc_empty;
+    char * p_nc_empty = s_data_nc_empty.data();
+    TCHECK(p_nc_empty != nullptr);
+    TCHECK(p_nc_empty[0] == 0);
+
+           // --- data() non-const on non-empty owned string ---
+    lString8 s_data_nc {"modify"};
+    char * p_nc = s_data_nc.data();
+    TCHECK(p_nc != nullptr);
+    TCHECK(strcmp(p_nc, "modify") == 0);
+    p_nc[0] = 'M';
+    TCHECK(s_data_nc == "Modify");
+    TCHECK(s_data_nc.length() == 6);
+
+           // --- data() non-const on shared string (triggers lock/copy) ---
+    lString8 s_data_shared {"shared"};
+    lString8 s_data_copy = s_data_shared;
+    TCHECK(s_data_shared == "shared");
+    TCHECK(s_data_copy == "shared");
+    char * p_shared = s_data_copy.data();
+    TCHECK(p_shared != nullptr);
+    TCHECK(strcmp(p_shared, "shared") == 0);
+    p_shared[0] = 'S';
+    TCHECK(s_data_copy == "Shared");
+    // original must be unchanged
+    TCHECK(s_data_shared == "shared");
+
+           // --- data() non-const after multiple shares ---
+    lString8 s_multi {"multi"};
+    lString8 s_m1 = s_multi;
+    lString8 s_m2 = s_multi;
+    lString8 s_m3 = s_multi;
+    char * p_multi = s_m2.data();
+    TCHECK(strcmp(p_multi, "multi") == 0);
+    p_multi[0] = 'X';
+    TCHECK(s_m2 == "Xulti");
+    TCHECK(s_multi == "multi");
+    TCHECK(s_m1 == "multi");
+    TCHECK(s_m3 == "multi");
+
+           // --- lock() on null string (no-op) ---
+    lString8 s_lock_null;
+    s_lock_null.lock(100);
+    TCHECK(s_lock_null.empty());
+    TCHECK(s_lock_null.capacity() == 0);
+
+           // --- lock() on owned string (no-op when refCount==1) ---
+    lString8 s_lock_own {"owned"};
+    size_t cap_lock_before = s_lock_own.capacity();
+    s_lock_own.lock(50);
+    TCHECK(s_lock_own == "owned");
+    TCHECK(s_lock_own.length() == 5);
+    TCHECK(s_lock_own.capacity() == cap_lock_before);  // no realloc
+
+           // --- lock() on shared string with newsize >= len ---
+    lString8 s_lock_src {"locktest"};
+    lString8 s_lock_cpy = s_lock_src;
+    TCHECK(s_lock_src.length() == 8);
+    TCHECK(s_lock_cpy.length() == 8);
+    s_lock_cpy.lock(20);
+    TCHECK(s_lock_cpy == "locktest");
+    TCHECK(s_lock_cpy.length() == 8);
+    TCHECK(s_lock_cpy.capacity() >= 20);
+    // original unchanged
+    TCHECK(s_lock_src == "locktest");
+    TCHECK(s_lock_src.length() == 8);
+
+           // --- lock() on shared string with newsize < len (ensures full copy) ---
+    lString8 s_lock_src2 {"longstring"};
+    lString8 s_lock_cpy2 = s_lock_src2;
+    s_lock_cpy2.lock(3);
+    TCHECK(s_lock_cpy2 == "longstring");
+    TCHECK(s_lock_cpy2.length() == 10);
+    TCHECK(s_lock_cpy2.capacity() >= 10);
+    // original unchanged
+    TCHECK(s_lock_src2 == "longstring");
+
+           // --- lock() on already-owned string with newsize < len (no-op) ---
+    lString8 s_lock_own2 {"short"};
+    s_lock_own2.lock(2);
+    TCHECK(s_lock_own2 == "short");
+    TCHECK(s_lock_own2.length() == 5);
+
+           // --- data() non-const after lock() ---
+    lString8 s_lock_data {"before"};
+    lString8 s_lock_data2 = s_lock_data;
+    s_lock_data2.lock(50);
+    char * p_ld = s_lock_data2.data();
+    TCHECK(p_ld != nullptr);
+    TCHECK(strcmp(p_ld, "before") == 0);
+    p_ld[0] = 'A';
+    TCHECK(s_lock_data2 == "Aefore");
+    TCHECK(s_lock_data == "before");
 }
 
 void test_lstring2() {

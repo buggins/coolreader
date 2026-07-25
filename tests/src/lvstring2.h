@@ -637,6 +637,75 @@ public:
         }
     }
 
+    /// return C-style null-terminated string pointer
+    const char_type * c_str() const noexcept {
+        if (pchunk == nullptr) {
+            return reinterpret_cast<const char_type *>(&fake_null_buffer_32);
+        } else {
+            // enforce null-termination
+            const_cast<chunk_t*>(pchunk)->buf[pchunk->len] = 0;
+            return pchunk->buf;
+        }
+    }
+
+    /// return C-style null-terminated string pointer
+    const char_type * data() const noexcept {
+        return c_str();
+    }
+
+    /// return modifable C-style null-terminated string pointer; for empty string returns pointer to fake empty z-string buffer
+    char_type * data() noexcept {
+        if (pchunk == nullptr) {
+            return reinterpret_cast<char_type *>(&fake_null_buffer_32);
+        } else {
+            lock(pchunk->len);
+            // enforce null-termination
+            const_cast<chunk_t*>(pchunk)->buf[pchunk->len] = 0;
+            return pchunk->buf;
+        }
+        return pchunk->buf;
+    }
+
+    /// ensures that reference count is 1; if string is null or we own it, do nothing
+    void lock( size_type newsize ) noexcept {
+        if (pchunk) {
+            // string is not null
+            if (pchunk->getRefCount() != 1) {
+                // if we don't own string, make a copy
+                if (newsize < pchunk->len) {
+                    // ensure all chars from old string were copied
+                    newsize = pchunk->len;
+                }
+                chunk_t * tmp = chunk_t::alloc(newsize);
+                tmp->len = pchunk->len;
+                std::memcpy(tmp->buf, pchunk->buf, tmp->len);
+                tmp->buf[tmp->len] = 0;
+                intrusive_ptr_release(pchunk);
+                pchunk = tmp;
+            }
+        }
+    }
+
+    /// returns pointer to modifable string buffer
+    char_type * modify() noexcept {
+        if (!pchunk) {
+            // allocate small buffer
+            pchunk = chunk_t::alloc(8);
+        } else {
+            // non-empty string
+            // string is not null
+            if (pchunk->getRefCount() != 1) {
+                chunk_t * tmp = chunk_t::alloc(pchunk->len);
+                tmp->len = pchunk->len;
+                std::memcpy(tmp->buf, pchunk->buf, tmp->len);
+                tmp->buf[tmp->len] = 0;
+                intrusive_ptr_release(pchunk);
+                pchunk = tmp;
+            }
+        }
+        return pchunk->buf;
+    }
+
     /// returns true if string is empty
     bool empty() const noexcept { return pchunk == nullptr || pchunk->len==0; }
     /// returns character count
