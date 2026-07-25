@@ -685,6 +685,40 @@ public:
         }
     }
 
+    /// erases fragment from string; if requested fragment exceeds string bounds, it's size is truncated
+    void erase(size_type offset, size_type count) {
+        if (pchunk && offset < pchunk->len && count) {
+            if (offset + count > pchunk->len) {
+                // truncate requested erased fragment size to not exceed bounds
+                count = pchunk->len - offset;
+            }
+            size_type new_len = pchunk->len - count;
+            size_type tail_start = offset + count;
+            size_type tail_len = pchunk->len - tail_start;
+            if (pchunk->getRefCount() == 1) {
+                // erase inplace
+                if (tail_len) {
+                    std::memmove(pchunk->buf + offset, pchunk->buf + tail_start, sizeof(char_type) * tail_len);
+                }
+            } else {
+                // create a copy with fragment erased
+                chunk_t * tmp = chunk_t::alloc(new_len);
+                if (offset) {
+                    // something left in beginning of string
+                    std::memcpy(tmp->buf, pchunk->buf, sizeof(char_type) * offset);
+                }
+                if (tail_len) {
+                    std::memcpy(tmp->buf + offset, pchunk->buf + tail_start, sizeof(char_type) * tail_len);
+                }
+                // free old ref and use copy
+                intrusive_ptr_release(pchunk);
+                pchunk = tmp;
+            }
+            pchunk->len = new_len;
+            pchunk->buf[pchunk->len] = 0;
+        }
+    }
+
     /// return C-style null-terminated string pointer
     const char_type * c_str() const noexcept {
         if (pchunk == nullptr) {

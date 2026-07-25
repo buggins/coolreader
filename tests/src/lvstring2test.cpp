@@ -613,6 +613,86 @@ void test_lstring8() {
     char * p_mod2 = s_mod_chain.modify();
     p_mod2[1] = 'H';
     TCHECK(s_mod_chain == "CHain");
+
+           // --- erase() from middle of owned string ---
+    lString8 s_erase_mid {"hello world"};
+    s_erase_mid.erase(5, 6);
+    TCHECK(s_erase_mid == "hello");
+    TCHECK(s_erase_mid.length() == 5);
+
+           // --- erase() from beginning of owned string ---
+    lString8 s_erase_beg {"hello world"};
+    s_erase_beg.erase(0, 6);
+    TCHECK(s_erase_beg == "world");
+    TCHECK(s_erase_beg.length() == 5);
+
+           // --- erase() from end of owned string ---
+    lString8 s_erase_end {"hello world"};
+    s_erase_end.erase(5, 100);
+    TCHECK(s_erase_end == "hello");
+    TCHECK(s_erase_end.length() == 5);
+
+           // --- erase() entire string ---
+    lString8 s_erase_all {"abc"};
+    s_erase_all.erase(0, 3);
+    TCHECK(s_erase_all.empty());
+    TCHECK(s_erase_all.length() == 0);
+
+           // --- erase() with zero count (no-op) ---
+    lString8 s_erase_zero {"nochange"};
+    s_erase_zero.erase(2, 0);
+    TCHECK(s_erase_zero == "nochange");
+
+           // --- erase() with offset beyond length (no-op) ---
+    lString8 s_erase_off {"short"};
+    s_erase_off.erase(100, 5);
+    TCHECK(s_erase_off == "short");
+
+           // --- erase() on empty string (no-op) ---
+    lString8 s_erase_empty;
+    s_erase_empty.erase(0, 5);
+    TCHECK(s_erase_empty.empty());
+
+           // --- erase() on shared string (triggers COW copy) ---
+    lString8 s_erase_shared {"abcdef"};
+    lString8 s_erase_copy = s_erase_shared;
+    s_erase_copy.erase(2, 2);
+    TCHECK(s_erase_copy == "abef");
+    TCHECK(s_erase_copy.length() == 4);
+    // original unchanged
+    TCHECK(s_erase_shared == "abcdef");
+    TCHECK(s_erase_shared.length() == 6);
+
+           // --- erase() single char from middle ---
+    lString8 s_erase_one {"abcde"};
+    s_erase_one.erase(2, 1);
+    TCHECK(s_erase_one == "abde");
+
+           // --- erase() with overlapping tail (memmove test) ---
+    lString8 s_erase_overlap {"0123456789"};
+    s_erase_overlap.erase(0, 5);
+    TCHECK(s_erase_overlap == "56789");
+
+           // --- erase() on shared string, erasing from beginning ---
+    lString8 s_erase_sh_beg {"hello world"};
+    lString8 s_erase_sh_beg2 = s_erase_sh_beg;
+    s_erase_sh_beg2.erase(0, 6);
+    TCHECK(s_erase_sh_beg2 == "world");
+    TCHECK(s_erase_sh_beg == "hello world");
+
+           // --- erase() on shared string, erasing from end ---
+    lString8 s_erase_sh_end {"hello world"};
+    lString8 s_erase_sh_end2 = s_erase_sh_end;
+    s_erase_sh_end2.erase(5, 6);
+    TCHECK(s_erase_sh_end2 == "hello");
+    TCHECK(s_erase_sh_end == "hello world");
+
+           // --- erase() on shared string, erasing entire content ---
+    lString8 s_erase_sh_all {"abc"};
+    lString8 s_erase_sh_all2 = s_erase_sh_all;
+    s_erase_sh_all2.erase(0, 3);
+    TCHECK(s_erase_sh_all2.empty());
+    TCHECK(s_erase_sh_all == "abc");
 }
 
 void test_lstring2() {
