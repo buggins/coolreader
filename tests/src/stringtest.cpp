@@ -4,13 +4,19 @@
 #include "../crengine/include/lvstring8collection.h"
 #include "../crengine/include/lvstring32collection.h"
 #include "stringtest.h"
-#include "lvstring2.h"
+#include "lvstring2test.h"
 
+#if (LDOM_USE_OWN_MEM_MAN==1)
 #define CHECKBUF_(file, line) check_ls_storage(file ":" #line)
 #define CHECKBUF CHECKBUF_(__FILE__, __LINE__)
-static int test_errors = 0;
-#define TCHECK(cond) do { CHECKBUF; if (!(cond)) { printf("FAIL line %d: %s\n", __LINE__, #cond); test_errors++; } } while(0)
+#endif
 
+static int test_errors = 0;
+#if (LDOM_USE_OWN_MEM_MAN==1)
+#define TCHECK(cond) do { CHECKBUF; if (!(cond)) { printf("FAIL line %d: %s\n", __LINE__, #cond); test_errors++; } } while(0)
+#else
+#define TCHECK(cond) do { if (!(cond)) { printf("FAIL line %d: %s\n", __LINE__, #cond); test_errors++; } } while(0)
+#endif
 
 class TempStringHolder8 {
   public:
@@ -86,8 +92,6 @@ void testStrings8_16() {
     s8_a.assign(lString8("move_assign"));
     TCHECK(s8_a == "move_assign");
 
-    CHECKBUF;
-
            // Append
     lString8 s8_app;
     s8_app.append("foo");
@@ -134,14 +138,12 @@ void testStrings8_16() {
     s8_case.lowercase();
     TCHECK(s8_case == "hello world");
 
-    CHECKBUF;
-
-           // compare
+    // compare
     TCHECK(s8_cstr.compare("hello") == 0);
     TCHECK(s8_cstr.compare("world") < 0);
     TCHECK(s8_cstr.compare("abc") > 0);
 
-           // pos / rpos
+    // pos / rpos
     lString8 s8_pos("hello world, hello");
     TCHECK(s8_pos.pos('w') == 6);
     TCHECK(s8_pos.pos("world") == 6);
@@ -149,7 +151,7 @@ void testStrings8_16() {
     TCHECK(s8_pos.rpos("hello") == 13);
     TCHECK(s8_pos.pos(lString8("hello"), 1) == 13);
 
-           // startsWith / endsWith
+    // startsWith / endsWith
     lString8 s8_sw("hello.cpp");
     TCHECK(s8_sw.startsWith("hello"));
     TCHECK(s8_sw.startsWith(lString8("hello")));
@@ -180,8 +182,6 @@ void testStrings8_16() {
            // at
     TCHECK(s8_sub2.at(0) == 'h');
     TCHECK(s8_sub2.at(10) == 'd');
-
-    CHECKBUF;
 
            // atoi
     lString8 s8_int("12345");
@@ -230,8 +230,6 @@ void testStrings8_16() {
     lString8 s8_h1("hello");
     lString8 s8_h2("hello");
     TCHECK(s8_h1.getHash() == s8_h2.getHash());
-
-    CHECKBUF;
 
            // operator <<
     lString8 s8_shift;
@@ -295,8 +293,6 @@ void testStrings8_16() {
     TCHECK(cs8_test == "static_string");
     const lString8& cs8_test2 = cs8("static_string");
     TCHECK(&cs8_test == &cs8_test2);
-
-    CHECKBUF;
 
     printf("=== MIX lString16 tests ===\n");
 
@@ -449,7 +445,6 @@ void testStrings8_16() {
     lString16 s16_added16 = s16_eq1 + u"_suffix";
     TCHECK(s16_added16 == u"equal_suffix");
 
-    CHECKBUF;
 }
 
 void testStrings8() {

@@ -22,7 +22,9 @@ ELSE()
     ADD_DEFINITIONS(-DCR3_DATA_DIR="")
 ENDIF(MAC)
 
-ADD_EXECUTABLE(cr3test ${CR3TEST_SOURCES})
+ADD_EXECUTABLE(cr3test ${CR3TEST_SOURCES}
+    src/lvstring2test.h
+    src/lvstring2test.cpp)
 SET (EXTRA_LIBS fontconfig ${STD_LIBS})
 TARGET_LINK_LIBRARIES(cr3test crengine tinydict ${EXTRA_LIBS})
 

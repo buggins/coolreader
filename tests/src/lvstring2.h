@@ -7,8 +7,11 @@
 #include <cstdlib>
 #include <cstring>
 
+#define DEBUG_TRACK_LSTRING2_ALLOC
+
 namespace lv {
 
+#ifdef DEBUG_TRACK_LSTRING2_ALLOC
 struct lStringStats {
     int allocCount {0};
     int freeCount {0};
@@ -19,12 +22,24 @@ struct lStringStats {
     void dump(const char * msg = "");
 };
 extern lStringStats ls_alloc_stats;
-#define LS_COUNT_ALLOC ls_alloc_stats.allocCount++
-#define LS_COUNT_FREE ls_alloc_stats.freeCount++
-#define LS_COUNT_COPY_CONSTR ls_alloc_stats.copyConstr++
-#define LS_COUNT_MOVE_CONSTR ls_alloc_stats.moveConstr++
-#define LS_COUNT_COPY_ASSIGN ls_alloc_stats.copyAssign++
-#define LS_COUNT_MOVE_ASSIGN ls_alloc_stats.moveAssign++
+
+#define LS_COUNT_ALLOC ls_alloc_stats.allocCount++;
+#define LS_COUNT_FREE ls_alloc_stats.freeCount++;
+#define LS_COUNT_COPY_CONSTR ls_alloc_stats.copyConstr++;
+#define LS_COUNT_MOVE_CONSTR ls_alloc_stats.moveConstr++;
+#define LS_COUNT_COPY_ASSIGN ls_alloc_stats.copyAssign++;
+#define LS_COUNT_MOVE_ASSIGN ls_alloc_stats.moveAssign++;
+
+#else
+
+#define LS_COUNT_ALLOC
+#define LS_COUNT_FREE
+#define LS_COUNT_COPY_CONSTR
+#define LS_COUNT_MOVE_CONSTR
+#define LS_COUNT_COPY_ASSIGN
+#define LS_COUNT_MOVE_ASSIGN
+
+#endif
 
 // Helper functions
 
@@ -210,7 +225,7 @@ public:
 
     /// chunk allocation function: create string buffer with reserved sz characters + zero termination char, ref counter 1
     static lstring_chunk_t * alloc(size_type sz) noexcept {
-        LS_COUNT_ALLOC;
+        LS_COUNT_ALLOC
         //lstring_chunk_t * res = static_cast<lstring_chunk_t *>( ::malloc(sizeof(lstring_chunk_t) + sizeof(char_type) * (sz + 1)) );
         //lstring_chunk_t * res = static_cast<lstring_chunk_t *>( ::malloc(sizeof(lstring_chunk_t) + sizeof(char_type) * (sz + 1)) );
         sz = alignSize(sz);
@@ -226,7 +241,7 @@ public:
 
     /// chunk allocation function: create string buffer initialized with count chars from string s with reserved sz characters + zero termination char, ref counter 1
     static lstring_chunk_t * alloc(const char_type * s, size_type count, size_type sz = 0) noexcept {
-        LS_COUNT_ALLOC;
+        LS_COUNT_ALLOC
         if (sz < count)
             sz = count;
         sz = alignSize(sz);
@@ -244,7 +259,7 @@ public:
 
     /// free chunk memory
     static void free( const lstring_chunk_t * pChunk ) noexcept {
-        LS_COUNT_FREE;
+        LS_COUNT_FREE
         ::free(const_cast<lstring_chunk_t *>(pChunk));
     }
 
@@ -265,6 +280,8 @@ private:
     char_type       buf[0];      // z-string
 };
 
+extern lChar32 fake_null_buffer_32;
+
 template <typename char_type, typename size_type, typename refcounter_type = std::atomic_int>
 class string {
     using chunk_t = lstring_chunk_t<char_type, size_type, refcounter_type>;
@@ -283,13 +300,13 @@ public:
     }
     /// copy constructor
     string(const string&s) noexcept {
-        LS_COUNT_COPY_CONSTR;
+        LS_COUNT_COPY_CONSTR
         pchunk = s.pchunk;
         intrusive_ptr_add_ref(pchunk);
     }
     /// move constructor
     string(string&&s ) noexcept {
-        LS_COUNT_MOVE_CONSTR;
+        LS_COUNT_MOVE_CONSTR
         pchunk = s.pchunk;
         s.pchunk = nullptr;
     }
@@ -300,7 +317,7 @@ public:
     }
     /// move assignment
     string& operator = (string&& s) noexcept {
-        LS_COUNT_MOVE_ASSIGN;
+        LS_COUNT_MOVE_ASSIGN
         if (pchunk != nullptr) {
             intrusive_ptr_release(pchunk);
         }
@@ -310,7 +327,23 @@ public:
     }
     /// copy assignment
     string& operator = (const string& s) noexcept {
-        LS_COUNT_COPY_ASSIGN;
+        return assign(s);
+    }
+
+    /// move assignment
+    string& assign(string&& s) noexcept {
+        LS_COUNT_MOVE_ASSIGN
+        if (pchunk != nullptr) {
+            intrusive_ptr_release(pchunk);
+        }
+        pchunk = s.pchunk;
+        s.pchunk = nullptr;
+        return *this;
+    }
+
+    /// copy assignment
+    string& assign(const string& s) noexcept {
+        LS_COUNT_COPY_ASSIGN
         if (&s == this) {
             // safe self assignment: do nothing
             return *this;
@@ -333,6 +366,81 @@ public:
             }
         }
         return *this;
+    }
+
+    /// assign from z-terminated string
+    string& operator = (const char_type * s) noexcept {
+        return assign(s);
+    }
+
+    /// assign from z-terminated string
+    string& assign(const char_type * s) noexcept {
+        if (s == nullptr || !*s) {
+            clear();
+        } else {
+            size_type count = str_len<char_type, size_type>(s);
+            if (pchunk != nullptr && pchunk->getRefCount() == 1 && pchunk->size >= count && pchunk->size / 2 < count) {
+                // reuse existing buffer
+                std::memcpy(pchunk->buf, s, count * sizeof(char_type));
+                pchunk->len = count;
+            } else {
+                // create new buffer
+                chunk_t * tmp = chunk_t::alloc(s, count, count);
+                if (pchunk) {
+                    intrusive_ptr_release(pchunk);
+                }
+                pchunk = tmp;
+            }
+        }
+    }
+
+    /// assign from char pointer and char count
+    string& assign(const char_type * s, size_type count) noexcept {
+        if (s == nullptr || !*s || count == 0) {
+            clear();
+        } else {
+            if (pchunk != nullptr && pchunk->getRefCount() == 1 && pchunk->size >= count && pchunk->size / 2 < count) {
+                // reuse existing buffer
+                std::memcpy(pchunk->buf, s, count * sizeof(char_type));
+                pchunk->len = count;
+            } else {
+                // create new buffer
+                chunk_t * tmp = chunk_t::alloc(s, count, count);
+                if (pchunk) {
+                    intrusive_ptr_release(pchunk);
+                }
+                pchunk = tmp;
+            }
+        }
+        return *this;
+    }
+
+    /// index value. No index nor empty string checks. Will crash on empty string.
+    char_type operator [] (size_type index) const noexcept {
+        return pchunk->buf[index];
+    }
+
+    /// index ref. No index nor refcount checks. Will crash on empty string. Only use on non-empy string which owns data (refcount==1).
+    char_type& operator [] (size_type index) noexcept {
+        return pchunk->buf[index];
+    }
+
+    /// index value with bounds checking. No index nor empty string checks. Will crash on empty string.
+    /// Does not throw exception on index out of bounds, returns 0 instead.
+    char_type at(size_type index) const noexcept {
+        if (pchunk == nullptr || index >= pchunk->len) {
+            return 0;
+        }
+        return pchunk->buf[index];
+    }
+
+    /// index ref. No index nor refcount checks. Will crash on empty string. Only use on non-empy string which owns data (refcount==1).
+    /// Does not throw exception on index out of bounds, returns reference pointing to static 0 value instead.
+    char_type& at(size_type index) noexcept {
+        if (pchunk == nullptr || index >= pchunk->len) {
+            return *(static_cast<char_type*>(&fake_null_buffer_32));
+        }
+        return pchunk->buf[index];
     }
 
     /// compare this string with another string, returns -1 if this < s, 1 if this > s, 0 if equal
@@ -488,7 +596,6 @@ typedef string<lChar8, lUInt32, std::atomic_int> lString8;
 typedef string<lChar16, lUInt32, std::atomic_int> lString16;
 typedef string<lChar32, lUInt32, std::atomic_int> lString32;
 
-void test_lstring2();
 
 }
 
