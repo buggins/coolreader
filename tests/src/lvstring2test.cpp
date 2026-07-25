@@ -801,61 +801,61 @@ void test_lstring8() {
     s_app_sf_self.append(s_app_sf_self, 0, 4);
     TCHECK(s_app_sf_self == "abcdabcd");
 
-           // --- append(const string&, offset, count) self-append fragment ---
+    // --- append(const string&, offset, count) self-append fragment ---
     lString8 s_app_sf_self2 {"abcd"};
     s_app_sf_self2.append(s_app_sf_self2, 1, 2);
     TCHECK(s_app_sf_self2 == "abcdbc");
 
-           // --- append(const string&, offset, count) count exceeds remaining ---
+    // --- append(const string&, offset, count) count exceeds remaining ---
     lString8 s_app_sf_clamp {"hello"};
     lString8 s_app_sf_clap {"start"};
     s_app_sf_clap.append(s_app_sf_clamp, 3, 100);
     TCHECK(s_app_sf_clap == "startlo");
 
-           // --- append(const string&, offset, count) offset beyond length ---
+    // --- append(const string&, offset, count) offset beyond length ---
     lString8 s_app_sf_off {"hello"};
     lString8 s_app_sf_off2 {"start"};
     s_app_sf_off2.append(s_app_sf_off, 100, 5);
     TCHECK(s_app_sf_off2 == "start");
 
-           // --- append(const string&, offset, count) empty source ---
+    // --- append(const string&, offset, count) empty source ---
     lString8 s_app_sf_empty;
     lString8 s_app_sf_empty2 {"test"};
     s_app_sf_empty2.append(s_app_sf_empty, 0, 5);
     TCHECK(s_app_sf_empty2 == "test");
 
-           // --- append(count, char) on empty string ---
+    // --- append(count, char) on empty string ---
     lString8 s_app_cc_empty;
     s_app_cc_empty.append(5, 'x');
     TCHECK(s_app_cc_empty == "xxxxx");
     TCHECK(s_app_cc_empty.length() == 5);
 
-           // --- append(count, char) on owned string with capacity ---
+    // --- append(count, char) on owned string with capacity ---
     lString8 s_app_cc_cap {"ab"};
     s_app_cc_cap.reserve(10);
     s_app_cc_cap.append(3, 'c');
     TCHECK(s_app_cc_cap == "abccc");
     TCHECK(s_app_cc_cap.length() == 5);
 
-           // --- append(count, char) on owned string without capacity ---
+    // --- append(count, char) on owned string without capacity ---
     lString8 s_app_cc_nocap {"ab"};
     s_app_cc_nocap.append(5, 'z');
     TCHECK(s_app_cc_nocap == "abzzzzz");
     TCHECK(s_app_cc_nocap.length() == 7);
 
-           // --- append(count, char) on shared string ---
+    // --- append(count, char) on shared string ---
     lString8 s_app_cc_shared {"base"};
     lString8 s_app_cc_copy = s_app_cc_shared;
     s_app_cc_copy.append(3, '!');
     TCHECK(s_app_cc_copy == "base!!!");
     TCHECK(s_app_cc_shared == "base");
 
-           // --- append(count, char) with zero count ---
+    // --- append(count, char) with zero count ---
     lString8 s_app_cc_zero {"test"};
     s_app_cc_zero.append(0, 'x');
     TCHECK(s_app_cc_zero == "test");
 
-           // --- append(count, char) with null char ---
+    // --- append(count, char) with null char ---
     lString8 s_app_cc_null {"ab"};
     s_app_cc_null.append(2, '\0');
     TCHECK(s_app_cc_null.length() == 4);
@@ -863,52 +863,52 @@ void test_lstring8() {
     TCHECK(s_app_cc_null[3] == 0);
     TCHECK(s_app_cc_null.c_str()[0] == 'a');
 
-           // --- insert(pos, char*, count) into empty string ---
+    // --- insert(pos, char*, count) into empty string ---
     lString8 s_ins_empty;
     s_ins_empty.insert(0, "hello", 5);
     TCHECK(s_ins_empty == "hello");
     TCHECK(s_ins_empty.length() == 5);
 
-           // --- insert(pos, char*, count) at beginning ---
+    // --- insert(pos, char*, count) at beginning ---
     lString8 s_ins_beg {"world"};
     s_ins_beg.insert(0, "hello ", 6);
     TCHECK(s_ins_beg == "hello world");
 
-           // --- insert(pos, char*, count) in middle ---
+    // --- insert(pos, char*, count) in middle ---
     lString8 s_ins_mid {"helloworld"};
     s_ins_mid.insert(5, " ", 1);
     TCHECK(s_ins_mid == "hello world");
 
-           // --- insert(pos, char*, count) at end ---
+    // --- insert(pos, char*, count) at end ---
     lString8 s_ins_end {"hello"};
     s_ins_end.insert(5, " world", 6);
     TCHECK(s_ins_end == "hello world");
 
-           // --- insert(pos, char*, count) with pos beyond length ---
+    // --- insert(pos, char*, count) with pos beyond length ---
     lString8 s_ins_off {"abc"};
     s_ins_off.insert(100, "xyz", 3);
     TCHECK(s_ins_off == "abcxyz");
 
-           // --- insert(pos, char*, count) with zero count ---
+    // --- insert(pos, char*, count) with zero count ---
     lString8 s_ins_zero {"test"};
     s_ins_zero.insert(2, "ignored", 0);
     TCHECK(s_ins_zero == "test");
 
-           // --- insert(pos, char*, count) on shared string ---
+    // --- insert(pos, char*, count) on shared string ---
     lString8 s_ins_shared {"base"};
     lString8 s_ins_copy = s_ins_shared;
     s_ins_copy.insert(2, "XX", 2);
     TCHECK(s_ins_copy == "baXXse");
     TCHECK(s_ins_shared == "base");
 
-           // --- insert(pos, char*, count) with insufficient capacity ---
+    // --- insert(pos, char*, count) with insufficient capacity ---
     lString8 s_ins_cap {"ab"};
     s_ins_cap.reserve(2);
-    s_ins_cap.insert(1, " much longer", 12);
+    s_ins_cap.insert(1, " much longer ", 13);
     TCHECK(s_ins_cap == "a much longer b");
-    TCHECK(s_ins_cap.length() == 14);
+    TCHECK(s_ins_cap.length() == 15);
 
-           // --- insert(pos, char*) ---
+    // --- insert(pos, char*) ---
     lString8 s_ins_cstr {"helloworld"};
     s_ins_cstr.insert(5, " ");
     TCHECK(s_ins_cstr == "hello world");
@@ -926,7 +926,92 @@ void test_lstring8() {
            // --- insert(pos, char*, count) self-insert prefix ---
     lString8 s_ins_self {"abcd"};
     s_ins_self.insert(2, s_ins_self.c_str(), 2);
-    TCHECK(s_ins_self == "ababcdcd");
+    TCHECK(s_ins_self == "ababcd");
+
+           // --- insert(pos, string&) ---
+    lString8 s_ins_str {"helloworld"};
+    lString8 s_ins_str_src {" "};
+    s_ins_str.insert(5, s_ins_str_src);
+    TCHECK(s_ins_str == "hello world");
+
+           // --- insert(pos, string&) with empty source ---
+    lString8 s_ins_str_empty {"test"};
+    lString8 s_ins_str_empty_src;
+    s_ins_str_empty.insert(2, s_ins_str_empty_src);
+    TCHECK(s_ins_str_empty == "test");
+
+           // --- insert(pos, string&) self-insert ---
+    lString8 s_ins_str_self {"ab"};
+    s_ins_str_self.insert(1, s_ins_str_self);
+    TCHECK(s_ins_str_self == "aabb");
+
+           // --- insert(pos, count, char) on empty string ---
+    lString8 s_ins_cc_empty;
+    s_ins_cc_empty.insert(0, 5, 'x');
+    TCHECK(s_ins_cc_empty == "xxxxx");
+
+           // --- insert(pos, count, char) in middle ---
+    lString8 s_ins_cc_mid {"ab"};
+    s_ins_cc_mid.insert(1, 3, '-');
+    TCHECK(s_ins_cc_mid == "a---b");
+
+           // --- insert(pos, count, char) at end ---
+    lString8 s_ins_cc_end {"ab"};
+    s_ins_cc_end.insert(2, 3, '!');
+    TCHECK(s_ins_cc_end == "ab!!!");
+
+           // --- insert(pos, count, char) pos beyond length ---
+    lString8 s_ins_cc_off {"ab"};
+    s_ins_cc_off.insert(100, 2, 'z');
+    TCHECK(s_ins_cc_off == "abzz");
+
+           // --- insert(pos, count, char) zero count ---
+    lString8 s_ins_cc_zero {"test"};
+    s_ins_cc_zero.insert(2, 0, 'x');
+    TCHECK(s_ins_cc_zero == "test");
+
+           // --- insert(pos, count, char) on shared string ---
+    lString8 s_ins_cc_shared {"base"};
+    lString8 s_ins_cc_copy = s_ins_cc_shared;
+    s_ins_cc_copy.insert(2, 2, 'X');
+    TCHECK(s_ins_cc_copy == "baXXse");
+    TCHECK(s_ins_cc_shared == "base");
+
+           // --- insert(pos, count, char) with insufficient capacity ---
+    lString8 s_ins_cc_cap {"ab"};
+    s_ins_cc_cap.reserve(2);
+    s_ins_cc_cap.insert(1, 5, '-');
+    TCHECK(s_ins_cc_cap == "a-----b");
+
+    // --- pack() on string with excess capacity ---
+    lString8 s_pack {"hello"};
+    s_pack.reserve(1000);
+    TCHECK(s_pack.capacity() >= 1000);
+    s_pack.pack();
+    TCHECK(s_pack == "hello");
+    TCHECK(s_pack.length() == 5);
+    TCHECK(s_pack.capacity() < 1000);
+
+    // --- pack() on string with no excess capacity ---
+    lString8 s_pack_exact {"exact"};
+    size_t cap_before2 = s_pack_exact.capacity();
+    s_pack_exact.pack();
+    TCHECK(s_pack_exact == "exact");
+    TCHECK(s_pack_exact.capacity() == cap_before2);
+
+    // --- pack() on empty string ---
+    lString8 s_pack_empty;
+    s_pack_empty.pack();
+    TCHECK(s_pack_empty.empty());
+
+    // --- pack() on shared string ---
+    lString8 s_pack_shared {"shared"};
+    lString8 s_pack_copy = s_pack_shared;
+    s_pack_copy.reserve(100);
+    s_pack_copy.pack();
+    TCHECK(s_pack_copy == "shared");
+    TCHECK(s_pack_copy.capacity() < 100);
+    TCHECK(s_pack_shared == "shared");
 }
 
 void test_lstring2() {
