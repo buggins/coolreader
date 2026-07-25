@@ -157,7 +157,7 @@ inline int str_cmp_nonempty(const char_type * s1, const char_type * s2) {
 // String data buffer with ref count
 
 // forward declaration of string class
-template<typename char_type, typename size_type, typename refcounter_type>
+template<typename char_type, typename refcounter_type>
 class string;
 
 template <typename char_type, typename size_type, typename refcounter_type = std::atomic_int>
@@ -166,7 +166,7 @@ struct lstring_chunk_t {
     // friend class lString8;
     // friend class lString32;
     // friend struct lstring_chunk_slice_t;
-    friend class string<char_type, size_type, refcounter_type>;
+    friend class string<char_type, refcounter_type>;
 
     friend void test_lstring2_chunks();
     /// chunk allocation alignment in bytes
@@ -282,17 +282,34 @@ private:
 
 extern lChar32 fake_null_buffer_32;
 
-template <typename char_type, typename size_type, typename refcounter_type = std::atomic_int>
+template <typename char_type, typename refcounter_type = std::atomic_int>
 class string {
+public:
+    // typedefs for STL compatibility
+    typedef char_type             value_type;      ///< character type
+    typedef lUInt32               size_type;       ///< size type
+    typedef lInt32                difference_type; ///< difference type
+    typedef value_type *          pointer;         ///< pointer to char type
+    typedef value_type &          reference;       ///< reference to char type
+    typedef const value_type *    const_pointer;   ///< pointer to const char type
+    typedef const value_type &    const_reference; ///< reference to const char type
+private:
     using chunk_t = lstring_chunk_t<char_type, size_type, refcounter_type>;
 
 public:
     string() noexcept = default;
-    explicit string(const char_type* s, size_type count, size_type reserved) noexcept {
+    string(const char_type* s, size_type count, size_type reserved) noexcept {
         if (count == 0 || s == nullptr || s[0] == 0) {
             pchunk = nullptr;
         } else {
             pchunk = chunk_t::alloc(s, count, reserved);
+        }
+    }
+    string(const char_type* s, size_type count) noexcept {
+        if (count == 0 || s == nullptr || s[0] == 0) {
+            pchunk = nullptr;
+        } else {
+            pchunk = chunk_t::alloc(s, count, count);
         }
     }
     explicit string(const char_type* s) noexcept {
@@ -314,6 +331,17 @@ public:
         pchunk = s.pchunk;
         s.pchunk = nullptr;
     }
+    /// fragment constructor
+    string(const string&s, size_type offset, size_type count) noexcept {
+        if (s.pchunk && offset < s.pchunk->len) {
+            size_type avail = s.pchunk->len - offset;
+            if (count > avail) count = avail;
+            pchunk = chunk_t::alloc(s.pchunk->buf + offset, count, count);
+        } else {
+            pchunk = nullptr;
+        }
+    }
+    /// destructor - frees reference
     ~string() noexcept {
         if (pchunk != nullptr) {
             intrusive_ptr_release(pchunk);
@@ -371,6 +399,22 @@ public:
                 // assigned non-empty string
                 intrusive_ptr_add_ref(pchunk);
             }
+        }
+        return *this;
+    }
+
+    /// fragment assignment; correctly covers self-assignment; doesn't check bounds
+    string& assign(const string&s, size_type offset, size_type count) noexcept {
+        if (s.pchunk && offset < s.pchunk->len) {
+            size_type avail = s.pchunk->len - offset;
+            if (count > avail) count = avail;
+            chunk_t* tmp = chunk_t::alloc(s.pchunk->buf + offset, count, count);
+            if (pchunk) {
+                intrusive_ptr_release(pchunk);
+            }
+            pchunk = tmp;
+        } else {
+            clear();
         }
         return *this;
     }
@@ -663,7 +707,6 @@ public:
             const_cast<chunk_t*>(pchunk)->buf[pchunk->len] = 0;
             return pchunk->buf;
         }
-        return pchunk->buf;
     }
 
     /// ensures that reference count is 1; if string is null or we own it, do nothing
@@ -744,9 +787,9 @@ typedef lstring_chunk_t<lChar8, lUInt32, std::atomic_int> lstring8_chunk_t;
 typedef lstring_chunk_t<lChar16, lUInt32, std::atomic_int> lstring16_chunk_t;
 typedef lstring_chunk_t<lChar32, lUInt32, std::atomic_int> lstring32_chunk_t;
 
-typedef string<lChar8, lUInt32, std::atomic_int> lString8;
-typedef string<lChar16, lUInt32, std::atomic_int> lString16;
-typedef string<lChar32, lUInt32, std::atomic_int> lString32;
+typedef string<lChar8, std::atomic_int> lString8;
+typedef string<lChar16, std::atomic_int> lString16;
+typedef string<lChar32, std::atomic_int> lString32;
 
 
 }

@@ -524,6 +524,95 @@ void test_lstring8() {
     TCHECK(s_fl_null.firstChar() == 'a');
     TCHECK(s_fl_null.lastChar() == 'd');
     TCHECK(s_fl_null.length() == 5);
+
+           // --- Fragment constructor ---
+    lString8 s_frag_src {"hello world"};
+    lString8 s_frag {s_frag_src, 6, 5};
+    TCHECK(s_frag == "world");
+    TCHECK(s_frag.length() == 5);
+    TCHECK(s_frag.capacity() >= 5);
+
+           // --- Fragment constructor: offset beyond length ---
+    lString8 s_frag_off {s_frag_src, 100, 5};
+    TCHECK(s_frag_off.empty());
+    TCHECK(s_frag_off.length() == 0);
+
+           // --- Fragment constructor: count exceeds remaining ---
+    lString8 s_frag_cnt {s_frag_src, 6, 100};
+    TCHECK(s_frag_cnt == "world");
+    TCHECK(s_frag_cnt.length() == 5);
+
+           // --- Fragment constructor: empty source ---
+    lString8 s_frag_empty_src;
+    lString8 s_frag_empty {s_frag_empty_src, 0, 5};
+    TCHECK(s_frag_empty.empty());
+
+           // --- Fragment constructor: zero count ---
+    lString8 s_frag_zero {s_frag_src, 0, 0};
+    TCHECK(s_frag_zero.empty());
+
+           // --- Fragment assignment ---
+    lString8 s_fassign_src {"abcdef"};
+    lString8 s_fassign {"initial"};
+    s_fassign.assign(s_fassign_src, 2, 3);
+    TCHECK(s_fassign == "cde");
+    TCHECK(s_fassign.length() == 3);
+
+           // --- Fragment assignment: self-assignment ---
+    lString8 s_fassign_self {"selfassign"};
+    s_fassign_self.assign(s_fassign_self, 4, 6);
+    TCHECK(s_fassign_self == "assign");
+
+           // --- Fragment assignment: offset beyond length ---
+    lString8 s_fassign_off {"short"};
+    s_fassign_off.assign(s_fassign_off, 100, 5);
+    TCHECK(s_fassign_off.empty());
+
+           // --- Fragment assignment: count exceeds remaining ---
+    lString8 s_fassign_cnt {"hello"};
+    s_fassign_cnt.assign(s_fassign_cnt, 2, 100);
+    TCHECK(s_fassign_cnt == "llo");
+    TCHECK(s_fassign_cnt.length() == 3);
+
+           // --- Fragment assignment: empty source ---
+    lString8 s_fassign_empty_src;
+    lString8 s_fassign_empty {"notempty"};
+    s_fassign_empty.assign(s_fassign_empty_src, 0, 5);
+    TCHECK(s_fassign_empty.empty());
+
+           // --- modify() on empty string ---
+    lString8 s_mod_empty;
+    char * p_mod_empty = s_mod_empty.modify();
+    TCHECK(p_mod_empty != nullptr);
+    p_mod_empty[0] = 'H';
+    p_mod_empty[1] = 'i';
+    p_mod_empty[2] = 0;
+    TCHECK(s_mod_empty.length() == 0);  // modify doesn't change length
+    TCHECK(s_mod_empty.capacity() >= 8);
+
+           // --- modify() on owned string ---
+    lString8 s_mod_own {"owned"};
+    char * p_mod_own = s_mod_own.modify();
+    TCHECK(strcmp(p_mod_own, "owned") == 0);
+    p_mod_own[0] = 'O';
+    TCHECK(s_mod_own == "Owned");
+
+           // --- modify() on shared string (triggers copy) ---
+    lString8 s_mod_shared {"shared"};
+    lString8 s_mod_copy = s_mod_shared;
+    char * p_mod_shared = s_mod_copy.modify();
+    TCHECK(strcmp(p_mod_shared, "shared") == 0);
+    p_mod_shared[0] = 'S';
+    TCHECK(s_mod_copy == "Shared");
+    TCHECK(s_mod_shared == "shared");  // original unchanged
+
+           // --- modify() after modification ---
+    lString8 s_mod_chain {"chain"};
+    char * p_mod1 = s_mod_chain.modify();
+    p_mod1[0] = 'C';
+    char * p_mod2 = s_mod_chain.modify();
+    p_mod2[1] = 'H';
+    TCHECK(s_mod_chain == "CHain");
 }
 
 void test_lstring2() {
