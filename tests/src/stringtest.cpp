@@ -1135,10 +1135,23 @@ void testStrings32() {
 }
 
 void testStringsMixed() {
+    printf("testStringsMixed()\n");
+    // --- Resize ---
+    lString8 s_rsz {"hi"};
+    s_rsz.resize(5, 'x');
+    TCHECK(s_rsz.length() == 5);
+    TCHECK(s_rsz[2] == 'x');
+    TCHECK(s_rsz[3] == 'x');
+    TCHECK(s_rsz[4] == 'x');
+
+    // --- Resize to smaller (truncates length) ---
+    lString8 s_rsz2 {"hello world"};
+    s_rsz2.resize(3);
+    TCHECK(s_rsz2.length() == 3);
 
 }
 
-bool test_newstring_only = true;
+bool test_newstring_only = false;
 
 void testStrings() {
     lv::test_lstring2();
@@ -1146,6 +1159,8 @@ void testStrings() {
     if (test_newstring_only) {
         return;
     }
+
+    printf("test classic lStringX\n");
 
     testStrings8_16();
     testStrings8();

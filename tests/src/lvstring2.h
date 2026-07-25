@@ -563,20 +563,74 @@ public:
         }
     }
 
-    /// resize and make editable, presercing current content, preparing to modification with reserved size
+    /// ensure that this string owns buffer and it has at least size capacity
+    void reserve(size_type size) noexcept {
+        if (size == 0) {
+            // reserve(0) is a non-binding request, do nothing
+            return;
+        }
+        if (pchunk != nullptr) {
+            if (pchunk->getRefCount() == 1) {
+                // already own buffer
+                if (pchunk->size < size) {
+                    // only if size is not enough, create a bigger buffer copy
+                    chunk_t * tmp = chunk_t::alloc(size);
+                    tmp->len = pchunk->len;
+                    std::memcpy(tmp->buf, pchunk->buf, pchunk->len);
+                    tmp->buf[tmp->len] = 0;
+                    chunk_t::free(pchunk);
+                    pchunk = tmp;
+                }
+            } else {
+                // we don't own the string, need to create a copy
+                if (size < pchunk->len) {
+                    // when requested size is smaller than existing string len, ensure we will not loss chars
+                    size = pchunk->len;
+                }
+                chunk_t * tmp = chunk_t::alloc(size);
+                tmp->len = pchunk->len;
+                std::memcpy(tmp->buf, pchunk->buf, pchunk->len);
+                tmp->buf[tmp->len] = 0;
+                intrusive_ptr_release(pchunk);
+                pchunk = tmp;
+            }
+        } else {
+            // create new allocation of requested size
+            pchunk = chunk_t::alloc(size);
+            pchunk->len = 0;
+            pchunk->buf[0] = 0;
+        }
+    }
+
+    /// resize string to specified length, filling new positions with e if expanded
     void resize(size_type size, char_type e = 0) noexcept {
         if (pchunk == nullptr) {
-            // buffer is allocated and has capacity at least size
+            // empty string: allocate new buffer
             pchunk = chunk_t::alloc(size);
+            for (size_type i = 0; i < size; i++)
+                pchunk->buf[i] = e;
+            pchunk->len = size;
+            pchunk->buf[size] = 0;
         } else {
-            // this string is non-empty
+            // non-empty string
+            size_type oldlen = pchunk->len;
             if (pchunk->getRefCount() == 1 && pchunk->size >= size) {
-                // this is already our own string with enough capacity -- do nothing
+                // own buffer with enough capacity: just adjust length
+                if (size > oldlen) {
+                    for (size_type i = oldlen; i < size; i++)
+                        pchunk->buf[i] = e;
+                }
+                pchunk->len = size;
+                pchunk->buf[size] = 0;
             } else {
-                // create new object and copy existing data
-                chunk_t * tmp = chunk_t::alloc(pchunk->buf, pchunk->len, size);
-                tmp->buf[tmp->len] = 0; // zterm
-                // release old chunk and assign new one
+                // need new buffer
+                chunk_t * tmp = chunk_t::alloc(pchunk->buf, oldlen < size ? oldlen : size, size);
+                if (size > oldlen) {
+                    for (size_type i = oldlen; i < size; i++)
+                        tmp->buf[i] = e;
+                }
+                tmp->len = size;
+                tmp->buf[size] = 0;
                 intrusive_ptr_release(pchunk);
                 pchunk = tmp;
             }

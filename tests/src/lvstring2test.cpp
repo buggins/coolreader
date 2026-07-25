@@ -179,18 +179,23 @@ void test_lstring8() {
     TCHECK(s_empty.empty());
     TCHECK(s_empty.capacity() >= 50);
 
-           // --- Resize ---
+           // --- Resize (expands length, fills with char) ---
     lString8 s_rsz {"hi"};
     s_rsz.resize(5, 'x');
     TCHECK(s_rsz.length() == 5);
+    TCHECK(s_rsz[0] == 'h');
+    TCHECK(s_rsz[1] == 'i');
     TCHECK(s_rsz[2] == 'x');
     TCHECK(s_rsz[3] == 'x');
     TCHECK(s_rsz[4] == 'x');
 
-           // --- Resize to smaller (no-op if refCount==1 and capacity sufficient) ---
+           // --- Resize to smaller (truncates length) ---
     lString8 s_rsz2 {"hello world"};
     s_rsz2.resize(3);
     TCHECK(s_rsz2.length() == 3);
+    TCHECK(s_rsz2[0] == 'h');
+    TCHECK(s_rsz2[1] == 'e');
+    TCHECK(s_rsz2[2] == 'l');
 
            // --- Resize empty string ---
     lString8 s_rsz3;
@@ -295,6 +300,64 @@ void test_lstring8() {
     // s_move_src is now in moved-from state
 
     DUMP_ALLOC_STATS("after compare")
+
+           // --- Reserve on empty string ---
+    lString8 s_rsv_empty;
+    TCHECK(s_rsv_empty.empty());
+    TCHECK(s_rsv_empty.capacity() == 0);
+    s_rsv_empty.reserve(0);
+    TCHECK(s_rsv_empty.empty());
+    TCHECK(s_rsv_empty.capacity() == 0);
+
+    s_rsv_empty.reserve(100);
+    TCHECK(s_rsv_empty.empty());
+    TCHECK(s_rsv_empty.length() == 0);
+    TCHECK(s_rsv_empty.capacity() >= 100);
+
+    // --- Reserve on non-empty owned string ---
+    lString8 s_rsv_own {"hello"};
+    size_t cap_before = s_rsv_own.capacity();
+    s_rsv_own.reserve(3);
+    TCHECK(s_rsv_own.length() == 5);
+    TCHECK(s_rsv_own == "hello");
+    TCHECK(s_rsv_own.capacity() == cap_before);  // no shrink
+
+    s_rsv_own.reserve(cap_before);
+    TCHECK(s_rsv_own.capacity() == cap_before);  // exact match, no realloc
+
+    s_rsv_own.reserve(cap_before + 50);
+    TCHECK(s_rsv_own.length() == 5);
+    TCHECK(s_rsv_own == "hello");
+    TCHECK(s_rsv_own.capacity() >= cap_before + 50);
+
+    // --- Reserve on shared string (forces copy) ---
+    lString8 s_rsv_src {"shared"};
+    lString8 s_rsv_copy = s_rsv_src;
+    TCHECK(s_rsv_src.length() == 6);
+    TCHECK(s_rsv_copy.length() == 6);
+    s_rsv_copy.reserve(100);
+    TCHECK(s_rsv_copy.capacity() >= 100);
+    TCHECK(s_rsv_copy.length() == 6);
+    TCHECK(s_rsv_copy == "shared");
+    // original unchanged
+    TCHECK(s_rsv_src.length() == 6);
+    TCHECK(s_rsv_src == "shared");
+
+    // --- Reserve on shared string with requested size < len ---
+    lString8 s_rsv_src2 {"longer string"};
+    lString8 s_rsv_copy2 = s_rsv_src2;
+    s_rsv_copy2.reserve(1);
+    TCHECK(s_rsv_copy2.length() == 13);
+    TCHECK(s_rsv_copy2 == "longer string");
+    TCHECK(s_rsv_copy2.capacity() >= 13);
+
+    // --- Reserve(0) on non-empty string ---
+    lString8 s_rsv_nz {"test"};
+    s_rsv_nz.reserve(0);
+    TCHECK(s_rsv_nz.length() == 4);
+    TCHECK(s_rsv_nz == "test");
+    // capacity should not shrink
+    TCHECK(s_rsv_nz.capacity() >= 4);
 }
 
 void test_lstring2() {

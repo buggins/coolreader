@@ -2142,6 +2142,7 @@ void lString16::resize(size_type n, value_type e)
     // fill with data if expanded
     for (size_type i=pchunk->len; i<n; i++)
         pchunk->buf16[i] = e;
+    pchunk->len = n;
     pchunk->buf16[pchunk->len] = 0;
 }
 
@@ -2774,6 +2775,7 @@ void lString8::resize(size_type n, lChar8 e)
     // fill with data if expanded
     for (size_type i=pchunk->len; i<n; i++)
         pchunk->buf8[i] = e;
+    pchunk->len = n;
     pchunk->buf8[pchunk->len] = 0;
 }
 
