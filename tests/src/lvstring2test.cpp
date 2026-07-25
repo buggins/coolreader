@@ -862,6 +862,71 @@ void test_lstring8() {
     TCHECK(s_app_cc_null[2] == 0);
     TCHECK(s_app_cc_null[3] == 0);
     TCHECK(s_app_cc_null.c_str()[0] == 'a');
+
+           // --- insert(pos, char*, count) into empty string ---
+    lString8 s_ins_empty;
+    s_ins_empty.insert(0, "hello", 5);
+    TCHECK(s_ins_empty == "hello");
+    TCHECK(s_ins_empty.length() == 5);
+
+           // --- insert(pos, char*, count) at beginning ---
+    lString8 s_ins_beg {"world"};
+    s_ins_beg.insert(0, "hello ", 6);
+    TCHECK(s_ins_beg == "hello world");
+
+           // --- insert(pos, char*, count) in middle ---
+    lString8 s_ins_mid {"helloworld"};
+    s_ins_mid.insert(5, " ", 1);
+    TCHECK(s_ins_mid == "hello world");
+
+           // --- insert(pos, char*, count) at end ---
+    lString8 s_ins_end {"hello"};
+    s_ins_end.insert(5, " world", 6);
+    TCHECK(s_ins_end == "hello world");
+
+           // --- insert(pos, char*, count) with pos beyond length ---
+    lString8 s_ins_off {"abc"};
+    s_ins_off.insert(100, "xyz", 3);
+    TCHECK(s_ins_off == "abcxyz");
+
+           // --- insert(pos, char*, count) with zero count ---
+    lString8 s_ins_zero {"test"};
+    s_ins_zero.insert(2, "ignored", 0);
+    TCHECK(s_ins_zero == "test");
+
+           // --- insert(pos, char*, count) on shared string ---
+    lString8 s_ins_shared {"base"};
+    lString8 s_ins_copy = s_ins_shared;
+    s_ins_copy.insert(2, "XX", 2);
+    TCHECK(s_ins_copy == "baXXse");
+    TCHECK(s_ins_shared == "base");
+
+           // --- insert(pos, char*, count) with insufficient capacity ---
+    lString8 s_ins_cap {"ab"};
+    s_ins_cap.reserve(2);
+    s_ins_cap.insert(1, " much longer", 12);
+    TCHECK(s_ins_cap == "a much longer b");
+    TCHECK(s_ins_cap.length() == 14);
+
+           // --- insert(pos, char*) ---
+    lString8 s_ins_cstr {"helloworld"};
+    s_ins_cstr.insert(5, " ");
+    TCHECK(s_ins_cstr == "hello world");
+
+           // --- insert(pos, char*) with nullptr ---
+    lString8 s_ins_null {"test"};
+    s_ins_null.insert(2, nullptr);
+    TCHECK(s_ins_null == "test");
+
+           // --- insert(pos, char*) with empty string ---
+    lString8 s_ins_emptystr {"test"};
+    s_ins_emptystr.insert(2, "");
+    TCHECK(s_ins_emptystr == "test");
+
+           // --- insert(pos, char*, count) self-insert prefix ---
+    lString8 s_ins_self {"abcd"};
+    s_ins_self.insert(2, s_ins_self.c_str(), 2);
+    TCHECK(s_ins_self == "ababcdcd");
 }
 
 void test_lstring2() {

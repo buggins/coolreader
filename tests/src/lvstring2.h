@@ -800,6 +800,7 @@ public:
                 for (size_type i = 0; i < count; i++) {
                     pchunk->buf[pchunk->len + i] = c;
                 }
+                pchunk->len = new_len;
                 pchunk->buf[new_len] = 0;
             }
         } else {
@@ -812,6 +813,61 @@ public:
             pchunk->buf[count] = 0;
         }
         return *this;
+    }
+
+    /// insert from char* and size
+    string& insert(size_type pos, const char_type* s, size_type count) {
+        if (!count) {
+            return *this;
+        }
+        if (!pchunk) {
+            // insert into empty string
+            pchunk = chunk_t::alloc(s, count, count);
+        } else {
+            if (pos > pchunk->len) {
+                pos = pchunk->len;
+            }
+            size_type new_len = pchunk->len + count;
+            size_type tail_len = pchunk->len - pos;
+            if (pchunk->getRefCount() != 1 || new_len > pchunk->size) {
+                // create copy
+                chunk_t* tmp = chunk_t::alloc(new_len);
+                if (pos > 0) {
+                    // copy head
+                    std::memcpy(tmp->buf, pchunk->buf, sizeof(char_type) * pos);
+                }
+                // copy inserted content
+                std::memcpy(tmp->buf + pos, s, sizeof(char_type) * count);
+                // copy tail if needed
+                if (tail_len) {
+                    // copy tail
+                    std::memcpy(tmp->buf + pos + count, pchunk->buf + pos, sizeof(char_type) * tail_len);
+                }
+                tmp->len = new_len;
+                intrusive_ptr_release(pchunk);
+                pchunk = tmp;
+            } else {
+                // insert in-place
+                if (tail_len) {
+                    // move tail by count chars
+                    std::memmove(pchunk->buf + pos + count, pchunk->buf + pos, sizeof(char_type) * tail_len);
+                }
+                // copy inserted content
+                std::memcpy(pchunk->buf + pos, s, sizeof(char_type) * count);
+            }
+            pchunk->len = new_len;
+            pchunk->buf[new_len] = 0;
+        }
+        return *this;
+    }
+
+    /// insert from null-terminated cont char*
+    string& insert(size_type pos, const char_type* s) {
+        if (!s || !*s) {
+            // attempt inserting empty string
+            return *this;
+        }
+        return insert(pos, s, str_len<char_type, size_type>(s));
     }
 
     /// return C-style null-terminated string pointer
