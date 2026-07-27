@@ -1501,12 +1501,306 @@ void test_lstring8() {
 }
 
 void test_writable_refs_lString8() {
+    // --- writableRef() basic ---
     lString8 s1 {"Original string"};
     lString8 s1_copy = s1;
     TCHECK(s1 == s1_copy);
     auto& s1_wr = s1.writableRef(100);
     TCHECK(s1_wr.length() == s1_copy.length());
 
+           // --- data() const ---
+    lString8 s_data {"test"};
+    auto& s_data_wr = s_data.writableRef();
+    TCHECK(s_data_wr.data() != nullptr);
+    TCHECK(strcmp(s_data_wr.data(), "test") == 0);
+
+           // --- data() non-const ---
+    lString8 s_data_nc {"mutable"};
+    auto& s_data_nc_wr = s_data_nc.writableRef();
+    char * p_data = s_data_nc_wr.data();
+    TCHECK(p_data != nullptr);
+    p_data[0] = 'M';
+    TCHECK(s_data_nc == "Mutable");
+
+           // --- clear() ---
+    lString8 s_clear {"clear me"};
+    auto& s_clear_wr = s_clear.writableRef();
+    s_clear_wr.clear();
+    TCHECK(s_clear.empty());
+    TCHECK(s_clear.length() == 0);
+    TCHECK(s_clear.capacity() == 0);
+
+           // --- reset() ---
+    lString8 s_reset {"reset me"};
+    auto& s_reset_wr = s_reset.writableRef();
+    s_reset_wr.reset(50);
+    TCHECK(s_reset.empty());
+    TCHECK(s_reset.length() == 0);
+    TCHECK(s_reset.capacity() >= 50);
+
+           // --- reserve() ---
+    lString8 s_reserve {"reserve"};
+    auto& s_reserve_wr = s_reserve.writableRef();
+    s_reserve_wr.reserve(200);
+    TCHECK(s_reserve == "reserve");
+    TCHECK(s_reserve.capacity() >= 200);
+
+           // --- reserve() on empty ---
+    lString8 s_reserve_empty;
+    auto& s_reserve_empty_wr = s_reserve_empty.writableRef();
+    s_reserve_empty_wr.reserve(100);
+    TCHECK(s_reserve_empty.empty());
+    TCHECK(s_reserve_empty.capacity() >= 100);
+
+           // --- pack() ---
+    lString8 s_pack {"pack"};
+    auto& s_pack_wr = s_pack.writableRef();
+    s_pack_wr.reserve(500);
+    TCHECK(s_pack.capacity() >= 500);
+    auto& s_pack_str = s_pack_wr.pack();
+    TCHECK(s_pack_str == "pack");
+    TCHECK(s_pack_str.capacity() < 500);
+
+           // --- assign(ro_string_type&&) ---
+    lString8 s_assign_move {"move me"};
+    lString8 s_assign_move_src {"source"};
+    auto& s_assign_move_wr = s_assign_move.writableRef();
+    s_assign_move_wr.assign(std::move(s_assign_move_src));
+    TCHECK(s_assign_move == "source");
+    TCHECK(s_assign_move_src.empty());
+
+           // --- assign(string_wr&&) ---
+    lString8 s_assign_wr_move {"target"};
+    auto& s_assign_wr_move_wr = s_assign_wr_move.writableRef();
+    lString8 s_src {"source2"};
+    auto& s_src_wr = s_src.writableRef();
+    s_assign_wr_move_wr.assign(std::move(s_src_wr));
+    TCHECK(s_assign_wr_move == "source2");
+    TCHECK(s_src.empty());
+
+           // --- assign(ro_string_type&) ---
+    lString8 s_assign_copy {"target2"};
+    lString8 s_assign_copy_src {"copy source"};
+    auto& s_assign_copy_wr = s_assign_copy.writableRef();
+    s_assign_copy_wr.assign(s_assign_copy_src);
+    TCHECK(s_assign_copy == "copy source");
+    TCHECK(s_assign_copy_src == "copy source");
+
+           // --- assign(ro_string_type&, offset, count) ---
+    lString8 s_assign_frag {"target3"};
+    lString8 s_assign_frag_src {"abcdef"};
+    auto& s_assign_frag_wr = s_assign_frag.writableRef();
+    s_assign_frag_wr.assign(s_assign_frag_src, 1, 3);
+    TCHECK(s_assign_frag == "bcd");
+
+           // --- assign(char_type*) ---
+    lString8 s_assign_cstr {"old"};
+    auto& s_assign_cstr_wr = s_assign_cstr.writableRef();
+    s_assign_cstr_wr.assign("new string");
+    TCHECK(s_assign_cstr == "new string");
+
+           // --- assign(char_type*, count) ---
+    lString8 s_assign_cstr_cnt {"old2"};
+    auto& s_assign_cstr_cnt_wr = s_assign_cstr_cnt.writableRef();
+    s_assign_cstr_cnt_wr.assign("partial", 3);
+    TCHECK(s_assign_cstr_cnt == "par");
+
+           // --- operator=(char_type*) ---
+    lString8 s_op_eq {"old3"};
+    auto& s_op_eq_wr = s_op_eq.writableRef();
+    s_op_eq_wr = "assigned";
+    TCHECK(s_op_eq == "assigned");
+
+           // --- uppercase() ---
+    lString8 s_upper {"hello"};
+    auto& s_upper_wr = s_upper.writableRef();
+    s_upper_wr.uppercase();
+    TCHECK(s_upper == "HELLO");
+
+           // --- lowercase() ---
+    lString8 s_lower {"HELLO"};
+    auto& s_lower_wr = s_lower.writableRef();
+    s_lower_wr.lowercase();
+    TCHECK(s_lower == "hello");
+
+           // --- appendDecimal() ---
+    lString8 s_app_dec {"num: "};
+    auto& s_app_dec_wr = s_app_dec.writableRef();
+    s_app_dec_wr.appendDecimal(42);
+    TCHECK(s_app_dec == "num: 42");
+
+           // --- appendHex() ---
+    lString8 s_app_hex {"0x"};
+    auto& s_app_hex_wr = s_app_hex.writableRef();
+    s_app_hex_wr.appendHex(0xFF);
+    TCHECK(s_app_hex == "0xff");
+
+           // --- append(char_type*, count) ---
+    lString8 s_app_cnt {"hello"};
+    auto& s_app_cnt_wr = s_app_cnt.writableRef();
+    s_app_cnt_wr.append(" world", 6);
+    TCHECK(s_app_cnt == "hello world");
+
+           // --- append(char_type*) ---
+    lString8 s_app_cstr {"hello"};
+    auto& s_app_cstr_wr = s_app_cstr.writableRef();
+    s_app_cstr_wr.append(" world");
+    TCHECK(s_app_cstr == "hello world");
+
+           // --- append(string_wr&) ---
+    lString8 s_app_wr1 {"hello"};
+    lString8 s_app_wr2 {" world"};
+    auto& s_app_wr1_wr = s_app_wr1.writableRef();
+    auto& s_app_wr2_wr = s_app_wr2.writableRef();
+    s_app_wr1_wr.append(s_app_wr2_wr);
+    TCHECK(s_app_wr1 == "hello world");
+
+           // --- append(string_wr&, offset, count) ---
+    lString8 s_app_wr_off {"start"};
+    lString8 s_app_wr_off_src {"abcdef"};
+    auto& s_app_wr_off_wr = s_app_wr_off.writableRef();
+    auto& s_app_wr_off_src_wr = s_app_wr_off_src.writableRef();
+    s_app_wr_off_wr.append(s_app_wr_off_src_wr, 1, 3);
+    TCHECK(s_app_wr_off == "startbcd");
+
+           // --- append(count, char) ---
+    lString8 s_app_n {"fill:"};
+    auto& s_app_n_wr = s_app_n.writableRef();
+    s_app_n_wr.append(3, 'X');
+    TCHECK(s_app_n == "fill:XXX");
+
+           // --- operator << (char) ---
+    lString8 s_sl_ch {"a"};
+    auto& s_sl_ch_wr = s_sl_ch.writableRef();
+    s_sl_ch_wr << 'b';
+    TCHECK(s_sl_ch == "ab");
+
+           // --- operator << (c-str) ---
+    lString8 s_sl_cstr {"hello"};
+    auto& s_sl_cstr_wr = s_sl_cstr.writableRef();
+    s_sl_cstr_wr << " world";
+    TCHECK(s_sl_cstr == "hello world");
+
+           // --- operator << (string_wr) ---
+    lString8 s_sl_wr1 {"hello"};
+    lString8 s_sl_wr2 {" world"};
+    auto& s_sl_wr1_wr = s_sl_wr1.writableRef();
+    auto& s_sl_wr2_wr = s_sl_wr2.writableRef();
+    s_sl_wr1_wr << s_sl_wr2_wr;
+    TCHECK(s_sl_wr1 == "hello world");
+
+           // --- operator << (fmt::decimal) ---
+    lString8 s_sl_dec {"val:"};
+    auto& s_sl_dec_wr = s_sl_dec.writableRef();
+    s_sl_dec_wr << fmt::decimal(123);
+    TCHECK(s_sl_dec == "val:123");
+
+           // --- operator << (fmt::hex) ---
+    lString8 s_sl_hex {"0x"};
+    auto& s_sl_hex_wr = s_sl_hex.writableRef();
+    s_sl_hex_wr << fmt::hex(255);
+    TCHECK(s_sl_hex == "0xff");
+
+           // --- operator += (char) ---
+    lString8 s_plus_ch {"a"};
+    auto& s_plus_ch_wr = s_plus_ch.writableRef();
+    s_plus_ch_wr += 'b';
+    TCHECK(s_plus_ch == "ab");
+
+           // --- operator += (c-str) ---
+    lString8 s_plus_cstr {"hello"};
+    auto& s_plus_cstr_wr = s_plus_cstr.writableRef();
+    s_plus_cstr_wr += " world";
+    TCHECK(s_plus_cstr == "hello world");
+
+           // --- operator += (string_wr) ---
+    lString8 s_plus_wr1 {"hello"};
+    lString8 s_plus_wr2 {" world"};
+    auto& s_plus_wr1_wr = s_plus_wr1.writableRef();
+    auto& s_plus_wr2_wr = s_plus_wr2.writableRef();
+    s_plus_wr1_wr += s_plus_wr2_wr;
+    TCHECK(s_plus_wr1 == "hello world");
+
+           // --- operator += (fmt::decimal) ---
+    lString8 s_plus_dec {"val:"};
+    auto& s_plus_dec_wr = s_plus_dec.writableRef();
+    s_plus_dec_wr += fmt::decimal(456);
+    TCHECK(s_plus_dec == "val:456");
+
+           // --- operator += (fmt::hex) ---
+    lString8 s_plus_hex {"0x"};
+    auto& s_plus_hex_wr = s_plus_hex.writableRef();
+    s_plus_hex_wr += fmt::hex(0xAB);
+    TCHECK(s_plus_hex == "0xab");
+
+           // --- insert(char_type*, count) ---
+    lString8 s_ins_cnt {"helloworld"};
+    auto& s_ins_cnt_wr = s_ins_cnt.writableRef();
+    s_ins_cnt_wr.insert(5, " ", 1);
+    TCHECK(s_ins_cnt == "hello world");
+
+           // --- insert(char_type*) ---
+    lString8 s_ins_cstr {"helloworld"};
+    auto& s_ins_cstr_wr = s_ins_cstr.writableRef();
+    s_ins_cstr_wr.insert(5, " ");
+    TCHECK(s_ins_cstr == "hello world");
+
+           // --- insert(ro_string_type&) ---
+    lString8 s_ins_ro {"helloworld"};
+    lString8 s_ins_ro_src {" "};
+    auto& s_ins_ro_wr = s_ins_ro.writableRef();
+    s_ins_ro_wr.insert(5, s_ins_ro_src);
+    TCHECK(s_ins_ro == "hello world");
+
+           // --- insert(count, char) ---
+    lString8 s_ins_n {"helloworld"};
+    auto& s_ins_n_wr = s_ins_n.writableRef();
+    s_ins_n_wr.insert(5, 3, '-');
+    TCHECK(s_ins_n == "hello---world");
+
+           // --- replace(char_type*, count) ---
+    lString8 s_rep_cnt {"hello world"};
+    auto& s_rep_cnt_wr = s_rep_cnt.writableRef();
+    s_rep_cnt_wr.replace(6, 5, "earth", 5);
+    TCHECK(s_rep_cnt == "hello earth");
+
+           // --- replace(count, char) ---
+    lString8 s_rep_n {"hello world"};
+    auto& s_rep_n_wr = s_rep_n.writableRef();
+    s_rep_n_wr.replace(6, 5, 5, 'X');
+    TCHECK(s_rep_n == "hello XXXXX");
+
+           // --- replace(char_type*) ---
+    lString8 s_rep_cstr {"hello world"};
+    auto& s_rep_cstr_wr = s_rep_cstr.writableRef();
+    s_rep_cstr_wr.replace(6, 5, "earth");
+    TCHECK(s_rep_cstr == "hello earth");
+
+           // --- replace(ro_string_type&) ---
+    lString8 s_rep_ro {"hello world"};
+    lString8 s_rep_ro_src {"earth"};
+    auto& s_rep_ro_wr = s_rep_ro.writableRef();
+    s_rep_ro_wr.replace(6, 5, s_rep_ro_src);
+    TCHECK(s_rep_ro == "hello earth");
+
+           // --- replace(ro_string_type&, offset, count) ---
+    lString8 s_rep_ro_off {"hello world"};
+    lString8 s_rep_ro_off_src {"abcdefgh"};
+    auto& s_rep_ro_off_wr = s_rep_ro_off.writableRef();
+    s_rep_ro_off_wr.replace(6, 5, s_rep_ro_off_src, 2, 3);
+    TCHECK(s_rep_ro_off == "hello cde");
+
+           // --- replace(char, char) ---
+    lString8 s_rep_cc {"hello world"};
+    auto& s_rep_cc_wr = s_rep_cc.writableRef();
+    s_rep_cc_wr.replace('l', 'L');
+    TCHECK(s_rep_cc == "heLLo worLd");
+
+           // --- erase() ---
+    lString8 s_erase {"hello world"};
+    auto& s_erase_wr = s_erase.writableRef();
+    s_erase_wr.erase(5, 6);
+    TCHECK(s_erase == "hello");
 }
 
 void test_lstring2() {

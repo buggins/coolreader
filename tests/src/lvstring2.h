@@ -407,6 +407,8 @@ extern lChar32 fake_null_buffer_32;
 /// allows modification without reference counting checks
 template <typename char_type, typename refcounter_type = std::atomic_int>
 class string_ro {
+    friend class string_wr<char_type, refcounter_type>;
+    friend class string<char_type, refcounter_type>;
   public:
     // typedefs for STL compatibility
     typedef char_type             value_type;      ///< character type
@@ -877,8 +879,8 @@ public:
     typedef value_type &          reference;       ///< reference to char type
     typedef const value_type *    const_pointer;   ///< pointer to const char type
     typedef const value_type &    const_reference; ///< reference to const char type
-    typedef string<char_type, refcounter_type> string_type; ///< normal shared string reference type
-    typedef string<char_type, refcounter_type> string_ro_type; ///< normal shared string reference type
+    typedef string_ro<char_type, refcounter_type> ro_string_type; ///< readonly string type
+    typedef string<char_type, refcounter_type> string_type; ///< normal shared string type
 
     // constant for not found / unspecified position
     static const size_type npos = -1;
@@ -983,7 +985,7 @@ public:
     }
 
     /// move assignment - shared string
-    string_wr& assign(string_type&& s) noexcept {
+    string_wr& assign(ro_string_type&& s) noexcept {
         LS_COUNT_MOVE_ASSIGN
         if (this != &s) {
             if (pchunk != nullptr) {
@@ -1015,7 +1017,7 @@ public:
     }
 
     /// copy assignment
-    string_wr& assign(const string_type& s) noexcept {
+    string_wr& assign(const ro_string_type& s) noexcept {
         LS_COUNT_COPY_ASSIGN
         if (&s == this || pchunk == s.pchunk) {
             // safe self assignment: do nothing
@@ -1041,13 +1043,13 @@ public:
     }
 
     /// fragment assignment; correctly covers self-assignment; doesn't check bounds
-    string_wr& assign(const string_type&s, size_type offset, size_type count) noexcept {
+    string_wr& assign(const ro_string_type&s, size_type offset, size_type count) noexcept {
         if (s.pchunk && offset < s.pchunk->len) {
             size_type avail = s.pchunk->len - offset;
             if (count > avail) count = avail;
             chunk_t* tmp = chunk_t::alloc(s.pchunk->buf + offset, count, count);
             if (pchunk) {
-                intrusive_ptr_release(pchunk);
+                chunk_t::free(pchunk);
             }
             pchunk = tmp;
         } else {
@@ -1067,7 +1069,7 @@ public:
             clear();
         } else {
             size_type count = str_len<char_type, size_type>(s);
-            if (pchunk != nullptr && pchunk->isOwn() && pchunk->size >= count && pchunk->size / 2 < count) {
+            if (pchunk != nullptr && pchunk->size >= count && pchunk->size / 2 < count) {
                 // reuse existing buffer
                 std::memcpy(pchunk->buf, s, count * sizeof(char_type));
                 pchunk->len = count;
@@ -1075,11 +1077,12 @@ public:
                 // create new buffer
                 chunk_t * tmp = chunk_t::alloc(s, count, count);
                 if (pchunk) {
-                    intrusive_ptr_release(pchunk);
+                    chunk_t::free(pchunk);
                 }
                 pchunk = tmp;
             }
         }
+        return *this;
     }
 
     /// assign from char pointer and char count
@@ -1087,7 +1090,7 @@ public:
         if (s == nullptr || !*s || count == 0) {
             clear();
         } else {
-            if (pchunk != nullptr && pchunk->isOwn() && pchunk->size >= count && pchunk->size / 2 < count) {
+            if (pchunk != nullptr && pchunk->size >= count && pchunk->size / 2 < count) {
                 // reuse existing buffer
                 std::memcpy(pchunk->buf, s, count * sizeof(char_type));
                 pchunk->len = count;
@@ -1095,7 +1098,7 @@ public:
                 // create new buffer
                 chunk_t * tmp = chunk_t::alloc(s, count, count);
                 if (pchunk) {
-                    intrusive_ptr_release(pchunk);
+                    chunk_t::free(pchunk);
                 }
                 pchunk = tmp;
             }
@@ -1170,7 +1173,7 @@ public:
                 pchunk = chunk_t::alloc(s, count, count);
             } else {
                 size_type new_len = pchunk->len + count;
-                if (pchunk->isShared() || pchunk->size < new_len) {
+                if (pchunk->size < new_len) {
                     // need new buffer: either shared or not enough capacity
                     // if s points to our own buffer, save data before releasing
                     bool self_append = (s == pchunk->buf);
@@ -1183,7 +1186,7 @@ public:
                     }
                     tmp->len = new_len;
                     tmp->buf[new_len] = 0;
-                    intrusive_ptr_release(pchunk);
+                    chunk_t::free(pchunk);
                     pchunk = tmp;
                 } else {
                     std::memmove(pchunk->buf + pchunk->len, s, sizeof(char_type) * count);
@@ -1230,14 +1233,14 @@ public:
     string_wr& append(size_type count, char_type c) noexcept {
         if (pchunk) {
             size_type new_len = pchunk->len + count;
-            if (pchunk->isShared() || pchunk->size < new_len) {
+            if (pchunk->size < new_len) {
                 chunk_t * tmp = chunk_t::alloc(pchunk->buf, pchunk->len, new_len);
                 for (size_type i = 0; i < count; i++) {
                     tmp->buf[pchunk->len + i] = c;
                 }
                 tmp->len = new_len;
                 tmp->buf[new_len] = 0;
-                intrusive_ptr_release(pchunk);
+                chunk_t::free(pchunk);
                 pchunk = tmp;
             } else {
                 // own buffer with enough capacity
@@ -1281,9 +1284,312 @@ public:
     /// append hex number
     string_wr& operator += (const fmt::hex v) noexcept { return appendHex(v.get()); }
 
-//private:
-    /// member variables must follow in the same order as in string for reinterpret cast
-    //chunk_t * pchunk {nullptr};
+
+    /// insert from char* and size
+    string_wr& insert(size_type pos, const char_type* s, size_type count) noexcept {
+        if (!count) {
+            return *this;
+        }
+        if (!pchunk) {
+            // insert into empty string
+            pchunk = chunk_t::alloc(s, count, count);
+        } else {
+            if (pos > pchunk->len) {
+                pos = pchunk->len;
+            }
+            size_type new_len = pchunk->len + count;
+            size_type tail_len = pchunk->len - pos;
+            if (new_len > pchunk->size) {
+                // create copy
+                chunk_t* tmp = chunk_t::alloc(new_len);
+                if (pos > 0) {
+                    // copy head
+                    std::memcpy(tmp->buf, pchunk->buf, sizeof(char_type) * pos);
+                }
+                // copy inserted content
+                std::memcpy(tmp->buf + pos, s, sizeof(char_type) * count);
+                // copy tail if needed
+                if (tail_len) {
+                    // copy tail
+                    std::memcpy(tmp->buf + pos + count, pchunk->buf + pos, sizeof(char_type) * tail_len);
+                }
+                tmp->len = new_len;
+                chunk_t::free(pchunk);
+                pchunk = tmp;
+            } else {
+                // insert in-place
+                if (tail_len) {
+                    // move tail by count chars
+                    std::memmove(pchunk->buf + pos + count, pchunk->buf + pos, sizeof(char_type) * tail_len);
+                }
+                // copy inserted content
+                std::memcpy(pchunk->buf + pos, s, sizeof(char_type) * count);
+            }
+            pchunk->len = new_len;
+            pchunk->buf[new_len] = 0;
+        }
+        return *this;
+    }
+
+    /// insert from null-terminated cont char*
+    string_wr& insert(size_type pos, const char_type* s) noexcept {
+        if (!s || !*s) {
+            // attempt inserting empty string
+            return *this;
+        }
+        return insert(pos, s, str_len<char_type, size_type>(s));
+    }
+
+    /// insert from string (no self-insert protection)
+    string_wr& insert(size_type pos, const ro_string_type& s) noexcept {
+        if (s.empty()) {
+            // attempt inserting empty string
+            return *this;
+        }
+        return insert(pos, s.pchunk->buf, s.pchunk->len);
+    }
+
+    /// insert one or more characters
+    string_wr& insert(size_type pos, size_type count, char_type c) noexcept {
+        if (!count) {
+            return *this;
+        }
+        if (!pchunk) {
+            // insert into empty string
+            pchunk = chunk_t::alloc(count);
+            for (size_type i = 0; i < count; i++) {
+                pchunk->buf[i] = c;
+            }
+            pchunk->len = count;
+            pchunk->buf[count] = 0;
+        } else {
+            if (pos > pchunk->len) {
+                pos = pchunk->len;
+            }
+            size_type new_len = pchunk->len + count;
+            size_type tail_len = pchunk->len - pos;
+            if (new_len > pchunk->size) {
+                // create copy
+                chunk_t* tmp = chunk_t::alloc(new_len);
+                if (pos > 0) {
+                    // copy head
+                    std::memcpy(tmp->buf, pchunk->buf, sizeof(char_type) * pos);
+                }
+                // copy inserted content
+                for (size_type i = 0; i < count; i++) {
+                    tmp->buf[pos + i] = c;
+                }
+                // copy tail if needed
+                if (tail_len) {
+                    // copy tail
+                    std::memcpy(tmp->buf + pos + count, pchunk->buf + pos, sizeof(char_type) * tail_len);
+                }
+                tmp->len = new_len;
+                chunk_t::free(pchunk);
+                pchunk = tmp;
+            } else {
+                // insert in-place
+                if (tail_len) {
+                    // move tail by count chars
+                    std::memmove(pchunk->buf + pos + count, pchunk->buf + pos, sizeof(char_type) * tail_len);
+                }
+                // copy inserted content
+                for (size_type i = 0; i < count; i++) {
+                    pchunk->buf[pos + i] = c;
+                }
+            }
+            pchunk->len = new_len;
+            pchunk->buf[new_len] = 0;
+        }
+        return *this;
+    }
+
+    /// replace part of string with count chars from char*
+    string_wr& replace(size_type pos, size_type n, const char_type * s, size_type count) noexcept {
+        if (!count) {
+            return *this;
+        }
+        if (empty()) {
+            return assign(s, count);
+        } else {
+            // need to modify
+            size_type old_len = pchunk->len;
+            if (pos > old_len) {
+                pos = old_len;
+            }
+            if (pos + n > old_len) {
+                n = old_len - pos;
+            }
+            if (!n) {
+                // delegate to insert
+                return insert(pos, s, count);
+            }
+            if (pos == old_len) {
+                // use append
+                return append(s, count);
+            }
+            size_type new_len = old_len + count - n;
+            size_type tail_len = old_len - (pos + n);
+            if (new_len > pchunk->size) {
+                // need to create copy -- no space or has other refs
+                chunk_t * tmp = chunk_t::alloc(pchunk->buf, new_len, new_len);
+                // move tail to the end of buffer
+                std::memmove(tmp->buf + new_len - tail_len, tmp->buf + old_len - tail_len, sizeof(char_type) * tail_len);
+                // fill gap with inserted string
+                std::memcpy(tmp->buf + pos, s, sizeof(char_type) * count);
+                // replace this string with new
+                chunk_t::free(pchunk);
+                pchunk = tmp;
+            } else {
+                // may edit in-place
+                // move tail to the end of buffer
+                std::memmove(pchunk->buf + new_len - tail_len, pchunk->buf + old_len - tail_len, sizeof(char_type) * tail_len);
+                // fill gap with inserted string
+                std::memcpy(pchunk->buf + pos, s, sizeof(char_type) * count);
+            }
+            // update length
+            pchunk->len = new_len;
+            pchunk->buf[new_len] = 0;
+            return *this;
+        }
+    }
+
+    /// replace part of string with count chars from char*
+    string_wr& replace(size_type pos, size_type n, size_type count, char_type c) noexcept {
+        if (!count) {
+            // nothing to insert
+            return *this;
+        }
+        if (empty()) {
+            return append(count, c);
+        } else {
+            // need to modify
+            size_type old_len = pchunk->len;
+            if (pos > old_len) {
+                pos = old_len;
+            }
+            if (pos + n > old_len) {
+                n = old_len - pos;
+            }
+            if (!n) {
+                // delegate to insert
+                return insert(pos, count, c);
+            }
+            if (pos == old_len) {
+                // use append
+                return append(count, c);
+            }
+            size_type new_len = old_len + count - n;
+            size_type tail_len = old_len - (pos + n);
+            if (new_len > pchunk->size) {
+                // need to create copy -- no space or has other refs
+                chunk_t * tmp = chunk_t::alloc(pchunk->buf, new_len, new_len);
+                // move tail to the end of buffer
+                std::memmove(tmp->buf + new_len - tail_len, tmp->buf + old_len - tail_len, sizeof(char_type) * tail_len);
+                // fill gap with inserted string
+                for (size_type i = 0; i < count; i++) {
+                    tmp->buf[pos + i] = c;
+                }
+                // replace this string with new
+                chunk_t::free(pchunk);
+                pchunk = tmp;
+            } else {
+                // may edit in-place
+                // move tail to the end of buffer
+                std::memmove(pchunk->buf + new_len - tail_len, pchunk->buf + old_len - tail_len, sizeof(char_type) * tail_len);
+                // fill gap with inserted string
+                for (size_type i = 0; i < count; i++) {
+                    pchunk->buf[pos + i] = c;
+                }
+            }
+            // update length
+            pchunk->len = new_len;
+            pchunk->buf[new_len] = 0;
+            return *this;
+        }
+    }
+
+    /// replace part of string with count chars from char*
+    string_wr& replace(size_type pos, size_type n, const char_type * s) noexcept {
+        if (!s || !*s) {
+            // nothing to insert
+            return *this;
+        }
+        size_type count = str_len<char_type, size_type>(s);
+        return replace(pos, n, s, count);
+    }
+
+    /// replace part of string with count chars from char*
+    string_wr& replace(size_type pos, size_type n, const ro_string_type& s) noexcept {
+        if (s.empty()) {
+            // nothing to insert
+            return *this;
+        }
+        return replace(pos, n, s.pchunk->buf, s.pchunk->len);
+    }
+
+    /// replace part of string with count chars from char*
+    string_wr& replace(size_type pos, size_type n, const ro_string_type& s, size_type offset, size_type count) noexcept {
+        if (s.empty()) {
+            // nothing to insert
+            return *this;
+        }
+        size_type s_len = s.pchunk->len;
+        if (offset >= s_len) {
+            // source data indexes outside source string bounds
+            return *this;
+        }
+        // ensure source range is inside string - truncate if needed
+        if (offset + count > s_len) {
+            count = s_len - offset;
+        }
+        return replace(pos, n, s.pchunk->buf + offset, count);
+    }
+
+    /// replace all occurences of character replaceWhat with character replaceTo
+    string_wr& replace(char_type replaceWhat, char_type replaceTo) noexcept {
+        if (empty()) {
+            // nothing to replace
+            return *this;
+        }
+        size_type len = pchunk->len;
+        char_type * buf = pchunk->buf;
+        for (size_type i = 0; i < len; i++) {
+            if (buf[i] == replaceWhat) {
+                // first match found: replace is needed
+                // own buffer : replace in-place
+                buf[i++] = replaceTo;
+                while (i < len) {
+                    if (buf[i] == replaceWhat) {
+                        buf[i] = replaceTo;
+                    }
+                    i++;
+                }
+                break;
+            }
+        }
+        return *this;
+    }
+
+    /// erases fragment from string; if requested fragment exceeds string bounds, it's size is truncated
+    string_wr& erase(size_type offset, size_type count) noexcept {
+        if (pchunk && offset < pchunk->len && count) {
+            if (offset + count > pchunk->len) {
+                // truncate requested erased fragment size to not exceed bounds
+                count = pchunk->len - offset;
+            }
+            size_type new_len = pchunk->len - count;
+            size_type tail_start = offset + count;
+            size_type tail_len = pchunk->len - tail_start;
+            // erase inplace
+            if (tail_len) {
+                std::memmove(pchunk->buf + offset, pchunk->buf + tail_start, sizeof(char_type) * tail_len);
+            }
+            pchunk->len = new_len;
+            pchunk->buf[pchunk->len] = 0;
+        }
+        return *this;
+    }
 };
 
 template <typename char_type, typename refcounter_type = std::atomic_int>
@@ -1310,6 +1616,7 @@ public:
     // COW types
     typedef string_wr<char_type, refcounter_type> writable_string; ///< writable (owned) string
     typedef string_wr<char_type, refcounter_type>& writable_ref;   ///< writable (owned) string reference
+    typedef string_ro<char_type, refcounter_type> ro_string_type; ///< readonly string type
 
 private:
 
@@ -1441,7 +1748,7 @@ public:
     }
 
     /// fragment assignment; correctly covers self-assignment; doesn't check bounds
-    string& assign(const string&s, size_type offset, size_type count) noexcept {
+    string& assign(const ro_string_type&s, size_type offset, size_type count) noexcept {
         if (s.pchunk && offset < s.pchunk->len) {
             size_type avail = s.pchunk->len - offset;
             if (count > avail) count = avail;
@@ -1769,7 +2076,7 @@ public:
     }
 
     /// append another string
-    string& append(const string& s) noexcept {
+    string& append(const ro_string_type& s) noexcept {
         if (!s.empty()) {
             return append(s.pchunk->buf, s.pchunk->len);
         }
@@ -1777,7 +2084,7 @@ public:
     }
 
     /// append fragment of another string
-    string& append(const string& s, size_type offset, size_type count) noexcept {
+    string& append(const ro_string_type& s, size_type offset, size_type count) noexcept {
         if (!s.empty() && offset < s.pchunk->len) {
             if (offset + count > s.pchunk->len) {
                 count = s.pchunk->len - offset;
@@ -1898,7 +2205,7 @@ public:
     }
 
     /// insert from string (no self-insert protection)
-    string& insert(size_type pos, const string& s) noexcept {
+    string& insert(size_type pos, const ro_string_type& s) noexcept {
         if (s.empty()) {
             // attempt inserting empty string
             return *this;
@@ -2090,7 +2397,7 @@ public:
     }
 
     /// replace part of string with count chars from char*
-    string& replace(size_type pos, size_type n, const string& s) noexcept {
+    string& replace(size_type pos, size_type n, const ro_string_type& s) noexcept {
         if (s.empty()) {
             // nothing to insert
             return *this;
@@ -2099,7 +2406,7 @@ public:
     }
 
     /// replace part of string with count chars from char*
-    string& replace(size_type pos, size_type n, const string& s, size_type offset, size_type count) noexcept {
+    string& replace(size_type pos, size_type n, const ro_string_type& s, size_type offset, size_type count) noexcept {
         if (s.empty()) {
             // nothing to insert
             return *this;
