@@ -27,6 +27,13 @@
 
 #define DEBUG_TRACK_LSTRING2_ALLOC
 
+void lStr_uppercase( lChar32 * str, int len );
+void lStr_uppercase( lChar16 * str, int len );
+void lStr_uppercase( lChar8 * str, int len );
+void lStr_lowercase( lChar32 * str, int len );
+void lStr_lowercase( lChar16 * str, int len );
+void lStr_lowercase( lChar8 * str, int len );
+
 namespace lv {
 
 #ifdef DEBUG_TRACK_LSTRING2_ALLOC
@@ -58,6 +65,25 @@ extern lStringStats ls_alloc_stats;
 #define LS_COUNT_MOVE_ASSIGN
 
 #endif
+
+
+// lv::fmt copy of fmt
+namespace fmt {
+    class decimal {
+        lInt64 value;
+      public:
+        explicit decimal(lInt64 v) : value(v) { }
+        lInt64 get() const { return value; }
+    };
+
+    class hex {
+        lUInt64 value;
+      public:
+        explicit hex(lInt64 v) : value(v) { }
+        lUInt64 get() const { return value; }
+    };
+}
+
 
 // Helper functions
 
@@ -464,10 +490,8 @@ public:
     bool empty() const noexcept { return pchunk == nullptr || pchunk->len==0; }
     /// returns character count
     size_type   length() const noexcept { return pchunk == nullptr ? 0 : pchunk->len; }
-    /// returns buffer size
-    size_type   size() const noexcept { return capacity(); }
-    /// changes buffer size
-    //void  resize(size_type count = 0, value_type e = 0);
+    /// returns character count (same as length)
+    size_type   size() const noexcept { return pchunk == nullptr ? 0 : pchunk->len; }
     /// returns maximum number of chars that can fit into buffer (there is always additional one char space for trailing 0 which is not counted)
     size_type   capacity() const noexcept { return pchunk==nullptr ? 0 : pchunk->size; }
 
@@ -633,6 +657,24 @@ public:
         return *this;
     }
 
+    /// convert all characters of string to uppercase
+    string_wr& uppercase() noexcept {
+        if (pchunk) {
+            lStr_uppercase(pchunk->buf, pchunk->len);
+        }
+        return *this;
+    }
+
+    /// convert all characters of string to lowercase
+    string_wr& lowercase() noexcept {
+        if (pchunk) {
+            lStr_lowercase(pchunk->buf, pchunk->len);
+        }
+        return *this;
+    }
+
+
+
 private:
     /// member variables must follow in the same order as in string for reinterpret cast
     chunk_t * pchunk {nullptr};
@@ -655,7 +697,9 @@ public:
     static const size_type npos = -1;
 
     // empty string constant
-    static const string empty_str;
+    //static const string empty_str;
+    //static string constexpr empty_str = nullptr;
+    inline static const string empty_str{};
 
     // COW types
     typedef string_wr<char_type, refcounter_type> writable_string; ///< writable (owned) string
@@ -1150,6 +1194,22 @@ public:
         return *reinterpret_cast<writable_string*>(this);
     }
 
+    /// convert all characters of string to uppercase
+    string& uppercase() noexcept {
+        if (pchunk) {
+            writableRef().uppercase();
+        }
+        return *this;
+    }
+
+    /// convert all characters of string to lowercase
+    string& lowercase() noexcept {
+        if (pchunk) {
+            writableRef().lowercase();
+        }
+        return *this;
+    }
+
     /// erases fragment from string; if requested fragment exceeds string bounds, it's size is truncated
     string& erase(size_type offset, size_type count) noexcept {
         if (pchunk && offset < pchunk->len && count) {
@@ -1184,6 +1244,61 @@ public:
         }
         return *this;
     }
+
+    /// appends decimal string representation of integer value
+    string& appendDecimal(lInt64 n) noexcept {
+        char_type buf[24];
+        int i=0;
+        int negative = 0;
+        if (n==0) {
+            return append(1, '0');
+        } else if (n<0)
+        {
+            negative = 1;
+            n = -n;
+        }
+        for ( ; n; n/=10 )
+        {
+            buf[i++] = '0' + (n % 10);
+        }
+        reserve(length() + i + negative);
+        if (negative)
+            append(1, '-');
+        for (int j=i-1; j>=0; j--)
+            append(1, buf[j]);
+        return *this;
+    }
+
+    /// appends hex string representation of integer value, no leading zeroes
+    string& appendHex(lUInt64 n) noexcept {
+        if (n == 0) {
+            return append(1, '0');
+        }
+        reserve(length() + 16);
+        bool foundNz = false;
+        for (int i=0; i<16; i++) {
+            int digit = (n >> 60) & 0x0F;
+            if (digit) {
+                foundNz = true;
+            }
+            if (foundNz) {
+                append(1, (static_cast<char_type>("0123456789abcdef"[digit])) & 0xFF);
+            }
+            n <<= 4;
+        }
+        return *this;
+    }
+
+    /// append single character
+    string& operator << (char_type ch) { return append(1, ch); }
+    /// append C-string
+    string& operator << (const char_type * str) { return append(str); }
+    /// append string
+    string& operator << (const string & str) { return append(str); }
+    /// append decimal number
+    string& operator << (const fmt::decimal v) { return appendDecimal(v.get()); }
+    /// append hex number
+    string& operator << (const fmt::hex v) { return appendHex(v.get()); }
 
     /// append fragment from null-terminated string; no validation of input string is performed
     string& append(const char_type* s, size_type count) noexcept {
@@ -1871,13 +1986,11 @@ public:
     /// returns true if string is empty
     bool empty() const noexcept { return pchunk == nullptr || pchunk->len==0; }
     /// returns true if string is empty
-    bool operator ! () const noexcept { return pchunk == nullptr ? 0 : pchunk->len; }
+    bool operator ! () const noexcept { return pchunk == nullptr || pchunk->len==0; }
     /// returns character count
     size_type   length() const noexcept { return pchunk == nullptr ? 0 : pchunk->len; }
-    /// returns buffer size
-    size_type   size() const noexcept { return capacity(); }
-    /// changes buffer size
-    //void  resize(size_type count = 0, value_type e = 0);
+    /// returns character count
+    size_type   size() const noexcept { return pchunk == nullptr ? 0 : pchunk->len; }
     /// returns maximum number of chars that can fit into buffer (there is always additional one char space for trailing 0 which is not counted)
     size_type   capacity() const noexcept { return pchunk==nullptr ? 0 : pchunk->size; }
 
@@ -1903,6 +2016,8 @@ private:
     chunk_t * pchunk {nullptr};
 };
 
+// template<typename char_type, typename refcounter_type>
+// const string<char_type, refcounter_type> string<char_type, refcounter_type>::empty_str{};
 
 typedef lstring_chunk_t<lChar8, lUInt32, std::atomic_int> lstring8_chunk_t;
 typedef lstring_chunk_t<lChar16, lUInt32, std::atomic_int> lstring16_chunk_t;

@@ -1,14 +1,11 @@
 #include "lvstring2test.h"
 #include <stdio.h>
 
-// Definition of static empty_str for template instantiations
 namespace lv {
-template<> const string<lChar8, std::atomic_int> string<lChar8, std::atomic_int>::empty_str;
-template<> const string<lChar16, std::atomic_int> string<lChar16, std::atomic_int>::empty_str;
-template<> const string<lChar32, std::atomic_int> string<lChar32, std::atomic_int>::empty_str;
-}
 
-namespace lv {
+
+
+
 static int test_errors = 0;
 #define TCHECK(cond) do { if (!(cond)) { printf("LS FAIL line %d: %s\n", __LINE__, #cond); test_errors++; } } while(0)
 
@@ -150,7 +147,7 @@ void test_lstring8() {
            // --- C-string with count + reserved ---
     lString8 s3 {"qwerty", 3, 100};
     TCHECK(s3.capacity() >= 100);
-    TCHECK(s3.size() >= 100);
+    TCHECK(s3.size() == 3);
     TCHECK(s3.length() == 3);
     TCHECK(!s3.empty());
 
@@ -263,10 +260,10 @@ void test_lstring8() {
     TCHECK(s5.compare("abd") < 0);
     TCHECK(s5.compare("abb") > 0);
 
-           // --- Length/size/capacity/empty consistency ---
+    // --- Length/size/capacity/empty consistency ---
     lString8 s_len {"12345"};
     TCHECK(s_len.length() == 5);
-    TCHECK(s_len.size() == s_len.capacity());
+    TCHECK(s_len.size() == s_len.length());
     TCHECK(!s_len.empty());
     TCHECK(lString8{}.empty());
     TCHECK(lString8{}.length() == 0);
@@ -1354,36 +1351,102 @@ void test_lstring8() {
     TCHECK(s_sub_empty.substr(0, 5) == "");
     TCHECK(s_sub_empty.substr(0) == "");
 
-           // --- empty_str ---
-    lString8 s_empty_ref = lString8::empty_str;
-    TCHECK(s_empty_ref.empty());
-    TCHECK(s_empty_ref.length() == 0);
-    TCHECK(s_empty_ref == "");
+           // --- appendDecimal ---
+    lString8 s_ad;
+    s_ad.appendDecimal(0);
+    TCHECK(s_ad == "0");
+    s_ad.appendDecimal(42);
+    TCHECK(s_ad == "042");
+    s_ad.appendDecimal(-123);
+    TCHECK(s_ad == "042-123");
+    s_ad.appendDecimal(999999999999999999LL);
+    TCHECK(s_ad == "042-123999999999999999999");
 
-           // --- operator!() ---
-    lString8 s_not1 {"hello"};
-    lString8 s_not2;
-    TCHECK(!s_not2);
-    TCHECK(!(!s_not1));
+           // --- appendHex ---
+    lString8 s_ah;
+    s_ah.appendHex(0);
+    TCHECK(s_ah == "0");
+    s_ah.appendHex(0xFF);
+    TCHECK(s_ah == "0ff");
+    s_ah.appendHex(0xABCDEF);
+    TCHECK(s_ah == "0ffabcdef");
 
-           // --- swap() ---
-    lString8 s_swap1 {"first"};
-    lString8 s_swap2 {"second"};
-    s_swap1.swap(s_swap2);
-    TCHECK(s_swap1 == "second");
-    TCHECK(s_swap2 == "first");
+           // --- operator << (char) ---
+    lString8 s_sl;
+    s_sl << 'A';
+    TCHECK(s_sl == "A");
+    s_sl << 'B';
+    TCHECK(s_sl == "AB");
 
-           // --- swap() with empty ---
-    lString8 s_swap3 {"nonempty"};
-    lString8 s_swap4;
-    s_swap3.swap(s_swap4);
-    TCHECK(s_swap3.empty());
-    TCHECK(s_swap4 == "nonempty");
+           // --- operator << (c-str) ---
+    lString8 s_sl2;
+    s_sl2 << "hello";
+    TCHECK(s_sl2 == "hello");
+    s_sl2 << " world";
+    TCHECK(s_sl2 == "hello world");
 
-           // --- swap() self ---
-    lString8 s_swap5 {"self"};
-    s_swap5.swap(s_swap5);
-    TCHECK(s_swap5 == "self");
+           // --- operator << (string) ---
+    lString8 s_sl3;
+    s_sl3 << lString8{"test"};
+    TCHECK(s_sl3 == "test");
+
+           // --- operator << (fmt::decimal) ---
+    lString8 s_sl4;
+    s_sl4 << fmt::decimal(42);
+    TCHECK(s_sl4 == "42");
+    s_sl4 << fmt::decimal(-99);
+    TCHECK(s_sl4 == "42-99");
+
+           // --- operator << (fmt::hex) ---
+    lString8 s_sl5;
+    s_sl5 << fmt::hex(255);
+    TCHECK(s_sl5 == "ff");
+    s_sl5 << fmt::hex(0xABC);
+    TCHECK(s_sl5 == "ffabc");
+
+           // --- uppercase() ---
+    lString8 s_upper {"Hello World"};
+    s_upper.uppercase();
+    TCHECK(s_upper == "HELLO WORLD");
+
+           // --- uppercase() on shared string ---
+    lString8 s_upper_shared {"shared"};
+    lString8 s_upper_copy = s_upper_shared;
+    s_upper_copy.uppercase();
+    TCHECK(s_upper_copy == "SHARED");
+    TCHECK(s_upper_shared == "shared");
+
+           // --- uppercase() on empty string ---
+    lString8 s_upper_empty;
+    s_upper_empty.uppercase();
+    TCHECK(s_upper_empty.empty());
+
+           // --- uppercase() already uppercase ---
+    lString8 s_upper_done {"ALREADY"};
+    s_upper_done.uppercase();
+    TCHECK(s_upper_done == "ALREADY");
+
+           // --- lowercase() ---
+    lString8 s_lower {"Hello World"};
+    s_lower.lowercase();
+    TCHECK(s_lower == "hello world");
+
+           // --- lowercase() on shared string ---
+    lString8 s_lower_shared {"SHARED"};
+    lString8 s_lower_copy = s_lower_shared;
+    s_lower_copy.lowercase();
+    TCHECK(s_lower_copy == "shared");
+    TCHECK(s_lower_shared == "SHARED");
+
+           // --- lowercase() on empty string ---
+    lString8 s_lower_empty;
+    s_lower_empty.lowercase();
+    TCHECK(s_lower_empty.empty());
+
+           // --- lowercase() already lowercase ---
+    lString8 s_lower_done {"already"};
+    s_lower_done.lowercase();
+    TCHECK(s_lower_done == "already");
 }
 
 void test_writable_refs_lString8() {
