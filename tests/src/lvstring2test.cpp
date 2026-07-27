@@ -1528,7 +1528,7 @@ void test_lstring8() {
         TCHECK(!s_ai6.atoi(n));
         lString8 s_ai7 {};
         TCHECK(!s_ai7.atoi(n));
-        lString8 s_ai8 {"123abc"};
+        lString8 s_ai8 {"123 abc"};
         TCHECK(s_ai8.atoi(n) && n == 123);
         lString8 s_ai9 {"  123  "};
         TCHECK(s_ai9.atoi(n) && n == 123);
@@ -1579,6 +1579,8 @@ void test_lstring8() {
     TCHECK(lString8::itoa(0LL) == "0");
     TCHECK(lString8::itoa(-123LL) == "-123");
     TCHECK(lString8::itoa(9223372036854775807LL) == "9223372036854775807");
+
+    printf("exiting of lString8 test\n");
 }
 
 void test_writable_refs_lString8() {

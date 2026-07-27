@@ -965,7 +965,7 @@ class string_ro {
     lInt64 atoi64() const noexcept {
         int sgn = 1;
         lInt64 n = 0;
-        const char_type * s = c_str();
+        const lChar8 * s = c_str();
         while (*s == ' ' || *s == '\t')
             s++;
         if (*s == '-')
@@ -2675,17 +2675,26 @@ public:
     static string itoa( int n ) {
         char_type buf[16];
         size_type i=0;
+        bool negative = false;
         if (n==0) {
             buf[i++] = '0';
             //cs8("0");
         } else {
             if (n<0) {
-                buf[i++] = '-';
+                negative = true;
                 n = -n;
             }
             for ( ; n; n/=10 ) {
                 buf[i++] = '0' + (n%10);
             }
+        }
+        if (negative)
+            buf[i++] = '-';
+        // reverse string
+        for (size_type j = 0; j < i/2; j++) {
+            char_type tmp = buf[j];
+            buf[j] = buf[i - 1 - j];
+            buf[i - 1 - j] = tmp;
         }
         return string(buf, i);
     }
@@ -2701,23 +2710,38 @@ public:
                 buf[i++] = '0' + (n%10);
             }
         }
+        // reverse string
+        for (size_type j = 0; j < i/2; j++) {
+            char_type tmp = buf[j];
+            buf[j] = buf[i - 1 - j];
+            buf[i - 1 - j] = tmp;
+        }
         return string(buf, i);
     }
     // constructs string representation of 64 bit integer
     static string itoa( lInt64 n ) {
-        char_type buf[16];
+        char_type buf[24];
         size_type i=0;
+        bool negative = false;
         if (n==0) {
             buf[i++] = '0';
             //cs8("0");
         } else {
             if (n<0) {
-                buf[i++] = '-';
+                negative = true;
                 n = -n;
             }
             for ( ; n; n/=10 ) {
                 buf[i++] = '0' + (n%10);
             }
+        }
+        if (negative)
+            buf[i++] = '-';
+        // reverse string
+        for (size_type j = 0; j < i/2; j++) {
+            char_type tmp = buf[j];
+            buf[j] = buf[i - 1 - j];
+            buf[i - 1 - j] = tmp;
         }
         return string(buf, i);
     }
