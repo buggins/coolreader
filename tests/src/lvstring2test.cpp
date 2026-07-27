@@ -1,6 +1,13 @@
 #include "lvstring2test.h"
 #include <stdio.h>
 
+// Definition of static empty_str for template instantiations
+namespace lv {
+template<> const string<lChar8, std::atomic_int> string<lChar8, std::atomic_int>::empty_str;
+template<> const string<lChar16, std::atomic_int> string<lChar16, std::atomic_int>::empty_str;
+template<> const string<lChar32, std::atomic_int> string<lChar32, std::atomic_int>::empty_str;
+}
+
 namespace lv {
 static int test_errors = 0;
 #define TCHECK(cond) do { if (!(cond)) { printf("LS FAIL line %d: %s\n", __LINE__, #cond); test_errors++; } } while(0)
@@ -1153,7 +1160,7 @@ void test_lstring8() {
     TCHECK(s_cmp2.compare(1, 4, "") > 0);
 
            // --- compare(pos, n, char*) n exceeds bounds ---
-    TCHECK(s_cmp2.compare(1, 100, "bcde") == 0);
+    TCHECK(s_cmp2.compare(1, 100, "bcde") > 0);  // "bcdef" > "bcde"
 
            // --- compare(pos, n, char*) pos beyond length ---
     TCHECK(s_cmp2.compare(100, 5, "x") < 0);
@@ -1171,6 +1178,221 @@ void test_lstring8() {
            // --- compare(const char*) less/greater ---
     TCHECK(s_cmp3.compare("zebra") < 0);
     TCHECK(s_cmp3.compare("abc") > 0);
+
+           // --- pos(char) ---
+    lString8 s_pos1 {"hello world"};
+    TCHECK(s_pos1.pos('o') == 4);
+    TCHECK(s_pos1.pos('z') == lString8::npos);
+    TCHECK(s_pos1.pos('h') == 0);
+    TCHECK(s_pos1.pos('d') == 10);
+
+           // --- pos(char) on empty string ---
+    lString8 s_pos_empty;
+    TCHECK(s_pos_empty.pos('a') == lString8::npos);
+
+           // --- pos(char, start) ---
+    TCHECK(s_pos1.pos('o', 5) == 7);
+    TCHECK(s_pos1.pos('o', 8) == lString8::npos);
+    TCHECK(s_pos1.pos('o', 4) == 4);
+    TCHECK(s_pos1.pos('o', 100) == lString8::npos);
+
+           // --- pos(string) ---
+    lString8 s_pos2 {"hello world hello"};
+    lString8 s_pos2_pat {"hello"};
+    TCHECK(s_pos2.pos(s_pos2_pat) == 0);
+    TCHECK(s_pos2.pos(lString8{"world"}) == 6);
+    TCHECK(s_pos2.pos(lString8{"xyz"}) == lString8::npos);
+
+           // --- pos(string) empty pattern ---
+    TCHECK(s_pos2.pos(lString8{}) == lString8::npos);
+
+           // --- pos(string) empty source ---
+    lString8 s_pos_empty_src;
+    TCHECK(s_pos_empty_src.pos(s_pos2_pat) == lString8::npos);
+
+           // --- pos(string, start) ---
+    TCHECK(s_pos2.pos(s_pos2_pat, 1) == 12);
+    TCHECK(s_pos2.pos(s_pos2_pat, 13) == lString8::npos);
+    TCHECK(s_pos2.pos(s_pos2_pat, 12) == 12);
+
+           // --- pos(string) at exact end ---
+    lString8 s_pos_end {"abcde"};
+    TCHECK(s_pos_end.pos(lString8{"e"}) == 4);
+    TCHECK(s_pos_end.pos(lString8{"de"}) == 3);
+    TCHECK(s_pos_end.pos(lString8{"cde"}) == 2);
+    TCHECK(s_pos_end.pos(lString8{"abcde"}) == 0);
+
+           // --- pos(c-str) ---
+    TCHECK(s_pos1.pos("world") == 6);
+    TCHECK(s_pos1.pos("xyz") == lString8::npos);
+    TCHECK(s_pos1.pos(nullptr) == lString8::npos);
+    TCHECK(s_pos1.pos("") == lString8::npos);
+
+           // --- pos(c-str, start) ---
+    TCHECK(s_pos1.pos("world", 0) == 6);
+    TCHECK(s_pos1.pos("world", 7) == lString8::npos);
+    TCHECK(s_pos1.pos("world", 6) == 6);
+    TCHECK(s_pos1.pos("world", 100) == lString8::npos);
+
+           // --- pos(c-str) at exact end ---
+    TCHECK(s_pos_end.pos("e") == 4);
+    TCHECK(s_pos_end.pos("de") == 3);
+    TCHECK(s_pos_end.pos("cde") == 2);
+    TCHECK(s_pos_end.pos("abcde") == 0);
+
+           // --- rpos(c-str) ---
+    lString8 s_rpos1 {"hello world hello"};
+    TCHECK(s_rpos1.rpos("hello") == 12);
+    TCHECK(s_rpos1.rpos("world") == 6);
+    TCHECK(s_rpos1.rpos("xyz") == lString8::npos);
+
+           // --- rpos(c-str) single char ---
+    TCHECK(s_rpos1.rpos("o") == 16);
+    TCHECK(s_rpos1.rpos("h") == 12);
+    TCHECK(s_rpos1.rpos("z") == lString8::npos);
+
+           // --- rpos(c-str) at beginning ---
+    TCHECK(s_rpos1.rpos("hello world") == 0);
+
+           // --- rpos(c-str) entire string ---
+    TCHECK(s_rpos1.rpos("hello world hello") == 0);
+
+           // --- rpos(c-str) longer than string ---
+    TCHECK(s_rpos1.rpos("hello world hello world") == lString8::npos);
+
+           // --- rpos(c-str) nullptr ---
+    TCHECK(s_rpos1.rpos(nullptr) == lString8::npos);
+
+           // --- rpos(c-str) empty ---
+    TCHECK(s_rpos1.rpos("") == lString8::npos);
+
+           // --- rpos(c-str) empty string ---
+    lString8 s_rpos_empty;
+    TCHECK(s_rpos_empty.rpos("test") == lString8::npos);
+
+           // --- startsWith(c-str) ---
+    lString8 s_sw1 {"hello world"};
+    TCHECK(s_sw1.startsWith("hello"));
+    TCHECK(s_sw1.startsWith("hello world"));
+    TCHECK(!s_sw1.startsWith("world"));
+    TCHECK(!s_sw1.startsWith("hello world!"));
+    TCHECK(!s_sw1.startsWith(""));
+    TCHECK(!s_sw1.startsWith(nullptr));
+
+           // --- startsWith(c-str, count) ---
+    TCHECK(s_sw1.startsWith("hel", 3));
+    TCHECK(s_sw1.startsWith("hello", 5));
+    TCHECK(!s_sw1.startsWith("help", 4));
+    TCHECK(!s_sw1.startsWith("hello world!", 12));
+
+           // --- startsWith(string) ---
+    lString8 s_sw2 {"hello"};
+    TCHECK(s_sw1.startsWith(s_sw2));
+    TCHECK(!s_sw2.startsWith(s_sw1));
+
+           // --- startsWith(string) empty source ---
+    lString8 s_sw_empty;
+    TCHECK(!s_sw_empty.startsWith(s_sw2));
+    TCHECK(!s_sw_empty.startsWith("hello"));
+
+           // --- startsWith(string) empty pattern ---
+    lString8 s_sw_empty_pat;
+    TCHECK(!s_sw1.startsWith(s_sw_empty_pat));
+
+           // --- endsWith(c-str) ---
+    lString8 s_ew1 {"hello world"};
+    TCHECK(s_ew1.endsWith("world"));
+    TCHECK(s_ew1.endsWith("hello world"));
+    TCHECK(!s_ew1.endsWith("hello"));
+    TCHECK(!s_ew1.endsWith("hello world!"));
+    TCHECK(!s_ew1.endsWith(""));
+    TCHECK(!s_ew1.endsWith(nullptr));
+
+           // --- endsWith(c-str, count) ---
+    TCHECK(s_ew1.endsWith("orld", 4));
+    TCHECK(s_ew1.endsWith("world", 5));
+    TCHECK(!s_ew1.endsWith("word", 4));
+    TCHECK(!s_ew1.endsWith("hello world!", 12));
+
+           // --- endsWith(string) ---
+    lString8 s_ew2 {"world"};
+    TCHECK(s_ew1.endsWith(s_ew2));
+    TCHECK(!s_ew2.endsWith(s_ew1));
+
+           // --- endsWith(string) empty source ---
+    lString8 s_ew_empty;
+    TCHECK(!s_ew_empty.endsWith(s_ew2));
+    TCHECK(!s_ew_empty.endsWith("world"));
+
+           // --- endsWith(string) empty pattern ---
+    lString8 s_ew_empty_pat;
+    TCHECK(!s_ew1.endsWith(s_ew_empty_pat));
+
+           // --- substr(pos, count) ---
+    lString8 s_sub1 {"hello world"};
+    TCHECK(s_sub1.substr(0, 5) == "hello");
+    TCHECK(s_sub1.substr(6, 5) == "world");
+    TCHECK(s_sub1.substr(0, 11) == "hello world");
+    TCHECK(s_sub1.substr(5, 1) == " ");
+    TCHECK(s_sub1.substr(10, 1) == "d");
+
+           // --- substr(pos, count) count exceeds remaining ---
+    TCHECK(s_sub1.substr(6, 100) == "world");
+
+           // --- substr(pos, count) pos beyond length ---
+    TCHECK(s_sub1.substr(100, 5) == "");
+
+           // --- substr(pos, count) pos at end ---
+    TCHECK(s_sub1.substr(11, 5) == "");
+
+           // --- substr(pos) default count=npos ---
+    TCHECK(s_sub1.substr(6) == "world");
+    TCHECK(s_sub1.substr(0) == "hello world");
+
+           // --- substr(pos, count) empty string ---
+    lString8 s_sub_empty;
+    TCHECK(s_sub_empty.substr(0, 5) == "");
+    TCHECK(s_sub_empty.substr(0) == "");
+
+           // --- empty_str ---
+    lString8 s_empty_ref = lString8::empty_str;
+    TCHECK(s_empty_ref.empty());
+    TCHECK(s_empty_ref.length() == 0);
+    TCHECK(s_empty_ref == "");
+
+           // --- operator!() ---
+    lString8 s_not1 {"hello"};
+    lString8 s_not2;
+    TCHECK(!s_not2);
+    TCHECK(!(!s_not1));
+
+           // --- swap() ---
+    lString8 s_swap1 {"first"};
+    lString8 s_swap2 {"second"};
+    s_swap1.swap(s_swap2);
+    TCHECK(s_swap1 == "second");
+    TCHECK(s_swap2 == "first");
+
+           // --- swap() with empty ---
+    lString8 s_swap3 {"nonempty"};
+    lString8 s_swap4;
+    s_swap3.swap(s_swap4);
+    TCHECK(s_swap3.empty());
+    TCHECK(s_swap4 == "nonempty");
+
+           // --- swap() self ---
+    lString8 s_swap5 {"self"};
+    s_swap5.swap(s_swap5);
+    TCHECK(s_swap5 == "self");
+}
+
+void test_writable_refs_lString8() {
+    lString8 s1 {"Original string"};
+    lString8 s1_copy = s1;
+    TCHECK(s1 == s1_copy);
+    auto& s1_wr = s1.writableRef(100);
+    TCHECK(s1_wr.length() == s1_copy.length());
+
 }
 
 void test_lstring2() {
@@ -1179,6 +1401,7 @@ void test_lstring2() {
     DUMP_ALLOC_STATS("before test_lstring8()")
     test_lstring8();
     DUMP_ALLOC_STATS("after test_lstring8()")
+    test_writable_refs_lString8();
 
     if (test_errors == 0) {
         printf("New strings library tests completed successfully\n");
