@@ -1498,6 +1498,87 @@ void test_lstring8() {
     TCHECK(s_wr_sl == "start middle");
     s_wr2 << fmt::decimal(123);
     TCHECK(s_wr_sl == "start middle123");
+
+           // --- atoi() ---
+    lString8 s_atoi1 {"12345"};
+    TCHECK(s_atoi1.atoi() == 12345);
+    lString8 s_atoi2 {"-999"};
+    TCHECK(s_atoi2.atoi() == -999);
+    lString8 s_atoi3 {"0"};
+    TCHECK(s_atoi3.atoi() == 0);
+    lString8 s_atoi4 {"  +42"};
+    TCHECK(s_atoi4.atoi() == 42);
+    lString8 s_atoi5 {};
+    TCHECK(s_atoi5.atoi() == 0);
+
+           // --- atoi(int&) ---
+    {
+        int n;
+        lString8 s_ai {"6789"};
+        TCHECK(s_ai.atoi(n) && n == 6789);
+        lString8 s_ai2 {"-123"};
+        TCHECK(s_ai2.atoi(n) && n == -123);
+        lString8 s_ai3 {"0x1A"};
+        TCHECK(s_ai3.atoi(n) && n == 0x1A);
+        lString8 s_ai4 {"  0xFF"};
+        TCHECK(s_ai4.atoi(n) && n == 255);
+        lString8 s_ai5 {"abc"};
+        TCHECK(!s_ai5.atoi(n));
+        lString8 s_ai6 {"  "};
+        TCHECK(!s_ai6.atoi(n));
+        lString8 s_ai7 {};
+        TCHECK(!s_ai7.atoi(n));
+        lString8 s_ai8 {"123abc"};
+        TCHECK(s_ai8.atoi(n) && n == 123);
+        lString8 s_ai9 {"  123  "};
+        TCHECK(s_ai9.atoi(n) && n == 123);
+        lString8 s_ai10 {"0"};
+        TCHECK(s_ai10.atoi(n) && n == 0);
+    }
+
+           // --- atoi(lInt64&) ---
+    {
+        lInt64 n;
+        lString8 s_ai64 {"1234567890123"};
+        TCHECK(s_ai64.atoi(n) && n == 1234567890123LL);
+        lString8 s_ai64_2 {"-999"};
+        TCHECK(s_ai64_2.atoi(n) && n == -999);
+        lString8 s_ai64_3 {"0xABADCAFE"};
+        TCHECK(s_ai64_3.atoi(n) && n == 0xABADCAFELL);
+        lString8 s_ai64_4 {"  0xFF"};
+        TCHECK(s_ai64_4.atoi(n) && n == 255);
+        lString8 s_ai64_5 {"abc"};
+        TCHECK(!s_ai64_5.atoi(n));
+    }
+
+           // --- atoi64() ---
+    lString8 s_atoi64 {"1234567890123"};
+    TCHECK(s_atoi64.atoi64() == 1234567890123LL);
+    lString8 s_atoi64_2 {"-999"};
+    TCHECK(s_atoi64_2.atoi64() == -999);
+    lString8 s_atoi64_3 {"0"};
+    TCHECK(s_atoi64_3.atoi64() == 0);
+    lString8 s_atoi64_4 {};
+    TCHECK(s_atoi64_4.atoi64() == 0);
+
+           // --- itoa(int) static ---
+    TCHECK(lString8::itoa(42) == "42");
+    TCHECK(lString8::itoa(-42) == "-42");
+    TCHECK(lString8::itoa(0) == "0");
+    TCHECK(lString8::itoa(1) == "1");
+    TCHECK(lString8::itoa(-1) == "-1");
+    TCHECK(lString8::itoa(2147483647) == "2147483647");
+    TCHECK(lString8::itoa(-2147483647) == "-2147483647");
+
+           // --- itoa(unsigned) static ---
+    TCHECK(lString8::itoa(0U) == "0");
+    TCHECK(lString8::itoa(1U) == "1");
+    TCHECK(lString8::itoa(4294967295U) == "4294967295");
+
+           // --- itoa(lInt64) static ---
+    TCHECK(lString8::itoa(0LL) == "0");
+    TCHECK(lString8::itoa(-123LL) == "-123");
+    TCHECK(lString8::itoa(9223372036854775807LL) == "9223372036854775807");
 }
 
 void test_writable_refs_lString8() {

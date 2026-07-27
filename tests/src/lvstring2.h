@@ -34,6 +34,11 @@ void lStr_lowercase( lChar32 * str, int len );
 void lStr_lowercase( lChar16 * str, int len );
 void lStr_lowercase( lChar8 * str, int len );
 
+// returns 0..15 if c is hex digit, -1 otherwise
+int hexDigit( int c );
+// converts 0..15 to 0..f
+char toHexDigit( int c );
+
 namespace lv {
 
 #ifdef DEBUG_TRACK_LSTRING2_ALLOC
@@ -858,7 +863,127 @@ class string_ro {
         return false;
     }
 
+    /// convert to integer
+    int atoi() const noexcept {
+        int sgn = 1;
+        int n = 0;
+        const char_type * s = c_str();
+        // skip whitespace
+        while (*s == ' ' || *s == '\t') {
+            s++;
+        }
+        if (*s == '-') {
+            sgn = -1;
+            s++;
+        } else if (*s == '+') {
+            s++;
+        }
+        while (*s>='0' && *s<='9') {
+            n = n * 10 + ( (*s)-'0' );
+            s++;
+        }
+        return (sgn>0)?n:-n;
+    }
 
+    /// convert to integer
+    bool atoi(int& n) const noexcept {
+        n = 0;
+        int sgn = 1;
+        const char_type * s = c_str();
+        // allow leading whitespace -- not an error
+        while (*s == ' ' || *s == '\t')
+            s++;
+        // support hex with prefix 0x
+        if ( s[0]=='0' && s[1]=='x') {
+            s+=2;
+            for (;*s;) {
+                int d = hexDigit(*s++);
+                if ( d>=0 )
+                    n = (n<<4) | d;
+            }
+            return true;
+        }
+        if (*s == '-') {
+            sgn = -1;
+            s++;
+        }
+        else if (*s == '+') {
+            s++;
+        }
+        if ( !(*s>='0' && *s<='9') )
+            return false;
+        while (*s>='0' && *s<='9') {
+            if (n > 0x7fffffff/10) {
+                return false;
+            }
+            n = n * 10 + ( (*s++)-'0' );
+        }
+        if ( sgn<0 )
+            n = -n;
+        return *s=='\0' || *s==' ' || *s=='\t';
+    }
+
+    /// convert string to 64-bit integer, supports +/- for decimal, and 0x prefix for hex, skips leading whitespace
+    bool atoi(lInt64& n) const noexcept {
+        n = 0;
+        int sgn = 1;
+        const char_type * s = c_str();
+        // allow leading whitespace -- not an error
+        while (*s == ' ' || *s == '\t')
+            s++;
+        // support hex with prefix 0x
+        if ( s[0]=='0' && s[1]=='x') {
+            s+=2;
+            for (;*s;) {
+                int d = hexDigit(*s++);
+                if ( d>=0 )
+                    n = (n<<4) | d;
+            }
+            return true;
+        }
+        if (*s == '-') {
+            sgn = -1;
+            s++;
+        }
+        else if (*s == '+') {
+            s++;
+        }
+        if ( !(*s>='0' && *s<='9') )
+            return false;
+        while (*s>='0' && *s<='9') {
+            if (n > 0x7fffffffffffffffll/10) {
+                return false;
+            }
+            n = n * 10 + ( (*s++)-'0' );
+        }
+        if ( sgn<0 )
+            n = -n;
+        return *s=='\0' || *s==' ' || *s=='\t';
+    }
+
+    /// convert to 64 bit integer
+    lInt64 atoi64() const noexcept {
+        int sgn = 1;
+        lInt64 n = 0;
+        const char_type * s = c_str();
+        while (*s == ' ' || *s == '\t')
+            s++;
+        if (*s == '-')
+        {
+            sgn = -1;
+            s++;
+        }
+        else if (*s == '+')
+        {
+            s++;
+        }
+        while (*s>='0' && *s<='9')
+        {
+            n = n * 10 + ( (*s)-'0' );
+            s++;
+        }
+        return (sgn>0) ? n : -n;
+    }
 
   protected:
     /// member variables must follow in the same order as in string for reinterpret cast
@@ -2545,6 +2670,58 @@ public:
         pchunk = s.pchunk;
         s.pchunk = tmp;
     }
+
+    /// constructs string representation of integer
+    static string itoa( int n ) {
+        char_type buf[16];
+        size_type i=0;
+        if (n==0) {
+            buf[i++] = '0';
+            //cs8("0");
+        } else {
+            if (n<0) {
+                buf[i++] = '-';
+                n = -n;
+            }
+            for ( ; n; n/=10 ) {
+                buf[i++] = '0' + (n%10);
+            }
+        }
+        return string(buf, i);
+    }
+    /// constructs string representation of unsigned integer
+    static string itoa( unsigned int n ) {
+        char_type buf[16];
+        size_type i=0;
+        if (n==0) {
+            buf[i++] = '0';
+            //cs8("0");
+        } else {
+            for ( ; n; n/=10 ) {
+                buf[i++] = '0' + (n%10);
+            }
+        }
+        return string(buf, i);
+    }
+    // constructs string representation of 64 bit integer
+    static string itoa( lInt64 n ) {
+        char_type buf[16];
+        size_type i=0;
+        if (n==0) {
+            buf[i++] = '0';
+            //cs8("0");
+        } else {
+            if (n<0) {
+                buf[i++] = '-';
+                n = -n;
+            }
+            for ( ; n; n/=10 ) {
+                buf[i++] = '0' + (n%10);
+            }
+        }
+        return string(buf, i);
+    }
+
 
 private:
     //chunk_t * pchunk {nullptr};
