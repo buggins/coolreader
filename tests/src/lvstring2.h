@@ -200,18 +200,22 @@ inline int str_cmp_nonempty(const char_type * s1, const char_type * s2) {
 
 // String data buffer with ref count
 
-// forward declaration of string class
+// forward declaration of string readonly class
 template<typename char_type, typename refcounter_type>
-class string;
+class string_ro;
 // forward declaration of string writable ref class
 template<typename char_type, typename refcounter_type>
 class string_wr;
+// forward declaration of string class
+template<typename char_type, typename refcounter_type>
+class string;
 
 template <typename char_type, typename size_type, typename refcounter_type = std::atomic_int>
 struct lstring_chunk_t {
 
     friend class string<char_type, refcounter_type>;
     friend class string_wr<char_type, refcounter_type>;
+    friend class string_ro<char_type, refcounter_type>;
 
     friend void test_lstring2_chunks();
     /// chunk allocation alignment in bytes
@@ -397,12 +401,13 @@ private:
 
 extern lChar32 fake_null_buffer_32;
 
+
 /// writable copy of string (guaranteed to be empty or have reference counter == 1
 /// can only be passed by reference created from string
 /// allows modification without reference counting checks
 template <typename char_type, typename refcounter_type = std::atomic_int>
-class string_wr {
-public:
+class string_ro {
+  public:
     // typedefs for STL compatibility
     typedef char_type             value_type;      ///< character type
     typedef lUInt32               size_type;       ///< size type
@@ -411,19 +416,36 @@ public:
     typedef value_type &          reference;       ///< reference to char type
     typedef const value_type *    const_pointer;   ///< pointer to const char type
     typedef const value_type &    const_reference; ///< reference to const char type
-    typedef string<char_type, refcounter_type> string_type; ///< normal shared string reference type
+    //typedef string<char_type, refcounter_type> string_type; ///< normal shared string reference type
 
     // constant for not found / unspecified position
     static const size_type npos = -1;
 
-private:
-    using chunk_t = lstring_chunk_t<char_type, size_type, refcounter_type>;
+    typedef lstring_chunk_t<char_type, size_type, refcounter_type> chunk_t;
+  protected:
 
     /// disabled: always created as a synonim of the string with the same template parameters
-    string_wr() {}
+    string_ro() = default;
     /// don't free pchunk - it's owned by string
-    ~string_wr() {}
-public:
+    ~string_ro() = default;
+  public:
+
+    // ============================================================================
+    // size and capacity
+    // ============================================================================
+
+    /// returns true if string is empty
+    bool empty() const noexcept { return pchunk == nullptr || pchunk->len==0; }
+    /// returns character count
+    size_type   length() const noexcept { return pchunk == nullptr ? 0 : pchunk->len; }
+    /// returns character count (same as length)
+    size_type   size() const noexcept { return pchunk == nullptr ? 0 : pchunk->len; }
+    /// returns maximum number of chars that can fit into buffer (there is always additional one char space for trailing 0 which is not counted)
+    size_type   capacity() const noexcept { return pchunk==nullptr ? 0 : pchunk->size; }
+
+    // ============================================================================
+    // item index methods
+    // ============================================================================
 
     /// index value. No index nor empty string checks. Will crash on empty string.
     char_type operator [] (size_type index) const noexcept {
@@ -464,6 +486,422 @@ public:
         }
     }
 
+    /// returns last character from string, or 0 for empty string
+    char_type lastChar() const noexcept {
+        if (pchunk && pchunk->len) {
+            return pchunk->buf[pchunk->len-1];
+        } else {
+            return 0;
+        }
+    }
+
+    /// returns first character from string, or 0 for empty string
+    char_type firstChar() const noexcept {
+        if (pchunk && pchunk->len) {
+            return pchunk->buf[0];
+        } else {
+            return 0;
+        }
+    }
+
+    // ============================================================================
+    // compare methods
+    // ============================================================================
+
+    /// compare this string with another string, returns -1 if this < s, 1 if this > s, 0 if equal
+    int compare(const string_ro& s) const noexcept {
+        if (pchunk == s.pchunk) {
+            // same string
+            return 0;
+        }
+        size_type sz1 = length();
+        size_type sz2 = s.length();
+        if (sz1 == 0) {
+            return sz2 > 0 ? -1 : 0;
+        } else if (sz2 == 0) {
+            return 1;
+        }
+        return str_cmp_nonempty<char_type, size_type>(pchunk->buf, sz1, s.pchunk->buf, sz2);
+    }
+
+    /// compare substring (pos..pos+n) of this string with another string, returns -1 if this < s, 1 if this > s, 0 if equal
+    int compare(size_type pos, size_type n, const string_ro& s) const noexcept {
+        if (!pchunk || pos >= pchunk->len) {
+            // this string fragment is empty
+            return s.empty() ? 0 : -1;
+        }
+        // clamp this fragment size
+        if (pos + n > pchunk->len) {
+            n = pchunk->len - pos;
+        }
+        // n > 0
+        size_type sz2 = s.length();
+        if (sz2 == 0) {
+            return 1;
+        }
+        return str_cmp_nonempty<char_type, size_type>(pchunk->buf + pos, n, s.pchunk->buf, sz2);
+    }
+
+    /// compare substring (pos..pos+n) of this string with substring of another string (pos2..pos2+n2), returns -1 if this < s, 1 if this > s, 0 if equal
+    int compare(size_type pos, size_type n, const string_ro& s, size_type pos2, size_type n2) const noexcept {
+        // check if another string fragment is empty
+        bool s_empty = (!s.pchunk || pos2 >= s.pchunk->len);
+        if (!pchunk || pos >= pchunk->len) {
+            // this string fragment is empty
+            return s_empty ? 0 : -1;
+        }
+        if (s_empty) {
+            // this string non-empty, another string is empty
+            return 1;
+        }
+        // both string fragments are non-empty
+        // clamp this fragment size
+        if (pos + n > pchunk->len) {
+            n = pchunk->len - pos;
+        }
+        // clamp other fragment size
+        if (pos2 + n2 > s.pchunk->len) {
+            n2 = s.pchunk->len - pos2;
+        }
+        // n > 0, n2 > 0
+        return str_cmp_nonempty<char_type, size_type>(pchunk->buf + pos, n, s.pchunk->buf + pos2, n2);
+    }
+
+    /// compare substring (pos..pos+n) of this string with substring of another string s of len n2, returns -1 if this < s, 1 if this > s, 0 if equal
+    int compare(size_type pos, size_type n, const char_type * s, size_type n2) const noexcept {
+        // check if another string fragment is empty
+        bool s_empty = !s || !n2;
+        if (!pchunk || pos >= pchunk->len) {
+            // this string fragment is empty
+            return s_empty ? 0 : -1;
+        }
+        if (s_empty) {
+            // this string non-empty, another string is empty
+            return 1;
+        }
+        // both string fragments are non-empty
+        // clamp this fragment size
+        if (pos + n > pchunk->len) {
+            n = pchunk->len - pos;
+        }
+        // n > 0, n2 > 0
+        return str_cmp_nonempty<char_type, size_type>(pchunk->buf + pos, n, s, n2);
+    }
+
+    /// compare substring (pos..pos+n) of this string with another string s, returns -1 if this < s, 1 if this > s, 0 if equal
+    int compare(size_type pos, size_type n, const char_type * s) const noexcept {
+        size_type n2 = (!s) ? 0 : str_len<char_type, size_type>(s);
+        return compare(pos, n, s, n2);
+    }
+
+    /// compare this string with string literal, returns -1 if this < s, 1 if this > s, 0 if equal
+    int compare(const char_type* s) const noexcept {
+        size_t sz1 = length();
+        if (sz1 == 0) {
+            return (s != nullptr && *s != 0) ? -1 : 0;
+        } else if (s == nullptr || *s == 0) {
+            return 1;
+        }
+        return str_cmp_nonempty<char_type, size_type>(pchunk->buf, sz1, s);
+    }
+
+    /// returns true when strings are equal
+    bool operator == (const string_ro& s) const noexcept {
+        return compare(s) == 0;
+    }
+
+    /// returns true when strings are not equal
+    bool operator != (const string_ro& s) const noexcept {
+        return compare(s) != 0;
+    }
+
+    /// returns true when this string < s
+    bool operator < (const string_ro& s) const noexcept {
+        return compare(s) < 0;
+    }
+
+    /// returns true when this string >= s
+    bool operator <= (const string_ro& s) const noexcept {
+        return compare(s) <= 0;
+    }
+
+    /// returns true when this string > s
+    bool operator > (const string_ro& s) const noexcept {
+        return compare(s) > 0;
+    }
+
+    /// returns true when this string <= s
+    bool operator >= (const string_ro& s) const noexcept {
+        return compare(s) >= 0;
+    }
+
+    /// returns true when strings are equal
+    bool operator == (const char_type * s) const noexcept {
+        return compare(s) == 0;
+    }
+
+    /// returns true when strings are not equal
+    bool operator != (const char_type * s) const noexcept {
+        return compare(s) != 0;
+    }
+
+    /// returns true when this string < s
+    bool operator < (const char_type * s) const noexcept {
+        return compare(s) < 0;
+    }
+
+    /// returns true when this string <= s
+    bool operator <= (const char_type * s) const noexcept {
+        return compare(s) <= 0;
+    }
+
+    /// returns true when this string > s
+    bool operator > (const char_type * s) const noexcept {
+        return compare(s) > 0;
+    }
+
+    /// returns true when this string >= s
+    bool operator >= (const char_type * s) const noexcept {
+        return compare(s) >= 0;
+    }
+
+
+    // ============================================================================
+    // search methods
+    // ============================================================================
+
+    /// return first position of char c inside string starting from positon pos, or npos if no char is found.
+    size_type pos(char_type c, size_type start = 0) const noexcept {
+        if (pchunk) {
+            const char_type * buf = pchunk->buf;
+            size_type len = pchunk->len;
+            for (size_type i = start; i < len; i++) {
+                if (buf[i] == c) {
+                    return i;
+                }
+            }
+        }
+        return npos;
+    }
+
+    /// return first position of string s starting from positon pos, or npos if no char is found.
+    size_type pos(const string_ro& s, size_type start = 0) const noexcept {
+        if (pchunk && s.pchunk) {
+            size_type len = pchunk->len;
+            if (start >= len) {
+                return npos;
+            }
+            len -= start;
+            size_type slen = s.pchunk->len;
+            if (slen > len) {
+                return npos;
+            }
+            const char_type * sbuf = s.pchunk->buf;
+            const char_type * buf = pchunk->buf + start;
+            size_type maxstart = len - slen;
+            for (size_type i = 0; i <= maxstart; i++) {
+                size_type found = i + start;
+                for (size_type j = 0; j < slen; j++) {
+                    if (buf[i + j] != sbuf[j]) {
+                        found = npos;
+                        break;
+                    }
+                }
+                if (found != npos) {
+                    return found;
+                }
+            }
+        }
+        return npos;
+    }
+
+    /// return first position of null-term string starting from positon pos, or npos if no char is found.
+    size_type pos(const char_type* s, size_type start = 0) const noexcept {
+        if (pchunk && s && s[0]) {
+            size_type len = pchunk->len;
+            if (start >= len) {
+                return npos;
+            }
+            len -= start;
+            size_type slen = str_len<char_type,size_type>(s);
+            if (slen > len) {
+                return npos;
+            }
+            const char_type * buf = pchunk->buf + start;
+            size_type maxstart = len - slen;
+            for (size_type i = 0; i <= maxstart; i++) {
+                size_type found = i + start;
+                for (size_type j = 0; j < slen; j++) {
+                    if (buf[i + j] != s[j]) {
+                        found = npos;
+                        break;
+                    }
+                }
+                if (found != npos) {
+                    return found;
+                }
+            }
+        }
+        return npos;
+    }
+
+    /// return last position of null-term string s, or npos if no char is found.
+    size_type rpos(const char_type* s) const noexcept {
+        if (pchunk && s && s[0]) {
+            size_type len = pchunk->len;
+            size_type slen = str_len<char_type,size_type>(s);
+            if (slen > len) {
+                return npos;
+            }
+            const char_type * buf = pchunk->buf;
+            size_type maxstart = len - slen;
+            for (size_type i = maxstart; ; i--) {
+                size_type found = i;
+                for (size_type j = 0; j < slen; j++) {
+                    if (buf[i + j] != s[j]) {
+                        found = npos;
+                        break;
+                    }
+                }
+                if (found != npos) {
+                    return found;
+                }
+                if (i == 0) {
+                    break;
+                }
+            }
+        }
+        return npos;
+    }
+
+    /// returns true if this string starts with s[0..count-1], pass count=npos to calculate string size internally
+    bool startsWith(const char_type* s, size_type count = npos) const noexcept {
+        if (pchunk && s && s[0]) {
+            size_type len = pchunk->len;
+            size_type slen = (count == npos) ? str_len<char_type,size_type>(s) : count;
+            if (slen > len) {
+                return false;
+            }
+            const char_type * buf = pchunk->buf;
+            for (size_type j = 0; j < slen; j++) {
+                if (buf[j] != s[j]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // ============================================================================
+    // startsWith / endsWith
+    // ============================================================================
+
+    /// returns true if this string ends with s[0..count-1], pass count=npos to calculate string size internally
+    bool endsWith(const char_type* s, size_type count = npos) const noexcept {
+        if (pchunk && s && s[0]) {
+            size_type len = pchunk->len;
+            size_type slen = (count == npos) ? str_len<char_type,size_type>(s) : count;
+            if (slen > len) {
+                return false;
+            }
+            const char_type * buf = pchunk->buf + (len - slen);
+            for (size_type j = 0; j < slen; j++) {
+                if (buf[j] != s[j]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /// returns true if this string starts with s
+    bool startsWith(const string_ro& s) const noexcept {
+        if (pchunk && s.pchunk) {
+            size_type len = pchunk->len;
+            size_type slen = s.pchunk->len;
+            if (slen > len) {
+                return false;
+            }
+            const char_type * buf = pchunk->buf;
+            const char_type * sbuf = s.pchunk->buf;
+            for (size_type j = 0; j < slen; j++) {
+                if (buf[j] != sbuf[j]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /// returns true if this string starts with s
+    bool endsWith(const string_ro& s) const noexcept {
+        if (pchunk && s.pchunk) {
+            size_type len = pchunk->len;
+            size_type slen = s.pchunk->len;
+            if (slen > len) {
+                return false;
+            }
+            const char_type * buf = pchunk->buf + (len - slen);
+            const char_type * sbuf = s.pchunk->buf;
+            for (size_type j = 0; j < slen; j++) {
+                if (buf[j] != sbuf[j]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+
+
+  protected:
+    /// member variables must follow in the same order as in string for reinterpret cast
+    chunk_t * pchunk {nullptr};
+};
+
+/// writable copy of string (guaranteed to be empty or have reference counter == 1
+/// can only be passed by reference created from string
+/// allows modification without reference counting checks
+template <typename char_type, typename refcounter_type = std::atomic_int>
+class string_wr : public string_ro<char_type, refcounter_type> {
+public:
+    // typedefs for STL compatibility
+    typedef char_type             value_type;      ///< character type
+    typedef lUInt32               size_type;       ///< size type
+    typedef lInt32                difference_type; ///< difference type
+    typedef value_type *          pointer;         ///< pointer to char type
+    typedef value_type &          reference;       ///< reference to char type
+    typedef const value_type *    const_pointer;   ///< pointer to const char type
+    typedef const value_type &    const_reference; ///< reference to const char type
+    typedef string<char_type, refcounter_type> string_type; ///< normal shared string reference type
+    typedef string<char_type, refcounter_type> string_ro_type; ///< normal shared string reference type
+
+    // constant for not found / unspecified position
+    static const size_type npos = -1;
+
+private:
+    using typename string_ro<char_type, refcounter_type>::chunk_t;
+    using string_ro<char_type, refcounter_type>::pchunk;
+public:
+    using string_ro<char_type, refcounter_type>::empty;
+    using string_ro<char_type, refcounter_type>::length;
+    using string_ro<char_type, refcounter_type>::size;
+    using string_ro<char_type, refcounter_type>::capacity;
+
+    using string_ro<char_type, refcounter_type>::operator [];
+    using string_ro<char_type, refcounter_type>::at;
+    using string_ro<char_type, refcounter_type>::c_str;
+
+    /// disabled: always created as a synonim of the string with the same template parameters
+    string_wr() {}
+    /// don't free pchunk - it's owned by string
+    ~string_wr() {}
+public:
+
     /// return C-style null-terminated string pointer
     const char_type * data() const noexcept {
         return c_str();
@@ -474,26 +912,11 @@ public:
         if (pchunk == nullptr) {
             return reinterpret_cast<char_type *>(&fake_null_buffer_32);
         } else {
-            lock(pchunk->len);
             // enforce null-termination
             const_cast<chunk_t*>(pchunk)->buf[pchunk->len] = 0;
             return pchunk->buf;
         }
     }
-
-
-    // ============================================================================
-    // const methods
-    // ============================================================================
-
-    /// returns true if string is empty
-    bool empty() const noexcept { return pchunk == nullptr || pchunk->len==0; }
-    /// returns character count
-    size_type   length() const noexcept { return pchunk == nullptr ? 0 : pchunk->len; }
-    /// returns character count (same as length)
-    size_type   size() const noexcept { return pchunk == nullptr ? 0 : pchunk->len; }
-    /// returns maximum number of chars that can fit into buffer (there is always additional one char space for trailing 0 which is not counted)
-    size_type   capacity() const noexcept { return pchunk==nullptr ? 0 : pchunk->size; }
 
     /// sets value to null string, freeing buffer
     void clear() noexcept {
@@ -519,6 +942,29 @@ public:
                 chunk_t::free(pchunk);
                 pchunk = chunk_t::alloc(size);
             }
+        }
+        return *this;
+    }
+
+    /// ensure that buffer has at least size capacity
+    string_wr& reserve(size_type size) noexcept {
+        if (size == 0) {
+            // reserve(0) is a non-binding request, just treat this empty string as owned
+            return *this;
+        }
+        if (pchunk != nullptr) {
+            // already own buffer
+            if (pchunk->size < size) {
+                // only if size is not enough, create a bigger buffer copy
+                chunk_t * tmp = pchunk->duplicate(size);
+                chunk_t::free(pchunk);
+                pchunk = tmp;
+            }
+        } else {
+            // create new allocation of requested size
+            pchunk = chunk_t::alloc(size);
+            pchunk->len = 0;
+            pchunk->buf[0] = 0;
         }
         return *this;
     }
@@ -673,15 +1119,175 @@ public:
         return *this;
     }
 
+    /// appends decimal string representation of integer value
+    string_wr& appendDecimal(lInt64 n) noexcept {
+        char_type buf[24];
+        int i=0;
+        int negative = 0;
+        if (n==0) {
+            return append(1, '0');
+        } else if (n<0)
+        {
+            negative = 1;
+            n = -n;
+        }
+        for ( ; n; n/=10 )
+        {
+            buf[i++] = '0' + (n % 10);
+        }
+        reserve(length() + i + negative);
+        if (negative)
+            append(1, '-');
+        for (int j=i-1; j>=0; j--)
+            append(1, buf[j]);
+        return *this;
+    }
 
+    /// appends hex string representation of integer value, no leading zeroes
+    string_wr& appendHex(lUInt64 n) noexcept {
+        if (n == 0) {
+            return append(1, '0');
+        }
+        reserve(length() + 16);
+        bool foundNz = false;
+        for (int i=0; i<16; i++) {
+            int digit = (n >> 60) & 0x0F;
+            if (digit) {
+                foundNz = true;
+            }
+            if (foundNz) {
+                append(1, (static_cast<char_type>("0123456789abcdef"[digit])) & 0xFF);
+            }
+            n <<= 4;
+        }
+        return *this;
+    }
 
-private:
+    /// append fragment from null-terminated string; no validation of input string is performed
+    string_wr& append(const char_type* s, size_type count) noexcept {
+        if (count) {
+            if (!pchunk) {
+                pchunk = chunk_t::alloc(s, count, count);
+            } else {
+                size_type new_len = pchunk->len + count;
+                if (pchunk->isShared() || pchunk->size < new_len) {
+                    // need new buffer: either shared or not enough capacity
+                    // if s points to our own buffer, save data before releasing
+                    bool self_append = (s == pchunk->buf);
+                    chunk_t * tmp = chunk_t::alloc(pchunk->buf, pchunk->len, new_len);
+                    if (self_append) {
+                        // s was our old buffer, now freed; copy from the new tmp which has the old data
+                        std::memcpy(tmp->buf + tmp->len, tmp->buf, sizeof(char_type) * count);
+                    } else {
+                        std::memcpy(tmp->buf + tmp->len, s, sizeof(char_type) * count);
+                    }
+                    tmp->len = new_len;
+                    tmp->buf[new_len] = 0;
+                    intrusive_ptr_release(pchunk);
+                    pchunk = tmp;
+                } else {
+                    std::memmove(pchunk->buf + pchunk->len, s, sizeof(char_type) * count);
+                    pchunk->len = new_len;
+                    pchunk->buf[new_len] = 0;
+                }
+            }
+        }
+        return *this;
+    }
+
+    /// append null-terminated string
+    string_wr& append(const char_type* s) noexcept {
+        if (!s || !*s) {
+            return *this;
+        }
+        size_type count = str_len<char_type, size_type>(s);
+        if (count) {
+            append(s, count);
+        }
+        return *this;
+    }
+
+    /// append another string
+    string_wr& append(const string_wr& s) noexcept {
+        if (!s.empty()) {
+            return append(s.pchunk->buf, s.pchunk->len);
+        }
+        return *this;
+    }
+
+    /// append fragment of another string
+    string_wr& append(const string_wr& s, size_type offset, size_type count) noexcept {
+        if (!s.empty() && offset < s.pchunk->len) {
+            if (offset + count > s.pchunk->len) {
+                count = s.pchunk->len - offset;
+            }
+            return append(s.pchunk->buf + offset, count);
+        }
+        return *this;
+    }
+
+    /// append one or more characters
+    string_wr& append(size_type count, char_type c) noexcept {
+        if (pchunk) {
+            size_type new_len = pchunk->len + count;
+            if (pchunk->isShared() || pchunk->size < new_len) {
+                chunk_t * tmp = chunk_t::alloc(pchunk->buf, pchunk->len, new_len);
+                for (size_type i = 0; i < count; i++) {
+                    tmp->buf[pchunk->len + i] = c;
+                }
+                tmp->len = new_len;
+                tmp->buf[new_len] = 0;
+                intrusive_ptr_release(pchunk);
+                pchunk = tmp;
+            } else {
+                // own buffer with enough capacity
+                for (size_type i = 0; i < count; i++) {
+                    pchunk->buf[pchunk->len + i] = c;
+                }
+                pchunk->len = new_len;
+                pchunk->buf[new_len] = 0;
+            }
+        } else {
+            // appending to empty string
+            pchunk = chunk_t::alloc(count);
+            for (size_type i = 0; i < count; i++) {
+                pchunk->buf[i] = c;
+            }
+            pchunk->len = count;
+            pchunk->buf[count] = 0;
+        }
+        return *this;
+    }
+
+    /// append single character
+    string_wr& operator << (char_type ch) noexcept { return append(1, ch); }
+    /// append C-string
+    string_wr& operator << (const char_type * str) noexcept { return append(str); }
+    /// append string
+    string_wr& operator << (const string_wr & str) noexcept { return append(str); }
+    /// append decimal number
+    string_wr& operator << (const fmt::decimal v) noexcept { return appendDecimal(v.get()); }
+    /// append hex number
+    string_wr& operator << (const fmt::hex v) noexcept { return appendHex(v.get()); }
+
+    /// append single character
+    string_wr& operator += (char_type ch) noexcept { return append(1, ch); }
+    /// append C-string
+    string_wr& operator += (const char_type * str) noexcept { return append(str); }
+    /// append string
+    string_wr& operator += (const string_wr & str) noexcept { return append(str); }
+    /// append decimal number
+    string_wr& operator += (const fmt::decimal v) noexcept { return appendDecimal(v.get()); }
+    /// append hex number
+    string_wr& operator += (const fmt::hex v) noexcept { return appendHex(v.get()); }
+
+//private:
     /// member variables must follow in the same order as in string for reinterpret cast
-    chunk_t * pchunk {nullptr};
+    //chunk_t * pchunk {nullptr};
 };
 
 template <typename char_type, typename refcounter_type = std::atomic_int>
-class string {
+class string : public string_ro<char_type, refcounter_type> {
     friend class string_wr<char_type, refcounter_type>;
 public:
     // typedefs for STL compatibility
@@ -706,7 +1312,21 @@ public:
     typedef string_wr<char_type, refcounter_type>& writable_ref;   ///< writable (owned) string reference
 
 private:
-    using chunk_t = lstring_chunk_t<char_type, size_type, refcounter_type>;
+
+  using typename string_ro<char_type, refcounter_type>::chunk_t;
+  using string_ro<char_type, refcounter_type>::pchunk;
+
+public:
+  using string_ro<char_type, refcounter_type>::empty;
+  using string_ro<char_type, refcounter_type>::length;
+  using string_ro<char_type, refcounter_type>::size;
+  using string_ro<char_type, refcounter_type>::capacity;
+
+  using string_ro<char_type, refcounter_type>::operator [];
+  using string_ro<char_type, refcounter_type>::at;
+  using string_ro<char_type, refcounter_type>::c_str;
+  //using string_ro<char_type, refcounter_type>::data;
+
 
 public:
     string() noexcept = default;
@@ -881,191 +1501,6 @@ public:
             }
         }
         return *this;
-    }
-
-    /// index value. No index nor empty string checks. Will crash on empty string.
-    char_type operator [] (size_type index) const noexcept {
-        return pchunk->buf[index];
-    }
-
-    /// index ref. No index nor refcount checks. Will crash on empty string. Only use on non-empy string which owns data (refcount==1).
-    char_type& operator [] (size_type index) noexcept {
-        return pchunk->buf[index];
-    }
-
-    /// index value with bounds checking. No index nor empty string checks. Will crash on empty string.
-    /// Does not throw exception on index out of bounds, returns 0 instead.
-    char_type at(size_type index) const noexcept {
-        if (pchunk == nullptr || index >= pchunk->len) {
-            return 0;
-        }
-        return pchunk->buf[index];
-    }
-
-    /// index ref. No index nor refcount checks. Will crash on empty string. Only use on non-empy string which owns data (refcount==1).
-    /// Does not throw exception on index out of bounds, returns reference pointing to static 0 value instead.
-    char_type& at(size_type index) noexcept {
-        if (pchunk == nullptr || index >= pchunk->len) {
-            return *(static_cast<char_type*>(&fake_null_buffer_32));
-        }
-        return pchunk->buf[index];
-    }
-
-    /// compare this string with another string, returns -1 if this < s, 1 if this > s, 0 if equal
-    int compare(const string& s) const noexcept {
-        if (pchunk == s.pchunk) {
-            // same string
-            return 0;
-        }
-        size_type sz1 = length();
-        size_type sz2 = s.length();
-        if (sz1 == 0) {
-            return sz2 > 0 ? -1 : 0;
-        } else if (sz2 == 0) {
-            return 1;
-        }
-        return str_cmp_nonempty<char_type, size_type>(pchunk->buf, sz1, s.pchunk->buf, sz2);
-    }
-
-    /// compare substring (pos..pos+n) of this string with another string, returns -1 if this < s, 1 if this > s, 0 if equal
-    int compare(size_type pos, size_type n, const string& s) const noexcept {
-        if (!pchunk || pos >= pchunk->len) {
-            // this string fragment is empty
-            return s.empty() ? 0 : -1;
-        }
-        // clamp this fragment size
-        if (pos + n > pchunk->len) {
-            n = pchunk->len - pos;
-        }
-        // n > 0
-        size_type sz2 = s.length();
-        if (sz2 == 0) {
-            return 1;
-        }
-        return str_cmp_nonempty<char_type, size_type>(pchunk->buf + pos, n, s.pchunk->buf, sz2);
-    }
-
-    /// compare substring (pos..pos+n) of this string with substring of another string (pos2..pos2+n2), returns -1 if this < s, 1 if this > s, 0 if equal
-    int compare(size_type pos, size_type n, const string& s, size_type pos2, size_type n2) const noexcept {
-        // check if another string fragment is empty
-        bool s_empty = (!s.pchunk || pos2 >= s.pchunk->len);
-        if (!pchunk || pos >= pchunk->len) {
-            // this string fragment is empty
-            return s_empty ? 0 : -1;
-        }
-        if (s_empty) {
-            // this string non-empty, another string is empty
-            return 1;
-        }
-        // both string fragments are non-empty
-        // clamp this fragment size
-        if (pos + n > pchunk->len) {
-            n = pchunk->len - pos;
-        }
-        // clamp other fragment size
-        if (pos2 + n2 > s.pchunk->len) {
-            n2 = s.pchunk->len - pos2;
-        }
-        // n > 0, n2 > 0
-        return str_cmp_nonempty<char_type, size_type>(pchunk->buf + pos, n, s.pchunk->buf + pos2, n2);
-    }
-
-    /// compare substring (pos..pos+n) of this string with substring of another string s of len n2, returns -1 if this < s, 1 if this > s, 0 if equal
-    int compare(size_type pos, size_type n, const char_type * s, size_type n2) const noexcept {
-        // check if another string fragment is empty
-        bool s_empty = !s || !n2;
-        if (!pchunk || pos >= pchunk->len) {
-            // this string fragment is empty
-            return s_empty ? 0 : -1;
-        }
-        if (s_empty) {
-            // this string non-empty, another string is empty
-            return 1;
-        }
-        // both string fragments are non-empty
-        // clamp this fragment size
-        if (pos + n > pchunk->len) {
-            n = pchunk->len - pos;
-        }
-        // n > 0, n2 > 0
-        return str_cmp_nonempty<char_type, size_type>(pchunk->buf + pos, n, s, n2);
-    }
-
-    /// compare substring (pos..pos+n) of this string with another string s, returns -1 if this < s, 1 if this > s, 0 if equal
-    int compare(size_type pos, size_type n, const char_type * s) const noexcept {
-        size_type n2 = (!s) ? 0 : str_len<char_type, size_type>(s);
-        return compare(pos, n, s, n2);
-    }
-
-    /// compare this string with string literal, returns -1 if this < s, 1 if this > s, 0 if equal
-    int compare(const char_type* s) const noexcept {
-        size_t sz1 = length();
-        if (sz1 == 0) {
-            return (s != nullptr && *s != 0) ? -1 : 0;
-        } else if (s == nullptr || *s == 0) {
-            return 1;
-        }
-        return str_cmp_nonempty<char_type, size_type>(pchunk->buf, sz1, s);
-    }
-
-    /// returns true when strings are equal
-    bool operator == (const string& s) const noexcept {
-        return compare(s) == 0;
-    }
-
-    /// returns true when strings are not equal
-    bool operator != (const string& s) const noexcept {
-        return compare(s) != 0;
-    }
-
-    /// returns true when this string < s
-    bool operator < (const string& s) const noexcept {
-        return compare(s) < 0;
-    }
-
-    /// returns true when this string >= s
-    bool operator <= (const string& s) const noexcept {
-        return compare(s) <= 0;
-    }
-
-    /// returns true when this string > s
-    bool operator > (const string& s) const noexcept {
-        return compare(s) > 0;
-    }
-
-    /// returns true when this string <= s
-    bool operator >= (const string& s) const noexcept {
-        return compare(s) >= 0;
-    }
-
-    /// returns true when strings are equal
-    bool operator == (const char_type * s) const noexcept {
-        return compare(s) == 0;
-    }
-
-    /// returns true when strings are not equal
-    bool operator != (const char_type * s) const noexcept {
-        return compare(s) != 0;
-    }
-
-    /// returns true when this string < s
-    bool operator < (const char_type * s) const noexcept {
-        return compare(s) < 0;
-    }
-
-    /// returns true when this string <= s
-    bool operator <= (const char_type * s) const noexcept {
-        return compare(s) <= 0;
-    }
-
-    /// returns true when this string > s
-    bool operator > (const char_type * s) const noexcept {
-        return compare(s) > 0;
-    }
-
-    /// returns true when this string >= s
-    bool operator >= (const char_type * s) const noexcept {
-        return compare(s) >= 0;
     }
 
     /// sets value to null string, freeing buffer
@@ -1289,17 +1724,6 @@ public:
         return *this;
     }
 
-    /// append single character
-    string& operator << (char_type ch) { return append(1, ch); }
-    /// append C-string
-    string& operator << (const char_type * str) { return append(str); }
-    /// append string
-    string& operator << (const string & str) { return append(str); }
-    /// append decimal number
-    string& operator << (const fmt::decimal v) { return appendDecimal(v.get()); }
-    /// append hex number
-    string& operator << (const fmt::hex v) { return appendHex(v.get()); }
-
     /// append fragment from null-terminated string; no validation of input string is performed
     string& append(const char_type* s, size_type count) noexcept {
         if (count) {
@@ -1395,6 +1819,28 @@ public:
         }
         return *this;
     }
+
+    /// append single character
+    string& operator << (char_type ch) noexcept { return append(1, ch); }
+    /// append C-string
+    string& operator << (const char_type * str) noexcept { return append(str); }
+    /// append string
+    string& operator << (const string & str) noexcept { return append(str); }
+    /// append decimal number
+    string& operator << (const fmt::decimal v) noexcept { return appendDecimal(v.get()); }
+    /// append hex number
+    string& operator << (const fmt::hex v) noexcept { return appendHex(v.get()); }
+
+    /// append single character
+    string& operator += (char_type ch) noexcept { return append(1, ch); }
+    /// append C-string
+    string& operator += (const char_type * str) noexcept { return append(str); }
+    /// append string
+    string& operator += (const string & str) noexcept { return append(str); }
+    /// append decimal number
+    string& operator += (const fmt::decimal v) noexcept { return appendDecimal(v.get()); }
+    /// append hex number
+    string& operator += (const fmt::hex v) noexcept { return appendHex(v.get()); }
 
     /// insert from char* and size
     string& insert(size_type pos, const char_type* s, size_type count) noexcept {
@@ -1713,17 +2159,6 @@ public:
     }
 
     /// return C-style null-terminated string pointer
-    const char_type * c_str() const noexcept {
-        if (pchunk == nullptr) {
-            return reinterpret_cast<const char_type *>(&fake_null_buffer_32);
-        } else {
-            // enforce null-termination
-            const_cast<chunk_t*>(pchunk)->buf[pchunk->len] = 0;
-            return pchunk->buf;
-        }
-    }
-
-    /// return C-style null-terminated string pointer
     const char_type * data() const noexcept {
         return c_str();
     }
@@ -1741,6 +2176,7 @@ public:
     }
 
     /// ensures that reference count is 1; if string is null or we own it, do nothing
+    /// only used from data() ? what is a better place for it?
     void lock( size_type newsize ) noexcept {
         if (pchunk) {
             // string is not null
@@ -1760,6 +2196,8 @@ public:
         }
     }
 
+
+
     /// returns pointer to modifable string buffer
     char_type * modify() noexcept {
         if (!pchunk) {
@@ -1778,188 +2216,6 @@ public:
             }
         }
         return pchunk->buf;
-    }
-
-    /// return first position of char c inside string starting from positon pos, or npos if no char is found.
-    size_type pos(char_type c, size_type start = 0) const noexcept {
-        if (pchunk) {
-            const char_type * buf = pchunk->buf;
-            size_type len = pchunk->len;
-            for (size_type i = start; i < len; i++) {
-                if (buf[i] == c) {
-                    return i;
-                }
-            }
-        }
-        return npos;
-    }
-
-    /// return first position of string s starting from positon pos, or npos if no char is found.
-    size_type pos(const string& s, size_type start = 0) const noexcept {
-        if (pchunk && s.pchunk) {
-            size_type len = pchunk->len;
-            if (start >= len) {
-                return npos;
-            }
-            len -= start;
-            size_type slen = s.pchunk->len;
-            if (slen > len) {
-                return npos;
-            }
-            const char_type * sbuf = s.pchunk->buf;
-            const char_type * buf = pchunk->buf + start;
-            size_type maxstart = len - slen;
-            for (size_type i = 0; i <= maxstart; i++) {
-                size_type found = i + start;
-                for (size_type j = 0; j < slen; j++) {
-                    if (buf[i + j] != sbuf[j]) {
-                        found = npos;
-                        break;
-                    }
-                }
-                if (found != npos) {
-                    return found;
-                }
-            }
-        }
-        return npos;
-    }
-
-    /// return first position of null-term string starting from positon pos, or npos if no char is found.
-    size_type pos(const char_type* s, size_type start = 0) const noexcept {
-        if (pchunk && s && s[0]) {
-            size_type len = pchunk->len;
-            if (start >= len) {
-                return npos;
-            }
-            len -= start;
-            size_type slen = str_len<char_type,size_type>(s);
-            if (slen > len) {
-                return npos;
-            }
-            const char_type * buf = pchunk->buf + start;
-            size_type maxstart = len - slen;
-            for (size_type i = 0; i <= maxstart; i++) {
-                size_type found = i + start;
-                for (size_type j = 0; j < slen; j++) {
-                    if (buf[i + j] != s[j]) {
-                        found = npos;
-                        break;
-                    }
-                }
-                if (found != npos) {
-                    return found;
-                }
-            }
-        }
-        return npos;
-    }
-
-    /// return last position of null-term string s, or npos if no char is found.
-    size_type rpos(const char_type* s) const noexcept {
-        if (pchunk && s && s[0]) {
-            size_type len = pchunk->len;
-            size_type slen = str_len<char_type,size_type>(s);
-            if (slen > len) {
-                return npos;
-            }
-            const char_type * buf = pchunk->buf;
-            size_type maxstart = len - slen;
-            for (size_type i = maxstart; ; i--) {
-                size_type found = i;
-                for (size_type j = 0; j < slen; j++) {
-                    if (buf[i + j] != s[j]) {
-                        found = npos;
-                        break;
-                    }
-                }
-                if (found != npos) {
-                    return found;
-                }
-                if (i == 0) {
-                    break;
-                }
-            }
-        }
-        return npos;
-    }
-
-    /// returns true if this string starts with s[0..count-1], pass count=npos to calculate string size internally
-    bool startsWith(const char_type* s, size_type count = npos) const noexcept {
-        if (pchunk && s && s[0]) {
-            size_type len = pchunk->len;
-            size_type slen = (count == npos) ? str_len<char_type,size_type>(s) : count;
-            if (slen > len) {
-                return false;
-            }
-            const char_type * buf = pchunk->buf;
-            for (size_type j = 0; j < slen; j++) {
-                if (buf[j] != s[j]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /// returns true if this string ends with s[0..count-1], pass count=npos to calculate string size internally
-    bool endsWith(const char_type* s, size_type count = npos) const noexcept {
-        if (pchunk && s && s[0]) {
-            size_type len = pchunk->len;
-            size_type slen = (count == npos) ? str_len<char_type,size_type>(s) : count;
-            if (slen > len) {
-                return false;
-            }
-            const char_type * buf = pchunk->buf + (len - slen);
-            for (size_type j = 0; j < slen; j++) {
-                if (buf[j] != s[j]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /// returns true if this string starts with s
-    bool startsWith(const string& s) const noexcept {
-        if (pchunk && s.pchunk) {
-            size_type len = pchunk->len;
-            size_type slen = s.pchunk->len;
-            if (slen > len) {
-                return false;
-            }
-            const char_type * buf = pchunk->buf;
-            const char_type * sbuf = s.pchunk->buf;
-            for (size_type j = 0; j < slen; j++) {
-                if (buf[j] != sbuf[j]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /// returns true if this string starts with s
-    bool endsWith(const string& s) const noexcept {
-        if (pchunk && s.pchunk) {
-            size_type len = pchunk->len;
-            size_type slen = s.pchunk->len;
-            if (slen > len) {
-                return false;
-            }
-            const char_type * buf = pchunk->buf + (len - slen);
-            const char_type * sbuf = s.pchunk->buf;
-            for (size_type j = 0; j < slen; j++) {
-                if (buf[j] != sbuf[j]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
     }
 
     /// returns substring starting with position pos, and specified count of chars (pass npos to copy till end of string)
@@ -1983,37 +2239,8 @@ public:
         s.pchunk = tmp;
     }
 
-    /// returns true if string is empty
-    bool empty() const noexcept { return pchunk == nullptr || pchunk->len==0; }
-    /// returns true if string is empty
-    bool operator ! () const noexcept { return pchunk == nullptr || pchunk->len==0; }
-    /// returns character count
-    size_type   length() const noexcept { return pchunk == nullptr ? 0 : pchunk->len; }
-    /// returns character count
-    size_type   size() const noexcept { return pchunk == nullptr ? 0 : pchunk->len; }
-    /// returns maximum number of chars that can fit into buffer (there is always additional one char space for trailing 0 which is not counted)
-    size_type   capacity() const noexcept { return pchunk==nullptr ? 0 : pchunk->size; }
-
-    /// returns last character from string, or 0 for empty string
-    char_type lastChar() const noexcept {
-        if (pchunk && pchunk->len) {
-            return pchunk->buf[pchunk->len-1];
-        } else {
-            return 0;
-        }
-    }
-
-    /// returns first character from string, or 0 for empty string
-    char_type firstChar() const noexcept {
-        if (pchunk && pchunk->len) {
-            return pchunk->buf[0];
-        } else {
-            return 0;
-        }
-    }
-
 private:
-    chunk_t * pchunk {nullptr};
+    //chunk_t * pchunk {nullptr};
 };
 
 // template<typename char_type, typename refcounter_type>

@@ -1447,6 +1447,57 @@ void test_lstring8() {
     lString8 s_lower_done {"already"};
     s_lower_done.lowercase();
     TCHECK(s_lower_done == "already");
+
+           // --- operator += (char) ---
+    lString8 s_plus1;
+    s_plus1 += 'A';
+    TCHECK(s_plus1 == "A");
+    s_plus1 += 'B';
+    TCHECK(s_plus1 == "AB");
+
+           // --- operator += (c-str) ---
+    lString8 s_plus2;
+    s_plus2 += "hello";
+    TCHECK(s_plus2 == "hello");
+    s_plus2 += " world";
+    TCHECK(s_plus2 == "hello world");
+
+           // --- operator += (string) ---
+    lString8 s_plus3;
+    s_plus3 += lString8{"test"};
+    TCHECK(s_plus3 == "test");
+    s_plus3 += s_plus3;
+    TCHECK(s_plus3 == "testtest");
+
+           // --- operator += (fmt::decimal) ---
+    lString8 s_plus4;
+    s_plus4 += fmt::decimal(42);
+    TCHECK(s_plus4 == "42");
+    s_plus4 += fmt::decimal(-99);
+    TCHECK(s_plus4 == "42-99");
+
+           // --- operator += (fmt::hex) ---
+    lString8 s_plus5;
+    s_plus5 += fmt::hex(255);
+    TCHECK(s_plus5 == "ff");
+    s_plus5 += fmt::hex(0xABC);
+    TCHECK(s_plus5 == "ffabc");
+
+           // --- string_wr operator += ---
+    lString8 s_wr_plus {"base"};
+    auto& s_wr = s_wr_plus.writableRef();
+    s_wr += " extended";
+    TCHECK(s_wr_plus == "base extended");
+    s_wr += '!';
+    TCHECK(s_wr_plus == "base extended!");
+
+           // --- string_wr operator << ---
+    lString8 s_wr_sl {"start"};
+    auto& s_wr2 = s_wr_sl.writableRef();
+    s_wr2 << " middle";
+    TCHECK(s_wr_sl == "start middle");
+    s_wr2 << fmt::decimal(123);
+    TCHECK(s_wr_sl == "start middle123");
 }
 
 void test_writable_refs_lString8() {
