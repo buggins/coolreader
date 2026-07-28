@@ -95,7 +95,7 @@ void test_lstring2_chunks() {
     TCHECK(chunk16_2->size == 16+1);
     TCHECK(chunk16_2->len == 4);
     TCHECK(chunk16_2->refCount == 1);
-    TCHECK(chunk16_2->buf[0] == u'b' && chunk16_2->buf[1] == u'c' && chunk16_2->buf[2] == u'd' && chunk16_2->buf[3] == u'e' && chunk16_2->buf[4] == 0);
+    TCHECK(chunk16_2->buf[0] == u'b' && chunk16_2->buf[1] == u'c' && chunk16_2->buf[2] == u'd' && chunk16_2->buf[3] == u'e');
     intrusive_ptr_add_ref(chunk16_2);
     TCHECK(chunk16_2->getRefCount() == 2);
     intrusive_ptr_release(chunk16_2);
@@ -121,7 +121,7 @@ void test_lstring2_chunks() {
     TCHECK(chunk32_2->size == 12);
     TCHECK(chunk32_2->len == 4);
     TCHECK(chunk32_2->refCount == 1);
-    TCHECK(chunk32_2->buf[0] == U'c' && chunk32_2->buf[1] == U'd' && chunk32_2->buf[2] == U'e' && chunk32_2->buf[3] == U'f' && chunk32_2->buf[4] == 0);
+    TCHECK(chunk32_2->buf[0] == U'c' && chunk32_2->buf[1] == U'd' && chunk32_2->buf[2] == U'e' && chunk32_2->buf[3] == U'f');
     lstring32_chunk_t::free(chunk32_2);
 
 }
@@ -2329,6 +2329,205 @@ void test_lstring2_unicode() {
     {
         const lChar8 * p = nullptr;
         TCHECK(utfCodePointCount<lChar8>(p, p) == 0);
+    }
+
+           // --- utfWriteCodePoint roundtrip lChar8 utf8 1-byte ---
+    {
+        lChar8 buf[8];
+        lChar8 * s = buf;
+        const lChar8 * end = buf + 8;
+        lChar32 result = utfWriteCodePoint<lChar8>(0x41, s, end);
+        TCHECK(result == 0x41);
+        TCHECK(s == buf + 1);
+        const lChar8 * r = buf;
+        lChar32 cp = utfReadCodePoint<lChar8>(r, s);
+        TCHECK(cp == 0x41);
+    }
+
+           // --- utfWriteCodePoint roundtrip lChar8 utf8 2-byte ---
+    {
+        lChar8 buf[8];
+        lChar8 * s = buf;
+        const lChar8 * end = buf + 8;
+        lChar32 result = utfWriteCodePoint<lChar8>(0xE9, s, end);
+        TCHECK(result == 0xE9);
+        TCHECK(s == buf + 2);
+        const lChar8 * r = buf;
+        lChar32 cp = utfReadCodePoint<lChar8>(r, s);
+        TCHECK(cp == 0xE9);
+    }
+
+           // --- utfWriteCodePoint roundtrip lChar8 utf8 3-byte ---
+    {
+        lChar8 buf[8];
+        lChar8 * s = buf;
+        const lChar8 * end = buf + 8;
+        lChar32 result = utfWriteCodePoint<lChar8>(0x20AC, s, end);
+        TCHECK(result == 0x20AC);
+        TCHECK(s == buf + 3);
+        const lChar8 * r = buf;
+        lChar32 cp = utfReadCodePoint<lChar8>(r, s);
+        TCHECK(cp == 0x20AC);
+    }
+
+           // --- utfWriteCodePoint roundtrip lChar8 utf8 4-byte ---
+    {
+        lChar8 buf[8];
+        lChar8 * s = buf;
+        const lChar8 * end = buf + 8;
+        lChar32 result = utfWriteCodePoint<lChar8>(0x1D11E, s, end);
+        TCHECK(result == 0x1D11E);
+        TCHECK(s == buf + 4);
+        const lChar8 * r = buf;
+        lChar32 cp = utfReadCodePoint<lChar8>(r, s);
+        TCHECK(cp == 0x1D11E);
+    }
+
+           // --- utfWriteCodePoint lChar8 boundary values ---
+    {
+        lChar8 buf[8];
+        lChar8 * s, * end = buf + 8;
+
+        s = buf; utfWriteCodePoint<lChar8>(0x7F, s, end);   TCHECK(s == buf + 1);
+        s = buf; utfWriteCodePoint<lChar8>(0x80, s, end);   TCHECK(s == buf + 2);
+        s = buf; utfWriteCodePoint<lChar8>(0x7FF, s, end);  TCHECK(s == buf + 2);
+        s = buf; utfWriteCodePoint<lChar8>(0x800, s, end);  TCHECK(s == buf + 3);
+        s = buf; utfWriteCodePoint<lChar8>(0xFFFF, s, end); TCHECK(s == buf + 3);
+        s = buf; utfWriteCodePoint<lChar8>(0x10000, s, end); TCHECK(s == buf + 4);
+        s = buf; utfWriteCodePoint<lChar8>(0x10FFFF, s, end); TCHECK(s == buf + 4);
+    }
+
+           // --- utfWriteCodePoint lChar8 invalid: surrogate ---
+    {
+        lChar8 buf[8];
+        lChar8 * s = buf;
+        const lChar8 * end = buf + 8;
+        lChar32 result = utfWriteCodePoint<lChar8>(0xD800, s, end);
+        TCHECK(result == 0xFFFFFFFEu); // invalid_char
+        TCHECK(s == buf); // not advanced
+    }
+
+           // --- utfWriteCodePoint lChar8 invalid: > 0x10FFFF ---
+    {
+        lChar8 buf[8];
+        lChar8 * s = buf;
+        const lChar8 * end = buf + 8;
+        lChar32 result = utfWriteCodePoint<lChar8>(0x110000, s, end);
+        TCHECK(result == 0xFFFFFFFEu); // invalid_char
+        TCHECK(s == buf);
+    }
+
+           // --- utfWriteCodePoint lChar8 buffer full ---
+    {
+        lChar8 buf[4];
+        lChar8 * s, * end = buf + 4;
+
+        s = buf; TCHECK(utfWriteCodePoint<lChar8>(0x41, s, end) == 0x41);    // 1 byte, fits
+        s = buf; TCHECK(utfWriteCodePoint<lChar8>(0xE9, s, end) == 0xE9);    // 2 bytes, fits
+        s = buf; TCHECK(utfWriteCodePoint<lChar8>(0x20AC, s, end) == 0x20AC); // 3 bytes, fits
+        s = buf; TCHECK(utfWriteCodePoint<lChar8>(0x1D11E, s, end) == 0x1D11E); // 4 bytes, fits
+
+        s = buf + 3; TCHECK(utfWriteCodePoint<lChar8>(0x20AC, s, end) == 0xFFFFFFFFu); // needs 3, only 1 left
+        s = buf + 1; TCHECK(utfWriteCodePoint<lChar8>(0x1D11E, s, end) == 0xFFFFFFFFu); // needs 4, only 3 left
+    }
+
+           // --- utfWriteCodePoint roundtrip lChar16 utf16 BMP ---
+    {
+        lChar16 buf[4];
+        lChar16 * s = buf;
+        const lChar16 * end = buf + 4;
+        lChar32 result = utfWriteCodePoint<lChar16>(0x41, s, end);
+        TCHECK(result == 0x41);
+        TCHECK(s == buf + 1);
+        const lChar16 * r = buf;
+        TCHECK(utfReadCodePoint<lChar16>(r, s) == 0x41);
+    }
+
+           // --- utfWriteCodePoint roundtrip lChar16 utf16 supplementary ---
+    {
+        lChar16 buf[4];
+        lChar16 * s = buf;
+        const lChar16 * end = buf + 4;
+        lChar32 result = utfWriteCodePoint<lChar16>(0x1D11E, s, end);
+        TCHECK(result == 0x1D11E);
+        TCHECK(s == buf + 2);
+        const lChar16 * r = buf;
+        TCHECK(utfReadCodePoint<lChar16>(r, s) == 0x1D11E);
+    }
+
+           // --- utfWriteCodePoint lChar16 max valid U+10FFFF ---
+    {
+        lChar16 buf[4];
+        lChar16 * s = buf;
+        const lChar16 * end = buf + 4;
+        lChar32 result = utfWriteCodePoint<lChar16>(0x10FFFF, s, end);
+        TCHECK(result == 0x10FFFF);
+        TCHECK(s == buf + 2); // surrogate pair
+        const lChar16 * r = buf;
+        TCHECK(utfReadCodePoint<lChar16>(r, s) == 0x10FFFF);
+    }
+
+           // --- utfWriteCodePoint lChar16 invalid: surrogate ---
+    {
+        lChar16 buf[4];
+        lChar16 * s = buf;
+        const lChar16 * end = buf + 4;
+        TCHECK(utfWriteCodePoint<lChar16>(0xD800, s, end) == 0xFFFFFFFEu);
+        TCHECK(s == buf);
+    }
+
+           // --- utfWriteCodePoint lChar16 invalid: > 0x10FFFF ---
+    {
+        lChar16 buf[4];
+        lChar16 * s = buf;
+        const lChar16 * end = buf + 4;
+        TCHECK(utfWriteCodePoint<lChar16>(0x110000, s, end) == 0xFFFFFFFEu);
+        TCHECK(s == buf);
+    }
+
+           // --- utfWriteCodePoint lChar16 buffer full ---
+    {
+        lChar16 buf[2];
+        lChar16 * s, * end = buf + 2;
+
+        s = buf; TCHECK(utfWriteCodePoint<lChar16>(0x41, s, end) == 0x41);    // 1 word, fits
+        s = buf; TCHECK(utfWriteCodePoint<lChar16>(0x1D11E, s, end) == 0x1D11E); // 2 words, fits
+
+        s = buf + 1; TCHECK(utfWriteCodePoint<lChar16>(0x1D11E, s, end) == 0xFFFFFFFFu); // needs 2, only 1 left
+        s = buf;     TCHECK(utfWriteCodePoint<lChar16>(0x41, s, end) == 0x41); // 1 word still fits
+    }
+
+           // --- utfWriteCodePoint roundtrip lChar32 ---
+    {
+        lChar32 buf[4];
+        lChar32 * s = buf;
+        const lChar32 * end = buf + 4;
+        lChar32 result = utfWriteCodePoint<lChar32>(0x1D11E, s, end);
+        TCHECK(result == 0x1D11E);
+        TCHECK(s == buf + 1);
+        const lChar32 * r = buf;
+        TCHECK(utfReadCodePoint<lChar32>(r, s) == 0x1D11E);
+    }
+
+           // --- utfWriteCodePoint lChar32 invalid ---
+    {
+        lChar32 buf[4];
+        lChar32 * s = buf;
+        const lChar32 * end = buf + 4;
+        TCHECK(utfWriteCodePoint<lChar32>(0xD800, s, end) == 0xFFFFFFFEu);
+        TCHECK(s == buf);
+        TCHECK(utfWriteCodePoint<lChar32>(0x110000, s, end) == 0xFFFFFFFEu);
+        TCHECK(s == buf);
+    }
+
+           // --- utfWriteCodePoint lChar32 buffer full ---
+    {
+        lChar32 buf[1];
+        lChar32 * s = buf;
+        const lChar32 * end = buf + 1;
+        TCHECK(utfWriteCodePoint<lChar32>(0x41, s, end) == 0x41);
+        // s is now at end (buf + 1), no space left
+        TCHECK(utfWriteCodePoint<lChar32>(0x1D11E, s, end) == 0xFFFFFFFFu);
     }
 }
 

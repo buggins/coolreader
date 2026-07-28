@@ -331,8 +331,6 @@ public:
         lstring_chunk_t * res = static_cast<lstring_chunk_t *>( std::aligned_alloc(alloc_align_bytes, allocBytes) );
         res->size = sz;
         res->len = 0;
-        res->buf[0] = 0;
-        res->buf[sz] = 0;
         res->refCount = 1;
         return res;
     }
@@ -343,12 +341,9 @@ public:
         if (sz < count)
             sz = count;
         sz = alignSize(sz);
-        //lstring_chunk_t * res = static_cast<lstring_chunk_t *>( ::malloc(sizeof(lstring_chunk_t) + sizeof(char_type) * (sz + 1)) );
         size_t allocBytes = (sizeof(lstring_chunk_t) + sizeof(char_type) * (sz + 1));
         lstring_chunk_t * res = static_cast<lstring_chunk_t *>( std::aligned_alloc(alloc_align_bytes, allocBytes) );
         std::memcpy(res->buf, s, count * sizeof(char_type));
-        res->buf[count] = 0;
-        res->buf[sz] = 0;
         res->size = sz;
         res->len = count;
         res->refCount = 1;
@@ -361,8 +356,6 @@ public:
         size_t allocBytes = (sizeof(lstring_chunk_t) + sizeof(char_type) * (size + 1));
         lstring_chunk_t * res = static_cast<lstring_chunk_t *>( std::aligned_alloc(alloc_align_bytes, allocBytes) );
         std::memcpy(res->buf, buf, len * sizeof(char_type));
-        res->buf[len] = 0;
-        res->buf[size] = 0;
         res->size = size;
         res->len = len;
         res->refCount = 1;
@@ -377,12 +370,99 @@ public:
         size_t allocBytes = (sizeof(lstring_chunk_t) + sizeof(char_type) * (sz + 1));
         lstring_chunk_t * res = static_cast<lstring_chunk_t *>( std::aligned_alloc(alloc_align_bytes, allocBytes) );
         std::memcpy(res->buf, buf, count * sizeof(char_type));
-        res->buf[count] = 0;
-        res->buf[sz] = 0;
         res->size = sz;
         res->len = count;
         res->refCount = 1;
         return res;
+    }
+
+    /// chunk allocation function: create duplicate of this string buffer with minimum capacity to store the data and ref counter 1, and replace dest buffer with created copy
+    /// Don't call on for shared destination buffer.
+    /// if destination buffer exists:
+    /// * if destination buffer has enough capacity to store this string -- just copy data
+    /// * if destination buffer capacity is too low, free it (assuming dest buffer is not shared) and replace with a created duplicate.
+    void duplicate_to_owned(lstring_chunk_t* &dest) noexcept {
+        if (dest && dest->size >= len) {
+            // destination has enough space for this string: copy content to destination buffer
+            // assuming dest buffer is not shared!!!
+            if (len)
+                std::memcpy(dest->buf, buf, len * sizeof(char_type));
+            dest->len = len;
+        } else {
+            LS_COUNT_ALLOC
+            // allocate minimum available size enough for storing this data
+            size_type sz = alignSize(len);
+            size_t allocBytes = (sizeof(lstring_chunk_t) + sizeof(char_type) * (sz + 1));
+            lstring_chunk_t * res = static_cast<lstring_chunk_t *>( std::aligned_alloc(alloc_align_bytes, allocBytes) );
+            if (len)
+                std::memcpy(res->buf, buf, len * sizeof(char_type));
+            res->size = sz;
+            res->len = len;
+            res->refCount = 1;
+            if (dest) {
+                // assuming dest buffer is not shared!!! just free instead of release ref
+                free(dest);
+            }
+            dest = res;
+        }
+    }
+
+   /// chunk allocation function: create duplicate of this string buffer fragment to store the data and ref counter 1, and replace dest buffer with created copy
+   /// Don't call on for shared destination buffer.
+   /// if destination buffer exists:
+   /// * if destination buffer has enough capacity to store this string -- just copy data
+   /// * if destination buffer capacity is too low, free it (assuming dest buffer is not shared) and replace with a created duplicate.
+    void duplicate_to_owned(lstring_chunk_t* &dest, size_type start, size_type count) noexcept {
+        if (start >= len || !count) {
+            // empty string assignment
+            if (dest) {
+                // just reset length
+                dest->len = 0;
+            }
+            return;
+        }
+        if (start + count > len) {
+            count = len - start;
+        }
+        if (dest && dest->size >= count) {
+            // destination has enough space for this string: copy content to destination buffer
+            // assuming dest buffer is not shared!!!
+            std::memcpy(dest->buf, buf + start, count * sizeof(char_type));
+            dest->len = count;
+        } else {
+            LS_COUNT_ALLOC
+
+            // allocate minimum available size enough for storing this data
+            size_type sz = alignSize(count);
+            size_t allocBytes = (sizeof(lstring_chunk_t) + sizeof(char_type) * (sz + 1));
+            lstring_chunk_t * res = static_cast<lstring_chunk_t *>( std::aligned_alloc(alloc_align_bytes, allocBytes) );
+            // copy characters
+            std::memcpy(res->buf, buf + start, count * sizeof(char_type));
+            res->size = sz;
+            res->len = count;
+            res->refCount = 1;
+            if (dest) {
+                // assuming dest buffer is not shared!!! just free instead of release ref
+                free(dest);
+            }
+            dest = res;
+        }
+    }
+
+    /// only copy content of other buffer to this buffer
+    /// Don't call for shared this!
+    /// returns number of characters copied
+    size_type copy_from(const lstring_chunk_t * p) noexcept {
+        if (!p || !p->len) {
+            // only reset buffer length if attempting to copy from empty buffer
+            len = 0;
+        } else {
+            len = p->len;
+            if (len > size)
+                len = size;
+            std::memcpy(buf, p->buf, len * sizeof(char_type));
+        }
+        return len;
     }
 
     /// free chunk memory
@@ -535,6 +615,87 @@ inline lChar32 utfReadCodePoint(const char_type* &s, const char_type* pend) noex
         // assuming this is 4-byte type representing unicode codepoint
         return (c0 > 0x10FFFF || (c0 >= 0xD800 && c0 <= 0xDFFF)) ? invalid_char: c0;
     }
+}
+
+/// Writes one unicode point to utf buffer `s` ending at `pend` and advances position of `s`
+/// * supports 1-byte (utf8), 2-byte (utf16) and 4-byte (utf32) inputs
+/// * returns unicode codepoint value if it's decoded successfully
+/// * returns `ch' value if invalid data found in input buffer (advances pointer anyway)
+/// * returns `invalid_char` value if codepoint passed on input is out of range (writing is skipped)
+/// * returns `end_of_stream` value if buffer has not enough space
+template<typename char_type, lChar32 invalid_char = 0xFFFFFFFEu, lChar32 end_of_stream = 0xFFFFFFFFu>
+inline lChar32 utfWriteCodePoint(lChar32 ch, char_type* &s, const char_type* pend) noexcept {
+    // don't write invalid character to output
+    if constexpr(sizeof(char_type) == 1) {
+        // encode as utf8
+        int space = static_cast<int>( pend - s );
+        if (ch < 0x80) {
+            // single byte utf8 sequence
+            if (space < 1) // no space in output buffer
+                return end_of_stream;
+            *s++ = static_cast<char_type>(ch);
+        } else if (ch < 0x800) {
+            // 2-byte utf8 sequence
+            if (space < 2)
+                return end_of_stream;
+            s[0] = static_cast<char_type>(0xC0 | (ch >> 6));
+            s[1] = static_cast<char_type>(0x80 | (ch & 0x3F));
+            s += 2;
+        } else if (ch < 0x10000) {
+            // 3-byte utf8 sequence
+            if (ch >= 0xD800 && ch <= 0xDFFF)
+                return invalid_char;
+            if (space < 3) // no space in output buffer
+                return end_of_stream;
+            s[0] = static_cast<char_type>(0xE0 | (ch >> 12));
+            s[1] = static_cast<char_type>(0x80 | ((ch >> 6) & 0x3F));
+            s[2] = static_cast<char_type>(0x80 | ((ch) & 0x3F));
+            s += 3;
+        } else {
+            // 4-byte utf8 sequence
+            if (ch > 0x10FFFF || (ch >= 0xD800 && ch <= 0xDFFF))
+                return invalid_char;
+            if (space < 4) // no space in output buffer
+                return end_of_stream;
+            s[0] = static_cast<char_type>(0xF0 | (ch >> 18));
+            s[1] = static_cast<char_type>(0x80 | ((ch >> 12) & 0x3F));
+            s[2] = static_cast<char_type>(0x80 | ((ch >> 6) & 0x3F));
+            s[3] = static_cast<char_type>(0x80 | ((ch) & 0x3F));
+            s += 4;
+        }
+    } else if constexpr(sizeof(char_type) == 2) {
+        // encode as utf16
+        int space = static_cast<int>( pend - s );
+        if (ch < 0x10000) {
+            // single word
+            if (ch >= 0xD800 && ch <= 0xDFFF)
+                return invalid_char;
+            if (space < 1) // no space in output buffer
+                return end_of_stream;
+            // write as is
+            *s++ = static_cast<char_type>(ch);
+        } else {
+            // double word
+            if (ch > 0x10FFFF)
+                return invalid_char;
+            if (space < 2) // no space in output buffer
+                return end_of_stream;
+            // write 2 utf16 codes: high, then low
+            lChar32 c = ch - 0x10000;
+            s[0] = static_cast<char_type>(0xD800 | ((c >> 10) & 0x3FF));
+            s[1] = static_cast<char_type>(0xDC00 | (c & 0x3FF));
+            s += 2;
+        }
+    } else {
+        // encode as utf32
+        if (ch > 0x10FFFF || (ch >= 0xD800 && ch <= 0xDFFF))
+            return invalid_char;
+        if (s >= pend) {
+            return end_of_stream;
+        }
+        *s++ = ch;
+    }
+    return ch;
 }
 
 /// counts characters in utf-encoded buffer
@@ -1428,59 +1589,76 @@ public:
     }
 
     /// move assignment - shared string
+    ///
     string_wr& assign(ro_string_type&& s) noexcept {
         LS_COUNT_MOVE_ASSIGN
-        if (this != &s) {
-            if (pchunk != nullptr) {
+
+        if (&s == this || pchunk == s.pchunk) {
+            // safe self assignment: do nothing
+            return *this;
+        }
+
+        if (s.empty()) {
+            // assign empty string
+            if (pchunk) {
+                // reset buffer length to 0, don't free the buffer
+                pchunk->len = 0;
+            }
+            return *this;
+        } else if (s.pchunk->isShared()) {
+            // passed string is shared
+            if (!pchunk) {
+                // this buffer is null, need to copy
+                pchunk = s.pchunk->duplicate();
+            } else {
+                // we have buffer, try to figure out if only content may be copied
+                // this call will copy content if dest buffer has enough capacity, or alloc a copy otherwise
+                s.pchunk->duplicate_to_owned(pchunk);
+            }
+        } else {
+            // s is not shared, may borrow its buffer instead of copy
+            if (pchunk) {
+                // free our buffer
                 chunk_t::free(pchunk);
             }
             pchunk = s.pchunk;
             s.pchunk = nullptr;
-            // ensure we have owned copy of source data
-            if (pchunk->isShared()) {
-                chunk_t * tmp = pchunk->duplicate();
-                intrusive_ptr_release(pchunk);
-                pchunk = tmp;
-            }
         }
         return *this;
     }
 
-    /// move assignment - shared string
+    /// move assignment - owned string
     string_wr& assign(string_wr&& s) noexcept {
         LS_COUNT_MOVE_ASSIGN
-        if (this != &s) {
-            if (pchunk != nullptr) {
-                chunk_t::free(pchunk);
-            }
-            pchunk = s.pchunk;
-            s.pchunk = nullptr;
+        if (&s == this || pchunk == s.pchunk) {
+            // safe self assignment: do nothing
+            return *this;
         }
+        // self-assignment prevention
+        if (pchunk != nullptr) {
+            chunk_t::free(pchunk);
+        }
+        pchunk = s.pchunk;
+        s.pchunk = nullptr;
         return *this;
     }
 
     /// copy assignment
     string_wr& assign(const ro_string_type& s) noexcept {
         LS_COUNT_COPY_ASSIGN
+
         if (&s == this || pchunk == s.pchunk) {
             // safe self assignment: do nothing
             return *this;
         }
-        if (pchunk != nullptr) {
-            // ignore self-assignment
-            chunk_t::free(pchunk);
-            pchunk = s.pchunk;
-            if (pchunk) {
-                // assigned non-empty string
-                intrusive_ptr_add_ref(pchunk);
-            }
+
+        if (s.empty()) {
+            // empty string assignment: just reset len
+            if (pchunk)
+                pchunk->len = 0;
         } else {
-            // this string is null
-            pchunk = s.pchunk;
-            if (pchunk) {
-                // assigned non-empty string
-                intrusive_ptr_add_ref(pchunk);
-            }
+            // try reuse this buffer if it has enough capacity, or create duplicate otherwise
+            s.pchunk->duplicate_to_owned(pchunk);
         }
         return *this;
     }
@@ -1488,15 +1666,11 @@ public:
     /// fragment assignment; correctly covers self-assignment; doesn't check bounds
     string_wr& assign(const ro_string_type&s, size_type offset, size_type count) noexcept {
         if (s.pchunk && offset < s.pchunk->len) {
-            size_type avail = s.pchunk->len - offset;
-            if (count > avail) count = avail;
-            chunk_t* tmp = chunk_t::alloc(s.pchunk->buf + offset, count, count);
-            if (pchunk) {
-                chunk_t::free(pchunk);
-            }
-            pchunk = tmp;
+            s.pchunk->duplicate_to_owned(pchunk, offset, count);
         } else {
-            clear();
+            // assignment of empty string: don't clear the buffer -- typically string_wr is created to do multiple updates
+            if (pchunk)
+                pchunk->len = 0;
         }
         return *this;
     }
@@ -1509,10 +1683,12 @@ public:
     /// assign from z-terminated string
     string_wr& assign(const char_type * s) noexcept {
         if (s == nullptr || !*s) {
-            clear();
+            // assignment of empty string: don't clear the buffer -- typically string_wr is created to do multiple updates
+            if (pchunk)
+                pchunk->len = 0;
         } else {
             size_type count = str_len<char_type, size_type>(s);
-            if (pchunk != nullptr && pchunk->size >= count && pchunk->size / 2 < count) {
+            if (pchunk != nullptr && pchunk->size >= count) {
                 // reuse existing buffer
                 std::memcpy(pchunk->buf, s, count * sizeof(char_type));
                 pchunk->len = count;
@@ -1530,10 +1706,12 @@ public:
 
     /// assign from char pointer and char count
     string_wr& assign(const char_type * s, size_type count) noexcept {
-        if (s == nullptr || !*s || count == 0) {
-            clear();
+        if (s == nullptr || count == 0) {
+            // assignment of empty string: don't clear the buffer -- typically string_wr is created to do multiple updates
+            if (pchunk)
+                pchunk->len = 0;
         } else {
-            if (pchunk != nullptr && pchunk->size >= count && pchunk->size / 2 < count) {
+            if (pchunk != nullptr && pchunk->size >= count) {
                 // reuse existing buffer
                 std::memcpy(pchunk->buf, s, count * sizeof(char_type));
                 pchunk->len = count;
