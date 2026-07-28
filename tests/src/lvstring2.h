@@ -502,7 +502,7 @@ inline lInt32 utfCodePointSize(lChar32 c) noexcept {
             :                  4;
     } else if constexpr(sizeof(char_type) == 2) {
         // calculate number of utf16 codepoints
-        return (c >= 0x10000 || (c >= 0xD800 && c <= 0xDFFF)) ? 2 : 1;
+        return (c >= 0x10000) ? 2 : 1;
     } else {
         // assuming this is 4-byte type representing unicode codepoint
         return 1;
@@ -698,6 +698,49 @@ inline lChar32 utfWriteCodePoint(lChar32 ch, char_type* &s, const char_type* pen
     return ch;
 }
 
+/// Calculate buffer size in dst_char_type items to transcode utf string from src_char_type to dst_char_type.
+/// Assuming that invalid unicode codepoints will be filtered out during conversion.
+template <typename src_char_type, typename dst_char_type, lChar32 invalid_char = 0xFFFFFFFEu, lChar32 end_of_stream = 0xFFFFFFFFu>
+inline lUInt32 utfConvDestBufferSize(const src_char_type * pstart, const src_char_type * pend) {
+    lUInt32 count = 0;
+    for(;;) {
+        // read next unicode codepoint
+        lChar32 ch = utfReadCodePoint<src_char_type, invalid_char, end_of_stream>(pstart, pend);
+        if (ch == end_of_stream) {
+            return count;
+        }
+        if (ch != invalid_char) {
+            // ignore invalid unicode codepoints
+            count += utfCodePointSize<dst_char_type>(ch);
+        }
+    }
+}
+
+/// Convert utf string from src_char_type to dst_char_type.
+/// Invalid unicode codepoints will be filtered out during conversion (Returns number of invalid characters skipped in errorCount.)
+/// Returns number of dst_char_type utf elements written to destination buffer.
+template <typename src_char_type, typename dst_char_type, lChar32 invalid_char = 0xFFFFFFFEu, lChar32 end_of_stream = 0xFFFFFFFFu>
+inline lUInt32 utfConvert(const src_char_type * &src_start, const src_char_type * src_end, dst_char_type * &dst_start, const dst_char_type * dst_end, lUInt32 &errorCount) {
+    errorCount = 0;
+    const dst_char_type* keep_dst_start = dst_start;
+    for(;;) {
+        // read next unicode codepoint
+        lChar32 ch = utfReadCodePoint<src_char_type, invalid_char, end_of_stream>(src_start, src_end);
+        if (ch == end_of_stream) {
+            return dst_start - keep_dst_start;
+        }
+        if (ch != invalid_char) {
+            lChar32 res = utfWriteCodePoint<dst_char_type, invalid_char, end_of_stream>(ch, dst_start, dst_end);
+            if (res == end_of_stream) {
+                // no space left in dest buffer
+                return dst_start - keep_dst_start;
+            }
+        } else {
+            errorCount++;
+        }
+    }
+}
+
 /// counts characters in utf-encoded buffer
 /// * supports 1-byte (utf8), 2-byte (utf16) and 4-byte (utf32) inputs
 template<typename char_type, lChar32 invalid_char = 0xFFFFFFFEu, lChar32 end_of_stream = 0xFFFFFFFFu>
@@ -710,6 +753,7 @@ inline lUInt32 utfCodePointCount(const char_type* pstart, const char_type* pend)
         }
         count++;
     }
+    return count;
 }
 
 template <typename char_type, lChar32 invalid_char = '?'>
@@ -1727,6 +1771,44 @@ public:
         return *this;
     }
 
+    /// Assign utf string from char pointer and char count, perform UTF conversion and invalid unicode codepoints skipping if necessary.
+    /// Source string must be encoded as utf characters (utf8 for 1-byte utf_type, utf16 for 2-byte utf_type, utf32 for 4-byte utf_type).
+    /// Converted data will be assigned on this string in format depending on char_type size (utf8/utf16/utf32).
+    /// s is a start of source utf string
+    /// count is number of source string elements to convert.
+    /// Pass `npos` as source string element counter to calculate it for null-term string with str_len
+    template<typename utf_type>
+    string_wr& assignUtf(const utf_type * s, size_type count = npos) noexcept {
+        if (s == nullptr) {
+            count = 0;
+        } else if (count == npos) {
+            count = str_len<utf_type, size_type>(s);
+        }
+        if (count == 0) {
+            // assignment of empty string: don't clear the buffer -- typically string_wr is created to do multiple updates
+            if (pchunk)
+                pchunk->len = 0;
+        } else {
+            size_type sz = utfConvDestBufferSize<utf_type, char_type>(s, s + count);
+            lUInt32 errorCount = 0;
+            if (pchunk != nullptr && pchunk->size >= sz) {
+                // reuse existing buffer
+                char_type * dst = pchunk->buf;
+                pchunk->len = utfConvert<utf_type,char_type>(s, s+count, dst, dst + pchunk->size, errorCount);
+            } else {
+                // create new buffer
+                chunk_t * tmp = chunk_t::alloc(sz);
+                char_type * dst = tmp->buf;
+                tmp->len = utfConvert<utf_type,char_type>(s, s+count, dst, dst + tmp->size, errorCount);
+                if (pchunk) {
+                    chunk_t::free(pchunk);
+                }
+                pchunk = tmp;
+            }
+        }
+        return *this;
+    }
+
     /// convert all characters of string to uppercase
     string_wr& uppercase() noexcept {
         if (pchunk) {
@@ -2422,6 +2504,42 @@ public:
             } else {
                 // create new buffer
                 chunk_t * tmp = chunk_t::alloc(s, count, count);
+                if (pchunk) {
+                    intrusive_ptr_release(pchunk);
+                }
+                pchunk = tmp;
+            }
+        }
+        return *this;
+    }
+
+    /// Assign utf string from char pointer and char count, perform UTF conversion and invalid unicode codepoints skipping if necessary.
+    /// Source string must be encoded as utf characters (utf8 for 1-byte utf_type, utf16 for 2-byte utf_type, utf32 for 4-byte utf_type).
+    /// Converted data will be assigned on this string in format depending on char_type size (utf8/utf16/utf32).
+    /// s is a start of source utf string
+    /// count is number of source string elements to convert.
+    /// Pass `npos` as source string element counter to calculate it for null-term string with str_len
+    template<typename utf_type>
+    string& assignUtf(const utf_type * s, size_type count = npos) noexcept {
+        if (s == nullptr) {
+            count = 0;
+        } else if (count == npos) {
+            count = str_len<utf_type, size_type>(s);
+        }
+        if (count == 0) {
+            clear();
+        } else {
+            size_type sz = utfConvDestBufferSize<utf_type, char_type>(s, s + count);
+            lUInt32 errorCount = 0;
+            if (pchunk != nullptr && pchunk->size >= sz && pchunk->isOwn()) {
+                // reuse existing buffer - it is big enough, and not shared
+                char_type * dst = pchunk->buf;
+                pchunk->len = utfConvert<utf_type,char_type>(s, s+count, dst, dst + pchunk->size, errorCount);
+            } else {
+                // create new buffer
+                chunk_t * tmp = chunk_t::alloc(sz);
+                char_type * dst = tmp->buf;
+                tmp->len = utfConvert<utf_type,char_type>(s, s+count, dst, dst + tmp->size, errorCount);
                 if (pchunk) {
                     intrusive_ptr_release(pchunk);
                 }
