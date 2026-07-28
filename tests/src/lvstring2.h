@@ -27,12 +27,16 @@
 
 #define DEBUG_TRACK_LSTRING2_ALLOC
 
+/// helper functions from lvstring
 void lStr_uppercase( lChar32 * str, int len );
 void lStr_uppercase( lChar16 * str, int len );
 void lStr_uppercase( lChar8 * str, int len );
 void lStr_lowercase( lChar32 * str, int len );
 void lStr_lowercase( lChar16 * str, int len );
 void lStr_lowercase( lChar8 * str, int len );
+lUInt16 lGetCharProps( lChar32 ch );
+bool isAlNum(lChar32 ch);
+
 
 // returns 0..15 if c is hex digit, -1 otherwise
 int hexDigit( int c );
@@ -404,6 +408,191 @@ private:
     char_type       buf[0];      // z-string
 };
 
+/// returns number of elements to convert unicode codepoint into char_type utf.
+/// * for sizeof(char_type)==4 returns 1
+/// * for sizeof(char_type)==2 returns number of utf16 codepoints(1 to 2)
+/// * for sizeof(char_type)==2 returns number of utf8 codepoints(1 to 4)
+template<typename char_type>
+inline lInt32 utfCodePointSize(lChar32 c) noexcept {
+    if constexpr(sizeof(char_type) == 1) {
+        // calculate number of utf8 codepoints
+        return (c < 0x80)    ? 1
+            :  (c < 0x800)   ? 2
+            :  (c < 0x10000) ? 3
+            :                  4;
+    } else if constexpr(sizeof(char_type) == 2) {
+        // calculate number of utf16 codepoints
+        return (c >= 0x10000 || (c >= 0xD800 && c <= 0xDFFF)) ? 2 : 1;
+    } else {
+        // assuming this is 4-byte type representing unicode codepoint
+        return 1;
+    }
+}
+
+//constexpr lChar32 UNICODE_END_OF_STREAM = 0xFFFFFFFF;
+
+/// read one unicode point from utf stream from position s and advances position of s
+/// * supports 1-byte (utf8), 2-byte (utf16) and 4-byte (utf32) inputs
+/// * returns unicode codepoint value if it's decoded successfully
+/// * returns invalid_char value if invalid data found in input buffer (advances pointer anyway)
+/// * overlong sequence (e.g. 7-bit code encoded as 3 bytes) is not considered as invalid character
+/// * returns end_of_stream value if reading position reaches end of buffer (pend)
+template<typename char_type, lChar32 invalid_char = 0xFFFFFFFEu, lChar32 end_of_stream = 0xFFFFFFFFu>
+inline lChar32 utfReadCodePoint(const char_type* &s, const char_type* pend) noexcept {
+    if (s >= pend) {
+        return end_of_stream;
+    }
+    lChar32 c0 = (*s++);
+    if constexpr(sizeof(char_type) == 1) {
+        // calculate number of utf8 codepoints
+        if (c0 < 0x80) {
+            // single-byte utf8 character
+            return c0;
+        }
+        if ((c0 & 0xC0) == 0x80) {
+            // byte 10xx_xxxx is unexpected begin of utf8 sequence, return invalid char
+            return invalid_char;
+        }
+        if (s >= pend) {
+            // end of stream reached while waiting for additional bytes of codepoint -- indicate wrong character
+            // next call to this function will return end_of_stream because we reached end of stream
+            return invalid_char;
+        }
+        lChar32 c1 = (*s++);
+        if ((c1 & 0xC0) != 0x80) {
+            // byte 10xx_xxxx is expected for all additional bytes of utf8 sequence
+            return invalid_char;
+        }
+        if ((c0 & 0xE0) == 0xC0) {
+            // 2-byte codepoint
+            return ((c0 & 0x1F) << 6) | (c1 & 0x3f);
+        }
+        // need one more byte
+        if (s >= pend) {
+            // end of stream reached while waiting for additional bytes of codepoint -- indicate wrong character
+            // next call to this function will return end_of_stream because we reached end of stream
+            return invalid_char;
+        }
+        // read byte
+        lChar32 c2 = (*s++);
+        if ((c2 & 0xC0) != 0x80) {
+            // byte 10xx_xxxx is expected for all additional bytes of utf8 sequence
+            return invalid_char;
+        }
+        if ((c0 & 0xF0) == 0xE0) {
+            // 3-byte codepoint
+            c0 = ((c0 & 0x0F) << 12) | ((c1 & 0x3f) << 6) | (c2 & 0x3f);
+            // validate value to be in valid unicode range
+            return (c0 > 0x10FFFF || (c0 >= 0xD800 && c0 <= 0xDFFF)) ? invalid_char : c0;
+        }
+        // need one more byte
+        if (s >= pend) {
+            // end of stream reached while waiting for additional bytes of codepoint -- indicate wrong character
+            // next call to this function will return end_of_stream because we reached end of stream
+            return invalid_char;
+        }
+        // read byte
+        lChar32 c3 = (*s++);
+        if ((c3 & 0xC0) != 0x80) {
+            // byte 10xx_xxxx is expected for all additional bytes of utf8 sequence
+            return invalid_char;
+        }
+        if ((c0 & 0xF8) == 0xF0) {
+            // 3-byte codepoint
+            c0 = ((c0 & 0x07) << 18) | ((c1 & 0x3f) << 12) | ((c2 & 0x3f) << 6) | (c3 & 0x3f);
+            // validate value to be in valid unicode range
+            return (c0 > 0x10FFFF || (c0 >= 0xD800 && c0 <= 0xDFFF)) ? invalid_char : c0;
+        }
+        // incorrect utf8 sequence - 4-byte max length is expected
+        return invalid_char;
+    } else if constexpr(sizeof(char_type) == 2) {
+        // calculate number of utf16 codepoints
+        if (c0 >= 0xD800 && c0 <= 0xDFFF) {
+            // c0 is either low or high part of surrogate pair
+            if (c0 >= 0xDC00) {
+                // found low part of surrogate pair - invalid position inside utf16 stream -- skip it
+                return invalid_char;
+            }
+            // c0 is high part of surrogate pair, should be followed by low part in range (c0 >= 0xDC00 && c0 <= 0xDFFF)
+            if (s >= pend) {
+                // there must follow low part of surrogate pair, but end of stream reached
+                // return invalid_char -- next call to this function will return end_of_stream
+                return invalid_char;
+            }
+            // reading low part of surrogate pair
+            lChar32 c1 = (*s++);
+            if (c1 < 0xDC00 || c1 > 0xDFFF) {
+                // range is out of low part of surrogate pair
+                return invalid_char;
+            }
+            // c0 (high part of surrogate) must be in range 0xD800..0xDBFF
+            // c1 (low part of surrogate) must be in range 0xDC00..0xDFFF
+            return (((c0 & 0x3FF) << 10) | (c1 & 0x3FF)) + 0x10000;
+        }
+        // single-item character, not a surrogate pair return as is
+        return c0;
+    } else {
+        // assuming this is 4-byte type representing unicode codepoint
+        return (c0 > 0x10FFFF || (c0 >= 0xD800 && c0 <= 0xDFFF)) ? invalid_char: c0;
+    }
+}
+
+/// counts characters in utf-encoded buffer
+/// * supports 1-byte (utf8), 2-byte (utf16) and 4-byte (utf32) inputs
+template<typename char_type, lChar32 invalid_char = 0xFFFFFFFEu, lChar32 end_of_stream = 0xFFFFFFFFu>
+inline lUInt32 utfCodePointCount(const char_type* pstart, const char_type* pend) noexcept {
+    lUInt32 count = 0;
+    for(;;) {
+        lChar32 ch = utfReadCodePoint<char_type, invalid_char, end_of_stream>(pstart, pend);
+        if (ch == end_of_stream) {
+            return count;
+        }
+        count++;
+    }
+}
+
+template <typename char_type, lChar32 invalid_char = '?'>
+struct CodepointReadIterator {
+    struct EndOfStream {};
+    CodepointReadIterator(const char_type * start, const char_type * end) noexcept : pos(start), pend(end) { }
+    CodepointReadIterator(const CodepointReadIterator& v) = default;
+    ~CodepointReadIterator() = default;
+
+    lChar32 operator*() const noexcept {
+        const char_type * tmp = pos;
+        return utfReadCodePoint<char_type, invalid_char>(tmp, pend);
+    }
+    CodepointReadIterator& operator++() {
+        utfReadCodePoint<char_type, invalid_char>(pos, pend);
+        return *this;
+    }
+    bool operator != (EndOfStream) const {
+        return pos < pend;
+    }
+  private:
+    const char_type * pos;
+    const char_type * pend;
+};
+
+template <typename char_type, lChar32 invalid_char = '?'>
+struct UtfDecodeRange {
+
+    using iterator_t = CodepointReadIterator<char_type, invalid_char>;
+    using sentinel_t = typename iterator_t::EndOfStream;
+
+    UtfDecodeRange(const char_type * start, const char_type * end) noexcept : pstart(start), pend(end) { }
+    UtfDecodeRange(const UtfDecodeRange& v) = default;
+    ~UtfDecodeRange() noexcept = default;
+
+    iterator_t begin() const { return iterator_t(pstart, pend); }
+    sentinel_t end()   const { return sentinel_t(); } // Returns a completely different type!
+
+  private:
+    const char_type * pstart;
+    const char_type * pend;
+};
+
+
 extern lChar32 fake_null_buffer_32;
 
 
@@ -427,10 +616,15 @@ class string_ro {
 
     // constant for not found / unspecified position
     static const size_type npos = -1;
-    static const size_type STRING_HASH_MULT = 31;
+    static lChar32 constexpr invalid_unicode = 0xfffffffe;
+    static lChar32 constexpr end_of_stream = 0xffffffff;
 
+    typedef UtfDecodeRange<char_type, invalid_unicode> utf_decode_range_t;
     typedef lstring_chunk_t<char_type, size_type, refcounter_type> chunk_t;
+
   protected:
+
+    static const size_type STRING_HASH_MULT = 31;
 
     /// disabled: always created as a synonim of the string with the same template parameters
     string_ro() = default;
@@ -511,6 +705,74 @@ class string_ro {
             return 0;
         }
     }
+
+    /// forward iterator - support for range by char_type
+    const char_type * begin() const noexcept {
+        if (pchunk) {
+            return pchunk->buf;
+        } else {
+            return nullptr;
+        }
+    }
+
+    /// forward iterator - support for range by char_type
+    const char_type * end() const noexcept {
+        if (pchunk) {
+            return pchunk->buf + pchunk->len;
+        } else {
+            return nullptr;
+        }
+    }
+
+    /// returns range object to read content as unicode codepoints -- use to iterate by codepoints
+    /// * for sizeof(char_type) == 1 the content is interpreted as utf8 sequence
+    /// * for sizeof(char_type) == 2 the content is interpreted as utf16 sequence
+    /// * for sizeof(char_type) == 4 the content is interpreted as utf32 sequence
+    /// if decoded codepoint value is not in valid unicode range, invalid_unicode value is returned
+    utf_decode_range_t unicodeRange() const noexcept {
+        if (pchunk && pchunk->len) {
+            return utf_decode_range_t(pchunk->buf, pchunk->buf + pchunk->len);
+        } else {
+            return utf_decode_range_t(nullptr, nullptr);
+        }
+    }
+
+    /// returns subrange object to read content as unicode codepoints -- use to iterate by codepoints
+    /// Decoding starts from item [start] and ends at item [start + len - 1]
+    /// * for sizeof(char_type) == 1 the content is interpreted as utf8 sequence
+    /// * for sizeof(char_type) == 2 the content is interpreted as utf16 sequence
+    /// * for sizeof(char_type) == 4 the content is interpreted as utf32 sequence
+    /// if decoded codepoint value is not in valid unicode range, invalid_unicode value is returned
+    utf_decode_range_t unicodeRange(size_type start, size_type len) const noexcept {
+        if (pchunk && start < pchunk->len && len) {
+            if (start + len > pchunk->len) {
+                len = pchunk->len - start;
+            }
+            return utf_decode_range_t(pchunk->buf + start, pchunk->buf + start + len);
+        } else {
+            return utf_decode_range_t(nullptr, nullptr);
+        }
+    }
+
+    /// assuming this string as utf-encoded (utf8/utf16/utf32), returns number of unicode codepoints inside the string.
+    size_type codePointCount() const noexcept {
+        if (pchunk && pchunk->len) {
+            return utfCodePointCount<char_type, invalid_unicode, end_of_stream>(pchunk->buf, pchunk->buf + pchunk->len);
+        }
+        return 0;
+    }
+
+    /// for substring assuming this string as utf-encoded (utf8/utf16/utf32), returns number of unicode codepoints inside the string.
+    size_type codePointCount(size_type start, size_type len) const noexcept {
+        if (pchunk && start < pchunk->len && len) {
+            if (start + len > pchunk->len) {
+                len = pchunk->len - start;
+            }
+            return utfCodePointCount<char_type, invalid_unicode, end_of_stream>(pchunk->buf + start, pchunk->buf + start + len);
+        }
+        return 0;
+    }
+
 
     /// calculate hash code for string (empty string has hash==0)
     size_type getHash() const noexcept {
@@ -2178,6 +2440,11 @@ public:
         return *this;
     }
 
+    /// trim non-alphanumeric characters from beginning and end of string
+    string& trimNonAlpha() noexcept {
+        // TODO: implement
+        return *this;
+    }
 
     /// erases fragment from string; if requested fragment exceeds string bounds, it's size is truncated
     string& erase(size_type offset, size_type count) noexcept {

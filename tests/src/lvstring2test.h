@@ -6,6 +6,7 @@
 namespace lv {
 
 void test_lstring2();
+void test_lstring2_unicode();
 
 }
 

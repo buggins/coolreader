@@ -17,10 +17,10 @@ static int test_errors = 0;
 
 void test_lstring2_chunks() {
 
-           // struct size checks
-    printf("sizeof(lstring8_chunk_t) = %llu\n", sizeof(lstring8_chunk_t));
-    printf("sizeof(lstring16_chunk_t) = %llu\n", sizeof(lstring16_chunk_t));
-    printf("sizeof(lstring32_chunk_t) = %llu\n", sizeof(lstring32_chunk_t));
+    // struct size checks
+    printf("sizeof(lstring8_chunk_t) = %lu\n", sizeof(lstring8_chunk_t));
+    printf("sizeof(lstring16_chunk_t) = %lu\n", sizeof(lstring16_chunk_t));
+    printf("sizeof(lstring32_chunk_t) = %lu\n", sizeof(lstring32_chunk_t));
     TCHECK(sizeof(lstring8_chunk_t) == sizeof(lstring16_chunk_t));
     TCHECK(sizeof(lstring16_chunk_t) == sizeof(lstring32_chunk_t));
     TCHECK(sizeof(lstring8_chunk_t) == 12);
@@ -1980,6 +1980,358 @@ void test_writable_refs_lString8() {
     TCHECK(s_wr_tr_no == "hello");
 }
 
+void test_lstring2_unicode() {
+    printf("running test_lstring2_unicode()\n");
+
+           // --- begin()/end() basic ---
+    {
+        lString8 s_begin{"hello"};
+        int count = 0;
+        for (auto c : s_begin)
+            count++;
+        TCHECK(count == 5);
+    }
+
+           // --- begin()/end() empty ---
+    {
+        lString8 s_begin_empty;
+        int count = 0;
+        for (auto c : s_begin_empty)
+            count++;
+        TCHECK(count == 0);
+    }
+
+           // --- begin()/end() with embedded null ---
+    {
+        lString8 s_embed{"ab\0cd", 5, 5};
+        int count = 0;
+        for (auto c : s_embed)
+            count++;
+        TCHECK(count == 5);
+    }
+
+           // --- unicodeRange() ASCII ---
+    {
+        lString8 s_ascii{"hello"};
+        int count = 0;
+        for (auto cp : s_ascii.unicodeRange()) {
+            TCHECK(cp < 0x80);
+            count++;
+        }
+        TCHECK(count == 5);
+    }
+
+           // --- unicodeRange() utf8 2-byte ---
+    {
+        // U+00E9 "é" = 0xC3 0xA9 in UTF-8
+        lString8 s_2byte{"\xC3\xA9"};
+        int count = 0;
+        for (auto cp : s_2byte.unicodeRange()) {
+            TCHECK(cp == 0xE9);
+            count++;
+        }
+        TCHECK(count == 1);
+        TCHECK(s_2byte.length() == 2); // 2 utf8 bytes
+    }
+
+           // --- unicodeRange() utf8 3-byte ---
+    {
+        // U+20AC "€" = 0xE2 0x82 0xAC in UTF-8
+        lString8 s_3byte{"\xE2\x82\xAC"};
+        int count = 0;
+        for (auto cp : s_3byte.unicodeRange()) {
+            TCHECK(cp == 0x20AC);
+            count++;
+        }
+        TCHECK(count == 1);
+        TCHECK(s_3byte.length() == 3);
+    }
+
+           // --- unicodeRange() utf8 4-byte ---
+    {
+        // U+1D11E "𝄞" = 0xF0 0x9D 0x84 0x9E in UTF-8
+        lString8 s_4byte{"\xF0\x9D\x84\x9E"};
+        int count = 0;
+        for (auto cp : s_4byte.unicodeRange()) {
+            TCHECK(cp == 0x1D11E);
+            count++;
+        }
+        TCHECK(count == 1);
+        TCHECK(s_4byte.length() == 4);
+    }
+
+           // --- unicodeRange() mixed utf8 ---
+    {
+        // "héllo" — h(1) é(2) l(1) l(1) o(1) = 6 bytes, 5 codepoints
+        lString8 s_mixed{"h\xC3\xA9llo"};
+        int count = 0;
+        lChar32 expected[] = {'h', 0xE9, 'l', 'l', 'o'};
+        int i = 0;
+        for (auto cp : s_mixed.unicodeRange()) {
+            TCHECK(cp == expected[i]);
+            i++;
+            count++;
+        }
+        TCHECK(count == 5);
+        TCHECK(s_mixed.length() == 6);
+    }
+
+           // --- unicodeRange() invalid utf8 (continuation byte without leader) ---
+    {
+        lString8 s_invalid{"\x80"};
+        for (auto cp : s_invalid.unicodeRange())
+            TCHECK(cp == lString8::invalid_unicode);
+    }
+
+           // --- unicodeRange() invalid utf8 (unexpected non-continuation) ---
+    {
+        // 0xC3 expects continuation, but next is 'A' (0x41 has no 0x80 bit set)
+        lString8 s_badseq{"\xC3" "A"};
+        for (auto cp : s_badseq.unicodeRange())
+            TCHECK(cp == lString8::invalid_unicode);
+    }
+
+           // --- unicodeRange() overlong sequence (3-byte for 2-byte char) ---
+    {
+        // overlong encoding of '/' (U+002F) as 0xE0 0x80 0xAF
+        // overlong encoding considered as valid
+        lString8 s_overlong{"\xE0\x80\xAF"};
+        for (auto cp : s_overlong.unicodeRange())
+            TCHECK(cp == '/'); //lString8::invalid_unicode);
+    }
+
+           // --- unicodeRange() empty string ---
+    {
+        lString8 s_empty;
+        int count = 0;
+        for (auto cp : s_empty.unicodeRange())
+            count++;
+        TCHECK(count == 0);
+    }
+
+           // --- unicodeRange() subrange ---
+    {
+        lString8 s_sub{"hello world"};
+        int count = 0;
+        for (auto cp : s_sub.unicodeRange(6, 5)) {
+            count++;
+        }
+        TCHECK(count == 5);
+    }
+
+           // --- unicodeRange() subrange clamped ---
+    {
+        lString8 s_sub2{"abcdef"};
+        int count = 0;
+        for (auto cp : s_sub2.unicodeRange(4, 10)) {
+            count++;
+        }
+        TCHECK(count == 2); // only "ef" remains
+    }
+
+           // --- unicodeRange() subrange empty (start out of bounds) ---
+    {
+        lString8 s_sub3{"abc"};
+        int count = 0;
+        for (auto cp : s_sub3.unicodeRange(5, 3))
+            count++;
+        TCHECK(count == 0);
+    }
+
+           // --- utfCodePointSize for lChar8 ---
+    TCHECK((utfCodePointSize<lChar8>(0x0061)) == 1);
+    TCHECK((utfCodePointSize<lChar8>(0x00E9)) == 2);
+    TCHECK((utfCodePointSize<lChar8>(0x20AC)) == 3);
+    TCHECK((utfCodePointSize<lChar8>(0x1D11E)) == 4);
+
+           // --- utfCodePointSize for lChar16 ---
+    TCHECK((utfCodePointSize<lChar16>(0x0061)) == 1);
+    TCHECK((utfCodePointSize<lChar16>(0xD800)) == 2); // lone surrogate → needs pair
+    TCHECK((utfCodePointSize<lChar16>(0x1D11E)) == 2);
+
+           // --- utfCodePointSize for lChar32 ---
+    TCHECK((utfCodePointSize<lChar32>(0x0061)) == 1);
+    TCHECK((utfCodePointSize<lChar32>(0x10FFFF)) == 1);
+
+           // --- utfReadCodePoint end_of_stream ---
+    {
+        const lChar8 * s = nullptr;
+        const lChar8 * end = nullptr;
+        TCHECK(utfReadCodePoint<lChar8>(s, end) == 0xFFFFFFFFu);
+    }
+
+           // --- utfReadCodePoint ASCII through lString16 ---
+    {
+        // test the template with lChar16 type explicitly
+        lChar16 buf[] = { 'h', 'e', 'l', 'l', 'o' };
+        const lChar16 * s = buf;
+        const lChar16 * end = buf + 5;
+        TCHECK(utfReadCodePoint<lChar16>(s, end) == 'h');
+        TCHECK(s == buf + 1);
+    }
+
+           // --- utfReadCodePoint lChar32 ---
+    {
+        lChar32 buf[] = { 0x20AC, 0x1D11E };
+        const lChar32 * s = buf;
+        const lChar32 * end = buf + 2;
+        TCHECK(utfReadCodePoint<lChar32>(s, end) == 0x20AC);
+        TCHECK(s == buf + 1);
+        TCHECK(utfReadCodePoint<lChar32>(s, end) == 0x1D11E);
+        TCHECK(s == buf + 2);
+        TCHECK(utfReadCodePoint<lChar32>(s, end) == 0xFFFFFFFFu);
+    }
+
+           // --- CodepointReadIterator basic ---
+    {
+        lString8 s_iter{"hi"};
+        int count = 0;
+        for (auto cp : s_iter.unicodeRange()) {
+            (void)cp;
+            count++;
+        }
+        TCHECK(count == 2);
+    }
+
+           // --- CodepointReadIterator with utf8 ---
+    {
+        lString8 s_utf{"\xC3\xA9\xC3\xA0"}; // éà
+        int count = 0;
+        for (auto cp : s_utf.unicodeRange()) {
+            (void)cp;
+            count++;
+        }
+        TCHECK(count == 2);
+    }
+
+           // --- unicodeRange() subrange ---
+    {
+        lString8 s_sub{"hello world"};
+        int count = 0;
+        for (auto cp : s_sub.unicodeRange(6, 5)) {
+            (void)cp;
+            count++;
+        }
+        TCHECK(count == 5);
+    }
+
+           // --- unicodeRange() subrange clamped ---
+    {
+        lString8 s_sub2{"abcdef"};
+        int count = 0;
+        for (auto cp : s_sub2.unicodeRange(4, 10)) {
+            (void)cp;
+            count++;
+        }
+        TCHECK(count == 2); // only "ef" remains
+    }
+
+           // --- unicodeRange() subrange empty ---
+    {
+        lString8 s_sub3{"abc"};
+        int count = 0;
+        for (auto cp : s_sub3.unicodeRange(5, 3))
+            count++;
+        TCHECK(count == 0);
+    }
+
+           // --- codePointCount() empty ---
+    {
+        lString8 s;
+        TCHECK(s.codePointCount() == 0);
+    }
+
+           // --- codePointCount() ASCII ---
+    {
+        lString8 s{"hello"};
+        TCHECK(s.codePointCount() == 5);
+    }
+
+           // --- codePointCount() utf8 2-byte ---
+    {
+        lString8 s{"\xC3\xA9"}; // U+00E9
+        TCHECK(s.codePointCount() == 1);
+        TCHECK(s.length() == 2); // 2 utf8 bytes
+    }
+
+           // --- codePointCount() utf8 3-byte ---
+    {
+        lString8 s{"\xE2\x82\xAC"}; // U+20AC
+        TCHECK(s.codePointCount() == 1);
+        TCHECK(s.length() == 3);
+    }
+
+           // --- codePointCount() utf8 4-byte ---
+    {
+        lString8 s{"\xF0\x9D\x84\x9E"}; // U+1D11E
+        TCHECK(s.codePointCount() == 1);
+        TCHECK(s.length() == 4);
+    }
+
+           // --- codePointCount() mixed utf8 ---
+    {
+        // "héllo" — h(1) é(2) l(1) l(1) o(1) = 6 bytes, 5 codepoints
+        lString8 s{"h\xC3\xA9llo"};
+        TCHECK(s.codePointCount() == 5);
+        TCHECK(s.length() == 6);
+    }
+
+           // --- codePointCount() invalid utf8 ---
+    {
+        // invalid continuation byte — still counted as 1 codepoint (invalid)
+        lString8 s{"\x80"};
+        TCHECK(s.codePointCount() == 1);
+    }
+
+           // --- codePointCount() all whitespace ---
+    {
+        lString8 s{"   \t  "};
+        TCHECK(s.codePointCount() == 6);
+    }
+
+           // --- codePointCount() subrange ---
+    {
+        lString8 s{"hello world"};
+        TCHECK(s.codePointCount(6, 5) == 5); // "world"
+    }
+
+           // --- codePointCount() subrange clamped ---
+    {
+        lString8 s{"abcdef"};
+        TCHECK(s.codePointCount(4, 10) == 2); // "ef"
+    }
+
+           // --- codePointCount() subrange empty ---
+    {
+        lString8 s{"abc"};
+        TCHECK(s.codePointCount(5, 3) == 0); // start OOB
+    }
+
+           // --- utfCodePointCount free function, lChar8 ---
+    {
+        const lChar8 buf[] = "hello";
+        TCHECK(utfCodePointCount<lChar8>(buf, buf + 5) == 5);
+    }
+
+           // --- utfCodePointCount free function, lChar16 ---
+    {
+        lChar16 buf[] = { 'h', 'e', 'l', 'l', 'o' };
+        TCHECK(utfCodePointCount<lChar16>(buf, buf + 5) == 5);
+    }
+
+           // --- utfCodePointCount free function, lChar32 ---
+    {
+        lChar32 buf[] = { 0x20AC, 0x1D11E, 'A' };
+        TCHECK(utfCodePointCount<lChar32>(buf, buf + 3) == 3);
+    }
+
+           // --- utfCodePointCount empty ---
+    {
+        const lChar8 * p = nullptr;
+        TCHECK(utfCodePointCount<lChar8>(p, p) == 0);
+    }
+}
+
 void test_lstring2() {
     printf("New strings library tests\n");
     test_lstring2_chunks();
@@ -1987,6 +2339,7 @@ void test_lstring2() {
     test_lstring8();
     DUMP_ALLOC_STATS("after test_lstring8()")
     test_writable_refs_lString8();
+    test_lstring2_unicode();
 
     if (test_errors == 0) {
         printf("New strings library tests completed successfully\n");
