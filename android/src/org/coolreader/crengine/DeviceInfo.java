@@ -76,6 +76,8 @@ public class DeviceInfo {
 	public final static Integer DEF_FONT_SIZE;
 	public final static boolean ONE_COLUMN_IN_LANDSCAPE;
 	
+	public static boolean PAGEWISE_SCROLLING = false;
+	
 	// minimal screen backlight level percent for different devices
 	private static final String[] MIN_SCREEN_BRIGHTNESS_DB = {
 		"LGE;LG-P500",       "6", // LG Optimus One

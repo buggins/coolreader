@@ -151,6 +151,7 @@ public interface Settings {
     public static final String PROP_APP_SCREEN_BACKLIGHT_DAY   ="app.screen.backlight.day";
     public static final String PROP_APP_SCREEN_BACKLIGHT_NIGHT ="app.screen.backlight.night";
     public static final String PROP_APP_DOUBLE_TAP_SELECTION     ="app.controls.doubletap.selection";
+	public static final String PROP_APP_PAGEWISE_SCROLL = "app.controls.pagewise.scroll";
     public static final String PROP_APP_BOUNCE_TAP_INTERVAL   ="app.controls.bounce.interval";
     public static final String PROP_APP_TAP_ZONE_ACTIONS_TAP     ="app.tapzone.action.tap";
     public static final String PROP_APP_KEY_ACTIONS_PRESS     ="app.key.action.press";

@@ -2911,6 +2911,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mBounceProtectionOption = new ListOption(this, getString(R.string.options_controls_bonce_protection), PROP_APP_BOUNCE_TAP_INTERVAL).add(mBounceProtectionValues, mBounceProtectionTitles).setDefaultValue(String.valueOf(150));
 		mOptionsControls.add(mBounceProtectionOption);
 		doubleTapOnChange.run();
+		Runnable changehandlerPagewiseScroll = () -> {
+			DeviceInfo.PAGEWISE_SCROLLING = mProperties.getBool(PROP_APP_PAGEWISE_SCROLL, false);
+		};
+		mOptionsControls.add(new BoolOption(this, "Page-wise scroll", PROP_APP_PAGEWISE_SCROLL).setDefaultValue("0").setOnChangeHandler(changehandlerPagewiseScroll));
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsControls.add(new BoolOption(this, getString(R.string.options_controls_enable_volume_keys), PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
 		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_touch_drawable, R.drawable.cr3_option_touch));
