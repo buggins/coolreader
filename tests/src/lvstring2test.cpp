@@ -1580,6 +1580,76 @@ void test_lstring8() {
     TCHECK(lString8::itoa(-123LL) == "-123");
     TCHECK(lString8::itoa(9223372036854775807LL) == "9223372036854775807");
 
+           // --- getHash() empty ---
+    lString8 s_gh_empty;
+    TCHECK(s_gh_empty.getHash() == 0);
+
+           // --- getHash() non-empty ---
+    lString8 s_gh1 {"hello"};
+    lString8 s_gh2 {"hello"};
+    TCHECK(s_gh1.getHash() == s_gh2.getHash());
+
+           // --- getHash() different ---
+    lString8 s_gh3 {"world"};
+    TCHECK(s_gh1.getHash() != s_gh3.getHash());
+
+           // --- getHash() consistent ---
+    size_t h1 = s_gh1.getHash();
+    size_t h2 = s_gh1.getHash();
+    TCHECK(h1 == h2);
+
+           // --- trim() leading spaces ---
+    lString8 s_tr_l {"  hello"};
+    s_tr_l.trim();
+    TCHECK(s_tr_l == "hello");
+
+           // --- trim() trailing spaces ---
+    lString8 s_tr_t {"hello  "};
+    s_tr_t.trim();
+    TCHECK(s_tr_t == "hello");
+
+           // --- trim() both ---
+    lString8 s_tr_b {"  hello  "};
+    s_tr_b.trim();
+    TCHECK(s_tr_b == "hello");
+
+           // --- trim() no spaces ---
+    lString8 s_tr_n {"hello"};
+    s_tr_n.trim();
+    TCHECK(s_tr_n == "hello");
+
+           // --- trim() all spaces ---
+    lString8 s_tr_as {"   "};
+    s_tr_as.trim();
+    TCHECK(s_tr_as.empty());
+
+           // --- trim() empty ---
+    lString8 s_tr_e;
+    s_tr_e.trim();
+    TCHECK(s_tr_e.empty());
+
+           // --- trim() tabs ---
+    lString8 s_tr_tab {"\thello\t"};
+    s_tr_tab.trim();
+    TCHECK(s_tr_tab == "hello");
+
+           // --- trim() mixed tabs/spaces ---
+    lString8 s_tr_mix {" \t hello \t "};
+    s_tr_mix.trim();
+    TCHECK(s_tr_mix == "hello");
+
+           // --- trim() single char ---
+    lString8 s_tr_sc {" x "};
+    s_tr_sc.trim();
+    TCHECK(s_tr_sc == "x");
+
+           // --- trim() on shared string (COW) ---
+    lString8 s_tr_shared {"  shared copy  "};
+    lString8 s_tr_shared_copy = s_tr_shared;
+    s_tr_shared_copy.trim();
+    TCHECK(s_tr_shared_copy == "shared copy");
+    TCHECK(s_tr_shared == "  shared copy  ");
+
     printf("exiting of lString8 test\n");
 }
 
@@ -1879,11 +1949,35 @@ void test_writable_refs_lString8() {
     s_rep_cc_wr.replace('l', 'L');
     TCHECK(s_rep_cc == "heLLo worLd");
 
-           // --- erase() ---
+            // --- erase() ---
     lString8 s_erase {"hello world"};
     auto& s_erase_wr = s_erase.writableRef();
     s_erase_wr.erase(5, 6);
     TCHECK(s_erase == "hello");
+
+           // --- trim() via writableRef ---
+    lString8 s_wr_tr {"  hello  "};
+    auto& s_wr_tr_ref = s_wr_tr.writableRef();
+    s_wr_tr_ref.trim();
+    TCHECK(s_wr_tr == "hello");
+
+           // --- trim() via writableRef all spaces ---
+    lString8 s_wr_tr_as {"   "};
+    auto& s_wr_tr_as_ref = s_wr_tr_as.writableRef();
+    s_wr_tr_as_ref.trim();
+    TCHECK(s_wr_tr_as.empty());
+
+           // --- trim() via writableRef empty ---
+    lString8 s_wr_tr_e;
+    auto& s_wr_tr_e_ref = s_wr_tr_e.writableRef();
+    s_wr_tr_e_ref.trim();
+    TCHECK(s_wr_tr_e.empty());
+
+           // --- trim() via writableRef no-op ---
+    lString8 s_wr_tr_no {"hello"};
+    auto& s_wr_tr_no_ref = s_wr_tr_no.writableRef();
+    s_wr_tr_no_ref.trim();
+    TCHECK(s_wr_tr_no == "hello");
 }
 
 void test_lstring2() {

@@ -427,6 +427,7 @@ class string_ro {
 
     // constant for not found / unspecified position
     static const size_type npos = -1;
+    static const size_type STRING_HASH_MULT = 31;
 
     typedef lstring_chunk_t<char_type, size_type, refcounter_type> chunk_t;
   protected:
@@ -509,6 +510,16 @@ class string_ro {
         } else {
             return 0;
         }
+    }
+
+    /// calculate hash code for string (empty string has hash==0)
+    size_type getHash() const noexcept {
+        lUInt32 res = 0;
+        if (pchunk) {
+            for (size_type i=0; i < pchunk->len; i++)
+                res = res * STRING_HASH_MULT + pchunk->buf[i];
+        }
+        return res;
     }
 
     // ============================================================================
@@ -1046,12 +1057,13 @@ public:
     }
 
     /// sets value to null string, freeing buffer
-    void clear() noexcept {
+    string_wr& clear() noexcept {
         if (pchunk != nullptr) {
             // use free instead of release because we own this string and ref count should be 1 anyway
             chunk_t::free(pchunk);
             pchunk = nullptr;
         }
+        return *this;
     }
 
     /// resets length to zero, preparing to modification with reserved size
@@ -1095,6 +1107,50 @@ public:
         }
         return *this;
     }
+
+    // Trim methods
+
+    /// remove leading and trailing spaces and tabs
+    string_wr& trim() noexcept {
+        // do nothing for empty line
+        if (!pchunk || !pchunk->len) {
+            return *this;
+        }
+        // we own buffer
+        size_type firstns = 0;
+        size_type len = pchunk->len;
+        char_type * buf = pchunk->buf;
+        for (;
+             firstns < len &&
+             (buf[firstns] == ' ' ||
+              buf[firstns] == '\t');
+             ++firstns)
+            ;
+        if (firstns >= len) {
+            // only whitespace chars in the string
+            pchunk->len = 0;
+            pchunk->buf[0] = 0;
+            return *this;
+        }
+        size_type lastns = len - 1;
+        for (;
+             //lastns>0 &&  // this check is not needed - we know that string contains non-empty-space char(s)
+             (buf[lastns]==' ' || buf[lastns]=='\t');
+             --lastns)
+            ;
+        size_type newlen = (size_type)(lastns + 1 - firstns);
+        if (newlen == len) {
+            // nothing to trim
+            return *this;
+        }
+        if (firstns) {
+            std::memmove( buf, buf + firstns, newlen*sizeof(char_type) );
+        }
+        buf[newlen] = 0;
+        pchunk->len = newlen;
+        return *this;
+    }
+
 
     /// compact buffer if possible -- free unused buffer space; returned reference is a normal string
     string_type& pack() noexcept {
@@ -1936,11 +1992,12 @@ public:
     }
 
     /// sets value to null string, freeing buffer
-    void clear() noexcept {
+    string& clear() noexcept {
         if (pchunk != nullptr) {
             intrusive_ptr_release(pchunk);
             pchunk = nullptr;
         }
+        return *this;
     }
 
     /// resets length to zero, preparing to modification with reserved size
@@ -2076,6 +2133,51 @@ public:
         }
         return *this;
     }
+
+    /// remove leading and trailing spaces and tabs
+    string& trim() noexcept {
+        // do nothing for empty line
+        if (!pchunk || !pchunk->len) {
+            return *this;
+        }
+        size_type firstns = 0;
+        size_type len = pchunk->len;
+        char_type * buf = pchunk->buf;
+        for (;
+             firstns < len &&
+             (buf[firstns] == ' ' ||
+              buf[firstns] == '\t');
+             ++firstns)
+            ;
+        if (firstns >= len) {
+            // only whitespace chars in the string
+            return clear();
+        }
+        size_type lastns = len - 1;
+        for (;
+               //lastns>0 &&  // this check is not needed - we know that string contains non-empty-space char(s)
+             (buf[lastns]==' ' || buf[lastns]=='\t');
+             --lastns)
+            ;
+        size_type newlen = (size_type)(lastns + 1 - firstns);
+        if (newlen == len) {
+            // nothing to trim
+            return *this;
+        }
+        if (pchunk->isOwn()) {
+            if (firstns) {
+                std::memmove( buf, buf + firstns, newlen*sizeof(char_type) );
+            }
+            buf[newlen] = 0;
+            pchunk->len = newlen;
+        } else {
+            chunk_t * tmp = chunk_t::alloc(buf + firstns, newlen, newlen);
+            intrusive_ptr_release(pchunk);
+            pchunk = tmp;
+        }
+        return *this;
+    }
+
 
     /// erases fragment from string; if requested fragment exceeds string bounds, it's size is truncated
     string& erase(size_type offset, size_type count) noexcept {
