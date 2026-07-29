@@ -2987,6 +2987,121 @@ void test_lstring2_unicode() {
         TCHECK(s.length() == 3);
         TCHECK(s[0]==0x41 && s[1]==0x1D11E && s[2]==0x10FFFF);
     }
+
+    // --- compareUtf same type (delegates to compare) ---
+    {
+        lString8 a{"abc"}, b{"abc"}, c{"abd"};
+        TCHECK(a.compareUtf(b) == 0);
+        TCHECK(a.compareUtf(c) < 0);
+        TCHECK(c.compareUtf(a) > 0);
+    }
+
+    // --- compareUtf lString8 vs lString16 ---
+    {
+        lString8 a{"abc"};
+        lString16 b;
+        const lChar16 abc[] = { 'a', 'b', 'c' };
+        b.assignUtf(abc, 3);
+        TCHECK(a.compareUtf(b) == 0);
+        TCHECK(b.compareUtf(a) == 0);
+    }
+    // --- compareUtf lString8 vs lString16 (less/greater) ---
+    {
+        lString8 a{"abc"};
+        lString16 b;
+        const lChar16 abd[] = { 'a', 'b', 'd' };
+        b.assignUtf(abd, 3);
+        TCHECK(a.compareUtf(b) < 0);
+        TCHECK(b.compareUtf(a) > 0);
+    }
+
+    // --- compareUtf lString8 vs lString32 ---
+    {
+        lString8 a{"abc"};
+        lString32 b;
+        const lChar32 abc[] = { 'a', 'b', 'c' };
+        b.assignUtf(abc, 3);
+        TCHECK(a.compareUtf(b) == 0);
+        TCHECK(b.compareUtf(a) == 0);
+    }
+    // --- compareUtf lString8 vs lString32 (less/greater) ---
+    {
+        lString8 a{"abc"};
+        lString32 b;
+        const lChar32 abd[] = { 'a', 'b', 'd' };
+        b.assignUtf(abd, 3);
+        TCHECK(a.compareUtf(b) < 0);
+        TCHECK(b.compareUtf(a) > 0);
+    }
+
+    // --- compareUtf lString16 vs lString32 ---
+    {
+        lString16 a;
+        const lChar16 abc16[] = { 'a', 'b', 'c' };
+        a.assignUtf(abc16, 3);
+        lString32 b;
+        const lChar32 abc32[] = { 'a', 'b', 'c' };
+        b.assignUtf(abc32, 3);
+        TCHECK(a.compareUtf(b) == 0);
+        TCHECK(b.compareUtf(a) == 0);
+    }
+    // --- compareUtf lString16 vs lString32 (less/greater) ---
+    {
+        lString16 a;
+        const lChar16 abc16[] = { 'a', 'b', 'c' };
+        a.assignUtf(abc16, 3);
+        lString32 b;
+        const lChar32 abd32[] = { 'a', 'b', 'd' };
+        b.assignUtf(abd32, 3);
+        TCHECK(a.compareUtf(b) < 0);
+        TCHECK(b.compareUtf(a) > 0);
+    }
+
+    // --- compareUtf empty vs non-empty ---
+    {
+        lString8 empty;
+        lString16 nonempty;
+        const lChar16 x[] = { 'x' };
+        nonempty.assignUtf(x, 1);
+        TCHECK(empty.compareUtf(nonempty) < 0);
+        TCHECK(nonempty.compareUtf(empty) > 0);
+    }
+
+    // --- compareUtf both empty ---
+    {
+        lString8 a;
+        lString16 b;
+        TCHECK(a.compareUtf(b) == 0);
+    }
+
+    // --- compareUtf different codepoints (utf8 vs utf32 with non-ASCII) ---
+    {
+        lString8 a;
+        a.assignUtf<lChar8>("\xC3\xA9", 2); // U+00E9
+        lString32 b;
+        const lChar32 e32[] = { 0xE9 };
+        b.assignUtf(e32, 1);
+        TCHECK(a.compareUtf(b) == 0);
+        TCHECK(b.compareUtf(a) == 0);
+    }
+
+    // --- compareUtf supplementary characters ---
+    {
+        lString16 a;
+        const lChar16 music16[] = { 0xD834, 0xDD1E }; // U+1D11E
+        a.assignUtf(music16, 2);
+        lString32 b;
+        const lChar32 music32[] = { 0x1D11E };
+        b.assignUtf(music32, 1);
+        TCHECK(a.compareUtf(b) == 0);
+        TCHECK(b.compareUtf(a) == 0);
+    }
+
+    // --- compareUtf same pointer (pchunk equality) ---
+    {
+        lString8 a{"test"};
+        TCHECK(a.compareUtf(a) == 0);
+    }
 }
 
 void test_lstring2() {

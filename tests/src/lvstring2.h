@@ -222,9 +222,9 @@ class string;
 template <typename char_type, typename size_type, typename refcounter_type = std::atomic_int>
 struct lstring_chunk_t {
 
-    friend class string<char_type, refcounter_type>;
-    friend class string_wr<char_type, refcounter_type>;
-    friend class string_ro<char_type, refcounter_type>;
+    template <typename, typename> friend class string_ro;
+    template <typename, typename> friend class string;
+    template <typename, typename> friend class string_wr;
 
     friend void test_lstring2_chunks();
     /// chunk allocation alignment in bytes
@@ -756,6 +756,30 @@ inline lUInt32 utfCodePointCount(const char_type* pstart, const char_type* pend)
     return count;
 }
 
+/// strcmp for two strings of different utf encoding, both args are non-empty, zero-terminated
+template<typename char_type1, typename char_type2, typename size_type, lChar32 invalid_char = 0xFFFFFFFEu, lChar32 end_of_stream = 0xFFFFFFFFu>
+inline int str_cmp_utf_nonempty(const char_type1 * s1, size_type len1, const char_type2 * s2, size_type len2) {
+    // we are sure that sz1>0 && sz2>0
+    const char_type1 * s1_end = s1 + len1;
+    const char_type2 * s2_end = s2 + len2;
+    for (;;) {
+        lChar32 ch1 = utfReadCodePoint<char_type1, invalid_char, end_of_stream>(s1, s1_end);
+        lChar32 ch2 = utfReadCodePoint<char_type2, invalid_char, end_of_stream>(s2, s2_end);
+        if (ch1 == end_of_stream) {
+            return (ch2 == end_of_stream) ? 0 : -1;
+        }
+        if (ch2 == end_of_stream) {
+            return 1;
+        }
+        if (ch1 < ch2)
+            return -1;
+        if (ch1 > ch2)
+            return 1;
+    }
+}
+
+
+
 template <typename char_type, lChar32 invalid_char = '?'>
 struct CodepointReadIterator {
     struct EndOfStream {};
@@ -806,8 +830,11 @@ extern lChar32 fake_null_buffer_32;
 /// allows modification without reference counting checks
 template <typename char_type, typename refcounter_type = std::atomic_int>
 class string_ro {
-    friend class string_wr<char_type, refcounter_type>;
-    friend class string<char_type, refcounter_type>;
+    // friend class string_wr<char_type, refcounter_type>;
+    // friend class string<char_type, refcounter_type>;
+    template <typename, typename> friend class string_ro;
+    template <typename, typename> friend class string;
+    template <typename, typename> friend class string_wr;
   public:
     // typedefs for STL compatibility
     typedef char_type             value_type;      ///< character type
@@ -1007,6 +1034,31 @@ class string_ro {
             return 1;
         }
         return str_cmp_nonempty<char_type, size_type>(pchunk->buf, sz1, s.pchunk->buf, sz2);
+    }
+
+    /// compare this string with another string (optionally of different type), returns -1 if this < s, 1 if this > s, 0 if equal
+    /// if string s has the same type as current string, use simple compare()
+    /// if string s has different type, both this string and `s` are read as utf unicode characters flow and compared by unicode codepoint values
+    template<typename utf_type>
+    int compareUtf(const string_ro<utf_type, refcounter_type>& s) const noexcept {
+        if constexpr (sizeof(char_type) == sizeof(utf_type)) {
+            // for strings of the same character type, use simple compare()
+            return compare(s);
+        } else {
+            if (static_cast<const void *>(pchunk) == static_cast<const void *>(s.pchunk)) {
+                // same string
+                return 0;
+            }
+            // for strings of different character type (e.g. utf8<->utf32) compare unicode codepoints
+            size_type sz1 = length();
+            size_type sz2 = s.length();
+            if (sz1 == 0) {
+                return sz2 > 0 ? -1 : 0;
+            } else if (sz2 == 0) {
+                return 1;
+            }
+            return str_cmp_utf_nonempty<char_type, utf_type, size_type>(pchunk->buf, sz1, s.pchunk->buf, sz2);
+        }
     }
 
     /// compare substring (pos..pos+n) of this string with another string, returns -1 if this < s, 1 if this > s, 0 if equal
@@ -1817,6 +1869,9 @@ public:
     /// Pass `npos` as source string element counter to calculate it for null-term string with str_len
     template<typename utf_type>
     string_wr& appendUtf(const utf_type * s, size_type count = npos) noexcept {
+        if (empty()) {
+            return assignUtf(s, count);
+        }
         if (s == nullptr) {
             return *this;
         } else if (count == npos) {
@@ -1824,27 +1879,20 @@ public:
         }
         if (count == 0) {
             return *this;
+        }
+        size_type sz = utfConvDestBufferSize<utf_type, char_type>(s, s + count);
+        lUInt32 errorCount = 0;
+        if (pchunk->size >= pchunk->len + sz) {
+            // reuse existing buffer - it is big enough, and not shared
+            char_type * dst = pchunk->buf + pchunk->len;
+            pchunk->len += utfConvert<utf_type,char_type>(s, s+count, dst, pchunk->buf + pchunk->size, errorCount);
         } else {
-            size_type sz = utfConvDestBufferSize<utf_type, char_type>(s, s + count);
-            lUInt32 errorCount = 0;
-            if (pchunk == nullptr) {
-                // empty string, allocate new chunk with converted data
-                chunk_t * tmp = chunk_t::alloc(sz);
-                char_type * dst = tmp->buf;
-                tmp->len = utfConvert<utf_type,char_type>(s, s+count, dst, tmp->buf + tmp->size, errorCount);
-                pchunk = tmp;
-            } else if (pchunk->size >= pchunk->len + sz) {
-                // reuse existing buffer - it is big enough, and not shared
-                char_type * dst = pchunk->buf + pchunk->len;
-                pchunk->len += utfConvert<utf_type,char_type>(s, s+count, dst, pchunk->buf + pchunk->size, errorCount);
-            } else {
-                // create new buffer
-                chunk_t * tmp = pchunk->duplicate(pchunk->len + sz);
-                char_type * dst = tmp->buf + tmp->len;
-                tmp->len += utfConvert<utf_type,char_type>(s, s+count, dst, tmp->buf + tmp->size, errorCount);
-                chunk_t::free(pchunk);
-                pchunk = tmp;
-            }
+            // create new buffer
+            chunk_t * tmp = pchunk->duplicate(pchunk->len + sz);
+            char_type * dst = tmp->buf + tmp->len;
+            tmp->len += utfConvert<utf_type,char_type>(s, s+count, dst, tmp->buf + tmp->size, errorCount);
+            chunk_t::free(pchunk);
+            pchunk = tmp;
         }
         return *this;
     }
@@ -2597,6 +2645,9 @@ public:
     /// Pass `npos` as source string element counter to calculate it for null-term string with str_len
     template<typename utf_type>
     string& appendUtf(const utf_type * s, size_type count = npos) noexcept {
+        if (empty()) {
+            return assignUtf(s, count);
+        }
         if (s == nullptr) {
             return *this;
         } else if (count == npos) {
@@ -2604,29 +2655,22 @@ public:
         }
         if (count == 0) {
             return *this;
+        }
+        size_type sz = utfConvDestBufferSize<utf_type, char_type>(s, s + count);
+        lUInt32 errorCount = 0;
+        if (pchunk->size >= pchunk->len + sz && pchunk->isOwn()) {
+            // reuse existing buffer - it is big enough, and not shared
+            char_type * dst = pchunk->buf + pchunk->len;
+            pchunk->len += utfConvert<utf_type,char_type>(s, s+count, dst, pchunk->buf + pchunk->size, errorCount);
         } else {
-            size_type sz = utfConvDestBufferSize<utf_type, char_type>(s, s + count);
-            lUInt32 errorCount = 0;
-            if (pchunk == nullptr) {
-                // empty string, allocate new chunk with converted data
-                chunk_t * tmp = chunk_t::alloc(sz);
-                char_type * dst = tmp->buf;
-                tmp->len = utfConvert<utf_type,char_type>(s, s+count, dst, tmp->buf + tmp->size, errorCount);
-                pchunk = tmp;
-            } else if (pchunk->size >= pchunk->len + sz && pchunk->isOwn()) {
-                // reuse existing buffer - it is big enough, and not shared
-                char_type * dst = pchunk->buf + pchunk->len;
-                pchunk->len += utfConvert<utf_type,char_type>(s, s+count, dst, pchunk->buf + pchunk->size, errorCount);
-            } else {
-                // create new buffer
-                chunk_t * tmp = pchunk->duplicate(pchunk->len + sz);
-                char_type * dst = tmp->buf + tmp->len;
-                tmp->len += utfConvert<utf_type,char_type>(s, s+count, dst, tmp->buf + tmp->size, errorCount);
-                if (pchunk) {
-                    intrusive_ptr_release(pchunk);
-                }
-                pchunk = tmp;
+            // create new buffer
+            chunk_t * tmp = pchunk->duplicate(pchunk->len + sz);
+            char_type * dst = tmp->buf + tmp->len;
+            tmp->len += utfConvert<utf_type,char_type>(s, s+count, dst, tmp->buf + tmp->size, errorCount);
+            if (pchunk) {
+                intrusive_ptr_release(pchunk);
             }
+            pchunk = tmp;
         }
         return *this;
     }
