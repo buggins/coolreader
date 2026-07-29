@@ -2853,6 +2853,140 @@ void test_lstring2_unicode() {
         TCHECK(s.length() == 2);
         TCHECK(s[0]==0x1D11E && s[1]=='Z');
     }
+
+    // --- appendUtf: empty string (null pchunk) ---
+    {
+        lString8 s;
+        s.appendUtf<lChar8>("hello", 5);
+        TCHECK(s == "hello");
+    }
+
+    // --- appendUtf: buffer fits (reuse) ---
+    {
+        lString8 s{"abc"};
+        const lChar8 src[] = "xyz";
+        s.appendUtf(src, 3);
+        TCHECK(s == "abcxyz");
+        TCHECK(s.length() == 6);
+    }
+
+    // --- appendUtf: buffer needs expansion ---
+    {
+        lString8 s{"abc"};
+        s.reserve(4); // small capacity
+        s.appendUtf<lChar8>("xyz", 3);
+        TCHECK(s == "abcxyz");
+        TCHECK(s.length() == 6);
+    }
+
+    // --- appendUtf: COW isolation ---
+    {
+        lString8 orig{"original"};
+        lString8 copy = orig;
+        copy.appendUtf<lChar8>("+more", 5);
+        TCHECK(copy == "original+more");
+        TCHECK(orig == "original");
+    }
+
+    // --- appendUtf: sequential appends ---
+    {
+        lString8 s;
+        s.appendUtf<lChar8>("a", 1);
+        s.appendUtf<lChar8>("b", 1);
+        s.appendUtf<lChar8>("c", 1);
+        TCHECK(s == "abc");
+    }
+
+    // --- appendUtf: string_wr via writableRef ---
+    {
+        lString8 s{"base"};
+        auto& wr = s.writableRef();
+        wr.appendUtf<lChar8>("+ext", 4);
+        TCHECK(s == "base+ext");
+    }
+
+    // --- 9-way appendUtf: lString8/16/32 × utf8/16/32 ---
+
+    // lString8 += utf8
+    {
+        lString8 s{"AB"};
+        s.appendUtf<lChar8>("\xC3\xA9", 2);
+        TCHECK(s.length() == 4); // A B é
+        TCHECK(s[0]=='A' && s[1]=='B' && s[2]==(char)0xC3 && s[3]==(char)0xA9);
+    }
+    // lString8 += utf16
+    {
+        lString8 s{"AB"};
+        const lChar16 src[] = { 0xE9, 'X' };
+        s.appendUtf(src, 2);
+        TCHECK(s.length() == 5); // A B (2) + é(2) + X(1)
+        TCHECK(s[0]=='A' && s[1]=='B');
+    }
+    // lString8 += utf32
+    {
+        lString8 s{"AB"};
+        const lChar32 src[] = { 0xE9 };
+        s.appendUtf(src, 1);
+        TCHECK(s.length() == 4); // A B é
+        TCHECK(s[2]==(char)0xC3 && s[3]==(char)0xA9);
+    }
+
+    // lString16 += utf8
+    {
+        lString16 s;
+        s.assignUtf<lChar8>("AB", 2);
+        s.appendUtf<lChar8>("\xC3\xA9", 2);
+        TCHECK(s.length() == 3);
+        TCHECK(s[0]=='A' && s[1]=='B' && s[2]==0xE9);
+    }
+    // lString16 += utf16
+    {
+        lString16 s;
+        const lChar16 ab[] = { 'A', 'B' };
+        s.assignUtf(ab, 2);
+        const lChar16 xy[] = { 'X', 'Y' };
+        s.appendUtf(xy, 2);
+        TCHECK(s.length() == 4);
+        TCHECK(s[0]=='A' && s[1]=='B' && s[2]=='X' && s[3]=='Y');
+    }
+    // lString16 += utf32 (supplementary → surrogate pair)
+    {
+        lString16 s;
+        const lChar16 ab[] = { 'A', 'B' };
+        s.assignUtf(ab, 2);
+        const lChar32 music[] = { 0x1D11E };
+        s.appendUtf(music, 1);
+        TCHECK(s.length() == 4);
+        TCHECK(s[0]=='A' && s[1]=='B' && s[2]==0xD834 && s[3]==0xDD1E);
+    }
+
+    // lString32 += utf8
+    {
+        lString32 s;
+        s.assignUtf<lChar8>("AB", 2);
+        s.appendUtf<lChar8>("\xC3\xA9", 2);
+        TCHECK(s.length() == 3);
+        TCHECK(s[0]=='A' && s[1]=='B' && s[2]==0xE9);
+    }
+    // lString32 += utf16
+    {
+        lString32 s;
+        s.assignUtf<lChar8>("AB", 2);
+        const lChar16 surrogate[] = { 0xD834, 0xDD1E };
+        s.appendUtf(surrogate, 2);
+        TCHECK(s.length() == 3);
+        TCHECK(s[0]=='A' && s[1]=='B' && s[2]==0x1D11E);
+    }
+    // lString32 += utf32
+    {
+        lString32 s;
+        const lChar32 ab[] = { 0x41, 0x1D11E };
+        s.assignUtf(ab, 2);
+        const lChar32 last[] = { 0x10FFFF };
+        s.appendUtf(last, 1);
+        TCHECK(s.length() == 3);
+        TCHECK(s[0]==0x41 && s[1]==0x1D11E && s[2]==0x10FFFF);
+    }
 }
 
 void test_lstring2() {

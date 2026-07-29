@@ -1809,6 +1809,46 @@ public:
         return *this;
     }
 
+    /// Append utf string from char pointer and char count, perform UTF conversion and invalid unicode codepoints skipping if necessary.
+    /// Source string must be encoded as utf characters (utf8 for 1-byte utf_type, utf16 for 2-byte utf_type, utf32 for 4-byte utf_type).
+    /// Converted data will be assigned on this string in format depending on char_type size (utf8/utf16/utf32).
+    /// s is a start of source utf string
+    /// count is number of source string elements to convert.
+    /// Pass `npos` as source string element counter to calculate it for null-term string with str_len
+    template<typename utf_type>
+    string_wr& appendUtf(const utf_type * s, size_type count = npos) noexcept {
+        if (s == nullptr) {
+            return *this;
+        } else if (count == npos) {
+            count = str_len<utf_type, size_type>(s);
+        }
+        if (count == 0) {
+            return *this;
+        } else {
+            size_type sz = utfConvDestBufferSize<utf_type, char_type>(s, s + count);
+            lUInt32 errorCount = 0;
+            if (pchunk == nullptr) {
+                // empty string, allocate new chunk with converted data
+                chunk_t * tmp = chunk_t::alloc(sz);
+                char_type * dst = tmp->buf;
+                tmp->len = utfConvert<utf_type,char_type>(s, s+count, dst, tmp->buf + tmp->size, errorCount);
+                pchunk = tmp;
+            } else if (pchunk->size >= pchunk->len + sz) {
+                // reuse existing buffer - it is big enough, and not shared
+                char_type * dst = pchunk->buf + pchunk->len;
+                pchunk->len += utfConvert<utf_type,char_type>(s, s+count, dst, pchunk->buf + pchunk->size, errorCount);
+            } else {
+                // create new buffer
+                chunk_t * tmp = pchunk->duplicate(pchunk->len + sz);
+                char_type * dst = tmp->buf + tmp->len;
+                tmp->len += utfConvert<utf_type,char_type>(s, s+count, dst, tmp->buf + tmp->size, errorCount);
+                chunk_t::free(pchunk);
+                pchunk = tmp;
+            }
+        }
+        return *this;
+    }
+
     /// convert all characters of string to uppercase
     string_wr& uppercase() noexcept {
         if (pchunk) {
@@ -2540,6 +2580,48 @@ public:
                 chunk_t * tmp = chunk_t::alloc(sz);
                 char_type * dst = tmp->buf;
                 tmp->len = utfConvert<utf_type,char_type>(s, s+count, dst, dst + tmp->size, errorCount);
+                if (pchunk) {
+                    intrusive_ptr_release(pchunk);
+                }
+                pchunk = tmp;
+            }
+        }
+        return *this;
+    }
+
+    /// Append utf string from char pointer and char count, perform UTF conversion and invalid unicode codepoints skipping if necessary.
+    /// Source string must be encoded as utf characters (utf8 for 1-byte utf_type, utf16 for 2-byte utf_type, utf32 for 4-byte utf_type).
+    /// Converted data will be assigned on this string in format depending on char_type size (utf8/utf16/utf32).
+    /// s is a start of source utf string
+    /// count is number of source string elements to convert.
+    /// Pass `npos` as source string element counter to calculate it for null-term string with str_len
+    template<typename utf_type>
+    string& appendUtf(const utf_type * s, size_type count = npos) noexcept {
+        if (s == nullptr) {
+            return *this;
+        } else if (count == npos) {
+            count = str_len<utf_type, size_type>(s);
+        }
+        if (count == 0) {
+            return *this;
+        } else {
+            size_type sz = utfConvDestBufferSize<utf_type, char_type>(s, s + count);
+            lUInt32 errorCount = 0;
+            if (pchunk == nullptr) {
+                // empty string, allocate new chunk with converted data
+                chunk_t * tmp = chunk_t::alloc(sz);
+                char_type * dst = tmp->buf;
+                tmp->len = utfConvert<utf_type,char_type>(s, s+count, dst, tmp->buf + tmp->size, errorCount);
+                pchunk = tmp;
+            } else if (pchunk->size >= pchunk->len + sz && pchunk->isOwn()) {
+                // reuse existing buffer - it is big enough, and not shared
+                char_type * dst = pchunk->buf + pchunk->len;
+                pchunk->len += utfConvert<utf_type,char_type>(s, s+count, dst, pchunk->buf + pchunk->size, errorCount);
+            } else {
+                // create new buffer
+                chunk_t * tmp = pchunk->duplicate(pchunk->len + sz);
+                char_type * dst = tmp->buf + tmp->len;
+                tmp->len += utfConvert<utf_type,char_type>(s, s+count, dst, tmp->buf + tmp->size, errorCount);
                 if (pchunk) {
                     intrusive_ptr_release(pchunk);
                 }
