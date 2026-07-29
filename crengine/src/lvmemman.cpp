@@ -130,7 +130,9 @@ void cr_sigaction(int signal, siginfo_t *info, void *reserved)
 }
 #endif
 
+#ifdef _LINUX
 static bool signals_are_set = false;
+#endif
 void crSetSignalHandler()
 {
 #ifdef _LINUX
@@ -168,8 +170,8 @@ lv_FatalErrorHandler_t * lvFatalErrorHandler = &lvDefFatalErrorHandler;
 
 void crFatalError( int code, const char * errorText )
 {
-	if (file_to_remove_on_crash[0])
-		LVDeleteFile(Utf8ToUnicode(lString8(file_to_remove_on_crash)));
+    if (file_to_remove_on_crash[0])
+        LVDeleteFile(Utf8ToUnicode(lString8(file_to_remove_on_crash)));
     lvFatalErrorHandler( code, errorText );
 }
 

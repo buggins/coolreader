@@ -301,6 +301,9 @@ static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lChar32
             if ( gammaIndex!=GAMMA_NO_CORRECTION_INDEX )
                 cr_correct_gamma_buf(item->bmp, bmp_sz, gammaIndex);
             break;
+        default:
+            // no correction
+            break;
         }
     }
     item->origin_x = (lInt16) slot->bitmap_left;
@@ -342,6 +345,9 @@ static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lUInt32
             // correct gamma
             if ( gammaIndex!=GAMMA_NO_CORRECTION_INDEX )
                 cr_correct_gamma_buf(item->bmp, bmp_sz, gammaIndex);
+            break;
+        default:
+            // no correction
             break;
         }
     }
@@ -2784,7 +2790,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar32 *
     if ( y + text_height < clip.top || y >= clip.bottom )
         return 0;
 
-    unsigned int i;
+    int i;
     //lUInt16 prev_width = 0;
     lChar32 ch;
     // measure character widths
