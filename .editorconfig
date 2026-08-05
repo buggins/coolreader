@@ -1,0 +1,33 @@
+# EditorConfig is awesome: https://editorconfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+[*.sh]
+# like -i=4
+indent_style = space
+indent_size = 4
+
+# --language-variant
+shell_variant      = posix
+binary_next_line   = true
+# --case-indent
+switch_case_indent = true
+space_redirects    = true
+keep_padding       = true
+# --func-next-line
+function_next_line = true
+
+[thirdparty/**]
+ignore = true
+
+[thirdparty_unman/**]
+ignore = true
+
+[android/gradlew]
+ignore = true
