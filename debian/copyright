@@ -1,0 +1,32 @@
+Format: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=REVISION
+Upstream-Name: Cool Reader 3
+Upstream-Contact: Vadim Lopatin <buggins@fromru.com>
+Source: git://crengine.git.sourceforge.net/gitroot/crengine/crengine
+Copyright: 2005-2011, Vadim Lopatin <buggins@fromru.com>
+License: GPL-2
+
+Files: *
+Copyright: 2005-2011, Vadim Lopatin <buggins@fromru.com>
+License: GPL-2
+
+Files: debian/*
+Copyright: 2009-2011, Vadim Lopatin <buggins@fromru.com>
+License: GPL-3+
+
+Files: thirdparty/antiword/*
+Copyright: 2005, Adri van Os
+License: GPL-2
+
+Files: thirdparty/chmlib/*
+Copyright: Jed Wing <jedwin@ugcs.caltech.edu>
+License: LGPL-2
+
+
+License: GPL-2
+    /usr/share/common-licenses/GPL-2
+
+License: GPL-3+
+    /usr/share/common-licenses/GPL-3
+
+License: LGPL-2
+    /usr/share/common-licenses/LGPL-2

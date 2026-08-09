@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>cr3.desktop</id>
+  <id>io.github.buggins.coolreader</id>
   <name>CoolReader</name>
   <project_license>GPL-2.0</project_license>
   <metadata_license>CC0-1.0</metadata_license>
@@ -21,10 +21,15 @@
       Book formatting is customizable using CSS files.
     </p>
   </description>
+  <launchable type="desktop-id">cr3.desktop</launchable>
   <url type="homepage">https://github.com/buggins/coolreader</url>
+  <developer id="io.github.buggins">
+    <name>Vadim Lopatin</name>
+  </developer>
+  <content_rating type="oars-1.1" />
   <screenshots>
     <screenshot type="default">
-      <image>https://gist.github.com/avsej/eaea5ae3d5ed045261e9f36d2c9964b5/raw/d251fab97400a8d708c01d51018ca7925e75e971/screenshot-2019-02-24_10-09-26.1550992166.png</image>
+      <image type="source">https://gist.github.com/avsej/eaea5ae3d5ed045261e9f36d2c9964b5/raw/d251fab97400a8d708c01d51018ca7925e75e971/screenshot-2019-02-24_10-09-26.1550992166.png</image>
     </screenshot>
   </screenshots>
 </component>

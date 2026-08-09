@@ -1,0 +1,23 @@
+Source: cr3
+Section: text
+Priority: optional
+Maintainer: Vadim Lopatin <buggins@fromru.com>
+Build-Depends: debhelper-compat (= 13), cmake, pkg-config,
+ zlib1g-dev, libpng-dev, libjpeg-dev, libfreetype6-dev,
+ libfontconfig1-dev, libharfbuzz-dev, libfribidi-dev,
+ libunibreak-dev, libzstd-dev, libutf8proc-dev,
+ qtbase5-dev, qttools5-dev
+Standards-Version: 4.6.0
+Homepage: https://github.com/buggins/coolreader
+
+Package: cr3
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: e-book reader
+ Cool Reader 3 is multiplatform e-book viewer
+ with support of TXT, FB2, HTML, RTF, CHM, EPUB, TRC file formats.
+ Fully supports FB2 format: tables, footnotes, CSS based formatting.
+ Autodetects TXT file format and encoding, and reflows it for easy reading.
+ Supports table of contents, search, bookmarks.
+ Supports window and fullscreen modes, paperbook-like pages or scroll view.
+ Book formatting is customizable using CSS files.

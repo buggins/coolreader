@@ -1,0 +1,42 @@
+cr3 (3.0.56-7mint1) noble; urgency=medium
+
+  [ AlexdChe ]
+  * 
+
+  [ alex ]
+  * create LinuxMint
+
+  [ AlexdChe ]
+  * Adapt package for Linux Mint
+
+ -- AlexdChe <dchirkis@gmail.com>  Sun, 09 Aug 2026 23:54:08 +0300
+
+cr3 (3.0.56-7) unstable; urgency=low
+
+  * merge upstream changes
+
+ -- Vadim Lopatin <buggins@fromru.com>  Wed, 21 Mar 2012 09:25:00 +0400
+
+cr3 (3.0.50-3) unstable; urgency=low
+
+  * merge upstream changes
+
+ -- Vadim Lopatin <buggins@fromru.com>  Tue, 23 Aug 2011 10:25:49 +0300
+
+cr3 (3.0.49-13) unstable; urgency=low
+
+  * merge upstream changes
+
+ -- Vadim Lopatin <buggins@fromru.com>  Fri, 12 Aug 2011 10:25:49 +0300
+
+cr3 (3.0.44-05) unstable; urgency=low
+
+  * merge upstream changes
+
+ -- Vadim Lopatin <buggins@fromru.com>  Mon, 14 Feb 2011 10:25:49 +0300
+
+cr3 (3.0.43-12) unstable; urgency=low
+
+  * create debian package
+
+ -- Vadim Lopatin <buggins@fromru.com>  Mon, 07 Feb 2011 12:05:49 +0300

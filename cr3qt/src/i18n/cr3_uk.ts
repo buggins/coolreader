@@ -9,7 +9,7 @@
         <translation>Про CoolReader</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_aboutdlg.h" line="460"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_aboutdlg.h" line="459"/>
         <source>Dialog</source>
         <translation>Діалог</translation>
     </message>
@@ -18,22 +18,22 @@
         <translation type="vanished">…</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_aboutdlg.h" line="465"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_aboutdlg.h" line="464"/>
         <source>License</source>
         <translation>Ліцензія</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_aboutdlg.h" line="466"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_aboutdlg.h" line="465"/>
         <source>Source Code</source>
         <translation>Джерельний код</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_aboutdlg.h" line="464"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_aboutdlg.h" line="463"/>
         <source>About</source>
         <translation>Про</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_aboutdlg.h" line="462"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_aboutdlg.h" line="461"/>
         <source>About Cool Reader</source>
         <translation>Про CoolReader</translation>
     </message>
@@ -242,43 +242,43 @@ p, li { white-space: pre-wrap; }
         <translation>Корекція</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_addbookmarkdlg.h" line="121"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_addbookmarkdlg.h" line="120"/>
         <source>Dialog</source>
         <translation>Діалог</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_addbookmarkdlg.h" line="122"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_addbookmarkdlg.h" line="121"/>
         <source>Bookmark type</source>
         <translation>Тип закладки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_addbookmarkdlg.h" line="127"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_addbookmarkdlg.h" line="126"/>
         <source>Title</source>
         <translation>Назва</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_addbookmarkdlg.h" line="128"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_addbookmarkdlg.h" line="127"/>
         <source>sample title</source>
         <translation>зразок назви</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_addbookmarkdlg.h" line="123"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_addbookmarkdlg.h" line="122"/>
         <location filename="../addbookmarkdlg.cpp" line="56"/>
         <source>Position</source>
         <translation>Позиція</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_addbookmarkdlg.h" line="124"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_addbookmarkdlg.h" line="123"/>
         <source>Page 1/10 10%</source>
         <translation>Сторінка 1/10 10%</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_addbookmarkdlg.h" line="125"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_addbookmarkdlg.h" line="124"/>
         <source>Position text</source>
         <translation>Позиція тексту</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_addbookmarkdlg.h" line="126"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_addbookmarkdlg.h" line="125"/>
         <location filename="../addbookmarkdlg.cpp" line="58"/>
         <location filename="../addbookmarkdlg.cpp" line="132"/>
         <source>Comment</source>
@@ -332,52 +332,52 @@ p, li { white-space: pre-wrap; }
         <translation>Р</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_bookmarklistdlg.h" line="80"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_bookmarklistdlg.h" line="79"/>
         <source>Dialog</source>
         <translation>Діалог</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_bookmarklistdlg.h" line="81"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_bookmarklistdlg.h" line="80"/>
         <source>Go to Bookmark</source>
         <translation>Перейти до закладки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_bookmarklistdlg.h" line="83"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_bookmarklistdlg.h" line="82"/>
         <source>Return</source>
         <translation>Повернутися</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_bookmarklistdlg.h" line="85"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_bookmarklistdlg.h" line="84"/>
         <source>Remove Bookmark</source>
         <translation>Вилучити закладку</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_bookmarklistdlg.h" line="87"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_bookmarklistdlg.h" line="86"/>
         <source>Del</source>
         <translation>Del</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_bookmarklistdlg.h" line="89"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_bookmarklistdlg.h" line="88"/>
         <source>Remove ALL Bookmarks</source>
         <translation>Вилучити УСІ закладки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_bookmarklistdlg.h" line="90"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_bookmarklistdlg.h" line="89"/>
         <source>Edit Bookmark</source>
         <translation>Редагувати закладку</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_bookmarklistdlg.h" line="92"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_bookmarklistdlg.h" line="91"/>
         <source>F4</source>
         <translation>F4</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_bookmarklistdlg.h" line="94"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_bookmarklistdlg.h" line="93"/>
         <source>Close</source>
         <translation>Закрити</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_bookmarklistdlg.h" line="96"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_bookmarklistdlg.h" line="95"/>
         <source>Esc</source>
         <translation>Esc</translation>
     </message>
@@ -390,17 +390,17 @@ p, li { white-space: pre-wrap; }
         <translation>Помилка при відкритті документу </translation>
     </message>
     <message>
-        <location filename="../cr3widget.cpp" line="1539"/>
+        <location filename="../cr3widget.cpp" line="1547"/>
         <source>Loading: please wait...</source>
         <translation>Завантажується: зачекайте…</translation>
     </message>
     <message>
-        <location filename="../cr3widget.cpp" line="1196"/>
+        <location filename="../cr3widget.cpp" line="1204"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cr3widget.cpp" line="1197"/>
+        <location filename="../cr3widget.cpp" line="1205"/>
         <source>Font &quot;%1&quot; isn&apos;t compatible with language &quot;%2&quot;. Instead will be used fallback font.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -408,12 +408,12 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>ExportProgressDlg</name>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_exportprogressdlg.h" line="54"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_exportprogressdlg.h" line="54"/>
         <source>Dialog</source>
         <translation>Діалог</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_exportprogressdlg.h" line="55"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_exportprogressdlg.h" line="55"/>
         <source>Export is in progress...</source>
         <translation>Триває експорт…</translation>
     </message>
@@ -421,12 +421,12 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>FallbackFontsDialog</name>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_fallbackfontsdialog.h" line="73"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_fallbackfontsdialog.h" line="72"/>
         <source>Fallback fonts</source>
         <translation type="unfinished">Додаткові шрифти</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_fallbackfontsdialog.h" line="74"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_fallbackfontsdialog.h" line="73"/>
         <source>List of fallback fonts:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -444,7 +444,7 @@ p, li { white-space: pre-wrap; }
         <translation>Властивості документу</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_filepropsdlg.h" line="60"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_filepropsdlg.h" line="59"/>
         <source>Dialog</source>
         <translation>Діалог</translation>
     </message>
@@ -734,518 +734,518 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>MainWindowClass</name>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="318"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="318"/>
         <source>CoolReader</source>
         <translation>CoolReader</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="556"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="556"/>
         <source>File</source>
         <translation>Файл</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="557"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="557"/>
         <source>View</source>
         <translation>Вигляд</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="558"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="558"/>
         <source>Navigation</source>
         <translation>Навігація</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="559"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="559"/>
         <source>Help</source>
         <translation>Довідка</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="319"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="319"/>
         <source>Open...</source>
         <translation>Відкрити…</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="321"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="321"/>
         <source>Open file</source>
         <translation>Відкрити файл</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="324"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="324"/>
         <source>F3</source>
         <translation>F3</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="326"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="326"/>
         <source>Toggle Pages/Scroll</source>
         <translation>Сторінки/Сувій</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="328"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="328"/>
         <source>Ctrl+P</source>
         <translation>Ctrl+P</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="330"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="330"/>
         <source>Close</source>
         <translation>Закрити</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="332"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="332"/>
         <source>F12</source>
         <translation>F12</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="334"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="334"/>
         <source>Minimize</source>
         <translation>Згорнути</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="336"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="336"/>
         <source>Esc</source>
         <translation>Esc</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="338"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="338"/>
         <source>Page Down</source>
         <translation>Наступна сторінка</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="340"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="340"/>
         <source>Go to next page</source>
         <translation>Перейти до наступної сторінки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="343"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="343"/>
         <source>PgDown</source>
         <translation>PgDown</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="345"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="345"/>
         <source>Page Up</source>
         <translation>Попередня сторінка</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="347"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="347"/>
         <source>Back by page</source>
         <translation>Перейти на попередню сторінку</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="350"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="350"/>
         <source>PgUp</source>
         <translation>PgUp</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="352"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="352"/>
         <source>Line Down</source>
         <translation>На рядок вниз</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="354"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="354"/>
         <source>Forward by one line</source>
         <translation>Вперед на один рядок</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="357"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="357"/>
         <source>Down</source>
         <translation>Вниз</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="359"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="359"/>
         <source>Line Up</source>
         <translation>На рядок вгору</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="361"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="361"/>
         <source>Back by line</source>
         <translation>Назад за рядком</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="364"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="364"/>
         <source>Up</source>
         <translation>Вгору</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="366"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="366"/>
         <source>First Page</source>
         <translation>Перша сторінка</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="368"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="368"/>
         <source>Go to first page</source>
         <translation>Перейти до першої сторінки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="371"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="371"/>
         <source>Home</source>
         <translation>Home</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="373"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="373"/>
         <source>Last Page</source>
         <translation>Остання сторінка</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="375"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="375"/>
         <source>Go to last page</source>
         <translation>Перейти до останньої сторінки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="378"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="378"/>
         <source>End</source>
         <translation>End</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="380"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="380"/>
         <source>Back</source>
         <translation>Назад</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="382"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="382"/>
         <source>Back in navigation history</source>
         <translation>Перейти назад по історії навігації</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="385"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="385"/>
         <source>Backspace</source>
         <translation>Backspace</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="387"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="387"/>
         <source>Forward</source>
         <translation>Вперед</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="389"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="389"/>
         <source>Go to the next position in navigation history</source>
         <translation>Перейти на наступну позицію в історії навігації</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="392"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="392"/>
         <source>Shift+Backspace</source>
         <translation>Shift+Backspace</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="394"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="394"/>
         <source>Next Chapter</source>
         <translation>Наступний розділ</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="396"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="396"/>
         <source>Go to next chapter</source>
         <translation>Перейти до наступного розділу</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="399"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="399"/>
         <source>Alt+Down</source>
         <translation>Alt+Вниз</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="401"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="401"/>
         <source>Previous Chapter</source>
         <translation>Попередній розділ</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="403"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="403"/>
         <source>Go to previous chapter</source>
         <translation>Перейти до попереднього розділу</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="406"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="406"/>
         <source>Alt+Up</source>
         <translation>Alt+Вгору</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="408"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="408"/>
         <source>Toggle Full Screen</source>
         <translation>На весь екран</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="410"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="410"/>
         <source>Toggle Full Screen mode</source>
         <translation>Повноекранний режим</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="413"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="413"/>
         <source>Alt+Return</source>
         <translation>Alt+Return</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="415"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="415"/>
         <source>Zoom In</source>
         <translation>Збільшити</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="417"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="417"/>
         <source>Increase font size</source>
         <translation>Збільшити розмір шрифту</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="420"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="420"/>
         <source>+</source>
         <translation>+</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="422"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="422"/>
         <source>Zoom Out</source>
         <translation>Зменшити</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="424"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="424"/>
         <source>Decrease font size</source>
         <translation>Зменшити розмір шрифту</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="427"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="427"/>
         <source>-</source>
         <translation>-</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="429"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="429"/>
         <source>Table of Contents...</source>
         <translation>Зміст…</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="431"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="431"/>
         <source>Show table of contents</source>
         <translation>Показати зміст книги</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="434"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="434"/>
         <source>F4</source>
         <translation>F4</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="436"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="436"/>
         <source>Recent Books</source>
         <translation>Останні книги</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="438"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="438"/>
         <source>Show recent books list</source>
         <translation>Показати список останніх книг</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="441"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="441"/>
         <source>F5</source>
         <translation>F5</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="443"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="443"/>
         <source>Settings...</source>
         <translation>Налаштування…</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="445"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="445"/>
         <source>Settings dialog</source>
         <translation>Вікно налаштувань</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="448"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="448"/>
         <source>F9</source>
         <translation>F9</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="450"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="450"/>
         <source>Copy</source>
         <translation>Копіювати</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="452"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="452"/>
         <source>Copy selected text</source>
         <translation>Копіювати виділений текст</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="455"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="455"/>
         <source>Ctrl+C</source>
         <translation>Ctrl+C</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="459"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="459"/>
         <source>Copy alternative shortcut</source>
         <translation>Копіювати альтернативний ярлик</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="462"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="462"/>
         <source>Ctrl+Ins</source>
         <translation>Ctrl+Ins</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="464"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="466"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="464"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="466"/>
         <source>About Qt</source>
         <translation>Про Qt</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="468"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="470"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="468"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="470"/>
         <source>About CoolReader</source>
         <translation>Про CoolReader</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="473"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="473"/>
         <source>F1</source>
         <translation>F1</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="475"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="475"/>
         <source>Add Bookmark</source>
         <translation>Додати закладку</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="477"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="477"/>
         <source>Add bookmark</source>
         <translation>Додати закладку</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="480"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="480"/>
         <source>Ctrl+B</source>
         <translation>Ctrl+B</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="482"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="482"/>
         <source>Bookmark List...</source>
         <translation>Список закладок…</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="484"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="484"/>
         <source>Show bookmarks list</source>
         <translation>Показати список закладок</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="487"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="487"/>
         <source>F6</source>
         <translation>F6</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="489"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="489"/>
         <source>File Properties...</source>
         <translation>Властивості файлу…</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="491"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="491"/>
         <source>Show file properties</source>
         <translation>Показати властивості файлу</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="494"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="494"/>
         <source>Ctrl+F1</source>
         <translation>Ctrl+F1</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="496"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="496"/>
         <source>Rotate</source>
         <translation>Повернути</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="498"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="498"/>
         <source>Ctrl+R</source>
         <translation>Ctrl+R</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="500"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="500"/>
         <source>Find text...</source>
         <translation>Знайти текст…</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="502"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="502"/>
         <source>Find text</source>
         <translation>Знайти текст</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="505"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="505"/>
         <source>Ctrl+F</source>
         <translation>Ctrl+F</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="457"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="457"/>
         <source>copy2</source>
         <translation>копія2</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="507"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="507"/>
         <source>Toggle Edit Mode</source>
         <translation>Перемкнути режим редагування</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="509"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="509"/>
         <source>Toggle edit mode</source>
         <translation>Перемкнути режим редагування</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="512"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="512"/>
         <source>Ctrl+E</source>
         <translation>Ctrl+E</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="514"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="514"/>
         <source>Export</source>
         <translation>Експорт</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="516"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="516"/>
         <source>Export document</source>
         <translation>Експортувати документ</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="519"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="519"/>
         <source>Ctrl+S</source>
         <translation>Ctrl+S</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="521"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="523"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="535"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="537"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="521"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="523"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="535"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="537"/>
         <source>Next Page</source>
         <translation>Наступна сторінка</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="526"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="526"/>
         <source>Right</source>
         <translation>Праворуч</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="528"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="530"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="528"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="530"/>
         <source>Previous Page</source>
         <translation>Попередня сторінка</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="533"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="533"/>
         <source>Left</source>
         <translation>Ліворуч</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="540"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="540"/>
         <source>Space</source>
         <translation>Пропуск</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="542"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="542"/>
         <source>Next Sentence</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="544"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="544"/>
         <source>Move selection to next sentence</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="547"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="547"/>
         <source>Ctrl+Right</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="549"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="549"/>
         <source>actionPrevSentence</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="551"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="551"/>
         <source>Select orevious sentence</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_mainwindow.h" line="554"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_mainwindow.h" line="554"/>
         <source>Ctrl+Left</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1283,22 +1283,22 @@ p, li { white-space: pre-wrap; }
         <translation>Справді бажаєте вилучити усі записи історії?</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_recentdlg.h" line="71"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_recentdlg.h" line="70"/>
         <source>Recent Books</source>
         <translation>Нещодавно відкриті книги</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_recentdlg.h" line="72"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_recentdlg.h" line="71"/>
         <source>Remove Item</source>
         <translation>Вилучити елемент</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_recentdlg.h" line="74"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_recentdlg.h" line="73"/>
         <source>Del</source>
         <translation>Del</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_recentdlg.h" line="76"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_recentdlg.h" line="75"/>
         <source>Clear All</source>
         <translation>Очистити усе</translation>
     </message>
@@ -1306,37 +1306,37 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>SearchDialog</name>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_searchdlg.h" line="115"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_searchdlg.h" line="115"/>
         <source>Search</source>
         <translation>Пошук</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_searchdlg.h" line="116"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_searchdlg.h" line="116"/>
         <source>Text</source>
         <translation>Текст</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_searchdlg.h" line="117"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_searchdlg.h" line="117"/>
         <source>Case Sensitive</source>
         <translation>З урахуванням регістру</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_searchdlg.h" line="118"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_searchdlg.h" line="118"/>
         <source>Search forward</source>
         <translation>Шукати вперед</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_searchdlg.h" line="119"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_searchdlg.h" line="119"/>
         <source>Search backward</source>
         <translation>Шукати назад</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_searchdlg.h" line="120"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_searchdlg.h" line="120"/>
         <source>Find Next</source>
         <translation>Знайти наступне</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_searchdlg.h" line="121"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_searchdlg.h" line="121"/>
         <source>Close</source>
         <translation>Закрити</translation>
     </message>
@@ -1369,536 +1369,536 @@ p, li { white-space: pre-wrap; }
         <translation>У ґаздині є їжак. </translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1520"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1519"/>
         <location filename="../settings.cpp" line="967"/>
         <source>Text color</source>
         <translation>Колір тексту</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1524"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1523"/>
         <location filename="../settings.cpp" line="972"/>
         <source>Background color</source>
         <translation>Колір тла</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1464"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1463"/>
         <location filename="../settings.cpp" line="977"/>
         <source>Page header text color</source>
         <translation>Колір тексту заголовку сторінки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1407"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1406"/>
         <source>Settings</source>
         <translation>Налаштування</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1409"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1408"/>
         <source>Window options</source>
         <translation>Налаштування вікна</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1427"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1426"/>
         <source>Window</source>
         <translation>Вікно</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1414"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1413"/>
         <source>Look &amp; feel</source>
         <translation>Оформлення</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1415"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1414"/>
         <source>Startup action</source>
         <translation>Дія при запуску</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1416"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1415"/>
         <source>Open recent book</source>
         <translation>Відкрити останню книгу</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1417"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1416"/>
         <source>Show list of recent books</source>
         <translation>Показати список останніх книг</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1418"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1417"/>
         <source>Show File Open dialog</source>
         <translation>Показати діалог відкриття файлу</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1419"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1418"/>
         <source>Do nothing</source>
         <translation>Нічого не робити</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1421"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1420"/>
         <source>Controls</source>
         <translation>Керування</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1422"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1421"/>
         <source>Show toolbar</source>
         <translation>Показувати панель інструментів</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1423"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1422"/>
         <source>Show menu</source>
         <translation>Показувати меню</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1424"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1423"/>
         <source>Show scroll bar</source>
         <translation>Показувати смугу прокрутки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1425"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1424"/>
         <source>Show status bar</source>
         <translation>Показувати смугу стану</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1426"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1425"/>
         <source>Fullscreen display</source>
         <translation>Повноекранний режим</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1519"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1518"/>
         <source>Page</source>
         <translation>Сторінка</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1428"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1427"/>
         <source>One page</source>
         <translation>Одна сторінка</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1429"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1428"/>
         <source>Two pages</source>
         <translation>Дві сторінки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1430"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1429"/>
         <source>Scroll View</source>
         <translation>Сувій (єдина довга сторінка)</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1432"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1431"/>
         <source>Vew Mode</source>
         <translation>Режим читання</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1433"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1432"/>
         <source>Page margins</source>
         <translation>Поля сторінки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1434"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1483"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1492"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1502"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1512"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1433"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1482"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1491"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1501"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1511"/>
         <location filename="../settings.cpp" line="545"/>
         <location filename="../settings.cpp" line="586"/>
         <source>0</source>
         <translation>0</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1439"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1438"/>
         <source>5</source>
         <translation>5</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1442"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1441"/>
         <source>8</source>
         <translation>8</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1444"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1443"/>
         <source>10</source>
         <translation>10</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1447"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1446"/>
         <source>15</source>
         <translation>15</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1448"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1447"/>
         <source>20</source>
         <translation>20</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1449"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1448"/>
         <source>25</source>
         <translation>25</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1450"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1449"/>
         <source>30</source>
         <translation>30</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1455"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1454"/>
         <source>Show page header</source>
         <translation>Показувати заголовок сторінки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1460"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1459"/>
         <source>Book name</source>
         <translation>Назва книги</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1461"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1460"/>
         <source>Clock</source>
         <translation>Годинник</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1462"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1461"/>
         <source>Battery status</source>
         <translation>Стан батареї</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1463"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1462"/>
         <source>Header font</source>
         <translation>Шрифт заголовку</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1465"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1468"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1470"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1472"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1521"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1525"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1464"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1467"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1469"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1471"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1520"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1524"/>
         <source>Change</source>
         <translation>Змінити</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1466"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1465"/>
         <source>Show footnotes at bottom of page</source>
         <translation>Показувати примітки внизу сторінки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1610"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1609"/>
         <source>Styles</source>
         <translation>Стилі</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1522"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1521"/>
         <source>Text font</source>
         <translation>Шрифт тексту</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1538"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1597"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1537"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1596"/>
         <source>Hyphenation</source>
         <translation>Переноси</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1583"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1582"/>
         <source>Interline spacing</source>
         <translation>Міжрядковий інтервал</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1523"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1522"/>
         <source>Page skin</source>
         <translation>Жупан сторінки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1596"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1595"/>
         <source>Sample</source>
         <translation>Зразок</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1594"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1593"/>
         <source>.TXT files</source>
         <translation>Для файлів .TXT</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1595"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1594"/>
         <source>Disable automatic formatting</source>
         <translation>Вимкнути автоматичне форматування</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1586"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1585"/>
         <source>Floating punctuation</source>
         <translation>Висяча пунктуація</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1587"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1586"/>
         <source>Enable floating punctuation</source>
         <translation>Дозволити висячу пунктуацію</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1540"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1539"/>
         <source>0.3</source>
         <translation>0.3</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1541"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1540"/>
         <source>0.35</source>
         <translation>0.35</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1542"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1541"/>
         <source>0.4</source>
         <translation>0.4</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1543"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1542"/>
         <source>0.45</source>
         <translation>0.45</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1544"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1543"/>
         <source>0.5</source>
         <translation>0.5</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1545"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1544"/>
         <source>0.55</source>
         <translation>0.55</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1546"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1545"/>
         <source>0.6</source>
         <translation>0.6</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1547"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1546"/>
         <source>0.65</source>
         <translation>0.65</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1548"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1547"/>
         <source>0.7</source>
         <translation>0.7</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1549"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1548"/>
         <source>0.75</source>
         <translation>0.75</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1550"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1549"/>
         <source>0.8</source>
         <translation>0.8</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1551"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1550"/>
         <source>0.85</source>
         <translation>0.85</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1552"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1551"/>
         <source>0.9</source>
         <translation>0.9</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1553"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1552"/>
         <source>0.95</source>
         <translation>0.95</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1554"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1553"/>
         <source>0.98</source>
         <translation>0.98</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1555"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1554"/>
         <source>1.0</source>
         <translation>1.0</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1556"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1555"/>
         <source>1.02</source>
         <translation>1.02</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1557"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1556"/>
         <source>1.05</source>
         <translation>1.05</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1558"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1557"/>
         <source>1.1</source>
         <translation>1.1</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1559"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1558"/>
         <source>1.15</source>
         <translation>1.15</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1560"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1559"/>
         <source>1.2</source>
         <translation>1.2</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1561"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1560"/>
         <source>1.25</source>
         <translation>1.25</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1562"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1561"/>
         <source>1.3</source>
         <translation>1.3</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1563"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1562"/>
         <source>1.35</source>
         <translation>1.35</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1564"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1563"/>
         <source>1.4</source>
         <translation>1.4</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1565"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1564"/>
         <source>1.45</source>
         <translation>1.45</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1566"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1565"/>
         <source>1.5</source>
         <translation>1.5</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1567"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1566"/>
         <source>1.6</source>
         <translation>1.6</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1568"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1567"/>
         <source>1.7</source>
         <translation>1.7</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1569"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1568"/>
         <source>1.8</source>
         <translation>1.8</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1570"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1569"/>
         <source>1.9</source>
         <translation>1.9</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1539"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1538"/>
         <source>Font Gamma</source>
         <translation>Гамма шрифту</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1572"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1571"/>
         <source>Font hinting</source>
         <translation>Хінтинг шрифтів</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1573"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1572"/>
         <source>No hinting</source>
         <translation>Без хінтингу</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1574"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1573"/>
         <source>Use bytecode</source>
         <translation>Використовувати байт-код</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1575"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1574"/>
         <source>Autohinting</source>
         <translation>Автохінтинг</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1600"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1599"/>
         <source>Fallback fonts</source>
         <translation>Додаткові шрифти</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1628"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1627"/>
         <source>Stylesheet</source>
         <translation>Таблиця стилів</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1611"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1610"/>
         <location filename="../settings.cpp" line="406"/>
         <source>Default paragraph style</source>
         <translation>Типовий стиль абзацу</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1613"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1612"/>
         <source>Alignment</source>
         <translation>Вирівнювання</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1614"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1613"/>
         <source>First line</source>
         <translation>Перший рядок</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1615"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1614"/>
         <source>Font size</source>
         <translation>Розмір шрифту</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1616"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1615"/>
         <source>Font face</source>
         <translation>Накреслення шрифту</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1599"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1617"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1598"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1616"/>
         <source>Font weight</source>
         <translation>Насиченість шрифту</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1618"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1617"/>
         <source>Font style</source>
         <translation>Стиль шрифту</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1619"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1618"/>
         <source>Font color</source>
         <translation>Колір шрифту</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1620"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1619"/>
         <source>Margins:</source>
         <translation>Відступи:</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1621"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1620"/>
         <source>Before</source>
         <translation>Перед</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1622"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1621"/>
         <source>After</source>
         <translation>Після</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1623"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1622"/>
         <location filename="../settings.cpp" line="494"/>
         <source>Left</source>
         <translation>Ліворуч</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1624"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1623"/>
         <location filename="../settings.cpp" line="496"/>
         <source>Right</source>
         <translation>Праворуч</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1625"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1624"/>
         <source>Interline space</source>
         <translation>Міжрядковий інтервал</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1626"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1625"/>
         <source>Text decoration</source>
         <translation>Оформлення тексту</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1627"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1626"/>
         <source>Vertical align</source>
         <translation>Вертикальне вирівнювання</translation>
     </message>
@@ -2171,7 +2171,7 @@ p, li { white-space: pre-wrap; }
         <translation>Лимонний</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1604"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1603"/>
         <location filename="../settings.cpp" line="701"/>
         <source>Gray</source>
         <translation>Сірий</translation>
@@ -2232,14 +2232,14 @@ p, li { white-space: pre-wrap; }
         <translation>Зеленувато-блакитний</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1456"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1603"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1455"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1602"/>
         <location filename="../settings.cpp" line="757"/>
         <source>None</source>
         <translation>Немає</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1476"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1475"/>
         <location filename="../settings.cpp" line="758"/>
         <source>Underline</source>
         <translation>Підкреслений</translation>
@@ -2270,27 +2270,27 @@ p, li { white-space: pre-wrap; }
         <translation>Верхній індекс</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1589"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1588"/>
         <source>Enable document internal styles</source>
         <translation>Дозволити вбудовані стилі</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1588"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1587"/>
         <source>Internal CSS</source>
         <translation>Внутрішні CSS</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1591"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1590"/>
         <source>Enable document embedded fonts</source>
         <translation>Дозволити вбудовані шрифти</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1590"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1589"/>
         <source>.EPUB</source>
         <translation>Для файлів .EPUB</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1467"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1466"/>
         <location filename="../settings.cpp" line="1242"/>
         <source>Selection color</source>
         <translation>Колір виділення</translation>
@@ -2306,276 +2306,276 @@ p, li { white-space: pre-wrap; }
         <translation>Колір закладки-поправки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1469"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1468"/>
         <source>Comment color</source>
         <translation>Колір коментаря</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1471"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1470"/>
         <source>Correction color</source>
         <translation>Колір поправки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1473"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1472"/>
         <source>Bookmark highlight</source>
         <translation>Підсвічуваня закладки</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1474"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1479"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1488"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1498"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1508"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1473"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1478"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1487"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1497"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1507"/>
         <source>Disabled</source>
         <translation>Вимкнуто</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1475"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1474"/>
         <source>Solid fill</source>
         <translation>Суцільне заповнення</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1478"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1477"/>
         <source>Inline images zoom in</source>
         <translation>Збільшення inline зображень</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1480"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1489"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1499"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1509"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1479"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1488"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1498"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1508"/>
         <source>Integer scale</source>
         <translation>Ціле число раз</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1481"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1490"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1500"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1510"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1480"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1489"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1499"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1509"/>
         <source>Arbitrary scale</source>
         <translation>Довільний масштаб</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1435"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1484"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1493"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1503"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1513"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1434"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1483"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1492"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1502"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1512"/>
         <source>1</source>
         <translation>х1</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1436"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1485"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1494"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1504"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1514"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1435"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1484"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1493"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1503"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1513"/>
         <source>2</source>
         <translation>х2</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1437"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1486"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1495"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1505"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1515"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1436"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1485"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1494"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1504"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1514"/>
         <source>3</source>
         <translation>х3</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1497"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1496"/>
         <source>Block images zoom in</source>
         <translation>Збільшення block зображень</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1507"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1506"/>
         <source>Block images zoom out</source>
         <translation>Зменшення block зображень</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1517"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1516"/>
         <source>Inline images zoom out</source>
         <translation>Зменшення inline зображень</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1518"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1517"/>
         <source>Image scaling options</source>
         <translation>Параметри масштабування зображень</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1438"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1437"/>
         <source>4</source>
         <translation type="unfinished">4</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1440"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1439"/>
         <source>6</source>
         <translation type="unfinished">6</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1441"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1440"/>
         <source>7</source>
         <translation type="unfinished">7</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1443"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1442"/>
         <source>9</source>
         <translation type="unfinished">9</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1445"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1444"/>
         <source>11</source>
         <translation type="unfinished">11</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1446"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1445"/>
         <source>12</source>
         <translation type="unfinished">12</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1451"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1450"/>
         <source>40</source>
         <translation type="unfinished">40</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1452"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1451"/>
         <source>50</source>
         <translation type="unfinished">50</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1453"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1452"/>
         <source>60</source>
         <translation type="unfinished">60</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1584"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1583"/>
         <source>Font kerning</source>
         <translation>шрифт кернінг</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1585"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1584"/>
         <source>Enable font kerning</source>
         <translation type="unfinished">Увімкнено кернінг шрифту</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1457"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1456"/>
         <source>Page header</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1458"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1457"/>
         <source>Page footer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1526"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1525"/>
         <source>Rendering flags</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1527"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1533"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1526"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1532"/>
         <source>Legacy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1528"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1527"/>
         <source>Flat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1529"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1528"/>
         <source>Book</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1530"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1529"/>
         <source>Web (Full)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1532"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1531"/>
         <source>DOM level:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1534"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1533"/>
         <source>Newest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1536"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1535"/>
         <source>Multi languages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1537"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1536"/>
         <source>Support for multilingual documents</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1577"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1576"/>
         <source>Text Shaping</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1578"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1582"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1577"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1581"/>
         <source>Simple (FreeType only, fastest)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1579"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1578"/>
         <source>Light (HarfBuzz without ligatures)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1580"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1579"/>
         <source>Full (HarfBuzz with ligatures)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1592"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1591"/>
         <source>Internal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1593"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1592"/>
         <source>Ignore document margins</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1598"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1597"/>
         <source>Enable hyphenation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1601"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1600"/>
         <source>Manage...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1602"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1601"/>
         <source>Antialiasing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1605"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1604"/>
         <source>LCD (RGB)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1606"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1605"/>
         <source>LCD (BGR)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1607"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1606"/>
         <source>LCD (RGB) vertical</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_settings.h" line="1608"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_settings.h" line="1607"/>
         <source>LCD (BGR) vertical</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2603,7 +2603,7 @@ p, li { white-space: pre-wrap; }
         <translation>Сторінка</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_tocdlg.h" line="67"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_tocdlg.h" line="66"/>
         <source>Table of Contents</source>
         <translation>Зміст</translation>
     </message>
@@ -2611,34 +2611,34 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>WolExportDlg</name>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_wolexportdlg.h" line="89"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_wolexportdlg.h" line="88"/>
         <source>Dialog</source>
         <translation>Діалог</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_wolexportdlg.h" line="90"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_wolexportdlg.h" line="89"/>
         <source>Bits per pixel</source>
         <translation>Біт на піксель</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_wolexportdlg.h" line="91"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_wolexportdlg.h" line="95"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_wolexportdlg.h" line="90"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_wolexportdlg.h" line="94"/>
         <source>1</source>
         <translation>1</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_wolexportdlg.h" line="92"/>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_wolexportdlg.h" line="96"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_wolexportdlg.h" line="91"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_wolexportdlg.h" line="95"/>
         <source>2</source>
         <translation>2</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_wolexportdlg.h" line="94"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_wolexportdlg.h" line="93"/>
         <source>Table of Contents levels</source>
         <translation>Рівнів розділів у змісті</translation>
     </message>
     <message>
-        <location filename="../../../build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/cr3qt/ui_wolexportdlg.h" line="97"/>
+        <location filename="../../../obj-x86_64-linux-gnu/cr3qt/ui_wolexportdlg.h" line="96"/>
         <source>3</source>
         <translation>3</translation>
     </message>

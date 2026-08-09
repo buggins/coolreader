@@ -1,0 +1,9 @@
+cr3 package for Debian
+----------------------
+
+Source code may be downloaded from project's homepage:
+http://sourceforge.net/projects/crengine/
+
+For latest version, use GIT repository:
+git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine 
+

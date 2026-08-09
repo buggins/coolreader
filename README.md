@@ -1,3 +1,53 @@
+# CoolReader (fork with updated Debian packaging)
+
+This is a fork of [buggins/coolreader](https://github.com/buggins/coolreader), the official CoolReader e-book reader project.
+
+## What was changed in this fork
+
+The original Debian packaging files (`packages/ubuntu/debian`) were written around 2012 and targeted a long-obsolete toolchain: Qt4, `libpng12`, `libjpeg62`, and the deprecated `cdbs` build system. They no longer build on modern Debian/Ubuntu-based distributions (build dependencies are unavailable in current repositories).
+
+This fork updates the packaging to work with current tooling:
+
+- **Build system**: migrated from `cdbs` to plain `debhelper` (compat level 13) driving the project's existing CMake build, instead of the old `class/cmake.mk` cdbs module.
+- **Qt version**: switched the build from Qt4 (`GUI=QT`) to Qt5 (`GUI=QT5`), matching current dependency availability.
+- **Dependencies**: updated `debian/control` to current library packages (`libpng-dev`, `libjpeg-dev`, `qtbase5-dev`, `qttools5-dev`, etc.) instead of long-removed ones like `libpng12-0-dev`, `libjpeg62-dev`, `libqt4-dev`.
+- **AppStream metadata**: fixed `cr3.appdata.xml` to pass `appstreamcli validate-tree`:
+  - added a proper `<launchable type="desktop-id">` element (the old bare `<id>` reference is deprecated),
+  - renamed the component ID to reverse-DNS style (`io.github.buggins.coolreader`) and renamed the file to match (`io.github.buggins.coolreader.appdata.xml`),
+  - added `<developer>` and `<content_rating>` elements to clear remaining validator hints.
+- **Misc cleanup**: fixed an invalid weekday in `debian/changelog`, removed the deprecated `debian/menu` file (the `menu` transitional mechanism is no longer used by modern desktop environments).
+
+The resulting package builds cleanly with `debuild -us -uc -b`, installs without missing dependencies, and passes `lintian` with no warnings.
+
+Pre-built `.deb` packages are available on the [Releases page](../../releases).
+
+---
+
+## CoolReader (форк с обновлённой Debian-упаковкой)
+
+Это форк оригинального проекта [buggins/coolreader](https://github.com/buggins/coolreader) — официального читалки электронных книг CoolReader.
+
+## Что изменено в этом форке
+
+Оригинальные файлы Debian-пакета (`packages/ubuntu/debian`) были написаны около 2012 года и рассчитаны на давно устаревший набор инструментов: Qt4, `libpng12`, `libjpeg62` и устаревшую систему сборки `cdbs`. Из-за этого пакет больше не собирается на современных дистрибутивах на базе Debian/Ubuntu — нужные зависимости уже отсутствуют в актуальных репозиториях.
+
+В этом форке упаковка обновлена под современный инструментарий:
+
+- **Система сборки**: переход с `cdbs` на обычный `debhelper` (уровень совместимости 13), который использует уже имеющуюся в проекте сборку через CMake, вместо старого модуля `class/cmake.mk` из cdbs.
+- **Версия Qt**: сборка переведена с Qt4 (`GUI=QT`) на Qt5 (`GUI=QT5`), в соответствии с доступными сейчас зависимостями.
+- **Зависимости**: `debian/control` обновлён под актуальные пакеты библиотек (`libpng-dev`, `libjpeg-dev`, `qtbase5-dev`, `qttools5-dev` и т.д.) вместо давно удалённых, таких как `libpng12-0-dev`, `libjpeg62-dev`, `libqt4-dev`.
+- **AppStream-метаданные**: файл `cr3.appdata.xml` исправлен так, чтобы проходить проверку `appstreamcli validate-tree`:
+  - добавлен корректный элемент `<launchable type="desktop-id">` (старая привязка через голый `<id>` считается устаревшей),
+  - идентификатор компонента переименован в reverse-DNS стиль (`io.github.buggins.coolreader`), файл переименован соответствующим образом (`io.github.buggins.coolreader.appdata.xml`),
+  - добавлены элементы `<developer>` и `<content_rating>` для устранения оставшихся замечаний валидатора.
+- **Прочие правки**: исправлен некорректный день недели в `debian/changelog`, удалён устаревший файл `debian/menu` (переходный механизм `menu` больше не используется современными окружениями рабочего стола).
+
+Итоговый пакет собирается без ошибок командой `debuild -us -uc -b`, устанавливается без недостающих зависимостей и проходит проверку `lintian` без единого предупреждения.
+
+Готовые `.deb`-пакеты доступны на странице [Releases](../../releases).
+
+---
+
 CoolReader 3 - cross platform open source e-book reader
 =======================================================
 

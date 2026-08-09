@@ -29,3 +29,10 @@ cr3gui/data/tessdata/
 /clang-analyzer-reports/
 /thirdparty
 /thirdparty_tmp
+/obj-x86_64-linux-gnu/
+/debian/cr3/
+/debian/cr3-dbgsym/
+/debian/.debhelper/
+/debian/*.substvars
+/debian/files
+/debian/*.debhelper.log
