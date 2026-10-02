@@ -56,6 +56,7 @@ import org.coolreader.crengine.BookmarksDlg;
 import org.coolreader.crengine.BrowserViewLayout;
 import org.coolreader.crengine.CRRootView;
 import org.coolreader.crengine.CRToolBar;
+import org.coolreader.crengine.CRStateFileLogger;
 import org.coolreader.crengine.DeviceInfo;
 import org.coolreader.crengine.DocumentsContractWrapper;
 import org.coolreader.crengine.Engine;
@@ -212,6 +213,10 @@ public class CoolReader extends BaseActivity {
 	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		CRStateFileLogger.init(getApplicationContext());
+		CRStateFileLogger.clear();
+		CRStateFileLogger.appendState("APP_CREATE");
+
 		startServices();
 
 		log.i("CoolReader.onCreate() entered");
@@ -283,6 +288,7 @@ public class CoolReader extends BaseActivity {
 
 	@Override
 	protected void onDestroy() {
+		CRStateFileLogger.appendState("APP_DESTROY");
 
 		log.i("CoolReader.onDestroy() entered");
 		if (!CLOSE_BOOK_ON_STOP && mReaderView != null)
