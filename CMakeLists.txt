@@ -24,6 +24,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/")
 if( ${CMAKE_SYSTEM} MATCHES "Darwin" )
   message("MAC OSX build")
   SET(MAC 1)
+  enable_language(OBJCXX)
 endif( ${CMAKE_SYSTEM} MATCHES "Darwin" )
 
 IF(NOT CMAKE_BUILD_TYPE)

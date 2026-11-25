@@ -30,7 +30,8 @@ SET (CR3_SOURCES
   src/tocdlg.cpp
   src/addbookmarkdlg.cpp  
   src/cr3widget.cpp        
-  src/filepropsdlg.cpp  
+  src/expandedepub.cpp
+  src/filepropsdlg.cpp    
   src/mainwindow.cpp  
   src/settings.cpp
   src/wolexportdlg.cpp
@@ -38,12 +39,15 @@ SET (CR3_SOURCES
   src/searchdlg.cpp
   src/fallbackfontsdialog.cpp
 )
+# lupdate does not parse Objective-C++ cleanly.
+SET(CR3_LUPDATE_SOURCES ${CR3_SOURCES})
 
 if(MAC)
     ADD_DEFINITIONS(-DCR3_DATA_DIR=""
           -DUSE_FONTCONFIG=0
     ${CARBON_CFLAGS}
     )
+    LIST(APPEND CR3_SOURCES src/macosfilepicker.mm)
 ELSEIF (UNIX)
     ADD_DEFINITIONS(-DCR3_DATA_DIR="${CMAKE_INSTALL_PREFIX}/share/cr3/")
 ELSE()
@@ -88,7 +92,7 @@ QT6_ADD_RESOURCES(CR3_RCS src/cr3res.qrc)
 QT6_WRAP_UI(CR3_UI_HDRS ${CR3_UIS})
 QT6_WRAP_CPP(CR3_MOC_SRCS ${CR3_MOC_HDRS})
 IF(LANGUAGE_TS_FILES)
-    QT6_CREATE_TRANSLATION(QM_FILES ${CR3_SOURCES} ${CR3_UI_HDRS} ${LANGUAGE_TS_FILES})
+    QT6_CREATE_TRANSLATION(QM_FILES ${CR3_LUPDATE_SOURCES} ${CR3_UI_HDRS} ${LANGUAGE_TS_FILES})
 ENDIF(LANGUAGE_TS_FILES)
 
 ELSEIF( ${GUI} STREQUAL QT5 )
@@ -98,7 +102,7 @@ QT5_ADD_RESOURCES(CR3_RCS src/cr3res.qrc)
 QT5_WRAP_UI(CR3_UI_HDRS ${CR3_UIS})
 QT5_WRAP_CPP(CR3_MOC_SRCS ${CR3_MOC_HDRS})
 IF(LANGUAGE_TS_FILES)
-    QT5_CREATE_TRANSLATION(QM_FILES ${CR3_SOURCES} ${CR3_UI_HDRS} ${LANGUAGE_TS_FILES})
+    QT5_CREATE_TRANSLATION(QM_FILES ${CR3_LUPDATE_SOURCES} ${CR3_UI_HDRS} ${LANGUAGE_TS_FILES})
 ENDIF(LANGUAGE_TS_FILES)
 
 ELSE()
@@ -107,7 +111,7 @@ QT4_ADD_RESOURCES(CR3_RCS src/cr3res.qrc)
 QT4_WRAP_UI(CR3_UI_HDRS ${CR3_UIS})
 QT4_WRAP_CPP(CR3_MOC_SRCS ${CR3_MOC_HDRS})
 IF(LANGUAGE_TS_FILES)
-    QT4_CREATE_TRANSLATION(QM_FILES ${CR3_SOURCES} ${CR3_UI_HDRS} ${LANGUAGE_TS_FILES})
+    QT4_CREATE_TRANSLATION(QM_FILES ${CR3_LUPDATE_SOURCES} ${CR3_UI_HDRS} ${LANGUAGE_TS_FILES})
 ENDIF(LANGUAGE_TS_FILES)
 
 ENDIF()
@@ -185,7 +189,7 @@ IF(MAC)
     message("Qt libs = ${QT_LIBRARIES}")
 #    SET(FRAMEWORKS "-framework ApplicationServices -framework Carbon -framework AppKit")
 #/Developer/Qt/lib/libQtCore.a /Developer/Qt/lib/libQtGui.a ${FRAMEWORKS} 
-    SET (EXTRA_LIBS ${QT_LIBRARIES} ${STD_LIBS} )
+    SET (EXTRA_LIBS ${QT_LIBRARIES} ${STD_LIBS} "-framework AppKit" )
 #${QT_LIBRARIES} 
 ELSE()
     SET (EXTRA_LIBS ${STD_LIBS} ${QT_LIBRARIES} ${Qt5Core_LIBRARIES} ${Qt5Widgets_LIBRARIES} )
