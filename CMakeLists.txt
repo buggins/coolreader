@@ -251,6 +251,7 @@ FIND_PACKAGE(PNG)
 endif (NOT MSVC AND NOT CR3_PNG)
 
 if (NOT PNG_FOUND)
+  SET(CR3_USING_BUNDLED_PNG TRUE)
   message("System LIBPNG not found, will build local one\n")
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIR})
   SET(PNG_SHARED OFF CACHE BOOL "Build libpng as a shared library." FORCE)
@@ -281,6 +282,28 @@ if (NOT JPEG_FOUND)
   SET(JPEG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${REPO_LIBJPEG_SRCDIR} CACHE PATH "" FORCE)
   SET(JPEG_LIBRARIES jpeg)
 endif (NOT JPEG_FOUND)
+
+# On macOS, CMake's default search path can pick up old png.h/jpeglib.h from
+# Mono.framework while finding the Homebrew libraries.  Keep the system headers
+# and libraries from the same prefix, otherwise libpng aborts with a version
+# mismatch (e.g. "built with 1.4.12 but running with 1.6.59") and covers/images
+# silently fail to decode.
+if (APPLE AND NOT MAC_LEGACY_DEPS AND NOT CR3_USING_BUNDLED_PNG)
+  find_path(CR3_HOMEBREW_PNG_INCLUDE_DIR png.h
+    PATHS /opt/homebrew/include /usr/local/include NO_DEFAULT_PATH)
+  if (CR3_HOMEBREW_PNG_INCLUDE_DIR)
+    SET(PNG_PNG_INCLUDE_DIR "${CR3_HOMEBREW_PNG_INCLUDE_DIR}" CACHE PATH "" FORCE)
+    SET(PNG_INCLUDE_DIR "${CR3_HOMEBREW_PNG_INCLUDE_DIR}" CACHE PATH "" FORCE)
+    SET(PNG_INCLUDE_DIRS "${CR3_HOMEBREW_PNG_INCLUDE_DIR}")
+    message("Using PNG headers from ${CR3_HOMEBREW_PNG_INCLUDE_DIR}")
+  endif()
+  find_path(CR3_HOMEBREW_JPEG_INCLUDE_DIR jpeglib.h
+    PATHS /opt/homebrew/include /usr/local/include NO_DEFAULT_PATH)
+  if (CR3_HOMEBREW_JPEG_INCLUDE_DIR)
+    SET(JPEG_INCLUDE_DIR "${CR3_HOMEBREW_JPEG_INCLUDE_DIR}" CACHE PATH "" FORCE)
+    message("Using JPEG headers from ${CR3_HOMEBREW_JPEG_INCLUDE_DIR}")
+  endif()
+endif()
 
 if (NOT MSVC AND NOT CR3_FREETYPE)
 FIND_PACKAGE(Freetype 2.10.0)
