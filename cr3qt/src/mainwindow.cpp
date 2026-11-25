@@ -37,6 +37,10 @@
 #include <QTranslator>
 #include <QLibraryInfo>
 #include <QMessageBox>
+#include <QStringList>
+#if MAC==1
+#include "macosfilepicker.h"
+#endif
 #include "settings.h"
 #include "tocdlg.h"
 #include "recentdlg.h"
@@ -102,7 +106,9 @@ MainWindow::MainWindow(QWidget *parent)
 #else
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/cr3/");
 #endif
-#ifdef _LINUX
+#if MAC==1
+    QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/../Resources/");
+#elif defined(_LINUX)
     QString exeDir = QString(CR3_DATA_DIR);
 #else
     QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
@@ -252,7 +258,13 @@ void MainWindow::on_actionOpen_triggered()
     if ( files.length()>0 ) {
         lastPath = cr2qt( files[0]->getFilePath() );
     }
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open book file"),
+    QString fileName;
+#if MAC==1
+    // Use the native panel on macOS: QFileDialog::getOpenFileName() cannot
+    // return a directory, and Apple Books stores EPUBs as expanded folders.
+    fileName = cr3MacOpenBookFileName(this, tr("Open book file"), lastPath);
+#else
+    fileName = QFileDialog::getOpenFileName(this, tr("Open book file"),
          lastPath,
          QString(tr("All supported formats")) + QString(" (*.fb2 *.fb3 *.txt *.tcr *.rtf *.odt *.doc *.docx *.epub *.html *.shtml *.htm *.chm *.zip *.pdb *.pml *.prc *.pml *.mobi);;")
                 + QString(tr("FB2 books")) + QString(" (*.fb2 *.fb2.zip);;")
@@ -267,6 +279,7 @@ void MainWindow::on_actionOpen_triggered()
                 + QString(tr("MOBI files")) + QString(" (*.mobi *.prc *.azw);;")
                 + QString(tr("PalmDOC files")) + QString(" (*.pdb *.pml);;")
                 + QString(tr("ZIP archives")) + QString(" (*.zip)"));
+#endif
     if ( fileName.length()==0 )
         return;
     if ( !ui->view->loadDocument( fileName ) ) {

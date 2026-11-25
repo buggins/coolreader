@@ -443,11 +443,11 @@ public:
     }
     /// called on element attribute
     virtual void OnAttribute( const lChar32 * nsname, const lChar32 * attrname, const lChar32 * attrvalue ) {
-        CR_UNUSED2(nsname, attrvalue);
+        CR_UNUSED(nsname);
         if (!lStr_cmp(attrname, "URI") && insideCipherReference)
-            insideEncryption = false;
+            uri = lString32(attrvalue);
         else if (!lStr_cmp(attrname, "Algorithm") && insideEncryptionMethod)
-            insideEncryptedData = false;
+            algorithm = lString32(attrvalue);
     }
     /// called on text
     virtual void OnText( const lChar32 * text, int len, lUInt32 flags ) {
@@ -526,9 +526,11 @@ public:
         n << name;
         for (int i=0; i<_list.length(); i++) {
             lString32 s = _list[i]->_uri;
-            if (s[0]!='/' && s[i]!='\\')
+            if (s.empty())
+                continue;
+            if (s[0]!='/' && s[0]!='\\')
                 s = "/" + s;
-            if (_list[i]->_uri == s)
+            if (s == n)
                 return _list[i];
         }
         return NULL;

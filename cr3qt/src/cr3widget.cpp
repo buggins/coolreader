@@ -28,6 +28,7 @@
 #include "../crengine/include/props.h"
 #include "cr3widget.h"
 #include "crqtutil.h"
+#include "expandedepub.h"
 #include "qpainter.h"
 #include "settings.h"
 #include "addbookmarkdlg.h"
@@ -517,7 +518,26 @@ bool CR3View::loadDocument( QString fileName )
 {
     _docview->savePosition();
     clearSelection();
-    bool res = _docview->LoadDocument( qt2cr(fileName).c_str() );
+
+    QString physicalFileName = fileName;
+    QString expandedEpubError;
+    const bool isExpandedEpub = cr3IsExpandedEpub(fileName);
+    if ( isExpandedEpub ) {
+        physicalFileName = cr3PrepareEpubFile(fileName, expandedEpubError);
+        if ( physicalFileName.isEmpty() ) {
+            QString message = tr("Error while opening document ") + fileName;
+            if ( !expandedEpubError.isEmpty() )
+                message += ": " + expandedEpubError;
+            _docview->createDefaultDocument(lString32::empty_str, qt2cr(message));
+            update();
+            return false;
+        }
+    }
+
+    // Keep Apple Books' original directory in history/bookmarks while the
+    // engine reads the transparently generated ZIP EPUB.
+    _docview->setOriginalFilename(isExpandedEpub ? qt2cr(fileName) : lString32::empty_str);
+    bool res = _docview->LoadDocument( qt2cr(physicalFileName).c_str() );
     if ( res ) {
         CRPropRef props = _docview->propsGetCurrent();
         if (props->getBoolDef(PROP_TEXTLANG_EMBEDDED_LANGS_ENABLED, false)) {

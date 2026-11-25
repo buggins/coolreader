@@ -1,4 +1,10 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
+
+# Several bundled third-party projects still declare cmake_minimum_required(3.0).
+# CMake 4+ refuses those unless this minimum is relaxed for their subprojects.
+if(NOT DEFINED CMAKE_POLICY_VERSION_MINIMUM)
+  set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+endif()
 
 # Bundled third-party targets are configured in sibling directories and are
 # linked together from this top-level fallback logic.
@@ -18,6 +24,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/")
 if( ${CMAKE_SYSTEM} MATCHES "Darwin" )
   message("MAC OSX build")
   SET(MAC 1)
+  enable_language(OBJCXX)
 endif( ${CMAKE_SYSTEM} MATCHES "Darwin" )
 
 IF(NOT CMAKE_BUILD_TYPE)
@@ -59,6 +66,15 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic -std=c++11 -fPIC -Wno-misleading-indentation -Wno-reorder -Wno-format-overflow")
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fomit-frame-pointer")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fomit-frame-pointer")
+endif()
+
+# Modern macOS builds use Homebrew/system libraries (like Linux) instead of
+# the Qt4-era static third-party copies. Keep the old path opt-in.
+option(CR3_LEGACY_MAC_QT "Use obsolete bundled Qt4 third-party libraries on macOS" OFF)
+if(MAC AND NOT CR3_LEGACY_MAC_QT)
+  set(MAC_LEGACY_DEPS 0)
+else()
+  set(MAC_LEGACY_DEPS 1)
 endif()
 
 if (NOT DEFINED GUI)
@@ -147,7 +163,12 @@ endif (NOT DEFINED ENABLE_DBUS_VIEWER_EVENTS)
 
 SET (CRGUI_DEFS -DCOLOR_BACKBUFFER=0 -DLDOM_USE_OWN_MEM_MAN=0 -DGRAY_BACKBUFFER_BITS=${GRAY_BACKBUFFER_BITS}
 	  -DENABLE_DBUS_VIEWER_EVENTS=${ENABLE_DBUS_VIEWER_EVENTS})
-SET (DESKTOP_DEFS -DCOLOR_BACKBUFFER=1 -DLDOM_USE_OWN_MEM_MAN=1 -DUSE_FREETYPE=1 )
+if(MAC)
+  # CREngine's custom allocator trips over optimized string handling on Apple Silicon.
+  SET (DESKTOP_DEFS -DCOLOR_BACKBUFFER=1 -DLDOM_USE_OWN_MEM_MAN=0 -DUSE_FREETYPE=1 )
+else()
+  SET (DESKTOP_DEFS -DCOLOR_BACKBUFFER=1 -DLDOM_USE_OWN_MEM_MAN=1 -DUSE_FREETYPE=1 )
+endif()
 # Uncomment to test e-ink style color palette on Desktop
 #SET (DESKTOP_DEFS -DCOLOR_BACKBUFFER=0 -DGRAY_BACKBUFFER_BITS=4 -DLDOM_USE_OWN_MEM_MAN=1 -DUSE_FREETYPE=1 )
 
@@ -183,7 +204,7 @@ endif(NOT NANOSVG_INCLUDE_DIR)
 ADD_DEFINITIONS(-DUSE_NANOSVG=1)
 INCLUDE_DIRECTORIES(${NANOSVG_INCLUDE_DIR})
 
-if (MAC)
+if (MAC_LEGACY_DEPS)
   message("will use zlib, libpng, libjpeg, freetype from Qt static library")
   SET(ZLIB_INCLUDE_DIR ${QT_3RDPARTY_DIR}/zlib)
   SET(ZLIB_LIBRARIES )
@@ -193,9 +214,9 @@ if (MAC)
   SET(FREETYPE_LIBRARIES )
   SET(JPEG_INCLUDE_DIR ${QT_3RDPARTY_DIR}/libjpeg)
   SET(JPEG_LIBRARIES )
-endif(MAC)
+endif(MAC_LEGACY_DEPS)
 
-if (NOT MAC)
+if (NOT MAC_LEGACY_DEPS)
 if (DEFINED USE_QT_ZLIB)
   SET(ZLIB_INCLUDE_DIR ${QT_INCLUDE_DIR}/../src/3rdparty/zlib)
   message("Using QT ZLIB ${USE_QT_ZLIB} include dir: ${ZLIB_INCLUDE_DIR}\n")
@@ -221,16 +242,17 @@ if (NOT ZLIB_FOUND)
   endif()
 endif (NOT ZLIB_FOUND)
 endif(DEFINED USE_QT_ZLIB)
-endif(NOT MAC)
+endif(NOT MAC_LEGACY_DEPS)
 
 if (NOT ${GUI} STREQUAL FB2PROPS )
-if (NOT MAC)
+if (NOT MAC_LEGACY_DEPS)
 
 if (NOT MSVC AND NOT CR3_PNG)
 FIND_PACKAGE(PNG)
 endif (NOT MSVC AND NOT CR3_PNG)
 
 if (NOT PNG_FOUND)
+  SET(CR3_USING_BUNDLED_PNG TRUE)
   message("System LIBPNG not found, will build local one\n")
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIR})
   SET(PNG_SHARED OFF CACHE BOOL "Build libpng as a shared library." FORCE)
@@ -261,6 +283,28 @@ if (NOT JPEG_FOUND)
   SET(JPEG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${REPO_LIBJPEG_SRCDIR} CACHE PATH "" FORCE)
   SET(JPEG_LIBRARIES jpeg)
 endif (NOT JPEG_FOUND)
+
+# On macOS, CMake's default search path can pick up old png.h/jpeglib.h from
+# Mono.framework while finding the Homebrew libraries.  Keep the system headers
+# and libraries from the same prefix, otherwise libpng aborts with a version
+# mismatch (e.g. "built with 1.4.12 but running with 1.6.59") and covers/images
+# silently fail to decode.
+if (APPLE AND NOT MAC_LEGACY_DEPS AND NOT CR3_USING_BUNDLED_PNG)
+  find_path(CR3_HOMEBREW_PNG_INCLUDE_DIR png.h
+    PATHS /opt/homebrew/include /usr/local/include NO_DEFAULT_PATH)
+  if (CR3_HOMEBREW_PNG_INCLUDE_DIR)
+    SET(PNG_PNG_INCLUDE_DIR "${CR3_HOMEBREW_PNG_INCLUDE_DIR}" CACHE PATH "" FORCE)
+    SET(PNG_INCLUDE_DIR "${CR3_HOMEBREW_PNG_INCLUDE_DIR}" CACHE PATH "" FORCE)
+    SET(PNG_INCLUDE_DIRS "${CR3_HOMEBREW_PNG_INCLUDE_DIR}")
+    message("Using PNG headers from ${CR3_HOMEBREW_PNG_INCLUDE_DIR}")
+  endif()
+  find_path(CR3_HOMEBREW_JPEG_INCLUDE_DIR jpeglib.h
+    PATHS /opt/homebrew/include /usr/local/include NO_DEFAULT_PATH)
+  if (CR3_HOMEBREW_JPEG_INCLUDE_DIR)
+    SET(JPEG_INCLUDE_DIR "${CR3_HOMEBREW_JPEG_INCLUDE_DIR}" CACHE PATH "" FORCE)
+    message("Using JPEG headers from ${CR3_HOMEBREW_JPEG_INCLUDE_DIR}")
+  endif()
+endif()
 
 if (NOT MSVC AND NOT CR3_FREETYPE)
 FIND_PACKAGE(Freetype 2.10.0)
@@ -323,7 +367,13 @@ endif(NOT MSVC)
 
 
 if (NOT MSVC)
-	find_package(libunibreak 4.0)
+  # Homebrew ships libunibreak 8+, which removed the LineBreakProperties API
+  # used by CREngine. Prefer the compatible bundled release when present.
+  if (MAC AND EXISTS "${CMAKE_SOURCE_DIR}/thirdparty/${REPO_LIBUNIBREAK_SRCDIR}")
+    message("Using bundled libunibreak (system version may lack required API)")
+  else()
+    find_package(libunibreak 4.0)
+  endif()
 endif(NOT MSVC)
 
 if (NOT LIBUNIBREAK_FOUND)
@@ -357,7 +407,7 @@ else()
 	set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_UTF8PROC=0)
 endif (UTF8PROC_FOUND)
 
-endif (NOT MAC)
+endif (NOT MAC_LEGACY_DEPS)
 
 #if (ENABLE_CHM)
 message("Will build patched LIBCHM library\n")

@@ -1,3 +1,13 @@
+# Apple Silicon / Apple Books fork
+
+This fork adds a native arm64 Qt 6 build and direct support for Apple Books
+expanded `.epub` folders. See [README.apple-silicon.md](README.apple-silicon.md)
+for build and usage notes, or the
+[v3.2.59-apple-silicon.1 release](https://github.com/mattwaltbriggs/coolreader/releases/tag/v3.2.59-apple-silicon.1)
+for a ready-made `cr3.app`.
+
+The notes below are the original upstream README.
+
 CoolReader 3 - cross platform open source e-book reader
 =======================================================
 
