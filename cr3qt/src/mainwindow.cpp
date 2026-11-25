@@ -102,7 +102,9 @@ MainWindow::MainWindow(QWidget *parent)
 #else
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/cr3/");
 #endif
-#ifdef _LINUX
+#if MAC==1
+    QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/../Resources/");
+#elif defined(_LINUX)
     QString exeDir = QString(CR3_DATA_DIR);
 #else
     QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();

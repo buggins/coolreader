@@ -178,6 +178,10 @@ int main(int argc, char *argv[])
         lString32 exedir = LVExtractPath(exename);
         lString32 datadir = lString32(CR3_DATA_DIR);
         LVAppendPathDelimiter(exedir);
+#ifdef MAC
+        // The app bundle keeps shared data in Contents/Resources.
+        datadir = exedir + "../Resources/";
+#endif
         LVAppendPathDelimiter(datadir);
         lString32 exefontpath = exedir + "fonts";
         CRLog::info("main()");
@@ -226,7 +230,7 @@ int main(int argc, char *argv[])
         {
             QApplication a(argc, argv);
 #if MAC == 1
-            QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/Contents/Resources/"); //QDir::separator();
+            QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/../Resources/"); //QDir::separator();
             QString translations = exeDir + "i18n";
 #else
 #if defined(_WIN32)
